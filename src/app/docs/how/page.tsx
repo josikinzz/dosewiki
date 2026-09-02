@@ -177,9 +177,9 @@ const SECTION_PROMPTS = [
 const PIPELINE_DIAGRAM = `graph TD
   SITES["Source pages: 10 sites<br/>(internal working copies;<br/>full list in section 01)"]:::ext
   PARSE["Deterministic parsers<br/>dosage, duration, interactions,<br/>chemistry, legal tables"]:::auto
-  EXTRACT["Verbatim excerpt extraction<br/>8 topics; a model selects source blocks,<br/>a script copies them out unchanged"]:::auto
+  EXTRACT["Verbatim excerpt extraction<br/>8 topics; an LLM selects source blocks,<br/>a script copies them out unchanged"]:::auto
   QUOTES[("Excerpt documents<br/>one per AI-written section")]:::data
-  SYNTH["Section synthesis<br/>Claude Opus + one prompt<br/>per section, excerpts only"]:::auto
+  SYNTH["Section synthesis<br/>an LLM + one prompt<br/>per section, excerpts only"]:::auto
   REVIEW["Editorial review<br/>status: needed, in progress,<br/>or completed"]:::human
   DB[("Article database<br/>(drafts)")]:::data
   CITE["Citation pass<br/>markers proposed for<br/>the six citable sections"]:::auto
@@ -220,7 +220,7 @@ const LEGALITY_DIAGRAM = `graph TD
   MERGE["Merge · validate · copy-edit<br/>one legality draft, fixed status vocabulary,<br/>encyclopedia-register rewrite"]:::auto
   WRITE["Human-confirmed write<br/>dry-run diff → explicit confirmation<br/>→ production write"]:::human
   CITED["Citation stage<br/>per-entry references with<br/>verbatim supporting quotes"]:::auto
-  PAGE["Published legality section<br/>entries carry cite markers;<br/>unverified legacy claims flagged, never deleted"]:::pub
+  PAGE["Published legality section<br/>entries carry cite markers;<br/>unsourced legacy claims flagged, never deleted"]:::pub
 
   PACKET --> CITEPASS
   PACKET --> DISC
@@ -391,7 +391,7 @@ function Method({ tone, children }: { tone?: StageTone; children: ReactNode }) {
 // title. `comma` renders "section 04, Verbatim excerpts" for use inside an
 // existing parenthetical; the default renders "section 04 (Verbatim excerpts)".
 const SECTION_TITLES = {
-  made: { num: "00", title: "What's in an article" },
+  made: { num: "00", title: "What is in an article" },
   sources: { num: "01", title: "The ten source sites" },
   pipeline: { num: "02", title: "The pipeline at a glance" },
   parsing: { num: "03", title: "Scraping & parsing" },
@@ -447,56 +447,73 @@ export default async function DocsHowPage() {
           </h1>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
             Each substance article here combines four methods: deterministic code
-            parses the numbers, language models draft prose from verbatim source excerpts,
-            people review and curate, and allied projects feed in their own data live. The
-            automated pipeline compiles what is already published across the web into
-            one place; humans review, correct, and build on that
-            foundation. This page documents the whole machine end to end,
-            including the exact prompts it runs, so you can judge the articles by how they
-            are made instead of taking our word for it. dose.wiki is in beta, and every
-            article is a living document; <SectionRef s="status" /> records what is
-            finished, what is running, and what is planned.
+            parses the numbers, an LLM drafts prose from verbatim source excerpts,
+            people review and curate, and allied projects feed in their own data live.
+          </p>
+          <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
+            The automated pipeline exists to set a baseline: the same floor of coverage
+            and sourcing for every substance at once, compiled from what is already
+            published across the web. It produced the first draft of every article.
+            Humans then build on that baseline with corrections and curated additions
+            that the pipeline cannot supply. Each article&apos;s status shows how far
+            above the floor the article has moved. This page documents every stage of
+            that pipeline, including the exact prompts it runs. Readers can judge the
+            articles by their method of production. dose.wiki is in beta, and every article is a
+            living document. <SectionRef s="status" cap /> records what is finished,
+            what is running, and what is planned.
           </p>
         </header>
 
         <section id="made" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
-          <span className={SECTION_NUM_CLASS}>00</span>{" "}What&apos;s in an article, and who makes it
+          <span className={SECTION_NUM_CLASS}>00</span>{" "}What is in an article, and who makes it
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          A substance article is not one document with one origin. Each section is produced
-          by the method suited to its content: tables of numbers are transcribed by code and
-          never paraphrased by a model, narrative sections are drafted by a model from
-          word-for-word source excerpts, and judgment calls such as classification trees,
-          editorial notes, and review stay with people.
+          Each section of a substance article is made by the method that suits its
+          content. Code transcribes tables of numbers, and an LLM
+          never paraphrases them. An LLM drafts narrative sections from word-for-word source
+          excerpts. People keep the judgment calls: classification trees, editorial notes,
+          and review.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          Two kinds of outside material feed the site. Archived reference pages, captured
-          once and processed by the pipeline below. And living data read from allied
-          projects on their own terms: effect listings link into the Subjective Effect
-          Index, the taxonomy Josie Kins created on Disregard Everything I Say in 2011;
-          interaction ratings map directly from TripSit&apos;s drug-combination research;
-          and reagent colors come from protestkit.eu&apos;s API at the moment you open the
-          page. Trip reports are first-person accounts written by people, imported with
-          attribution from the Effect Index corpus. And replications, the image and video
-          recreations of subjective effects shown in articles and the gallery, are human
-          artwork: made by the replications community and by artists who have submitted
-          work to Josie Kins over the years, hosted as education on subjective-effect
-          documentation and credited to their creators.
+          Two kinds of outside material feed the site. The first is archived reference
+          pages, which are captured once and processed by the pipeline below. The second
+          is live data read from allied projects on their own terms:
+        </p>
+        <ul className={`${LIST_CLASS} mt-3 list-disc pl-5`}>
+          <li>
+            Effect listings link into the Subjective Effect Index, the taxonomy that Josie
+            Kins created on Disregard Everything I Say in 2011.
+          </li>
+          <li>
+            Interaction ratings map directly from TripSit&apos;s drug-combination research.
+          </li>
+          <li>
+            Reagent colors come from protestkit.eu&apos;s API at the moment you open the
+            page.
+          </li>
+        </ul>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          Trip reports are first-person accounts written by people. They are imported with
+          attribution from the Effect Index corpus. Replications are the image and video
+          recreations of subjective effects shown in articles and the gallery. They are
+          human artwork, made by the replications community and by artists who have sent
+          work to Josie Kins over the years. The site hosts them as education on
+          subjective-effect documentation and credits their creators.
         </p>
 
         <div className={LEGEND_CLASS}>
           <div className={LEGEND_ITEM_CLASS}>
-            <StageSwatch tone="source" /> AI-synthesized from excerpts
+            <StageSwatch tone="source" /> AI-synthesized from excerpts (baseline)
           </div>
           <div className={LEGEND_ITEM_CLASS}>
-            <StageSwatch tone="automated" /> Parsed by code
+            <StageSwatch tone="automated" /> Parsed by code (baseline)
           </div>
           <div className={LEGEND_ITEM_CLASS}>
             <StageSwatch tone="published" /> Live API
           </div>
           <div className={LEGEND_ITEM_CLASS}>
-            <StageSwatch tone="review" /> Manual / curated
+            <StageSwatch tone="review" /> Manual / curated (built on the baseline)
           </div>
         </div>
 
@@ -518,7 +535,7 @@ export default async function DocsHowPage() {
                   <Method tone="source">AI-synthesized</Method>
                 </td>
                 <td className="p-3">
-                  50&ndash;80 word overview written by Claude Opus from the intro-text
+                  50&ndash;80 word overview written by an LLM from the intro-text
                   excerpts, under the summary prompt (readable in <SectionRef s="synthesis" />).
                 </td>
               </tr>
@@ -576,9 +593,12 @@ export default async function DocsHowPage() {
                   <Method>Mixed</Method>
                 </td>
                 <td className="p-3">
-                  Restored Josie Kins versions where they exist, otherwise synthesized from
-                  other sources with her own projects excluded. Every effect links into the
-                  Subjective Effect Index.
+                  Where Josie Kins wrote the original effect list for a substance, that
+                  list is restored as she wrote it. Otherwise the list is built from her
+                  effect taxonomy and the subjective-effects excerpts, with her own projects
+                  excluded as sources. Excerpts only fill documented gaps and never overwrite
+                  an existing list (<SectionRef s="synthesis" />). Every effect links into
+                  the Subjective Effect Index.
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -588,7 +608,7 @@ export default async function DocsHowPage() {
                 </td>
                 <td className="p-3">
                   Mechanism-of-action prose written from the pharmacology excerpts under the
-                  pharmacology prompt, the strictest and longest of the prompts.
+                  pharmacology prompt, the longest of the prompts.
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -626,10 +646,11 @@ export default async function DocsHowPage() {
                   <Method tone="source">AI-synthesized</Method>
                 </td>
                 <td className="p-3">
-                  Country-by-country legal status from the legality excerpts, since rebuilt
-                  against primary legal sources by the deep-research workflow
-                  (<SectionRef s="citations" />). Code also prepopulates the structured
-                  legal fields where sources state them plainly.
+                  Country-by-country legal status, now rebuilt entry by entry against
+                  primary legal sources by the deep-research workflow
+                  (<SectionRef s="citations" />). The first draft came from the legality
+                  excerpts like the other AI-written sections. Code also prepopulates the
+                  structured legal fields where sources state them plainly.
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -660,7 +681,7 @@ export default async function DocsHowPage() {
                 </td>
                 <td className="p-3">
                   References and markers proposed by LLM research agents for the six citable
-                  sections, then re-verified by the entailment audit
+                  sections, then re-examined by the entailment audit
                   (<SectionRef s="citations" />).
                 </td>
               </tr>
@@ -682,13 +703,13 @@ export default async function DocsHowPage() {
                 </td>
                 <td className="p-3">
                   Image and video recreations of subjective effects, made by the
-                  replications community and by artists who have submitted work to Josie
-                  Kins over the years, much of it preserved through the Effect Index
-                  archive. Editors hand-curate each article&apos;s replication showcase.
-                  Externally sourced pieces are hosted under fair use as education on
-                  subjective-effect documentation, credited with source links where known;
-                  rights stay with the artists (see the{" "}
-                  <a href="/docs/license" className={proseLinkClassName}>license page</a>).
+                  replications community and by artists who have sent work to Josie Kins
+                  over the years. The Effect Index archive preserved much of it. Editors
+                  hand-curate each article&apos;s replication showcase. Each piece is
+                  credited with a source link where known. Rights stay with the artists.
+                  The{" "}
+                  <a href="/docs/license" className={proseLinkClassName}>license page</a>{" "}
+                  covers the hosting terms.
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -715,10 +736,9 @@ export default async function DocsHowPage() {
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           The working copies were captured in December 2025, and the pipeline reads the
-          copy, not the live page. A source site can change after our capture; new
-          captures, new sources, and reader corrections land through the stages in{" "}
-          <SectionRef s="status" />, so read this list as a snapshot with a date, not a
-          live mirror.
+          copy. A source site can change after our capture, so this list is a dated
+          snapshot. Improvement after that date comes from editors, the citation
+          workflows, and reader reports (<SectionRef s="status" />).
         </p>
 
         <ContentCard padding="none" className={`${TABLE_WRAP_CLASS} mt-6`}>
@@ -858,7 +878,7 @@ export default async function DocsHowPage() {
                   </small>
                 </td>
                 <td className="p-3">
-                  Archived in the source corpus, but no parser reads them yet. They feed no
+                  Archived with the working copies, but no parser reads them yet. They feed no
                   article content.
                 </td>
                 <td className="p-3">
@@ -875,16 +895,18 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          The source pages flow through two tracks that run in parallel. The deterministic
-          track parses structured data such as dosage tables and interaction matrices. The
-          AI track turns the prose parts of the sources into excerpt documents, then into
-          draft sections.
+          Of the four methods in <SectionRef s="made" />, the two automated ones run as
+          parallel tracks over the source pages. The deterministic track parses structured
+          data such as dosage tables and interaction matrices. The AI track turns the prose
+          parts of the sources into excerpt documents, then into draft sections. The human
+          and live-API methods sit outside this pipeline and act on its output.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          Both tracks fill one draft article. The citation, audit, and review workflows
-          then keep working on it after publication, adding markers, evidence records,
-          corrections, and status metadata. Published coverage varies by article, so the
-          diagram describes the intended relationships rather than a publication gate.
+          Both tracks fill one draft article. After publication, the citation, audit, and
+          review workflows continue to work on the article. They add markers, evidence
+          records, corrections, and status metadata. Published coverage varies by article. The
+          diagram describes the intended relationships between stages, and articles
+          publish before every stage has run.
         </p>
 
         <div className={LEGEND_CLASS}>
@@ -917,9 +939,9 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          dose.wiki scraped the source sites once, in December 2025, and stored them as
-          plain-text working copies, one per substance. These are internal processing
-          material only (<SectionRef s="sources" comma />).
+          dose.wiki scraped the source sites once and stored them as plain-text working
+          copies, one per substance. These are internal processing material only, and{" "}
+          <SectionRef s="sources" /> gives the capture date.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           From there, deterministic parsers read that text and extract the structured data:
@@ -940,15 +962,23 @@ export default async function DocsHowPage() {
               TripSit factsheets and PsychonautWiki carry the most structured data: dose
               tiers (threshold / light / common / strong / heavy) per route of
               administration and onset / peak / offset durations. The parsers read these
-              tables directly and transcribe the numbers as published. Selecting one
-              source&apos;s numbers when sources disagree is not the parser&apos;s job; it
-              happens later, when the parsed tables are merged into the article. That merge
-              applies the lowest-upper-bound rule: among weight-unit sources it keeps the
-              entry with the lowest comparable upper bound (heavy minimum when present,
-              otherwise strong maximum, then strong minimum, then common maximum),
-              tie-broken toward the source that fills more dose tiers; when no source gives
+              tables directly and transcribe the numbers as published. The parser does not
+              choose between sources that disagree. The merge step does that later, when
+              the parsed tables enter the article.
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
+              The merge applies the lowest-upper-bound rule. Among weight-unit sources, it
+              keeps the entry with the lowest comparable upper bound. The comparison value
+              is the heavy minimum when the source gives one. If not, it falls back to the
+              strong maximum, then the strong minimum, then the common maximum. If two
+              sources tie, the source that fills more dose tiers wins. If no source gives
               weight units, a fixed source-priority order decides. This is a deliberate
-              safety bias: underdosing is the safer error.
+              safety bias, because underdosing is the safer error.
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
+              A worked example: if one source lists a heavy oral dose starting at 25 mg and
+              another lists it starting at 35 mg, the article takes the 25 mg source&apos;s
+              whole table for that route.
             </p>
           </DisclosureCard>
           <DisclosureCard
@@ -980,8 +1010,9 @@ export default async function DocsHowPage() {
             <p className={PROSE_CLASS}>
               Erowid, Isomer Design, SaferParty, The Drug Classroom, Disregard Everything I
               Say, and the Drug Users Bible contribute mostly narrative text. Their parsers
-              identify and label the relevant passages, which then feed the
-              excerpt-extraction stage (<SectionRef s="excerpts" />).
+              do not judge relevance. They split each page into labeled sections and blocks
+              so that the extraction stage (<SectionRef s="excerpts" />) can address them.
+              The LLM decides which blocks matter.
             </p>
           </DisclosureCard>
         </div></section>
@@ -991,9 +1022,9 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          The source articles are long, and most of any given page is irrelevant to any one
-          section. Before any writing happens, an extraction pass reads every source
-          article and copies out the passages relevant to each topic, word for word.
+          The source pages are long, and most of any page is irrelevant to any one section.
+          Before any writing happens, an extraction pass reads every working copy and
+          copies the passages relevant to each topic, word for word.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           Nothing is paraphrased, summarized, or reworded. An excerpt document holds exact
@@ -1006,39 +1037,38 @@ export default async function DocsHowPage() {
 
         <div className="mt-6 space-y-8">
           <div>
-            <h3 className={SUBHEAD_CLASS}>The model never types the text</h3>
+            <h3 className={SUBHEAD_CLASS}>The LLM never types the text</h3>
             <p className={PROSE_CLASS}>
-              Each source document is first split into numbered blocks (paragraphs, list
-              items, table rows, headings), and the model reads that block-indexed version.
+              Each working copy is first split into numbered blocks (paragraphs, list
+              items, table rows, headings), and the LLM reads that block-indexed version.
               It replies with nothing but the ids of the blocks to keep. A script then
               copies those blocks out of the source character for character and assembles
-              the excerpt file. Because the model never emits source text, it has no
+              the excerpt document. Because the LLM never emits source text, it has no
               opportunity to alter it.
-            </p>
-            <p className={`${PROSE_CLASS} mt-3`}>
-              We built it the other way first, and it did not hold. Asking a model to
-              reproduce a passage is asking it to re-type the passage, and re-typing is
-              where drift enters. One batch of 47 files turned an &quot;antihistamine&quot;
-              into an &quot;antihistaminic&quot;, dropped a &quot;however,&quot;, and
-              shortened an organization&apos;s name by two words. These are small edits,
-              easy to miss, in text whose only job is to be an exact copy. Selecting blocks
-              instead of transcribing them removes the opportunity rather than warning
-              against it.
-            </p>
-          </div>
-          <div>
-            <h3 className={SUBHEAD_CLASS}>Checked afterwards, not trusted</h3>
-            <p className={PROSE_CLASS}>
-              A verbatim audit then reads every finished excerpt file. The audit is a
-              script, with no model involved. It requires each passage to appear in the
-              staged source, under the same source heading, as an exact substring. A file
-              that drifts is rejected rather than passed onward.
             </p>
             <p className={`${PROSE_CLASS} mt-3`}>
               Every source keeps its heading in the output even when it yielded nothing.
               Those headings carry a marker line such as <em>No tolerance content
               found.</em>, which keeps &quot;we looked and there was nothing&quot; distinct
               from &quot;this source was skipped&quot;.
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
+              We built it the other way first, and it did not hold. When an LLM reproduces
+              a passage, it re-types the passage, and drift enters in the re-typing. One
+              batch of 47 files turned an &quot;antihistamine&quot; into an
+              &quot;antihistaminic&quot;, dropped a &quot;however,&quot;, and shortened
+              the name of an organization by two words. These are small edits, easy to
+              miss, in text whose only job is to be an exact copy. Block selection removes
+              the opportunity for drift, where a warning in the prompt only described it.
+            </p>
+          </div>
+          <div>
+            <h3 className={SUBHEAD_CLASS}>Audited after extraction</h3>
+            <p className={PROSE_CLASS}>
+              A verbatim audit then reads every finished excerpt document. The audit is a
+              script, with no LLM involved. The audit requires that each passage appears
+              in the working copy, under the same source heading, as an exact substring.
+              The audit rejects a file that drifts.
             </p>
           </div>
           <div>
@@ -1076,9 +1106,11 @@ export default async function DocsHowPage() {
           files the pipeline runs.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          One model (gpt-5.6-terra, invoked through{" "}
-          <code>codex exec</code>) gets one call per substance and topic, and the harness
-          appends the block-selection contract to whichever prompt it is running.
+          An LLM gets one call per substance and topic, and the harness appends the
+          block-selection contract to whichever prompt it is running. We do not name the
+          model here, because it changes as better models appear. The LLM only selects
+          block ids and never emits source text. A change of model cannot change the
+          wording of an excerpt. It can only change which passages are kept.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           The eight share one skeleton: hard verbatim rules, an input format, and
@@ -1091,7 +1123,7 @@ export default async function DocsHowPage() {
           Each prompt below
           still carries an &quot;Output format&quot; section describing an excerpt file.
           The contract replaces those sections at run time. A prompt defines what counts as
-          relevant for its topic. The harness owns what the model actually returns, which
+          relevant for its topic. The harness owns what the LLM actually returns, which
           is a list of block ids and nothing else.
         </p>
 
@@ -1103,7 +1135,7 @@ export default async function DocsHowPage() {
           <p className={PROMPT_META_CLASS}>
             The harness appends this text to all eight prompts, replacing{" "}
             <code>{"{{TOPIC}}"}</code> with the topic name. This is the instruction that
-            makes the excerpts verbatim. The model names blocks, and a script copies them
+            makes the excerpts verbatim. The LLM names blocks, and a script copies them
             out.
           </p>
           <PromptBody label="The block-selection contract, appended after every prompt below">
@@ -1134,11 +1166,11 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           Six sections of the finished article are AI-written end to end: summary,
           pharmacology, tolerance, harm potential, history &amp; culture, and legality.
-          Claude Opus writes each one from exactly two inputs: the excerpt document for
-          that topic, and a section-specific prompt. (A maintainer detail: each
-          section&apos;s model is pinned in its batch runner under{" "}
-          <code>scripts/batch/</code>, and most runners honor an{" "}
-          <code>OPENROUTER_MODEL</code> override.)
+          An LLM writes each one from exactly two inputs: the excerpt document for that
+          topic, and a section-specific prompt. The model differs by section and changes over
+          time, so this page does not name one. What stays fixed is
+          the contract: excerpts in, original prose out, under the prompts published
+          below.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           The two remaining excerpt topics, dosage &amp; duration and subjective effects,
@@ -1156,10 +1188,10 @@ export default async function DocsHowPage() {
           <div>
             <h3 className={SUBHEAD_CLASS}>Evidence only</h3>
             <p className={PROSE_CLASS}>
-              The prompts instruct the model to include only information explicitly stated
-              or clearly implied in the supplied quotes, and to omit information it cannot
-              verify there. <SectionRef s="limits" cap /> covers what this rule can and
-              cannot ensure.
+              The prompts instruct the LLM to include only information explicitly stated
+              or clearly implied in the supplied quotes, and to omit information that it cannot
+              find there. The limits of that rule are stated once, in{" "}
+              <SectionRef s="limits" />.
             </p>
           </div>
           <div>
@@ -1167,8 +1199,8 @@ export default async function DocsHowPage() {
             <p className={PROSE_CLASS}>
               &quot;Synthesize information from the provided excerpts into original prose.
               Do not copy sentences or lengthy phrases verbatim from any source.&quot; The
-              verbatim text exists only in the internal excerpt documents. What gets
-              published is a new piece of writing, held in place by that evidence.
+              verbatim text exists only in the internal excerpt documents. The published
+              text is new writing, anchored to that evidence.
             </p>
           </div>
         </div>
@@ -1176,13 +1208,15 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-7`}>
           The section prompts for all six fully AI-written sections appear below, largest
           first. This page reads them from <code>src/data/config/sectionPrompts/</code>{" "}
-          when it builds. Those files are the seeds the editorial team&apos;s live copies
-          are migrated from, and <code>npm run prompts:compare</code> reports any drift
-          between the two.
+          when it builds. Two copies of each prompt exist. The committed file is shown here.
+          The editorial team can edit a live copy, and generation runs use that live copy.
+          The live copies were seeded from these files. A comparison script reports any
+          drift between the two. The copy that produced a given article can differ from
+          the copy printed here.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          The pharmacology and harm potential prompts are the fastest way to see how much
-          of each section&apos;s quality comes from the prompt rather than the model.
+          The pharmacology and harm potential prompts show how much of a section&apos;s
+          quality comes from the prompt itself.
         </p>
 
         {SECTION_PROMPTS.map((prompt) => (
@@ -1200,8 +1234,8 @@ export default async function DocsHowPage() {
 
         <p className={`${PROSE_CLASS} mt-7`}>
           The prompts are part of the project. They are version-controlled alongside the
-          code, and the live copies are editable by the editorial team. Improving a prompt
-          changes future generation runs that use it. The citation and legality workflows
+          code, and the live copies are editable by the editorial team. When a prompt
+          improves, future generation runs that use it change. The citation and legality workflows
           carry their own prompt families; those live in the repository under{" "}
           <code>scripts/citations/</code> and <code>scripts/legality/</code> and are not
           yet published on this page.
@@ -1214,24 +1248,30 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           The six AI-written sections are the citable sections: the ones that can carry
           Wikipedia-style markers linked to a reference list. Structured and excluded
-          sections use separate provenance and review paths. Citation work has run in
+          sections use separate provenance and review paths. Citation work runs in
           three passes: a marking pass that proposed the markers, a legality rebuild that
-          set a stricter standard, and an entailment audit now re-verifying everything
+          set a stricter standard, and an entailment audit that now re-examines everything
           against that standard.
+        </p>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          On an article today, the markers are live, and most of them come from pass one. Legality markers come from pass two. Until the
+          audit in pass three records a verdict for a pair, a marker means &quot;proposed
+          by a research agent and structurally valid&quot;, not &quot;checked to support
+          this sentence&quot;.
         </p>
 
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass one: proposing markers</h3>
         <p className={PROSE_CLASS}>
-          LLM research agents read the citable prose, choose bounded claims that may need
-          support, inspect candidate sources, and record the relationship they believe each
-          source supports. Coverage is intentionally conservative: a marker should appear
-          only when inspected evidence supports a useful nearby claim, and uncertain
-          relationships stay internal gaps rather than public promises.
+          LLM research agents read the citable prose and choose bounded claims that can
+          need support. They inspect candidate sources and record the relationship they
+          believe each source supports. Coverage is conservative. A marker appears only
+          when inspected evidence supports a nearby claim. Uncertain relationships are
+          recorded as internal gaps and get no marker.
         </p>
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <PipelineStep num={1} name="Identify claims" tone="automated">
-            Research agents inspect the citable prose and choose bounded claims that may
+            Research agents inspect the citable prose and choose bounded claims that can
             need support
           </PipelineStep>
           <div className={PIPELINE_ARROW_CLASS}>→</div>
@@ -1264,7 +1304,7 @@ export default async function DocsHowPage() {
         >
           <ul className={`${LIST_CLASS} list-disc pl-5`}>
             <li>
-              <strong>Wikis are discovery sources, not final references.</strong> The
+              <strong>Wikis are discovery sources only.</strong> The
               workflow uses Wikipedia and PsychonautWiki to find candidates, while final
               references are intended to be inspectable journals, government documents,
               drug labels, books, or databases.
@@ -1275,9 +1315,10 @@ export default async function DocsHowPage() {
               separate documents remain separate during review.
             </li>
             <li>
-              <strong>Access limitations stay visible.</strong> A paywalled paper may be
-              used when its accessible abstract supports the relevant claim; the record
-              notes <em>abstract-only</em> access so reviewers know what was inspected.
+              <strong>Access limitations stay visible.</strong> If the accessible abstract
+              of a paywalled paper supports the claim, the workflow can use that paper. The
+              record notes <em>abstract-only</em> access so that reviewers know what was
+              inspected.
             </li>
           </ul>
         </DisclosureCard>
@@ -1292,21 +1333,21 @@ export default async function DocsHowPage() {
 
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass two: legality set the standard</h3>
         <p className={PROSE_CLASS}>
-          Legality is the hardest section to keep correct. Drug law changes often, differs
-          by country, and most online summaries cite other summaries. So the legality
+          Legality is the section most likely to become outdated, because drug law changes
+          often, differs by country, and most online summaries cite other summaries. So the legality
           section got its own deep-research workflow, separate from the main pipeline. It
           reads primary legal sources only: statutes, official schedules, and government
           legislation portals.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          One orchestrator agent runs the workflow for one substance at a time, launching
-          many small research agents in parallel; each starts with a blank context, one
-          narrow question, and a strict output contract. Research and refutation are never
-          the same agent: every surviving claim faces an independent blank-context refuter,
-          and a refuted claim becomes a recorded gap or re-enters research for at most two
-          recovery cycles. The diagram below walks the full sequence, from export packet
-          through the cite, discovery, gap, and correction passes to the US state pass,
-          merge, and human-confirmed write.
+          One orchestrator agent runs the workflow for one substance at a time. It launches
+          many small research agents in parallel. Each agent starts with a blank context,
+          one narrow question, and a strict output contract. Research and refutation are
+          never the same agent. Every surviving claim faces an independent blank-context
+          refuter. A refuted claim becomes a recorded gap, or it re-enters research for at
+          most two recovery cycles. The diagram below shows the full sequence, from export
+          packet through the cite, discovery, gap, and correction passes to the US state
+          pass, merge, and human-confirmed write.
         </p>
 
         <div className={LEGEND_CLASS}>
@@ -1348,7 +1389,7 @@ export default async function DocsHowPage() {
             <li>Research and refutation are always separate blank-context agents.</li>
             <li>A human confirms every write.</li>
             <li>
-              Unverifiable legacy claims are flagged <em>citation needed</em>, never
+              Legacy claims that cannot be sourced are flagged <em>citation needed</em>, never
               silently edited or deleted.
             </li>
           </ul>
@@ -1356,17 +1397,16 @@ export default async function DocsHowPage() {
 
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass three: the entailment audit</h3>
         <p className={PROSE_CLASS}>
-          The legality loop (validate what can be validated,
-          cite what a primary source supports, hunt targeted sources for the rest, and
-          correct or remove what cannot be sourced) is being extended to the other citable
-          sections as an automated campaign that re-verifies each claim&ndash;citation pair
-          against a fresh fetch of the cited source. A marker stays only when the source
-          entails the claim as written. Otherwise the marker is removed and the sentence
-          shows a visible <em>citation needed</em> indicator instead of borrowing authority
-          from a reference that does not support it. Safety-sensitive pairs additionally
-          face an independent adversarial re-check before any change is accepted, with the
-          same separation between blank-context research, adversarial refutation, and
-          human-confirmed writes. <SectionRef s="status" cap /> tracks its progress.
+          The legality loop has four steps: validate what can be validated, cite what a
+          primary source supports, hunt for sources for the rest, and correct or remove
+          what cannot be sourced. That loop now extends to the other citable sections as
+          an automated campaign. The campaign audits each claim&ndash;citation pair against
+          a fresh fetch of the cited source. A marker stays only when the source entails
+          the claim as written. Otherwise the audit removes the marker, and the sentence
+          shows a visible <em>citation needed</em> indicator. Safety-sensitive pairs also
+          face an independent adversarial re-check before the audit accepts any change.
+          The campaign keeps the invariants listed under pass two. <SectionRef s="status" cap /> tracks the progress of the
+          audit.
         </p></section>
 
         <section id="review" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
@@ -1374,19 +1414,27 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          Editorial review is a recorded human workflow. A reviewer reads the article,
-          follows the sources relevant to the review, checks important claims, records
-          uncertainty rather than assuming coverage, and corrects the text through the
-          editor&apos;s normal diff and save workflow. A separate review action then stores
-          status, reviewer identity, and completion time.
+          Editorial review is the first stage specific to one article. Everything before
+          this point was produced for every substance at once. From here on, a named
+          person does the work.
+        </p>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          Readers take part in this stage. The report-an-issue form at the bottom of
+          each article sends a note to the review queue. An editor reads each note and
+          decides whether the article changes. Reader reports are the main way that
+          errors reach a reviewer before a scheduled review.
+        </p>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          Editorial review is a recorded human workflow with four steps.
         </p>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          Each article shows this as a three-step Article Status: automated
-          synthesis builds the foundation (step 1), the editorial review described
-          here checks the essentials (step 2), and a later citation review (step 3),
-          tracked as its own workflow (<SectionRef s="citations" />), checks every
-          claim against its source. No article has had its citation review yet.
+          Each article shows this as a three-step Article Status. Step 1 is automated
+          synthesis, which builds the foundation. Step 2 is the editorial review described
+          here. Step 3 is a human citation review that checks every claim against its
+          source. Step 3 is the human pass planned as Phase 4 in{" "}
+          <SectionRef s="status" />, not the automated entailment audit before it. No
+          article has a completed citation review yet.
         </p>
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -1394,7 +1442,7 @@ export default async function DocsHowPage() {
             A reviewer reads the article and follows the sources relevant to the review
           </PipelineStep>
           <div className={PIPELINE_ARROW_CLASS}>→</div>
-          <PipelineStep num={2} name="Verify" tone="review">
+          <PipelineStep num={2} name="Check" tone="review">
             The reviewer checks important claims and records uncertainty rather than
             assuming coverage
           </PipelineStep>
@@ -1419,13 +1467,11 @@ export default async function DocsHowPage() {
           review was marked complete.
         </p>
         <p className={`${PROSE_CLASS} mt-5`}>
-          Editorial review and citation verification are <strong>separate tracks</strong>.
-          The editorial reviewer reads and corrects the article text, while citation
-          markers are attached and re-verified by the citation workflows
-          (<SectionRef s="citations" />) under their own recorded states. An
-          editorial-review credit therefore does not assert that the article&apos;s
-          citations were verified. <SectionRef s="limits" cap /> spells out what a
-          completed status does and does not establish.
+          The editorial reviewer reads and corrects the article text. The citation
+          workflows (<SectionRef s="citations" />) attach and audit citation markers
+          under their own recorded states, separate from editorial review.{" "}
+          <SectionRef s="limits" cap /> spells out what a completed status does and does
+          not establish.
         </p></section>
 
         <section id="limits" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
@@ -1434,12 +1480,12 @@ export default async function DocsHowPage() {
 
         <p className={`${PROSE_CLASS} mt-4`}>
           The workflows above reduce error without eliminating it. This section
-          collects the limits in one place, stated once, so the rest of the page does not
+          collects the limits in one place so that the rest of the page does not
           have to hedge every sentence.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
-          <strong>A source link is not a citation.</strong> Source-page links document material
+          <strong>Source links record influence only.</strong> Source-page links document material
           that informed the pipeline. They do not, by themselves, show that a source
           supports a particular sentence. Citation markers record the separate, intended
           evidentiary relationships between claims and references, and{" "}
@@ -1449,39 +1495,38 @@ export default async function DocsHowPage() {
           <strong>Citation evidence can be wrong.</strong> A marker records a quote and a
           rationale. Until the entailment audit records a verdict for a pair, a marker does
           not prove entailment, source quality, or current accuracy. Important claims still
-          require human verification against the cited source.
+          need a human check against the cited source.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          <strong>Workflow controls are not guarantees.</strong> Prompts, validators,
+          <strong>Workflow controls have limits.</strong> Prompts, validators,
           citation evidence, and editorial review reduce error and make decisions
           inspectable. They cannot guarantee that prose is complete, that a citation
           entails every nearby phrase, or that information remains current.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          <strong>A completed review is a record, not a warranty.</strong> Completed means
+          <strong>A completed review is a dated record.</strong> Completed means
           a human editor recorded a review at a point in time. It does not certify every
-          sentence, dose, interaction, citation, or legal conclusion, and the status
-          does not pin the exact article revision reviewed: later edits can
-          make an older completion record stale without changing its stored status.
+          sentence, dose, interaction, citation, or legal conclusion. The status does
+          not pin the exact article revision that was reviewed. Later edits can make an
+          older completion record stale, and the stored status does not change.
           Citation states (including the visible <em>citation needed</em>{" "}
           indicator) are
           workflow records, never the reviewer&apos;s personal claims.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          <strong>The corpus has a date.</strong>{" "}
-          The source working copies were captured
-          in December 2025, and the pipeline reads the copy, not today&apos;s live page.
-          Source sites keep evolving after capture; re-scrapes and new sources land through
-          the stages in <SectionRef s="status" />.
+          <strong>The working copies have a date.</strong>{" "}
+          The pipeline reads working copies captured on the date given in{" "}
+          <SectionRef s="sources" />. Source sites keep evolving after capture, and the
+          baseline is never re-captured. Later accuracy comes from the human and citation
+          stages in <SectionRef s="status" />.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          <strong>Models make mistakes.</strong> The verbatim-excerpt rule exists because
-          a model re-typing source text can hallucinate: a changed digit or an invented
-          phrase can slip in unnoticed (<SectionRef s="excerpts" />). So models never
+          <strong>LLMs make mistakes.</strong> The verbatim-excerpt rule exists because
+          an LLM that re-types source text can hallucinate: a changed digit or an invented
+          phrase can slip in unnoticed (<SectionRef s="excerpts" />). So LLMs never
           transcribe, and drafts are held to their excerpt documents. Synthesis can still
-          misweigh, over-generalize, or omit. Generated or edited content is expected to
-          return through the citation and review workflows rather than being treated as
-          final.
+          misweigh or omit evidence. Generated or edited content is never final, because
+          it returns through the citation and review workflows.
         </p>
 
         <p className={`${PROSE_CLASS} mt-6`}>
@@ -1495,13 +1540,13 @@ export default async function DocsHowPage() {
 
         <p className={PULL_CLASS}>
           dose.wiki is in <strong>beta</strong>. Every article is a living document:
-          generated, verified, and corrected in public, in stages that are still running.
+          generated, checked, and corrected in public, in stages that still run.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
-          Read this site stage by stage: some verification work is finished, some is
-          running now, and some is planned. This section records where each stage stands
-          as of <strong>August 31, 2026</strong>.
+          Work on the baseline runs in stages. Some are finished, one is running now, and
+          the rest are planned. This section records where each stands as of{" "}
+          <strong>August 31, 2026</strong>.
         </p>
 
         <ContentCard padding="none" className={`mt-6 ${DIVIDED_LIST_CLASS}`}>
@@ -1513,11 +1558,11 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              Scraping, verbatim excerpt extraction, AI synthesis, and claim-level
-              citations across the archival sources. This is the pipeline sections{" "}
+              The baseline is complete for every article: verbatim excerpt extraction, AI
+              synthesis, and claim-level citations across the working copies. Sections{" "}
               <a href="#pipeline" className={proseLinkClassName}>02</a> through{" "}
-              <a href="#citations" className={proseLinkClassName}>06</a> describe, with
-              every pipeline prompt published on this page.
+              <a href="#citations" className={proseLinkClassName}>06</a> describe this
+              pipeline. Every pipeline prompt is published on this page.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
@@ -1529,10 +1574,10 @@ export default async function DocsHowPage() {
             </div>
             <p className={PROSE_CLASS}>
               The country-by-country deep research in <SectionRef s="citations" />.
-              Existing legality entries were validated against statutes and official
-              schedules where possible; remaining claims got targeted primary-source
-              hunts; entries that survived were cited, and entries that could not be
-              sourced were corrected, removed, or flagged <em>citation needed</em>.
+              The workflow validated existing legality entries against statutes and
+              official schedules where possible. Remaining claims got targeted
+              primary-source hunts. Entries that survived were cited. Entries that could
+              not be sourced were corrected, removed, or flagged <em>citation needed</em>.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
@@ -1544,8 +1589,8 @@ export default async function DocsHowPage() {
             </div>
             <p className={PROSE_CLASS}>
               The legality process, generalized to the other citable sections
-              (<SectionRef s="citations" />): every claim&ndash;citation pair gets
-              re-verified against a fresh fetch of its source. Done when every pair
+              (<SectionRef s="citations" />): the audit re-examines every claim&ndash;citation pair
+              against a fresh fetch of its source. Done when every pair
               carries a recorded verdict.
             </p>
           </div>
@@ -1557,9 +1602,9 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              A recorded human pass over the audit&apos;s output: working through
-              surviving pairs and the <em>citation needed</em> backlog, replacing or
-              restoring sources by hand. This will be tracked separately from editorial
+              A recorded human pass over the audit&apos;s output. A person works through
+              the surviving pairs and the <em>citation needed</em> backlog and replaces or
+              restores sources by hand. The site tracks this pass separately from editorial
               review (<SectionRef s="review" />), so each carries its own status and its
               own named scope. Done when every surviving pair and every flagged entry
               carries a recorded human disposition.
@@ -1573,9 +1618,11 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              Articles are never finished. New sources, reader reports, replication
-              evidence, and corrections keep landing, and any regenerated or edited
-              content is expected to return through the verification stages above.
+              Editor corrections, reports sent through the article feedback form,
+              replication evidence, and curated additions continue to build on the
+              baseline indefinitely. Any
+              regenerated or edited content returns through the audit and review stages
+              above.
             </p>
           </div>
         </ContentCard></section>
@@ -1587,21 +1634,18 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           This pipeline produces more than public pages. It produces{" "}
           <code>SubstanceIndex.json</code>: the full substance database in one consistent
-          schema and one downloadable file. The download is a published snapshot, cut when
-          the dataset is exported; the article database itself keeps moving between
-          snapshots.
+          schema and one downloadable file. The download is a snapshot, made when the dataset
+          is exported. The article database continues to change between snapshots.
         </p>
 
         <p className={PULL_CLASS}>
-          Publishing the dataset is a goal in itself, not a side effect of running the
-          website.
+          The published dataset is a goal in itself.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
           Researchers, developers, educators, and community projects can download the
-          corpus, examine its structure, fork it, and build on it. Nobody has to rebuild a
-          harm-reduction encyclopedia from scratch to get better tools around the same
-          knowledge.
+          dataset and build on it, without rebuilding a harm-reduction encyclopedia
+          first.
         </p>
 
         <div className="mt-6 space-y-8">
@@ -1609,20 +1653,20 @@ export default async function DocsHowPage() {
             <h3 className={SUBHEAD_CLASS}>The public prose is new writing</h3>
             <p className={PROSE_CLASS}>
               Verbatim source text stays in internal excerpt files, like research notes.
-              Published article prose is drafted with instructions not to copy source
-              wording, and the citation and editorial workflows can identify support
-              problems or wording that needs correction. Copyright protects expression,
-              not facts; dose.wiki uses its own wording, schema, and article structure
-              without treating that originality as evidence that a claim is accurate.
+              Published article prose is drafted under instructions not to copy source
+              wording. The citation and editorial workflows can identify support problems
+              or wording that needs correction. Facts are not copyrightable, and
+              dose.wiki uses its own wording, schema, and article structure for the expression.
             </p>
           </div>
           <div>
             <h3 className={SUBHEAD_CLASS}>The reusable parts are CC0</h3>
             <p className={PROSE_CLASS}>
-              dose.wiki-authored writing, structured data, schema work, generated molecule
-              assets, and report-form submissions whose contributors accept CC0 terms are
-              dedicated to the public domain under CC0. Anyone can share, adapt, or build
-              on them, commercially or not, with no attribution required. Legacy trip
+              These parts are dedicated to the public domain under CC0: dose.wiki-authored
+              writing, structured data, schema work, generated molecule assets, and
+              report-form submissions whose contributors accept CC0 terms. Anyone can
+              share, adapt, or build on them, commercially or not, with no attribution
+              required. Legacy trip
               reports, TripSit data, protestkit.eu data, and media with separate rights
               keep their own terms. The{" "}
               <a href="/docs/license" className={proseLinkClassName}>license page</a>{" "}
@@ -1656,7 +1700,7 @@ export default async function DocsHowPage() {
             <div>
               <div className="flex items-center gap-2">
                 <Icon icon="lucide:code" size={18} className="theme-accent-heading shrink-0" />
-                <h3 className={SUBHEAD_BASE_CLASS}>Curious how the site itself is built?</h3>
+                <h3 className={SUBHEAD_BASE_CLASS}>How the site itself is built</h3>
               </div>
               <p className={`${NOTE_CLASS} mt-2`}>
                 This page covers article production. For the codebase, architecture, data

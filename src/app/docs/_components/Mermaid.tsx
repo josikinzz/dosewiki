@@ -7,11 +7,13 @@ import { useEffect, useRef, useState } from "react";
  * as a string and rendered client-side; mermaid + the ELK layout engine are
  * lazy-loaded so they only ship in the /docs route chunk.
  *
- * Theming mirrors the original self-contained explainer docs: the `base` theme
- * with hand-tuned light/dark `themeVariables`, plus a post-render pass that
- * forces every label to one high-contrast colour (mermaid's own class/attribute
- * colouring is inconsistent across node fills), plus a light-mode remap of the
- * shared classDef palette (see LIGHT_PALETTE below).
+ * Theming: the `base` theme with hand-tuned light/dark `themeVariables`, a
+ * light-mode remap of the shared classDef palette (see LIGHT_PALETTE below),
+ * and a post-render pass (applySiteStyling) that rounds nodes, adds the site's
+ * drop shadow, splits each label into a bold title row and muted description
+ * rows, restyles edge labels as chips, and enlarges arrowheads. Mermaid's own
+ * class/attribute colouring is inconsistent across node fills, so label
+ * colours come from the site text tokens with !important.
  *
  * Promotion note: this is currently docs-local. If a second surface needs
  * diagrams, promote it to the shared kit (src/components/ui) and register a
@@ -55,10 +57,16 @@ function themeConfig(isDark: boolean) {
     theme: "base" as const,
     look: "classic" as const,
     securityLevel: "strict" as const,
-    flowchart: { htmlLabels: false, nodeSpacing: 64, rankSpacing: 84, padding: 28 },
+    flowchart: {
+      htmlLabels: false,
+      curve: "basis" as const,
+      nodeSpacing: 44,
+      rankSpacing: 60,
+      padding: 18,
+    },
     themeVariables: {
-      fontFamily: "'Inter', system-ui, sans-serif",
-      fontSize: "17px",
+      fontFamily: "var(--font-family-body)",
+      fontSize: "15px",
       primaryColor: isDark ? "#15263e" : "#e1eefa",
       primaryBorderColor: isDark ? "#7dd3fc" : "#0c6aa6",
       primaryTextColor: isDark ? "#ece8f6" : "#2b2140",
@@ -69,6 +77,7 @@ function themeConfig(isDark: boolean) {
       tertiaryBorderColor: isDark ? "#6ee7b7" : "#047857",
       tertiaryTextColor: isDark ? "#ece8f6" : "#2b2140",
       lineColor: isDark ? "#a79ec4" : "#6f6390",
+      edgeLabelBackground: isDark ? "#1f1530" : "#f3ecf6",
       clusterBkg: isDark ? "rgba(255,255,255,0.04)" : "rgba(58,30,80,0.03)",
       clusterBorder: isDark ? "rgba(255,255,255,0.18)" : "rgba(58,30,80,0.22)",
     },
@@ -108,21 +117,100 @@ function isDarkTheme(): boolean {
   return document.documentElement.dataset.theme !== "light";
 }
 
-/** Force every diagram label to one high-contrast colour for the active theme. */
-function enforceLabelContrast(svg: SVGElement, isDark: boolean) {
-  const textColor = isDark ? "#ece8f6" : "#2b2140";
+// Geometry shared with the site's card primitives. Mermaid draws square-cornered
+// 1px boxes and grey edge-label blocks by default; this pass restyles the SVG so
+// the diagram reads as the same material as the cards around it.
+const NODE_RADIUS = 10;
+const CHIP_PAD_X = 10;
+const CHIP_PAD_Y = 4;
+const MARKER_SCALE = 1.35;
+const DIAGRAM_MAX_WIDTH = "min(100%, 800px)";
+
+function svgStyleSheet(isDark: boolean): string {
+  const shadow = isDark
+    ? "drop-shadow(0 8px 14px rgba(0, 0, 0, 0.32))"
+    : "drop-shadow(0 6px 12px rgba(58, 30, 80, 0.12))";
+  const lineColor = isDark ? "#a79ec4" : "#6f6390";
+  return [
+    // Node shells: rounded, soft stroke, one upper-left-lit drop shadow.
+    `.node .basic{stroke-width:1.25px !important;stroke-opacity:0.78;filter:${shadow};}`,
+    // Node labels: bold title row, muted description rows.
+    ".node .label text{font-family:var(--font-family-body);}",
+    ".node .label tspan.text-outer-tspan{fill:var(--theme-text-primary) !important;}",
+    ".node .label tspan.title-row{font-weight:600;}",
+    ".node .label tspan.desc-row{fill:var(--theme-text-muted) !important;font-size:0.9em;}",
+    // Edges: slightly heavier, muted accent, larger heads (scaled below).
+    `.edgePath path.path,.flowchart-link{stroke:${lineColor} !important;stroke-width:1.6px !important;stroke-linecap:round;}`,
+    // Dotted edges (`-.->`) ship as a 3px bead pattern; use a real dash instead.
+    ".edgePath path.edge-pattern-dotted,.flowchart-link.edge-pattern-dotted{stroke-dasharray:8 7 !important;stroke-linecap:butt;}",
+    `marker path{fill:${lineColor} !important;stroke:${lineColor} !important;}`,
+    // Edge labels: small-caps chips on the theme's soft surface.
+    ".edgeLabel rect{opacity:1 !important;fill:var(--theme-surface-soft) !important;stroke:var(--theme-border-subtle) !important;stroke-width:1px;}",
+    ".edgeLabel text,.edgeLabel tspan{fill:var(--theme-text-muted) !important;font-family:var(--font-family-body);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;}",
+    ".cluster text,.cluster tspan{fill:var(--theme-text-muted) !important;}",
+  ].join("");
+}
+
+/** Restyle the rendered SVG so it matches the site's cards, chips, and type. */
+function applySiteStyling(svg: SVGElement, isDark: boolean) {
   const styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
-  styleEl.textContent =
-    ".nodeLabel,.nodeLabel *,.label,.label *,.edgeLabel,.edgeLabel *," +
-    ".node text,.node tspan,.cluster text,.cluster tspan,text,tspan" +
-    "{fill:" + textColor + " !important;color:" + textColor + " !important;}";
+  styleEl.textContent = svgStyleSheet(isDark);
   svg.appendChild(styleEl);
-  svg.querySelectorAll("text, tspan, .nodeLabel, .label, .edgeLabel").forEach((el) => {
-    el.setAttribute("fill", textColor);
-    if (el instanceof SVGElement) {
-      el.style.setProperty("fill", textColor, "important");
-      el.style.setProperty("color", textColor, "important");
+
+  // Rounded node corners. `rx` as an attribute works everywhere; the cylinder
+  // (data store) shape is a path and keeps its own outline.
+  svg.querySelectorAll<SVGRectElement>(".node rect.basic").forEach((rect) => {
+    rect.setAttribute("rx", String(NODE_RADIUS));
+    rect.setAttribute("ry", String(NODE_RADIUS));
+  });
+
+  // Title row vs description rows. Mermaid marks every `<br/>` line as an
+  // outer tspan; the first line is the step name, the rest describe it.
+  svg.querySelectorAll<SVGTextElement>(".node .label text").forEach((text) => {
+    const rows = Array.from(text.querySelectorAll("tspan.text-outer-tspan"));
+    rows.forEach((row, index) => {
+      row.classList.remove("title-row", "row");
+      row.classList.add(index === 0 ? "title-row" : "desc-row");
+    });
+  });
+
+  // Larger arrowheads: scale the marker box, keep its anchor point.
+  svg.querySelectorAll<SVGMarkerElement>("marker").forEach((marker) => {
+    const width = Number(marker.getAttribute("markerWidth"));
+    const height = Number(marker.getAttribute("markerHeight"));
+    if (Number.isFinite(width) && width > 0) {
+      marker.setAttribute("markerWidth", (width * MARKER_SCALE).toFixed(2));
     }
+    if (Number.isFinite(height) && height > 0) {
+      marker.setAttribute("markerHeight", (height * MARKER_SCALE).toFixed(2));
+    }
+  });
+
+  // Edge-label chips: after the chip typography applies, re-fit the background
+  // rect to the text as a pill with padding.
+  svg.querySelectorAll<SVGGElement>(".edgeLabel").forEach((label) => {
+    const rect = label.querySelector<SVGRectElement>("rect");
+    const text = label.querySelector<SVGTextElement>("text");
+    if (!rect || !text) {
+      return;
+    }
+    let box: DOMRect;
+    try {
+      box = text.getBBox();
+    } catch {
+      return;
+    }
+    if (!(box.width > 0)) {
+      return;
+    }
+    const width = box.width + CHIP_PAD_X * 2;
+    const height = box.height + CHIP_PAD_Y * 2;
+    rect.setAttribute("x", (box.x - CHIP_PAD_X).toFixed(2));
+    rect.setAttribute("y", (box.y - CHIP_PAD_Y).toFixed(2));
+    rect.setAttribute("width", width.toFixed(2));
+    rect.setAttribute("height", height.toFixed(2));
+    rect.setAttribute("rx", (height / 2).toFixed(2));
+    rect.setAttribute("ry", (height / 2).toFixed(2));
   });
 }
 
@@ -168,8 +256,9 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
         const svgEl = canvasRef.current.querySelector("svg");
         if (svgEl) {
           svgEl.removeAttribute("height");
-          svgEl.style.maxWidth = "100%";
-          enforceLabelContrast(svgEl, isDark);
+          svgEl.style.maxWidth = DIAGRAM_MAX_WIDTH;
+          svgEl.style.height = "auto";
+          applySiteStyling(svgEl, isDark);
         }
         setError(null);
         setReady(true);
@@ -203,7 +292,7 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
         <div className="relative w-full">
           <div
             ref={canvasRef}
-            className="mermaid flex justify-center"
+            className="mermaid mx-auto flex justify-center"
             role="img"
             aria-label={title ?? "Diagram"}
             data-ready={ready}
