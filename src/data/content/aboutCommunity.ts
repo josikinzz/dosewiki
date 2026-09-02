@@ -10,7 +10,11 @@
  * Logo provenance: consciousness-library and effectindex from
  * josiekins.xyz/images/shared/, tripsit from tripsit.me, protestkit from
  * protestkit.eu, drug-users-bible from the drugusersbible.org cover art;
- * the r-* tiles are each subreddit's Reddit community avatar.
+ * the r-* tiles are each subreddit's Reddit community avatar. nervewing is
+ * the blog's header drawing (an antlion) cropped from nervewing.blogspot.com;
+ * substance-search is Google's Noto Color Emoji pill (U+1F48A, Apache-2.0),
+ * the same glyph substancesearch.com uses as its favicon, since the site has
+ * no logo beyond that emoji.
  */
 
 /** How an entry's tile artwork is fitted. */
@@ -19,7 +23,8 @@ export type CommunityLogo = {
   /**
    * `contain` letterboxes inside the tile (default). `cover` bleeds the
    * artwork to the tile edges — for square avatar marks that carry their
-   * own background. `wide` fits a wordmark by width.
+   * own background. `wide` fits landscape artwork (a wordmark, a drawing)
+   * by width.
    */
   fit?: "contain" | "cover" | "wide";
 };
@@ -49,6 +54,12 @@ export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
     logo: { src: `${LOGO_BASE}/effectindex.webp`, fit: "cover" },
   },
   {
+    key: "nervewing",
+    name: "Nervewing",
+    href: "https://nervewing.blogspot.com",
+    logo: { src: `${LOGO_BASE}/nervewing.webp`, fit: "wide" },
+  },
+  {
     key: "protestkit",
     name: "PRO Test Kit",
     href: "https://protestkit.eu",
@@ -71,6 +82,12 @@ export const ABOUT_COMMUNITY_LINKS: readonly CommunityLink[] = [
     name: "r/researchchemicals",
     href: "https://reddit.com/r/researchchemicals",
     logo: { src: `${LOGO_BASE}/r-researchchemicals.webp`, fit: "cover" },
+  },
+  {
+    key: "substance-search",
+    name: "Substance Search",
+    href: "https://substancesearch.com",
+    logo: { src: `${LOGO_BASE}/substance-search.svg` },
   },
   {
     key: "drug-users-bible",
