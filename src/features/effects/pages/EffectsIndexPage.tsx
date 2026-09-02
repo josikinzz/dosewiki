@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SEIRoadmapNotice } from "@/components/common/SEIRoadmapNotice";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { icons } from "@/utils/iconNames";
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";
@@ -50,10 +51,9 @@ export function EffectsIndexPage({
         <PageHeader
           title="Subjective Effect Index"
           icon={icons.subjectiveEffectIndex}
-          prominentMobileIcon
         />
 
-        <div className="-mt-14 mb-12 flex justify-center relative z-10">
+        <div className="-mt-14 mb-12 flex flex-col items-center gap-2 relative z-10">
           <Link
             href="/contributors/josie"
             className="group inline-flex items-center gap-2 py-1 transition-colors"
@@ -73,6 +73,7 @@ export function EffectsIndexPage({
               , 2011
             </span>
           </Link>
+          <SEIRoadmapNotice shimmer className="text-center" />
         </div>
       </div>
 

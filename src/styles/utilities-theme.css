@@ -5692,6 +5692,40 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 }
 
 /* ---------------------------------------------------------------------
+   SEI roadmap notice (SEIRoadmapNotice.tsx): the mindstate.design favicon is
+   a white disc on transparent, so as an <img> it vanishes on the light
+   theme. Masking a bg-current span with it makes the glyph take the link's
+   ink and follow its hover accent like the text beside it.
+   --------------------------------------------------------------------- */
+.theme-mindstate-favicon {
+  -webkit-mask: url("/favicons/mindstate-design.png") center / contain no-repeat;
+  mask: url("/favicons/mindstate-design.png") center / contain no-repeat;
+}
+
+/* The SEI page variant borrows the beta disclaimer's sweep, one brighter band
+   through background-clipped text, but in the notice's own faint ink rather
+   than danger red. The lab link inside sets its own colour, so it and its
+   bg-current favicon stay solid while the sentence around them shimmers.
+   Same three-run cap and reduced-motion/clip fallbacks as .theme-beta-shimmer. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .theme-sei-notice-shimmer {
+      background-image: linear-gradient(
+        100deg,
+        var(--theme-text-faint) 42%,
+        var(--theme-text-primary) 50%,
+        var(--theme-text-faint) 58%
+      );
+      background-size: 250% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: theme-beta-shimmer 5s linear 3;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------
    Sitewide beta disclaimer (BetaDisclaimer.tsx: Substance Index header and
    audited substance articles)
    Danger-toned link whose text carries a very subtle shimmer: a narrow

@@ -3,6 +3,7 @@
 import { memo, useState, type ReactNode } from "react";
 import { ArticleContributorAttribution } from "@/components/layout/PublicFeedbackPrimitives";
 import { Icon } from "@/components/common/Icon";
+import { SEIRoadmapNotice } from "@/components/common/SEIRoadmapNotice";
 import type { SubstanceArticle } from "@/schema";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import {
@@ -135,8 +136,10 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       icon={SUBSTANCE_SECTION_ICONS["subjective-effects"]}
       heading="Subjective Effects"
     >
-      {/* The stub notice qualifies everything below it, so it leads the section
-          rather than trailing the intro prose. */}
+      {/* The roadmap note qualifies the whole section, and the stub notice
+          qualifies everything below it, so both lead rather than trail the
+          intro prose. */}
+      <SEIRoadmapNotice />
       {hasStubNotice ? (
         <aside
           aria-label="Subjective effects stub notice"
