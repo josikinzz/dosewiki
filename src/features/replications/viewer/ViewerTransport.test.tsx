@@ -453,7 +453,7 @@ describe("ViewerTransport", () => {
     expect(video.play).toHaveBeenCalledOnce();
   });
 
-  it("auto-hides the chrome during playback; only intent, not pointer travel, re-reveals it", () => {
+  it("keeps the chrome up through playback and idle time; only a surface tap hides it", () => {
     vi.useFakeTimers();
     const video = createVideo();
     setPaused(video, false);
@@ -473,22 +473,23 @@ describe("ViewerTransport", () => {
 
     fireEvent(video, new Event("play"));
     expect(stage).toHaveAttribute("data-controls-visible", "true");
-    act(() => vi.advanceTimersByTime(2601));
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+
+    // A surface tap toggles the chrome down, and back up again.
+    act(() => handle!.surfaceTap());
     expect(stage).not.toHaveAttribute("data-controls-visible");
 
-    // Pointer travel over the stage is no longer a reveal mechanism.
+    // Pointer travel over the stage is not a reveal mechanism.
     fireEvent.pointerMove(stage, { clientX: 40, clientY: 40 });
     act(() => vi.advanceTimersByTime(100));
     expect(stage).not.toHaveAttribute("data-controls-visible");
 
-    // A surface tap toggles the chrome back up, and back down again.
     act(() => handle!.surfaceTap());
     expect(stage).toHaveAttribute("data-controls-visible", "true");
-    act(() => handle!.surfaceTap());
-    expect(stage).not.toHaveAttribute("data-controls-visible");
   });
 
-  it("auto-hides the chrome for stills and toggleChrome re-reveals it", () => {
+  it("keeps the chrome up over stills; toggleChrome hides and re-reveals it without a fade", () => {
     vi.useFakeTimers();
     let handle: ViewerTransportHandle | null = null;
     render(
@@ -504,45 +505,52 @@ describe("ViewerTransport", () => {
       name: "Tracers loop media controls",
     });
 
-    // The mount itself schedules the fade — no playback event required.
     expect(stage).toHaveAttribute("data-controls-visible", "true");
-    act(() => vi.advanceTimersByTime(2601));
-    expect(stage).not.toHaveAttribute("data-controls-visible");
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
 
     act(() => handle!.toggleChrome());
-    expect(stage).toHaveAttribute("data-controls-visible", "true");
-    act(() => vi.advanceTimersByTime(2601));
     expect(stage).not.toHaveAttribute("data-controls-visible");
+    act(() => handle!.toggleChrome());
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
   });
 
   it("pins the chrome while paused and while keyboard focus is inside", () => {
-    vi.useFakeTimers();
     const video = createVideo();
-    render(<ViewerTransport {...baseProps(video)} />);
+    let handle: ViewerTransportHandle | null = null;
+    render(
+      <ViewerTransport
+        {...baseProps(video, {
+          onTransportHandle: (next) => {
+            handle = next;
+          },
+        })}
+      />,
+    );
     const stage = screen.getByRole("region", {
       name: "Tracers loop media controls",
     });
 
-    // Paused video: the fade timer fires but the pin holds the chrome up.
-    act(() => vi.advanceTimersByTime(5000));
+    // Paused video: an explicit hide is overridden by the pause pin.
+    act(() => handle!.toggleChrome());
     expect(stage).toHaveAttribute("data-controls-visible", "true");
 
+    // Playing: the pin lifts, so an explicit hide takes effect.
     setPaused(video, false);
     fireEvent(video, new Event("play"));
-    act(() => vi.advanceTimersByTime(2601));
+    act(() => handle!.toggleChrome());
     expect(stage).not.toHaveAttribute("data-controls-visible");
 
     // Tab landing on a control reveals the chrome and pins it while focused.
     const play = screen.getByRole("button", { name: "Pause" });
     fireEvent.focus(play);
     expect(stage).toHaveAttribute("data-controls-visible", "true");
-    act(() => vi.advanceTimersByTime(5000));
-    expect(stage).toHaveAttribute("data-controls-visible", "true");
 
-    // Focus leaving resumes the ordinary fade.
+    // Focus leaving keeps the chrome up: there is no idle fade to resume.
     fireEvent.blur(play);
-    act(() => vi.advanceTimersByTime(2601));
-    expect(stage).not.toHaveAttribute("data-controls-visible");
+    expect(stage).toHaveAttribute("data-controls-visible", "true");
   });
 
   it("reports transport visibility changes to the overlay", () => {
@@ -564,7 +572,7 @@ describe("ViewerTransport", () => {
     expect(onTransportVisibleChange).toHaveBeenLastCalledWith(true);
 
     fireEvent(video, new Event("play"));
-    act(() => vi.advanceTimersByTime(2601));
+    act(() => handle!.toggleChrome());
     expect(onTransportVisibleChange).toHaveBeenLastCalledWith(false);
 
     act(() => handle!.toggleChrome());

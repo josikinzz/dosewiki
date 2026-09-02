@@ -221,7 +221,6 @@ export function ViewerTransport({
   const scrubbingRef = useRef(false);
   /** Last whole second written to aria-valuenow, deduping per-frame writes. */
   const ariaSecondRef = useRef(-1);
-  const hideTimerRef = useRef<number | undefined>(undefined);
   const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -248,38 +247,20 @@ export function ViewerTransport({
     ordinaryVideo && knownAudio !== false && audioPresence !== "absent";
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
 
-  const scheduleControlHide = useCallback(() => {
-    window.clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = window.setTimeout(
-      () => setControlsVisible(false),
-      2600,
-    );
-  }, []);
-
-  /** Reveal the chrome for an intent gesture, then let it fade again. */
-  const showControls = useCallback(() => {
-    setControlsVisible(true);
-    scheduleControlHide();
-  }, [scheduleControlHide]);
+  /**
+   * Reveal the chrome for an intent gesture. There is no idle fade: the
+   * chrome stays up until the reader explicitly dismisses it (surface tap or
+   * the `h` shortcut), and only an intent gesture brings it back.
+   */
+  const showControls = useCallback(() => setControlsVisible(true), []);
 
   /**
-   * The pure chrome toggle behind surface taps and the `h` shortcut:
-   * hiding cancels the fade timer so the hidden state persists until the
-   * next intent — pointer travel never resurrects it — and revealing
-   * re-arms the fade over any media, still or moving. States that plainly
-   * need the chrome (paused, error, scrubbing, keyboard focus) pin it in
-   * transportVisible below, never here.
+   * The pure chrome toggle behind surface taps and the `h` shortcut. States
+   * that plainly need the chrome (paused, error, scrubbing, keyboard focus)
+   * pin it in transportVisible below, never here.
    */
   const toggleChrome = useCallback(() => {
-    setControlsVisible((current) => {
-      window.clearTimeout(hideTimerRef.current);
-      if (!current) scheduleControlHide();
-      return !current;
-    });
-  }, [scheduleControlHide]);
-
-  useEffect(() => {
-    return () => window.clearTimeout(hideTimerRef.current);
+    setControlsVisible((current) => !current);
   }, []);
 
   const markBlocked = useCallback(() => {
@@ -337,10 +318,8 @@ export function ViewerTransport({
     setAudioPresence(knownAudio === true ? "present" : "unknown");
     setError(false);
     setBuffering(false);
+    // Every work opens with the chrome up.
     setControlsVisible(true);
-    // Every work opens with the chrome up and already fading — stills
-    // included, so an untouched still goes immersive on its own.
-    scheduleControlHide();
     setScrubbing(false);
     scrubbingRef.current = false;
     // A new work re-asks for the shared sound preference in the binding
@@ -738,14 +717,12 @@ export function ViewerTransport({
       onFocus={() => {
         setFocusWithin(true);
         setControlsVisible(true);
-        window.clearTimeout(hideTimerRef.current);
       }}
       onBlur={(event) => {
         if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
           return;
         }
         setFocusWithin(false);
-        scheduleControlHide();
       }}
       className="pointer-events-none absolute inset-0 [container-type:size]"
     >
