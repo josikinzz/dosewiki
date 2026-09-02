@@ -58,14 +58,16 @@ function IndexCardCountBadge({
   return (
     <span
       className={cn(
-        "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold leading-none tabular-nums",
+        "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold tabular-nums",
         size === "sm"
-          ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] tracking-normal"
-          : "h-[1.15rem] min-w-[1.4rem] px-1.5 text-[0.62rem] tracking-normal",
+          ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] leading-none tracking-normal"
+          : "h-[1.15rem] min-w-[1.4rem] px-1.5 text-[0.62rem] leading-none tracking-normal",
       )}
       aria-label={`${count} item${count === 1 ? "" : "s"}`}
     >
-      {count}
+      <span className="block translate-y-[0.5px] [text-box:trim-both_cap_alphabetic]">
+        {count}
+      </span>
     </span>
   );
 }
@@ -149,14 +151,19 @@ export const IndexCard = memo(function IndexCard({
   // The count badge rides inline with the title and only drops to its own line
   // when a narrow panel leaves no room beside it. `flex-wrap` + `min-w-0` let
   // the title claim the row and bump the badge down at thin widths, while short
-  // titles keep it inline on the baseline. Same treatment whether or not the
-  // leading icon is shown — the icon is rendered separately in the header grid.
+  // titles keep it inline, centered on the title's line box. Same treatment
+  // whether or not the leading icon is shown; the icon is rendered separately
+  // in the header grid.
   const titleElement = (
-    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-left">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-left">
       <h2 className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight">
         <span className="line-clamp-2 break-words">{title}</span>
       </h2>
-      <IndexCardCountBadge count={count} />
+      {/* The title line box carries more ascender than descender room, so
+          centering on it lands the badge ~0.9px below the cap-height center. */}
+      <span className="flex -translate-y-[0.875px]">
+        <IndexCardCountBadge count={count} />
+      </span>
     </div>
   );
 
@@ -173,14 +180,14 @@ export const IndexCard = memo(function IndexCard({
         {/* Header */}
         <header
           className={cn(
-            "grid items-start gap-3 pb-2",
+            "grid items-center gap-3 pb-2",
             hideIcon
               ? "grid-cols-[minmax(0,1fr)_auto]"
               : "grid-cols-[auto_minmax(0,1fr)_auto]",
           )}
         >
           {hideIcon ? null : iconElement}
-          <div className="min-w-0 flex-1 pt-1">
+          <div className="min-w-0 flex-1">
             {titleHref ? (
               <SmartLink
                 href={titleHref}
@@ -209,7 +216,7 @@ export const IndexCard = memo(function IndexCard({
             aria-expanded={isExpanded}
             aria-controls={resolvedContentId}
             aria-label={resolvedToggleLabel}
-            className="theme-index-card-toggle theme-focus-ring mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition"
+            className="theme-index-card-toggle theme-focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-lg outline-none transition"
           >
             <Icon icon={chevronIcon} size={16} />
           </button>
