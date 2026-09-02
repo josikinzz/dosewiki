@@ -88,7 +88,7 @@ describe("/docs/how trust and review methodology", () => {
   it("distinguishes provenance, intended citation support, and human verification", () => {
     expect(PAGE).toContain("Source links record influence only.");
     expect(PAGE).toMatch(/intended\s+evidentiary relationships/);
-    expect(PAGE).toMatch(/does\s+not prove entailment/);
+    expect(PAGE).toMatch(/does not prove source quality or current accuracy/);
     expect(PAGE).toMatch(/need a human check against the cited source/);
   });
 
@@ -112,17 +112,31 @@ describe("/docs/how status and roadmap", () => {
       "Foundation pipeline",
       "Legality primary-source remediation",
       "Citation entailment audit",
-      "Human citation review",
+      "Citation research and correction",
+      "Emergent Subjective Effect Index",
+      "More substances",
       "Continuous improvement",
     ]) {
       expect(PAGE).toContain(phase);
     }
   });
 
-  it("labels human citation review as planned, not current practice", () => {
-    const phase4 = PAGE.slice(PAGE.indexOf("Phase 4"), PAGE.indexOf("Phase 5"));
+  it("marks the entailment audit complete and states its outcome", () => {
+    const phase3 = PAGE.slice(
+      PAGE.indexOf("Phase 3: Citation entailment audit"),
+      PAGE.indexOf("Phase 4: Citation research and correction"),
+    );
+    expect(phase3).toContain("Complete");
+    expect(phase3).toMatch(/were removed, and those sentences now show/);
+  });
+
+  it("labels citation research and correction as planned, not current practice", () => {
+    const phase4 = PAGE.slice(
+      PAGE.indexOf("Phase 4: Citation research and correction"),
+      PAGE.indexOf("Phase 5: Emergent Subjective Effect Index"),
+    );
     expect(phase4).toContain("Planned");
-    expect(phase4).toMatch(/tracks this pass separately from editorial\s+review/);
+    expect(phase4).toMatch(/tracks this separately from editorial\s+review/);
   });
 
   it("separates editorial review from citation verification", () => {
@@ -131,7 +145,8 @@ describe("/docs/how status and roadmap", () => {
   });
 
   it("declares the legality loop as the template for other sections", () => {
-    expect(PAGE).toMatch(/legality loop[\s\S]{0,300}extends to the other citable sections/);
+    expect(PAGE).toMatch(/test case for a per-subsection research pipeline/);
+    expect(PAGE).toMatch(/legality loop[\s\S]{0,300}over the\s+other citable sections/);
   });
 });
 

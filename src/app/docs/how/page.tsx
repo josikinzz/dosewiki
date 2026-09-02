@@ -196,21 +196,30 @@ const PIPELINE_DIAGRAM = `graph TD
   DB[("Article database<br/>(drafts)")]:::data
   CITE["Citation pass<br/>markers proposed for<br/>the six citable sections"]:::auto
   PK["ProtestKit API<br/>live reagent test results"]:::ext
+  WHOLE["Imported whole, not processed<br/>TripSit combination JSON, Subjective Effect Index,<br/>trip reports, replications"]:::ext
   PAGE["Published article"]:::pub
   JSON["SubstanceIndex.json<br/>downloadable snapshot<br/>of the whole dataset"]:::pub
+  MOL["Structure drawings<br/>auto layout from SMILES, then<br/>drawn by hand or aligned to a class template"]:::human
+  MOLDB[("Depiction database<br/>one editable MOL block<br/>+ rendered SVG per substance")]:::data
+  PACK["Molecule pack<br/>SVGs + manifest,<br/>rebuilt nightly"]:::pub
 
   SITES --> PARSE
   SITES --> EXTRACT
+  PARSE -->|"SMILES"| MOL
+  MOL --> MOLDB
   EXTRACT --> QUOTES
   QUOTES --> SYNTH
   PARSE --> DB
   SYNTH --> DB
+  WHOLE -->|"as published,<br/>with attribution"| DB
   DB --> PAGE
   DB -.-> CITE
   CITE -.-> PAGE
   DB -.-> REVIEW
   REVIEW -.->|"status + attribution"| PAGE
+  MOLDB --> PAGE
   PAGE --> JSON
+  MOLDB --> PACK
   PK -.->|"fetched live<br/>at page view"| PAGE
 
   classDef ext fill:#3a1f33,stroke:#f9a8d4,color:#f7e3ef
@@ -586,6 +595,21 @@ export default async function DocsHowPage() {
                   Chemistry identifiers merged from parsed sources (DrugBank, PsychonautWiki,
                   Wikipedia) with chemical-name resolution. Provenance is tracked per
                   identifier, and an editor checks the result.
+                </td>
+              </tr>
+              <tr className={TR_CLASS}>
+                <td className="p-3">
+                  Structure drawing{" "}
+                  <small className="theme-text-faint block">the molecule image</small>
+                </td>
+                <td className="space-y-1 p-3">
+                  <Method tone="automated">auto layout</Method>
+                  <Method tone="review">hand-drawn</Method>
+                </td>
+                <td className="p-3">
+                  A first layout is made from the SMILES string. Most drawings are then
+                  redrawn by hand or aligned to a shared class template, so the molecule
+                  looks the way chemists expect (see <SectionRef s="parsing" />).
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -1032,13 +1056,30 @@ export default async function DocsHowPage() {
           </DisclosureCard>
           <DisclosureCard
             variant="subtle"
-            summary={<h3 className={SUB_SUMMARY_CLASS}>Chemistry identifiers</h3>}
+            summary={<h3 className={SUB_SUMMARY_CLASS}>Chemistry identifiers and structure drawings</h3>}
           >
             <p className={PROSE_CLASS}>
               dose.wiki merges SMILES strings, InChI keys, CAS numbers, and molecular data
               from DrugBank, PsychonautWiki, and Wikipedia. Provenance is tracked per
-              identifier, and chemical-name resolution fills the gaps. The molecule images
-              are rendered from the SMILES strings.
+              identifier, and chemical-name resolution fills the gaps.
+            </p>
+            <p className={`${PROSE_CLASS} mt-4`}>
+              The molecule image is not made straight from the SMILES string. A SMILES
+              string says which atoms are joined and how, but it does not say how the
+              molecule should be drawn. Chemists draw many families the same way by
+              habit, and a machine layout often ignores that. So each substance gets an
+              automatic 2D layout first, as a starting point only. Then a person redraws
+              it by hand, or aligns it to a template that a person drew once for the
+              whole chemical class. The saved result is an editable MOL block, and the
+              image is rendered from that. Each drawing records whether it is automatic,
+              hand-drawn, or template-aligned.
+            </p>
+            <p className={`${PROSE_CLASS} mt-4`}>
+              The drawing tool and the page image both use one engine: a dose.wiki fork
+              of the open-source OpenChemLib library, with small additions for fine
+              rotation and bold bonds. One engine means the page shows exactly what the
+              editor drew. A check compares the molecule before and after each edit, so a
+              redraw cannot quietly turn it into a different molecule.
             </p>
           </DisclosureCard>
           <DisclosureCard
@@ -1286,16 +1327,15 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           The six AI-written sections are the citable sections: the ones that can carry
           Wikipedia-style markers linked to a reference list. Structured and excluded
-          sections use separate provenance and review paths. Citation work runs in
+          sections use separate provenance and review paths. Citation work has run in
           three passes: a marking pass that proposed the markers, a legality rebuild that
-          set a stricter standard, and an entailment audit that now re-examines everything
+          set a stricter standard, and an entailment audit that re-examined everything
           against that standard.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          On an article today, the markers are live, and most of them come from pass one. Legality markers come from pass two. Until the
-          audit in pass three records a verdict for a pair, a marker means &quot;proposed
-          by a research agent and structurally valid&quot;, not &quot;checked to support
-          this sentence&quot;.
+          Every live marker on an article today has passed the audit in pass three: the
+          cited source was fetched and found to support the sentence. Markers that failed
+          were removed, and their sentences now show <em>citation needed</em>.
         </p>
 
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass one: proposing markers</h3>
@@ -1378,6 +1418,13 @@ export default async function DocsHowPage() {
           legislation portals.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
+          Legality was also the test case for a per-subsection research pipeline. It is one
+          subsection, one kind of source, and one question per country. The invariants
+          below are what the test case settled, and they are the template for a separate
+          pipeline for each remaining subsection. Pharmacology is next. The end state is
+          one pipeline per subsection, run over every article.
+        </p>
+        <p className={`${PROSE_CLASS} mt-4`}>
           One orchestrator agent runs the workflow for one substance at a time. It launches
           many small research agents in parallel. Each agent starts with a blank context,
           one narrow question, and a strict output contract. Research and refutation are
@@ -1437,14 +1484,18 @@ export default async function DocsHowPage() {
         <p className={PROSE_CLASS}>
           The legality loop has four steps: validate what can be validated, cite what a
           primary source supports, hunt for sources for the rest, and correct or remove
-          what cannot be sourced. That loop now extends to the other citable sections as
-          an automated campaign. The campaign audits each claim&ndash;citation pair against
-          a fresh fetch of the cited source. A marker stays only when the source entails
-          the claim as written. Otherwise the audit removes the marker, and the sentence
-          shows a visible <em>citation needed</em> indicator. Safety-sensitive pairs also
-          face an independent adversarial re-check before the audit accepts any change.
-          The campaign keeps the invariants listed under pass two. <SectionRef s="status" cap /> tracks the progress of the
-          audit.
+          what cannot be sourced. The audit ran the first and last of those steps over the
+          other citable sections. It fetched each cited source and compared it with the
+          claim. A marker stayed only when the source explicitly supported the claim as
+          written. Every other marker was removed, and its sentence now shows{" "}
+          <em>citation needed</em>. Safety-sensitive pairs also faced an independent
+          adversarial re-check before the audit accepted any change. The audit kept the
+          invariants listed under pass two.
+        </p>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          The middle two steps come next: find sources for the claims that lost their
+          markers, and change or remove any claim that no source supports.{" "}
+          <SectionRef s="status" cap /> tracks that work.
         </p></section>
 
         <section id="review" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
@@ -1510,6 +1561,15 @@ export default async function DocsHowPage() {
           under their own recorded states, separate from editorial review.{" "}
           <SectionRef s="limits" cap /> spells out what a completed status does and does
           not establish.
+        </p>
+        <p className={`${PROSE_CLASS} mt-5`}>
+          Structure drawings are the one place where a person makes something rather
+          than checks it. The molecule editor is a separate tool from the text editor
+          (<SectionRef s="parsing" comma />, under Chemistry identifiers). An editor
+          redraws the molecule by hand, or draws one template for a chemical class and
+          applies it to every member. Hand-drawn molecules are never overwritten by a
+          template. Saving a drawing does not change the article text or its review
+          status.
         </p></section>
 
         <section id="limits" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
@@ -1531,9 +1591,9 @@ export default async function DocsHowPage() {
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           <strong>Citation evidence can be wrong.</strong> A marker records a quote and a
-          rationale. Until the entailment audit records a verdict for a pair, a marker does
-          not prove entailment, source quality, or current accuracy. Important claims still
-          need a human check against the cited source.
+          rationale, and the entailment audit checked that the source supports the
+          sentence. It does not prove source quality or current accuracy.
+          Important claims still need a human check against the cited source.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           <strong>Workflow controls have limits.</strong> Prompts, validators,
@@ -1582,8 +1642,8 @@ export default async function DocsHowPage() {
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
-          Work on the baseline runs in stages. Some are finished, one is running now, and
-          the rest are planned. This section records where each stands as of{" "}
+          Work on the baseline runs in stages. Some are finished, and the rest are
+          planned. This section records where each stands as of{" "}
           <strong>August 31, 2026</strong>.
         </p>
 
@@ -1622,35 +1682,62 @@ export default async function DocsHowPage() {
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h3 className={SUBHEAD_CLASS}>Phase 3: Citation entailment audit</h3>
               <div className={LEGEND_ITEM_CLASS}>
-                <StageSwatch tone="automated" /> In progress
+                <StageSwatch tone="published" /> Complete
               </div>
             </div>
             <p className={PROSE_CLASS}>
               The legality process, generalized to the other citable sections
-              (<SectionRef s="citations" />): the audit re-examines every claim&ndash;citation pair
-              against a fresh fetch of its source. Done when every pair
-              carries a recorded verdict.
+              (<SectionRef s="citations" />): the audit re-examined every claim&ndash;citation pair
+              against a fresh fetch of its source. Markers the source did not explicitly
+              support were removed, and those sentences now show <em>citation needed</em>.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h3 className={SUBHEAD_CLASS}>Phase 4: Human citation review</h3>
+              <h3 className={SUBHEAD_CLASS}>Phase 4: Citation research and correction</h3>
               <div className={LEGEND_ITEM_CLASS}>
                 <StageSwatch tone="review" /> Planned
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              A recorded human pass over the audit&apos;s output. A person works through
-              the surviving pairs and the <em>citation needed</em> backlog and replaces or
-              restores sources by hand. The site tracks this pass separately from editorial
-              review (<SectionRef s="review" />), so each carries its own status and its
-              own named scope. Done when every surviving pair and every flagged entry
-              carries a recorded human disposition.
+              A research pass over the audit&apos;s output, starting with pharmacology.
+              Each <em>citation needed</em> claim gets a source search. If a source is
+              found, the marker is restored. If none is found, or the source disagrees, the
+              claim is changed or removed. A recorded human pass then reviews the results.
+              The site tracks this separately from editorial review (<SectionRef s="review" />), so each carries
+              its own status and its own named scope. Done when every flagged entry carries a
+              recorded disposition.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h3 className={SUBHEAD_CLASS}>Phase 5: Continuous improvement</h3>
+              <h3 className={SUBHEAD_CLASS}>Phase 5: Emergent Subjective Effect Index</h3>
+              <div className={LEGEND_ITEM_CLASS}>
+                <StageSwatch tone="review" /> Planned
+              </div>
+            </div>
+            <p className={PROSE_CLASS}>
+              A new version of the Subjective Effect Index, developed by Josie Kins at
+              Mindstate Design Labs. On release it replaces the current Subjective Effect
+              Index, and the subjective effects section of every article is rebuilt on it.
+            </p>
+          </div>
+          <div className={DIVIDED_ITEM_CLASS}>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 className={SUBHEAD_CLASS}>Phase 6: More substances</h3>
+              <div className={LEGEND_ITEM_CLASS}>
+                <StageSwatch tone="automated" /> Planned
+              </div>
+            </div>
+            <p className={PROSE_CLASS}>
+              The current substance set is the one the working copies cover. New
+              substances are added by running the same pipeline on new source pages, then
+              passing through the audit and review stages above.
+            </p>
+          </div>
+          <div className={DIVIDED_ITEM_CLASS}>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 className={SUBHEAD_CLASS}>Phase 7: Continuous improvement</h3>
               <div className={LEGEND_ITEM_CLASS}>
                 <StageSwatch tone="source" /> Ongoing
               </div>
@@ -1674,6 +1761,15 @@ export default async function DocsHowPage() {
           <code>SubstanceIndex.json</code>: the full substance database in one consistent
           schema and one downloadable file. The download is a snapshot, made when the dataset
           is exported. The article database continues to change between snapshots.
+        </p>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          It also produces the molecule pack: one SVG drawing per substance, plus
+          generic skeletons for chemical classes, plus a manifest that lists each
+          drawing with its SMILES string and whether it was drawn by hand, aligned to a
+          template, or left as an automatic layout. Each drawing ships in two colour
+          sets, the dose.wiki brand colours and the standard textbook colours. The pack
+          is rebuilt every night from the live depiction database. It is a set of
+          human-curated structure drawings that anyone can reuse.
         </p>
 
         <p className={PULL_CLASS}>
