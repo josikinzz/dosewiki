@@ -147,7 +147,7 @@ export function CategoryGrid({
   getCardTone,
   hideCardIcons = false,
 }: CategoryGridProps) {
-  const columnCount = useResponsiveColumnCount({ limitColumns, maxColumns });
+  const { count: columnCount, gate: columnGate } = useResponsiveColumnCount({ limitColumns, maxColumns });
 
   const visibleGroups = useMemo(() => {
     if (!hideEmptyGroups) {
@@ -340,7 +340,7 @@ export function CategoryGrid({
   }
 
   return (
-    <IndexPanelGrid columns={nonEmptyColumns.length}>
+    <IndexPanelGrid columns={nonEmptyColumns.length} gate={columnGate}>
       {nonEmptyColumns.map((column) => (
         <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
           {column.groups.map((group) => (

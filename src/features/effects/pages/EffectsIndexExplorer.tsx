@@ -98,7 +98,7 @@ export function EffectsIndexExplorer({
     redirect: redirectLegacyHash,
   });
 
-  const columnCount = useResponsiveColumnCount();
+  const { count: columnCount, gate: columnGate } = useResponsiveColumnCount();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -408,7 +408,7 @@ export function EffectsIndexExplorer({
           // offset from the tab strip — the same one the Substance Index
           // panels use — instead of hugging the pills.
           <div className="mt-6 sm:mt-10">
-            <IndexPanelGrid columns={nonEmptyColumns.length}>
+            <IndexPanelGrid columns={nonEmptyColumns.length} gate={columnGate}>
               {nonEmptyColumns.map((column) => (
                 <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
                   {column.categories.map((category) => (
@@ -447,7 +447,7 @@ export function EffectsIndexExplorer({
         }
 
         return (
-          <IndexPanelGrid columns={nonEmptyColumns.length}>
+          <IndexPanelGrid columns={nonEmptyColumns.length} gate={columnGate}>
             {nonEmptyColumns.map((column) => (
               <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
                 {column.categories.map((category) => (

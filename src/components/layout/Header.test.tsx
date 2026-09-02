@@ -33,14 +33,12 @@ vi.mock("next/image", () => ({
   }) => <img alt={alt} src={src} width={width} height={height} {...props} />,
 }));
 
-vi.mock("next/dynamic", () => ({
-  default: () => {
-    const MockGlobalSearch: ComponentType<{ currentView: { type: string } }> = ({ currentView }) => (
-      <div data-testid="global-search" data-current-view={currentView.type} />
-    );
-    return MockGlobalSearch;
-  },
-}));
+vi.mock("../common/GlobalSearch", () => {
+  const MockGlobalSearch: ComponentType<{ currentView: { type: string } }> = ({ currentView }) => (
+    <div data-testid="global-search" data-current-view={currentView.type} />
+  );
+  return { GlobalSearch: MockGlobalSearch };
+});
 
 vi.mock("@/components/ui/button", () => ({
   Button: forwardRef<

@@ -1,6 +1,5 @@
 import {
   INDEX_PANEL_MASONRY_ITEM_CLASS_NAME,
-  INDEX_PANEL_MIN_COLUMN_WIDTH,
   INDEX_PANEL_STACK_CLASS_NAME,
   IndexPanelGrid,
   IndexPanelMasonry,
@@ -34,7 +33,6 @@ export const indexPanelLayoutStory: StoryDef = {
   exports: [
     "IndexPanelMasonry",
     "IndexPanelGrid",
-    "INDEX_PANEL_MIN_COLUMN_WIDTH",
     "INDEX_PANEL_STACK_CLASS_NAME",
     "INDEX_PANEL_MASONRY_ITEM_CLASS_NAME",
   ],
@@ -74,8 +72,8 @@ export const indexPanelLayoutStory: StoryDef = {
       ),
     },
     {
-      label: "Stack class + min column width",
-      note: `INDEX_PANEL_STACK_CLASS_NAME is the single-column stack; INDEX_PANEL_MIN_COLUMN_WIDTH (${INDEX_PANEL_MIN_COLUMN_WIDTH}px) is the breakpoint constant for column-count math.`,
+      label: "Stack class",
+      note: "INDEX_PANEL_STACK_CLASS_NAME is the single-column stack used inside each grid column.",
       full: true,
       render: () => (
         <div className="w-full max-w-sm">
@@ -89,9 +87,9 @@ export const indexPanelLayoutStory: StoryDef = {
   ],
   props: [
     { name: "IndexPanelGrid: columns", type: "number", description: "Number of equal columns at >=640px; clamps to >=1." },
+    { name: "IndexPanelGrid: gate", type: "IndexPanelColumnGate | null", description: "From useResponsiveColumnCount().gate. While set, pre-paint CSS keeps the grid unpainted in viewport bands where `columns` is the server guess, so hydration never visibly reshuffles cards. Omit for a fixed count." },
     { name: "IndexPanelGrid / Masonry: children", type: "ReactNode", description: "The index cards to lay out." },
     { name: "IndexPanelGrid / Masonry: padded", type: "boolean", default: "true", description: "Page gutters. Pass false when nesting inside a column that already has its own padding — an article body — so the panels keep its left edge." },
-    { name: "INDEX_PANEL_MIN_COLUMN_WIDTH", type: "number (300)", description: "Minimum column width used to compute responsive column counts." },
     { name: "INDEX_PANEL_STACK_CLASS_NAME", type: "string", description: "Utility class for a single-column gap-matched stack." },
     { name: "INDEX_PANEL_MASONRY_ITEM_CLASS_NAME", type: "string", description: "Per-item class for masonry children (margin + break-inside-avoid)." },
   ],

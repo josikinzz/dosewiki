@@ -278,7 +278,6 @@ export function AboutArchivePreview({
                 width={40}
                 height={40}
                 loading="lazy"
-                unoptimized
                 className="theme-molecule-image h-10 w-10 object-contain"
                 draggable={false}
               />

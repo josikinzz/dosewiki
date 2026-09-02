@@ -38,7 +38,7 @@ export function IndexLayoutTab({
   commitPanel,
 }: IndexLayoutTabProps) {
   const [columnMode, setColumnMode] = useState<"auto" | 1 | 2 | 3 | 4 | 5 | 6>("auto");
-  const autoColumnCount = useResponsiveColumnCount();
+  const { count: autoColumnCount } = useResponsiveColumnCount();
   const columnCount = columnMode === "auto" ? autoColumnCount : columnMode;
 
   const {

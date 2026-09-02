@@ -1,8 +1,8 @@
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DoseWikiLogo } from "../common/DoseWikiLogo";
+import { GlobalSearch } from "../common/GlobalSearch";
 import { Icon } from "../common/Icon";
 import { SiteWordmark } from "../common/SiteWordmark";
 import { SiteVersionBadge } from "../common/SiteVersionBadge";
@@ -464,19 +464,6 @@ function MobileNavItem({
     </div>
   );
 }
-
-const GlobalSearch = dynamic(
-  () => import("../common/GlobalSearch").then((mod) => mod.GlobalSearch),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        aria-hidden="true"
-        className="theme-public-skeleton-surface h-11 w-full rounded-full border"
-      />
-    ),
-  },
-);
 
 interface HeaderProps {
   model: RouteChromeModel;

@@ -3780,6 +3780,15 @@ html[data-theme="light"] .theme-aside-panel {
   transition: filter 180ms ease;
 }
 
+/* Molecule bytes are scheme-keyed, so MoleculeImage renders both colourways and
+   the root's pre-painted data-theme picks one here. The first paint is right
+   for a reader on either scheme, with no src swap after hydration; the hidden
+   variant is lazy-loaded, and a display:none lazy image is never fetched. */
+html[data-theme="light"] [data-molecule-colorway="pro-dark"],
+html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
+  display: none;
+}
+
 .theme-accent-icon,
 .theme-accent-icon-scope .iconify,
 .theme-accent-icon-scope svg {

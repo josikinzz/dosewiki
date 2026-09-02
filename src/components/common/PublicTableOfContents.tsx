@@ -23,7 +23,10 @@ const SCROLLSPY_TOP_OFFSET = 140;
  */
 export function useActiveSection(ids: string[]): string | null {
   const idsKey = ids.join("|");
-  const [activeId, setActiveId] = useState<string | null>(null);
+  // Seeded with the first item, the same answer the effect gives before any
+  // heading crosses the line, so the server render already carries the lit
+  // item instead of lighting it a frame after hydration.
+  const [activeId, setActiveId] = useState<string | null>(() => ids[0] ?? null);
 
   useEffect(() => {
     if (typeof window === "undefined" || ids.length === 0) {

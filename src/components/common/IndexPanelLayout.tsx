@@ -1,6 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
-
-export const INDEX_PANEL_MIN_COLUMN_WIDTH = 300;
+import {
+  INDEX_PANEL_COLUMN_GATE_ATTRIBUTE,
+  INDEX_PANEL_COLUMN_GATE_CSS,
+  type IndexPanelColumnGate,
+} from "./indexPanelColumns";
 
 const INDEX_PANEL_GAP_CLASS_NAME = "gap-5 lg:gap-6";
 const INDEX_PANEL_SPACING_CLASS_NAME = "mx-auto w-full px-4";
@@ -30,21 +33,36 @@ export function IndexPanelMasonry({ children, padded = true }: IndexPanelMasonry
 interface IndexPanelGridProps {
   children: ReactNode;
   columns: number;
+  /**
+   * From `useResponsiveColumnCount`. While set, the grid stays unpainted in
+   * viewport bands where `columns` is the server guess rather than the
+   * measurement, so the first paint never shows a layout hydration will
+   * replace. Omit for a fixed column count.
+   */
+  gate?: IndexPanelColumnGate | null;
   padded?: boolean;
 }
 
-export function IndexPanelGrid({ children, columns, padded = true }: IndexPanelGridProps) {
+export function IndexPanelGrid({ children, columns, gate = null, padded = true }: IndexPanelGridProps) {
   const style = {
     "--index-panel-columns": Math.max(columns, 1),
   } as CSSProperties;
 
   return (
-    <div
-      className={`${spacingClassName(padded)} grid justify-center grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),24rem))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1`}
-      style={style}
-    >
-      {children}
-    </div>
+    <>
+      {gate !== null ? (
+        <style href="index-panel-column-gate" precedence="default">
+          {INDEX_PANEL_COLUMN_GATE_CSS}
+        </style>
+      ) : null}
+      <div
+        className={`${spacingClassName(padded)} grid justify-center grid-cols-[repeat(var(--index-panel-columns),minmax(min(100%,18.75rem),24rem))] ${INDEX_PANEL_GAP_CLASS_NAME} max-[639px]:grid-cols-1 transition-opacity duration-200 ease-out`}
+        style={style}
+        {...(gate !== null ? { [INDEX_PANEL_COLUMN_GATE_ATTRIBUTE]: gate } : null)}
+      >
+        {children}
+      </div>
+    </>
   );
 }
 

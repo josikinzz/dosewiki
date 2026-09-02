@@ -1,87 +1,65 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { MoleculeImage } from "./MoleculeImage";
 
-vi.mock("@/components/common/AppImage", () => ({
-  AppImage: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+vi.mock("next/image", () => ({
+  default: ({
+    src,
+    alt,
+    priority,
+    loading,
+    unoptimized: _unoptimized,
+    ...props
+  }: {
+    src: string;
+    alt: string;
+    priority?: boolean;
+    loading?: "eager" | "lazy";
+    unoptimized?: boolean;
+  }) => (
+    <img
+      src={src}
+      alt={alt}
+      loading={priority ? "eager" : loading}
+      data-priority={priority ? "true" : undefined}
+      {...props}
+    />
+  ),
 }));
 
-function Harness({ src }: { src: string }) {
-  const { setAccentChroma, setColorScheme, setVisualStyle } = useTheme();
-  return (
-    <>
-      <button type="button" onClick={() => setVisualStyle("pro")}>Pro</button>
-      <button type="button" onClick={() => setVisualStyle("fun")}>Fun</button>
-      <button type="button" onClick={() => setColorScheme("dark")}>Dark</button>
-      <button type="button" onClick={() => setColorScheme("light")}>Light</button>
-      <button type="button" onClick={() => setAccentChroma(0)}>Grey accent</button>
-      <MoleculeImage src={src} alt="Structure" width={100} height={100} />
-    </>
-  );
-}
+const DEFAULT_SCHEME = SITE_FLAVOR_CONFIG.defaultColorScheme;
+const OTHER_SCHEME = DEFAULT_SCHEME === "dark" ? "light" : "dark";
 
 describe("MoleculeImage", () => {
-  beforeEach(() => {
-    document.documentElement.dataset.theme = "light";
-    document.documentElement.dataset.visualStyle = "fun";
-    localStorage.clear();
-  });
-
-  it("keys the colorway on the color scheme in every visual style", async () => {
-    const user = userEvent.setup();
-    render(
-      <ThemeProvider
-        initialColorScheme="light"
-        initialVisualStyle="fun"
-        isVisualStyleLocked={false}
-      >
-        <Harness src="/api/molecules/classes/tryptamine?v=1" />
-      </ThemeProvider>,
+  it("renders both colourways so the pre-painted scheme can pick one without a src swap", () => {
+    const { container } = render(
+      <MoleculeImage src="/api/molecules/classes/tryptamine?v=1" alt="Structure" width={100} height={100} />,
     );
 
-    const image = screen.getByRole("img", { name: "Structure" });
-    // Fun light: scheme-keyed bytes, same as Pro light.
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
-
-    await user.click(screen.getByRole("button", { name: "Pro" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
-
-    await user.click(screen.getByRole("button", { name: "Dark" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
-
-    await user.click(screen.getByRole("button", { name: "Fun" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
-
-    // Accent saturation no longer affects molecule bytes; only the scheme does.
-    await user.click(screen.getByRole("button", { name: "Grey accent" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark");
-
-    await user.click(screen.getByRole("button", { name: "Light" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/classes/tryptamine?v=1&colorway=pro-light");
+    const images = container.querySelectorAll("img");
+    expect(images).toHaveLength(2);
+    expect(container.querySelector('[data-molecule-colorway="pro-dark"]')).toHaveAttribute(
+      "src",
+      "/api/molecules/classes/tryptamine?v=1&colorway=pro-dark",
+    );
+    expect(container.querySelector('[data-molecule-colorway="pro-light"]')).toHaveAttribute(
+      "src",
+      "/api/molecules/classes/tryptamine?v=1&colorway=pro-light",
+    );
   });
 
-  it("changes dynamic route colorways without remounting", async () => {
-    const user = userEvent.setup();
-    render(
-      <ThemeProvider
-        initialColorScheme="light"
-        initialVisualStyle="fun"
-        isVisualStyleLocked={false}
-      >
-        <Harness src="/api/molecules/lsd?v=published" />
-      </ThemeProvider>,
+  it("only lets the flavor's default scheme carry priority; the other variant stays lazy", () => {
+    const { container } = render(
+      <MoleculeImage src="/api/molecules/lsd?v=published" alt="Structure" width={256} height={256} priority />,
     );
 
-    const image = screen.getByRole("img", { name: "Structure" });
-    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published&colorway=pro-light");
-
-    await user.click(screen.getByRole("button", { name: "Dark" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published&colorway=pro-dark");
-
-    await user.click(screen.getByRole("button", { name: "Light" }));
-    expect(image).toHaveAttribute("src", "/api/molecules/lsd?v=published&colorway=pro-light");
+    const preferred = container.querySelector(`[data-molecule-colorway="pro-${DEFAULT_SCHEME}"]`);
+    const other = container.querySelector(`[data-molecule-colorway="pro-${OTHER_SCHEME}"]`);
+    expect(preferred).toHaveAttribute("data-priority", "true");
+    expect(preferred).toHaveAttribute("loading", "eager");
+    expect(other).not.toHaveAttribute("data-priority");
+    expect(other).toHaveAttribute("loading", "lazy");
   });
 });

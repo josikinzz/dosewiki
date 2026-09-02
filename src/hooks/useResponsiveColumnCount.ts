@@ -1,60 +1,47 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { INDEX_PANEL_MIN_COLUMN_WIDTH } from "@/components/common/IndexPanelLayout";
-
-const BREAKPOINTS = {
-  sm: 480,
-  md: 768,
-  lg: 1024,
-};
-
-const INDEX_PANEL_HORIZONTAL_PADDING = 32;
-const INDEX_PANEL_COLUMN_GAP = 24;
+import { useLayoutEffect, useState } from "react";
+import {
+  computeIndexPanelColumnCount,
+  guessIndexPanelColumnCount,
+  indexPanelColumnGate,
+  type IndexPanelColumnGate,
+} from "@/components/common/indexPanelColumns";
 
 type ResponsiveColumnOptions = {
   limitColumns?: boolean;
   maxColumns?: number;
 };
 
-export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): number {
+export type ResponsiveColumnCount = {
+  count: number;
+  /**
+   * Set until the viewport has been measured, so the server render and the
+   * hydration render carry the same gate. Pass it to `IndexPanelGrid`, which
+   * keeps the grid unpainted wherever the server guess is wrong for this
+   * viewport. Null once measured, or when the cap makes the guess exact.
+   */
+  gate: IndexPanelColumnGate | null;
+};
+
+export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): ResponsiveColumnCount {
   const limitColumns = options?.limitColumns ?? false;
-  const maxColumnsOverride = options?.maxColumns;
-  const maxColumns = maxColumnsOverride ?? (limitColumns ? 3 : Number.POSITIVE_INFINITY);
+  const maxColumns = options?.maxColumns ?? (limitColumns ? 3 : Number.POSITIVE_INFINITY);
 
-  const getColumnCount = useCallback(() => {
-    if (typeof window === "undefined") {
-      return Number.isFinite(maxColumns) ? maxColumns : 6;
-    }
-    const width = window.innerWidth;
-    const availableWidth = Math.max(0, width - INDEX_PANEL_HORIZONTAL_PADDING);
-    const widthBasedColumns = Math.max(
-      1,
-      Math.floor((availableWidth + INDEX_PANEL_COLUMN_GAP) / (INDEX_PANEL_MIN_COLUMN_WIDTH + INDEX_PANEL_COLUMN_GAP)),
-    );
-    const responsiveColumns =
-      width < BREAKPOINTS.sm ? 1
-      : width < BREAKPOINTS.md ? 2
-      : width < BREAKPOINTS.lg ? 3
-      : widthBasedColumns;
+  const [measured, setMeasured] = useState<number | null>(null);
 
-    return Math.min(responsiveColumns, maxColumns);
+  // Layout effect, not effect: on a client-side navigation or a tab remount
+  // the measurement lands before the browser paints, so the guess is never
+  // shown. On initial load the server HTML has already painted; the gate
+  // covers that case.
+  useLayoutEffect(() => {
+    const measure = () => setMeasured(computeIndexPanelColumnCount(window.innerWidth, maxColumns));
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, [maxColumns]);
 
-  const [columnCount, setColumnCount] = useState(() => (
-    Number.isFinite(maxColumns) ? maxColumns : 6
-  ));
-
-  useEffect(() => {
-    const handleResize = () => {
-      setColumnCount(getColumnCount());
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, [getColumnCount]);
-
-  return columnCount;
+  return measured === null
+    ? { count: guessIndexPanelColumnCount(maxColumns), gate: indexPanelColumnGate(maxColumns) }
+    : { count: measured, gate: null };
 }

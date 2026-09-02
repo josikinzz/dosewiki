@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ImgHTMLAttributes, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { useReagentData } from "@/hooks/useReagentData";
@@ -126,9 +127,11 @@ describe("article chemistry presentation sections", () => {
       />,
     );
 
-    const [desktopMolecule, mobileMolecule] = screen.getAllByAltText(
-      chemistryPresentation.molecule.alt,
-    );
+    // MoleculeImage renders one variant per colour scheme; the flavor's default
+    // scheme is the one that carries priority.
+    const [desktopMolecule, mobileMolecule] = screen
+      .getAllByAltText(chemistryPresentation.molecule.alt)
+      .filter((image) => image.dataset.moleculeColorway === `pro-${SITE_FLAVOR_CONFIG.defaultColorScheme}`);
 
     expect(desktopMolecule).toHaveAttribute("data-priority", "true");
     expect(desktopMolecule).toHaveAttribute("sizes", "(min-width: 768px) 16rem, 0px");
