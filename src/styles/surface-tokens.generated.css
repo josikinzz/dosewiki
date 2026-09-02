@@ -385,4 +385,12 @@ html:not([data-surface])[data-theme="light"]:where(:not([data-visual-style="pro"
   --theme-home-nav-card-border: oklch(58% 0.1 326 / 0.14);
   --theme-search-overlay-bg: oklch(96% 0.032 334);
   --theme-toggle-pill-bg: #ffffff;
+  --theme-molecule-panel-border: rgba(93, 56, 123, 0.12);
+  --theme-article-priority-border: rgba(93, 56, 123, 0.14);
+  --theme-article-priority-bg: radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%), color-mix(in srgb, rgb(255 255 255) 52%, oklch(99.4% 0.002 326));
+  --theme-country-flag-shadow: 0 0 0 2px oklch(100% 0 0 / 0.72),
+    0 0 0 3px oklch(58% 0.08 326 / 0.14),
+    0 10px 20px -14px oklch(38% 0.08 316 / 0.36),
+    inset 0 1px 0 oklch(100% 0 0 / 0.58);
+  --theme-external-source-pill-faint-text: oklch(43% 0.045 316);
 }

@@ -1,4 +1,9 @@
 import type { ReactNode } from "react";
+import {
+  getPublicAboutPreviewSubstances,
+  getPublicDataOverview,
+} from "@server/convex/publicData";
+import { getPublicMoleculePackCount } from "@server/convex/publicData.moleculePackCount";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
 // Source of truth for every prompt shown on this page. Published straight from the
@@ -26,7 +31,14 @@ import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ui/surface";
+import { AboutArchivePreview } from "@/components/pages/AboutArchivePreview";
+import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnapshot";
+import type { SubstanceArticle } from "@/schema";
 import { Mermaid } from "../_components/Mermaid";
+
+// The sample-record preview and substance count read Convex; refresh them on the
+// same cadence as the About page rather than per request.
+export const revalidate = 3600;
 
 export async function generateMetadata() {
   const copy = await getCopy();
@@ -423,7 +435,16 @@ function SectionRef({
 }
 
 export default async function DocsHowPage() {
-  const copy = await getCopy();
+  const [copy, overview, previewSubstances, moleculeCount] = await Promise.all([
+    getCopy(),
+    getPublicDataOverview(),
+    getPublicAboutPreviewSubstances(),
+    getPublicMoleculePackCount(),
+  ]);
+  // Same sample-record preview the About page shows, narrowed to the substance file and molecule pack.
+  const previewSnapshots = buildAboutPreviewSnapshots(
+    previewSubstances.map(({ slug: _slug, ...article }) => article as SubstanceArticle),
+  );
   const toc = TOC.map((entry) => ({
     ...entry,
     label: copy.text(`docs-how-toc-${entry.id}`),
@@ -446,21 +467,32 @@ export default async function DocsHowPage() {
             {copy.text("docs-how-title")}
           </h1>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
-            Each substance article here combines four methods: deterministic code
-            parses the numbers, an LLM drafts prose from verbatim source excerpts,
-            people review and curate, and allied projects feed in their own data live.
+            dose.wiki exists to compile the published knowledge about psychoactive drugs
+            into one open dataset that anyone can download. Ten reference sites hold most
+            of this knowledge today, in ten different formats. Compiling one substance by
+            hand takes days. Doing it for hundreds, and again for each new substance, was
+            not practical. So dose.wiki built an automated pipeline to do the first pass.
+            It applies the same steps, prompts, and rules to every substance, at any
+            scale, no matter who runs it.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            The automated pipeline exists to set a baseline: the same floor of coverage
-            and sourcing for every substance at once, compiled from what is already
-            published across the web. It produced the first draft of every article.
-            Humans then build on that baseline with corrections and curated additions
-            that the pipeline cannot supply. Each article&apos;s status shows how far
-            above the floor the article has moved. This page documents every stage of
-            that pipeline, including the exact prompts it runs. Readers can judge the
-            articles by their method of production. dose.wiki is in beta, and every article is a
-            living document. <SectionRef s="status" cap /> records what is finished,
-            what is running, and what is planned.
+            Software reads the dose tables, duration tables, and interaction ratings
+            directly from the sources. An AI model writes the first draft of the prose
+            from word-for-word source excerpts. How much its sources say decides where
+            each article starts. From there, people correct the draft and add what the
+            pipeline cannot supply. Each article&apos;s status shows how much human work
+            it has received.
+          </p>
+          <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
+            This page shows every step of the pipeline and every prompt it runs. It
+            follows the order of the work: the source sites, the parsers, the excerpts,
+            the AI writing, the citations, and the human review. After that, it lists
+            what can still go wrong, the roadmap, and the open dataset.
+          </p>
+          <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
+            dose.wiki is in beta, and every article is a living document.{" "}
+            <SectionRef s="status" cap /> records what is finished, what is running, and
+            what is planned.
           </p>
         </header>
 
@@ -486,7 +518,9 @@ export default async function DocsHowPage() {
             Kins created on Disregard Everything I Say in 2011.
           </li>
           <li>
-            Interaction ratings map directly from TripSit&apos;s drug-combination research.
+            Interaction ratings come from the drug-combination data that TripSit
+            publishes as a JSON file on GitHub. This file is not the same source as the
+            TripSit factsheet and wiki pages that the pipeline below archives and parses.
           </li>
           <li>
             Reagent colors come from protestkit.eu&apos;s API at the moment you open the
@@ -617,8 +651,8 @@ export default async function DocsHowPage() {
                   <Method tone="automated">parsed</Method>
                 </td>
                 <td className="p-3">
-                  Drug-combination risk ratings mapped directly from the TripSit combination
-                  guide.
+                  Drug-combination risk ratings read from the JSON file that TripSit
+                  publishes on GitHub. They do not come from the archived factsheets.
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -769,13 +803,15 @@ export default async function DocsHowPage() {
                 <td className="p-3">
                   TripSit{" "}
                   <small className="theme-text-faint block">
-                    three feeds: factsheets, wiki, combination guide
+                    three feeds: factsheets and wiki (scraped pages), combination data
+                    (published JSON on GitHub)
                   </small>
                 </td>
                 <td className="p-3">
-                  Dosage tables, duration by route, effects lists, the drug-combination
-                  interaction chart (dangerous / unsafe / caution / low-risk ratings),
-                  tolerance prose, classifications.
+                  From the factsheets and wiki: dosage tables, duration by route, effects
+                  lists, tolerance prose, classifications. From the combination data: the
+                  drug-combination interaction chart (dangerous / unsafe / caution /
+                  low-risk ratings).
                 </td>
                 <td className="space-y-1 p-3">
                   <Method>parsed</Method>
@@ -986,8 +1022,10 @@ export default async function DocsHowPage() {
             summary={<h3 className={SUB_SUMMARY_CLASS}>The combination chart</h3>}
           >
             <p className={PROSE_CLASS}>
-              A parser reads the TripSit combination guide as structured data and maps it
-              onto substance pairs. That produces the interaction ratings (dangerous,
+              The combination ratings do not come from the archived TripSit pages. TripSit
+              publishes its combination chart as a JSON file on GitHub. After every page
+              parser runs, a separate step reads that file and maps its class-based entries
+              onto substance pairs. That step produces the interaction ratings (dangerous,
               unsafe, caution, low-risk) shown where an article has matching interaction
               data and on the Interactions hub.
             </p>
@@ -1647,6 +1685,14 @@ export default async function DocsHowPage() {
           dataset and build on it, without rebuilding a harm-reduction encyclopedia
           first.
         </p>
+
+        <div className="mt-6">
+          <AboutArchivePreview
+            previewSnapshots={previewSnapshots}
+            downloadCounts={{ substances: overview.substanceCount, molecules: moleculeCount }}
+            downloads={["substances", "molecules"]}
+          />
+        </div>
 
         <div className="mt-6 space-y-8">
           <div>

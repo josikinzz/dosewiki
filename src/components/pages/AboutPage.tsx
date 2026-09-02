@@ -33,8 +33,7 @@ import {
 import type { AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
-import { AboutArchivePreview } from "./AboutArchivePreview";
-import { MoleculeDownloadPack } from "./MoleculeDownloadPack";
+import { AboutArchivePreview, type AboutDownloadCounts } from "./AboutArchivePreview";
 import {
   AboutCommunitySection,
   GROUP_LABEL_CLASSNAME,
@@ -155,7 +154,7 @@ interface AboutPageProps {
   missionContent?: ReactNode;
   /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
   subtitle?: string;
-  moleculeCount: number;
+  downloadCounts: AboutDownloadCounts;
 }
 
 export const AboutPage = memo(function AboutPage({
@@ -165,7 +164,7 @@ export const AboutPage = memo(function AboutPage({
   previewSnapshots,
   missionContent,
   subtitle,
-  moleculeCount,
+  downloadCounts,
 }: AboutPageProps) {
   const founders = founderProfiles;
   const hasRosterEntries =
@@ -309,7 +308,7 @@ export const AboutPage = memo(function AboutPage({
 
             <AboutArchivePreview
               previewSnapshots={previewSnapshots}
-              aside={<MoleculeDownloadPack moleculeCount={moleculeCount} />}
+              downloadCounts={downloadCounts}
             />
 
             {/* Reuse terms follow the publication: dose.wiki's CC0/MIT dedication is

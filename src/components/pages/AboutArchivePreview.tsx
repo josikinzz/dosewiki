@@ -1,28 +1,96 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
-import { Icon } from "../common/Icon";
+import { useCallback, useMemo, useState } from "react";
+import { Icon, type IconName } from "../common/Icon";
+import { MoleculeImage } from "./MoleculeImage";
 import { Button } from "@/components/ui/button";
+import { icons } from "@/utils/iconNames";
+import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 
-const DATASET_DOWNLOADS = [
+// Each download carries the icon its section uses in the site menu, so the list
+// reads as "the same things you navigate to, as files".
+/**
+ * Record counts shown beside each download. Every value comes from the same Convex
+ * reads the page already performs; nothing here is defaulted so the captions can
+ * never drift from the published set.
+ */
+export type AboutDownloadCounts = {
+  substances: number;
+  effects: number;
+  reports: number;
+  molecules: number;
+};
+
+export type AboutDownloadKey = keyof AboutDownloadCounts;
+
+const DOWNLOADS = [
   {
+    key: "substances",
     filename: "SubstanceIndex.json",
     href: "/open-data/SubstanceIndex.json",
-    caption: "every substance",
+    noun: "substances",
+    icon: resolveRouteChromeIcon("substances"),
   },
   {
+    key: "effects",
     filename: "EffectIndex.json",
     href: "/open-data/EffectIndex.json",
-    caption: "every subjective effect",
+    noun: "effects",
+    icon: resolveRouteChromeIcon("effects"),
   },
   {
+    key: "reports",
     filename: "TripReports.json",
     href: "/open-data/TripReports.json",
-    caption: "every published report",
+    noun: "reports",
+    icon: resolveRouteChromeIcon("reports"),
   },
-] as const;
+  {
+    key: "molecules",
+    filename: "dosewiki-molecules.zip",
+    href: "/dosewiki-molecules.zip",
+    noun: "SVGs",
+    icon: icons.hexagon,
+  },
+] as const satisfies ReadonlyArray<{ key: keyof AboutDownloadCounts } & Record<string, unknown>>;
+
+/** A few representative structures shown under the molecule pack download. */
+const MOLECULE_PREVIEW_SLUGS = ["lsd", "2c-b", "psilocin", "mdma", "ketamine", "caffeine"] as const;
+
+function triggerDownload(href: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function DownloadPill({
+  filename,
+  caption,
+  icon,
+  onClick,
+}: {
+  filename: string;
+  caption: string;
+  icon: IconName;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      onClick={onClick}
+      aria-label={`Download ${filename}`}
+      className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full pl-3.5 pr-4"
+    >
+      <Icon icon={icon} size={18} className="theme-accent-emphasis shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold">{filename}</span>
+      <span className="theme-text-faint shrink-0 text-xs">{caption}</span>
+      <Icon icon="charm:download" size={14} className="theme-text-faint shrink-0" aria-hidden="true" />
+    </Button>
+  );
+}
 
 function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boolean }) {
   const highlightedLines = useMemo(() => {
@@ -108,12 +176,24 @@ function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boo
 
 export function AboutArchivePreview({
   previewSnapshots,
-  aside,
+  downloadCounts,
+  downloads,
+  showMoleculePreview,
 }: {
   previewSnapshots: AboutPreviewSnapshot[];
-  /** Rendered in the left column under the dataset downloads (e.g. the molecule pack). */
-  aside?: ReactNode;
+  /** Counts for the downloads listed in `downloads`; the rest may be omitted. */
+  downloadCounts: Partial<AboutDownloadCounts>;
+  /** Which files to list. Defaults to every download the About page offers. */
+  downloads?: ReadonlyArray<AboutDownloadKey>;
+  /** Show the molecule strip under the pills. Defaults to on when the pack is listed. */
+  showMoleculePreview?: boolean;
 }) {
+  const visibleDownloads = DOWNLOADS.filter(
+    (download) => downloads === undefined || downloads.includes(download.key),
+  );
+  const moleculeStripVisible =
+    showMoleculePreview ?? visibleDownloads.some((download) => download.key === "molecules");
+
   // Open on a whole record when one exists; large articles remain reachable via Shuffle.
   const [previewIndex, setPreviewIndex] = useState(() => {
     if (previewSnapshots.length === 0) return -1;
@@ -121,15 +201,6 @@ export function AboutArchivePreview({
     return complete >= 0 ? complete : 0;
   });
   const [hasCopied, setHasCopied] = useState(false);
-
-  const handleDownload = useCallback((href: string, filename: string) => {
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, []);
 
   const handleShuffle = useCallback(() => {
     if (previewSnapshots.length === 0) return;
@@ -186,45 +257,42 @@ export function AboutArchivePreview({
     <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <section className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-2">
-          {DATASET_DOWNLOADS.map((dataset) => (
-            <Button
-              key={dataset.filename}
-              onClick={() => handleDownload(dataset.href, dataset.filename)}
-              className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full px-4"
-            >
-              <Icon
-                icon="lucide:download"
-                size={16}
-                className="theme-accent-emphasis shrink-0"
-              />
-              <span className="min-w-0 truncate text-sm">
-                <span className="font-semibold text-dose-accent-strong">{dataset.filename}</span>
-                <span className="theme-text-faint text-xs"> · {dataset.caption}</span>
-              </span>
-            </Button>
+          {visibleDownloads.map((download) => (
+            <DownloadPill
+              key={download.filename}
+              filename={download.filename}
+              caption={`${(downloadCounts[download.key] ?? 0).toLocaleString()} ${download.noun}`}
+              icon={download.icon}
+              onClick={() => triggerDownload(download.href, download.filename)}
+            />
           ))}
-          <p className="theme-text-faint px-1 text-xs leading-5">
-            JSON, refreshed nightly from the live database. Reuse terms vary by dataset;
-            see{" "}
-            <Link href="/docs/license" className="theme-link-muted transition-colors">
-              License &amp; reuse
-            </Link>
-            .
-          </p>
         </div>
-        {aside}
+
+        {moleculeStripVisible ? (
+        <ul className="grid grid-cols-6 gap-1.5 px-2" aria-hidden="true">
+          {MOLECULE_PREVIEW_SLUGS.map((slug) => (
+            <li key={slug} className="flex items-center justify-center">
+              <MoleculeImage
+                src={`/api/molecules/${slug}`}
+                alt=""
+                width={40}
+                height={40}
+                loading="lazy"
+                unoptimized
+                className="theme-molecule-image h-10 w-10 object-contain"
+                draggable={false}
+              />
+            </li>
+          ))}
+        </ul>
+        ) : null}
       </section>
 
       <div className="theme-card-surface theme-about-json-preview flex min-w-0 flex-col overflow-hidden rounded-2xl border">
         <div className="theme-about-json-preview-header flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="flex gap-1.5">
-              <div className="theme-json-preview-window-dot h-2.5 w-2.5 rounded-full" data-tone="danger" />
-              <div className="theme-json-preview-window-dot h-2.5 w-2.5 rounded-full" data-tone="warning" />
-              <div className="theme-json-preview-window-dot h-2.5 w-2.5 rounded-full" data-tone="success" />
-            </div>
-            <span className="theme-json-preview-muted ml-2 min-w-0 text-xs font-medium leading-4">Archival SubstanceIndex.json preview</span>
-          </div>
+          <span className="theme-json-preview-muted min-w-0 text-xs font-medium leading-4">
+            Sample record · refreshed nightly from the live database
+          </span>
           <div className="flex shrink-0 items-center gap-2">
             <Button
               variant="ghost"
@@ -250,10 +318,6 @@ export function AboutArchivePreview({
           <div
             aria-hidden="true"
             className="theme-json-preview-ambient pointer-events-none absolute inset-0 opacity-[0.65]"
-          />
-          <div
-            aria-hidden="true"
-            className="theme-json-preview-scanlines pointer-events-none absolute inset-0"
           />
 
           <div className="absolute inset-0 overflow-auto py-4 pl-3 pr-4 custom-scrollbar sm:pr-6">

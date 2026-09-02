@@ -61,7 +61,7 @@ function renderAboutPage(
         founderProfiles={founderProfiles}
         previewSnapshots={[]}
         missionContent={<p>Mission test copy for harm reduction.</p>}
-        moleculeCount={572}
+        downloadCounts={{ substances: 1234, effects: 310, reports: 89, molecules: 572 }}
         {...overrides}
       />
     </AppearanceTestProvider>,
@@ -379,10 +379,12 @@ describeOpenData("AboutPage public export contract", () => {
     expect(screen.getByText("SubstanceIndex.json")).toBeInTheDocument();
     expect(screen.getByText("EffectIndex.json")).toBeInTheDocument();
     expect(screen.getByText("TripReports.json")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /molecule art pack/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Molecule pack (.zip)")).toBeInTheDocument();
+    // The molecule pack sits in the same download list as the datasets.
+    expect(screen.getByText("dosewiki-molecules.zip")).toBeInTheDocument();
+    expect(screen.getByText("1,234 substances")).toBeInTheDocument();
+    expect(screen.getByText("310 effects")).toBeInTheDocument();
+    expect(screen.getByText("89 reports")).toBeInTheDocument();
+    expect(screen.getByText("572 SVGs")).toBeInTheDocument();
     // The manifest ships inside the zip; no separate download or repository link.
     expect(
       screen.queryByRole("link", { name: /github repository/i }),
@@ -400,8 +402,10 @@ describeOpenData("AboutPage public export contract", () => {
     // The downloads point at the reuse matrix instead of claiming blanket CC0:
     // trip report rights remain with their authors, so "JSON, CC0" was false.
     expect(screen.queryByText(/JSON, CC0/)).not.toBeInTheDocument();
+    // The licence is stated once, in the reuse notice, not repeated under the buttons.
+    expect(screen.queryByText(/Reuse terms vary by dataset/i)).not.toBeInTheDocument();
     expect(
-      within(sectionById("data")).getByRole("link", { name: "License & reuse" }),
+      within(sectionById("data")).getByRole("link", { name: "CC0" }),
     ).toHaveAttribute("href", "/docs/license");
     expect(screen.queryByText("Static JSON snapshot")).not.toBeInTheDocument();
     expect(screen.queryByText("GitHub Repository")).not.toBeInTheDocument();
@@ -415,7 +419,7 @@ describe("AboutPage cross-publication content", () => {
 
     const seen = new Set<string>();
     if (screen.queryByText("SubstanceIndex.json")) seen.add("substance-index");
-    if (screen.queryByRole("heading", { name: /molecule art pack/i })) seen.add("molecules");
+    if (screen.queryByText("dosewiki-molecules.zip")) seen.add("molecules");
 
     // dose.wiki owns the molecule pack and SubstanceIndex.json. Rendering them on a
     // flavor that does not own them puts one publication's assets under the other's

@@ -1226,7 +1226,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack — AI generation: body",
     "group": "Docs · Code",
-    "body": "One API gateway to many models, selected by each workflow's config or entry module: **Claude Opus 4.6** (summary, pharmacology), **Claude Opus 4.5** (harm potential, history & culture, legality, tolerance), **Claude Haiku 4.5** (dosage & duration), **Gemini 3 Flash** (quote extraction), and **DeepSeek V4 Pro** (formal citations). Both the batch scripts and the in-editor section generator use it."
+    "body": "One API gateway to many LLMs. Each workflow (section synthesis, dosage and duration rewrites, quote extraction, formal citations) selects its own model in its config or entry module, and those choices change as better models appear, so this page does not list them. Both the batch scripts and the in-editor section generator use the gateway."
   },
   {
     "key": "docs-code-s3-styling-label",
