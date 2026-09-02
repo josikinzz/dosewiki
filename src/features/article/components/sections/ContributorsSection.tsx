@@ -71,15 +71,21 @@ const creditTextClassName = "theme-text-secondary font-semibold";
 /**
  * Personless step marker (the citation-review step has no credited human yet):
  * same 40px circular footprint as the xs ContributorAvatar so the three step
- * rows align into one ladder.
+ * rows align into one ladder. A pending step wears the danger surface so the
+ * empty seat reads as unfinished, not merely unattributed.
  */
-function StepBadge({ icon }: { icon: IconName }) {
+function StepBadge({ icon, pending }: { icon: IconName; pending?: boolean }) {
   return (
     <span
       aria-hidden
-      className="theme-public-card-subtle theme-text-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-full border"
+      className={cn(
+        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border",
+        pending
+          ? "theme-status-step-pending-surface"
+          : "theme-public-card-subtle theme-text-muted",
+      )}
     >
-      <Icon icon={icon} size={18} className="opacity-80" />
+      <Icon icon={icon} size={18} className={pending ? undefined : "opacity-80"} />
     </span>
   );
 }
@@ -103,7 +109,11 @@ interface StatusStepProps {
   avatarSrc?: string | null;
   roleIcon: IconName;
   roleLabel: string;
-  /** Step not yet performed: shield-off marker and a "Pending" tag; done steps get a green check. */
+  /**
+   * Step not yet performed: danger-red shield-off marker, "Pending" chip, and
+   * badge, the counterpart of the green check on done steps. Red sits only on
+   * the status cluster; the label and description keep their neutral ink.
+   */
   pending?: boolean;
   children: ReactNode;
 }
@@ -136,7 +146,7 @@ function StatusStep({
         )
       ) : (
         <span className="mt-0.5 shrink-0 sm:mt-0">
-          <StepBadge icon={roleIcon} />
+          <StepBadge icon={roleIcon} pending={pending} />
         </span>
       )}
       <div className="min-w-0">
@@ -145,20 +155,20 @@ function StatusStep({
             <Icon
               icon="material-symbols:gpp-bad-outline-rounded"
               size={14}
-              className="shrink-0 opacity-80"
+              className="theme-status-step-pending-mark shrink-0"
             />
           ) : (
             <Icon
               icon="bi:check2-square"
               size={14}
-              className="shrink-0 text-[var(--theme-success-text)]"
+              className="theme-status-step-done-mark shrink-0"
             />
           )}
           <span>
             Step {step} · {roleLabel}
           </span>
           {pending ? (
-            <span className="theme-text-faint rounded border border-current/30 px-1 py-px text-[0.6rem] leading-none opacity-80">
+            <span className="theme-status-step-pending-surface rounded border px-1 py-px text-[0.6rem] leading-none">
               Pending
             </span>
           ) : null}

@@ -2771,6 +2771,24 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   background-color: var(--theme-danger-bg);
 }
 
+/* Article Status ladder (ContributorsSection). A done step's check takes the
+   success ink; a step not yet performed puts the vivid danger ink on its
+   shield-off marker and the danger surface on its badge and "Pending" chip.
+   Red sits only on the status cluster; label and description keep neutral ink. */
+.theme-status-step-done-mark {
+  color: var(--theme-success-text);
+}
+
+.theme-status-step-pending-mark {
+  color: var(--theme-danger-text-vivid);
+}
+
+.theme-status-step-pending-surface {
+  border-color: var(--theme-danger-border-strong);
+  background-color: var(--theme-danger-bg);
+  color: var(--theme-danger-text-vivid);
+}
+
 .theme-warning-text {
   color: var(--theme-warning-text);
 }
