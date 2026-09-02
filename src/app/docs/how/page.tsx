@@ -472,23 +472,22 @@ export default async function DocsHowPage() {
             {copy.text("docs-how-title")}
           </h1>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
-            dose.wiki exists to compile the published knowledge about psychoactive drugs
-            into one open dataset that anyone can download. Ten reference sites hold most
-            of this knowledge today, in ten different formats.{" "}
+            Everything a substance article needs is already published, spread across ten
+            reference sites in ten formats. Compiling it was always the expensive part.{" "}
             <a href="/contributors/josie" className={proseLinkClassName}>Josie Kins</a>, who
-            co-founded dose.wiki, compiled hundreds of substances by hand for earlier
-            reference sites. That work showed the cost of a hand-built reference: one substance
-            takes days, and the standard changes with each writer. When a writer leaves,
-            the way they worked leaves with them.
+            co-founded dose.wiki, wrote hundreds of substance articles by hand for earlier
+            reference sites, so we know the cost: each article is days of work, each writer
+            sets a different standard, and when a writer leaves, the method leaves with them.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            So dose.wiki starts each article with a pipeline. Code transcribes the
-            numbers. An LLM reads the sources and drafts each section. The same steps and
-            prompts run for each substance, whoever runs them and whenever. Compiling is
-            the same job for any substance, and it is the job these tools are good at, so
-            the pipeline does it. People take over from there. They decide whether a draft
-            is accurate and safe, and they add what the sources left out. Each
-            article&apos;s status subsection shows how much of that work it has received.
+            Compiling is now what software does well, so substance articles begin as
+            pipeline drafts. Code copies the dose and duration tables. An LLM reads the
+            sources and drafts the narrative sections from word-for-word excerpts, citing
+            the source of each one. The same steps and prompts run for each substance,
+            whoever runs them and whenever. Human editors take over from there. They verify
+            the pharmacology, check the doses and interactions where a wrong figure can hurt
+            someone, and add what the sources left out. Each article&apos;s status subsection
+            shows how much human review it has had.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
             The pipeline builds the baseline once, with the models available today.
