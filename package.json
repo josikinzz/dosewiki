@@ -47,6 +47,7 @@
     "generate:appearance-sheets": "bun scripts/build/generateAppearanceSheets.ts",
     "generate:surface-css": "bun scripts/build/generateSurfaceCss.ts",
     "generate:icon-data": "bun scripts/build/generateIconData.ts",
+    "generate:home-tile-glyphs": "bun scripts/build/generateHomeTileGlyphMetrics.ts",
     "generate:subjective-effects-provenance": "node scripts/convex/generate-subjective-effects-provenance.mjs",
     "provenance:check": "node scripts/data/verifyGeneratedDataProvenance.mjs",
     "parse:sources": "bun scripts/parse-sources.ts --stats",

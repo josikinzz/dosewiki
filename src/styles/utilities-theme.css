@@ -1264,9 +1264,19 @@ html[data-theme="light"]
     border-radius: 1.25rem;
   }
 
+  /* The glyph's ink is a fixed share of its tile, so the tile's viewport-height
+     scaling above (and the short-viewport override below) never changes the
+     glyph-to-tile proportion, the way an app icon keeps its symbol in scale.
+     Each collection pads its glyph differently inside the nominal box, so the
+     box is enlarged and recentred by the icon's measured ink
+     (`--theme-home-glyph-*`, set per tile from homeTileGlyphMetrics.generated.json)
+     rather than sized directly. */
   .theme-home-nav-svg {
-    width: 2.6rem;
-    height: 2.6rem;
+    --theme-home-glyph-ink: 60%;
+    width: calc(var(--theme-home-glyph-ink) * var(--theme-home-glyph-scale, 1));
+    height: calc(var(--theme-home-glyph-ink) * var(--theme-home-glyph-scale, 1));
+    translate: calc(var(--theme-home-glyph-dx, 0) * 100%)
+      calc(var(--theme-home-glyph-dy, 0) * 100%);
   }
 
   .theme-home-nav-label {

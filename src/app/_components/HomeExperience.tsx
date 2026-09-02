@@ -11,6 +11,7 @@ import { SiteVersionBadge } from "@/components/common/SiteVersionBadge";
 import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
+import { homeTileGlyphStyle } from "./homeTileGlyph";
 import { AppearanceControls } from "./AppearanceControls";
 import { MailingListInvite } from "./MailingListInvite";
 
@@ -275,7 +276,10 @@ export function HomeExperience({
                   data-clicked={clickedItem === item.label}
                   className="theme-home-nav-link theme-home-mock-button group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
                 >
-                  <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
+                  <span
+                    className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]"
+                    style={homeTileGlyphStyle(item.icon)}
+                  >
                     <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
                     {renderSoonBadge("-right-2 -top-2 group-data-[clicked=true]:opacity-100")}
                   </span>
@@ -289,7 +293,10 @@ export function HomeExperience({
                   href={item.href}
                   className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
                 >
-                  <span className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]">
+                  <span
+                    className="theme-home-nav-icon theme-public-card-hover-quiet relative flex h-20 w-20 items-center justify-center rounded-2xl border transition-[height,width,border-color,background-color,box-shadow,transform] duration-300 sm:h-[5.75rem] sm:w-[5.75rem]"
+                    style={homeTileGlyphStyle(item.icon)}
+                  >
                     <Icon icon={item.icon} size={44} className="theme-home-nav-svg transition-[height,width,transform] duration-300" />
                   </span>
                   <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">

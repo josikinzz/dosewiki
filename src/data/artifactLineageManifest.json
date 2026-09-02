@@ -427,6 +427,27 @@
       "refreshCommand": "npm run generate:icon-data"
     },
     {
+      "id": "home-tile-glyph-metrics",
+      "path": "src/app/_components/homeTileGlyphMetrics.generated.json",
+      "role": "derived-code",
+      "producer": "scripts/build/generateHomeTileGlyphMetrics.ts",
+      "consumers": [
+        "src/app/_components/homeTileGlyph.ts",
+        "src/app/_components/HomeExperience.tsx"
+      ],
+      "inputs": [
+        "src/app/_components/homeQuickLinks.ts quick-link icons for every flavor in src/config/siteFlavor.ts",
+        "src/utils/routeChromeIcons.ts",
+        "@iconify-json/* devDependencies"
+      ],
+      "freshnessRule": "Refresh whenever a homepage quick link changes icon, a flavor's quickLinkIds change, or after updating the @iconify-json/* package that supplies any quick-link icon.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "Icon name to { scale, dx, dy } ink framing (scripts/build/generateHomeTileGlyphMetrics.ts)",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:home-tile-glyphs"
+    },
+    {
       "id": "substance-social-card-manifest",
       "path": "src/data/substanceSocialCardManifest.generated.json",
       "role": "derived-manifest",
