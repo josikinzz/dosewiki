@@ -1677,11 +1677,7 @@ html[data-theme="light"] .theme-home-nav-svg {
 }
 
 .theme-search-focus-glow {
-  background: radial-gradient(
-    circle at top,
-    rgba(244, 114, 182, 0.12),
-    transparent 58%
-  );
+  background: var(--theme-search-focus-glow-bg);
 }
 
 .theme-global-search-input {
@@ -1903,29 +1899,10 @@ html[data-theme="light"] .theme-home-search-input:focus {
 }
 
 html[data-theme="light"] .theme-search-overlay {
-  border-color: oklch(58% 0.085 326 / 0.16);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(99% 0.024 333 / 0.58),
-      transparent 36%
-    ),
-    radial-gradient(
-      circle at 92% 100%,
-      oklch(72% 0.12 324 / 0.13),
-      transparent 44%
-    ),
-    linear-gradient(
-      135deg,
-      oklch(from var(--theme-search-overlay-bg) l c h / 0.96) 0%,
-      oklch(93% 0.048 326 / 0.96) 58%,
-      oklch(89% 0.064 319 / 0.97) 100%
-    );
-  --tw-ring-color: oklch(46% 0.13 var(--h-brand) / 0.08);
-  box-shadow:
-    0 24px 48px -34px oklch(48% 0.14 318 / 0.28),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.78),
-    inset 0 0 0 1px oklch(99% 0.018 333 / 0.24);
+  border-color: var(--theme-search-overlay-panel-border);
+  background: var(--theme-search-overlay-panel-bg);
+  --tw-ring-color: var(--theme-search-overlay-panel-ring);
+  box-shadow: var(--theme-search-overlay-panel-shadow);
 }
 
 /* Search results page: the group cards drop to the dark chrome/inset tone
@@ -1947,16 +1924,8 @@ html:not([data-theme="light"])
   .theme-search-page-shell
   .theme-search-suggestion-icon {
   border-color: transparent;
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(32% 0.04 318),
-      oklch(27% 0.034 318) 38%
-    ),
-    linear-gradient(135deg, oklch(27% 0.034 318), oklch(24% 0.03 318));
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--theme-plum-chip-bg);
+  box-shadow: var(--theme-plum-chip-shadow);
 }
 
 .theme-search-result-divider {
@@ -2065,18 +2034,10 @@ html[data-theme="dark"] .theme-search-suggestion-icon {
 }
 
 html[data-theme="light"] .theme-search-best-match {
-  border-color: oklch(54% 0.12 326 / 0.14);
-  background:
-    radial-gradient(
-      circle at 22% 0%,
-      oklch(99% 0.026 333 / 0.54),
-      transparent 42%
-    ),
-    linear-gradient(135deg, oklch(91.5% 0.06 334), oklch(84.5% 0.09 319));
-  color: oklch(32% 0.15 326);
-  box-shadow:
-    inset 0 1px 0 oklch(99% 0.012 333 / 0.74),
-    inset 0 0 0 1px oklch(99% 0.018 333 / 0.18);
+  border-color: var(--theme-search-best-match-border);
+  background: var(--theme-search-best-match-bg);
+  color: var(--theme-search-best-match-text);
+  box-shadow: var(--theme-search-best-match-shadow);
 }
 
 .theme-search-highlight-mark {
@@ -2099,7 +2060,7 @@ html[data-theme="dark"] .theme-search-highlight-mark {
 html[data-theme="light"] .theme-search-suggestion-icon {
   border-color: transparent;
   background: var(--theme-frosted-control-on-panel-bg);
-  color: oklch(34% 0.15 326);
+  color: var(--theme-search-suggestion-icon-text);
   box-shadow: var(--theme-frosted-control-on-panel-shadow);
   --tw-ring-color: var(--theme-frosted-control-on-panel-border);
 }
@@ -2109,68 +2070,29 @@ html[data-theme="light"] .theme-search-suggestion-aliases {
 }
 
 html[data-theme="light"] .theme-search-suggestion-secondary {
-  color: oklch(39% 0.045 318);
+  color: var(--theme-search-suggestion-secondary-text);
 }
 
 html[data-theme="light"] .theme-search-suggestion[data-highlighted="true"] {
-  border-color: oklch(58% 0.105 326 / 0.16);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(99% 0.026 333 / 0.56),
-      transparent 36%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      oklch(74% 0.112 324 / 0.12),
-      transparent 44%
-    ),
-    linear-gradient(135deg, oklch(94% 0.044 334), oklch(89% 0.066 319));
-  box-shadow:
-    0 14px 30px -28px oklch(48% 0.14 318 / 0.22),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.72),
-    inset 0 0 0 1px oklch(99% 0.018 333 / 0.18);
+  border-color: var(--theme-search-suggestion-active-border);
+  background: var(--theme-search-suggestion-hover-bg);
+  box-shadow: var(--theme-search-suggestion-active-shadow);
 }
 @media (hover: hover) {
   html[data-theme="light"] .theme-search-suggestion:hover {
-    border-color: oklch(58% 0.105 326 / 0.16);
-    background:
-      radial-gradient(
-        circle at 12% 0%,
-        oklch(99% 0.026 333 / 0.56),
-        transparent 36%
-      ),
-      radial-gradient(
-        circle at bottom right,
-        oklch(74% 0.112 324 / 0.12),
-        transparent 44%
-      ),
-      linear-gradient(135deg, oklch(94% 0.044 334), oklch(89% 0.066 319));
-    box-shadow:
-      0 14px 30px -28px oklch(48% 0.14 318 / 0.22),
-      inset 0 1px 0 oklch(99% 0.01 333 / 0.72),
-      inset 0 0 0 1px oklch(99% 0.018 333 / 0.18);
+    border-color: var(--theme-search-suggestion-active-border);
+    background: var(--theme-search-suggestion-hover-bg);
+    box-shadow: var(--theme-search-suggestion-active-shadow);
   }
 }
 
 html[data-theme="light"] .theme-search-suggestion[data-highlighted="true"] {
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(99% 0.028 333 / 0.62),
-      transparent 36%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      oklch(72% 0.13 324 / 0.15),
-      transparent 44%
-    ),
-    linear-gradient(135deg, oklch(92.5% 0.054 334), oklch(87.5% 0.078 319));
+  background: var(--theme-search-suggestion-active-bg);
 }
 
 html[data-theme="light"] .theme-search-highlight-mark {
   background: var(--theme-frosted-control-on-panel-bg);
-  color: oklch(31% 0.12 326);
+  color: var(--theme-search-highlight-mark-text);
   box-shadow: var(--theme-frosted-control-on-panel-shadow);
 }
 
@@ -3694,18 +3616,6 @@ html[data-theme="light"] .theme-aside-panel {
     );
 }
 
-.theme-json-preview-scanlines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--theme-text-primary) 6%, transparent) 0,
-    color-mix(in srgb, var(--theme-text-primary) 6%, transparent) 1px,
-    transparent 1px,
-    transparent 6px
-  );
-  opacity: 0.07;
-  mix-blend-mode: overlay;
-}
-
 .theme-json-preview-muted {
   color: var(--theme-text-muted);
 }
@@ -3736,27 +3646,6 @@ html[data-theme="light"] .theme-aside-panel {
 
 .theme-json-preview-null {
   color: var(--theme-json-null);
-}
-
-.theme-json-preview-window-dot {
-  border: 1px solid color-mix(in srgb, currentColor 64%, transparent);
-  background-color: color-mix(
-    in srgb,
-    currentColor 22%,
-    var(--theme-surface-deep)
-  );
-}
-
-.theme-json-preview-window-dot[data-tone="danger"] {
-  color: var(--theme-json-window-danger);
-}
-
-.theme-json-preview-window-dot[data-tone="warning"] {
-  color: var(--theme-json-window-warning);
-}
-
-.theme-json-preview-window-dot[data-tone="success"] {
-  color: var(--theme-json-window-success);
 }
 
 .theme-json-preview-truncation {
@@ -5121,36 +5010,22 @@ html:not([data-theme="light"]) .theme-index-card-link:focus-visible {
 }
 
 /* Count chips sit between the panel tone and the text tone: a mid plum
-     raised slightly above the card, not an inset darker than it.
-     theme-light-mode.css overrides these with the light equivalents. */
+     raised slightly above the card, not an inset darker than it. The bg and
+     shadow live in --theme-index-card-count-* tokens (accent role) so the
+     appearance hue/saturation axes rotate them with the rest of the accent
+     family; site-colors.css carries the light equivalents. */
 .theme-index-card-count {
   border-radius: 0.5rem;
   color: var(--theme-text-muted);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(32% 0.04 318),
-      oklch(27% 0.034 318) 38%
-    ),
-    linear-gradient(135deg, oklch(27% 0.034 318), oklch(24% 0.03 318));
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--theme-index-card-count-bg);
+  box-shadow: var(--theme-index-card-count-shadow);
   --tw-ring-color: transparent;
 }
 
 .theme-index-card-count-sm {
   color: var(--theme-text-muted);
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      oklch(32% 0.04 318),
-      oklch(27% 0.034 318) 38%
-    ),
-    linear-gradient(135deg, oklch(27% 0.034 318), oklch(24% 0.03 318));
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--theme-index-card-count-bg);
+  box-shadow: var(--theme-index-card-count-shadow);
   --tw-ring-color: transparent;
   opacity: 0.9;
 }

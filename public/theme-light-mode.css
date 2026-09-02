@@ -270,15 +270,7 @@ html[data-theme="light"] .theme-article-hero {
 html[data-theme="light"] .theme-article-hero-summary {
   background-color: transparent;
   color: var(--theme-text-primary);
-  --theme-article-hero-summary-divider: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(48% 0.085 var(--h-brand) / 0.08) 4%,
-    oklch(48% 0.085 var(--h-brand) / 0.16) 16%,
-    oklch(48% 0.085 var(--h-brand) / 0.16) 84%,
-    oklch(48% 0.085 var(--h-brand) / 0.08) 96%,
-    transparent 100%
-  );
+  --theme-article-hero-summary-divider: var(--theme-article-hero-divider);
 }
 
 html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet {
@@ -288,14 +280,13 @@ html[data-theme="light"] .theme-article-hero-priority .theme-control-pill-quiet 
 }
 
 html[data-theme="light"] .theme-molecule-shell {
-  border-color: rgba(140, 22, 111, 0.14);
-  background:
-    linear-gradient(135deg, rgba(159, 33, 128, 0.08), transparent 55%), color-mix(in srgb, rgb(255 255 255) 80%, var(--theme-body-bg));
+  border-color: var(--theme-molecule-shell-border);
+  background: var(--theme-molecule-shell-bg);
 }
 
 html[data-theme="light"] .theme-molecule-panel,
 html[data-theme="light"] .theme-molecule-fallback {
-  border-color: rgba(93, 56, 123, 0.12);
+  border-color: var(--theme-molecule-panel-border);
   background-color: color-mix(in srgb, rgb(255 255 255) 94%, var(--theme-body-bg));
 }
 
@@ -316,9 +307,8 @@ html[data-theme="light"] .theme-inline-expanded-card {
 }
 
 html[data-theme="light"] .theme-article-priority-section {
-  border-color: rgba(93, 56, 123, 0.14);
-  background:
-    radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%), color-mix(in srgb, rgb(255 255 255) 52%, var(--theme-body-bg));
+  border-color: var(--theme-article-priority-border);
+  background: var(--theme-article-priority-bg);
   box-shadow: 0 18px 42px -34px rgba(84, 46, 112, 0.26);
 }
 
@@ -421,7 +411,7 @@ html[data-theme="light"] .theme-external-source-pill {
 }
 
 html[data-theme="light"] .theme-external-source-pill .theme-text-faint {
-  color: oklch(43% 0.045 316) !important;
+  color: var(--theme-external-source-pill-faint-text) !important;
 }
 
 html[data-theme="light"] :is(.theme-control-pill, .theme-control-pill-quiet) {
@@ -516,17 +506,6 @@ html[data-theme="light"] .theme-index-card-icon {
   background: #fff !important;
   box-shadow: var(--theme-frosted-control-on-panel-shadow) !important;
   --tw-ring-color: var(--theme-frosted-control-on-panel-border) !important;
-}
-
-html[data-theme="light"] .theme-index-card-count,
-html[data-theme="light"] .theme-index-card-count-sm {
-  background-color: oklch(96.5% 0.024 326) !important;
-  background:
-    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.94), transparent 36%), linear-gradient(135deg, oklch(97.5% 0.024 326), oklch(93.5% 0.034 326)) !important;
-  box-shadow:
-    inset 0 0 0 1px oklch(54% 0.08 326 / 0.2),
-    inset 0 1px 0 oklch(99% 0.01 333 / 0.9),
-    inset 0 -10px 18px -18px oklch(56% 0.08 326 / 0.32) !important;
 }
 
 html[data-theme="light"] .theme-index-card-toggle {
@@ -894,8 +873,7 @@ html[data-theme="light"] .theme-duration-stage-row:nth-child(odd) {
 }
 
 html[data-theme="light"] .theme-duration-stage-row:nth-child(even) {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.4% 0.006 326) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(95.5% 0.018 326) 94%, var(--theme-body-bg))) !important;
+  background: var(--theme-duration-stage-row-alt-bg) !important;
 }
 
 /* The alt-row well is fully tokenised at utilities-theme.css:3446 and lands
@@ -944,8 +922,7 @@ html[data-theme="light"] .theme-ld50-table-panel {
 }
 
 html[data-theme="light"] .theme-ld50-table-head {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.76), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.004 326) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(97% 0.01 326) 92%, var(--theme-body-bg))) !important;
+  background: var(--theme-ld50-table-head-bg) !important;
 }
 
 html[data-theme="light"] .theme-ld50-table-body {
@@ -957,8 +934,7 @@ html[data-theme="light"] .theme-ld50-table-row {
 }
 
 html[data-theme="light"] .theme-ld50-table-row:nth-child(even) {
-  background:
-    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.56), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99.4% 0.003 326) 70%, var(--theme-body-bg)), color-mix(in srgb, oklch(96.5% 0.012 326) 72%, var(--theme-body-bg))) !important;
+  background: var(--theme-ld50-table-row-alt-bg) !important;
 }
 
 @media (hover: hover) {
@@ -968,11 +944,7 @@ html[data-theme="light"] .theme-ld50-table-row:nth-child(even) {
 }
 
 html[data-theme="light"] .theme-country-flag-icon {
-  box-shadow:
-    0 0 0 2px oklch(100% 0 0 / 0.72),
-    0 0 0 3px var(--theme-frosted-control-on-panel-border),
-    0 10px 20px -14px oklch(38% 0.08 316 / 0.36),
-    inset 0 1px 0 oklch(100% 0 0 / 0.58) !important;
+  box-shadow: var(--theme-country-flag-shadow) !important;
   --tw-ring-color: transparent !important;
 }
 
@@ -983,8 +955,7 @@ html[data-theme="light"] .theme-reagent-results-panel {
 }
 
 html[data-theme="light"] :is(.theme-dose-detail-expanded, .theme-plateau-tier-expanded) {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, oklch(98% 0.016 334) 76%, var(--theme-body-bg)), color-mix(in srgb, oklch(95% 0.032 319) 78%, var(--theme-body-bg))) !important;
+  background: var(--theme-dose-detail-expanded-bg) !important;
 }
 
 /* === Dark-mode opaque flatten for legacy text-white/NN utilities ===

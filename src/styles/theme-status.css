@@ -132,7 +132,7 @@ html[data-theme="light"] .theme-status-orb-icon {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.08), transparent 40%, rgba(139, 92, 246, 0.08));
+  background: var(--theme-state-card-sheen);
 }
 
 .theme-state-card[data-tone="warning"]::before {

@@ -729,6 +729,20 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-avatar-gradient-from: color-mix(in srgb, rgb(var(--c-brand)) 20%, var(--theme-surface-muted));
   --theme-avatar-gradient-to: color-mix(in srgb, rgb(var(--c-violet)) 25%, var(--theme-surface-muted));
   --theme-index-card-bullet: rgba(255, 255, 255, 0.39);
+  /* The mid-plum chip material shared by the index-card count badges and the
+     search-page highlight/suggestion chips. Hoisted here (accent role) so the
+     appearance axes rotate it with the rest of the accent family. */
+  --theme-plum-chip-bg:
+    radial-gradient(circle at 12% 0%, oklch(32% 0.04 318), oklch(27% 0.034 318) 38%), linear-gradient(135deg, oklch(27% 0.034 318), oklch(24% 0.03 318));
+  --theme-plum-chip-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --theme-index-card-count-bg: var(--theme-plum-chip-bg);
+  --theme-index-card-count-shadow: var(--theme-plum-chip-shadow);
+  /* Homepage search halo and the StateCard accent sheen: pink/violet accent
+     decorations, tokenised so they follow accent rotation (both schemes). */
+  --theme-search-focus-glow-bg: radial-gradient(circle at top, rgba(244, 114, 182, 0.12), transparent 58%);
+  --theme-state-card-sheen: linear-gradient(135deg, rgba(244, 114, 182, 0.08), transparent 40%, rgba(139, 92, 246, 0.08));
   --theme-construction-banner-text: #fbbf24;
   --theme-home-nav-card-border: rgba(217, 70, 239, 0.18);
 
@@ -1233,6 +1247,82 @@ html[data-theme="light"] {
   --theme-avatar-gradient-from: oklch(89.5% 0.075 334);
   --theme-avatar-gradient-to: oklch(80.5% 0.114 319);
   --theme-index-card-bullet: color-mix(in srgb, var(--theme-accent) 28%, oklch(41.6% 0.113 var(--h-plum) / 0.18));
+  --theme-index-card-count-bg:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.94), transparent 36%), linear-gradient(135deg, oklch(97.5% 0.024 326), oklch(93.5% 0.034 326));
+  --theme-index-card-count-shadow:
+    inset 0 0 0 1px oklch(54% 0.08 326 / 0.2),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.9),
+    inset 0 -10px 18px -18px oklch(56% 0.08 326 / 0.32);
+  /* Light search overlay + results family. Values are the former rule-body
+     literals from utilities-theme.css, hoisted verbatim so accent rotation
+     reaches them. */
+  --theme-search-overlay-panel-border: oklch(58% 0.085 326 / 0.16);
+  --theme-search-overlay-panel-bg:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.58), transparent 36%),
+    radial-gradient(circle at 92% 100%, oklch(72% 0.12 324 / 0.13), transparent 44%),
+    linear-gradient(135deg, oklch(from var(--theme-search-overlay-bg) l c h / 0.96) 0%, oklch(93% 0.048 326 / 0.96) 58%, oklch(89% 0.064 319 / 0.97) 100%);
+  --theme-search-overlay-panel-ring: oklch(46% 0.13 var(--h-brand) / 0.08);
+  --theme-search-overlay-panel-shadow:
+    0 24px 48px -34px oklch(48% 0.14 318 / 0.28),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.78),
+    inset 0 0 0 1px oklch(99% 0.018 333 / 0.24);
+  --theme-search-best-match-border: oklch(54% 0.12 326 / 0.14);
+  --theme-search-best-match-bg:
+    radial-gradient(circle at 22% 0%, oklch(99% 0.026 333 / 0.54), transparent 42%),
+    linear-gradient(135deg, oklch(91.5% 0.06 334), oklch(84.5% 0.09 319));
+  --theme-search-best-match-text: oklch(32% 0.15 326);
+  --theme-search-best-match-shadow:
+    inset 0 1px 0 oklch(99% 0.012 333 / 0.74),
+    inset 0 0 0 1px oklch(99% 0.018 333 / 0.18);
+  --theme-search-suggestion-icon-text: oklch(34% 0.15 326);
+  --theme-search-suggestion-secondary-text: oklch(39% 0.045 318);
+  --theme-search-suggestion-active-border: oklch(58% 0.105 326 / 0.16);
+  --theme-search-suggestion-hover-bg:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.026 333 / 0.56), transparent 36%),
+    radial-gradient(circle at bottom right, oklch(74% 0.112 324 / 0.12), transparent 44%),
+    linear-gradient(135deg, oklch(94% 0.044 334), oklch(89% 0.066 319));
+  --theme-search-suggestion-active-bg:
+    radial-gradient(circle at 12% 0%, oklch(99% 0.028 333 / 0.62), transparent 36%),
+    radial-gradient(circle at bottom right, oklch(72% 0.13 324 / 0.15), transparent 44%),
+    linear-gradient(135deg, oklch(92.5% 0.054 334), oklch(87.5% 0.078 319));
+  --theme-search-suggestion-active-shadow:
+    0 14px 30px -28px oklch(48% 0.14 318 / 0.22),
+    inset 0 1px 0 oklch(99% 0.01 333 / 0.72),
+    inset 0 0 0 1px oklch(99% 0.018 333 / 0.18);
+  --theme-search-highlight-mark-text: oklch(31% 0.12 326);
+  /* Light article chrome: former theme-light-mode.css rule-body literals.
+    The rgba(84, 46, 112, …) drop shadows are NOT hoisted — they are documented
+    as neutral depth, not accent (see utilities-theme.css home-search note). */
+  --theme-article-hero-divider: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(48% 0.085 var(--h-brand) / 0.08) 4%,
+    oklch(48% 0.085 var(--h-brand) / 0.16) 16%,
+    oklch(48% 0.085 var(--h-brand) / 0.16) 84%,
+    oklch(48% 0.085 var(--h-brand) / 0.08) 96%,
+    transparent 100%
+  );
+  --theme-molecule-shell-border: rgba(140, 22, 111, 0.14);
+  --theme-molecule-shell-bg:
+    linear-gradient(135deg, rgba(159, 33, 128, 0.08), transparent 55%), color-mix(in srgb, rgb(255 255 255) 80%, var(--theme-body-bg));
+  --theme-molecule-panel-border: rgba(93, 56, 123, 0.12);
+  --theme-article-priority-border: rgba(93, 56, 123, 0.14);
+  --theme-article-priority-bg:
+    radial-gradient(circle at 12% 0%, rgba(140, 22, 111, 0.06), transparent 34%), color-mix(in srgb, rgb(255 255 255) 52%, var(--theme-body-bg));
+  --theme-duration-stage-row-alt-bg:
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.74), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(98.4% 0.006 326) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(95.5% 0.018 326) 94%, var(--theme-body-bg)));
+  --theme-ld50-table-head-bg:
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.76), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99% 0.004 326) 90%, var(--theme-body-bg)), color-mix(in srgb, oklch(97% 0.01 326) 92%, var(--theme-body-bg)));
+  --theme-ld50-table-row-alt-bg:
+    radial-gradient(circle at 12% 0%, oklch(100% 0 0 / 0.56), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(99.4% 0.003 326) 70%, var(--theme-body-bg)), color-mix(in srgb, oklch(96.5% 0.012 326) 72%, var(--theme-body-bg)));
+  --theme-country-flag-shadow:
+    0 0 0 2px oklch(100% 0 0 / 0.72),
+    0 0 0 3px var(--theme-frosted-control-on-panel-border),
+    0 10px 20px -14px oklch(38% 0.08 316 / 0.36),
+    inset 0 1px 0 oklch(100% 0 0 / 0.58);
+  --theme-dose-detail-expanded-bg:
+    linear-gradient(135deg, color-mix(in srgb, oklch(98% 0.016 334) 76%, var(--theme-body-bg)), color-mix(in srgb, oklch(95% 0.032 319) 78%, var(--theme-body-bg)));
+  --theme-external-source-pill-faint-text: oklch(43% 0.045 316);
   --theme-construction-banner-text: oklch(56% 0.13 78);
   --theme-home-nav-card-border: oklch(58% 0.1 326 / 0.14);
 
