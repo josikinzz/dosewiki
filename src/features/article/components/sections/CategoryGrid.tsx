@@ -8,6 +8,47 @@ import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 
 const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
 
+/**
+ * Column arrangement keyed by column count: columns left to right, each a
+ * list of group keys top to bottom. Counts above the largest key reuse the
+ * largest entry; groups absent from the entry are appended to the column
+ * holding the fewest panels.
+ */
+export type ColumnLayoutTable = Record<number, readonly (readonly string[])[]>;
+
+export function arrangeGroupsByLayout(
+  groups: readonly DosageCategoryGroup[],
+  table: ColumnLayoutTable,
+  columnCount: number,
+): Map<number, DosageCategoryGroup[]> {
+  const largestKey = Math.max(...Object.keys(table).map(Number));
+  const layout = table[Math.min(columnCount, largestKey)] ?? [];
+  const byKey = new Map(groups.map((group) => [group.key, group]));
+  const columns = new Map<number, DosageCategoryGroup[]>();
+  for (let i = 0; i < columnCount; i++) {
+    columns.set(i, []);
+  }
+  layout.forEach((keys, index) => {
+    if (index >= columnCount) return;
+    const column = columns.get(index)!;
+    for (const key of keys) {
+      const group = byKey.get(key);
+      if (group) {
+        column.push(group);
+        byKey.delete(key);
+      }
+    }
+  });
+  for (const group of byKey.values()) {
+    let target = 0;
+    for (let i = 1; i < columnCount; i++) {
+      if (columns.get(i)!.length < columns.get(target)!.length) target = i;
+    }
+    columns.get(target)!.push(group);
+  }
+  return columns;
+}
+
 // Memoized card component to prevent unnecessary re-renders
 interface CategoryGroupCardProps {
   group: DosageCategoryGroup;
@@ -123,6 +164,8 @@ interface CategoryGridProps {
   hideEmptyGroups?: boolean;
   limitColumns?: boolean;
   maxColumns?: number;
+  /** Hand-authored arrangement; when set it replaces per-group placement. */
+  columnLayout?: ColumnLayoutTable;
   getCardTone?: (group: DosageCategoryGroup) => "default" | "dim";
   /**
    * Hide the per-panel leading icon. Use when every panel in the grid shares
@@ -144,6 +187,7 @@ export function CategoryGrid({
   hideEmptyGroups = false,
   limitColumns,
   maxColumns,
+  columnLayout,
   getCardTone,
   hideCardIcons = false,
 }: CategoryGridProps) {
@@ -163,6 +207,9 @@ export function CategoryGrid({
   }, [groups, hideEmptyGroups]);
 
   const groupsByColumn = useMemo(() => {
+    if (columnLayout) {
+      return arrangeGroupsByLayout(visibleGroups, columnLayout, columnCount);
+    }
     const columns = new Map<number, DosageCategoryGroup[]>();
 
     for (let i = 0; i < columnCount; i++) {
@@ -180,7 +227,7 @@ export function CategoryGrid({
     });
 
     return columns;
-  }, [visibleGroups, columnCount]);
+  }, [visibleGroups, columnCount, columnLayout]);
 
   const groupKeys = useMemo(
     () => visibleGroups.map((group) => group.key),

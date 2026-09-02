@@ -32,6 +32,7 @@ import {
   substanceIndexViewPath,
   type SubstanceIndexView,
 } from "@/utils/indexViewRoutes";
+import { SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT } from "./substanceIndexAllLayout";
 
 const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
@@ -337,11 +338,10 @@ export function DosagesPage({
 
   const resolvedGroups = useMemo(() => {
     if (activeTab === "all") {
-      // Order panels to match the tab strip read left-to-right: per-category
-      // tabs in TAB_ORDER first (skipping the super-category tabs, which have
-      // no panel of their own), then any categories without a tab. Drop the
-      // explicit column placement so the grid flows panels in this reading
-      // order (left-to-right, top-to-bottom) instead of the tuned layout.
+      // Columns come from SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT; this order only
+      // decides where a category missing from that table lands. Match the tab
+      // strip read left-to-right: per-category tabs in TAB_ORDER first, then
+      // any categories without a tab.
       const seen = new Set<string>();
       const ordered: DosageCategoryGroup[] = [];
       for (const entry of TAB_ORDER) {
@@ -421,6 +421,7 @@ export function DosagesPage({
         <CategoryGrid
           key={activeTab}
           groups={resolvedGroups}
+          columnLayout={activeTab === "all" ? SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT : undefined}
           drugHrefPrefix="/"
           categoryHrefPrefix={isSingleCategoryView ? undefined : "/category/"}
           // Single-class tabs split one category into subsection panels that
