@@ -17,7 +17,9 @@ vi.mock("./DevModeChangeLogTab", () => tool("DevModeChangeLogTab"));
 vi.mock("../tags", () => tool("TagEditorTab"));
 vi.mock("../tools/writing/WritingTab", () => tool("WritingTab"));
 vi.mock("../tools/copy-studio/CopyStudioTab", () => tool("CopyStudioTab"));
+vi.mock("../tools/queue/QueueTab", () => tool("QueueTab"));
 vi.mock("../tools/contributors/ContributorsTab", () => tool("ContributorsTab"));
+vi.mock("../tools/playlists/PlaylistsTab", () => tool("PlaylistsTab"));
 vi.mock("../tools/citation-review/CitationReviewTab", () => tool("CitationReviewTab"));
 vi.mock("../tools/index-layout/IndexLayoutTab", () => tool("IndexLayoutTab"));
 vi.mock("../tools/molecule-editor/MoleculeEditorTab", () => tool("MoleculeEditorTab"));
@@ -27,6 +29,7 @@ vi.mock("../tools/substance-editor/SubstanceEditorTab", () => tool("SubstanceEdi
 vi.mock("../tools/feedback/FeedbackTab", () => tool("FeedbackTab"));
 vi.mock("../tools/trip-report-portal/TripReportPortalTab", () => tool("TripReportPortalTab"));
 vi.mock("../tools/members/MembersTab", () => tool("MembersTab"));
+vi.mock("../tools/my-reports/MyReportsTab", () => tool("MyReportsTab"));
 
 import { DevModePageView } from "./DevModePageView";
 

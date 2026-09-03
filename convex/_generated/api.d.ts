@@ -13,6 +13,7 @@ import type * as articleSources from "../articleSources.js";
 import type * as authorAttribution from "../authorAttribution.js";
 import type * as bindingSiteMigration from "../bindingSiteMigration.js";
 import type * as categoryLayout from "../categoryLayout.js";
+import type * as changeProposalReview from "../changeProposalReview.js";
 import type * as changeProposals from "../changeProposals.js";
 import type * as changelog from "../changelog.js";
 import type * as citationEvidence from "../citationEvidence.js";
@@ -114,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   authorAttribution: typeof authorAttribution;
   bindingSiteMigration: typeof bindingSiteMigration;
   categoryLayout: typeof categoryLayout;
+  changeProposalReview: typeof changeProposalReview;
   changeProposals: typeof changeProposals;
   changelog: typeof changelog;
   citationEvidence: typeof citationEvidence;

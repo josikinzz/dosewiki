@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
 import { requireRole } from "./lib/auth";
 
 /**
@@ -197,6 +197,57 @@ export const removeEntries = internalMutation({
   },
 });
 
+type ChangelogEntryArgs = {
+  apiKey?: string;
+  actorEmail?: string;
+  entryId: string;
+  createdAt: string;
+  message: string;
+  markdown: string;
+  submittedBy: string | null;
+  articles: Array<{ id: number; title: string; slug: string }>;
+};
+
+/**
+ * The upsert behind `addEntry`, also what a change-proposal apply or revert
+ * stamps its entry through. Keyed by `entryId`: a repeated id updates the
+ * existing row instead of duplicating it.
+ */
+export async function addEntryHandler(ctx: MutationCtx, args: ChangelogEntryArgs) {
+  await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "editor");
+
+  const existing = await ctx.db
+    .query("changelog")
+    .withIndex("by_entry_id", (q) => q.eq("entryId", args.entryId))
+    .first();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      createdAt: args.createdAt,
+      message: args.message,
+      markdown: args.markdown,
+      submittedBy: args.submittedBy,
+      articles: args.articles,
+    });
+    return { created: false, id: existing._id };
+  }
+
+  const id = await ctx.db.insert("changelog", {
+    entryId: args.entryId,
+    createdAt: args.createdAt,
+    message: args.message,
+    markdown: args.markdown,
+    submittedBy: args.submittedBy,
+    articles: args.articles,
+  });
+
+  return { created: true, id };
+}
+
 /**
  * Mutation to add a new changelog entry.
  */
@@ -215,43 +266,6 @@ export const addEntry = mutation({
       slug: v.string(),
     })),
   },
-  handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    }, "editor");
-
-    // Check if entry with this ID already exists (prevent duplicates)
-    const existing = await ctx.db
-      .query("changelog")
-      .withIndex("by_entry_id", (q) => q.eq("entryId", args.entryId))
-      .first();
-
-    if (existing) {
-      // Update existing entry
-      await ctx.db.patch(existing._id, {
-        createdAt: args.createdAt,
-        message: args.message,
-        markdown: args.markdown,
-        submittedBy: args.submittedBy,
-        articles: args.articles,
-      });
-      return { created: false, id: existing._id };
-    }
-
-    // Create new entry
-    const id = await ctx.db.insert("changelog", {
-      entryId: args.entryId,
-      createdAt: args.createdAt,
-      message: args.message,
-      markdown: args.markdown,
-      submittedBy: args.submittedBy,
-      articles: args.articles,
-    });
-
-    return { created: true, id };
-  },
+  handler: addEntryHandler,
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sliceArticleDiff } from "./articleRecentChanges";
+import { humanizeChangeMessage, sliceArticleDiff } from "./articleRecentChanges";
 
 const article = { id: 12, title: "2C-B", slug: "2c-b" };
 
@@ -49,5 +49,20 @@ describe("sliceArticleDiff", () => {
 
   it("returns a heading-less diff whole", () => {
     expect(sliceArticleDiff("- a\n+ b\n", article)).toBe("- a\n+ b");
+  });
+});
+
+
+describe("humanizeChangeMessage", () => {
+  it("turns an inline-edit field path into words", () => {
+    expect(humanizeChangeMessage("Inline edit — harm_potential.psychosis.description")).toBe(
+      "Edited Harm potential › Psychosis › Description",
+    );
+    expect(humanizeChangeMessage("Inline edit — summary")).toBe("Edited Summary");
+  });
+
+  it("passes prose messages through untouched", () => {
+    expect(humanizeChangeMessage("Added a source — Some paper title")).toBe("Added a source — Some paper title");
+    expect(humanizeChangeMessage("Dev editor update - 2026-07-02")).toBe("Dev editor update - 2026-07-02");
   });
 });

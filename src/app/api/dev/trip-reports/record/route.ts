@@ -6,13 +6,18 @@
  * thread Next's dynamic route params; `api/dev/replications/editorial` reaches
  * for the same shape for the same reason.
  *
- *   GET  ?id=…  → { report: { id, slug, fields } }
+ *   GET  ?id=…  → { report: { id, slug, ownerEmail, fields } }
  *   POST { mode: "save",   id, expected, updates, profile_key?, confirm_author_name_claim? }
  *   POST { mode: "delete", id }   (admin only; refused here and again in Convex)
  *
  * The GET is the read half of the portal's split payload: `/api/dev/trip-reports`
  * returns an index projection with no report bodies in it, and this returns the
  * one body the editor pane actually opened.
+ *
+ * Contributor floor: My reports (`/dev/my-reports`) reads and saves through the
+ * same two handlers. Convex decides per row: an editor reaches any report, a
+ * contributor only one whose `owner_email` is theirs (`NOT_OWNER` otherwise),
+ * and only its content fields.
  */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
@@ -113,7 +118,7 @@ function parseRecordBody(body: RecordBody): ParsedRecord {
 }
 
 export const GET = protectedRouteOperation({
-  auth: "editor",
+  auth: "contributor",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load a trip report via Next route:",
@@ -149,7 +154,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
-  auth: "editor",
+  auth: "contributor",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseRecordBody },
   capabilities: [{ type: "convexWrite" }],

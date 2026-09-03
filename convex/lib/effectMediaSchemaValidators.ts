@@ -294,6 +294,7 @@ export const substanceGallery = v.object({
 // one is the bulk of the curation work.
 export const replicationPlaylist = v.object({
   key: v.string(),                      // kebab-case stable id
+  owner_email: v.optional(v.string()),  // member who may edit it directly; unowned = admin-only
   title: v.string(),                    // display name
   replication_slugs: v.array(v.string()),
   updated_at: v.string(),               // ISO timestamp

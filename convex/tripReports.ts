@@ -1,6 +1,14 @@
-import { v } from "convex/values";
-import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
-import { requireRole } from "./lib/auth";
+import { ConvexError, v } from "convex/values";
+import {
+  query,
+  mutation,
+  internalMutation,
+  internalQuery,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
+import { requireRole, roleMeetsFloor } from "./lib/auth";
 import {
   assertAuthorNameClaimAdjudicated,
   normalizeAssignedProfileKey,
@@ -12,12 +20,14 @@ import {
   editableSnapshotsAgree,
   normalizeEditableFields,
   validateEditableFields,
+  type TripReportEditableFields,
 } from "./lib/tripReportEditing";
 import {
   timelineEntryValidator,
   tripReportImportInputValidator,
   tripReportSubstanceValidator,
 } from "./tripReportContract";
+import { findMembershipByEmail, ownsReport, refuseNotOwner } from "./lib/tripReportOwnership";
 import {
   deleteTripReportSubstanceRows,
   findTripReportsBySubstanceNames,
@@ -239,6 +249,7 @@ export const getPortalRows = query({
         featured: report.featured ?? false,
         license: report.license,
         profileKey: report.subject.profile_key,
+        ownerEmail: report.owner_email,
         attributionReview: report.attribution_review,
         createdAt: report._creationTime,
       };
@@ -253,6 +264,9 @@ export const getPortalRows = query({
  * `editableSnapshotOf` the mutation compares against, so the `expected` snapshot
  * the editor opens with is byte-identical to what a concurrent-save check will
  * derive from storage.
+ *
+ * Contributor floor: an editor opens any report, a contributor only one they
+ * own (My reports reads through the same endpoint the portal does).
  */
 export const getPortalRecord = query({
   args: {
@@ -261,20 +275,24 @@ export const getPortalRecord = query({
     id: v.id("tripReports"),
   },
   handler: async (ctx, args) => {
-    await requireRole(
+    const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
+      "contributor",
     );
 
     const report = await ctx.db.get(args.id);
     if (!report) {
       throw new Error(`Trip report ${args.id} no longer exists.`);
     }
+    if (!roleMeetsFloor(actor.role, "editor") && !ownsReport(actor, report)) {
+      refuseNotOwner(report);
+    }
 
     return {
       id: report._id,
       slug: report.slug,
+      ownerEmail: report.owner_email,
       fields: editableSnapshotOf(report),
     };
   },
@@ -298,7 +316,148 @@ export const getPortalRecord = query({
  * report onto a name a contributor profile answers to would otherwise hand that
  * contributor's page and report list to whoever typed the name, and the read
  * path resolves bylines by exact name.
+ *
+ * Contributor floor plus ownership: an editor or admin saves any report with
+ * the full form; a contributor saves only a report whose `owner_email` is
+ * theirs, and only its content. Attribution (`profileKey`, the byline) stays
+ * an editor decision, and `featured` and `slug` were never part of this write.
  */
+type EditableFieldsInput = typeof editableTripReportFieldsValidator.type;
+
+type UpdateArgs = {
+  apiKey?: string;
+  actorEmail?: string;
+  id: Id<"tripReports">;
+  expected: EditableFieldsInput;
+  updates: EditableFieldsInput;
+  profileKey?: string;
+  confirmAuthorNameClaim?: boolean;
+};
+
+/**
+ * The keys an owner may not touch. The wire validator already drops `featured`,
+ * `slug` and `subject.profile_key`, so at the mutation seam this is the same
+ * contract stated once, in a form the handler tests can exercise: a caller
+ * that names one of them is refused rather than silently ignored.
+ */
+function assertOwnerEditsContentOnly(
+  row: Doc<"tripReports">,
+  args: UpdateArgs,
+  updates: TripReportEditableFields,
+): void {
+  const carried = args.updates as Record<string, unknown>;
+  const subject = carried.subject as Record<string, unknown> | undefined;
+  const locked = ["featured", "slug"].filter((key) => key in carried);
+  if (subject && "profile_key" in subject) {
+    locked.push("subject.profile_key");
+  }
+  if (args.profileKey !== undefined) {
+    locked.push("profileKey");
+  }
+  if (normalizeAuthorMatchName(updates.subject.name) !== normalizeAuthorMatchName(row.subject.name)) {
+    locked.push("subject.name");
+  }
+  if (locked.length > 0) {
+    throw new ConvexError({
+      code: "EDITOR_ONLY_REPORT_FIELD",
+      message: `Only an editor can change ${locked.join(", ")} on trip report ${row.slug}.`,
+    });
+  }
+}
+
+export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "contributor",
+  );
+
+  const row = await ctx.db.get(args.id);
+  if (!row) {
+    throw new Error(`Trip report ${args.id} no longer exists.`);
+  }
+
+  if (!editableSnapshotsAgree(editableSnapshotOf(row), normalizeEditableFields(args.expected))) {
+    throw new Error(
+      `Trip report ${row.slug} changed since it was opened; reload the portal before saving.`,
+    );
+  }
+
+  const updates = normalizeEditableFields(args.updates);
+  if (!roleMeetsFloor(actor.role, "editor")) {
+    if (!ownsReport(actor, row)) {
+      refuseNotOwner(row);
+    }
+    assertOwnerEditsContentOnly(row, args, updates);
+  }
+
+  const problems = validateEditableFields(updates);
+  if (problems.length > 0) {
+    throw new Error(`Trip report ${row.slug} cannot be saved: ${problems.join(" ")}`);
+  }
+
+  const storedProfileKey = normalizeAssignedProfileKey(row.subject.profile_key);
+  const reassigningProfile = args.profileKey !== undefined;
+  const assignedProfileKey = reassigningProfile
+    ? await resolveEditorAssignedProfileKey(ctx, args.profileKey)
+    : storedProfileKey;
+
+  // Only a byline that actually moved is adjudicated. Re-saving a legacy
+  // report whose byline has always matched a contributor is not a new claim,
+  // and blocking it would make those reports uneditable.
+  const bylineMoved =
+    normalizeAuthorMatchName(updates.subject.name) !== normalizeAuthorMatchName(row.subject.name);
+
+  if (bylineMoved) {
+    await assertAuthorNameClaimAdjudicated(ctx, {
+      authorName: updates.subject.name,
+      assignedProfileKey,
+      confirmAuthorNameClaim: args.confirmAuthorNameClaim,
+    });
+  }
+
+  const subject: typeof row.subject = { ...updates.subject };
+  if (row.subject.avatar_url !== undefined) {
+    subject.avatar_url = row.subject.avatar_url;
+  }
+  if (row.subject.pdf_url !== undefined) {
+    subject.pdf_url = row.subject.pdf_url;
+  }
+  if (assignedProfileKey) {
+    subject.profile_key = assignedProfileKey;
+  }
+
+  const patch: Parameters<typeof ctx.db.patch>[1] = {
+    title: updates.title,
+    subject,
+    substances: updates.substances,
+    introduction: updates.introduction,
+    onset: updates.onset,
+    peak: updates.peak,
+    offset: updates.offset,
+    conclusion: updates.conclusion,
+    tags: updates.tags,
+  };
+
+  // The marker records an editor's attribution decision for a byline that
+  // arrived from an anonymous submitter. Re-stamp it when this edit is itself
+  // such a decision; a report that never carried one stays legacy, because
+  // its byline was editor-written all along.
+  const attributionDecided = bylineMoved || assignedProfileKey !== storedProfileKey;
+  if (row.attribution_review && attributionDecided) {
+    patch.attribution_review = {
+      reviewed_by: actor.name || actor.email,
+      reviewed_at: new Date().toISOString(),
+      decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),
+    };
+  }
+
+  await ctx.db.patch(args.id, patch);
+  await syncTripReportSubstanceRows(ctx, args.id, updates.substances);
+
+  return { updated: true, slug: row.slug };
+}
+
 export const update = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -310,91 +469,108 @@ export const update = mutation({
     profileKey: v.optional(v.string()),
     confirmAuthorNameClaim: v.optional(v.boolean()),
   },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
-    );
+  handler: updateHandler,
+});
 
-    const row = await ctx.db.get(args.id);
-    if (!row) {
-      throw new Error(`Trip report ${args.id} no longer exists.`);
-    }
+function summarizeOwnedReport(report: Doc<"tripReports">) {
+  return {
+    id: report._id,
+    slug: report.slug,
+    title: report.title.trim(),
+    ownerEmail: report.owner_email,
+    tripDate: report.subject.trip_date,
+    createdAt: report._creationTime,
+  };
+}
 
-    if (!editableSnapshotsAgree(editableSnapshotOf(row), normalizeEditableFields(args.expected))) {
-      throw new Error(
-        `Trip report ${row.slug} changed since it was opened; reload the portal before saving.`,
-      );
-    }
+export async function listOwnedHandler(
+  ctx: QueryCtx,
+  args: { apiKey?: string; actorEmail?: string; all?: boolean },
+) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "contributor",
+  );
 
-    const updates = normalizeEditableFields(args.updates);
-    const problems = validateEditableFields(updates);
-    if (problems.length > 0) {
-      throw new Error(`Trip report ${row.slug} cannot be saved: ${problems.join(" ")}`);
-    }
-
-    const storedProfileKey = normalizeAssignedProfileKey(row.subject.profile_key);
-    const reassigningProfile = args.profileKey !== undefined;
-    const assignedProfileKey = reassigningProfile
-      ? await resolveEditorAssignedProfileKey(ctx, args.profileKey)
-      : storedProfileKey;
-
-    // Only a byline that actually moved is adjudicated. Re-saving a legacy
-    // report whose byline has always matched a contributor is not a new claim,
-    // and blocking it would make those reports uneditable.
-    const bylineMoved =
-      normalizeAuthorMatchName(updates.subject.name) !== normalizeAuthorMatchName(row.subject.name);
-
-    if (bylineMoved) {
-      await assertAuthorNameClaimAdjudicated(ctx, {
-        authorName: updates.subject.name,
-        assignedProfileKey,
-        confirmAuthorNameClaim: args.confirmAuthorNameClaim,
+  if (args.all === true) {
+    if (actor.role !== "admin") {
+      throw new ConvexError({
+        code: "FORBIDDEN",
+        message: "Only an admin can list every owned report.",
       });
     }
+    const reports = await ctx.db.query("tripReports").collect();
+    return reports.filter((report) => report.owner_email !== undefined).map(summarizeOwnedReport);
+  }
 
-    const subject: typeof row.subject = { ...updates.subject };
-    if (row.subject.avatar_url !== undefined) {
-      subject.avatar_url = row.subject.avatar_url;
-    }
-    if (row.subject.pdf_url !== undefined) {
-      subject.pdf_url = row.subject.pdf_url;
-    }
-    if (assignedProfileKey) {
-      subject.profile_key = assignedProfileKey;
-    }
+  const reports = await ctx.db
+    .query("tripReports")
+    .withIndex("by_owner_email", (q) => q.eq("owner_email", actor.email))
+    .collect();
+  return reports.map(summarizeOwnedReport);
+}
 
-    const patch: Parameters<typeof ctx.db.patch>[1] = {
-      title: updates.title,
-      subject,
-      substances: updates.substances,
-      introduction: updates.introduction,
-      onset: updates.onset,
-      peak: updates.peak,
-      offset: updates.offset,
-      conclusion: updates.conclusion,
-      tags: updates.tags,
-    };
-
-    // The marker records an editor's attribution decision for a byline that
-    // arrived from an anonymous submitter. Re-stamp it when this edit is itself
-    // such a decision; a report that never carried one stays legacy, because
-    // its byline was editor-written all along.
-    const attributionDecided = bylineMoved || assignedProfileKey !== storedProfileKey;
-    if (row.attribution_review && attributionDecided) {
-      patch.attribution_review = {
-        reviewed_by: actor.name || actor.email,
-        reviewed_at: new Date().toISOString(),
-        decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),
-      };
-    }
-
-    await ctx.db.patch(args.id, patch);
-    await syncTripReportSubstanceRows(ctx, args.id, updates.substances);
-
-    return { updated: true, slug: row.slug };
+/**
+ * The reports the actor owns, for My reports (`/dev/my-reports`). Contributor
+ * floor. An admin may pass `all: true` for every report that has an owner.
+ */
+export const listOwned = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    all: v.optional(v.boolean()),
   },
+  handler: listOwnedHandler,
+});
+
+export async function assignOwnerHandler(
+  ctx: MutationCtx,
+  args: { apiKey?: string; actorEmail?: string; slug: string; email: string },
+) {
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "admin",
+  );
+
+  const report = await ctx.db
+    .query("tripReports")
+    .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+    .unique();
+  if (!report) {
+    throw new ConvexError({
+      code: "REPORT_NOT_FOUND",
+      message: `No trip report has the slug "${args.slug}".`,
+    });
+  }
+
+  const membership = await findMembershipByEmail(ctx, args.email);
+  if (!membership) {
+    throw new ConvexError({
+      code: "MEMBER_NOT_FOUND",
+      message: `No membership for ${args.email.trim()}.`,
+    });
+  }
+
+  await ctx.db.patch(report._id, { owner_email: membership.email });
+  return { slug: report.slug, ownerEmail: membership.email };
+}
+
+/**
+ * Hand a report to a member. Admin only: ownership is what lets a contributor
+ * rewrite a published page, so it is granted by the same role that publishes.
+ * The email must belong to an existing membership; a typo cannot create a
+ * dangling owner.
+ */
+export const assignOwner = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    slug: v.string(),
+    email: v.string(),
+  },
+  handler: assignOwnerHandler,
 });
 
 /**

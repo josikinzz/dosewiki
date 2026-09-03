@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { requireRole } from "./lib/auth";
 import {
   deriveProposalTargets,
@@ -12,12 +12,13 @@ import {
   substanceArticleLightValidator,
   validateArticleForIngestion,
 } from "./lib/validators";
-import { changeProposalTargetKindValidator } from "./schema";
+import { changeProposalStatusValidator, changeProposalTargetKindValidator } from "./schema";
 
 /**
  * Editor change proposals: the commit panel's staged save, held for an admin
- * instead of written. Wave 1 covers submission and the editor's own reads;
- * review, apply, reject, and revert land in wave 2 on the same document.
+ * instead of written. This module owns submission, the reads (the editor's
+ * own, the review queue, one proposal with live hashes) and discussion
+ * comments; approve, apply, reject, and revert live in changeProposalReview.ts.
  *
  * Document shape (`changeProposals`):
  *   proposedBy, createdAt, updatedAt, status, targets[{kind,key,baseHash}],
@@ -221,4 +222,110 @@ export const count = query({
     actorEmail: v.optional(v.string()),
   },
   handler: countHandler,
+});
+
+const LIST_LIMIT = 200;
+
+export async function listHandler(
+  ctx: QueryCtx,
+  args: { apiKey?: string; actorEmail?: string; status?: Doc<"changeProposals">["status"] },
+) {
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "editor",
+  );
+  const status = args.status;
+  const rows = status
+    ? await ctx.db
+        .query("changeProposals")
+        .withIndex("by_status", (q) => q.eq("status", status))
+        .order("desc")
+        .take(LIST_LIMIT)
+    : await ctx.db.query("changeProposals").order("desc").take(LIST_LIMIT);
+  return rows.map(summarizeProposal);
+}
+
+/** The review queue: every proposal, or those in one status, newest first, without payload or diff. Editor floor. */
+export const list = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    status: v.optional(changeProposalStatusValidator),
+  },
+  handler: listHandler,
+});
+
+export async function getHandler(
+  ctx: QueryCtx,
+  args: { apiKey?: string; actorEmail?: string; id: Id<"changeProposals"> },
+) {
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "editor",
+  );
+  const row = await ctx.db.get(args.id);
+  if (!row) {
+    return null;
+  }
+  // The production hash of each target as it stands now: a reviewer sees a
+  // target has drifted from `baseHash` before approve refuses it.
+  const liveHashes = [];
+  for (const target of row.targets) {
+    liveHashes.push({
+      kind: target.kind,
+      key: target.key,
+      hash: await hashProposalTarget(ctx, { kind: target.kind, key: target.key }),
+    });
+  }
+  return { ...row, liveHashes };
+}
+
+/** One proposal in full, with the live hash of every target. Editor floor. */
+export const get = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    id: v.id("changeProposals"),
+  },
+  handler: getHandler,
+});
+
+const COMMENT_MAX_LENGTH = 5_000;
+
+export async function commentHandler(
+  ctx: MutationCtx,
+  args: { apiKey?: string; actorEmail?: string; id: Id<"changeProposals">; text: string },
+) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "editor",
+  );
+  const text = args.text.trim();
+  if (text.length === 0 || text.length > COMMENT_MAX_LENGTH) {
+    throw new ConvexError({
+      code: "PROPOSAL_COMMENT_INVALID",
+      message: `A comment must be 1 to ${COMMENT_MAX_LENGTH} characters.`,
+    });
+  }
+  const row = await ctx.db.get(args.id);
+  if (!row) {
+    throw new ConvexError({ code: "PROPOSAL_NOT_FOUND", message: "No proposal with that id." });
+  }
+  const comment = { by: actor.email, at: new Date().toISOString(), text };
+  await ctx.db.patch(row._id, { comments: [...row.comments, comment], updatedAt: comment.at });
+  return comment;
+}
+
+/** Append a discussion comment. Editor floor; any status, including terminal ones. */
+export const comment = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    id: v.id("changeProposals"),
+    text: v.string(),
+  },
+  handler: commentHandler,
 });

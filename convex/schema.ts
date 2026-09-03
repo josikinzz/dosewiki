@@ -147,7 +147,12 @@ const changeProposal = v.object({
   comments: v.array(v.object({ by: v.string(), at: v.string(), text: v.string() })),
   appliedAt: v.optional(v.string()),
   appliedChangelogEntryId: v.optional(v.string()),
+  /** Per-target `readProposalTarget` documents captured right before apply; what revert writes back. */
   snapshotBefore: v.optional(v.any()),
+  /** Per-target live hashes right after apply; revert refuses when production has moved past them. */
+  appliedHashes: v.optional(
+    v.array(v.object({ kind: changeProposalTargetKindValidator, key: v.string(), hash: v.string() })),
+  ),
   revertedAt: v.optional(v.string()),
   conflictReason: v.optional(v.string()),
 });
@@ -344,6 +349,7 @@ export default defineSchema({
   // Trip reports - imported from EffectIndex
   tripReports: defineTable(tripReport)
     .index("by_slug", ["slug"])
+    .index("by_owner_email", ["owner_email"])
     .index("by_featured", ["featured"])
     .index("by_subject_profile_key", ["subject.profile_key"]),
 
@@ -528,7 +534,8 @@ export default defineSchema({
   // Reusable named replication playlists, applied into a gallery's draft; see
   // the validator's note. Nothing here publishes on its own.
   replicationPlaylists: defineTable(replicationPlaylist)
-    .index("by_key", ["key"]),
+    .index("by_key", ["key"])
+    .index("by_owner_email", ["owner_email"]),
 
   memberships: defineTable(membership)
     .index("by_email", ["email"])

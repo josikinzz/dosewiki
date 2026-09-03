@@ -66,10 +66,11 @@ describe("devTabRegistry", () => {
       "tag-editor",
       "writing",
       "copy-studio",
+      "queue",
       "index-layout",
       "change-log",
     ]);
-    expect(byRole("contributor")).toEqual(["contributors"]);
+    expect(byRole("contributor")).toEqual(["contributors", "playlists", "my-reports"]);
   });
 
   it("falls back to the default tab and keeps the slug for unknown segments", () => {

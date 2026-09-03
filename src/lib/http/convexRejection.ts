@@ -58,6 +58,16 @@ const REJECTION_STATUS_BY_CODE = new Map<string, number>([
   ["FLAG_NOT_FOUND", 404],
   ["UNAUTHORIZED", 403],
   ["FORBIDDEN", 403],
+  // The actor may write this kind of record but not this one: someone else's
+  // playlist or trip report. Same HTTP meaning as FORBIDDEN, distinct code so
+  // the client can say "not yours" rather than "not allowed".
+  ["NOT_OWNER", 403],
+  ["PROPOSAL_NOT_FOUND", 404],
+  // The proposal is no longer in a state the action applies to (already
+  // applied, rejected, or superseded), or production moved under it: the
+  // queue is stale, reload it.
+  ["PROPOSAL_STATUS_INVALID", 409],
+  ["REVERT_CONFLICT", 409],
 ]);
 
 export type ConvexRejection = {

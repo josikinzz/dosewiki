@@ -1,0 +1,223 @@
+import { ConvexError, v } from "convex/values";
+import { mutation, type MutationCtx } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
+import { deriveSubmittedBy } from "../lib/changelog/submitterStamp";
+import { contentHash } from "../lib/proposals/contentHash";
+import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
+import { addEntryHandler } from "./changelog";
+import { requireRole, type AuthorizedActor } from "./lib/auth";
+import {
+  applyDocuments,
+  payloadDocuments,
+  type ProposalPayload,
+  type ProposalSnapshotEntry,
+} from "./lib/changeProposalApply";
+import { hashProposalTarget, readProposalTarget } from "./lib/changeProposalTargets";
+
+/**
+ * Admin review of change proposals: approve (which applies in the same
+ * mutation), reject, revert. Every branch is admin floor and moves the
+ * proposal only along `canTransition`.
+ *
+ * Approve is compare-and-swap: each target's live hash must still equal the
+ * `baseHash` submit recorded, otherwise the proposal flips to
+ * `changes_requested` with the drifted targets named and nothing else is
+ * written. Revert is the mirror image against `appliedHashes`.
+ */
+
+const MAX_MARKDOWN_SIZE = 500_000;
+
+type ReviewArgs = { apiKey?: string; actorEmail?: string; proposalId: Id<"changeProposals"> };
+
+const reviewArgs = {
+  apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
+  proposalId: v.id("changeProposals"),
+};
+
+async function requireReviewer(ctx: MutationCtx, args: ReviewArgs): Promise<AuthorizedActor> {
+  return requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "admin",
+  );
+}
+
+async function loadProposal(ctx: MutationCtx, proposalId: Id<"changeProposals">) {
+  const proposal = await ctx.db.get(proposalId);
+  if (!proposal) {
+    throw new ConvexError({ code: "PROPOSAL_NOT_FOUND", message: "That proposal no longer exists." });
+  }
+  return proposal;
+}
+
+function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus) {
+  if (!canTransition(proposal.status, to)) {
+    throw new ConvexError({
+      code: "PROPOSAL_STATUS_INVALID",
+      message: `A ${proposal.status.replace("_", " ")} proposal cannot become ${to.replace("_", " ")}.`,
+    });
+  }
+}
+
+function truncateMarkdown(markdown: string): string {
+  return markdown.length > MAX_MARKDOWN_SIZE
+    ? `${markdown.slice(0, MAX_MARKDOWN_SIZE)}\n\n... [Diff truncated - too large to store]`
+    : markdown;
+}
+
+export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs) {
+  const actor = await requireReviewer(ctx, args);
+  const proposal = await loadProposal(ctx, args.proposalId);
+  requireTransition(proposal, "applied");
+  const now = new Date().toISOString();
+
+  // Compare-and-swap: read every target once, hash it, and keep the document
+  // as the snapshot a revert writes back. Any drift means the editor diffed
+  // against something that is no longer there.
+  const snapshotBefore: ProposalSnapshotEntry[] = [];
+  const drifted: string[] = [];
+  for (const target of proposal.targets) {
+    const document = await readProposalTarget(ctx, target);
+    if (contentHash(document) !== target.baseHash) {
+      drifted.push(`${target.kind} "${target.key}"`);
+    }
+    snapshotBefore.push({ kind: target.kind, key: target.key, document });
+  }
+  if (drifted.length > 0) {
+    const conflictReason = `Production changed since this proposal was drafted: ${drifted.join(", ")}. Rebase and resubmit.`;
+    await ctx.db.patch(proposal._id, {
+      status: "changes_requested",
+      conflictReason,
+      reviewedBy: actor.email,
+      reviewedAt: now,
+      updatedAt: now,
+    });
+    return { status: "changes_requested" as const, conflictReason };
+  }
+
+  const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail };
+  const payload = proposal.payload as ProposalPayload;
+  const revalidatePaths = await applyDocuments(ctx, auth, payloadDocuments(payload));
+
+  const appliedHashes = [];
+  for (const target of proposal.targets) {
+    appliedHashes.push({ kind: target.kind, key: target.key, hash: await hashProposalTarget(ctx, target) });
+  }
+
+  const entryId = `proposal-${proposal._id}`;
+  await addEntryHandler(ctx, {
+    ...auth,
+    entryId,
+    createdAt: now,
+    message: `${proposal.summary} (proposed by ${proposal.proposedBy}, approved by ${actor.email})`,
+    markdown: truncateMarkdown(payload.changelog?.markdown ?? proposal.diff),
+    submittedBy: deriveSubmittedBy(proposal.proposedBy),
+    articles: payload.changelog?.articles ?? [],
+  });
+
+  await ctx.db.patch(proposal._id, {
+    status: "applied",
+    appliedAt: now,
+    appliedChangelogEntryId: entryId,
+    snapshotBefore,
+    appliedHashes,
+    reviewedBy: actor.email,
+    reviewedAt: now,
+    updatedAt: now,
+  });
+  return { status: "applied" as const, revalidatePaths };
+}
+
+/**
+ * Approve and apply in one call. Admin floor. Returns `applied` with the
+ * public paths to revalidate, or `changes_requested` with the conflict when
+ * production drifted under the proposal.
+ */
+export const approveAndApply = mutation({
+  args: reviewArgs,
+  handler: approveAndApplyHandler,
+});
+
+export async function rejectHandler(ctx: MutationCtx, args: ReviewArgs & { note: string }) {
+  const actor = await requireReviewer(ctx, args);
+  const note = args.note.trim();
+  if (note.length === 0) {
+    throw new ConvexError({
+      code: "PROPOSAL_NOTE_REQUIRED",
+      message: "Rejecting a proposal needs a note for the editor.",
+    });
+  }
+  const proposal = await loadProposal(ctx, args.proposalId);
+  requireTransition(proposal, "rejected");
+  const now = new Date().toISOString();
+  await ctx.db.patch(proposal._id, {
+    status: "rejected",
+    reviewNotes: note,
+    reviewedBy: actor.email,
+    reviewedAt: now,
+    updatedAt: now,
+  });
+  return { status: "rejected" as const };
+}
+
+/** Reject with a note the editor sees. Admin floor. */
+export const reject = mutation({
+  args: { ...reviewArgs, note: v.string() },
+  handler: rejectHandler,
+});
+
+export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
+  const actor = await requireReviewer(ctx, args);
+  const proposal = await loadProposal(ctx, args.proposalId);
+  requireTransition(proposal, "reverted");
+
+  const appliedHashes = proposal.appliedHashes ?? [];
+  const snapshotBefore = (proposal.snapshotBefore ?? []) as ProposalSnapshotEntry[];
+  const drifted: string[] = [];
+  for (const applied of appliedHashes) {
+    if ((await hashProposalTarget(ctx, applied)) !== applied.hash) {
+      drifted.push(`${applied.kind} "${applied.key}"`);
+    }
+  }
+  if (drifted.length > 0 || appliedHashes.length === 0 || snapshotBefore.length === 0) {
+    throw new ConvexError({
+      code: "REVERT_CONFLICT",
+      message:
+        drifted.length > 0
+          ? `Production changed since this proposal was applied: ${drifted.join(", ")}. Edit it directly instead.`
+          : "This proposal recorded no applied state to revert.",
+    });
+  }
+
+  const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail };
+  const revalidatePaths = await applyDocuments(ctx, auth, snapshotBefore);
+  const now = new Date().toISOString();
+  const payload = proposal.payload as ProposalPayload;
+  const entryId = `revert-${proposal._id}`;
+  await addEntryHandler(ctx, {
+    ...auth,
+    entryId,
+    createdAt: now,
+    message: `Reverted proposal ${proposal._id}`,
+    markdown: `Reverted "${proposal.summary}" (proposed by ${proposal.proposedBy}, applied by ${proposal.reviewedBy ?? "unknown"}, reverted by ${actor.email}).`,
+    submittedBy: deriveSubmittedBy(actor.email),
+    articles: payload.changelog?.articles ?? [],
+  });
+
+  await ctx.db.patch(proposal._id, {
+    status: "reverted",
+    revertedAt: now,
+    updatedAt: now,
+  });
+  return { status: "reverted" as const, revalidatePaths };
+}
+
+/**
+ * Write `snapshotBefore` back. Admin floor; only from `applied`, and only
+ * while every target still hashes to what the apply left behind.
+ */
+export const revert = mutation({
+  args: reviewArgs,
+  handler: revertHandler,
+});

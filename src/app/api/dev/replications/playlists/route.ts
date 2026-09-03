@@ -1,14 +1,20 @@
 /**
- * Editor read + create for reusable replication playlists
- * (`/dev` → Replications → Playlists).
+ * Read + create/update for reusable replication playlists
+ * (`/dev` → Replications → Playlists, and the contributor-facing Playlists tab).
  *
  *   GET  /api/dev/replications/playlists                    → { playlists }
  *   POST /api/dev/replications/playlists  { key, title, … } → create or replace
  *
+ * Contributor floor. A contributor lists and edits only the playlists they own;
+ * an editor lists every playlist, each flagged `editable` (false unless they
+ * own it, so the tab can offer read-only rows); an admin lists and edits all of
+ * them. Convex holds the ownership rule and answers `NOT_OWNER`, which the
+ * shared rejection mapping turns into a 403.
+ *
  * The browser holds no admin intent token, so the write is delegated here the
- * way the featured selection delegates its own: the route checks the editor
- * session, then calls Convex with the server's token plus the actor's email for
- * the audit trail.
+ * way the featured selection delegates its own: the route checks the session,
+ * then calls Convex with the server's token plus the actor's email, which is
+ * both the audit trail and the identity the ownership check runs against.
  *
  * A playlist publishes nothing. Applying one edits a substance gallery's draft,
  * and `substanceGalleries` stays the single publish gate, so there is no public
@@ -34,6 +40,7 @@ export type PlaylistBody = {
   title?: unknown;
   slugs?: unknown;
   expectedUpdatedAt?: unknown;
+  ownerEmail?: unknown;
 };
 
 export type ParsedPlaylist = {
@@ -41,6 +48,8 @@ export type ParsedPlaylist = {
   title: string;
   slugs: string[];
   expectedUpdatedAt: string | null | undefined;
+  /** Admin only: who the playlist belongs to. Convex refuses it from anyone else. */
+  ownerEmail: string | undefined;
 };
 
 export function parsePlaylistBody(raw: PlaylistBody): ParsedPlaylist {
@@ -86,30 +95,40 @@ export function parsePlaylistBody(raw: PlaylistBody): ParsedPlaylist {
     );
   }
 
-  return { key: raw.key, title: raw.title.trim(), slugs, expectedUpdatedAt };
+  let ownerEmail: string | undefined;
+  if (typeof raw.ownerEmail === "string" && raw.ownerEmail.trim().length > 0) {
+    ownerEmail = raw.ownerEmail.trim();
+  } else if (raw.ownerEmail !== undefined && raw.ownerEmail !== null && raw.ownerEmail !== "") {
+    throw new JsonBodyError(400, "ownerEmail must be a member's email or omitted.");
+  }
+
+  return { key: raw.key, title: raw.title.trim(), slugs, expectedUpdatedAt, ownerEmail };
 }
 
 export const GET = protectedRouteOperation({
-  auth: "editor",
+  auth: "contributor",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load replication playlists via Next route:",
   unexpectedErrorMessage: "Unable to load the playlists right now.",
-  operation: async ({ convexWrite }) => {
+  operation: async ({ auth, actorEmail, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
 
-    const playlists = await convexWrite.client.query(api.replicationPlaylists.list, {
-      apiKey: convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey,
-    });
+    const apiKey =
+      convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
+    const playlists =
+      auth.role === "contributor"
+        ? await convexWrite.client.query(api.replicationPlaylists.listOwned, { apiKey, actorEmail })
+        : await convexWrite.client.query(api.replicationPlaylists.list, { apiKey, actorEmail });
 
     return NextResponse.json({ ok: true, playlists });
   },
 });
 
 export const POST = protectedRouteOperation<PlaylistBody, ParsedPlaylist>({
-  auth: "editor",
+  auth: "contributor",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parsePlaylistBody },
   capabilities: [{ type: "convexWrite" }],
@@ -131,6 +150,7 @@ export const POST = protectedRouteOperation<PlaylistBody, ParsedPlaylist>({
       replication_slugs: body.slugs,
       updatedBy: actorEmail,
       expectedUpdatedAt: body.expectedUpdatedAt,
+      owner_email: body.ownerEmail,
     });
 
     if (result.status === "conflict") {

@@ -1,9 +1,8 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
-import { invalidatePublicDerivedDataCache } from "@server/convex/publicLibrary";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { saveRevalidationPaths } from "../../../../convex/lib/saveRevalidationPaths";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { revalidateSavedPaths } from "./revalidateSavedPaths";
 import {
   buildArticlePathsFromWriteOutcomes,
   buildArticleVerificationFromWriteOutcome,
@@ -15,7 +14,6 @@ import {
   summarizeArticleForDebug,
   type ArticleWriteOutcome,
   type ChangelogArticle,
-  type IndexLayoutPayload,
 } from "./saveToConvexUtils";
 
 export const runtime = "nodejs";
@@ -41,17 +39,6 @@ function buildEntryId(now: Date): string {
     .toTimeString()
     .slice(0, 8)
     .replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
-}
-
-function getIndexLayoutRevalidationPath(type: IndexLayoutPayload["type"]): string {
-  switch (type) {
-    case "chemical":
-      return "/chemical";
-    case "mechanism":
-      return "/mechanism";
-    case "psychoactive":
-      return "/substances";
-  }
 }
 
 function getErrorMessage(error: unknown): string {
@@ -246,20 +233,13 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       const articleOutcomes = articleResult?.outcomes ?? [];
       const verification = articleOutcomes.map(buildArticleVerificationFromWriteOutcome);
 
-      const revalidatedPaths =
+      const articlePaths =
         articleOutcomes.length > 0
           ? buildArticlePathsFromWriteOutcomes(articleOutcomes)
           : articleResult?.affectedPaths ?? [];
-
-      if (indexLayouts.length > 0) {
-        revalidatedPaths.push("/substances");
-        for (const layout of indexLayouts) {
-          revalidatedPaths.push(getIndexLayoutRevalidationPath(layout.type));
-        }
-      }
-
-      const uniqueRevalidatedPaths = Array.from(new Set(revalidatedPaths)).sort((left, right) =>
-        left.localeCompare(right),
+      const uniqueRevalidatedPaths = saveRevalidationPaths(
+        articlePaths,
+        indexLayouts.map((layout) => layout.type),
       );
 
       if ((savedArticleCount > 0 || indexLayouts.length > 0) && changelog) {
@@ -299,11 +279,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       }
 
       phase = "revalidation";
-      uniqueRevalidatedPaths.forEach((path) => {
-        revalidatePath(path);
-      });
-      invalidatePublicDerivedDataCache({ source: "save-to-convex" });
-      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.all, { expire: 0 });
+      revalidateSavedPaths(uniqueRevalidatedPaths, "save-to-convex");
 
       console.info("[save-to-convex] request:complete", {
         requestId,

@@ -47,6 +47,10 @@ export const storedTripReportValidator = v.object({
   slug: v.string(),
   title: v.string(),
   featured: v.optional(v.boolean()),
+  // The member who owns this report and may edit it directly; set at
+  // promotion when the submitter's contact email matches a member, or by an
+  // admin. Unowned reports are admin-only.
+  owner_email: v.optional(v.string()),
   subject: tripReportSubjectValidator,
   substances: v.array(tripReportSubstanceValidator),
   introduction: v.optional(v.string()),

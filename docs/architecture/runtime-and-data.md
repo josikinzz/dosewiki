@@ -254,9 +254,30 @@ An editor session sees the same commit panel, but its primary action reads
    `baseHash`, and inserts the row with status `submitted`
 5. the panel marks the draft saved and links to the review queue
 
-Status moves only along `lib/proposals/proposalStatus.ts`; review, apply (with a
-`baseHash` conflict check), reject, and revert are admin operations on the same
-document.
+Status moves only along `lib/proposals/proposalStatus.ts`. Review is admin
+floor and lives in `convex/changeProposalReview.ts`, reached through
+`POST /api/dev/proposals/<id>/approve|reject|revert`:
+
+- **approve** applies in the same mutation. It re-reads every target with
+  `readProposalTarget`, and if any `contentHash` differs from the recorded
+  `baseHash` the proposal flips to `changes_requested` with the drifted targets
+  in `conflictReason` and nothing else is written. On a clean match the live
+  documents are kept as `snapshotBefore`, the payload is written through the
+  same handlers the direct save uses (`saveSubstancesHandler` for articles,
+  `saveIndexLayoutHandler` for layouts, which mirrors into `categoryLayout`),
+  a changelog entry stamped "proposed by / approved by" is upserted through
+  `addEntryHandler` with the proposer's submitter key, the post-apply hashes
+  are stored as `appliedHashes`, and the mutation returns the public paths the
+  route then revalidates with the save route's `revalidateSavedPaths`.
+- **reject** requires a note and moves any open proposal to `rejected`.
+- **revert** is only allowed from `applied` and is the mirror CAS: every target
+  must still hash to its `appliedHashes` entry, otherwise `REVERT_CONFLICT`
+  refuses and nothing is written. It writes `snapshotBefore` back through the
+  same handlers (a target that was absent before is deleted) and appends a
+  "Reverted proposal" changelog entry.
+
+`applyTarget` in `convex/lib/changeProposalApply.ts` is the one switch on
+target kind; `about` and `copyBlock` land there in wave 3.
 
 ### Reviewed generated-section publication flow
 

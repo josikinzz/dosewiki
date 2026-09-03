@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { countHandler, listMineHandler, submitHandler } from "../convex/changeProposals";
+import {
+  commentHandler,
+  countHandler,
+  getHandler,
+  listHandler,
+  listMineHandler,
+  submitHandler,
+} from "../convex/changeProposals";
 import { deriveProposalTargets } from "../convex/lib/changeProposalTargets";
 import { projectEditorArticle } from "../convex/lib/substanceReadProjections";
 import { minimalArticle } from "../src/test/fixtures/articles";
@@ -12,8 +19,8 @@ type Row = Record<string, unknown> & { _id: string };
 /**
  * In-memory tables with the `withIndex(...).eq(field, value)` shape every
  * handler under test uses: `memberships.by_email` for `requireRole`,
- * `substanceIndex.by_slug`, `indexLayouts.by_type`, and the two
- * `changeProposals` indexes.
+ * `substanceIndex.by_slug`, `indexLayouts.by_type`, and the `changeProposals`
+ * indexes, plus the bare `query(table).order(...)` walk the queue list takes.
  */
 function createCtx(seed: Record<string, Row[]>) {
   const tables = new Map<string, Map<string, Row>>();
@@ -28,7 +35,30 @@ function createCtx(seed: Record<string, Row[]>) {
     return tables.get(table)!;
   };
 
+  const scan = (rows: Row[]) => {
+    let matches = rows;
+    const api = {
+      order: (direction: "asc" | "desc") => {
+        if (direction === "desc") {
+          matches = [...matches].reverse();
+        }
+        return api;
+      },
+      take: async (count: number) => matches.slice(0, count),
+      first: async () => matches[0] ?? null,
+      unique: async () => {
+        if (matches.length > 1) {
+          throw new Error(`index returned ${matches.length} rows`);
+        }
+        return matches[0] ?? null;
+      },
+      collect: async () => matches,
+    };
+    return api;
+  };
+
   const query = (table: string) => ({
+    ...scan([...rowsOf(table).values()]),
     withIndex: (
       _indexName: string,
       selector: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
@@ -42,25 +72,7 @@ function createCtx(seed: Record<string, Row[]>) {
           return {};
         },
       });
-      let matches = [...rowsOf(table).values()].filter((row) => row[field] === value);
-      const api = {
-        order: (direction: "asc" | "desc") => {
-          if (direction === "desc") {
-            matches = [...matches].reverse();
-          }
-          return api;
-        },
-        take: async (count: number) => matches.slice(0, count),
-        first: async () => matches[0] ?? null,
-        unique: async () => {
-          if (matches.length > 1) {
-            throw new Error(`${_indexName} returned ${matches.length} rows`);
-          }
-          return matches[0] ?? null;
-        },
-        collect: async () => matches,
-      };
-      return api;
+      return scan([...rowsOf(table).values()].filter((row) => row[field] === value));
     },
   });
 
@@ -69,6 +81,15 @@ function createCtx(seed: Record<string, Row[]>) {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
         query: vi.fn(query),
+        get: vi.fn(async (id: string) => {
+          for (const rows of tables.values()) {
+            const existing = rows.get(id);
+            if (existing) {
+              return existing;
+            }
+          }
+          return null;
+        }),
         insert: vi.fn(async (table: string, doc: Record<string, unknown>) => {
           const _id = `${table}:${nextId++}`;
           rowsOf(table).set(_id, { _id, ...doc });
@@ -262,6 +283,91 @@ describe("changeProposals reads", () => {
     });
     await expect(
       countHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "contributor@example.com" }),
+    ).rejects.toThrow("Editor access required");
+  });
+
+  it("lists the whole queue newest first, filtered by status, without payload or diff", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor, contributor], substanceIndex: [storedLsd] });
+    await submitHandler(ctx, submitArgs({ summary: "First" }) as never);
+    await submitHandler(ctx, submitArgs({ actorEmail: undefined, summary: "Script" }) as never);
+    await submitHandler(ctx, submitArgs({ summary: "Third" }) as never);
+    rowsOf("changeProposals").set("changeProposals:2", {
+      ...rowsOf("changeProposals").get("changeProposals:2")!,
+      status: "rejected",
+    });
+
+    const all = await listHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "editor@example.com" });
+    expect(all.map((row) => row.summary)).toEqual(["Third", "Script", "First"]);
+    expect(all[0]).not.toHaveProperty("payload");
+    expect(all[0]).not.toHaveProperty("diff");
+    expect(all[0]).not.toHaveProperty("snapshotBefore");
+
+    const rejected = await listHandler(ctx, {
+      apiKey: SERVER_KEY,
+      actorEmail: "editor@example.com",
+      status: "rejected",
+    });
+    expect(rejected.map((row) => row.summary)).toEqual(["Script"]);
+
+    await expect(
+      listHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "contributor@example.com" }),
+    ).rejects.toThrow("Editor access required");
+  });
+
+  it("returns one proposal in full with the live hash of each target", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor, contributor], substanceIndex: [storedLsd] });
+    const { proposalId } = await submitHandler(ctx, submitArgs() as never);
+
+    const fresh = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "editor@example.com", id: proposalId });
+    expect(fresh).toMatchObject({
+      _id: proposalId,
+      summary: "Update LSD",
+      diff: "# LSD\n\n- Stored summary\n+ Proposed summary",
+      payload: { articles: [proposedLsd] },
+    });
+    expect(fresh!.liveHashes).toEqual([{ kind: "article", key: "lsd", hash: fresh!.targets[0].baseHash }]);
+
+    // Production moved under the proposal: the live hash no longer matches the pinned one.
+    rowsOf("substanceIndex").set("s1", { ...storedLsd, summary: "Edited since" });
+    const drifted = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "editor@example.com", id: proposalId });
+    expect(drifted!.liveHashes[0].hash).not.toBe(drifted!.targets[0].baseHash);
+
+    await expect(
+      getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "editor@example.com", id: "changeProposals:99" as never }),
+    ).resolves.toBeNull();
+    await expect(
+      getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "contributor@example.com", id: proposalId }),
+    ).rejects.toThrow("Editor access required");
+  });
+
+  it("appends a comment under the actor's email and refuses empty text or contributors", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor, contributor], substanceIndex: [storedLsd] });
+    const { proposalId } = await submitHandler(ctx, submitArgs() as never);
+
+    const comment = await commentHandler(ctx, {
+      apiKey: SERVER_KEY,
+      actorEmail: "editor@example.com",
+      id: proposalId,
+      text: "  Looks right to me.  ",
+    });
+    expect(comment).toMatchObject({ by: "editor@example.com", text: "Looks right to me." });
+    const stored = rowsOf("changeProposals").get(proposalId)!;
+    expect(stored.comments).toEqual([comment]);
+    expect(stored.updatedAt).toBe(comment.at);
+
+    await expect(
+      commentHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "editor@example.com", id: proposalId, text: "   " }),
+    ).rejects.toMatchObject({ data: { code: "PROPOSAL_COMMENT_INVALID" } });
+    await expect(
+      commentHandler(ctx, {
+        apiKey: SERVER_KEY,
+        actorEmail: "editor@example.com",
+        id: "changeProposals:99" as never,
+        text: "Hello",
+      }),
+    ).rejects.toMatchObject({ data: { code: "PROPOSAL_NOT_FOUND" } });
+    await expect(
+      commentHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "contributor@example.com", id: proposalId, text: "Hi" }),
     ).rejects.toThrow("Editor access required");
   });
 });

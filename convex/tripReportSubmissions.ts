@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, type QueryCtx } from "./_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { requireRole } from "./lib/auth";
 import {
   assertAuthorNameClaimAdjudicated,
@@ -14,6 +14,7 @@ import {
   tripReportSubstanceValidator,
 } from "./tripReportContract";
 import { syncTripReportSubstanceRows } from "./lib/tripReportSubstanceIndex";
+import { findMembershipByEmail } from "./lib/tripReportOwnership";
 
 const statusValidator = v.union(
   v.literal("submitted"),
@@ -309,6 +310,60 @@ export const previewPromotion = query({
   },
 });
 
+export async function promoteHandler(
+  ctx: MutationCtx,
+  args: {
+    apiKey: string;
+    actorEmail?: string;
+    id: string;
+    reviewer: string;
+    notes?: string;
+    profileKey?: string;
+    confirmAuthorNameClaim?: boolean;
+  },
+) {
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "admin",
+  );
+
+  const doc = await requireSubmission(ctx, args.id);
+  assertPromotable(doc);
+
+  const payload = await buildPromotionPayload(ctx, doc, {
+    reviewer: args.reviewer,
+    requestedProfileKey: args.profileKey,
+    confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
+  });
+  // A submitter who is already a member owns the published report and may
+  // edit it from My reports. Matched on the contact email alone: the byline
+  // is free text and proves nothing.
+  const owner = doc.contact_email ? await findMembershipByEmail(ctx, doc.contact_email) : null;
+  const reportId = await ctx.db.insert("tripReports", {
+    ...payload,
+    ...(owner ? { owner_email: owner.email } : {}),
+  });
+  await syncTripReportSubstanceRows(ctx, reportId, payload.substances);
+  const timestamp = new Date().toISOString();
+  const patch = {
+    status: "exported" as const,
+    reviewed_by: args.reviewer,
+    reviewed_at: timestamp,
+    updated_at: timestamp,
+    exported_at: timestamp,
+    exported_trip_report_id: reportId,
+    ...(args.notes !== undefined ? { review_notes: args.notes } : {}),
+  };
+  await ctx.db.patch(doc._id, patch);
+
+  return {
+    submission: toSubmissionRow({ ...doc, ...patch }),
+    reportId,
+    payload,
+  };
+}
+
 export const promote = mutation({
   args: {
     apiKey: v.string(),
@@ -324,41 +379,7 @@ export const promote = mutation({
     confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   returns: promotionResultValidator,
-  handler: async (ctx, args) => {
-    await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "admin",
-    );
-
-    const doc = await requireSubmission(ctx, args.id);
-    assertPromotable(doc);
-
-    const payload = await buildPromotionPayload(ctx, doc, {
-      reviewer: args.reviewer,
-      requestedProfileKey: args.profileKey,
-      confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
-    });
-    const reportId = await ctx.db.insert("tripReports", payload);
-    await syncTripReportSubstanceRows(ctx, reportId, payload.substances);
-    const timestamp = new Date().toISOString();
-    const patch = {
-      status: "exported" as const,
-      reviewed_by: args.reviewer,
-      reviewed_at: timestamp,
-      updated_at: timestamp,
-      exported_at: timestamp,
-      exported_trip_report_id: reportId,
-      ...(args.notes !== undefined ? { review_notes: args.notes } : {}),
-    };
-    await ctx.db.patch(doc._id, patch);
-
-    return {
-      submission: toSubmissionRow({ ...doc, ...patch }),
-      reportId,
-      payload,
-    };
-  },
+  handler: promoteHandler,
 });
 
 function validateCreatedSubmission(row: SubmissionRow) {

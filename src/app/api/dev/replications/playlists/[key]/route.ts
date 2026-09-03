@@ -3,9 +3,12 @@
  *
  *   GET    /api/dev/replications/playlists/<key> → the playlist, or 404
  *   PATCH  /api/dev/replications/playlists/<key> → add/remove one work
- *   DELETE /api/dev/replications/playlists/<key> → drop it (admin only)
+ *   DELETE /api/dev/replications/playlists/<key> → drop it
  * Updates go through the collection route's POST, which is already an upsert
- * keyed by `key`; there is no second write shape to maintain here.
+ * keyed by `key`; there is no second write shape to maintain here. Both writes
+ * sit at the contributor floor: Convex admits the playlist's owner or an admin
+ * and answers `NOT_OWNER` (a 403 here) to anyone else, so an unowned playlist
+ * stays admin-only. `<key>/owner` hands a playlist to a member (admin).
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../../convex/_generated/api";
@@ -71,7 +74,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   MembershipBody,
   ReturnType<typeof parseMembershipBody>
 >({
-  auth: "editor",
+  auth: "contributor",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 4 * 1024, parse: parseMembershipBody },
   capabilities: [{ type: "convexWrite" }],
@@ -98,7 +101,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
 }));
 
 export const DELETE = protectedRouteOperation({
-  auth: "admin",
+  auth: "contributor",
   rateLimit: "editorSmallWrite",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to delete a replication playlist via Next route:",

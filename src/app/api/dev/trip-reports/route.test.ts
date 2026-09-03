@@ -1,4 +1,6 @@
+import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -40,6 +42,15 @@ const reportFields = {
   offset: [],
   tags: ["outdoors"],
 };
+
+/** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
+function forwarded(data: unknown) {
+  const error = new ConvexError("Server Error");
+  (error as { data: unknown }).data = data;
+  return error;
+}
+
+const contributor = { email: "owner@example.com", name: "Owner" };
 
 beforeEach(() => {
   vi.resetModules();
@@ -185,5 +196,68 @@ describe("dev trip report record route", () => {
     );
 
     expect(response.status).toBe(409);
+  });
+
+  it("admits a contributor session and forwards them as the Convex actor", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
+
+    const { POST } = await import("./record/route");
+    const response = await POST(
+      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ actorEmail: "owner@example.com" }),
+    );
+  });
+
+  it("relays a NOT_OWNER refusal as a 403", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
+    mocks.mutation.mockRejectedValue(
+      forwarded({ code: "NOT_OWNER", message: "You do not own trip report alpine-clarity." }),
+    );
+
+    const { POST } = await import("./record/route");
+    const response = await POST(
+      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({ code: "NOT_OWNER" });
+  });
+
+  it("lets a contributor read a record and relays NOT_OWNER on the read as well", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
+    mocks.query.mockResolvedValueOnce({ id: "report-1", slug: "alpine-clarity", fields: reportFields });
+
+    const { GET } = await import("./record/route");
+    const ok = await GET(new Request("https://dose.wiki/api/dev/trip-reports/record?id=report-1"));
+    expect(ok.status).toBe(200);
+
+    mocks.query.mockRejectedValueOnce(forwarded({ code: "NOT_OWNER", message: "You do not own it." }));
+    const refused = await GET(new Request("https://dose.wiki/api/dev/trip-reports/record?id=report-2"));
+    expect(refused.status).toBe(403);
+  });
+
+  it("still refuses a contributor's delete before touching Convex", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
+
+    const { POST } = await import("./record/route");
+    const response = await POST(postRequest({ mode: "delete", id: "report-1" }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("keeps the corpus index at the editor floor", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
+
+    const { GET } = await import("./route");
+    const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
+
+    expect(response.status).toBe(403);
+    expect(mocks.query).not.toHaveBeenCalled();
   });
 });

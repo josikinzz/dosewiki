@@ -1,6 +1,7 @@
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { requireRole } from "./lib/auth";
+import { ConvexError, v } from "convex/values";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
+import { requireRole, type AuthorizedActor } from "./lib/auth";
 import { isShowcaseEligible } from "../src/data/substanceReplicationGallery";
 
 /**
@@ -15,6 +16,12 @@ import { isShowcaseEligible } from "../src/data/substanceReplicationGallery";
  * Membership is pruned to showcase-eligible corpus rows on write, the same way
  * `substanceGalleries:upsert` prunes a curation, so a playlist can never carry
  * a slug that no longer exists or has been retired corpus-wide.
+ *
+ * Ownership: a playlist may carry `owner_email`. Its owner edits and deletes
+ * it directly at the contributor floor; an admin may edit anything; every
+ * other member (an editor included) reads it and nothing more. A playlist
+ * with no owner is admin-only. Refusals throw `ConvexError({ code: "NOT_OWNER" })`
+ * so the route can answer 403 with a sentence the member can act on.
  */
 
 /** Enough for several articles' worth of ordering, small enough to stay one document. */
@@ -22,52 +29,250 @@ const MAX_PLAYLIST_SLUGS = 250;
 
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+type ActorArgs = { apiKey?: string; actorEmail?: string };
+
+type PlaylistRow = Doc<"replicationPlaylists">;
+
+/** The one ownership rule: admins bypass, otherwise the row's owner and nobody else. */
+export function canEditPlaylist(
+  actor: Pick<AuthorizedActor, "role" | "email">,
+  row: Pick<PlaylistRow, "owner_email">,
+): boolean {
+  return actor.role === "admin" || (row.owner_email !== undefined && row.owner_email === actor.email);
+}
+
+function requireOwnership(actor: AuthorizedActor, row: PlaylistRow): void {
+  if (canEditPlaylist(actor, row)) return;
+  throw new ConvexError({
+    code: "NOT_OWNER",
+    message: row.owner_email
+      ? `"${row.title}" belongs to ${row.owner_email}; only its owner or an admin may change it.`
+      : `"${row.title}" has no owner; only an admin may change it.`,
+  });
+}
+
+/** The normalized email of an existing member, or a rejection naming the address. */
+async function requireMemberEmail(ctx: QueryCtx | MutationCtx, email: string): Promise<string> {
+  const normalized = email.trim().toLowerCase();
+  const membership = await ctx.db
+    .query("memberships")
+    .withIndex("by_email", (q) => q.eq("email", normalized))
+    .unique();
+  if (!membership) {
+    throw new ConvexError({ code: "MEMBER_NOT_FOUND", message: `No membership for ${normalized}.` });
+  }
+  return normalized;
+}
+
+/** A playlist as every read returns it: the stored row plus whether the actor may change it. */
+export type PlaylistProjection = {
+  key: string;
+  title: string;
+  replication_slugs: string[];
+  updated_at: string;
+  updated_by: string | null;
+  owner_email: string | null;
+  editable: boolean;
+};
+
+function projectPlaylist(row: PlaylistRow, actor: AuthorizedActor): PlaylistProjection {
+  return {
+    key: row.key,
+    title: row.title,
+    replication_slugs: row.replication_slugs,
+    updated_at: row.updated_at,
+    updated_by: row.updated_by ?? null,
+    owner_email: row.owner_email ?? null,
+    editable: canEditPlaylist(actor, row),
+  };
+}
+
+async function findPlaylist(ctx: QueryCtx | MutationCtx, key: string) {
+  return await ctx.db
+    .query("replicationPlaylists")
+    .withIndex("by_key", (q) => q.eq("key", key))
+    .first();
+}
+
+function byTitle(left: PlaylistProjection, right: PlaylistProjection): number {
+  return left.title.localeCompare(right.title);
+}
+
+export async function listHandler(ctx: QueryCtx, args: ActorArgs) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
+  const rows = await ctx.db.query("replicationPlaylists").collect();
+  return rows.map((row) => projectPlaylist(row, actor)).sort(byTitle);
+}
+
+/** Every playlist, each flagged with whether the actor may change it. Editor floor. */
 export const list = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
-  handler: async (ctx, args) => {
-    await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-      "editor",
-    );
-    const rows = await ctx.db.query("replicationPlaylists").collect();
-    return rows
-      .map((row) => ({
-        key: row.key,
-        title: row.title,
-        replication_slugs: row.replication_slugs,
-        updated_at: row.updated_at,
-        updated_by: row.updated_by ?? null,
-      }))
-      .sort((left, right) => left.title.localeCompare(right.title));
-  },
+  handler: listHandler,
+});
+
+export async function listOwnedHandler(ctx: QueryCtx, args: ActorArgs) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "contributor",
+  );
+  const rows =
+    actor.role === "admin"
+      ? await ctx.db.query("replicationPlaylists").collect()
+      : await ctx.db
+          .query("replicationPlaylists")
+          .withIndex("by_owner_email", (q) => q.eq("owner_email", actor.email))
+          .collect();
+  return rows.map((row) => projectPlaylist(row, actor)).sort(byTitle);
+}
+
+/** The actor's own playlists; an admin sees all of them. Contributor floor. */
+export const listOwned = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
+  handler: listOwnedHandler,
 });
 
 export const get = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), key: v.string() },
   handler: async (ctx, args) => {
-    await requireRole(
+    const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
       "editor",
     );
-    const row = await ctx.db
-      .query("replicationPlaylists")
-      .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first();
-    if (!row) return null;
-    return {
-      key: row.key,
-      title: row.title,
-      replication_slugs: row.replication_slugs,
-      updated_at: row.updated_at,
-      updated_by: row.updated_by ?? null,
-    };
+    const row = await findPlaylist(ctx, args.key);
+    return row ? projectPlaylist(row, actor) : null;
   },
 });
 
+type UpsertArgs = ActorArgs & {
+  key: string;
+  title: string;
+  replication_slugs: string[];
+  updatedBy?: string;
+  expectedUpdatedAt?: string | null;
+  owner_email?: string;
+};
+
+export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "contributor",
+  );
+
+  if (!KEBAB_CASE.test(args.key)) {
+    throw new Error(`Playlist key "${args.key}" must be kebab-case.`);
+  }
+  const title = args.title.trim();
+  if (title.length === 0) {
+    throw new Error("A playlist needs a name.");
+  }
+  if (args.replication_slugs.length > MAX_PLAYLIST_SLUGS) {
+    throw new Error(
+      `This playlist holds ${args.replication_slugs.length} works; the limit is ${MAX_PLAYLIST_SLUGS}. Split it into two playlists.`,
+    );
+  }
+
+  const existing = await findPlaylist(ctx, args.key);
+  if (existing) {
+    requireOwnership(actor, existing);
+  }
+
+  // Who the new row belongs to. A member creating a playlist owns it, or they
+  // could never touch it again; an admin may hand it to a member up front or
+  // leave it unowned (admin-only), which is what every pre-ownership row is.
+  let owner_email: string | undefined;
+  if (!existing) {
+    if (actor.role !== "admin") {
+      owner_email = actor.email;
+    } else if (args.owner_email !== undefined) {
+      owner_email = await requireMemberEmail(ctx, args.owner_email);
+    }
+  } else if (args.owner_email !== undefined && actor.role !== "admin") {
+    throw new ConvexError({
+      code: "FORBIDDEN",
+      message: "Only an admin may change who owns a playlist.",
+    });
+  }
+
+  const expected = args.expectedUpdatedAt;
+  if (
+    expected !== undefined &&
+    (expected === null ? existing !== null : existing?.updated_at !== expected)
+  ) {
+    return {
+      status: "conflict" as const,
+      server: {
+        key: args.key,
+        title: existing?.title ?? "",
+        replication_slugs: existing?.replication_slugs ?? [],
+        updated_at: existing?.updated_at ?? "",
+        updated_by: existing?.updated_by ?? null,
+        owner_email: existing?.owner_email ?? null,
+      },
+    };
+  }
+
+  // Prune to rows that still exist and still propose themselves anywhere, and
+  // echo what was dropped: a playlist naming a deleted or retired work would
+  // silently apply nothing at the far end.
+  const rows = await ctx.db.query("replications").collect();
+  const eligible = new Set(rows.filter(isShowcaseEligible).map((row) => row.slug));
+  const slugs: string[] = [];
+  const pruned: string[] = [];
+  const seen = new Set<string>();
+  for (const slug of args.replication_slugs) {
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    if (eligible.has(slug)) slugs.push(slug);
+    else pruned.push(slug);
+  }
+
+  const updated_at = new Date().toISOString();
+  const updated_by = args.updatedBy ?? actor.email;
+
+  if (existing) {
+    const patch: Partial<PlaylistRow> = { title, replication_slugs: slugs, updated_at, updated_by };
+    if (args.owner_email !== undefined) {
+      patch.owner_email = await requireMemberEmail(ctx, args.owner_email);
+      owner_email = patch.owner_email;
+    } else {
+      owner_email = existing.owner_email;
+    }
+    await ctx.db.patch(existing._id, patch);
+  } else {
+    await ctx.db.insert("replicationPlaylists", {
+      key: args.key,
+      owner_email,
+      title,
+      replication_slugs: slugs,
+      updated_at,
+      updated_by,
+    });
+  }
+
+  return {
+    status: "ok" as const,
+    updated: Boolean(existing),
+    key: args.key,
+    title,
+    replication_slugs: slugs,
+    pruned,
+    updated_at,
+    updated_by,
+    owner_email: owner_email ?? null,
+    editable: true,
+  };
+}
+
 /**
- * Create or replace one playlist.
+ * Create or replace one playlist. Contributor floor: a new row is owned by
+ * its creator, an existing row is only replaced by its owner or an admin.
  *
  * `expectedUpdatedAt` carries the same optimistic-concurrency contract as a
  * gallery save: omit it to write unconditionally, pass `null` to assert the
@@ -84,100 +289,59 @@ export const upsert = mutation({
     replication_slugs: v.array(v.string()),
     updatedBy: v.optional(v.string()),
     expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
+    /** Admin only: the member who will own the playlist. */
+    owner_email: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
-    );
-
-    if (!KEBAB_CASE.test(args.key)) {
-      throw new Error(`Playlist key "${args.key}" must be kebab-case.`);
-    }
-    const title = args.title.trim();
-    if (title.length === 0) {
-      throw new Error("A playlist needs a name.");
-    }
-    if (args.replication_slugs.length > MAX_PLAYLIST_SLUGS) {
-      throw new Error(
-        `This playlist holds ${args.replication_slugs.length} works; the limit is ${MAX_PLAYLIST_SLUGS}. Split it into two playlists.`,
-      );
-    }
-
-    const existing = await ctx.db
-      .query("replicationPlaylists")
-      .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first();
-
-    const expected = args.expectedUpdatedAt;
-    if (
-      expected !== undefined &&
-      (expected === null ? existing !== null : existing?.updated_at !== expected)
-    ) {
-      return {
-        status: "conflict" as const,
-        server: {
-          key: args.key,
-          title: existing?.title ?? "",
-          replication_slugs: existing?.replication_slugs ?? [],
-          updated_at: existing?.updated_at ?? "",
-          updated_by: existing?.updated_by ?? null,
-        },
-      };
-    }
-
-    // Prune to rows that still exist and still propose themselves anywhere, and
-    // echo what was dropped: a playlist naming a deleted or retired work would
-    // silently apply nothing at the far end.
-    const rows = await ctx.db.query("replications").collect();
-    const eligible = new Set(
-      rows.filter(isShowcaseEligible).map((row) => row.slug),
-    );
-    const slugs: string[] = [];
-    const pruned: string[] = [];
-    const seen = new Set<string>();
-    for (const slug of args.replication_slugs) {
-      if (seen.has(slug)) continue;
-      seen.add(slug);
-      if (eligible.has(slug)) slugs.push(slug);
-      else pruned.push(slug);
-    }
-
-    const updated_at = new Date().toISOString();
-    const updated_by = args.updatedBy ?? actor.email;
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        title,
-        replication_slugs: slugs,
-        updated_at,
-        updated_by,
-      });
-    } else {
-      await ctx.db.insert("replicationPlaylists", {
-        key: args.key,
-        title,
-        replication_slugs: slugs,
-        updated_at,
-        updated_by,
-      });
-    }
-
-    return {
-      status: "ok" as const,
-      updated: Boolean(existing),
-      key: args.key,
-      title,
-      replication_slugs: slugs,
-      pruned,
-      updated_at,
-      updated_by,
-    };
-  },
+  handler: upsertHandler,
 });
 
-/** Idempotently add or remove one replication without replacing the playlist. */
+type SetMembershipArgs = ActorArgs & { key: string; replicationSlug: string; included: boolean };
+
+export async function setMembershipHandler(ctx: MutationCtx, args: SetMembershipArgs) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "contributor",
+  );
+  const existing = await findPlaylist(ctx, args.key);
+  if (!existing) {
+    throw new Error(`Playlist "${args.key}" not found.`);
+  }
+  requireOwnership(actor, existing);
+  const replication = await ctx.db
+    .query("replications")
+    .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
+    .first();
+  if (!replication || !isShowcaseEligible(replication)) {
+    throw new Error(`Replication "${args.replicationSlug}" is not playlist-eligible.`);
+  }
+  const slugs = args.included
+    ? existing.replication_slugs.includes(args.replicationSlug)
+      ? existing.replication_slugs
+      : [...existing.replication_slugs, args.replicationSlug]
+    : existing.replication_slugs.filter((slug) => slug !== args.replicationSlug);
+  if (slugs.length > MAX_PLAYLIST_SLUGS) {
+    throw new Error(`This playlist holds more than ${MAX_PLAYLIST_SLUGS} works.`);
+  }
+  const updated_at = new Date().toISOString();
+  await ctx.db.patch(existing._id, {
+    replication_slugs: slugs,
+    updated_at,
+    updated_by: actor.email,
+  });
+  return {
+    status: "ok" as const,
+    key: existing.key,
+    title: existing.title,
+    replication_slugs: slugs,
+    updated_at,
+    updated_by: actor.email,
+    owner_email: existing.owner_email ?? null,
+    editable: true,
+  };
+}
+
+/** Idempotently add or remove one replication without replacing the playlist. Owner or admin. */
 export const setMembership = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -186,78 +350,69 @@ export const setMembership = mutation({
     replicationSlug: v.string(),
     included: v.boolean(),
   },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
-    );
-    const existing = await ctx.db
-      .query("replicationPlaylists")
-      .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first();
-    if (!existing) {
-      throw new Error(`Playlist "${args.key}" not found.`);
-    }
-    const replication = await ctx.db
-      .query("replications")
-      .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
-      .first();
-    if (!replication || !isShowcaseEligible(replication)) {
-      throw new Error(
-        `Replication "${args.replicationSlug}" is not playlist-eligible.`,
-      );
-    }
-    const slugs = args.included
-      ? existing.replication_slugs.includes(args.replicationSlug)
-        ? existing.replication_slugs
-        : [...existing.replication_slugs, args.replicationSlug]
-      : existing.replication_slugs.filter(
-          (slug) => slug !== args.replicationSlug,
-        );
-    if (slugs.length > MAX_PLAYLIST_SLUGS) {
-      throw new Error(
-        `This playlist holds more than ${MAX_PLAYLIST_SLUGS} works.`,
-      );
-    }
-    const updated_at = new Date().toISOString();
-    await ctx.db.patch(existing._id, {
-      replication_slugs: slugs,
-      updated_at,
-      updated_by: actor.email,
-    });
-    return {
-      status: "ok" as const,
-      key: existing.key,
-      title: existing.title,
-      replication_slugs: slugs,
-      updated_at,
-      updated_by: actor.email,
-    };
-  },
+  handler: setMembershipHandler,
 });
 
+export async function removeHandler(ctx: MutationCtx, args: ActorArgs & { key: string }) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "contributor",
+  );
+  const existing = await findPlaylist(ctx, args.key);
+  if (!existing) {
+    return { status: "missing" as const, key: args.key };
+  }
+  requireOwnership(actor, existing);
+  await ctx.db.delete(existing._id);
+  return { status: "ok" as const, key: args.key };
+}
+
+/** Delete one playlist: its owner may, an admin may, and an unowned row is admin-only. */
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     key: v.string(),
   },
-  handler: async (ctx, args) => {
-    await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "admin",
-    );
+  handler: removeHandler,
+});
 
-    const existing = await ctx.db
-      .query("replicationPlaylists")
-      .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first();
-    if (!existing) {
-      return { status: "missing" as const, key: args.key };
-    }
-    await ctx.db.delete(existing._id);
-    return { status: "ok" as const, key: args.key };
+type AssignOwnerArgs = ActorArgs & { key: string; ownerEmail: string | null };
+
+export async function assignOwnerHandler(ctx: MutationCtx, args: AssignOwnerArgs) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "admin",
+  );
+  const existing = await findPlaylist(ctx, args.key);
+  if (!existing) {
+    return { status: "missing" as const, key: args.key };
+  }
+  const owner_email =
+    args.ownerEmail === null ? undefined : await requireMemberEmail(ctx, args.ownerEmail);
+  const updated_at = new Date().toISOString();
+  await ctx.db.patch(existing._id, { owner_email, updated_at, updated_by: actor.email });
+  return {
+    status: "ok" as const,
+    key: existing.key,
+    owner_email: owner_email ?? null,
+    updated_at,
+    updated_by: actor.email,
+  };
+}
+
+/**
+ * Hand a playlist to a member, or (`ownerEmail: null`) take it back to the
+ * unowned, admin-only state. Admin floor; the member must exist.
+ */
+export const assignOwner = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    key: v.string(),
+    ownerEmail: v.union(v.string(), v.null()),
   },
+  handler: assignOwnerHandler,
 });

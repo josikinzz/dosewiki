@@ -32,8 +32,16 @@ const CopyStudioTab = dynamic(
   () => import("../tools/copy-studio/CopyStudioTab").then((m) => m.CopyStudioTab),
   { ssr: false, loading },
 );
+const QueueTab = dynamic(
+  () => import("../tools/queue/QueueTab").then((m) => m.QueueTab),
+  { ssr: false, loading },
+);
 const ContributorsTab = dynamic(
   () => import("../tools/contributors/ContributorsTab").then((m) => m.ContributorsTab),
+  { ssr: false, loading },
+);
+const PlaylistsTab = dynamic(
+  () => import("../tools/playlists/PlaylistsTab").then((m) => m.PlaylistsTab),
   { ssr: false, loading },
 );
 const CitationReviewTab = dynamic(
@@ -75,6 +83,10 @@ const TagEditorTab = dynamic(
 );
 const MembersTab = dynamic(
   () => import("../tools/members/MembersTab").then((m) => m.MembersTab),
+  { ssr: false, loading },
+);
+const MyReportsTab = dynamic(
+  () => import("../tools/my-reports/MyReportsTab").then((m) => m.MyReportsTab),
   { ssr: false, loading },
 );
 
@@ -182,6 +194,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           />
         ) : controller.activeTab === "copy-studio" ? (
           <CopyStudioTab initialKey={controller.copyStudioInitialKey} />
+        ) : controller.activeTab === "queue" ? (
+          <QueueTab canApprove={controller.canApprove} />
         ) : controller.activeTab === "contributors" ? (
           <ContributorsTab
             profiles={controller.contributorDirectory.profiles}
@@ -191,6 +205,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             sessionProfileKey={controller.sessionProfileKey}
             initialScope={controller.initialFilter}
           />
+        ) : controller.activeTab === "playlists" ? (
+          <PlaylistsTab isAdmin={controller.canApprove} />
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
@@ -207,6 +223,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
         ) : controller.activeTab === "members" ? (
           <MembersTab />
+        ) : controller.activeTab === "my-reports" ? (
+          <MyReportsTab canApprove={controller.canApprove} />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
             renderCommitPanel={controller.renderCommitPanel}

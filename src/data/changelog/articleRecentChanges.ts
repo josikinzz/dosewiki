@@ -26,6 +26,29 @@ export type ArticleRecentChange = {
 
 const SECTION_HEADING = /^# (.+)$/;
 
+const INLINE_EDIT_MESSAGE = /^Inline edit — ([\w.]+)$/;
+
+/**
+ * Direct edits stamp the raw field path ("Inline edit — harm_potential.psychosis.description").
+ * Readers get the same path as words: "Edited Harm potential › Psychosis › Description".
+ * Every other message (bulk saves, source additions) is already prose and passes through.
+ */
+export function humanizeChangeMessage(message: string): string {
+  const match = INLINE_EDIT_MESSAGE.exec(message.trim());
+  if (!match) {
+    return message;
+  }
+  const path = match[1]
+    .split(".")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => {
+      const words = segment.replace(/_/g, " ");
+      return words.charAt(0).toUpperCase() + words.slice(1);
+    })
+    .join(" › ");
+  return `Edited ${path}`;
+}
+
 /**
  * Bulk Dev-editor saves store one diff for every article they touched, one
  * `# <Title> · #<id>` section per article (`formatArticleLabel`); direct edits

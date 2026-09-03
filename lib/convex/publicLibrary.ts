@@ -41,6 +41,8 @@ const DERIVED_CACHE_PAYLOAD_WARNING_BYTES = 1.5 * 1024 * 1024;
 export type PublicDerivedDataCacheInvalidation = {
   source:
     | "save-to-convex"
+    | "proposal-apply"
+    | "proposal-revert"
     | "save-quote"
     | "manual"
     | "test-write";

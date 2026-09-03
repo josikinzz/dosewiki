@@ -160,13 +160,15 @@ describe("trip report save validation", () => {
 describe("Convex trip report update boundary", () => {
   const source = readSource("convex/tripReports.ts");
 
-  it("gates the portal reads and the per-record write on editor role, and the delete on admin", () => {
+  it("gates the portal index on editor, the record read and write on contributor plus ownership, and the delete and owner grant on admin", () => {
     const floors = [...source.matchAll(/await requireRole\([\s\S]*?"(admin|editor|contributor)",\n\s*\);/g)].map(
       (match) => match[1],
     );
 
-    // getPortalRows, getPortalRecord, update, deleteById, renameAuthor.
-    expect(floors).toEqual(["editor", "editor", "editor", "admin"]);
+    // getPortalRows, getPortalRecord, update, listOwned, assignOwner, deleteById, renameAuthor.
+    expect(floors).toEqual(["editor", "contributor", "contributor", "contributor", "admin", "admin"]);
+    // Both contributor-floor report accessors decide per row.
+    expect(source.match(/refuseNotOwner\(row\)|refuseNotOwner\(report\)/g)).toHaveLength(2);
     expect(source).toContain(
       'await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");',
     );

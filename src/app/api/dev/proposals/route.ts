@@ -1,13 +1,18 @@
 /**
- * Editor proposal submission: the commit panel's staged save, held for an
- * admin instead of written. The body is the same `SaveToConvexPayload` the
- * save route takes, plus a summary and the diff the shell rendered; nothing
- * here touches production, only `changeProposals`.
+ * Editor change proposals.
+ *
+ *   GET  /api/dev/proposals?status=  the review queue, newest first, without payload or diff
+ *   POST /api/dev/proposals          the commit panel's staged save, held for an admin instead of written
+ *
+ * The POST body is the same `SaveToConvexPayload` the save route takes, plus a
+ * summary and the diff the shell rendered; nothing here touches production,
+ * only `changeProposals`.
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
 import { deriveProposalTargets } from "../../../../../convex/lib/changeProposalTargets";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { PROPOSAL_STATUSES, type ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
 import {
   parseChangelogPayload,
   parseIndexLayoutPayloads,
@@ -24,6 +29,36 @@ type ProposalBody = {
   summary?: unknown;
   diff?: unknown;
 };
+
+export const GET = protectedRouteOperation({
+  auth: "editor",
+  rateLimit: "diagnosticRead",
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to list change proposals via Next route:",
+  unexpectedErrorMessage: "Unable to load the proposal queue right now.",
+  operation: async ({ request, actorEmail, convexWrite }) => {
+    if (!convexWrite) {
+      throw new Error("Convex write capability is required.");
+    }
+
+    const rawStatus = new URL(request.url).searchParams.get("status");
+    let status: ProposalStatus | undefined;
+    if (rawStatus !== null && rawStatus !== "") {
+      if (!PROPOSAL_STATUSES.includes(rawStatus as ProposalStatus)) {
+        return NextResponse.json({ error: `Unknown proposal status "${rawStatus}".` }, { status: 400 });
+      }
+      status = rawStatus as ProposalStatus;
+    }
+
+    const proposals = await convexWrite.client.query(api.changeProposals.list, {
+      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+      actorEmail,
+      ...(status ? { status } : {}),
+    });
+
+    return NextResponse.json({ ok: true, proposals });
+  },
+});
 
 export const POST = protectedRouteOperation<ProposalBody>({
   auth: "editor",

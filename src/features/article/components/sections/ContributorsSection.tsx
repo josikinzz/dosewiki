@@ -240,7 +240,7 @@ function RecentChangesDisclosure({ changes }: { changes: ArticleRecentChange[] }
           className="theme-icon-muted shrink-0 transition-transform duration-200 group-open/changes:rotate-180"
         />
       </summary>
-      <div className="pl-[3.25rem]">
+      <div className="sm:pl-[3.25rem]">
         <RecentChangesList changes={changes} />
       </div>
     </details>

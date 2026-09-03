@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type MutationCtx } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { requireRole } from "./lib/auth";
 import { mirrorPsychoactiveLayout } from "./lib/categoryLayoutMirror";
@@ -43,6 +44,44 @@ export const getAll = query({
   },
 });
 
+type IndexLayoutSaveArgs = {
+  apiKey?: string;
+  actorEmail?: string;
+  type: IndexLayoutType;
+  version: number;
+  categories: Doc<"indexLayouts">["categories"];
+};
+
+/**
+ * The layout write behind `save`, also the write a change proposal's
+ * indexLayout target applies through: one upsert by type plus the
+ * `categoryLayout` mirror the public /substances page reads.
+ */
+export async function saveIndexLayoutHandler(ctx: MutationCtx, args: IndexLayoutSaveArgs) {
+  await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "editor");
+
+  const { apiKey: _apiKey, actorEmail: _actorEmail, ...layoutData } = args;
+  const existing = await ctx.db
+    .query("indexLayouts")
+    .withIndex("by_type", (q) => q.eq("type", layoutData.type))
+    .first();
+
+  let result;
+  if (existing) {
+    await ctx.db.patch(existing._id, layoutData);
+    result = { updated: true, id: existing._id };
+  } else {
+    const id = await ctx.db.insert("indexLayouts", layoutData);
+    result = { updated: false, id };
+  }
+  await mirrorPsychoactiveLayout(ctx, layoutData);
+  return result;
+}
+
 /**
  * Save/update an index layout. Editor floor: this is the staged save route's
  * layout write. Psychoactive layouts are mirrored into `categoryLayout`,
@@ -54,30 +93,7 @@ export const save = mutation({
     actorEmail: v.optional(v.string()),
     ...indexLayoutValidator.fields,
   },
-  handler: async (ctx, args) => {
-    await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    }, "editor");
-
-    const { apiKey: _apiKey, actorEmail: _actorEmail, ...layoutData } = args;
-    const existing = await ctx.db
-      .query("indexLayouts")
-      .withIndex("by_type", (q) => q.eq("type", layoutData.type))
-      .first();
-
-    let result;
-    if (existing) {
-      await ctx.db.patch(existing._id, layoutData);
-      result = { updated: true, id: existing._id };
-    } else {
-      const id = await ctx.db.insert("indexLayouts", layoutData);
-      result = { updated: false, id };
-    }
-    await mirrorPsychoactiveLayout(ctx, layoutData);
-    return result;
-  },
+  handler: saveIndexLayoutHandler,
 });
 
 /**

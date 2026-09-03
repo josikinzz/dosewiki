@@ -39,7 +39,7 @@ type DevTabDescriptorOf<Id extends string> = {
   saveFamily: "staged" | "immediate";
   destination: DevTabDestination;
   /** Named count source rendered as a rail badge; `useDevRailBadges` maps the name to its endpoint. */
-  badge?: "trip-reports" | "feedback";
+  badge?: "trip-reports" | "feedback" | "proposals";
   /**
    * A tab-level filter kept in the URL as `?<param>=<value>`. `segments` are
    * extra route segments that open the tab with that value preset, the way a
@@ -181,6 +181,19 @@ const REGISTRY = [
     destination: SHELL,
   },
   {
+    id: "queue",
+    label: "Queue",
+    group: "site",
+    aliases: ["proposals"],
+    // Every editor reads the review queue and comments; approve, reject and
+    // revert are admin buttons inside the tab.
+    role: "editor",
+    data: NO_DATA,
+    saveFamily: "immediate",
+    destination: SHELL,
+    badge: "proposals",
+  },
+  {
     id: "contributors",
     label: "Contributors",
     group: "site",
@@ -196,12 +209,36 @@ const REGISTRY = [
     filter: { param: "scope", values: ["all", "me"], segments: { profile: "me", profiles: "me" } },
   },
   {
+    id: "playlists",
+    label: "Playlists",
+    group: "site",
+    aliases: [],
+    // A member's own replication playlists: the descriptor sits at the
+    // contributor floor and Convex's ownership rule decides which rows they
+    // may change. Applying a playlist to a gallery stays in the studio.
+    role: "contributor",
+    data: NO_DATA,
+    saveFamily: "immediate",
+    destination: SHELL,
+  },
+  {
     id: "members",
     label: "Members",
     group: "site",
     aliases: [],
     // Roster, roles, bans, resets, invites: every action is admin-only in Convex too.
     role: "admin",
+    data: NO_DATA,
+    saveFamily: "immediate",
+    destination: SHELL,
+  },
+  {
+    id: "my-reports",
+    label: "My reports",
+    group: "site",
+    aliases: [],
+    // A member's own published trip reports; ownership is checked per row in Convex.
+    role: "contributor",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,

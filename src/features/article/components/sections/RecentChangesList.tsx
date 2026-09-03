@@ -28,7 +28,7 @@ const nameClassName = cn(
   "theme-focus-ring",
 );
 
-function RecentChangeRow({ change }: { change: ArticleRecentChange }) {
+function RecentChangeRow({ change, dateLabel }: { change: ArticleRecentChange; dateLabel: string | null }) {
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
   const hasDiff = change.diff.length > 0;
   const diffId = `recent-change-diff-${change.id}`;
@@ -36,12 +36,12 @@ function RecentChangeRow({ change }: { change: ArticleRecentChange }) {
 
   return (
     <li>
-      <div className="flex items-start gap-3 py-2.5 sm:items-center">
+      <div className="flex flex-wrap items-start gap-x-3 gap-y-1 py-2.5 sm:flex-nowrap sm:items-center">
         <time
           dateTime={change.createdAt}
-          className="theme-text-faint mt-0.5 w-[6.5rem] shrink-0 font-mono text-[11px] tabular-nums sm:mt-0"
+          className="theme-text-faint basis-full font-mono text-[11px] tabular-nums sm:w-[6.5rem] sm:basis-auto sm:shrink-0"
         >
-          {dateFormat.format(new Date(change.createdAt))}
+          {dateLabel ?? <span className="sr-only">{dateFormat.format(new Date(change.createdAt))}</span>}
         </time>
         <p className="theme-text-secondary min-w-0 flex-1 text-sm leading-snug">
           {change.contributor?.href ? (
@@ -52,7 +52,7 @@ function RecentChangeRow({ change }: { change: ArticleRecentChange }) {
             <span className="theme-text-primary font-semibold">{contributorName}</span>
           )}
           <span className="theme-text-faint"> · </span>
-          <span className="line-clamp-2 sm:inline">{change.message}</span>
+          <span>{change.message}</span>
           {change.articleCount > 1 ? (
             <span className="theme-text-faint"> · one of {change.articleCount} articles in this save</span>
           ) : null}
@@ -73,6 +73,7 @@ function RecentChangeRow({ change }: { change: ArticleRecentChange }) {
           markdown={change.diff}
           id={diffId}
           keyPrefix={change.id}
+          wrap
           className="mb-2.5 rounded-lg border"
         />
       ) : null}
@@ -86,11 +87,17 @@ function RecentChangeRow({ change }: { change: ArticleRecentChange }) {
  * tall as its rows and nothing more.
  */
 export function RecentChangesList({ changes }: RecentChangesListProps) {
+  // A run of same-day edits shows its date once; later rows keep it for
+  // screen readers only.
+  let previousLabel: string | null = null;
   return (
     <ol className="divide-y divide-dose-border">
-      {changes.map((change) => (
-        <RecentChangeRow key={change.id} change={change} />
-      ))}
+      {changes.map((change) => {
+        const label = dateFormat.format(new Date(change.createdAt));
+        const dateLabel = label === previousLabel ? null : label;
+        previousLabel = label;
+        return <RecentChangeRow key={change.id} change={change} dateLabel={dateLabel} />;
+      })}
     </ol>
   );
 }

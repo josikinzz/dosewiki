@@ -1,5 +1,6 @@
 import type { ManualCategoryDefinition } from "@/data/builders/manualIndexLoader";
 import { slugify } from "@/utils/slug";
+import { deriveSubmittedBy } from "@server/changelog/submitterStamp";
 
 export { slugify };
 
@@ -101,17 +102,7 @@ export function parseIndexLayoutPayloads(value: unknown): IndexLayoutPayload[] {
   });
 }
 
-export function deriveSubmittedBy(email: string, name?: string | null): string {
-  const emailLocalPart = email.split("@")[0]?.trim() ?? "";
-  const normalizedEmailKey = emailLocalPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
-
-  if (normalizedEmailKey) {
-    return normalizedEmailKey;
-  }
-
-  const normalizedName = name?.trim().replace(/[^a-z0-9-]/gi, "").toUpperCase() ?? "";
-  return normalizedName || email.trim().toUpperCase();
-}
+export { deriveSubmittedBy };
 
 export function normalizeString(value: unknown): string | null {
   if (typeof value !== "string") {

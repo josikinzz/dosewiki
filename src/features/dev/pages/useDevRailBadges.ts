@@ -15,6 +15,7 @@ export type DevRailBadgeCounts = Readonly<Partial<Record<DevRailBadge, number>>>
 const BADGE_SOURCES: Record<DevRailBadge, { url: string; field: string }> = {
   "trip-reports": { url: "/api/dev/trip-reports/needs-review-count", field: "count" },
   feedback: { url: "/api/feedback/pending-count", field: "total" },
+  proposals: { url: "/api/dev/proposals/count", field: "submitted" },
 };
 
 const BADGES = Object.keys(BADGE_SOURCES) as DevRailBadge[];
@@ -36,6 +37,7 @@ type BadgeSnapshot = Readonly<Record<DevRailBadge, BadgeEntry>>;
 const INITIAL_SNAPSHOT: BadgeSnapshot = {
   "trip-reports": { count: null, generation: 0 },
   feedback: { count: null, generation: 0 },
+  proposals: { count: null, generation: 0 },
 };
 
 /**

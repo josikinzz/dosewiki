@@ -38,16 +38,17 @@ function contentOf(row: Record<string, unknown> | null): unknown {
 }
 
 /**
- * Hash of the production row a target names, as it stands right now. Articles
- * hash through the editor projection (what the shell loaded and diffed
- * against); layouts and site rows hash as stored. A missing row hashes as
- * `null`, so a proposal that creates something records "was absent". Apply
- * recomputes this and refuses when it no longer matches `baseHash`.
+ * The production document a target names, as it stands right now. Articles
+ * read through the editor projection (what the shell loaded and diffed
+ * against); layouts and site rows read as stored. A missing row reads as
+ * `null`, so a proposal that creates something records "was absent". This is
+ * both what `hashProposalTarget` hashes and what apply keeps as
+ * `snapshotBefore`, so a revert writes back exactly what was hashed.
  */
-export async function hashProposalTarget(
+export async function readProposalTarget(
   ctx: QueryCtx | MutationCtx,
   target: ProposalTargetRef,
-): Promise<string> {
+): Promise<unknown> {
   switch (target.kind) {
     case "article": {
       const matches = await ctx.db
@@ -61,7 +62,7 @@ export async function hashProposalTarget(
         });
       }
       const row = matches[0];
-      return contentHash(row ? contentOf(projectEditorArticle(row) as Record<string, unknown>) : null);
+      return row ? contentOf(projectEditorArticle(row) as Record<string, unknown>) : null;
     }
     case "indexLayout": {
       if (target.key !== "psychoactive" && target.key !== "chemical" && target.key !== "mechanism") {
@@ -75,21 +76,32 @@ export async function hashProposalTarget(
         .query("indexLayouts")
         .withIndex("by_type", (q) => q.eq("type", type))
         .first();
-      return contentHash(contentOf(row));
+      return contentOf(row);
     }
     case "about": {
       const row = await ctx.db
         .query("siteConfig")
         .withIndex("by_key", (q) => q.eq("key", target.key))
         .first();
-      return contentHash(contentOf(row));
+      return contentOf(row);
     }
     case "copyBlock": {
       const row = await ctx.db
         .query("copyBlocks")
         .withIndex("by_key", (q) => q.eq("key", target.key))
         .first();
-      return contentHash(contentOf(row));
+      return contentOf(row);
     }
   }
+}
+
+/**
+ * Hash of `readProposalTarget`. Submit records it as `baseHash`; apply
+ * recomputes it and refuses when it no longer matches.
+ */
+export async function hashProposalTarget(
+  ctx: QueryCtx | MutationCtx,
+  target: ProposalTargetRef,
+): Promise<string> {
+  return contentHash(await readProposalTarget(ctx, target));
 }

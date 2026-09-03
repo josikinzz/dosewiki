@@ -1,0 +1,399 @@
+"use client";
+
+/**
+ * My reports: `/dev/my-reports`. The published trip reports the signed-in
+ * member owns, each openable in a content editor.
+ *
+ * Contributor floor. The editor is deliberately narrower than the portal's:
+ * title, tags, and the report body (introduction, the three timelines, the
+ * conclusion). Byline, attribution, trip subject, substances and the slug are
+ * editor decisions and stay on the portal; Convex refuses them from an owner
+ * regardless of what this form sends. Nothing here deletes.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { Icon } from "@/components/common/Icon";
+import { StateCard } from "@/components/common/StateCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  EditorNotice,
+  EditorPanel,
+  EditorSection,
+  TagToken,
+  type EditorNoticeMessage,
+} from "@/features/dev/components";
+import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
+import { PortalReportTimelineEditor } from "../trip-report-portal/PortalReportTimelineEditor";
+import {
+  assignReportOwner,
+  fetchOwnedRecord,
+  fetchOwnedReports,
+  formatPublished,
+  saveOwnedReport,
+  sortOwnedReports,
+  type OwnedReportRecord,
+  type OwnedReportRow,
+} from "./myReportsModel";
+
+const HEADER_CELL_CLASS =
+  "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
+
+type OpenReport = { record: OwnedReportRecord; draft: TripReportEditableFields };
+
+export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
+  const [rows, setRows] = useState<OwnedReportRow[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [open, setOpen] = useState<OpenReport | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+
+  const load = useCallback(async () => {
+    setLoadError(null);
+    try {
+      setRows(await fetchOwnedReports());
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Unable to load your reports.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const openReport = async (row: OwnedReportRow) => {
+    setOpeningId(row.id);
+    setNotice(null);
+    try {
+      const record = await fetchOwnedRecord(row.id);
+      setOpen({ record, draft: record.fields });
+    } catch (error) {
+      setNotice({
+        tone: "danger",
+        message: error instanceof Error ? error.message : "Unable to open that report.",
+      });
+    } finally {
+      setOpeningId(null);
+    }
+  };
+
+  const save = async () => {
+    if (!open) {
+      return;
+    }
+    setSaving(true);
+    setNotice(null);
+    try {
+      await saveOwnedReport(open.record.id, open.record.fields, open.draft);
+      // The saved draft becomes the snapshot the next save is checked against.
+      const record = await fetchOwnedRecord(open.record.id);
+      setOpen({ record, draft: record.fields });
+      setNotice({ tone: "success", message: `Saved /reports/${record.slug}.` });
+      await load();
+    } catch (error) {
+      setNotice({
+        tone: "danger",
+        message: error instanceof Error ? error.message : "The save did not go through.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-10">
+      <EditorSection
+        icon="lucide:notebook-pen"
+        title="My reports"
+        description="Published trip reports you own. Open one to revise its title, tags, or body; the change goes live on save."
+        actions={
+          <Button type="button" variant="ghost" size="sm" onClick={() => void load()} disabled={rows === null && !loadError}>
+            <Icon icon="lucide:refresh-cw" size={14} />
+            Refresh
+          </Button>
+        }
+      >
+        {notice ? <EditorNotice notice={notice} /> : null}
+
+        {loadError ? (
+          <StateCard
+            tone="danger"
+            icon="lucide:circle-alert"
+            title="Your reports did not load"
+            description={loadError}
+            compact
+            actions={
+              <Button type="button" variant="accent" size="sm" onClick={() => void load()}>
+                Try again
+              </Button>
+            }
+          />
+        ) : rows === null ? (
+          <StateCard tone="accent" loading title="Loading your reports" description="Fetching the list." compact />
+        ) : rows.length === 0 ? (
+          <StateCard
+            tone="neutral"
+            icon="lucide:notebook"
+            title="No reports yet"
+            description="A report you submitted with this account's email becomes yours when it is published. An admin can also hand you one."
+            compact
+          />
+        ) : (
+          <OwnedReportTable
+            rows={rows}
+            openId={open?.record.id ?? null}
+            openingId={openingId}
+            onOpen={(row) => void openReport(row)}
+          />
+        )}
+      </EditorSection>
+
+      {open ? (
+        <OwnedReportEditor
+          open={open}
+          saving={saving}
+          onChange={(draft) => setOpen({ ...open, draft })}
+          onRevert={() => setOpen({ ...open, draft: open.record.fields })}
+          onSave={() => void save()}
+          onClose={() => {
+            setOpen(null);
+            setNotice(null);
+          }}
+        />
+      ) : null}
+
+      {canApprove ? <AssignOwnerSection onAssigned={() => void load()} /> : null}
+    </div>
+  );
+}
+
+/**
+ * Admin only: hand a published report to a member by slug. The one place the
+ * owner route has a form; the portal's editor stays untouched.
+ */
+function AssignOwnerSection({ onAssigned }: { onAssigned: () => void }) {
+  const [slug, setSlug] = useState("");
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+
+  const assign = async () => {
+    setPending(true);
+    setNotice(null);
+    try {
+      const result = await assignReportOwner(slug, email);
+      setNotice({ tone: "success", message: `/reports/${result.slug} now belongs to ${result.ownerEmail}.` });
+      setSlug("");
+      setEmail("");
+      onAssigned();
+    } catch (error) {
+      setNotice({
+        tone: "danger",
+        message: error instanceof Error ? error.message : "The owner was not assigned.",
+      });
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <EditorSection
+      icon="lucide:user-round-check"
+      title="Assign an owner"
+      description="Admin only. The member gets edit rights to the report from this tab; the email must belong to an existing membership."
+      headingLevel="h3"
+    >
+      {notice ? <EditorNotice notice={notice} /> : null}
+      <form
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void assign();
+        }}
+      >
+        <div className="min-w-0 flex-1">
+          <label htmlFor="assign-owner-slug" className="theme-text-faint mb-1.5 block text-xs font-medium uppercase tracking-wide">
+            Report slug
+          </label>
+          <Input id="assign-owner-slug" value={slug} className="font-mono" onChange={(event) => setSlug(event.target.value)} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <label htmlFor="assign-owner-email" className="theme-text-faint mb-1.5 block text-xs font-medium uppercase tracking-wide">
+            Member email
+          </label>
+          <Input id="assign-owner-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+        </div>
+        <Button type="submit" variant="accent" size="sm" disabled={pending || !slug.trim() || !email.trim()}>
+          {pending ? "Assigning" : "Assign owner"}
+        </Button>
+      </form>
+    </EditorSection>
+  );
+}
+
+function OwnedReportTable({
+  rows,
+  openId,
+  openingId,
+  onOpen,
+}: {
+  rows: readonly OwnedReportRow[];
+  openId: string | null;
+  openingId: string | null;
+  onOpen: (row: OwnedReportRow) => void;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-dose-border">
+      <table className="w-full min-w-[40rem] border-collapse text-left">
+        <thead>
+          <tr className="border-b border-dose-border">
+            <th scope="col" className={HEADER_CELL_CLASS}>Title</th>
+            <th scope="col" className={HEADER_CELL_CLASS}>Address</th>
+            <th scope="col" className={HEADER_CELL_CLASS}>Trip date</th>
+            <th scope="col" className={HEADER_CELL_CLASS}>Published</th>
+            <th scope="col" className={HEADER_CELL_CLASS}>
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortOwnedReports(rows).map((row) => (
+            <tr key={row.id} className="border-b border-dose-border last:border-0" data-report={row.slug}>
+              <td className="px-3 py-2.5">
+                <span className="block truncate text-sm font-medium theme-text-primary">{row.title}</span>
+              </td>
+              <td className="px-3 py-2.5">
+                <a
+                  href={`/reports/${row.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="theme-text-secondary font-mono text-xs hover:underline"
+                >
+                  /reports/{row.slug}
+                </a>
+              </td>
+              <td className="theme-text-secondary px-3 py-2.5 font-mono text-xs">{row.tripDate ?? "Unknown"}</td>
+              <td className="theme-text-secondary px-3 py-2.5 font-mono text-xs">{formatPublished(row.createdAt)}</td>
+              <td className="px-3 py-2.5 text-right">
+                <Button
+                  type="button"
+                  variant={openId === row.id ? "accent" : "outline"}
+                  size="sm"
+                  disabled={openingId !== null}
+                  onClick={() => onOpen(row)}
+                >
+                  {openingId === row.id ? "Opening" : openId === row.id ? "Open" : "Edit"}
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function OwnedReportEditor({
+  open,
+  saving,
+  onChange,
+  onClose,
+  onRevert,
+  onSave,
+}: {
+  open: OpenReport;
+  saving: boolean;
+  onChange: (draft: TripReportEditableFields) => void;
+  onClose: () => void;
+  onRevert: () => void;
+  onSave: () => void;
+}) {
+  const { record, draft } = open;
+  const [tagDraft, setTagDraft] = useState("");
+  const dirty = useMemo(
+    () => JSON.stringify(draft) !== JSON.stringify(record.fields),
+    [draft, record.fields],
+  );
+
+  function patch(next: Partial<TripReportEditableFields>) {
+    onChange({ ...draft, ...next });
+  }
+
+  return (
+    <EditorSection
+      icon="lucide:pencil-line"
+      title="Edit report"
+      description={`Editing /reports/${record.slug}. Byline, attribution, subject details and substances are changed by an editor from the trip report portal.`}
+      headingLevel="h3"
+      actions={
+        <Button type="button" variant="ghost" size="sm" onClick={onClose} aria-label="Close editor">
+          Close
+        </Button>
+      }
+    >
+      <EditorPanel variant="default" className="flex min-h-0 flex-col" data-testid="my-report-editor">
+        <div className="space-y-4 px-5 py-4">
+          <div className="min-w-0">
+            <label htmlFor="my-report-title" className="theme-text-faint mb-1.5 block text-xs font-medium uppercase tracking-wide">
+              Title
+            </label>
+            <Input
+              id="my-report-title"
+              value={draft.title}
+              onChange={(event) => patch({ title: event.target.value })}
+              className="font-display text-lg font-semibold"
+            />
+          </div>
+
+          <div>
+            <span className="theme-text-faint mb-1.5 block text-xs font-medium uppercase tracking-wide">Tags</span>
+            <div className="theme-replication-field theme-portal-rule flex flex-wrap items-center gap-1.5 rounded-md border p-1.5">
+              {draft.tags.map((tag, index) => (
+                <TagToken
+                  key={`${tag}-${index}`}
+                  label={tag}
+                  variant="compact"
+                  removeLabel={`Remove tag ${tag}`}
+                  onRemove={() => patch({ tags: draft.tags.filter((_, at) => at !== index) })}
+                />
+              ))}
+              <input
+                aria-label="Add tag"
+                value={tagDraft}
+                placeholder="Add tag"
+                className="theme-text-primary min-w-24 flex-1 bg-transparent px-1 py-0.5 text-[13px] outline-none"
+                onChange={(event) => setTagDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && tagDraft.trim()) {
+                    event.preventDefault();
+                    patch({ tags: [...draft.tags, tagDraft.trim()] });
+                    setTagDraft("");
+                  } else if (event.key === "Backspace" && !tagDraft && draft.tags.length > 0) {
+                    patch({ tags: draft.tags.slice(0, -1) });
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <span className="theme-text-faint mb-2.5 block text-xs font-medium uppercase tracking-wide">Report body</span>
+            <PortalReportTimelineEditor draft={draft} onChange={onChange} />
+          </div>
+        </div>
+
+        <footer className="theme-portal-rule sticky bottom-0 flex flex-wrap items-center gap-2 border-t px-5 py-3 backdrop-blur">
+          <Button type="button" variant="accent" disabled={saving || !dirty} onClick={onSave}>
+            {saving ? "Saving" : "Save report"}
+          </Button>
+          <Button type="button" variant="ghost" disabled={saving || !dirty} onClick={onRevert}>
+            Revert
+          </Button>
+          {dirty ? <span className="text-dose-accent-soft text-xs">Unsaved changes</span> : null}
+        </footer>
+      </EditorPanel>
+    </EditorSection>
+  );
+}
