@@ -25,7 +25,9 @@ import {
   type EditorStatusPillTone,
 } from "@/features/dev/components";
 import { getRoleDisplayName, type AppRole } from "@/lib/auth/roles";
+import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 import InviteCodesPanel from "./InviteCodesPanel";
+import { RoleGuide } from "./RoleGuide";
 import {
   banMember,
   fetchRoster,
@@ -204,6 +206,14 @@ export function MembersTab() {
             onIssueReset={issueReset}
           />
         )}
+      </EditorSection>
+
+      <EditorSection
+        icon="lucide:shield-check"
+        title="What each role can do"
+        description="The same words an invitee reads on the invite page. Enforced server-side, not just hidden in the UI."
+      >
+        <RoleGuide roles={[ROLE_DESCRIPTIONS.admin, ROLE_DESCRIPTIONS.editor, ROLE_DESCRIPTIONS.contributor]} />
       </EditorSection>
 
       <EditorSection

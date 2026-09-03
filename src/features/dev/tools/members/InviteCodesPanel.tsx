@@ -24,6 +24,7 @@ import {
   type InviteCodeSummary,
   type MintedInvite,
 } from "./inviteCodeRequests";
+import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 
 const ROLE_OPTIONS: { value: InviteCodeRole; label: string }[] = [
   { value: "editor", label: "Editor" },
@@ -150,7 +151,7 @@ export default function InviteCodesPanel() {
       <div className="space-y-6">
         <form onSubmit={handleMint} className="space-y-4" aria-label="Mint an invite code">
           <EditorFieldRow layout="twoColumn">
-            <EditorField label="Role" htmlFor="invite-role">
+            <EditorField label="Role" htmlFor="invite-role" description={ROLE_DESCRIPTIONS[role].summary}>
               <EditorSelect
                 id="invite-role"
                 value={role}

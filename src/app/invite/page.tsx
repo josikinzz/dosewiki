@@ -9,6 +9,8 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 import { InviteRedeemForm } from "./InviteRedeemForm";
+import { RoleGuide } from "@/features/dev/tools/members/RoleGuide";
+import { INVITABLE_ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 
 export const dynamic = "force-dynamic";
 export const metadata = buildNoIndexPageMetadata({
@@ -50,7 +52,7 @@ export default async function InvitePage({ searchParams }: InvitePageProps) {
       description={
         <>
           Someone on the dose.wiki team invited you. Choose a username and password to create your
-          account; the invite decides which role you get.
+          account; the invite decides which role you get. What each role means is spelled out below the form.
         </>
       }
       actions={
@@ -80,7 +82,20 @@ export default async function InvitePage({ searchParams }: InvitePageProps) {
       }
     >
       {authRuntimePolicy.sessionsAvailable ? (
-        <InviteRedeemForm initialCode={initialCode} destination={STATUS_PAGE_PATHS.dev} />
+        <>
+          <InviteRedeemForm initialCode={initialCode} destination={STATUS_PAGE_PATHS.dev} />
+          <section aria-labelledby="invite-roles-heading" className="mt-8">
+            <h2 id="invite-roles-heading" className="text-base font-semibold theme-text-primary">
+              Editor or contributor
+            </h2>
+            <p className="theme-text-secondary mt-1 text-sm">
+              Your code names one of these. Nothing an editor writes reaches the site until an admin approves it.
+            </p>
+            <div className="mt-4">
+              <RoleGuide roles={INVITABLE_ROLE_DESCRIPTIONS} />
+            </div>
+          </section>
+        </>
       ) : (
         <Alert variant="warning">
           <Icon icon="lucide:triangle-alert" size={16} />
