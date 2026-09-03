@@ -133,7 +133,7 @@ describe("changeProposalReview apply and revert for copy blocks", () => {
     const links = [...rowsOf("copyBlocks").values()].find((row) => row.key === "home-links");
     expect(links).toMatchObject({ kind: "list", items: ["First", "Second"], body: undefined, updatedBy: "admin@example.com" });
 
-    const proposal = rowsOf("changeProposals").get("changeProposals:p1")!;
+    const proposal = rowsOf("changeProposals").get("proposal_p1")!;
     expect(proposal).toMatchObject({
       status: "applied",
       snapshotBefore: [
@@ -181,7 +181,7 @@ describe("changeProposalReview apply and revert for copy blocks", () => {
       group: "Home",
       updatedBy: "admin@example.com",
     });
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "reverted" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
   });
 });
 
@@ -208,7 +208,7 @@ describe("changeProposalReview apply and revert for About", () => {
       updatedBy: "admin@example.com",
     });
     expect(rowsOf("siteConfig").size).toBe(1);
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
       status: "applied",
       snapshotBefore: [{ kind: "about", key: "about", document: rowContent(storedAbout) }],
     });
@@ -249,7 +249,7 @@ describe("changeProposalReview apply and revert for About", () => {
 
     await revertHandler(ctx, asAdmin);
     expect(rowsOf("siteConfig").size).toBe(0);
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "reverted" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
   });
 });
 

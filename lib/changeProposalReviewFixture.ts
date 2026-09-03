@@ -141,7 +141,7 @@ export function liveArticleDocument(row: Row) {
 
 export function proposalRow(overrides: Record<string, unknown> = {}): Row {
   return {
-    _id: "changeProposals:p1",
+    _id: "proposal_p1",
     proposedBy: "editor@example.com",
     createdAt: "2026-02-01T00:00:00.000Z",
     updatedAt: "2026-02-01T00:00:00.000Z",
@@ -155,5 +155,5 @@ export function proposalRow(overrides: Record<string, unknown> = {}): Row {
   };
 }
 
-export const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com", proposalId: "changeProposals:p1" as never };
+export const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com", proposalId: "proposal_p1" as never };
 export const asEditor = { ...asAdmin, actorEmail: "editor@example.com" };

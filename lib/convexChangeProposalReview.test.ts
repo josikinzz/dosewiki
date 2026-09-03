@@ -37,10 +37,10 @@ describe("changeProposalReview.approveAndApply", () => {
     expect(result).toEqual({ status: "applied", revalidatePaths: ["/lsd", "/substances"] });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Proposed summary", slug: "lsd" });
 
-    const proposal = rowsOf("changeProposals").get("changeProposals:p1")!;
+    const proposal = rowsOf("changeProposals").get("proposal_p1")!;
     expect(proposal).toMatchObject({
       status: "applied",
-      appliedChangelogEntryId: "proposal-changeProposals:p1",
+      appliedChangelogEntryId: "proposal-proposal_p1",
       reviewedBy: "admin@example.com",
       snapshotBefore: [{ kind: "article", key: "lsd", document: liveArticleDocument(storedLsd) }],
     });
@@ -53,7 +53,7 @@ describe("changeProposalReview.approveAndApply", () => {
 
     const [entry] = [...rowsOf("changelog").values()];
     expect(entry).toMatchObject({
-      entryId: "proposal-changeProposals:p1",
+      entryId: "proposal-proposal_p1",
       message: "Update LSD (proposed by editor@example.com, approved by admin@example.com)",
       markdown: "# LSD\n\n- Stored summary\n+ Proposed summary",
       submittedBy: "EDITOR",
@@ -82,7 +82,7 @@ describe("changeProposalReview.approveAndApply", () => {
     expect([...rowsOf("categoryLayout").values()]).toMatchObject([
       { version: 2, categories: [{ key: "psychedelics", sections: [{ key: "classic", drugs: ["lsd"] }] }] },
     ]);
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
       status: "applied",
       snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null }],
     });
@@ -109,9 +109,9 @@ describe("changeProposalReview.approveAndApply", () => {
     expect(rowsOf("substanceIndex").get("s1")).toEqual(drifted);
     expect(rowsOf("changelog").size).toBe(0);
     expect(db.patch).toHaveBeenCalledTimes(1);
-    expect(db.patch).toHaveBeenCalledWith("changeProposals:p1", expect.objectContaining({ status: "changes_requested" }));
+    expect(db.patch).toHaveBeenCalledWith("proposal_p1", expect.objectContaining({ status: "changes_requested" }));
     expect(db.insert).not.toHaveBeenCalled();
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
       status: "changes_requested",
       reviewedBy: "admin@example.com",
       conflictReason: expect.stringContaining('article "lsd"'),
@@ -130,7 +130,7 @@ describe("changeProposalReview.approveAndApply", () => {
 
     expect(result).toMatchObject({ status: "changes_requested" });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ slug: "lysergide", summary: "Stored summary" });
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "changes_requested" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "changes_requested" });
   });
 
   it("refuses a proposal that is not open for approval", async () => {
@@ -162,7 +162,7 @@ describe("changeProposalReview.reject", () => {
     await expect(rejectHandler(ctx, { ...asAdmin, note: "   " })).rejects.toMatchObject({
       data: { code: "PROPOSAL_NOTE_REQUIRED" },
     });
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "submitted" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "submitted" });
   });
 
   it("marks the proposal rejected with the note and reviewer", async () => {
@@ -174,7 +174,7 @@ describe("changeProposalReview.reject", () => {
     await expect(rejectHandler(ctx, { ...asAdmin, note: " Duplicate of an earlier fix. " })).resolves.toEqual({
       status: "rejected",
     });
-    const proposal = rowsOf("changeProposals").get("changeProposals:p1")!;
+    const proposal = rowsOf("changeProposals").get("proposal_p1")!;
     expect(proposal).toMatchObject({
       status: "rejected",
       reviewNotes: "Duplicate of an earlier fix.",
@@ -215,7 +215,7 @@ describe("changeProposalReview.revert", () => {
 
     await expect(revertHandler(ctx, asAdmin)).rejects.toMatchObject({ data: { code: "REVERT_CONFLICT" } });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Edited again after apply" });
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "applied" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "applied" });
     expect(rowsOf("changelog").size).toBe(0);
     expect(db.patch).not.toHaveBeenCalled();
     expect(db.insert).not.toHaveBeenCalled();
@@ -234,14 +234,14 @@ describe("changeProposalReview.revert", () => {
 
     expect(result).toEqual({ status: "reverted", revalidatePaths: ["/lsd", "/substances"] });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Stored summary", slug: "lsd", title: "LSD" });
-    const proposal = rowsOf("changeProposals").get("changeProposals:p1")!;
+    const proposal = rowsOf("changeProposals").get("proposal_p1")!;
     expect(proposal).toMatchObject({ status: "reverted" });
     expect(proposal.revertedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     const entries = [...rowsOf("changelog").values()];
     expect(entries).toHaveLength(2);
     expect(entries[1]).toMatchObject({
-      entryId: "revert-changeProposals:p1",
-      message: "Reverted proposal changeProposals:p1",
+      entryId: "revert-proposal_p1",
+      message: "Reverted proposal proposal_p1",
       submittedBy: "ADMIN",
     });
   });
@@ -261,7 +261,7 @@ describe("changeProposalReview.revert", () => {
     await revertHandler(ctx, asAdmin);
 
     expect(rowsOf("substanceIndex").size).toBe(0);
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "reverted" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
   });
 
   it("puts the categoryLayout mirror back when reverting a psychoactive layout that did not exist before", async () => {
@@ -284,7 +284,7 @@ describe("changeProposalReview.revert", () => {
     });
     await approveAndApplyHandler(withMirror.ctx, asAdmin);
     expect([...withMirror.rowsOf("categoryLayout").values()]).toMatchObject([{ version: 2 }]);
-    expect(withMirror.rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+    expect(withMirror.rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
       snapshotBefore: [
         {
           kind: "indexLayout",
@@ -306,7 +306,7 @@ describe("changeProposalReview.revert", () => {
     const withoutMirror = createCtx({ memberships: [admin], changeProposals: [layoutProposal] });
     await approveAndApplyHandler(withoutMirror.ctx, asAdmin);
     expect(withoutMirror.rowsOf("categoryLayout").size).toBe(1);
-    expect(withoutMirror.rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+    expect(withoutMirror.rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
       snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null, categoryLayout: null }],
     });
 
@@ -348,7 +348,7 @@ describe("changeProposalReview.revert", () => {
     await expect(revertHandler(ctx, asAdmin)).rejects.toMatchObject({ data: { code: "REVERT_INCOMPLETE" } });
 
     // The throw is what rolls the mutation back; nothing after the write ran.
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "applied" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "applied" });
     expect(rowsOf("changelog").size).toBe(1);
   });
 });
@@ -366,7 +366,7 @@ describe("changeProposalReview admin floor", () => {
     await expect(revertHandler(ctx, asEditor)).rejects.toThrow("Admin access required");
     expect(db.patch).not.toHaveBeenCalled();
     expect(db.insert).not.toHaveBeenCalled();
-    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "submitted" });
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "submitted" });
   });
 });
 

@@ -126,7 +126,7 @@ function liveArticleHash(row: Row) {
 
 function proposalRow(overrides: Record<string, unknown> = {}): Row {
   return {
-    _id: "changeProposals:p1",
+    _id: "proposal_p1",
     proposedBy: "editor@example.com",
     createdAt: "2026-02-01T00:00:00.000Z",
     updatedAt: "2026-02-01T00:00:00.000Z",
@@ -148,7 +148,7 @@ function submitArgs(overrides: Record<string, unknown> = {}) {
     payload: { articles: [{ ...proposedLsd, summary: "Rebased summary" }] },
     summary: "Update LSD (rebased)",
     diff: "# LSD\n\n- Stored summary\n+ Rebased summary",
-    revisionOf: "changeProposals:p1",
+    revisionOf: "proposal_p1",
     ...overrides,
   } as never;
 }
@@ -176,11 +176,11 @@ describe("changeProposals.submit with revisionOf", () => {
     expect(revision).toMatchObject({
       proposedBy: "editor@example.com",
       status: "submitted",
-      revisionOf: "changeProposals:p1",
+      revisionOf: "proposal_p1",
       summary: "Update LSD (rebased)",
       targets: [{ kind: "article", key: "lsd", baseHash: liveArticleHash(storedLsd) }],
     });
-    const superseded = rowsOf("changeProposals").get("changeProposals:p1")!;
+    const superseded = rowsOf("changeProposals").get("proposal_p1")!;
     expect(superseded.status).toBe("superseded");
     expect(superseded.updatedAt).toBe(revision.createdAt);
     // The old row keeps its content: only the status moved.
@@ -198,9 +198,9 @@ describe("changeProposals.submit with revisionOf", () => {
 
     expect(rowsOf("changeProposals").get("changeProposals:1")).toMatchObject({
       proposedBy: "admin@example.com",
-      revisionOf: "changeProposals:p1",
+      revisionOf: "proposal_p1",
     });
-    expect(rowsOf("changeProposals").get("changeProposals:p1")!.status).toBe("superseded");
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("superseded");
   });
 
   it("also supersedes a proposal that is still waiting in the queue", async () => {
@@ -212,7 +212,7 @@ describe("changeProposals.submit with revisionOf", () => {
 
     await submitHandler(ctx, submitArgs());
 
-    expect(rowsOf("changeProposals").get("changeProposals:p1")!.status).toBe("superseded");
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("superseded");
   });
 
   it("refuses another editor's proposal and writes nothing", async () => {
@@ -227,7 +227,7 @@ describe("changeProposals.submit with revisionOf", () => {
     });
 
     expect(rowsOf("changeProposals").size).toBe(1);
-    expect(rowsOf("changeProposals").get("changeProposals:p1")!.status).toBe("changes_requested");
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("changes_requested");
   });
 
   it.each(["applied", "rejected", "superseded", "reverted"])(
@@ -244,7 +244,7 @@ describe("changeProposals.submit with revisionOf", () => {
       });
 
       expect(rowsOf("changeProposals").size).toBe(1);
-      expect(rowsOf("changeProposals").get("changeProposals:p1")!.status).toBe(status);
+      expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe(status);
     },
   );
 
@@ -263,7 +263,7 @@ describe("changeProposals.submit with revisionOf", () => {
     ).rejects.toMatchObject({ data: { code: "PROPOSAL_REVISION_MISMATCH" } });
 
     expect(rowsOf("changeProposals").size).toBe(1);
-    expect(rowsOf("changeProposals").get("changeProposals:p1")!.status).toBe("changes_requested");
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("changes_requested");
 
     // Overlap on any one target is enough: the layout rides along with the article.
     await submitHandler(ctx, submitArgs({
@@ -272,7 +272,7 @@ describe("changeProposals.submit with revisionOf", () => {
         indexLayouts: [{ type: "chemical", version: 1, categories: [] }],
       },
     }));
-    expect(rowsOf("changeProposals").get("changeProposals:p1")!.status).toBe("superseded");
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("superseded");
   });
 
   it("refuses a revision of a proposal that no longer exists", async () => {
@@ -311,7 +311,7 @@ describe("changeProposalReview.approveAndApply on a superseded proposal", () => 
       approveAndApplyHandler(ctx, {
         apiKey: SERVER_KEY,
         actorEmail: "admin@example.com",
-        proposalId: "changeProposals:p1" as never,
+        proposalId: "proposal_p1" as never,
       }),
     ).rejects.toMatchObject({ data: { code: "PROPOSAL_STATUS_INVALID" } });
 
