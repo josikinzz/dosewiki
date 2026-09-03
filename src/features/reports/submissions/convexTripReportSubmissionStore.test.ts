@@ -75,6 +75,12 @@ function createClientRecorder() {
         if (reference.name === "tripReportSubmissions:list") {
           return [insertedRow];
         }
+        if (reference.name === "tripReportSubmissions:listByStatuses") {
+          return [insertedRow];
+        }
+        if (reference.name === "tripReportSubmissions:countByStatus") {
+          return 7;
+        }
         if (reference.name === "tripReportSubmissions:previewPromotion") {
           return { row: { ...insertedRow, status: "accepted" }, payload: promotionPayload };
         }
@@ -218,6 +224,42 @@ describe("ConvexTripReportSubmissionStore", () => {
           profileKey: "ADA",
           confirmAuthorNameClaim: true,
         },
+      ],
+    ]);
+  });
+
+  it("counts queue rows through the private count query instead of listing them", async () => {
+    const recorder = createClientRecorder();
+    const store = new ConvexTripReportSubmissionStore({
+      client: recorder.client,
+      apiKey: "test-key",
+    });
+
+    await expect(store.count({ statuses: ["submitted", "reviewing"] })).resolves.toBe(7);
+
+    expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
+      [
+        "query",
+        "tripReportSubmissions:countByStatus",
+        { apiKey: "test-key", statuses: ["submitted", "reviewing"] },
+      ],
+    ]);
+  });
+
+  it("lists every row in a status set through the uncapped private query, sending no limit", async () => {
+    const recorder = createClientRecorder();
+    const store = new ConvexTripReportSubmissionStore({
+      client: recorder.client,
+      apiKey: "test-key",
+    });
+
+    await expect(store.listByStatuses({ statuses: ["submitted", "reviewing"] })).resolves.toHaveLength(1);
+
+    expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
+      [
+        "query",
+        "tripReportSubmissions:listByStatuses",
+        { apiKey: "test-key", statuses: ["submitted", "reviewing"] },
       ],
     ]);
   });

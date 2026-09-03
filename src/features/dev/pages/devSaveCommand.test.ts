@@ -19,8 +19,6 @@ const healthyServer: EditorServerConfigHealth = {
 };
 
 const credentials: DevSaveCredentials = {
-  username: "editor",
-  password: "secret",
   key: "EDITOR",
 };
 
@@ -52,40 +50,26 @@ function createDraft() {
         changelog: { markdown: "# Mechanism Index\n\n+ 5ht2a", hasChanges: true },
       },
     ],
-    aboutMarkdown: "About body",
-    aboutSubtitle: "About subtitle",
-    aboutFounderKeys: ["JOSIE"],
     convexEnabled: true,
     datasetChangelog: {
       markdown: "# Dataset\n\n+ MDMA",
       articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
       sections: [{ index: 1, heading: "MDMA", markdown: "# Dataset\n\n+ MDMA" }],
     },
-    aboutMarkdownChangelog: { markdown: "# About\n\n+ body", hasChanges: true },
-    aboutSubtitleChangelog: { markdown: "# Subtitle\n\n+ subtitle", hasChanges: true },
-    aboutFounderChangelog: { markdown: "# Founders\n\n+ JOSIE", hasChanges: true },
-    hasAboutMarkdownChanges: true,
-    hasAboutSubtitleChanges: true,
-    hasAboutFounderChanges: true,
     hasPendingChanges: true,
   });
 }
 
 describe("dev save command contract", () => {
-  it("builds a draft snapshot from article, About, layout, and changelog state", () => {
+  it("builds a draft snapshot from article, layout, and changelog state; About is not staged", () => {
     const draft = createDraft();
 
-    expect(draft.about).toMatchObject({
-      markdown: "About body",
-      subtitle: "About subtitle",
-      founderKeys: ["JOSIE"],
-      hasChanges: true,
-    });
     expect(draft.layouts.map((layout) => layout.type)).toEqual([
       "psychoactive",
       "chemical",
       "mechanism",
     ]);
+    expect("about" in draft).toBe(false);
     expect("generatorPrompt" in draft).toBe(false);
   });
 
@@ -94,11 +78,6 @@ describe("dev save command contract", () => {
       changedArticles: [{ id: 2, title: "MDMA" }],
       payload: {
         articles: [{ id: 2, title: "MDMA" }],
-        about: {
-          aboutMarkdown: "About body",
-          aboutSubtitle: "About subtitle",
-          founderProfileKeys: ["JOSIE"],
-        },
         changelog: {
           markdown:
             "# Dataset\n\n+ MDMA\n\n---\n\n# Psychoactive Index\n\n+ classic\n\n---\n\n# Chemical Index\n\n+ tryptamines\n\n---\n\n# Mechanism Index\n\n+ 5ht2a",
@@ -133,8 +112,7 @@ describe("dev save command contract", () => {
     );
 
     expect(payload).toMatchObject({
-      username: "editor",
-      password: "secret",
+      username: "EDITOR",
       articlesData: [
         { id: 1, title: "LSD" },
         { id: 2, title: "MDMA" },
@@ -143,15 +121,13 @@ describe("dev save command contract", () => {
       psychoactiveIndexManualData: { version: 1, categories: ["classic"] },
       chemicalIndexManualData: { version: 1, categories: ["tryptamines"] },
       mechanismIndexManualData: { version: 1, categories: ["5ht2a"] },
-      aboutMarkdown: "About body",
-      aboutSubtitleMarkdown: "About subtitle",
-      aboutConfig: { founderProfileKeys: ["JOSIE"] },
       skipArticles: true,
     });
+    expect("aboutMarkdown" in payload).toBe(false);
     expect("generatorPrompt" in payload).toBe(false);
     expect(payload.commitMessage).toContain("Dev editor update - ");
     expect(payload.changelogMarkdown).toContain("# Dataset\n\n+ MDMA");
-    expect(payload.changelogMarkdown).toContain("# Founders\n\n+ JOSIE");
+    expect(payload.changelogMarkdown).not.toContain("# Founders");
     expect(payload.changelogMarkdown).toContain("# Chemical Index\n\n+ tryptamines");
   });
 

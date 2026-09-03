@@ -50,6 +50,10 @@ export type ArticleFeedbackListFilters = {
   limit?: number;
 };
 
+export type ArticleFeedbackCountFilters = {
+  statuses: readonly ArticleFeedbackStatus[];
+};
+
 const createFeedbackRef = makeFunctionReference<
   "mutation",
   { apiKey: string; feedback: ArticleFeedbackRow },
@@ -62,6 +66,12 @@ const listFeedbackRef = makeFunctionReference<
   ArticleFeedbackRow[]
 >("articleFeedback:list");
 
+const countFeedbackRef = makeFunctionReference<
+  "query",
+  { apiKey: string; statuses: ArticleFeedbackStatus[] },
+  number
+>("articleFeedback:countByStatus");
+
 const transitionFeedbackRef = makeFunctionReference<
   "mutation",
   {
@@ -69,7 +79,7 @@ const transitionFeedbackRef = makeFunctionReference<
     id: string;
     status: ArticleFeedbackStatus;
     reviewer: string;
-    notes?: string;
+    note?: string;
   },
   ArticleFeedbackRow
 >("articleFeedback:transition");
@@ -113,9 +123,17 @@ export class ConvexArticleFeedbackStore {
     }) as ArticleFeedbackRow[];
   }
 
+  /** Total rows in the given statuses, computed on the server: no list travels. */
+  async count(filters: ArticleFeedbackCountFilters): Promise<number> {
+    return await this.options.client.query(countFeedbackRef, {
+      apiKey: this.options.apiKey,
+      statuses: [...filters.statuses],
+    }) as number;
+  }
+
   async transition(
     id: string,
-    options: { status: ArticleFeedbackStatus; reviewer: string; notes?: string },
+    options: { status: ArticleFeedbackStatus; reviewer: string; note?: string },
   ): Promise<ArticleFeedbackRow> {
     try {
       return await this.options.client.mutation(transitionFeedbackRef, {
@@ -123,7 +141,7 @@ export class ConvexArticleFeedbackStore {
         id,
         status: options.status,
         reviewer: options.reviewer,
-        ...(options.notes !== undefined ? { notes: options.notes } : {}),
+        ...(options.note !== undefined ? { note: options.note } : {}),
       }) as ArticleFeedbackRow;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Article feedback not found")) {

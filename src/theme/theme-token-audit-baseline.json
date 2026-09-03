@@ -1272,13 +1272,6 @@
       "column": 47
     },
     {
-      "rule": "raw-white-text",
-      "filePath": "src/app/dev/_components/NextDevProfileRouteClient.tsx",
-      "match": "text-white",
-      "line": 24,
-      "column": 41
-    },
-    {
       "rule": "direct-theme-variable",
       "filePath": "src/app/sign-in/page.tsx",
       "match": "var(--theme-border-subtle)",
@@ -4668,9 +4661,9 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/tools/review-mode/ReviewExperience.tsx",
+      "filePath": "src/features/dev/tools/review-mode/ReviewBarChrome.tsx",
       "match": "var(--theme-elevation-xl)",
-      "line": 273,
+      "line": 159,
       "column": 112
     },
     {
@@ -5410,38 +5403,31 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/profile/AvatarUpload.tsx",
+      "filePath": "src/features/dev/tools/contributors/AvatarUpload.tsx",
       "match": "var(--theme-frosted-control-on-panel-border)",
-      "line": 34,
+      "line": 48,
       "column": 114
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/profile/AvatarUpload.tsx",
+      "filePath": "src/features/dev/tools/contributors/AvatarUpload.tsx",
       "match": "var(--theme-frosted-control-on-panel-bg)",
-      "line": 34,
+      "line": 48,
       "column": 164
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/profile/AvatarUpload.tsx",
+      "filePath": "src/features/dev/tools/contributors/AvatarUpload.tsx",
       "match": "var(--theme-frosted-control-on-panel-shadow)",
-      "line": 34,
+      "line": 48,
       "column": 237
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/profile/LinkManager.tsx",
+      "filePath": "src/features/dev/tools/contributors/LinkManager.tsx",
       "match": "var(--theme-danger-text)",
-      "line": 68,
+      "line": 75,
       "column": 43
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/features/dev/profile/utils.tsx",
-      "match": "var(--theme-accent-strong)",
-      "line": 52,
-      "column": 39
     },
     {
       "rule": "raw-white-text",

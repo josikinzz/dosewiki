@@ -9,14 +9,10 @@ const {
   refreshConvexServerHealthMock,
   saveArticlesMutateAsyncMock,
   saveToConvexMutateAsyncMock,
-  setPasswordKeyMock,
-  verifyDevCredentialsMock,
 } = vi.hoisted(() => ({
   refreshConvexServerHealthMock: vi.fn(),
   saveArticlesMutateAsyncMock: vi.fn(),
   saveToConvexMutateAsyncMock: vi.fn(),
-  setPasswordKeyMock: vi.fn(),
-  verifyDevCredentialsMock: vi.fn(),
 }));
 
 vi.mock("@/hooks/useApiMutations", () => ({
@@ -48,14 +44,6 @@ vi.mock("@/lib/convex", () => ({
   isConvexEnabled: () => true,
 }));
 
-vi.mock("./useDevModeSessionCredentials", () => ({
-  useDevModeSessionCredentials: () => ({
-    passwordKey: "JOSIE",
-    setPasswordKey: setPasswordKeyMock,
-    verifyDevCredentials: verifyDevCredentialsMock,
-  }),
-}));
-
 const originalArticles = [
   {
     id: 1,
@@ -74,8 +62,6 @@ const changedArticles = [
   },
 ] as unknown as SubstanceArticle[];
 
-const authSessionMarker = "__AUTHJS_SESSION__";
-
 function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
   return {
     articles: changedArticles,
@@ -83,14 +69,10 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     psychoactiveIndexManual: null,
     chemicalIndexManual: null,
     mechanismIndexManual: null,
-    aboutMarkdown: "",
-    aboutSubtitle: "",
-    aboutFounderKeys: [],
     getOriginalArticles: () => originalArticles,
     markChangesSaved: vi.fn(),
-    hasAuthenticatedSession: true,
-    hasStoredCredentials: true,
-    hasNextEditorSession: true,
+    isSignedIn: true,
+    canEdit: true,
     sessionProfileKey: "JOSIE",
     convexEnabled: true,
     datasetChangelog: {
@@ -101,12 +83,6 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     psychoactiveManualChangelog: { markdown: "", hasChanges: false },
     chemicalManualChangelog: { markdown: "", hasChanges: false },
     mechanismManualChangelog: { markdown: "", hasChanges: false },
-    aboutMarkdownChangelog: { markdown: "", hasChanges: false },
-    aboutSubtitleChangelog: { markdown: "", hasChanges: false },
-    aboutFounderChangelog: { markdown: "", hasChanges: false },
-    hasAboutMarkdownChanges: false,
-    hasAboutSubtitleChanges: false,
-    hasAboutFounderChanges: false,
     hasPendingChanges: true,
     onAppendChangeLogEntry: vi.fn(),
     onTabChange: vi.fn(),
@@ -124,13 +100,6 @@ describe("useDevModeSaveActions", () => {
     refreshConvexServerHealthMock.mockReset();
     saveArticlesMutateAsyncMock.mockReset();
     saveToConvexMutateAsyncMock.mockReset();
-    setPasswordKeyMock.mockReset();
-    verifyDevCredentialsMock.mockReset();
-    verifyDevCredentialsMock.mockResolvedValue({
-      username: "JOSIE",
-      password: authSessionMarker,
-      key: "JOSIE",
-    });
     saveToConvexMutateAsyncMock.mockResolvedValue({
       success: true,
       requestId: "save-test",
@@ -141,7 +110,7 @@ describe("useDevModeSaveActions", () => {
     });
   });
 
-  it("executes the Convex save after credentials are verified", async () => {
+  it("executes the Convex save once the session is verified", async () => {
     render(<TestHarness args={createArgs()} />);
 
     await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
@@ -159,5 +128,33 @@ describe("useDevModeSaveActions", () => {
       }),
     );
     expect(screen.getAllByText("Saved 1 article(s) to Convex as JOSIE.").length).toBeGreaterThan(0);
+  });
+
+  it("attributes the save to the session profile key and reports it", async () => {
+    saveToConvexMutateAsyncMock.mockResolvedValue({
+      success: true,
+      requestId: "save-test",
+      savedItems: ["1 article(s)"],
+      warnings: [],
+      revalidatedPaths: [],
+    });
+    render(<TestHarness args={createArgs()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Saved 1 article(s) to Convex as JOSIE.").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("refuses to save without a session and never calls the route", async () => {
+    render(<TestHarness args={{ ...createArgs(), isSignedIn: false }} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Sign in before continuing.").length).toBeGreaterThan(0);
+    });
+    expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
   });
 });

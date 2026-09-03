@@ -5,46 +5,53 @@ import { signOut } from "next-auth/react";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
-import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
-import { useTripReportReviewBadge } from "./useTripReportReviewBadge";
+import type { DevModePrimaryTab } from "./devModePageUtils";
+import {
+  DEV_TAB_REGISTRY,
+  findDevTab,
+  type DevModeTab,
+  type DevTabDescriptor,
+  type DevToolGroup,
+} from "./devTabRegistry";
+import { DevUtilitiesMenu } from "./DevUtilitiesMenu";
+import { useDevRailBadges } from "./useDevRailBadges";
 
 /**
  * `badge` is an optional count of work waiting inside a tool. It is rendered
  * only when it resolves to a positive number, so a tab whose count has not
  * arrived (or is zero) looks exactly as it did before.
  */
-type ToolTabItem = { id: DevModeTab; label: string; badge?: number };
+type ToolTabItem = Pick<DevTabDescriptor, "id" | "label" | "role" | "destination"> & { badge?: number };
+
+const EDITOR_ROLE_REQUIRED = "Editor role required";
 
 /**
- * Text-only tool tabs. Icons were removed deliberately: at eleven destinations
- * in one rail an icon per tab is noise, not wayfinding — the labels already
- * name the tools, and the violet selected treatment carries the "you are here".
+ * Rail groups in display order, each holding its descriptors in registry
+ * order. Text-only tabs: with this many destinations in one rail an icon per
+ * tab is noise, not wayfinding; the labels already name the tools, and the
+ * violet selected treatment carries the "you are here". The one exception is
+ * the outward arrow on the external launcher, which marks a page change.
  */
-const TOOL_TAB_ITEMS: ToolTabItem[] = [
-  { id: "articles", label: "Substances" },
-  { id: "review", label: "Review" },
-  { id: "citation-review", label: "Citations" },
-  { id: "trip-report-submissions", label: "Trip reports" },
-  { id: "article-feedback", label: "Feedback" },
-  { id: "site-feedback", label: "Site feedback" },
-  { id: "tag-editor", label: "Tags" },
-  { id: "molecule-editor", label: "Molecules" },
-  { id: "banners", label: "Banners" },
-  { id: "replications", label: "Replications" },
-  { id: "writing", label: "Writing" },
-  { id: "blog", label: "Blog" },
-  { id: "copy-studio", label: "Copy" },
-  { id: "contributors", label: "Contributors" },
-  { id: "index-layout", label: "Index layout" },
-];
+const TOOL_GROUPS: readonly { id: DevToolGroup; label: string; tabs: readonly DevTabDescriptor[] }[] = (
+  [
+    { id: "content", label: "Content" },
+    { id: "intake", label: "Intake" },
+    { id: "site", label: "Site" },
+  ] as const
+).map((group) => ({
+  ...group,
+  tabs: DEV_TAB_REGISTRY.filter((tab) => tab.group === group.id),
+}));
 
 type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 
 type DevModePageChromeProps = {
   activePrimaryTab: DevModePrimaryTab;
   activeTab: DevModeTab;
-  hasStoredCredentials: boolean;
-  hasNextEditorSession: boolean;
+  /** An Auth.js session is present. */
+  isSignedIn: boolean;
+  /** The session role may use editor tools; `role: "editor"` tabs disable without it. */
+  canEdit: boolean;
   sessionStatus: SessionStatus;
   userEmail?: string | null;
   userImage?: string | null;
@@ -55,10 +62,13 @@ type DevModePageChromeProps = {
 };
 
 const RAIL_CLASS =
-  "theme-dev-rail flex h-10 w-full items-center gap-1 rounded-lg border px-1.5";
+  "theme-dev-rail flex min-h-10 w-full items-center gap-1 rounded-lg border px-1.5 py-1";
 
 const RAIL_TAB_CLASS =
-  "theme-dev-rail-tab shrink-0 snap-start whitespace-nowrap rounded-md px-2.5 py-1 text-[0.8125rem] font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45 data-[state=active]:font-semibold";
+  "theme-dev-rail-tab shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-[0.8125rem] font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45 data-[state=active]:font-semibold";
+
+const RAIL_GROUP_CAPTION_CLASS =
+  "theme-dev-rail-group shrink-0 select-none px-1 font-mono text-[10px] font-semibold uppercase tracking-[0.2em]";
 
 /**
  * The dev surface's own page title. The visible headings belong to the tools
@@ -76,26 +86,6 @@ function RailDivider() {
       aria-hidden
       className="theme-dev-rail-divider mx-1 h-4 w-px shrink-0"
     />
-  );
-}
-
-export function DevModePageLoadingState({ mainClassName }: { mainClassName: string }) {
-  return (
-    <main id="main-content" tabIndex={-1} className={`${mainClassName} focus:outline-none`}>
-      <div className="w-full">
-        <DevSurfaceTitle />
-        <div className="mx-auto mt-10 max-w-xl">
-          <StateCard
-            icon="lucide:wrench"
-            tone="accent"
-            loading
-            align="center"
-            title="Loading articles"
-            description="Pulling the latest substance dataset into the editor. This only takes a moment."
-          />
-        </div>
-      </div>
-    </main>
   );
 }
 
@@ -121,16 +111,17 @@ export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string
 }
 
 /**
- * One slim toolbar row, desktop-app style: a wrench mark, the tool tabs, then a
- * trailing cluster with the secondary destinations (Change log, Profile) and
- * the session controls. The tab strip scrolls horizontally rather than wrapping
- * so the rail is always exactly one row tall.
+ * One slim toolbar, desktop-app style: a wrench mark, the tool tabs in three
+ * captioned groups, then a trailing cluster with the secondary destinations
+ * (Change log, Profile) and the session controls. Groups that do not fit on
+ * the first row wrap onto a second one; nothing is ever clipped or hidden
+ * behind a scroll edge.
  */
 export function DevModePageChrome({
   activePrimaryTab,
   activeTab,
-  hasStoredCredentials,
-  hasNextEditorSession,
+  isSignedIn,
+  canEdit,
   sessionStatus,
   userEmail,
   userName,
@@ -141,13 +132,21 @@ export function DevModePageChrome({
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
   // Only asked for once the editor is actually signed in for editing.
-  const tripReportReviewCount = useTripReportReviewBadge(hasNextEditorSession);
-  const toolTabs: ToolTabItem[] = TOOL_TAB_ITEMS.map((item) =>
-    item.id === "trip-report-submissions" ? { ...item, badge: tripReportReviewCount } : item,
-  );
-  const sessionDetail = hasNextEditorSession
+  const badgeCounts = useDevRailBadges(canEdit);
+  const toolGroups = TOOL_GROUPS.map((group) => ({
+    ...group,
+    tabs: group.tabs.map(({ id, label, role, destination, badge }): ToolTabItem => ({
+      id,
+      label,
+      role,
+      destination,
+      badge: badge === undefined ? undefined : badgeCounts[badge],
+    })),
+  }));
+  const changeLogLocked = !canEdit && findDevTab("change-log").role === "editor";
+  const sessionDetail = canEdit
     ? "Authenticated via Auth.js. You have permission to edit articles."
-    : "Authenticated via Auth.js. You can edit your own contributor profile from the Profile tab.";
+    : "Authenticated via Auth.js. You can edit your own contributor record from the Contributors tab.";
 
   return (
     <div className="w-full">
@@ -164,31 +163,62 @@ export function DevModePageChrome({
 
         <nav
           aria-label="Dev mode tools"
-          className="flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-0.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1"
         >
-          {toolTabs.map((item) => {
-            const isActive = isToolsSection && activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                aria-current={isActive ? "page" : undefined}
-                data-state={isActive ? "active" : "inactive"}
-                onClick={() => onTabChange(item.id)}
-                className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}
-              >
-                {item.label}
-                {item.badge ? (
+          {toolGroups.map((group) => (
+            <div
+              key={group.id}
+              role="group"
+              aria-label={group.label}
+              className="flex min-w-0 flex-wrap items-center gap-0.5"
+            >
+              <span aria-hidden className={RAIL_GROUP_CAPTION_CLASS}>
+                {group.label}
+              </span>
+              {group.tabs.map((item) => {
+                const badge = item.badge ? (
                   <span
                     title={`${item.badge} awaiting review`}
                     className="theme-portal-count-badge inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1.5 font-mono text-[10px] font-semibold leading-none"
                   >
                     {item.badge}
                   </span>
-                ) : null}
-              </button>
-            );
-          })}
+                ) : null;
+                if (item.destination.kind === "external") {
+                  return (
+                    <a
+                      key={item.id}
+                      href={item.destination.href}
+                      title={`Opens ${item.label} full screen`}
+                      className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1`}
+                    >
+                      {item.label}
+                      <Icon icon="lucide:arrow-up-right" size={12} className="text-current" />
+                      {badge}
+                    </a>
+                  );
+                }
+                const isActive = isToolsSection && activeTab === item.id;
+                const locked = !canEdit && item.role === "editor";
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    disabled={locked}
+                    aria-disabled={locked || undefined}
+                    title={locked ? EDITOR_ROLE_REQUIRED : undefined}
+                    aria-current={isActive ? "page" : undefined}
+                    data-state={isActive ? "active" : "inactive"}
+                    onClick={() => onTabChange(item.id)}
+                    className={`${RAIL_TAB_CLASS} inline-flex items-center gap-1.5`}
+                  >
+                    {item.label}
+                    {badge}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <RailDivider />
@@ -196,6 +226,9 @@ export function DevModePageChrome({
         <nav aria-label="Dev mode sections" className="flex shrink-0 items-center gap-0.5">
           <button
             type="button"
+            disabled={changeLogLocked}
+            aria-disabled={changeLogLocked || undefined}
+            title={changeLogLocked ? EDITOR_ROLE_REQUIRED : undefined}
             aria-current={activePrimaryTab === "change-log" ? "page" : undefined}
             data-state={activePrimaryTab === "change-log" ? "active" : "inactive"}
             onClick={() => onPrimaryTabChange("change-log")}
@@ -203,27 +236,18 @@ export function DevModePageChrome({
           >
             Change log
           </button>
-          <button
-            type="button"
-            disabled={!hasStoredCredentials}
-            aria-current={activePrimaryTab === "profile" ? "page" : undefined}
-            data-state={activePrimaryTab === "profile" ? "active" : "inactive"}
-            onClick={() => onPrimaryTabChange("profile")}
-            className={RAIL_TAB_CLASS}
-          >
-            Profile
-          </button>
         </nav>
 
         <RailDivider />
 
         <div className="flex shrink-0 items-center gap-1">
+          <DevUtilitiesMenu />
           {sessionStatus === "loading" ? (
             <span className="theme-text-muted flex items-center gap-1.5 text-xs">
               <Icon icon="lucide:loader-2" size={14} className="theme-accent-emphasis animate-spin" />
               <span className="sr-only">Loading authentication</span>
             </span>
-          ) : hasNextEditorSession || hasStoredCredentials ? (
+          ) : isSignedIn ? (
             <>
               <span
                 title={sessionDetail}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -20,21 +20,14 @@ import {
   type SaveOrchestratorEffect,
 } from "../save-orchestrator";
 import { DevModeCommitPanel } from "./DevModeCommitPanel";
-import {
-  type DevModeTab,
-} from "./devModePageUtils";
+import type { DevModeTab } from "./devTabRegistry";
 import {
   buildDevSaveDraft,
   createConvexSaveAdapter,
   createGitHubSaveAdapter,
+  type DevSaveCredentials,
 } from "./devSaveCommand";
 import type { ChangeNotice } from "./useDevModeChangeLog";
-import { useDevModeSessionCredentials } from "./useDevModeSessionCredentials";
-
-type VerifyDevCredentials = (
-  options?: { username?: string; password?: string },
-) => Promise<{ username: string; password: string; key: string }>;
-
 type UseDevModeSaveActionsArgs = {
   articles: SubstanceArticle[];
   /** True once every row in `articles` holds a whole article, not a slim list row. */
@@ -42,26 +35,18 @@ type UseDevModeSaveActionsArgs = {
   psychoactiveIndexManual: unknown;
   chemicalIndexManual: unknown;
   mechanismIndexManual: unknown;
-  aboutMarkdown: string;
-  aboutSubtitle: string;
-  aboutFounderKeys: string[];
   getOriginalArticles: () => SubstanceArticle[];
   markChangesSaved: () => void;
-  hasAuthenticatedSession: boolean;
-  hasStoredCredentials: boolean;
-  hasNextEditorSession: boolean;
+  /** An Auth.js session is present; saves refuse to start without one. */
+  isSignedIn: boolean;
+  /** The session role may write; gates the commit button and server-health polling. */
+  canEdit: boolean;
   sessionProfileKey: string;
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
   psychoactiveManualChangelog: { markdown: string; hasChanges: boolean };
   chemicalManualChangelog: { markdown: string; hasChanges: boolean };
   mechanismManualChangelog: { markdown: string; hasChanges: boolean };
-  aboutMarkdownChangelog: { markdown: string; hasChanges: boolean };
-  aboutSubtitleChangelog: { markdown: string; hasChanges: boolean };
-  aboutFounderChangelog: { markdown: string; hasChanges: boolean };
-  hasAboutMarkdownChanges: boolean;
-  hasAboutSubtitleChanges: boolean;
-  hasAboutFounderChanges: boolean;
   hasPendingChanges: boolean;
   onAppendChangeLogEntry: (entry: ChangeLogEntry) => void;
   onTabChange: (tab: DevModeTab) => void;
@@ -69,9 +54,6 @@ type UseDevModeSaveActionsArgs = {
 };
 
 type UseDevModeSaveActionsResult = {
-  passwordKey: string | null;
-  setPasswordKey: Dispatch<SetStateAction<string | null>>;
-  verifyDevCredentials: VerifyDevCredentials;
   commitPanel: ReactNode;
   renderCommitPanel: (extraActionSlot?: ReactNode, description?: ReactNode) => ReactNode;
   clearSaveNotices: () => void;
@@ -79,7 +61,7 @@ type UseDevModeSaveActionsResult = {
 
 function ConvexSaveButton({
   convexEnabled,
-  hasNextEditorSession,
+  canEdit,
   convexServerHealth,
   refreshConvexServerHealth,
   convexNotice,
@@ -90,7 +72,7 @@ function ConvexSaveButton({
   onSaveToConvex,
 }: {
   convexEnabled: boolean;
-  hasNextEditorSession: boolean;
+  canEdit: boolean;
   convexServerHealth: EditorServerConfigHealth;
   refreshConvexServerHealth: () => Promise<void>;
   convexNotice: ChangeNotice | null;
@@ -106,7 +88,7 @@ function ConvexSaveButton({
 
   return (
     <div className="flex items-center gap-2">
-      {hasNextEditorSession ? (
+      {canEdit ? (
         <EditorServerHealthIndicator
           health={convexServerHealth}
           onRefresh={() => {
@@ -159,38 +141,31 @@ export function useDevModeSaveActions({
   psychoactiveIndexManual,
   chemicalIndexManual,
   mechanismIndexManual,
-  aboutMarkdown,
-  aboutSubtitle,
-  aboutFounderKeys,
   getOriginalArticles,
   markChangesSaved,
-  hasAuthenticatedSession,
-  hasStoredCredentials,
-  hasNextEditorSession,
+  isSignedIn,
+  canEdit,
   sessionProfileKey,
   convexEnabled,
   datasetChangelog,
   psychoactiveManualChangelog,
   chemicalManualChangelog,
   mechanismManualChangelog,
-  aboutMarkdownChangelog,
-  aboutSubtitleChangelog,
-  aboutFounderChangelog,
-  hasAboutMarkdownChanges,
-  hasAboutSubtitleChanges,
-  hasAboutFounderChanges,
   hasPendingChanges,
   onAppendChangeLogEntry,
   onTabChange,
   pushChangeLogNotice,
 }: UseDevModeSaveActionsArgs): UseDevModeSaveActionsResult {
-  // External hooks that stay as React (credentials, server health)
   const { health: convexServerHealth, refresh: refreshConvexServerHealth } =
-    useEditorServerConfigHealth(convexEnabled && hasNextEditorSession);
-  const { passwordKey, setPasswordKey, verifyDevCredentials } = useDevModeSessionCredentials({
-    hasAuthenticatedSession,
-    sessionProfileKey,
-  });
+    useEditorServerConfigHealth(convexEnabled && canEdit);
+  // The session cookie is the credential; this only names who the save is
+  // attributed to and refuses to start a save nobody is signed in for.
+  const verifySaveSession = useCallback(async (): Promise<DevSaveCredentials> => {
+    if (!isSignedIn) {
+      throw new Error("Sign in before continuing.");
+    }
+    return { key: sessionProfileKey || "USER" };
+  }, [isSignedIn, sessionProfileKey]);
 
   // Mutation hooks
   const saveArticlesMutation = useSaveArticlesMutation();
@@ -216,17 +191,11 @@ export function useDevModeSaveActions({
     psychoactiveManualChangelog,
     chemicalManualChangelog,
     mechanismManualChangelog,
-    aboutMarkdownChangelog,
-    aboutSubtitleChangelog,
-    aboutFounderChangelog,
   }), [
     datasetChangelog,
     psychoactiveManualChangelog,
     chemicalManualChangelog,
     mechanismManualChangelog,
-    aboutMarkdownChangelog,
-    aboutSubtitleChangelog,
-    aboutFounderChangelog,
   ]);
 
   // Update orchestrator when changelog sources change
@@ -264,26 +233,11 @@ export function useDevModeSaveActions({
             changelog: mechanismManualChangelog,
           },
         ],
-        aboutMarkdown,
-        aboutSubtitle,
-        aboutFounderKeys,
         convexEnabled,
         datasetChangelog,
-        aboutMarkdownChangelog,
-        aboutSubtitleChangelog,
-        aboutFounderChangelog,
-        hasAboutMarkdownChanges,
-        hasAboutSubtitleChanges,
-        hasAboutFounderChanges,
         hasPendingChanges,
       }),
     [
-      aboutFounderChangelog,
-      aboutFounderKeys,
-      aboutMarkdown,
-      aboutMarkdownChangelog,
-      aboutSubtitle,
-      aboutSubtitleChangelog,
       articles,
       articlesAreComplete,
       chemicalIndexManual,
@@ -291,9 +245,6 @@ export function useDevModeSaveActions({
       convexEnabled,
       datasetChangelog,
       getOriginalArticles,
-      hasAboutFounderChanges,
-      hasAboutMarkdownChanges,
-      hasAboutSubtitleChanges,
       hasPendingChanges,
       mechanismIndexManual,
       mechanismManualChangelog,
@@ -372,7 +323,7 @@ export function useDevModeSaveActions({
         });
 
         try {
-          const credentials = await verifyDevCredentials();
+          const credentials = await verifySaveSession();
           console.info("[dev-save] effect:credentials-verified", {
             destination: effect.destination,
             effectId: effect.id,
@@ -404,8 +355,7 @@ export function useDevModeSaveActions({
             destination: effect.destination,
             effectId: effect.id,
           });
-          // Re-verify credentials to get full object
-          const fullCredentials = await verifyDevCredentials();
+          const credentials = await verifySaveSession();
 
           const adapter = effect.destination === "convex"
             ? createConvexSaveAdapter({
@@ -416,7 +366,7 @@ export function useDevModeSaveActions({
                 saveArticles: saveArticlesMutation.mutateAsync,
               });
 
-          const result = await adapter.execute(draft, fullCredentials);
+          const result = await adapter.execute(draft, credentials);
           console.info("[dev-save] effect:save-succeeded", {
             destination: effect.destination,
             effectId: effect.id,
@@ -429,9 +379,6 @@ export function useDevModeSaveActions({
             type: "saveSucceeded",
             result,
           });
-
-          // Handle post-save callbacks
-          setPasswordKey(result.resolvedSubmitterKey);
 
           if (result.changelogEntry) {
             onAppendChangeLogEntry(result.changelogEntry);
@@ -477,8 +424,7 @@ export function useDevModeSaveActions({
       saveArticlesMutation.mutateAsync,
       saveToConvexMutation.mutateAsync,
       scheduleNoticeAutoClear,
-      setPasswordKey,
-      verifyDevCredentials,
+      verifySaveSession,
     ],
   );
 
@@ -531,13 +477,13 @@ export function useDevModeSaveActions({
   const isConvexSaveBlocked =
     convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
   const primaryCommitNotice = convexEnabled ? convexNotice : githubNotice;
-  const isCommitDisabled = isSaving || !hasStoredCredentials || !hasPendingChanges;
+  const isCommitDisabled = isSaving || !canEdit || !hasPendingChanges;
 
   const convexSaveButton = useMemo(
     () => (
       <ConvexSaveButton
         convexEnabled={convexEnabled}
-        hasNextEditorSession={hasNextEditorSession}
+        canEdit={canEdit}
         convexServerHealth={convexServerHealth}
         refreshConvexServerHealth={refreshConvexServerHealth}
         convexNotice={convexNotice}
@@ -555,7 +501,7 @@ export function useDevModeSaveActions({
       convexNotice,
       convexServerHealth,
       handleSaveToConvex,
-      hasNextEditorSession,
+      canEdit,
       hasPendingChanges,
       isConvexSaveBlocked,
       isConvexSaving,
@@ -567,8 +513,8 @@ export function useDevModeSaveActions({
   const commitPanel = (
     <DevModeCommitPanel
       notice={primaryCommitNotice}
-      hasEditorSession={hasNextEditorSession}
-      passwordKey={passwordKey}
+      hasEditorSession={canEdit}
+      submitterKey={orchestratorState.resolvedSubmitterKey}
       hasInvalidJsonDraft={false}
       isSaving={isSaving}
       isCommitDisabled={isCommitDisabled}
@@ -583,8 +529,8 @@ export function useDevModeSaveActions({
     (extraActionSlot?: ReactNode, description?: ReactNode) => (
       <DevModeCommitPanel
         notice={primaryCommitNotice}
-        hasEditorSession={hasNextEditorSession}
-        passwordKey={passwordKey}
+        hasEditorSession={canEdit}
+        submitterKey={orchestratorState.resolvedSubmitterKey}
         hasInvalidJsonDraft={false}
         isSaving={isSaving}
         isCommitDisabled={isCommitDisabled}
@@ -605,20 +551,17 @@ export function useDevModeSaveActions({
       />
     ),
     [
+      canEdit,
       convexSaveButton,
       handleSaveToGitHub,
-      hasNextEditorSession,
       isCommitDisabled,
       isSaving,
-      passwordKey,
+      orchestratorState.resolvedSubmitterKey,
       primaryCommitNotice,
     ],
   );
 
   return {
-    passwordKey,
-    setPasswordKey,
-    verifyDevCredentials,
     commitPanel,
     renderCommitPanel,
     clearSaveNotices,

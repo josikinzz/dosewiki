@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
@@ -55,6 +56,15 @@ async function selectLsdAndDirtyTheForm() {
   });
 }
 
+function renderCommitPanel(actionSlot?: ReactNode) {
+  return (
+    <div>
+      <span>Commit panel</span>
+      {actionSlot}
+    </div>
+  );
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   applyArticlesTransformMock.mockClear();
@@ -62,7 +72,7 @@ afterEach(() => {
 
 describe("SubstanceEditorTab", () => {
   it("supports manual article editing without source or generation controls", async () => {
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
 
     expect(screen.queryByText(/available sources/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/openrouter/i)).not.toBeInTheDocument();
@@ -75,13 +85,13 @@ describe("SubstanceEditorTab", () => {
   });
 
   it("prompts for a substance before any article is selected", () => {
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
 
     expect(screen.getByText("Select a substance to begin editing")).toBeInTheDocument();
   });
 
   it("reveals low and hide-for-now articles through the URL-only toggle", () => {
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
 
     expect(screen.queryByText("Quiet")).not.toBeInTheDocument();
     expect(screen.queryByText("Hidden for now")).not.toBeInTheDocument();
@@ -93,7 +103,7 @@ describe("SubstanceEditorTab", () => {
   });
 
   it("keeps the current substance when the unsaved-edits confirm is declined", async () => {
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     await selectLsdAndDirtyTheForm();
 
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
@@ -107,7 +117,7 @@ describe("SubstanceEditorTab", () => {
   });
 
   it("switches substances once the confirm is accepted", async () => {
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     await selectLsdAndDirtyTheForm();
 
     vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -119,7 +129,7 @@ describe("SubstanceEditorTab", () => {
   });
 
   it("does not confirm when the form has no unapplied edits", async () => {
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
     expect(await screen.findByText("Substance Article")).toBeInTheDocument();
 
@@ -130,7 +140,7 @@ describe("SubstanceEditorTab", () => {
   });
 
   it("names the two-step save and warns while form edits are unapplied", async () => {
-    render(<SubstanceEditorTab renderCommitPanel={(actionSlot) => <div>{actionSlot}</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     await selectLsdAndDirtyTheForm();
 
     expect(screen.getByRole("button", { name: "Apply to draft" })).toBeInTheDocument();
@@ -138,7 +148,7 @@ describe("SubstanceEditorTab", () => {
   });
 
   it("confirms the in-memory apply with a status pill", async () => {
-    render(<SubstanceEditorTab renderCommitPanel={(actionSlot) => <div>{actionSlot}</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     await selectLsdAndDirtyTheForm();
 
     fireEvent.click(screen.getByRole("button", { name: "Apply to draft" }));
@@ -154,7 +164,7 @@ describe("SubstanceEditorTab", () => {
       value: { writeText },
     });
 
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
     expect(await screen.findByText("Substance Article")).toBeInTheDocument();
 
@@ -170,7 +180,7 @@ describe("SubstanceEditorTab", () => {
       value: { writeText: vi.fn(async () => { throw new Error("denied"); }) },
     });
 
-    render(<SubstanceEditorTab commitPanel={<div>Commit panel</div>} />);
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
     expect(await screen.findByText("Substance Article")).toBeInTheDocument();
 

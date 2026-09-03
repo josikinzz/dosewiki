@@ -39,8 +39,15 @@ export function canUseSelfProfileRoute(input: { email: unknown }): boolean {
   return typeof input.email === "string" && input.email.trim().length > 0;
 }
 
+/**
+ * The one editor-shell address a signed-in contributor without editor role
+ * may open: the Contributors tab, which shows them only their own record. The
+ * two legacy Profile addresses still resolve there.
+ */
 export function isDevSelfProfilePath(pathname: string): boolean {
   return (
+    pathname === "/dev/contributors" ||
+    pathname.startsWith("/dev/contributors/") ||
     pathname === "/dev/profile" ||
     pathname.startsWith("/dev/profile/") ||
     pathname === "/dev/profiles" ||

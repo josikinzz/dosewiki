@@ -110,13 +110,44 @@ export const list = query({
   },
 });
 
+/**
+ * How many feedback rows sit in the given statuses. Convex has no count
+ * aggregate, so this collects each status through `by_status_created` on the
+ * server and returns only the total: the caller never downloads a list, and
+ * the answer is not capped the way `list` is.
+ */
+export const countByStatus = query({
+  args: {
+    apiKey: v.string(),
+    statuses: v.array(statusValidator),
+  },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "editorArticleWrite",
+    });
+
+    let count = 0;
+    for (const status of new Set(args.statuses)) {
+      const docs = await ctx.db
+        .query("articleFeedback")
+        .withIndex("by_status_created", (q) => q.eq("status", status))
+        .collect();
+      count += docs.length;
+    }
+
+    return count;
+  },
+});
+
 export const transition = mutation({
   args: {
     apiKey: v.string(),
     id: v.string(),
     status: statusValidator,
     reviewer: v.string(),
-    notes: v.optional(v.string()),
+    note: v.optional(v.string()),
   },
   returns: feedbackRowValidator,
   handler: async (ctx, args) => {
@@ -140,7 +171,7 @@ export const transition = mutation({
       reviewed_by: args.reviewer,
       reviewed_at: timestamp,
       updated_at: timestamp,
-      ...(args.notes !== undefined ? { review_notes: args.notes } : {}),
+      review_notes: args.note ?? doc.review_notes,
     };
     await ctx.db.patch(doc._id, patch);
 

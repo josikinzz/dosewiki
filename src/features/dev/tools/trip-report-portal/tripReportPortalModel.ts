@@ -192,7 +192,7 @@ function isoDate(timestamp: number): string {
  * Buckets, not a status dropdown.
  *
  * Editors think in "what needs me" / "what's live" / "everything". The six
- * submission states still exist underneath — an accepted-but-unpromoted row and
+ * submission states still exist underneath: an accepted-but-unpromoted row and
  * a rejected one both fall outside the first two buckets and are only reachable
  * from "All", which is the honest place for them.
  */

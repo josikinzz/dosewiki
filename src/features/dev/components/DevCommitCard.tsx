@@ -25,7 +25,7 @@ export type DevCommitNotice = {
 type DevCommitCardProps = {
   notice: DevCommitNotice | null;
   hasEditorSession: boolean;
-  passwordKey: string | null;
+  submitterKey: string | null;
   hasInvalidJsonDraft: boolean;
   isSaving: boolean;
   isCommitDisabled: boolean;
@@ -44,7 +44,7 @@ type DevCommitCardProps = {
 export function DevCommitCard({
   notice,
   hasEditorSession,
-  passwordKey,
+  submitterKey,
   hasInvalidJsonDraft,
   isSaving,
   isCommitDisabled,
@@ -116,8 +116,8 @@ export function DevCommitCard({
       <p className="text-xs text-[color:var(--theme-danger-text)]">
         Fix JSON syntax before committing.
       </p>
-    ) : passwordKey ? (
-      <p className="theme-text-muted text-xs">Ready to commit as {passwordKey}.</p>
+    ) : submitterKey ? (
+      <p className="theme-text-muted text-xs">Ready to commit as {submitterKey}.</p>
     ) : !hasEditorSession ? (
       <p className="text-xs text-[color:var(--theme-danger-text)]">
         Sign in before committing changes.

@@ -4275,6 +4275,10 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
   background: var(--theme-frosted-control-on-panel-border);
 }
 
+.theme-dev-rail-group {
+  color: var(--theme-text-faint);
+}
+
 .theme-dev-rail-tab,
 .theme-dev-rail-button {
   color: var(--theme-text-muted);

@@ -15,7 +15,7 @@ import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { useDevModePageController } from "@/features/dev/pages/useDevModePageController";
 import { ReviewExperience } from "@/features/dev/tools/review-mode/ReviewExperience";
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
-import type { DevTab } from "@/types/navigation";
+import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 
 type ReviewRouteClientProps = {
   convexUrl: string | null;
@@ -31,7 +31,7 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
   const router = useRouter();
 
   const onTabChange = useCallback(
-    (tab: DevTab) => {
+    (tab: DevModeTab) => {
       // The workbench has no tab strip; any shell-level tab change (e.g. the
       // non-editor bounce to "profile") returns to the dev shell.
       router.push(`/dev/${tab}`);

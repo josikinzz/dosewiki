@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import type { DevModeTab } from "./devModePageUtils";
+import type { DevModeTab } from "./devTabRegistry";
 
 function isEditableEventTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
@@ -53,27 +53,9 @@ export function useDevChromeEnvironment({
     };
   }, []);
 
-  /**
-   * Escape means "leave the editor" only on the /dev shell, where the tools sit
-   * as an overlay over the public site and `close()` returns to the page the
-   * editor was opened from.
-   *
-   * The review workbench is not an overlay. It is a standalone full-screen
-   * surface reached by direct navigation, so `close()` has no origin page to
-   * return to and falls back to pushing /substances — which ejects a reviewer
-   * mid-pass and discards the custom history stack ReviewExperience maintains
-   * with its own pushState/replaceState entries. There, Escape belongs to
-   * whatever popover, dialog, or inline edit is open (Radix dismisses those
-   * without always calling preventDefault, so this listener would fire on top
-   * of them); with nothing open it must do nothing at all.
-   */
-  const closesOnEscape = activeTab !== "review";
-
+  // Escape means "leave the editor": the tools sit as an overlay over the
+  // public site and `close()` returns to the substances index.
   useEffect(() => {
-    if (!closesOnEscape) {
-      return;
-    }
-
     const handleKeydown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape") {
         return;
@@ -97,7 +79,7 @@ export function useDevChromeEnvironment({
 
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [close, closesOnEscape, hasPendingChanges]);
+  }, [close, hasPendingChanges]);
 
   useEffect(() => {
     onTabNoticeClear(activeTab);

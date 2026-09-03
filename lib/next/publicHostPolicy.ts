@@ -43,7 +43,6 @@ const EDITOR_HANDOFF_PREFIXES: readonly string[] = [
 const PUBLIC_RESTRICTED_API_PREFIXES: readonly string[] = [
   "/api/auth",
   "/api/dev",
-  "/api/save-user-profile",
 ];
 
 function matchesPrefix(pathname: string, prefixes: readonly string[]): boolean {

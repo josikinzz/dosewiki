@@ -6,8 +6,8 @@ import { pickString, pickStringArray, postJson } from "./apiMutationClient";
 // ============================================================================
 
 export interface SaveArticlesPayload {
+  /** Contributor key the archive commit is attributed to; the session authorizes. */
   username: string;
-  password: string;
   articlesData: unknown[];
   commitMessage: string;
   changelogMarkdown?: string;
@@ -15,9 +15,6 @@ export interface SaveArticlesPayload {
   psychoactiveIndexManualData?: unknown;
   chemicalIndexManualData?: unknown;
   mechanismIndexManualData?: unknown;
-  aboutMarkdown?: string;
-  aboutSubtitleMarkdown?: string;
-  aboutConfig?: { founderProfileKeys: string[] };
   /**
    * When true, skip updating SubstanceIndex.json in GitHub.
    * Use when articles are managed via Convex instead.
@@ -42,46 +39,8 @@ export interface SaveArticlesResult {
   error?: string;
 }
 
-export interface SaveProfilePayload {
-  username: string;
-  password: string;
-  profile: {
-    key: string;
-    displayName: string;
-    bio: string;
-    links: Array<{ label: string; url: string }>;
-    avatarUrl?: string | null;
-  };
-  avatarUpload?: {
-    filename: string;
-    base64: string;
-    mimeType: string;
-  };
-}
-
-export interface SaveProfileResult {
-  success: boolean;
-  unchanged?: boolean;
-  avatarUrl?: string;
-  profile?: {
-    key: string;
-    displayName: string;
-    bio: string;
-    links: Array<{ label: string; url: string }>;
-    avatarUrl: string | null;
-    aliases: string[];
-    hasCustomBio: boolean;
-  };
-  error?: string;
-}
-
 export interface SaveToConvexPayload {
   articles?: unknown[];
-  about?: {
-    aboutMarkdown?: string;
-    aboutSubtitle?: string;
-    founderProfileKeys?: string[];
-  };
   indexLayouts?: Array<{
     type: "psychoactive" | "chemical" | "mechanism";
     version: number;
@@ -177,31 +136,9 @@ async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesR
   };
 }
 
-async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResult> {
-  const { response, result } = await postJson("/api/save-user-profile", {
-    body: payload,
-  });
-
-  if (!response.ok) {
-    const error = pickString(result.error) ?? "Unable to save profile.";
-    throw new Error(error);
-  }
-
-  return {
-    success: true,
-    unchanged: result.unchanged === true,
-    avatarUrl: pickString(result.avatarUrl),
-    profile:
-      result.profile && typeof result.profile === "object"
-        ? (result.profile as SaveProfileResult["profile"])
-        : undefined,
-  };
-}
-
 async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
   const requestSummary = {
     articleCount: Array.isArray(payload.articles) ? payload.articles.length : 0,
-    hasAbout: payload.about !== undefined,
     indexLayoutCount: Array.isArray(payload.indexLayouts) ? payload.indexLayouts.length : 0,
     hasChangelog: payload.changelog !== undefined,
   };
@@ -347,21 +284,11 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
 
 /**
  * Mutation hook for saving articles to GitHub.
- * Handles articles, changelog, indexes, and about content.
+ * Handles articles, changelog, and index layouts.
  */
 export function useSaveArticlesMutation() {
   return useMutation({
     mutationFn: saveArticles,
-  });
-}
-
-/**
- * Mutation hook for saving user profile to GitHub.
- * Handles profile data and avatar uploads.
- */
-export function useSaveProfileMutation() {
-  return useMutation({
-    mutationFn: saveProfile,
   });
 }
 

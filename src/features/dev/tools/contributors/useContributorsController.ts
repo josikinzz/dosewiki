@@ -7,16 +7,22 @@ import type {
   EditorActionStatusState,
   EditorNoticeMessage,
 } from "@/features/dev/components";
+import { viewToPath } from "@/utils/routing";
+import {
+  findContributorProfileByKeyOrAlias,
+  normalizeProfileKey,
+} from "@server/contributorProfileIdentity";
+
+import type { OrderablePanelItem } from "./OrderingPanel";
 import {
   browserAvatarFileAdapter,
   createAvatarPreviewSession,
   createAvatarUploadPayload,
   validateAvatarFile,
-} from "@/features/dev/profile/avatarUploadModel";
-
-import type { OrderablePanelItem } from "./OrderingPanel";
+} from "./avatarUploadModel";
 import {
   buildContributorPatch,
+  buildOwnContributorPatch,
   filterContributors,
   isContributorFormDirty,
   sortReports,
@@ -27,6 +33,20 @@ import {
   type ContributorWork,
   type EditorContributorProfile,
 } from "./contributorsModel";
+
+/** `all`: the whole directory. `me`: the signed-in user's own record only. */
+export type ContributorScope = "all" | "me";
+
+export type ContributorsControllerOptions = {
+  /** The shared contributor directory, fetched by the dev shell. */
+  profiles: readonly NormalizedUserProfile[];
+  /** Editor role: the directory, the admin fields, and the danger zone. Otherwise self only. */
+  canEdit: boolean;
+  /** The signed-in user's own key; resolved against the directory by key or alias. */
+  sessionProfileKey: string;
+  /** The route's `?scope=` value, validated by the registry; anything else opens on all. */
+  initialScope?: string;
+};
 
 export type ContributorSaveState = EditorActionStatusState | "idle";
 
@@ -48,7 +68,16 @@ function reportMeta(report: ContributorReport): string {
     .join(" · ");
 }
 
-export function useContributorsController(profiles: readonly NormalizedUserProfile[]) {
+export function useContributorsController({
+  profiles,
+  canEdit,
+  sessionProfileKey,
+  initialScope,
+}: ContributorsControllerOptions) {
+  const routeScope: ContributorScope = initialScope === "me" ? "me" : "all";
+  const [chosenScope, setChosenScope] = useState<ContributorScope>(routeScope);
+  // A contributor without editor role never leaves their own record.
+  const scope: ContributorScope = canEdit ? chosenScope : "me";
   const [search, setSearch] = useState("");
   const [selectedKey, setSelectedKey] = useState("");
   const [detail, setDetail] = useState<ContributorDetail | null>(null);
@@ -71,11 +100,42 @@ export function useContributorsController(profiles: readonly NormalizedUserProfi
     () => [...profiles].sort((left, right) => left.displayName.localeCompare(right.displayName)),
     [profiles],
   );
-  const visibleProfiles = useMemo(() => filterContributors(directory, search), [directory, search]);
+  // The record the session owns, matched the way the retired profile editor
+  // matched it: by key, then by alias. With no directory entry the derived key
+  // itself is the target; the route hands back a blank record for it, and the
+  // first save creates it.
+  const selfKey = useMemo(
+    () =>
+      findContributorProfileByKeyOrAlias(directory, sessionProfileKey)?.key ??
+      normalizeProfileKey(sessionProfileKey),
+    [directory, sessionProfileKey],
+  );
+  const visibleProfiles = useMemo(
+    () =>
+      scope === "me"
+        ? directory.filter((profile) => profile.key === selfKey)
+        : filterContributors(directory, search),
+    [directory, scope, search, selfKey],
+  );
   const resolvedKey = useMemo(() => {
+    if (scope === "me") return selfKey;
     if (directory.some((profile) => profile.key === selectedKey)) return selectedKey;
     return visibleProfiles[0]?.key ?? "";
-  }, [directory, selectedKey, visibleProfiles]);
+  }, [directory, scope, selectedKey, selfKey, visibleProfiles]);
+
+  // The scope the URL currently says. Only a change writes: the address the
+  // user arrived on (`/dev/profile`, `/dev/contributors?scope=me`) is left
+  // alone, and a non-editor's forced scope never rewrites anything.
+  const urlScopeRef = useRef(routeScope);
+  useEffect(() => {
+    if (!canEdit || scope === urlScopeRef.current) return;
+    urlScopeRef.current = scope;
+    window.history.replaceState(
+      null,
+      "",
+      viewToPath({ type: "dev", tab: "contributors", filter: scope === "all" ? undefined : scope }),
+    );
+  }, [canEdit, scope]);
 
   useEffect(() => {
     if (!resolvedKey) {
@@ -173,7 +233,9 @@ export function useContributorsController(profiles: readonly NormalizedUserProfi
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           key: detail.profile.key,
-          ...buildContributorPatch(form),
+          // A non-editor's body carries only the fields they may set; the
+          // route would drop the rest anyway.
+          ...(canEdit ? buildContributorPatch(form) : buildOwnContributorPatch(form)),
           ...(avatarUpload ? { avatarUpload } : {}),
         }),
       });
@@ -193,7 +255,7 @@ export function useContributorsController(profiles: readonly NormalizedUserProfi
         message: error instanceof Error ? error.message : "The profile could not be saved.",
       });
     }
-  }, [avatarFile, detail, form]);
+  }, [avatarFile, canEdit, detail, form]);
 
   const saveOrdering = useCallback(
     async (which: "works" | "reports") => {
@@ -303,6 +365,9 @@ export function useContributorsController(profiles: readonly NormalizedUserProfi
   }, []);
 
   return {
+    canEdit,
+    scope,
+    setScope: setChosenScope,
     search,
     setSearch,
     directory,

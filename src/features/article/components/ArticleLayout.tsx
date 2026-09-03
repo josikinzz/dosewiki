@@ -65,6 +65,12 @@ export interface ArticleLayoutProps {
    */
   warningBanners?: WarningBannerPreset[];
   /**
+   * Rendered in the safety-banner slot, above the hero. A host that mounts the
+   * layout without resolved banners (the review workbench) uses it to say so,
+   * so their absence reads as a known omission rather than a data error.
+   */
+  warningBannerNotice?: ReactNode;
+  /**
    * Swap the stored citation-overhaul banner for the sitewide red beta
    * disclaimer. Resolved by the substance route loader
    * (`substanceHasCitationNeeded`): true once the citation audit has stripped
@@ -141,6 +147,7 @@ export function ArticleLayout({
   contributorDirectory,
   externalReagentData,
   warningBanners = [],
+  warningBannerNotice,
   showBetaDisclaimer = false,
   warningBannerIconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT,
   dosageDisclaimer,
@@ -236,6 +243,7 @@ export function ArticleLayout({
           HeroSection so the hero keeps rendering byte-identically on the
           overwhelming majority of articles that have none. Renders nothing when
           the list is empty; spacing comes from StickyTocLayout's `gap-8`. */}
+      {warningBannerNotice}
       <SubstanceWarningBanners banners={warningBanners} iconSize={warningBannerIconSize} />
 
       <HeroSection

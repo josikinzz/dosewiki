@@ -72,7 +72,7 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("starts with sorted static entries", () => {
-    const { result } = renderHook(() => useDevChangelogFeed({ profileKey: "" }));
+    const { result } = renderHook(() => useDevChangelogFeed({}));
 
     expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
       "static-duplicate",
@@ -102,7 +102,7 @@ describe("useDevChangelogFeed", () => {
       },
     ];
 
-    const { result } = renderHook(() => useDevChangelogFeed({ profileKey: "" }));
+    const { result } = renderHook(() => useDevChangelogFeed({}));
 
     await waitFor(() => {
       expect(result.current.changeLogEntries.map((entry) => entry.id)).toEqual([
@@ -115,42 +115,8 @@ describe("useDevChangelogFeed", () => {
     expect(result.current.changeLogEntries[1].markdown).toBe("static duplicate");
   });
 
-  it("filters profile history by submitted profile key", () => {
-    convexState.enabled = true;
-    convexState.entries = [
-      {
-        entryId: "convex-abc",
-        createdAt: "2026-01-04T00:00:00.000Z",
-        message: "Convex ABC",
-        articles: [],
-        markdown: "abc",
-        submittedBy: "ABC",
-      },
-    ];
-
-    const { result } = renderHook(() => useDevChangelogFeed({ profileKey: "ABC" }));
-
-    expect(result.current.profileHistory.map((entry) => entry.id)).toEqual([
-      "convex-abc",
-      "static-1",
-    ]);
-  });
-
-  it("resolves legacy WITCHY stamps to the LYREA profile history", () => {
-    convexState.enabled = false;
-    convexState.entries = undefined;
-
-    const { result } = renderHook(() => useDevChangelogFeed({ profileKey: "LYREA" }));
-
-    expect(result.current.profileHistory.map((entry) => entry.id)).toEqual(["static-witchy"]);
-    // The legacy login key sees the merged history too.
-    expect(result.current.getProfileHistory("WITCHY").map((entry) => entry.id)).toEqual([
-      "static-witchy",
-    ]);
-  });
-
   it("appends entries through the feed interface", () => {
-    const { result } = renderHook(() => useDevChangelogFeed({ profileKey: "ABC" }));
+    const { result } = renderHook(() => useDevChangelogFeed({}));
 
     act(() => {
       result.current.appendChangeLogEntryToState({
@@ -163,6 +129,6 @@ describe("useDevChangelogFeed", () => {
       });
     });
 
-    expect(result.current.profileHistory[0].id).toBe("appended");
+    expect(result.current.changeLogEntries[0].id).toBe("appended");
   });
 });

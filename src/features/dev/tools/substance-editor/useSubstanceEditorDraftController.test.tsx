@@ -69,7 +69,7 @@ describe("useSubstanceEditorDraftController apply gate", () => {
     });
 
     await act(async () => {
-      await result.current.handleSaveToDatabase("draft");
+      await result.current.handleSaveToDatabase();
     });
 
     expect(applyArticlesTransform).not.toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe("useSubstanceEditorDraftController apply gate", () => {
     });
 
     await act(async () => {
-      await result.current.handleSaveToDatabase("draft");
+      await result.current.handleSaveToDatabase();
     });
 
     expect(applyArticlesTransform).toHaveBeenCalledTimes(1);

@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { requireAuth, requireEditorWrite } from "./lib/auth";
@@ -87,7 +87,7 @@ export const listForEditor = query({
 });
 
 /**
- * The whole row for one slug, drafts included — the read the Writing tab opens
+ * The whole row for one slug, drafts included: the read the Writing tab opens
  * an entry with. Editor-gated for the same reason `listForEditor` is: it is the
  * only way to see a draft body, and `getBySlug` must keep hiding one.
  */
@@ -116,12 +116,19 @@ export const getForEditor = query({
  *
  * Update is a patch: any field the caller omits keeps its stored value, so a
  * partial save from one editor pane cannot clear what another pane owns.
+ *
+ * A save that carries `originalSlug` different from `slug` is a rename: the row
+ * loaded under `originalSlug` moves to `slug`, and exactly one row survives.
+ * Without it, saving under a new slug would insert a second row and leave the
+ * old one behind.
  */
 export const upsertArticle = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     slug: v.string(),
+    /** The slug the editor loaded the row with; differs from `slug` on a rename. */
+    originalSlug: v.optional(v.string()),
     title: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
@@ -155,7 +162,7 @@ export const upsertArticle = mutation({
       adminIntent: "editorArticleWrite",
     });
 
-    const { apiKey: _apiKey, actorEmail: _actorEmail, slug, ...rest } = args;
+    const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, ...rest } = args;
 
     if (!SLUG_PATTERN.test(slug)) {
       throw new Error(
@@ -163,10 +170,31 @@ export const upsertArticle = mutation({
       );
     }
 
+    const renamingFrom = originalSlug !== undefined && originalSlug !== slug ? originalSlug : null;
+
     const existing = await ctx.db
       .query("effectIndexArticles")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .withIndex("by_slug", (q) => q.eq("slug", renamingFrom ?? slug))
       .first();
+
+    if (renamingFrom) {
+      if (!existing) {
+        throw new ConvexError({
+          code: "ARTICLE_NOT_FOUND",
+          message: `No article found for slug "${renamingFrom}".`,
+        });
+      }
+      const taken = await ctx.db
+        .query("effectIndexArticles")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (taken) {
+        throw new ConvexError({
+          code: "SLUG_TAKEN",
+          message: `"${slug}" already belongs to "${taken.title}". Choose another slug.`,
+        });
+      }
+    }
 
     // Only fields the caller actually sent are written, so an update never
     // clears an omitted field.
@@ -182,7 +210,7 @@ export const upsertArticle = mutation({
     }
 
     if (existing) {
-      await ctx.db.patch(existing._id, patch);
+      await ctx.db.patch(existing._id, renamingFrom ? { ...patch, slug } : patch);
       return { slug, created: false, id: existing._id };
     }
 

@@ -17,9 +17,6 @@ const emptyChangelogSources: ChangelogSources = {
   psychoactiveManualChangelog: { markdown: "", hasChanges: false },
   chemicalManualChangelog: { markdown: "", hasChanges: false },
   mechanismManualChangelog: { markdown: "", hasChanges: false },
-  aboutMarkdownChangelog: { markdown: "", hasChanges: false },
-  aboutSubtitleChangelog: { markdown: "", hasChanges: false },
-  aboutFounderChangelog: { markdown: "", hasChanges: false },
 };
 
 const withDatasetChanges: ChangelogSources = {
@@ -36,24 +33,12 @@ const withManualLayoutChanges: ChangelogSources = {
   psychoactiveManualChangelog: { markdown: "# Psychoactive\n+ change", hasChanges: true },
 };
 
-const withAboutMarkdownChanges: ChangelogSources = {
-  ...emptyChangelogSources,
-  aboutMarkdownChangelog: { markdown: "# About\n+ change", hasChanges: true },
-};
-
-const withAboutMetaChanges: ChangelogSources = {
-  ...emptyChangelogSources,
-  aboutSubtitleChangelog: { markdown: "# Subtitle\n+ change", hasChanges: true },
-};
-
 describe("computeHasPendingChanges", () => {
   it("returns false when no sources have changes", () => {
     const result = computeHasPendingChanges(emptyChangelogSources);
     expect(result.hasPendingChanges).toBe(false);
     expect(result.hasArticleDatasetChanges).toBe(false);
     expect(result.hasManualLayoutChanges).toBe(false);
-    expect(result.hasAboutMarkdownChanges).toBe(false);
-    expect(result.hasAboutMetaChanges).toBe(false);
   });
 
   it("detects dataset changes (source 1)", () => {
@@ -68,18 +53,6 @@ describe("computeHasPendingChanges", () => {
     expect(result.hasManualLayoutChanges).toBe(true);
   });
 
-  it("detects about markdown changes (source 3)", () => {
-    const result = computeHasPendingChanges(withAboutMarkdownChanges);
-    expect(result.hasPendingChanges).toBe(true);
-    expect(result.hasAboutMarkdownChanges).toBe(true);
-  });
-
-  it("detects about meta changes (source 4)", () => {
-    const result = computeHasPendingChanges(withAboutMetaChanges);
-    expect(result.hasPendingChanges).toBe(true);
-    expect(result.hasAboutMetaChanges).toBe(true);
-  });
-
   it("aggregates multiple sources", () => {
     const sources: ChangelogSources = {
       ...emptyChangelogSources,
@@ -88,12 +61,12 @@ describe("computeHasPendingChanges", () => {
         markdown: "# Test\n+ change",
         articles: [],
       },
-      aboutFounderChangelog: { markdown: "# Founders\n+ change", hasChanges: true },
+      mechanismManualChangelog: { markdown: "# Mechanism\n+ change", hasChanges: true },
     };
     const result = computeHasPendingChanges(sources);
     expect(result.hasPendingChanges).toBe(true);
     expect(result.hasArticleDatasetChanges).toBe(true);
-    expect(result.hasAboutMetaChanges).toBe(true);
+    expect(result.hasManualLayoutChanges).toBe(true);
   });
 });
 
@@ -137,7 +110,7 @@ describe("saveOrchestratorReducer", () => {
       // Credentials verified
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
-        credentials: { username: "test", password: "pass", key: "TEST" },
+        credentials: { key: "TEST" },
       });
       expect(state.saveOperation.phase).toBe("executing");
       expect(state.resolvedSubmitterKey).toBe("TEST");
@@ -201,7 +174,7 @@ describe("saveOrchestratorReducer", () => {
       });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
-        credentials: { username: "test", password: "pass", key: "TEST" },
+        credentials: { key: "TEST" },
       });
       state = saveOrchestratorReducer(state, {
         type: "saveFailed",
@@ -229,7 +202,7 @@ describe("saveOrchestratorReducer", () => {
       });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
-        credentials: { username: "test", password: "pass", key: "ADMIN" },
+        credentials: { key: "ADMIN" },
       });
       expect(state.saveOperation.phase).toBe("executing");
       expect(state.convexNotice?.message).toContain("Saving to Convex");
@@ -258,7 +231,7 @@ describe("saveOrchestratorReducer", () => {
       });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
-        credentials: { username: "test", password: "pass", key: "ADMIN" },
+        credentials: { key: "ADMIN" },
       });
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
@@ -285,7 +258,7 @@ describe("saveOrchestratorReducer", () => {
       });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
-        credentials: { username: "test", password: "pass", key: "ADMIN" },
+        credentials: { key: "ADMIN" },
       });
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",

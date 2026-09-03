@@ -2,8 +2,7 @@
  * Avatar bytes → Convex storage id, for the two Next routes that save a
  * contributor profile.
  *
- * Both the self-serve save (`/api/save-user-profile`) and the editor save
- * (`/api/dev/contributor-profile`) accept the image inline as base64 rather
+ * The editor save (`/api/dev/contributor-profile`) accepts the image inline as base64 rather
  * than minting a browser upload URL: the size ceiling is small enough that one
  * round trip beats three, and it keeps the only writer of `avatarStorageId`
  * behind a session check. This used to live inside the self-serve route; it is

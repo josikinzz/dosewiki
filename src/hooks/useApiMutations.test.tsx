@@ -3,11 +3,7 @@ import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  useSaveArticlesMutation,
-  useSaveProfileMutation,
-  useSaveToConvexMutation,
-} from "./useApiMutations";
+import { useSaveArticlesMutation, useSaveToConvexMutation } from "./useApiMutations";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -38,7 +34,6 @@ describe("useApiMutations", () => {
     await expect(
       result.current.mutateAsync({
         username: "editor",
-        password: "secret",
         articlesData: [],
         commitMessage: "Test commit",
       }),
@@ -128,36 +123,6 @@ describe("useApiMutations", () => {
         found: true,
       }),
     ]);
-  });
-
-  it("throws normalized profile-save errors from the shared transport helper", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 403,
-        json: async () => ({
-          error: "Forbidden",
-        }),
-      }),
-    );
-
-    const { result } = renderHook(() => useSaveProfileMutation(), {
-      wrapper: createWrapper(),
-    });
-
-    await expect(
-      result.current.mutateAsync({
-        username: "editor",
-        password: "secret",
-        profile: {
-          key: "EDITOR",
-          displayName: "Editor",
-          bio: "",
-          links: [],
-        },
-      }),
-    ).rejects.toThrow("Forbidden");
   });
 
   it("includes Convex save diagnostics in failed save errors", async () => {

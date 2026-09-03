@@ -65,8 +65,16 @@ export type SiteNavMenu = {
   readonly children?: readonly SiteNavChild[];
 };
 
-/** Routes that only exist on some flavors. Guarded with {@link requireEffectIndexFlavor}. */
-export type FlavorGatedRoute = "blog" | "donate" | "contact" | "discord" | "copyrightDisclaimer";
+/**
+ * Routes that only exist on some flavors. Guarded with {@link requireEffectIndexFlavor}
+ * in-page and by `isFlavorGatedRequestPath` in middleware.
+ *
+ * `dev` is the editor shell (`/dev` and everything under it: the tool tabs, `/dev/kit`,
+ * `/dev/themes`). Decision: the Effect Index deployment is credential-free and read-only
+ * (AGENTS.md), so the entire prefix is a 404 there rather than a sign-in redirect for a
+ * sign-in that cannot succeed. Only dose.wiki lists it.
+ */
+export type FlavorGatedRoute = "blog" | "donate" | "contact" | "discord" | "copyrightDisclaimer" | "dev";
 
 export type SiteSocialCard = {
   readonly path: string;
@@ -449,7 +457,8 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   // path serves on the other flavor; both builds serve `/blog`, neither serves
   // the other's posts. Listing the route here is what stops the middleware
   // (`isFlavorGatedRequestPath`) from 404ing it before it renders.
-  flavorGatedRoutes: ["blog"],
+  // `dev` is the editor shell; see the decision on `FlavorGatedRoute`.
+  flavorGatedRoutes: ["blog", "dev"],
   rootMetadata: {
     title: "dose.wiki (beta v0.9)",
     description:
@@ -664,6 +673,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
   // Titillium, and a lock keeps its key out of the emitted bootstrap so the pinned CSP
   // hash — and a dose.wiki reader's saved preference — stay untouched here.
   showFontToggle: false,
+  // No `dev`: this deployment is credential-free and read-only, so the editor shell
+  // does not exist here and the whole `/dev` prefix answers a real 404.
   flavorGatedRoutes: ["blog", "donate", "contact", "discord", "copyrightDisclaimer"],
   rootMetadata: {
     title: "Effect Index",

@@ -30,7 +30,7 @@ describe("route chrome model", () => {
     ["/about", "about", "About dose.wiki", "about"],
     ["/contributors/alice", "contributor", "Contributor Profile", "none"],
     ["/search?q=test%20query", "search", 'Search Results for "test query"', "none"],
-    ["/dev/profile", "dev", "Developer Tools - profile", "dev"],
+    ["/dev/profile", "dev", "Developer Tools - contributors", "dev"],
   ])("models %s", (pathname, viewType, pageTitle, activeGroup) => {
     // The dose.wiki config is named rather than inherited from the ambient build flavor:
     // these expectations are that publication's titles and nav groups.

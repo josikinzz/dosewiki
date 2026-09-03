@@ -152,6 +152,66 @@ export const list = query({
   },
 });
 
+/**
+ * Every submission in the given statuses, newest first. Unlike `list` this is
+ * not capped: the portal's Needs review bucket has to hold every row the rail
+ * badge counts, and `countByStatus` is the same walk without the payload.
+ */
+export const listByStatuses = query({
+  args: {
+    apiKey: v.string(),
+    statuses: v.array(statusValidator),
+  },
+  returns: v.array(submissionRowValidator),
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const docs = await collectByStatuses(ctx, args.statuses);
+    docs.sort((left, right) => right.created_at.localeCompare(left.created_at));
+    return docs.map(toSubmissionRow);
+  },
+});
+
+/**
+ * How many submissions sit in the given statuses. Convex has no count
+ * aggregate, so this collects each status through `by_status_created` on the
+ * server and returns only the total: the caller never downloads a list, and
+ * the answer is not capped the way `list` is.
+ */
+export const countByStatus = query({
+  args: {
+    apiKey: v.string(),
+    statuses: v.array(statusValidator),
+  },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    await requireEditorWrite(ctx, {
+      apiKey: args.apiKey,
+      adminIntent: "editorArticleWrite",
+    });
+
+    const docs = await collectByStatuses(ctx, args.statuses);
+    return docs.length;
+  },
+});
+
+async function collectByStatuses(ctx: ConvexReadCtx, statuses: SubmissionStatus[]): Promise<SubmissionRow[]> {
+  const docs: SubmissionRow[] = [];
+  for (const status of new Set(statuses)) {
+    docs.push(
+      ...(await ctx.db
+        .query("tripReportSubmissions")
+        .withIndex("by_status_created", (q) => q.eq("status", status))
+        .collect()),
+    );
+  }
+
+  return docs;
+}
+
 export const get = query({
   args: {
     apiKey: v.string(),

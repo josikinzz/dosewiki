@@ -1,26 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ConvexProvider as BaseConvexProvider, ConvexReactClient, useQuery } from "convex/react";
-import { usePathname, useRouter } from "next/navigation";
-import { api } from "../../../../convex/_generated/api";
+import { ConvexProvider as BaseConvexProvider, ConvexReactClient } from "convex/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { convex as sharedConvexClient, getConvexUrl } from "@/lib/convex";
-import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { DevModePage } from "@/features/dev/pages/DevModePage";
 import { tabNeedsLibrary } from "@/features/dev/pages/devModePageUtils";
-import type { CategoryLayout } from "@/hooks/useCategoryLayout";
+import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 import { parsePath, viewToPath } from "@/utils/routing";
 import { useOwnedProfileKey } from "./useOwnedProfileKey";
-import type { DevTab } from "@/types/navigation";
 
 type NextDevRouteClientProps = {
   convexUrl: string | null;
-  initialTab: DevTab;
+  initialTab: DevModeTab;
   initialSlug?: string;
+  initialFilter?: string;
   initialProfileKey?: string;
   /**
    * The canonical contributor key for the signed-in editor, resolved through a
@@ -33,17 +31,11 @@ type NextDevRouteClientProps = {
 };
 
 type DevRouteState = {
-  tab: DevTab;
+  tab: DevModeTab;
   slug?: string;
+  /** The tab's URL filter value (`?kind=blog`), validated by the registry. */
+  filter?: string;
 };
-
-/**
- * Stand-in used while `categoryLayout.get` is still in flight. Only the review
- * workbench reads the lightweight layout, and that surface has graduated to
- * `/review` with its own provider, so an empty layout costs the dev shell
- * nothing and buys it a tab rail that paints without a websocket round trip.
- */
-const EMPTY_CATEGORY_LAYOUT: CategoryLayout = { version: 0, categories: [] };
 
 /**
  * One-way switch: true the first time a corpus-backed tool is opened, and true
@@ -63,15 +55,27 @@ function useLibraryLatch(needsLibraryNow: boolean): boolean {
   return needsLibraryNow || latched;
 }
 
-export function resolveDevRouteState(pathname: string | null, fallback: DevRouteState): DevRouteState {
+/**
+ * The route the shell renders, from the client router's pathname and search
+ * string. Both are read live so back/forward and the tabs' own
+ * `history.replaceState` filter writes land here without a server round trip;
+ * the server-resolved `fallback` only covers the first render before the
+ * router reports.
+ */
+export function resolveDevRouteState(
+  pathname: string | null,
+  search: string | null,
+  fallback: DevRouteState,
+): DevRouteState {
   if (!pathname) {
     return fallback;
   }
 
-  const parsed = parsePath(pathname, fallback.slug ?? null, {
+  const parsed = parsePath(search ? `${pathname}?${search}` : pathname, fallback.slug ?? null, {
     type: "dev",
     tab: fallback.tab,
     slug: fallback.slug,
+    filter: fallback.filter,
   });
 
   if (parsed.type !== "dev") {
@@ -81,17 +85,17 @@ export function resolveDevRouteState(pathname: string | null, fallback: DevRoute
   return {
     tab: parsed.tab,
     slug: parsed.slug,
+    filter: parsed.filter,
   };
 }
 
 function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigate, getCurrentPath }: {
   routeState: DevRouteState;
   initialProfileKey?: string;
-  onTabChange: (tab: DevTab) => void;
+  onTabChange: (tab: DevModeTab) => void;
   navigate: (path: string) => void;
   getCurrentPath: () => string;
 }) {
-  const categoryLayout = useQuery(api.categoryLayout.get);
   // Only the corpus-backed tools drain the editor projection, and once a
   // session has drained it the library stays mounted: navigating from the
   // article editor to a non-library tool must not throw away unsaved edits
@@ -99,70 +103,22 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
   const needsLibrary = useLibraryLatch(tabNeedsLibrary(routeState.tab));
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(needsLibrary);
 
-  // The editor projection already carries slug/name/priority for every row, so
-  // the lookup drain that used to re-scan the same table for them is gone.
-  // `allSubstanceRecords` (not `substanceRecords`) keeps the hidden and
-  // direct-URL-only entries the lookup used to include.
-  const substances = useMemo<SubstanceLookupEntry[]>(
-    () =>
-      (library?.allSubstanceRecords ?? []).map((record) => ({
-        slug: record.slug,
-        name: record.name,
-        priority: record.priority,
-      })),
-    [library],
-  );
-
-  const layout = useMemo<CategoryLayout>(() => {
-    if (!categoryLayout) {
-      return EMPTY_CATEGORY_LAYOUT;
-    }
-
-    return {
-      version: categoryLayout.version,
-      categories: categoryLayout.categories.map((category) => ({
-        key: category.key,
-        label: category.label,
-        iconKey: category.iconKey,
-        sections: category.sections.map((section) => ({
-          key: section.key,
-          label: section.label,
-          drugs: section.drugs,
-        })),
-        drugs: category.drugs,
-        columns: category.columns,
-      })),
-    };
-  }, [categoryLayout]);
-
-  // Nothing gates the shell any more. The tab rail paints on the first client
-  // render; the category layout and the corpus drain both land behind it, and
-  // the tools that need either show their own loading state instead of holding
-  // the chrome back. A category layout that resolves to nothing is still a
-  // hard failure, but only once the query has actually answered.
-  if (categoryLayout === null) {
-    return (
-      <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="text-2xl font-bold text-red-400">Failed to load editor data</div>
-        <div className="theme-text-muted text-sm">Category layout is missing from Convex.</div>
-      </div>
-    );
-  }
-
+  // Nothing gates the shell. The tab rail paints on the first client render;
+  // the corpus drain lands behind it, and the tools that need it show their
+  // own loading state instead of holding the chrome back.
   return (
-    <LightweightDataProvider layout={layout} substances={substances}>
-      <SubstanceIndexProvider libraryData={library ?? getEmptyEditorLibrary()}>
-        <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
-          <DevModePage
-            activeTab={routeState.tab}
-            initialArticleSlug={routeState.slug}
-            initialProfileKey={initialProfileKey}
-            isLibraryLoading={isLoadingLibrary || !library}
-            onTabChange={onTabChange}
-          />
-        </DevModeProvider>
-      </SubstanceIndexProvider>
-    </LightweightDataProvider>
+    <SubstanceIndexProvider libraryData={library ?? getEmptyEditorLibrary()}>
+      <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath}>
+        <DevModePage
+          activeTab={routeState.tab}
+          initialArticleSlug={routeState.slug}
+          initialFilter={routeState.filter}
+          initialProfileKey={initialProfileKey}
+          isLibraryLoading={isLoadingLibrary || !library}
+          onTabChange={onTabChange}
+        />
+      </DevModeProvider>
+    </SubstanceIndexProvider>
   );
 }
 
@@ -170,6 +126,7 @@ export function NextDevRouteClient({
   convexUrl,
   initialTab,
   initialSlug,
+  initialFilter,
   initialProfileKey,
   ownedProfileKey,
 }: NextDevRouteClientProps) {
@@ -191,16 +148,18 @@ export function NextDevRouteClient({
   }, [convexUrl]);
   const router = useRouter();
   const pathname = usePathname();
+  const search = useSearchParams().toString();
   const fallbackRouteState = useMemo<DevRouteState>(() => ({
     tab: initialTab,
     slug: initialSlug,
-  }), [initialSlug, initialTab]);
+    filter: initialFilter,
+  }), [initialFilter, initialSlug, initialTab]);
   const routeState = useMemo(
-    () => resolveDevRouteState(pathname, fallbackRouteState),
-    [fallbackRouteState, pathname],
+    () => resolveDevRouteState(pathname, search, fallbackRouteState),
+    [fallbackRouteState, pathname, search],
   );
 
-  const handleTabChange = useCallback((tab: DevTab) => {
+  const handleTabChange = useCallback((tab: DevModeTab) => {
     const nextPath = viewToPath({ type: "dev", tab });
     if (pathname !== nextPath) {
       router.push(nextPath);

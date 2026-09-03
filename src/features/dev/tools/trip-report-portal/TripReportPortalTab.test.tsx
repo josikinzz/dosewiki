@@ -2,6 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  resetDevRailBadgesForTests,
+  useDevRailBadges,
+} from "@/features/dev/pages/useDevRailBadges";
 import { TripReportPortalTab } from "./TripReportPortalTab";
 
 const submission = {
@@ -118,6 +122,37 @@ describe("TripReportPortalTab", () => {
     await user.click(screen.getByRole("button", { name: /^Published/ }));
     expect(await screen.findByText("Alpine clarity")).toBeInTheDocument();
     expect(screen.queryByText("Careful low dose museum walk")).not.toBeInTheDocument();
+  });
+
+  it("holds every pending row in the Needs review bucket, past the capped queue page", async () => {
+    const pending = Array.from({ length: 300 }, (_, index) => ({
+      ...submission,
+      id: `submission-${index}`,
+      title: `Pending report ${index}`,
+    }));
+    const accepted = { ...acceptedSubmission, id: "accepted-1", title: "Accepted report" };
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input), "https://dose.wiki");
+      if (url.pathname === "/api/dev/trip-reports") {
+        return Response.json({ ok: true, reports: [publishedReport], contributors: [] });
+      }
+
+      if (url.pathname === "/api/trip-report-submissions/queue") {
+        // The scoped read is uncapped; the browse read is what the store caps.
+        return url.searchParams.get("scope") === "needs-review"
+          ? Response.json({ ok: true, submissions: pending })
+          : Response.json({ ok: true, submissions: [...pending.slice(0, 249), accepted] });
+      }
+
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    });
+
+    render(<TripReportPortalTab />);
+
+    expect(await screen.findByRole("button", { name: /^Needs review/ })).toHaveTextContent("300");
+    // The capped page still contributes what the scoped read does not carry.
+    expect(screen.getByRole("button", { name: /^All/ })).toHaveTextContent("302");
+    expect(screen.getByRole("button", { name: /^Published/ })).toHaveTextContent("1");
   });
 
   it("keeps the submission review transitions reachable from a needs-review row", async () => {
@@ -238,5 +273,65 @@ describe("TripReportPortalTab", () => {
 
     await user.type(screen.getByLabelText("Type the report slug to confirm deletion"), "alpine-clarity");
     expect(confirmButton).toBeEnabled();
+  });
+
+  it("renders an error state instead of an empty list when the queue request fails", async () => {
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/dev/trip-reports")) {
+        return Response.json({ ok: true, reports: [publishedReport], contributors: [] });
+      }
+
+      if (url.includes("/queue")) {
+        return Response.json({ error: "Trip report submission storage is not configured." }, { status: 503 });
+      }
+
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    });
+
+    render(<TripReportPortalTab />);
+
+    expect(await screen.findByText("Unable to load trip reports")).toBeInTheDocument();
+    expect(screen.getByText("Trip report submission storage is not configured.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    // The needs-review bucket must not read as "nothing to do".
+    expect(screen.queryByText(/No reports/)).not.toBeInTheDocument();
+  });
+
+  it("invalidates the rail badge after a submission transition", async () => {
+    const user = userEvent.setup();
+    resetDevRailBadgesForTests();
+    const counts = [1, 0];
+    const corpusFetch = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/needs-review-count")) {
+        return Response.json({ ok: true, count: counts.length > 1 ? counts.shift() : counts[0] });
+      }
+
+      if (url.includes("/status")) {
+        return Response.json({ ok: true, submission: { ...submission, status: "accepted" } });
+      }
+
+      return corpusFetch(input, init);
+    });
+
+    function Badge() {
+      const count = useDevRailBadges(true)["trip-reports"];
+      return <span data-testid="badge">{count === undefined ? "none" : String(count)}</span>;
+    }
+
+    render(
+      <>
+        <Badge />
+        <TripReportPortalTab />
+      </>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("1"));
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(await screen.findByRole("button", { name: "Accept" }));
+
+    await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("none"));
   });
 });

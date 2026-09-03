@@ -16,6 +16,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   storeList: vi.fn(),
+  storeListByStatuses: vi.fn(),
   getTripReportSubmissionStore: vi.fn(),
 }));
 
@@ -28,9 +29,11 @@ describe("trip report submissions editor queue route", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.storeList.mockReset();
+    mocks.storeListByStatuses.mockReset();
     mocks.getTripReportSubmissionStore.mockReset();
     mocks.getTripReportSubmissionStore.mockResolvedValue({
       list: mocks.storeList,
+      listByStatuses: mocks.storeListByStatuses,
     });
     mocks.storeList.mockResolvedValue([
       {
@@ -74,5 +77,35 @@ describe("trip report submissions editor queue route", () => {
       ok: true,
       submissions: [{ id: "submission-1", status: "submitted" }],
     });
+  });
+
+  it("serves the needs-review scope from the uncapped status list the badge counts", async () => {
+    const { GET } = await import("./route");
+    const pending = Array.from({ length: 300 }, (_, index) => ({ id: `submission-${index}`, status: "submitted" }));
+    mocks.storeListByStatuses.mockResolvedValue(pending);
+
+    const response = await GET(
+      new Request("https://dose.wiki/api/trip-report-submissions/queue?scope=needs-review"),
+    );
+
+    expect(mocks.storeListByStatuses).toHaveBeenCalledWith({ statuses: ["submitted", "reviewing"] });
+    expect(mocks.storeList).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload.submissions).toHaveLength(300);
+  });
+
+  it("rejects an unknown scope and a scope combined with status or limit", async () => {
+    const { GET } = await import("./route");
+
+    const unknown = await GET(new Request("https://dose.wiki/api/trip-report-submissions/queue?scope=everything"));
+    expect(unknown.status).toBe(400);
+
+    const mixed = await GET(
+      new Request("https://dose.wiki/api/trip-report-submissions/queue?scope=needs-review&limit=10"),
+    );
+    expect(mixed.status).toBe(400);
+    expect(mocks.storeListByStatuses).not.toHaveBeenCalled();
+    expect(mocks.storeList).not.toHaveBeenCalled();
   });
 });

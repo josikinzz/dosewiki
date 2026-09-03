@@ -14,14 +14,13 @@ import {
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
-import { canAccessDev, getDevRouteDecision } from "@/lib/auth/roles";
+import { getDevRouteDecision } from "@/lib/auth/roles";
 import {
   ConvexTargetSplitBanner,
   ConvexTargetSplitRefusal,
 } from "../../_components/ConvexTargetSplitNotice";
-import { NextDevProfileRouteClient } from "../_components/NextDevProfileRouteClient";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
-import type { DevTab } from "@/types/navigation";
+import { findDevTab, resolveDevRoute } from "@/features/dev/pages/devTabRegistry";
 
 // No `force-dynamic`: the route already opts out of caching by reading the
 // session cookie, and the flag additionally blocked the static shell from
@@ -36,102 +35,26 @@ type DevPageProps = {
   params: Promise<{
     segments?: string[];
   }>;
+  /** Tab filters (`/dev/writing?kind=blog`) live here; see the registry's `filter`. */
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function resolveDevRoute(segments: string[] | undefined): { tab: DevTab; slug?: string } {
-  const [candidateTab, slug] = segments ?? [];
-
-  if (candidateTab === "change-log" || candidateTab === "changelog") {
-    return { tab: "change-log", slug };
-  }
-
-  if (candidateTab === "tag-editor" || candidateTab === "tag") {
-    return { tab: "tag-editor", slug };
-  }
-
-  if (candidateTab === "profile" || candidateTab === "profiles") {
-    return { tab: "profile", slug };
-  }
-
-  if (candidateTab === "index-layout" || candidateTab === "index") {
-    return { tab: "index-layout", slug };
-  }
-
-  // The standalone About tool folded into the Writing tab, where it is the
-  // pinned first entry in the rail. `/dev/about` therefore resolves — rather
-  // than 404s or lands on the article list — straight onto that entry.
-  if (candidateTab === "about") {
-    return { tab: "writing", slug: "about" };
-  }
-
-  if (candidateTab === "writing") {
-    return { tab: "writing", slug };
-  }
-
-  if (candidateTab === "blog") {
-    return { tab: "blog", slug };
-  }
-
-  if (candidateTab === "copy-studio" || candidateTab === "copy") {
-    return { tab: "copy-studio", slug };
-  }
-
-  if (candidateTab === "contributors" || candidateTab === "contributor") {
-    return { tab: "contributors", slug };
-  }
-
-  if (candidateTab === "citation-review" || candidateTab === "citations") {
-    return { tab: "citation-review", slug };
-  }
-
-  if (candidateTab === "trip-report-submissions" || candidateTab === "trip-reports") {
-    return { tab: "trip-report-submissions", slug };
-  }
-
-  if (candidateTab === "article-feedback" || candidateTab === "feedback") {
-    return { tab: "article-feedback", slug };
-  }
-
-  if (candidateTab === "site-feedback") {
-    return { tab: "site-feedback", slug };
-  }
-
-  if (candidateTab === "molecule-editor" || candidateTab === "molecules") {
-    return { tab: "molecule-editor", slug };
-  }
-
-  if (candidateTab === "replications" || candidateTab === "replication-studio") {
-    return { tab: "replications", slug };
-  }
-
-  // `/dev/warnings` is the wording an editor reaching for this from an article
-  // is likely to type; the tool itself is named Banners per the design brief's
-  // glossary (§8), so the alias resolves rather than falling through to the
-  // substance list.
-  if (candidateTab === "banners" || candidateTab === "warnings") {
-    return { tab: "banners", slug };
-  }
-
-  if (candidateTab === "review") {
-    return { tab: "review", slug };
-  }
-
-  return { tab: "articles", slug };
-}
-
-export default async function NextDevPage({ params }: DevPageProps) {
-  const resolvedParams = await params;
-  const route = resolveDevRoute(resolvedParams.segments);
+export default async function NextDevPage({ params, searchParams }: DevPageProps) {
+  const [tabSegment, slugSegment] = (await params).segments ?? [];
+  const route = resolveDevRoute(tabSegment, slugSegment, await searchParams);
 
   // Review mode graduated to its own full-bleed workbench; the dev-shell
   // address keeps working as a deep link.
-  if (route.tab === "review") {
-    redirect(route.slug ? `/review/${route.slug}` : "/review");
+  const destination = findDevTab(route.tab).destination;
+  if (destination.kind === "external") {
+    redirect(route.slug ? `${destination.href}/${route.slug}` : destination.href);
   }
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
-  const pathname = route.tab === "profile" ? STATUS_PAGE_PATHS.devProfile : STATUS_PAGE_PATHS.dev;
+  // Contributors is the one tab a session without editor role may open; the
+  // tab itself narrows that session to its own record.
+  const pathname = route.tab === "contributors" ? STATUS_PAGE_PATHS.devContributors : STATUS_PAGE_PATHS.dev;
   const decision = getDevRouteDecision({ pathname, email, role });
   const redirectTarget = getProtectedRouteRedirectTarget(decision);
 
@@ -145,8 +68,7 @@ export default async function NextDevPage({ params }: DevPageProps) {
 
   // Resolved server-side on purpose: the privileged write URL must never be
   // shipped to the browser, so the comparison happens here and only deployment
-  // names cross into the rendered output. Checked ahead of both shells — the
-  // profile shell writes to Convex too.
+  // names cross into the rendered output.
   const alignment = getEditorTargetAlignment();
 
   if (alignment.status === "split" && !alignment.overrideAcknowledged) {
@@ -177,7 +99,7 @@ export default async function NextDevPage({ params }: DevPageProps) {
   // Deliberately not awaited: `getOwnedContributorProfile` is an uncached,
   // privileged Convex read, and awaiting it here put a full round trip in front
   // of the first byte of the shell. The browser gets the key derived from the
-  // session email straight away — the same fallback that read uses — and adopts
+  // session email straight away, the same fallback that read uses, and adopts
   // the canonical key when the promise lands.
   const ownedProfileKey = userEmail
     ? getOwnedContributorProfile(userEmail)
@@ -188,17 +110,6 @@ export default async function NextDevPage({ params }: DevPageProps) {
         })
     : undefined;
   const initialProfileKey = userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined;
-  const allowedRole = decision.type === "allow" ? decision.role : null;
-
-  if (route.tab === "profile" && !canAccessDev(allowedRole)) {
-    return withSplitBanner(
-      <NextDevProfileRouteClient
-        initialProfileKey={initialProfileKey ?? ""}
-        ownedProfileKey={ownedProfileKey}
-      />,
-    );
-  }
-
   const convexUrl = getEditorBrowserReadTarget().selectedUrl;
 
   return withSplitBanner(
@@ -206,6 +117,7 @@ export default async function NextDevPage({ params }: DevPageProps) {
       convexUrl={convexUrl}
       initialTab={route.tab}
       initialSlug={route.slug}
+      initialFilter={route.filter}
       initialProfileKey={initialProfileKey}
       ownedProfileKey={ownedProfileKey}
     />,

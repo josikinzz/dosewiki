@@ -3,17 +3,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
 import { canAccessDev } from "@/lib/auth/roles";
-import {
-  resolvePrimaryTab,
-  type DevModePrimaryTab,
-  type DevModeTab,
-} from "./devModePageUtils";
+import { resolvePrimaryTab, type DevModePrimaryTab } from "./devModePageUtils";
+import { findDevTab, type DevModeTab } from "./devTabRegistry";
 
 const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
   tools: "articles",
   "change-log": "change-log",
-  profile: "profile",
 };
+
+/** Where a session that cannot edit is sent when it sits on an editor-only tab. */
+const NON_EDITOR_HOME: DevModeTab = "contributors";
 
 type UseDevRouteAccessArgs = {
   activeTab: DevModeTab;
@@ -29,10 +28,8 @@ export function useDevRouteAccess({
   onClearNoticesForTab,
 }: UseDevRouteAccessArgs) {
   const nextSession = useSession();
-  const nextSessionRole = nextSession.data?.user?.role;
-  const hasAuthenticatedSession = nextSession.status === "authenticated";
-  const hasNextEditorSession = hasAuthenticatedSession && canAccessDev(nextSessionRole);
-  const hasProfileSession = hasAuthenticatedSession;
+  const isSignedIn = nextSession.status === "authenticated";
+  const canEdit = isSignedIn && canAccessDev(nextSession.data?.user?.role);
 
   const defaultSessionProfileKey = useMemo(() => {
     const email = nextSession.data?.user?.email?.trim() ?? "";
@@ -99,7 +96,7 @@ export function useDevRouteAccess({
       return;
     }
 
-    if (hasAuthenticatedSession) {
+    if (isSignedIn) {
       sawAuthenticatedSessionRef.current = true;
       recheckInFlightRef.current = false;
       setSessionLossConfirmed(false);
@@ -139,36 +136,28 @@ export function useDevRouteAccess({
     return () => {
       cancelled = true;
     };
-  }, [hasAuthenticatedSession, sessionStatus]);
+  }, [isSignedIn, sessionStatus]);
 
   const isSessionSettled =
-    sessionStatus !== "loading" && (hasAuthenticatedSession || sessionLossConfirmed);
+    sessionStatus !== "loading" && (isSignedIn || sessionLossConfirmed);
 
+  // Presentation routing only: the rail already disables editor-only tabs for
+  // a contributor, so this fires when the session changes underneath an open
+  // tab (role downgrade, sign-out confirmed above). The server decides access.
   useEffect(() => {
-    if (!isSessionSettled) {
+    if (!isSessionSettled || canEdit) {
       return;
     }
 
-    if (activeTab !== "profile" && !hasNextEditorSession) {
-      handleTabChange("profile");
+    if (findDevTab(activeTab).role === "editor") {
+      handleTabChange(NON_EDITOR_HOME);
     }
-  }, [activeTab, handleTabChange, hasNextEditorSession, isSessionSettled]);
-
-  useEffect(() => {
-    if (!isSessionSettled) {
-      return;
-    }
-
-    if (activeTab === "profile" && !hasProfileSession) {
-      handleTabChange("articles");
-    }
-  }, [activeTab, handleTabChange, hasProfileSession, isSessionSettled]);
+  }, [activeTab, canEdit, handleTabChange, isSessionSettled]);
 
   return {
     activePrimaryTab,
-    hasAuthenticatedSession,
-    hasProfileSession,
-    hasNextEditorSession,
+    isSignedIn,
+    canEdit,
     sessionProfileKey,
     sessionStatus: nextSession.status,
     userEmail: nextSession.data?.user?.email,

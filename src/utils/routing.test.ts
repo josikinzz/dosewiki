@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { viewToPath, parsePath } from './routing';
 import type { AppView } from '@/types/navigation';
+import { DEV_TAB_REGISTRY } from '@/features/dev/pages/devTabRegistry';
 
 describe('routing', () => {
   describe('viewToPath', () => {
@@ -37,6 +38,13 @@ describe('routing', () => {
       expect(viewToPath({ type: 'dev', tab: 'tag-editor' })).toBe('/dev/tag-editor');
       expect(viewToPath({ type: 'dev', tab: 'citation-review' })).toBe('/dev/citation-review');
       expect(viewToPath({ type: 'dev', tab: 'articles', slug: 'lsd' })).toBe('/dev/articles/lsd');
+    });
+
+    it('keeps a dev tab filter in the query string', () => {
+      expect(viewToPath({ type: 'dev', tab: 'writing', filter: 'blog' })).toBe('/dev/writing?kind=blog');
+      expect(viewToPath({ type: 'dev', tab: 'writing', slug: 'first-post', filter: 'blog' })).toBe(
+        '/dev/writing/first-post?kind=blog',
+      );
     });
 
     it('canonicalizes contributor paths with the public route casing policy', () => {
@@ -124,6 +132,33 @@ describe('routing', () => {
       expect(parsePath('/dev/molecules', null)).toEqual({ type: 'dev', tab: 'molecule-editor' });
     });
 
+    it('parses every registry id and alias to its tab, with and without a slug', () => {
+      for (const tab of DEV_TAB_REGISTRY) {
+        for (const segment of [tab.id, ...tab.aliases]) {
+          expect(parsePath(`/dev/${segment}`, null)).toEqual({ type: 'dev', tab: tab.id });
+          expect(parsePath(`/dev/${segment}/lsd`, null)).toEqual({ type: 'dev', tab: tab.id, slug: 'lsd' });
+        }
+      }
+    });
+
+    it('pins /dev/about onto the Writing tab and falls back to articles for unknown tabs', () => {
+      expect(parsePath('/dev/about', null)).toEqual({ type: 'dev', tab: 'writing', slug: 'about' });
+      expect(parsePath('/dev', null)).toEqual({ type: 'dev', tab: 'articles' });
+      expect(parsePath('/dev/unknown-tab/ketamine', null)).toEqual({ type: 'dev', tab: 'articles', slug: 'ketamine' });
+    });
+
+    it('parses the Writing kind from /dev/blog and from ?kind=', () => {
+      expect(parsePath('/dev/blog', null)).toEqual({ type: 'dev', tab: 'writing', filter: 'blog' });
+      expect(parsePath('/dev/blog/first-post', null)).toEqual({
+        type: 'dev',
+        tab: 'writing',
+        slug: 'first-post',
+        filter: 'blog',
+      });
+      expect(parsePath('/dev/writing?kind=blog', null)).toEqual({ type: 'dev', tab: 'writing', filter: 'blog' });
+      expect(parsePath('/dev/writing?kind=poem', null)).toEqual({ type: 'dev', tab: 'writing' });
+    });
+
     it('returns default view for empty path', () => {
       expect(parsePath('', null)).toEqual({ type: 'substances' });
       expect(parsePath('/', null)).toEqual({ type: 'substances' });
@@ -150,6 +185,8 @@ describe('routing', () => {
       { type: 'dev', tab: 'citation-review' },
       { type: 'dev', tab: 'molecule-editor' },
       { type: 'dev', tab: 'articles', slug: 'lsd' },
+      { type: 'dev', tab: 'writing', filter: 'blog' },
+      { type: 'dev', tab: 'writing', slug: 'first-post', filter: 'blog' },
       { type: 'contributor', profileKey: 'alice' },
     ];
 

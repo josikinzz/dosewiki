@@ -17,9 +17,12 @@ import {
   type MarkdownChange,
 } from "./devModePageUtils";
 
+/**
+ * Who a save is attributed to. The Auth.js session cookie is the credential;
+ * every save route authorizes from it server-side. `key` is the contributor
+ * key the client shows and sends as the archive's `username` label.
+ */
 export type DevSaveCredentials = {
-  username: string;
-  password: string;
   key: string;
 };
 
@@ -43,17 +46,6 @@ export type DevSaveDraft = {
    */
   articlesAreComplete: boolean;
   layouts: ManualLayoutDocument[];
-  about: {
-    markdown: string;
-    subtitle: string;
-    founderKeys: string[];
-    hasChanges: boolean;
-    changelog: {
-      markdown: MarkdownChange;
-      subtitle: MarkdownChange;
-      founders: MarkdownChange;
-    };
-  };
   convexEnabled: boolean;
   hasPendingChanges: boolean;
   changelog: {
@@ -66,17 +58,8 @@ export type DevSaveDraftInput = {
   originalArticles: SubstanceArticle[];
   articlesAreComplete: boolean;
   layouts: ManualLayoutDocument[];
-  aboutMarkdown: string;
-  aboutSubtitle: string;
-  aboutFounderKeys: string[];
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
-  aboutMarkdownChangelog: MarkdownChange;
-  aboutSubtitleChangelog: MarkdownChange;
-  aboutFounderChangelog: MarkdownChange;
-  hasAboutMarkdownChanges: boolean;
-  hasAboutSubtitleChanges: boolean;
-  hasAboutFounderChanges: boolean;
   hasPendingChanges: boolean;
 };
 
@@ -128,25 +111,11 @@ function buildIndexLayoutPayload(
 }
 
 export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
-  const hasAboutChanges =
-    input.hasAboutMarkdownChanges || input.hasAboutSubtitleChanges || input.hasAboutFounderChanges;
-
   return {
     articles: input.articles,
     originalArticles: input.originalArticles,
     articlesAreComplete: input.articlesAreComplete,
     layouts: input.layouts,
-    about: {
-      markdown: input.aboutMarkdown,
-      subtitle: input.aboutSubtitle,
-      founderKeys: input.aboutFounderKeys,
-      hasChanges: hasAboutChanges,
-      changelog: {
-        markdown: input.aboutMarkdownChangelog,
-        subtitle: input.aboutSubtitleChangelog,
-        founders: input.aboutFounderChangelog,
-      },
-    },
     convexEnabled: input.convexEnabled,
     hasPendingChanges: input.hasPendingChanges,
     changelog: {
@@ -166,14 +135,10 @@ export function buildGitHubSavePayload(
       markdown: draft.changelog.dataset.markdown,
     },
     ...draft.layouts.map((layout) => layout.changelog),
-    draft.about.changelog.markdown,
-    draft.about.changelog.subtitle,
-    draft.about.changelog.founders,
   ]);
 
   return {
-    username: credentials.username,
-    password: credentials.password,
+    username: credentials.key,
     articlesData: draft.articles,
     commitMessage: `Dev editor update - ${now.toLocaleString()}`,
     changelogMarkdown,
@@ -181,9 +146,6 @@ export function buildGitHubSavePayload(
     psychoactiveIndexManualData: draft.layouts.find((layout) => layout.type === "psychoactive")?.data,
     chemicalIndexManualData: draft.layouts.find((layout) => layout.type === "chemical")?.data,
     mechanismIndexManualData: draft.layouts.find((layout) => layout.type === "mechanism")?.data,
-    aboutMarkdown: draft.about.markdown,
-    aboutSubtitleMarkdown: draft.about.subtitle,
-    aboutConfig: { founderProfileKeys: draft.about.founderKeys },
     skipArticles: draft.convexEnabled,
   };
 }
@@ -195,10 +157,6 @@ export function buildConvexCommandPayload(draft: DevSaveDraft): {
   const result = buildConvexSavePayload({
     articles: draft.articles,
     originalArticles: draft.originalArticles,
-    hasAboutChanges: draft.about.hasChanges,
-    aboutMarkdown: draft.about.markdown,
-    aboutSubtitle: draft.about.subtitle,
-    aboutFounderKeys: draft.about.founderKeys,
     datasetChangelog: draft.changelog.dataset,
   });
   const changedLayouts = draft.layouts
@@ -281,16 +239,16 @@ export function createGitHubSaveAdapter({
     noChangesMessage: "No changes detected to archive.",
     verifiedMessage: (key) => `Credentials verified for ${key}. Archiving to GitHub...`,
     // The GitHub archive rewrites the whole articles file from `draft.articles`,
-    // so it must never run against the slim library list — that would archive
-    // 577 empty articles. Convex saves are diff-scoped and unaffected, which is
-    // also why the guard only applies when articles are actually being written.
+    // so it must never run against the slim library list. Convex saves are
+    // diff-scoped and unaffected, so the guard applies only when articles are
+    // actually being written.
     validateAvailability: (draft) =>
       draft.convexEnabled || draft.articlesAreComplete
         ? { ok: true }
         : {
             ok: false,
             message:
-              "The full article corpus has not loaded yet, so archiving to GitHub would overwrite it with an empty dataset. Open the Tag editor or the review workbench to load it, then try again.",
+              "The full article corpus has not loaded yet, so archiving to GitHub would overwrite it with an empty dataset. Open the Tag editor to load it, then try again.",
           },
     execute: async (draft, credentials) => {
       const payload = buildGitHubSavePayload(draft, credentials, now());

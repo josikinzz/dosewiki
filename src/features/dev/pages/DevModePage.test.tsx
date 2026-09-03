@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   sessionState,
-  verifyDevCredentialsMock,
   onTabChangeMock,
   libraryState,
   contributorProfilesState,
@@ -26,7 +25,6 @@ const {
           };
         },
   },
-  verifyDevCredentialsMock: vi.fn().mockResolvedValue(undefined),
   onTabChangeMock: vi.fn(),
   libraryState: {
     chemicalClassIndexGroups: [],
@@ -54,23 +52,11 @@ const {
     psychoactiveIndexManual: {},
     chemicalIndexManual: {},
     mechanismIndexManual: {},
-    aboutMarkdown: "",
-    aboutSubtitle: "",
-    aboutFounderKeys: [],
     close: vi.fn(),
     getOriginalArticles: vi.fn(() => []),
     getOriginalPsychoactiveIndexManual: vi.fn(() => ({})),
     getOriginalChemicalIndexManual: vi.fn(() => ({})),
     getOriginalMechanismIndexManual: vi.fn(() => ({})),
-    getOriginalAboutMarkdown: vi.fn(() => ""),
-    getOriginalAboutSubtitle: vi.fn(() => ""),
-    getOriginalAboutFounderKeys: vi.fn(() => []),
-    replaceAboutMarkdown: vi.fn(),
-    resetAboutMarkdown: vi.fn(),
-    replaceAboutSubtitle: vi.fn(),
-    resetAboutSubtitle: vi.fn(),
-    replaceAboutFounderKeys: vi.fn(),
-    resetAboutFounderKeys: vi.fn(),
     markChangesSaved: vi.fn(),
   },
   changeLogState: {
@@ -82,29 +68,15 @@ const {
     psychoactiveManualChangelog: {},
     chemicalManualChangelog: {},
     mechanismManualChangelog: {},
-    aboutMarkdownChangelog: { markdown: "", hasChanges: false },
-    aboutSubtitleChangelog: { markdown: "", hasChanges: false },
-    aboutFounderChangelog: {},
-    hasAboutMarkdownChanges: false,
-    hasAboutSubtitleChanges: false,
-    hasAboutFounderChanges: false,
     hasPendingChanges: false,
     combinedChangelogMarkdown: "",
-    originalAboutMarkdown: "",
-    originalAboutSubtitle: "",
-    originalAboutFounderKeys: [],
   },
   saveActionsState: {
-    passwordKey: "",
-    setPasswordKey: vi.fn(),
-    verifyDevCredentials: vi.fn().mockResolvedValue(undefined),
     commitPanel: null,
     renderCommitPanel: () => null,
     clearSaveNotices: vi.fn(),
   },
   supportTabPropsState: {
-    profileTabProps: {},
-    aboutTabProps: {},
     tagEditorTabProps: {},
   },
 }));
@@ -146,10 +118,7 @@ vi.mock("./useDevModeChangelogState", () => ({
 }));
 
 vi.mock("./useDevModeSaveActions", () => ({
-  useDevModeSaveActions: () => ({
-    ...saveActionsState,
-    verifyDevCredentials: verifyDevCredentialsMock,
-  }),
+  useDevModeSaveActions: () => saveActionsState,
 }));
 
 vi.mock("./useDevModeSupportTabProps", () => ({
@@ -158,12 +127,7 @@ vi.mock("./useDevModeSupportTabProps", () => ({
 
 vi.mock("./DevModePageChrome", () => ({
   DevModePageChrome: () => <div>Chrome</div>,
-  DevModePageLoadingState: () => <div>Loading</div>,
   DevToolLoadingPanel: () => <div>Loading</div>,
-}));
-
-vi.mock("../tools/about/AboutEditorTab", () => ({
-  AboutEditorTab: () => <div>About</div>,
 }));
 
 vi.mock("../tools/index-layout/IndexLayoutTab", () => ({
@@ -172,10 +136,6 @@ vi.mock("../tools/index-layout/IndexLayoutTab", () => ({
 
 vi.mock("../tools/substance-editor/SubstanceEditorTab", () => ({
   SubstanceEditorTab: () => <div>Substance Editor</div>,
-}));
-
-vi.mock("../profile", () => ({
-  ProfileEditorTab: () => <div>Profile</div>,
 }));
 
 vi.mock("../tags", () => ({
@@ -191,25 +151,25 @@ import { DevModePage } from "./DevModePage";
 describe("DevModePage", () => {
   beforeEach(() => {
     onTabChangeMock.mockReset();
-    verifyDevCredentialsMock.mockClear();
     sessionState.status = "unauthenticated";
     sessionState.data = null;
   });
 
-  it("redirects protected tabs to profile when the user lacks an editor session", async () => {
+  it("sends a session that cannot edit off an editor-only tab to Contributors", async () => {
     render(<DevModePage activeTab="articles" onTabChange={onTabChangeMock} />);
 
     await waitFor(() => {
-      expect(onTabChangeMock).toHaveBeenCalledWith("profile");
+      expect(onTabChangeMock).toHaveBeenCalledWith("contributors");
     });
   });
 
-  it("redirects profile back to articles when the user is unauthenticated", async () => {
-    render(<DevModePage activeTab="profile" onTabChange={onTabChangeMock} />);
+  it("mounts the same shell for a contributor session on Contributors", () => {
+    sessionState.status = "authenticated";
+    sessionState.data = { user: { email: "reader@example.com", role: "viewer" } };
 
-    await waitFor(() => {
-      expect(onTabChangeMock).toHaveBeenCalledWith("articles");
-    });
-    expect(verifyDevCredentialsMock).not.toHaveBeenCalled();
+    const { getByText } = render(<DevModePage activeTab="contributors" onTabChange={onTabChangeMock} />);
+
+    expect(getByText("Chrome")).toBeInTheDocument();
+    expect(onTabChangeMock).not.toHaveBeenCalled();
   });
 });

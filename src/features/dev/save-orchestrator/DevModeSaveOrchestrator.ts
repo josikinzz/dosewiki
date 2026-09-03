@@ -3,7 +3,7 @@
  *
  * Owns:
  * - Draft aggregation state
- * - hasPendingChanges (4 sources -> 1 computation)
+ * - hasPendingChanges (2 sources -> 1 computation)
  * - Save operation state (destination/in-progress/credentials)
  * - Two notice channels (github/convex)
  *
@@ -18,7 +18,7 @@ import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import type { DevSaveCommandResult, DevSaveCredentials } from "../pages/devSaveCommand";
 
 // -----------------------------------------------------------------------------
-// Changelog Source Types (the 4 derivation sources)
+// Changelog Source Types (the 2 derivation sources)
 // -----------------------------------------------------------------------------
 
 export type MarkdownChange = {
@@ -33,11 +33,6 @@ export type ChangelogSources = {
   psychoactiveManualChangelog: MarkdownChange;
   chemicalManualChangelog: MarkdownChange;
   mechanismManualChangelog: MarkdownChange;
-  /** Source 3: About markdown */
-  aboutMarkdownChangelog: MarkdownChange;
-  /** Source 4: About subtitle + founder keys */
-  aboutSubtitleChangelog: MarkdownChange;
-  aboutFounderChangelog: MarkdownChange;
 };
 
 // -----------------------------------------------------------------------------
@@ -80,14 +75,12 @@ export type SaveOperationState = {
 // -----------------------------------------------------------------------------
 
 export type DevModeSaveOrchestratorState = {
-  /** Aggregated pending changes flag (computed from 4 sources) */
+  /** Aggregated pending changes flag (computed from 2 sources) */
   hasPendingChanges: boolean;
 
   /** Individual change flags for UI */
   hasArticleDatasetChanges: boolean;
   hasManualLayoutChanges: boolean;
-  hasAboutMarkdownChanges: boolean;
-  hasAboutMetaChanges: boolean; // subtitle + founders
 
   /** Save operation state */
   saveOperation: SaveOperationState;
@@ -162,8 +155,6 @@ export function createInitialSaveOrchestratorState(): DevModeSaveOrchestratorSta
     hasPendingChanges: false,
     hasArticleDatasetChanges: false,
     hasManualLayoutChanges: false,
-    hasAboutMarkdownChanges: false,
-    hasAboutMetaChanges: false,
     saveOperation: {
       destination: null,
       phase: "idle",
@@ -178,15 +169,13 @@ export function createInitialSaveOrchestratorState(): DevModeSaveOrchestratorSta
 }
 
 // -----------------------------------------------------------------------------
-// Pure Computation: hasPendingChanges from 4 sources
+// Pure Computation: hasPendingChanges from 2 sources
 // -----------------------------------------------------------------------------
 
 export function computeHasPendingChanges(sources: ChangelogSources): {
   hasPendingChanges: boolean;
   hasArticleDatasetChanges: boolean;
   hasManualLayoutChanges: boolean;
-  hasAboutMarkdownChanges: boolean;
-  hasAboutMetaChanges: boolean;
 } {
   const hasArticleDatasetChanges =
     sources.datasetChangelog.sections.length > 0 &&
@@ -197,24 +186,10 @@ export function computeHasPendingChanges(sources: ChangelogSources): {
     sources.chemicalManualChangelog.hasChanges ||
     sources.mechanismManualChangelog.hasChanges;
 
-  const hasAboutMarkdownChanges = sources.aboutMarkdownChangelog.hasChanges;
-
-  const hasAboutMetaChanges =
-    sources.aboutSubtitleChangelog.hasChanges ||
-    sources.aboutFounderChangelog.hasChanges;
-
-  const hasPendingChanges =
-    hasArticleDatasetChanges ||
-    hasManualLayoutChanges ||
-    hasAboutMarkdownChanges ||
-    hasAboutMetaChanges;
-
   return {
-    hasPendingChanges,
+    hasPendingChanges: hasArticleDatasetChanges || hasManualLayoutChanges,
     hasArticleDatasetChanges,
     hasManualLayoutChanges,
-    hasAboutMarkdownChanges,
-    hasAboutMetaChanges,
   };
 }
 

@@ -101,8 +101,8 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
  * Whether a slug can be saved to, checked against the editor listing rather than
- * against a dedicated query: the listing already carries every slug in the table
- * — both kinds, drafts included — so a separate round trip would only tell the
+ * against a dedicated query: the listing already carries every slug in the table,
+ * both kinds, drafts included, so a separate round trip would only tell the
  * editor what the tab already knows.
  */
 export function checkSlugAvailability(
@@ -146,7 +146,7 @@ export function suggestSlug(title: string): string {
 
 export function sortWritingEntries(entries: readonly WritingListEntry[]): WritingListEntry[] {
   return [...entries].sort((a, b) => {
-    // Drafts first — they are the ones with work outstanding — then newest.
+    // Drafts first (they are the ones with work outstanding), then newest.
     if (a.status !== b.status) {
       return a.status === "draft" ? -1 : 1;
     }

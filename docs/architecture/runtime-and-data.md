@@ -294,7 +294,6 @@ by page revalidation rather than stale image bytes.
 Selected workflows still persist to GitHub-managed files:
 
 - `POST /api/save-substance-index`
-- `POST /api/save-user-profile`
 
 These routes:
 
@@ -412,7 +411,7 @@ Fallback behavior:
 
 - if Upstash is not configured or unavailable, rate limiting falls back to in-memory counters
 
-Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select named policies such as `editorHeavyWrite`, `editorSmallWrite`, `authenticatedProfileWrite`, `publicProxyRead`, `diagnosticRead`, and `publicSearchRead`; storage details stay behind the Upstash and in-memory adapters in `lib/http/nextRateLimit.ts`.
+Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select named policies such as `editorHeavyWrite`, `editorSmallWrite`, `publicProxyRead`, `diagnosticRead`, and `publicSearchRead`; storage details stay behind the Upstash and in-memory adapters in `lib/http/nextRateLimit.ts`.
 
 ### ProtestKit reagent-test snapshot
 

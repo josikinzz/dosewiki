@@ -100,7 +100,7 @@ export function TripReportPortalTab() {
         <EditorPanel variant="empty" className="p-8 text-center text-sm">
           Loading the trip report corpus…
         </EditorPanel>
-      ) : (
+      ) : load.status === "error" && rows.length === 0 ? null : (
         <div
           className={`grid gap-4 ${
             editorOpen

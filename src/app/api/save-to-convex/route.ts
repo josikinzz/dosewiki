@@ -8,7 +8,6 @@ import {
   buildArticlePathsFromWriteOutcomes,
   buildArticleVerificationFromWriteOutcome,
   deriveSubmittedBy,
-  parseAboutPayload,
   parseChangelogPayload,
   parseIndexLayoutPayloads,
   countFieldsStrippedForConvexMutation,
@@ -27,14 +26,12 @@ const LOCAL_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
 
 type SaveToConvexBody = {
   articles?: unknown;
-  about?: unknown;
   indexLayouts?: unknown;
   changelog?: unknown;
 };
 
 type SaveToConvexPhase =
   | "initializing"
-  | "site-config-mutation"
   | "article-mutation"
   | "index-layout-mutation"
   | "changelog-mutation"
@@ -187,7 +184,6 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
 
     const rawArticles = Array.isArray(body.articles) ? body.articles : [];
     const articles = rawArticles.map(sanitizeArticleForConvexMutation);
-    const about = parseAboutPayload(body.about);
     const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts);
     const changelog = parseChangelogPayload(body.changelog);
     const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
@@ -196,7 +192,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       0,
     );
 
-    if (articles.length === 0 && !about && indexLayouts.length === 0) {
+    if (articles.length === 0 && indexLayouts.length === 0) {
       return NextResponse.json({ error: "No Convex-compatible changes to save." }, { status: 400 });
     }
 
@@ -215,7 +211,6 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       submittedBy,
       contentLength: request.headers.get("content-length"),
       articleCount: articleSummaries.length,
-      hasAbout: about !== null,
       indexLayoutCount: indexLayouts.length,
       hasChangelog: changelog !== null,
       delegatesActorToConvex: convexActorEmail !== undefined,
@@ -224,19 +219,6 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
     });
 
     try {
-      if (about) {
-        phase = "site-config-mutation";
-        await client.mutation(api.siteConfig.saveAbout, {
-          apiKey: editorArticleWriteToken,
-          ...convexActorArgs,
-          aboutMarkdown: about.aboutMarkdown,
-          aboutSubtitle: about.aboutSubtitle,
-          founderProfileKeys: about.founderProfileKeys,
-          updatedBy: submittedBy,
-        });
-        savedItems.push("About page");
-      }
-
       let articleResult:
         | {
             created: number;
@@ -319,10 +301,6 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         articleOutcomes.length > 0
           ? buildArticlePathsFromWriteOutcomes(articleOutcomes)
           : articleResult?.affectedPaths ?? [];
-
-      if (about) {
-        revalidatedPaths.push("/about");
-      }
 
       if (indexLayouts.length > 0) {
         revalidatedPaths.push("/substances");

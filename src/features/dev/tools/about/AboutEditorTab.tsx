@@ -1,81 +1,77 @@
 import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
 
+import { Icon } from "@/components/common/Icon";
+import { StateCard } from "@/components/common/StateCard";
+import { Button } from "@/components/ui/button";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import {
+  EditorActionStatus,
+  EditorNotice,
   EditorSection,
   EditorStatusPill,
+  EditorToolbar,
 } from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { normalizeWhitespace } from "@/lib/text";
+import { viewToPath } from "@/utils/routing";
 import {
-  resolveAboutPlaceholders,
+  ABOUT_COPY_BLOCKS,
   resizeTextareaToContent,
+  resolveAboutPlaceholders,
   stripDiffHeading,
-  type AboutCopyNotice,
 } from "./aboutEditorUtils";
 import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
 import { AboutFounderSelectionSection } from "./AboutFounderSelectionSection";
+import { useAboutEditorController } from "./useAboutEditorController";
 
 const AUTO_RESIZE_MIN_HEIGHT = 240;
 const SUBTITLE_MIN_HEIGHT = 80;
 
 interface AboutEditorTabProps {
-  aboutMarkdown: string;
-  originalAboutMarkdown: string;
-  onMarkdownChange: (value: string) => void;
-  onResetMarkdown: () => void;
-  aboutSubtitle: string;
-  originalAboutSubtitle: string;
-  onSubtitleChange: (value: string) => void;
-  onResetSubtitle: () => void;
-  aboutFounderKeys: string[];
-  originalFounderKeys: string[];
-  onToggleFounderKey: (key: string) => void;
-  onResetFounderKeys: () => void;
   availableProfiles: NormalizedUserProfile[];
-  markdownDiff: string;
-  subtitleDiff: string;
-  subtitleHasChanges: boolean;
-  onCopyMarkdown: () => void;
-  onCopySubtitle: () => void;
-  copyNotice?: AboutCopyNotice | null;
   profilesLoading?: boolean;
-  commitPanel?: React.ReactNode;
-  placeholderValues: Record<string, string>;
 }
 
 export const AboutEditorTab = memo(function AboutEditorTab({
-  aboutMarkdown,
-  originalAboutMarkdown,
-  onMarkdownChange,
-  onResetMarkdown,
-  aboutSubtitle,
-  originalAboutSubtitle,
-  onSubtitleChange,
-  onResetSubtitle,
-  aboutFounderKeys,
-  originalFounderKeys,
-  onToggleFounderKey,
-  onResetFounderKeys,
   availableProfiles,
-  markdownDiff,
-  subtitleDiff,
-  subtitleHasChanges,
-  onCopyMarkdown,
-  onCopySubtitle,
-  copyNotice,
   profilesLoading,
-  commitPanel,
-  placeholderValues,
 }: AboutEditorTabProps) {
+  const controller = useAboutEditorController();
+  const {
+    isLoaded,
+    draft,
+    original,
+    isDirty,
+    saveState,
+    notice,
+    copyNotice,
+    markdownDiff,
+    subtitleDiff,
+    subtitleHasChanges,
+    placeholderValues,
+    replaceMarkdown,
+    replaceSubtitle,
+    resetMarkdown,
+    resetSubtitle,
+    resetFounderKeys,
+    toggleFounderKey,
+    copyMarkdown,
+    copySubtitle,
+    save,
+  } = controller;
+  const aboutMarkdown = draft.markdown;
+  const aboutSubtitle = draft.subtitle;
+  const aboutFounderKeys = draft.founderKeys;
+  const originalFounderKeys = original.founderKeys;
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const subtitleTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const normalizedDraft = normalizeWhitespace(aboutMarkdown);
-  const normalizedOriginal = normalizeWhitespace(originalAboutMarkdown);
+  const normalizedOriginal = normalizeWhitespace(original.markdown);
   const isMarkdownDirty = normalizedDraft !== normalizedOriginal;
   const normalizedSubtitleDraft = normalizeWhitespace(aboutSubtitle);
-  const normalizedSubtitleOriginal = normalizeWhitespace(originalAboutSubtitle);
+  const normalizedSubtitleOriginal = normalizeWhitespace(original.subtitle);
   const isSubtitleDirty = normalizedSubtitleDraft !== normalizedSubtitleOriginal;
   const subtitleLength = normalizedSubtitleDraft.length;
 
@@ -159,28 +155,43 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const element = event.currentTarget;
     resizeTextareaToContent(element, AUTO_RESIZE_MIN_HEIGHT);
-    onMarkdownChange(element.value);
+    replaceMarkdown(element.value);
   };
 
   const handleSubtitleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const element = event.currentTarget;
     resizeTextareaToContent(element, SUBTITLE_MIN_HEIGHT);
-    onSubtitleChange(element.value);
+    replaceSubtitle(element.value);
   };
 
+  if (!isLoaded) {
+    return (
+      <StateCard
+        icon="lucide:info"
+        tone="accent"
+        loading
+        align="center"
+        title="Loading About"
+        description="Pulling the About page document."
+      />
+    );
+  }
+
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
+    <div className="space-y-8">
+      {notice ? <EditorNotice notice={notice} /> : null}
+
       <AboutCopyEditors
         aboutMarkdown={aboutMarkdown}
         onMarkdownChange={handleTextareaChange}
-        onResetMarkdown={onResetMarkdown}
-        onCopyMarkdown={onCopyMarkdown}
+        onResetMarkdown={resetMarkdown}
+        onCopyMarkdown={copyMarkdown}
         isMarkdownDirty={isMarkdownDirty}
         textareaRef={textareaRef}
         aboutSubtitle={aboutSubtitle}
         onSubtitleChange={handleSubtitleTextareaChange}
-        onResetSubtitle={onResetSubtitle}
-        onCopySubtitle={onCopySubtitle}
+        onResetSubtitle={resetSubtitle}
+        onCopySubtitle={copySubtitle}
         isSubtitleDirty={isSubtitleDirty}
         subtitleLength={subtitleLength}
         subtitleTextareaRef={subtitleTextareaRef}
@@ -196,14 +207,33 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         sortedProfiles={sortedProfiles}
         currentFounderSet={currentFounderSet}
         initialsByKey={initialsByKey}
-        onToggleFounderKey={onToggleFounderKey}
-        onResetFounderKeys={onResetFounderKeys}
+        onToggleFounderKey={toggleFounderKey}
+        onResetFounderKeys={resetFounderKeys}
         isFounderSelectionDirty={isFounderSelectionDirty}
         addedFounders={addedFounders}
         removedFounders={removedFounders}
         formatFounderList={formatFounderList}
         isLoadingProfiles={profilesLoading}
       />
+
+      <EditorSection
+        title="Related copy"
+        icon="lucide:type"
+        description="Prose on the public About page that lives in Copy Studio rather than in this document."
+      >
+        <ul className="flex flex-wrap gap-2" aria-label="About copy blocks">
+          {ABOUT_COPY_BLOCKS.map((block) => (
+            <li key={block.key}>
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <a href={viewToPath({ type: "dev", tab: "copy-studio", slug: block.key })}>
+                  {block.label}
+                  <code className="theme-text-faint font-mono text-[0.7rem]">{block.key}</code>
+                </a>
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </EditorSection>
 
       <EditorSection
         title="Pending changes"
@@ -242,9 +272,27 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             )}
           </div>
         )}
-      </EditorSection>
 
-      {commitPanel}
+        <EditorToolbar variant="split" className="mt-4">
+          <Button
+            type="button"
+            variant="accent"
+            size="sm"
+            disabled={!isDirty || saveState === "saving"}
+            onClick={() => void save()}
+          >
+            <Icon icon="lucide:save" size={15} />
+            Save About page
+          </Button>
+          {saveState === "idle" ? (
+            <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
+              {isDirty ? "Unsaved changes" : "No changes"}
+            </EditorStatusPill>
+          ) : (
+            <EditorActionStatus status={saveState} />
+          )}
+        </EditorToolbar>
+      </EditorSection>
     </div>
   );
 });

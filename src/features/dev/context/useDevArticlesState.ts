@@ -111,7 +111,6 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
     markChangesSaved: document.markSaved,
     replaceArticles: document.replaceDraft,
     resetArticleAt,
-    resetArticlesToOriginal: document.reset,
     updateArticleAt,
   };
 }

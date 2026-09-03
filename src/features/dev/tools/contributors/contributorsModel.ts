@@ -13,6 +13,15 @@
  * Kept free of React so the ordering rules can be tested without a DOM.
  */
 
+export const MAX_BIO_LENGTH = 4000;
+export const MAX_LINKS = 3;
+export const MAX_AVATAR_BYTES = 1024 * 1024 * 2; // 2 MiB
+export const ALLOWED_AVATAR_MIME_TYPES: ReadonlySet<string> = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+]);
+
 export type ContributorDirectoryEntry = {
   key: string;
   displayName: string;
@@ -292,15 +301,10 @@ export function isContributorFormDirty(
  */
 export function buildContributorPatch(form: ContributorFormState) {
   return {
-    displayName: form.displayName.trim(),
-    bio: form.bio,
+    ...buildOwnContributorPatch(form),
     role: form.role.trim() ? form.role.trim() : null,
     membershipEmail: form.membershipEmail.trim() ? form.membershipEmail.trim() : null,
-    avatarUrl: form.avatarUrl.trim() ? form.avatarUrl.trim() : null,
     aliases: form.aliases.map((alias) => alias.trim()).filter(Boolean),
-    links: form.links
-      .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
-      .filter((link) => link.label && link.url),
     exclude_from_gallery: form.exclude_from_gallery,
     archival: form.archival,
     approved_replicator: form.approved_replicator,
@@ -314,6 +318,22 @@ export function buildContributorPatch(form: ContributorFormState) {
             : {}),
         }
       : null,
+  };
+}
+
+/**
+ * The part of the patch a contributor may set on their own record: name,
+ * bio, avatar, links. Everything else on the form is editor-curated, and the
+ * route refuses to write it for a session without editor role.
+ */
+export function buildOwnContributorPatch(form: ContributorFormState) {
+  return {
+    displayName: form.displayName.trim(),
+    bio: form.bio,
+    avatarUrl: form.avatarUrl.trim() ? form.avatarUrl.trim() : null,
+    links: form.links
+      .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
+      .filter((link) => link.label && link.url),
   };
 }
 

@@ -5,7 +5,6 @@ import { useLibrary } from "@/data/SubstanceIndexProvider";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevModeContextValue } from "./devModeTypes";
 import { EMPTY_INDEX_CONFIG } from "./devModeUtils";
-import { useDevAboutState } from "./useDevAboutState";
 import { useDevArticleHydration } from "./useDevArticleHydration";
 import { useDevArticlesState } from "./useDevArticlesState";
 import { useDevIndexConfigsState } from "./useDevIndexConfigsState";
@@ -29,7 +28,6 @@ export function DevModeProvider({
   // returns together, and `useIndexLayouts` (behind the library drain) issues
   // the identical `getAll` — Convex dedupes the two into a single subscription.
   const indexLayouts = useQuery(api.indexLayouts.getAll, {});
-  const aboutConfig = useQuery(api.siteConfig.getAbout, {});
 
   type IndexLayoutRow = NonNullable<typeof indexLayouts>[number];
 
@@ -73,50 +71,30 @@ export function DevModeProvider({
     mechanismSource,
     psychoactiveSource,
   });
-  const aboutState = useDevAboutState(aboutConfig);
   const articleHydration = useDevArticleHydration({
     articleCount: articlesState.articles.length,
     hydrateArticles: articlesState.hydrateArticles,
   });
-  const {
-    resetArticlesToOriginal,
-    hydrateArticles: _hydrateArticles,
-    ...articleContextValue
-  } = articlesState;
+  const { hydrateArticles: _hydrateArticles, ...articleContextValue } = articlesState;
   const { markIndexManualsSaved, ...indexContextValue } = indexConfigsState;
-  const { markAboutContentSaved, resetAboutContent, ...aboutContextValue } = aboutState;
-
-  const resetAll = useCallback(() => {
-    resetArticlesToOriginal();
-    resetAboutContent();
-  }, [resetAboutContent, resetArticlesToOriginal]);
 
   const markChangesSaved = useCallback(() => {
     articleContextValue.markChangesSaved();
     markIndexManualsSaved();
-    markAboutContentSaved();
-  }, [
-    articleContextValue,
-    markIndexManualsSaved,
-    markAboutContentSaved,
-  ]);
+  }, [articleContextValue, markIndexManualsSaved]);
 
   const value = useMemo<DevModeContextValue>(() => ({
     ...navigationState,
     ...articleContextValue,
     articleHydration,
     ...indexContextValue,
-    ...aboutContextValue,
     markChangesSaved,
-    resetAll,
   }), [
-    aboutContextValue,
     articleContextValue,
     articleHydration,
     indexContextValue,
     markChangesSaved,
     navigationState,
-    resetAll,
   ]);
 
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;

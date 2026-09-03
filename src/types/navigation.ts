@@ -1,21 +1,4 @@
-export type DevTab =
-  | "change-log"
-  | "tag-editor"
-  | "profile"
-  | "index-layout"
-  | "writing"
-  | "blog"
-  | "copy-studio"
-  | "contributors"
-  | "citation-review"
-  | "trip-report-submissions"
-  | "article-feedback"
-  | "site-feedback"
-  | "articles"
-  | "molecule-editor"
-  | "replications"
-  | "banners"
-  | "review";
+import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 
 export type AppView =
   | { type: "home" }
@@ -31,7 +14,7 @@ export type AppView =
   | { type: "classification"; classification: "chemical" | "psychoactive"; slug: string }
   | { type: "about" }
   | { type: "search"; query: string }
-  | { type: "dev"; tab: DevTab; slug?: string }
+  | { type: "dev"; tab: DevModeTab; slug?: string; filter?: string }
   | { type: "contributor"; profileKey: string }
   | { type: "reports" }
   | { type: "report-submit" }
@@ -60,7 +43,7 @@ export type RouteChromeIcon =
  *
  * Children are deliberately addressed by `href` rather than by {@link AppView}: a flavor may
  * point one at a routed subsection, query string, or another site, none of which the in-app
- * view union models. They therefore carry no active state either — the chrome only knows
+ * view union models. They therefore carry no active state either: the chrome only knows
  * which section the reader is in, not which view within it.
  */
 export interface RouteChromeNavChild {
@@ -82,7 +65,7 @@ export interface RouteChromeNavItem {
   active: boolean;
   /**
    * Dropdown children, or `undefined` when this item is a plain link. Absent on every
-   * dose.wiki item — that publication's header is flat, and the submenu code path must stay
+   * dose.wiki item, since that publication's header is flat, and the submenu code path must stay
    * inert rather than render an empty panel.
    */
   submenu?: readonly RouteChromeNavChild[];

@@ -55,26 +55,22 @@ vi.mock("@server/convex/serverWriteHealth", () => ({
 vi.mock("@server/next/statusRedirectPolicy", () => ({
   STATUS_PAGE_PATHS: {
     dev: "/dev",
-    devProfile: "/dev/profile",
+    devContributors: "/dev/contributors",
   },
   buildNoIndexPageMetadata: vi.fn(() => ({})),
-  getProtectedRouteRedirectTarget: vi.fn((decision) => ({ type: decision.type })),
+  getProtectedRouteRedirectTarget: vi.fn((decision) => ({ type: decision.type, href: `/${decision.type}` })),
 }));
 
 vi.mock("../_components/NextDevRouteClient", () => ({
   NextDevRouteClient: vi.fn(() => null),
 }));
 
-vi.mock("../_components/NextDevProfileRouteClient", () => ({
-  NextDevProfileRouteClient: vi.fn(() => null),
-}));
-
 import NextDevPage from "./page";
+import { DEV_TAB_REGISTRY } from "@/features/dev/pages/devTabRegistry";
 import {
   ConvexTargetSplitBanner,
   ConvexTargetSplitRefusal,
 } from "../../_components/ConvexTargetSplitNotice";
-import { NextDevProfileRouteClient } from "../_components/NextDevProfileRouteClient";
 import { NextDevRouteClient } from "../_components/NextDevRouteClient";
 
 describe("NextDevPage shell selection", () => {
@@ -84,7 +80,7 @@ describe("NextDevPage shell selection", () => {
     getEditorBrowserReadTargetMock.mockReturnValue({ selectedUrl: "https://convex.test" });
   });
 
-  it("renders the profile-only shell for authenticated non-editor profile access", async () => {
+  it("mounts the one shell on Contributors for an authenticated non-editor", async () => {
     getServerSessionMock.mockResolvedValue({
       user: {
         email: "viewer@example.com",
@@ -93,18 +89,32 @@ describe("NextDevPage shell selection", () => {
     });
     getOwnedContributorProfileMock.mockResolvedValue({ key: "VIEWER" });
 
-    const element = await NextDevPage({ params: Promise.resolve({ segments: ["profile"] }) });
+    const element = await NextDevPage({ params: Promise.resolve({ segments: ["contributors", "me"] }) });
 
-    expect(element.type).toBe(NextDevProfileRouteClient);
+    expect(element.type).toBe(NextDevRouteClient);
     expect(element.props).toEqual(
       expect.objectContaining({
+        convexUrl: "https://convex.test",
+        initialTab: "contributors",
+        initialSlug: "me",
         initialProfileKey: "VIEWER",
       }),
+    );
+    await expect(element.props.ownedProfileKey).resolves.toBe("VIEWER");
+  });
+
+  it("refuses editor-only tabs to a non-editor before any shell is built", async () => {
+    getServerSessionMock.mockResolvedValue({
+      user: { email: "viewer@example.com", role: "viewer" },
+    });
+
+    await expect(NextDevPage({ params: Promise.resolve({ segments: ["articles"] }) })).rejects.toThrow(
+      "redirect:/unauthorized",
     );
     expect(getEditorBrowserReadTargetMock).not.toHaveBeenCalled();
   });
 
-  it("keeps editor users on the full editor shell", async () => {
+  it("keeps editor users on the same shell for Contributors", async () => {
     getServerSessionMock.mockResolvedValue({
       user: {
         email: "editor@example.com",
@@ -113,14 +123,14 @@ describe("NextDevPage shell selection", () => {
     });
     getOwnedContributorProfileMock.mockResolvedValue(null);
 
-    const element = await NextDevPage({ params: Promise.resolve({ segments: ["profile"] }) });
+    const element = await NextDevPage({ params: Promise.resolve({ segments: ["contributors"] }) });
 
     expect(element.type).toBe(NextDevRouteClient);
     expect(element.props).toEqual(
       expect.objectContaining({
         convexUrl: "https://convex.test",
         initialProfileKey: "EDITOR",
-        initialTab: "profile",
+        initialTab: "contributors",
       }),
     );
   });
@@ -203,5 +213,78 @@ describe("NextDevPage shell selection", () => {
     const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
 
     expect(element.type).toBe(NextDevRouteClient);
+  });
+
+  describe("route resolution", () => {
+    const asEditor = () => {
+      getServerSessionMock.mockResolvedValue({
+        user: { email: "editor@example.com", role: "editor" },
+      });
+      getOwnedContributorProfileMock.mockResolvedValue(null);
+    };
+
+    const shellTabs = DEV_TAB_REGISTRY.filter((tab) => tab.destination.kind === "shell");
+
+    it.each(shellTabs.flatMap((tab) => [tab.id, ...tab.aliases].map((segment) => [segment, tab.id] as const)))(
+      "resolves /dev/%s to the %s tab and keeps the slug",
+      async (segment, id) => {
+        asEditor();
+
+        const bare = await NextDevPage({ params: Promise.resolve({ segments: [segment] }) });
+        expect(bare.type).toBe(NextDevRouteClient);
+        expect(bare.props).toEqual(expect.objectContaining({ initialTab: id, initialSlug: undefined }));
+
+        const deep = await NextDevPage({ params: Promise.resolve({ segments: [segment, "lsd"] }) });
+        expect(deep.props).toEqual(expect.objectContaining({ initialTab: id, initialSlug: "lsd" }));
+      },
+    );
+
+    it("redirects the external review descriptor to its own route", async () => {
+      asEditor();
+
+      await expect(NextDevPage({ params: Promise.resolve({ segments: ["review"] }) })).rejects.toThrow(
+        "redirect:/review",
+      );
+      await expect(NextDevPage({ params: Promise.resolve({ segments: ["review", "lsd"] }) })).rejects.toThrow(
+        "redirect:/review/lsd",
+      );
+    });
+
+    it("pins /dev/about onto Writing and falls back to articles for unknown tabs", async () => {
+      asEditor();
+
+      const about = await NextDevPage({ params: Promise.resolve({ segments: ["about"] }) });
+      expect(about.props).toEqual(expect.objectContaining({ initialTab: "writing", initialSlug: "about" }));
+
+      const unknown = await NextDevPage({ params: Promise.resolve({ segments: ["unknown-tab", "ketamine"] }) });
+      expect(unknown.props).toEqual(expect.objectContaining({ initialTab: "articles", initialSlug: "ketamine" }));
+
+      const root = await NextDevPage({ params: Promise.resolve({}) });
+      expect(root.props).toEqual(expect.objectContaining({ initialTab: "articles", initialSlug: undefined }));
+    });
+
+    it("opens /dev/blog and /dev/writing?kind=blog on Writing with the blog filter", async () => {
+      asEditor();
+
+      const legacy = await NextDevPage({ params: Promise.resolve({ segments: ["blog", "first-post"] }) });
+      expect(legacy.type).toBe(NextDevRouteClient);
+      expect(legacy.props).toEqual(
+        expect.objectContaining({ initialTab: "writing", initialSlug: "first-post", initialFilter: "blog" }),
+      );
+
+      const queried = await NextDevPage({
+        params: Promise.resolve({ segments: ["writing"] }),
+        searchParams: Promise.resolve({ kind: "blog" }),
+      });
+      expect(queried.props).toEqual(
+        expect.objectContaining({ initialTab: "writing", initialSlug: undefined, initialFilter: "blog" }),
+      );
+
+      const plain = await NextDevPage({
+        params: Promise.resolve({ segments: ["writing"] }),
+        searchParams: Promise.resolve({ kind: "poem" }),
+      });
+      expect(plain.props).toEqual(expect.objectContaining({ initialTab: "writing", initialFilter: undefined }));
+    });
   });
 });

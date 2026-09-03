@@ -5,36 +5,12 @@ import {
   buildArticleVerificationFromWriteOutcome,
   buildArticlePathsForRevalidation,
   deriveSubmittedBy,
-  parseAboutPayload,
   parseChangelogPayload,
   summarizeArticleForDebug,
   toArticleSnapshot,
 } from "./saveToConvexUtils";
 
 describe("saveToConvexUtils", () => {
-  it("parses About payloads and filters invalid founder keys", () => {
-    expect(
-      parseAboutPayload({
-        aboutMarkdown: "Mission",
-        aboutSubtitle: "Subtitle",
-        founderProfileKeys: ["josie", 42, "sam"],
-      }),
-    ).toEqual({
-      aboutMarkdown: "Mission",
-      aboutSubtitle: "Subtitle",
-      founderProfileKeys: ["josie", "sam"],
-    });
-
-    expect(parseAboutPayload({ founderProfileKeys: [123, false] })).toEqual({
-      aboutMarkdown: undefined,
-      aboutSubtitle: undefined,
-      founderProfileKeys: [],
-    });
-
-    expect(parseAboutPayload({})).toBeNull();
-    expect(parseAboutPayload("nope")).toBeNull();
-  });
-
   it("parses changelog payloads and ignores invalid article entries", () => {
     expect(
       parseChangelogPayload({

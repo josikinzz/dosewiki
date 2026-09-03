@@ -11,7 +11,6 @@ import type { SubstanceEditorTabProps } from "./types";
 
 export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   renderCommitPanel,
-  commitPanel,
 }: SubstanceEditorTabProps) {
   const { articles, applyArticlesTransform, articleHydration } = useDevMode();
   const articleData = useSubstanceEditorArticleData(articles as SubstanceArticle[]);
@@ -42,7 +41,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     // "Apply to draft" button to write that emptiness into the working set.
     selectedSubstanceSlug: isSelectedArticleReady ? selectedSubstanceSlug : null,
     substances: articleData.substances,
-    commitPanel,
   });
 
   // Selecting another substance rebuilds the draft from scratch, so unapplied
@@ -131,7 +129,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                   size="pill"
                   className="rounded-full"
                   onClick={() => {
-                    void draft.handleSaveToDatabase("draft");
+                    void draft.handleSaveToDatabase();
                   }}
                   disabled={draft.isSaving}
                 >
@@ -147,7 +145,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
             "Apply form edits to the working set first, then save that draft to Convex.",
           )}
         </div>
-      ) : commitPanel ? <div>{commitPanel}</div> : null}
+      ) : null}
     </div>
   );
 });

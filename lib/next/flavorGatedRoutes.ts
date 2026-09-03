@@ -23,6 +23,10 @@ import {
 /**
  * URL prefixes owned by a flavor-gated route. Only routes that exist as app entries need
  * an entry here; a path with no route already 404s on its own.
+ *
+ * `/dev` covers the whole editor shell, `/dev/kit` and `/dev/themes` included: on the
+ * flavor that does not list `dev` the request is answered here, before the middleware's
+ * session lookup and sign-in redirect further down.
  */
 const FLAVOR_GATED_ROUTE_PREFIXES: readonly { route: FlavorGatedRoute; prefix: string }[] = [
   { route: "blog", prefix: "/blog" },
@@ -30,6 +34,7 @@ const FLAVOR_GATED_ROUTE_PREFIXES: readonly { route: FlavorGatedRoute; prefix: s
   { route: "contact", prefix: "/contact" },
   { route: "discord", prefix: "/discord" },
   { route: "copyrightDisclaimer", prefix: "/copyright-disclaimer" },
+  { route: "dev", prefix: "/dev" },
 ];
 
 /**

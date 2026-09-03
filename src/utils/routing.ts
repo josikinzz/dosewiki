@@ -1,4 +1,5 @@
-import { AppView, DevTab } from "../types/navigation";
+import { findDevTab, resolveDevRoute } from "@/features/dev/pages/devTabRegistry";
+import { AppView } from "../types/navigation";
 import { publicHref } from "./publicHref";
 
 export function viewToPath(view: AppView): string {
@@ -51,10 +52,9 @@ export function viewToPath(view: AppView): string {
     case "dev": {
       const tab = view.tab;
       const slug = view.slug?.trim();
-      if (slug) {
-        return `/dev/${tab}/${slug}`;
-      }
-      return `/dev/${tab}`;
+      const path = slug ? `/dev/${tab}/${slug}` : `/dev/${tab}`;
+      const filter = view.filter ? findDevTab(tab).filter : undefined;
+      return filter ? `${path}?${filter.param}=${encodeURIComponent(view.filter ?? "")}` : path;
     }
     default:
       return "/substances";
@@ -221,58 +221,8 @@ export function parsePath(
         }
         return resolveDefault();
       }
-      case "dev": {
-        const candidate = slug ?? "articles";
-        const slugSegment = segments[2];
-        let tab: DevTab = "articles";
-        if (candidate === "change-log" || candidate === "changelog") {
-          tab = "change-log";
-        } else if (candidate === "tag-editor" || candidate === "tag") {
-          tab = "tag-editor";
-        } else if (candidate === "profile" || candidate === "profiles") {
-          tab = "profile";
-        } else if (candidate === "index-layout" || candidate === "index") {
-          tab = "index-layout";
-        } else if (candidate === "about") {
-          // Folded into the Writing tab's pinned About entry; the old deep link
-          // keeps resolving.
-          return { type: "dev", tab: "writing", slug: "about" };
-        } else if (candidate === "writing") {
-          tab = "writing";
-        } else if (candidate === "blog") {
-          tab = "blog";
-        } else if (candidate === "copy-studio" || candidate === "copy") {
-          tab = "copy-studio";
-        } else if (candidate === "contributors" || candidate === "contributor") {
-          tab = "contributors";
-        } else if (candidate === "citation-review" || candidate === "citations") {
-          tab = "citation-review";
-        } else if (candidate === "trip-report-submissions" || candidate === "trip-reports") {
-          tab = "trip-report-submissions";
-        } else if (candidate === "article-feedback" || candidate === "feedback") {
-          tab = "article-feedback";
-        } else if (candidate === "site-feedback") {
-          tab = "site-feedback";
-        } else if (candidate === "molecule-editor" || candidate === "molecules") {
-          tab = "molecule-editor";
-        } else if (candidate === "replications" || candidate === "replication-studio") {
-          tab = "replications";
-        } else if (candidate === "banners" || candidate === "warnings") {
-          tab = "banners";
-        } else if (candidate === "review") {
-          tab = "review";
-        } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {
-          tab = "articles";
-        } else {
-          tab = "articles";
-        }
-
-        if (slugSegment) {
-          return { type: "dev", tab, slug: slugSegment };
-        }
-
-        return { type: "dev", tab };
-      }
+      case "dev":
+        return { type: "dev", ...resolveDevRoute(slug, segments[2], Object.fromEntries(searchParams)) };
       default:
         // Treat any unrecognized path as a substance slug (e.g., /lsd -> substance lsd)
         return { type: "substance", slug: root };

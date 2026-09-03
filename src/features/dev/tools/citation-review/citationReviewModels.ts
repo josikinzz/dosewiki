@@ -12,6 +12,33 @@ export type CitationEvidenceStatus =
 
 export type CitationEvidenceSeverity = "blocking" | "non_blocking";
 
+/**
+ * Queue membership filter shared by the tab, the queue route, and the Convex
+ * summary query. `open` is the default: an article stays queued while at least
+ * one row is not approved, so fully approved articles drain out of the queue.
+ * `approved` brings those drained articles back; `rejected` narrows to
+ * articles holding at least one rejected row; `all` lifts the filter.
+ */
+export type CitationReviewQueueFilter = "open" | "approved" | "rejected" | "all";
+
+export const CITATION_QUEUE_FILTERS: readonly CitationReviewQueueFilter[] = [
+  "open",
+  "approved",
+  "rejected",
+  "all",
+];
+
+export const CITATION_QUEUE_FILTER_LABEL: Record<CitationReviewQueueFilter, string> = {
+  open: "Open",
+  approved: "Approved",
+  rejected: "Rejected",
+  all: "All",
+};
+
+export function isCitationReviewQueueFilter(value: string): value is CitationReviewQueueFilter {
+  return (CITATION_QUEUE_FILTERS as readonly string[]).includes(value);
+}
+
 export type CitationEvidenceSupport = {
   sourceId: string;
   sourceName: string;
@@ -239,11 +266,13 @@ export function buildCitationReviewCommands({
 
     const isPending = pending.has(row.claimKey);
     const canApprove = canApproveCitationEvidence(row);
+    // A verdict button is inert once the row already holds that verdict, so
+    // the disabled state reads as the current decision.
     rowCommands[row.claimKey] = {
       canApprove,
       isPending,
-      approveDisabled: !canApprove || isPending,
-      rejectDisabled: isPending,
+      approveDisabled: !canApprove || isPending || row.status === "approved",
+      rejectDisabled: isPending || row.status === "rejected",
     };
   }
 

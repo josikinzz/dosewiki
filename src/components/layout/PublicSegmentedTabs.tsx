@@ -17,8 +17,7 @@ export type PublicSegmentedTabItem<TValue extends string = string> = {
   suffix?: ReactNode;
   /**
    * Disable the tab. Forwarded to the Radix TabsTrigger, which already styles
-   * `disabled:opacity-50` and blocks pointer events. Used by the dev chrome's
-   * Profile tab to preserve its `!hasStoredCredentials` guard.
+   * `disabled:opacity-50` and blocks pointer events.
    */
   disabled?: boolean;
   /** "major" renders a larger, bolder pill for overarching tabs. */

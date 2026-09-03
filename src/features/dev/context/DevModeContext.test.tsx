@@ -20,9 +20,6 @@ vi.mock("../../../../convex/_generated/api", () => ({
     indexLayouts: {
       getAll: "indexLayouts.getAll",
     },
-    siteConfig: {
-      getAbout: "siteConfig.getAbout",
-    },
     prompts: {
       getByKey: "prompts.getByKey",
     },
@@ -32,31 +29,13 @@ vi.mock("../../../../convex/_generated/api", () => ({
 import { DevModeProvider, useDevMode } from "./DevModeContext";
 
 function DevModeConsumer() {
-  const {
-    aboutFounderKeys,
-    articles,
-    close,
-    open,
-    replaceAboutFounderKeys,
-    resetArticleAt,
-    updateArticleAt,
-  } = useDevMode();
+  const { articles, close, resetArticleAt, updateArticleAt } = useDevMode();
 
   return (
     <div>
       <div data-testid="article-title">{articles[0]?.title ?? ""}</div>
-      <div data-testid="founder-keys">{aboutFounderKeys.join(",")}</div>
-      <button type="button" onClick={() => open({ tab: "articles", slug: "lsd" })}>
-        Open
-      </button>
       <button type="button" onClick={close}>
         Close
-      </button>
-      <button
-        type="button"
-        onClick={() => replaceAboutFounderKeys([" alice ", "bob", "ALICE"])}
-      >
-        Normalize founders
       </button>
       <button
         type="button"
@@ -74,40 +53,28 @@ function DevModeConsumer() {
   );
 }
 
+const ARTICLES = [
+  {
+    title: "LSD",
+    identification: { common_name: "LSD" },
+  },
+];
+
+const INDEX_LAYOUTS = [
+  { type: "psychoactive", version: 1, categories: [] },
+  { type: "chemical", version: 1, categories: [] },
+  { type: "mechanism", version: 1, categories: [] },
+];
+
 describe("DevModeContext", () => {
-  it("keeps navigation behavior stable through the sliced provider internals", () => {
-    let currentPath = "/substances/lsd";
+  it("closes the editor to the substances index", () => {
+    let currentPath = "/dev/articles/lsd";
     const navigateMock = vi.fn((nextPath: string) => {
       currentPath = nextPath;
     });
-    const articles = [
-      {
-        title: "LSD",
-        identification: { common_name: "LSD" },
-      },
-    ];
-    const indexLayouts = [
-      { type: "psychoactive", version: 1, categories: [] },
-      { type: "chemical", version: 1, categories: [] },
-      { type: "mechanism", version: 1, categories: [] },
-    ];
-    const aboutData = {
-      aboutMarkdown: "About",
-      aboutSubtitle: "Subtitle",
-      founderProfileKeys: ["FOUNDER"],
-    };
 
-    useLibraryMock.mockReturnValue({
-      articles,
-    });
-
-    useQueryMock.mockImplementation((query: string) => {
-      if (query === "indexLayouts.getAll") {
-        return indexLayouts;
-      }
-
-      return aboutData;
-    });
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
 
     render(
       <DevModeProvider navigate={navigateMock} getCurrentPath={() => currentPath}>
@@ -115,42 +82,15 @@ describe("DevModeContext", () => {
       </DevModeProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Open" }));
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
-    expect(navigateMock).toHaveBeenNthCalledWith(1, "/dev/articles/lsd");
-    expect(navigateMock).toHaveBeenNthCalledWith(2, "/substances/lsd");
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith("/substances");
   });
 
-  it("preserves article reset and founder normalization behavior", () => {
-    const articles = [
-      {
-        title: "LSD",
-        identification: { common_name: "LSD" },
-      },
-    ];
-    const indexLayouts = [
-      { type: "psychoactive", version: 1, categories: [] },
-      { type: "chemical", version: 1, categories: [] },
-      { type: "mechanism", version: 1, categories: [] },
-    ];
-    const aboutData = {
-      aboutMarkdown: "About",
-      aboutSubtitle: "Subtitle",
-      founderProfileKeys: ["FOUNDER"],
-    };
-
-    useLibraryMock.mockReturnValue({
-      articles,
-    });
-
-    useQueryMock.mockImplementation((query: string) => {
-      if (query === "indexLayouts.getAll") {
-        return indexLayouts;
-      }
-
-      return aboutData;
-    });
+  it("subscribes to the index layouts only; the About document belongs to its editor", () => {
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
 
     render(
       <DevModeProvider>
@@ -158,8 +98,18 @@ describe("DevModeContext", () => {
       </DevModeProvider>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Normalize founders" }));
-    expect(screen.getByTestId("founder-keys")).toHaveTextContent("ALICE,BOB");
+    expect(new Set(useQueryMock.mock.calls.map(([query]) => query))).toEqual(new Set(["indexLayouts.getAll"]));
+  });
+
+  it("preserves article reset behavior", () => {
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+
+    render(
+      <DevModeProvider>
+        <DevModeConsumer />
+      </DevModeProvider>,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Update article" }));
     expect(screen.getByTestId("article-title")).toHaveTextContent("Updated LSD");

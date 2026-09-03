@@ -72,8 +72,9 @@ describe("site flavor config", () => {
       "replications",
       "about",
     ]);
-    // dose.wiki owns `/blog` — its own blog, not the Effect Index archive.
-    expect(config.flavorGatedRoutes).toEqual(["blog"]);
+    // dose.wiki owns `/blog` (its own blog, not the Effect Index archive) and the
+    // `/dev` editor shell, which the credential-free Effect Index build never serves.
+    expect(config.flavorGatedRoutes).toEqual(["blog", "dev"]);
     expect(config.organization).toEqual({
       publisherName: "dose.wiki",
       contributorsName: "dose.wiki Contributors",

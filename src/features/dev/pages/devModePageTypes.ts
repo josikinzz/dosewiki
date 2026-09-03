@@ -1,12 +1,14 @@
-import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { useDevModeChangeLog } from "./useDevModeChangeLog";
-import type { DevModePrimaryTab, DevModeTab } from "./devModePageUtils";
+import type { DevModePrimaryTab } from "./devModePageUtils";
+import type { DevModeTab } from "./devTabRegistry";
 import type { useDevSupportTabsController } from "./useDevModeSupportTabProps";
 
 export type DevModePageProps = {
   activeTab: DevModeTab;
   initialArticleSlug?: string;
+  /** See `DevModePageControllerState.initialFilter`. */
+  initialFilter?: string;
   initialProfileKey?: string;
   /** True while the editor corpus is still draining behind the shell. */
   isLibraryLoading?: boolean;
@@ -22,8 +24,10 @@ export type DevModePageControllerState = {
   activePrimaryTab: DevModePrimaryTab;
   mainClassName: string;
   contentWrapperClass: string;
-  hasProfileSession: boolean;
-  hasNextEditorSession: boolean;
+  /** An Auth.js session is present. */
+  isSignedIn: boolean;
+  /** The session role may use editor tools; drives disabled rail tabs and save gating. */
+  canEdit: boolean;
   sessionStatus: DevModePageChromeSessionStatus;
   userEmail?: string | null;
   userImage?: string | null;
@@ -43,14 +47,25 @@ export type DevModePageControllerState = {
   replicationsInitialSlug?: string;
   bannersInitialSlug?: string;
   /**
-   * The Writing/Blog deep link: `/dev/writing/<slug>`, `/dev/blog/<slug>`, or
+   * The Writing deep link: `/dev/writing/<slug>`, `/dev/blog/<slug>`, or
    * the literal `about` that `/dev/about` now resolves to.
    */
   writingInitialSlug?: string;
-  profileTabProps: ReturnType<typeof useDevSupportTabsController>["profileTabProps"];
-  aboutTabProps: ReturnType<typeof useDevSupportTabsController>["aboutTabProps"];
+  /** `/dev/copy-studio/<block key>`: the block Copy Studio opens on. */
+  copyStudioInitialKey?: string;
+  /**
+   * The active tab's URL filter value (`/dev/writing?kind=blog`), already
+   * validated against the registry descriptor's `filter.values`. Each tab
+   * narrows it to its own union.
+   */
+  initialFilter?: string;
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];
-  profileHistory: ChangeLogEntry[];
+  /**
+   * The signed-in user's own contributor key, for the Contributors tab's
+   * "Just me" scope: the canonical owned key once the server resolves it,
+   * else the key derived from the session email.
+   */
+  sessionProfileKey: string;
   /**
    * The contributor directory, for the Contributors tab's list rail. Fetched by
    * the shell (see `tabNeedsContributorProfiles`) rather than by the tab, so the

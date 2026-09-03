@@ -23,7 +23,6 @@ type UseSubstanceEditorDraftControllerArgs = {
   ) => void;
   selectedSubstanceSlug: string | null;
   substances: SubstanceInfo[];
-  commitPanel?: React.ReactNode;
 };
 
 export function useSubstanceEditorDraftController({
@@ -31,7 +30,6 @@ export function useSubstanceEditorDraftController({
   applyArticlesTransform,
   selectedSubstanceSlug,
   substances,
-  commitPanel,
 }: UseSubstanceEditorDraftControllerArgs) {
   const [streamedOutput, setStreamedOutput] = useState("");
   const [outputViewMode, setOutputViewMode] = useState<OutputViewMode>("yaml");
@@ -146,7 +144,7 @@ export function useSubstanceEditorDraftController({
   }, [selectedSubstance?.name, streamedOutput]);
 
   const handleSaveToDatabase = useCallback(
-    async (mode: "draft" | "publish" = "draft") => {
+    async () => {
       if (!streamedOutput) {
         return;
       }
@@ -207,17 +205,13 @@ export function useSubstanceEditorDraftController({
           window.clearTimeout(saveSuccessResetRef.current);
         }
         saveSuccessResetRef.current = window.setTimeout(() => setSaveSuccess(false), 3000);
-
-        if (mode === "publish" && commitPanel) {
-          // The commit panel is already visible in the parent shell.
-        }
       } catch (error) {
         setSaveError(error instanceof Error ? error.message : "Failed to save");
       } finally {
         setIsSaving(false);
       }
     },
-    [applyArticlesTransform, commitPanel, outputViewMode, streamedOutput],
+    [applyArticlesTransform, outputViewMode, streamedOutput],
   );
 
   return {

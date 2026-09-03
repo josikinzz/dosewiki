@@ -7,6 +7,7 @@ import {
   countPlaceholders,
   draftFromBlock,
   draftToText,
+  filterCopyStudioBlocks,
   groupCopyStudioBlocks,
   isDraftDirty,
   resolveCopyPlaceholders,
@@ -87,6 +88,24 @@ describe("copy studio block reconciliation", () => {
 
     expect(groups[0]?.group).toBe(COPY_BLOCK_DEFAULTS[0].group);
     expect(new Set(groups.map((entry) => entry.group)).size).toBe(groups.length);
+  });
+
+  it("finds blocks by key or label substring across every group, and none for a blank query", () => {
+    const blocks = buildCopyStudioBlocks([
+      { key: "zeta-hero", kind: "plain", body: "a", label: "Hero title", group: "Home" },
+      { key: "zeta-footer", kind: "plain", body: "b", label: "Footer credit", group: "Footer" },
+    ]);
+
+    expect(filterCopyStudioBlocks(blocks, "ZETA").map((block) => block.key)).toEqual([
+      "zeta-hero",
+      "zeta-footer",
+    ]);
+    expect(filterCopyStudioBlocks(blocks, "footer CREDIT").map((block) => block.key)).toEqual([
+      "zeta-footer",
+    ]);
+    expect(filterCopyStudioBlocks(blocks, "about-").every((block) => block.key.includes("about-"))).toBe(true);
+    expect(filterCopyStudioBlocks(blocks, "about-").length).toBe(6);
+    expect(filterCopyStudioBlocks(blocks, "   ")).toEqual([]);
   });
 });
 

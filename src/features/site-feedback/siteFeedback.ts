@@ -87,6 +87,13 @@ export const SITE_FEEDBACK_STATUSES = [
 
 export type SiteFeedbackStatus = (typeof SITE_FEEDBACK_STATUSES)[number];
 
+/**
+ * Statuses that are still asking for an editor. The Feedback tab's rail badge
+ * counts exactly these rows, so the badge and the queue agree on what is
+ * pending.
+ */
+export const SITE_FEEDBACK_PENDING_STATUSES = ["new", "reviewing"] as const satisfies readonly SiteFeedbackStatus[];
+
 export const SITE_FEEDBACK_STATUS_TRANSITIONS: Record<
   SiteFeedbackStatus,
   SiteFeedbackStatus[]

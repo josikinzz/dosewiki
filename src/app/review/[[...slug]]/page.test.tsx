@@ -46,7 +46,7 @@ vi.mock("@server/convex/serverWriteHealth", () => ({
 vi.mock("@server/next/statusRedirectPolicy", () => ({
   STATUS_PAGE_PATHS: {
     dev: "/dev",
-    devProfile: "/dev/profile",
+    devContributors: "/dev/contributors",
   },
   buildNoIndexPageMetadata: vi.fn(() => ({})),
   getProtectedRouteRedirectTarget: vi.fn((decision) => ({ type: decision.type })),

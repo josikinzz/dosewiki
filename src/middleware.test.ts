@@ -600,3 +600,30 @@ describe("retired preview addresses are dose.wiki-only", () => {
     }
   });
 });
+
+describe("the editor shell is dose.wiki-only", () => {
+  it.each(["/dev", "/dev/themes", "/dev/kit", "/dev/articles/x"])(
+    "answers %s with the real not-found route on an Effect Index build, before any session read",
+    async (path) => {
+      vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "effectindex");
+      vi.resetModules();
+      mocks.getToken.mockReset();
+      mocks.getToken.mockResolvedValue({ email: "admin@example.com", role: "admin" });
+
+      try {
+        // The flavor is read at module init, so the import has to follow the stub.
+        const { middleware } = await import("../middleware");
+        const response = await middleware(makeRequest(path));
+
+        expect(response.headers.get("x-middleware-rewrite")).toBe(
+          "https://dosewiki-admin.vercel.app/_flavor-gated/not-found",
+        );
+        expect(response.headers.get("location")).toBeNull();
+        expect(mocks.getToken).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllEnvs();
+        vi.resetModules();
+      }
+    },
+  );
+});

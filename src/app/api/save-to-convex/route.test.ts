@@ -33,9 +33,6 @@ vi.mock("../../../../convex/_generated/api", () => ({
       getById: "substanceIndex.getById",
       getBySlug: "substanceIndex.getBySlug",
     },
-    siteConfig: {
-      saveAbout: "siteConfig.saveAbout",
-    },
     indexLayouts: {
       save: "indexLayouts.save",
     },
@@ -246,10 +243,6 @@ describe("save-to-convex route", () => {
     const client = {
       query: vi.fn(),
       mutation: vi.fn(async (name: string) => {
-        if (name === "siteConfig.saveAbout") {
-          return { updated: true, id: "about-id" };
-        }
-
         if (name === "substanceIndex.saveSubstances") {
           return {
             created: 1,
@@ -294,7 +287,6 @@ describe("save-to-convex route", () => {
       new Request("https://dose.wiki/api/save-to-convex", {
         method: "POST",
         body: JSON.stringify({
-          about: { aboutMarkdown: "About", founderProfileKeys: ["editor"] },
           articles: [{ id: 1, title: "LSD", slug: "lsd" }],
           changelog: {
             markdown: "Changed LSD.",
@@ -305,10 +297,7 @@ describe("save-to-convex route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(client.mutation).toHaveBeenCalledWith("siteConfig.saveAbout", expect.objectContaining({
-      apiKey: "article-token",
-      actorEmail: "editor@example.com",
-    }));
+    expect(client.mutation).not.toHaveBeenCalledWith("siteConfig.saveAbout", expect.anything());
     expect(client.mutation).toHaveBeenCalledWith("substanceIndex.saveSubstances", expect.objectContaining({
       apiKey: "article-token",
       actorEmail: "editor@example.com",

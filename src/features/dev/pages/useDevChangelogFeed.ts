@@ -1,11 +1,9 @@
 import { useQuery as useConvexQuery } from "convex/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { api } from "../../../../convex/_generated/api";
 import {
   appendChangeLogEntry,
-  buildSubmitterKeySet,
-  entryMatchesSubmitter,
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
@@ -50,18 +48,11 @@ function mergeStaticAndConvexChangelogEntries(
 }
 
 /**
- * @param active - Only the surfaces that display the feed (the change log and
- * the profile tab's contribution history) subscribe to it. `convexEnabled` is
- * reported independently of this, because the save path uses it to decide where
- * a commit goes.
+ * @param active - Only the change log displays the feed, so only it subscribes.
+ * `convexEnabled` is reported independently of this, because the save path
+ * uses it to decide where a commit goes.
  */
-export function useDevChangelogFeed({
-  profileKey,
-  active = true,
-}: {
-  profileKey: string;
-  active?: boolean;
-}) {
+export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
   );
@@ -98,34 +89,8 @@ export function useDevChangelogFeed({
     setChangeLogEntries((previous) => appendChangeLogEntry(previous, entry));
   }, []);
 
-  const getProfileHistory = useCallback(
-    (nextProfileKey: string) => {
-      if (!nextProfileKey) {
-        return [] as ChangeLogEntry[];
-      }
-
-      // Alias-aware: legacy stamps (e.g. WITCHY) attribute to the profile
-      // they belong to (LYREA), and vice versa for a legacy login key.
-      const submitterKeys = buildSubmitterKeySet(nextProfileKey);
-      return changeLogEntries
-        .filter((entry) => entryMatchesSubmitter(entry, submitterKeys))
-        .slice(0, 6);
-    },
-    [changeLogEntries],
-  );
-
-  const profileHistory = useMemo(() => {
-    if (!profileKey) {
-      return [] as ChangeLogEntry[];
-    }
-
-    return getProfileHistory(profileKey);
-  }, [getProfileHistory, profileKey]);
-
   return {
     changeLogEntries,
-    profileHistory,
-    getProfileHistory,
     convexEnabled,
     appendChangeLogEntryToState,
   };

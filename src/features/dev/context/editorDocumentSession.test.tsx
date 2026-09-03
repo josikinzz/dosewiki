@@ -119,7 +119,7 @@ describe("useEditorDocument", () => {
   });
 
   it("ignores a structurally identical source object rebuilt on every render", () => {
-    // Mirrors useDevAboutState, which derives a brand-new document object on
+    // Mirrors useAboutEditorController, which derives a brand-new document object on
     // each render. A rebuilt-but-equal source must not count as a refresh.
     const { result, rerender } = renderHook(() =>
       useEditorDocument({ title: "About", version: 1 }),

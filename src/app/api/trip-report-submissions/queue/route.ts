@@ -1,3 +1,14 @@
+/**
+ * Editor read of the private submission queue.
+ *
+ *   GET /api/trip-report-submissions/queue?status=&limit=   newest first, capped at 250
+ *   GET /api/trip-report-submissions/queue?scope=needs-review
+ *
+ * The `needs-review` scope is uncapped and reads `NEEDS_REVIEW_SUBMISSION_STATUSES`,
+ * the same list `/api/dev/trip-reports/needs-review-count` counts, so the portal's
+ * bucket holds exactly the rows the rail badge announces. It takes no `status`
+ * or `limit`: the scope is the filter.
+ */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -9,6 +20,7 @@ import {
   isTripReportSubmissionStatus,
   type TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
+import { NEEDS_REVIEW_SUBMISSION_STATUSES } from "@/features/dev/tools/trip-report-portal/tripReportPortalModel";
 
 export const runtime = "nodejs";
 
@@ -30,8 +42,23 @@ export const GET = protectedRouteOperation({
   },
   operation: async ({ request }) => {
     const { searchParams } = new URL(request.url);
-    const statusParam = searchParams.get("status");
-    const status = parseStatus(statusParam);
+    const scope = searchParams.get("scope");
+
+    if (scope !== null) {
+      if (scope !== "needs-review") {
+        throw new InvalidQueueFilterError(`Unknown trip report queue scope: ${scope}`);
+      }
+
+      if (searchParams.has("status") || searchParams.has("limit")) {
+        throw new InvalidQueueFilterError("The needs-review scope takes no status or limit.");
+      }
+
+      const store = await getTripReportSubmissionStore();
+      const submissions = await store.listByStatuses({ statuses: NEEDS_REVIEW_SUBMISSION_STATUSES });
+      return NextResponse.json({ ok: true, submissions });
+    }
+
+    const status = parseStatus(searchParams.get("status"));
     const limit = parseLimit(searchParams.get("limit"));
     const store = await getTripReportSubmissionStore();
     const submissions = await store.list({ status, limit });

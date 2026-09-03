@@ -1,13 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type * as SiteFlavorModule from "@/config/siteFlavor";
-
-const { getServerSessionMock, isEffectIndexMock, notFoundMock, redirectMock } = vi.hoisted(() => ({
+const { getServerSessionMock, redirectMock } = vi.hoisted(() => ({
   getServerSessionMock: vi.fn(),
-  isEffectIndexMock: vi.fn(() => false),
-  notFoundMock: vi.fn(() => {
-    throw new Error("not-found");
-  }),
   redirectMock: vi.fn((href: string) => {
     throw new Error(`redirect:${href}`);
   }),
@@ -22,14 +16,8 @@ vi.mock("@auth", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  notFound: notFoundMock,
   redirect: redirectMock,
 }));
-
-vi.mock("@/config/siteFlavor", async (importOriginal) => {
-  const actual = await importOriginal<typeof SiteFlavorModule>();
-  return { ...actual, isEffectIndex: isEffectIndexMock };
-});
 
 vi.mock("./ThemeLabWorkbench", () => ({
   ThemeLabWorkbench: vi.fn(() => null),
@@ -41,7 +29,6 @@ import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 describe("Theme Lab developer route access", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    isEffectIndexMock.mockReturnValue(false);
   });
 
   it("sends an anonymous request to sign-in", async () => {
@@ -66,15 +53,5 @@ describe("Theme Lab developer route access", () => {
 
       expect(element.type, role).toBe(ThemeLabWorkbench);
     }
-  });
-
-  it("does not exist on the Effect Index build, and reads no session there", async () => {
-    isEffectIndexMock.mockReturnValue(true);
-    getServerSessionMock.mockResolvedValue({
-      user: { email: "admin@example.com", role: "admin" },
-    });
-
-    await expect(DevThemesPage()).rejects.toThrow("not-found");
-    expect(getServerSessionMock).not.toHaveBeenCalled();
   });
 });

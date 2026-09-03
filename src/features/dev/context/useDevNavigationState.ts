@@ -1,5 +1,4 @@
-import { useCallback, useRef } from "react";
-import type { DevModeOpenOptions } from "./devModeTypes";
+import { useCallback } from "react";
 
 export function useDevNavigationState({
   getCurrentPath,
@@ -8,8 +7,6 @@ export function useDevNavigationState({
   getCurrentPath?: () => string;
   navigate?: (path: string) => void;
 }) {
-  const lastVisitedPathRef = useRef<string | null>(null);
-
   const readCurrentPath = useCallback(() => {
     if (getCurrentPath) {
       return getCurrentPath();
@@ -36,46 +33,11 @@ export function useDevNavigationState({
     window.dispatchEvent(new PopStateEvent("popstate"));
   }, [navigate]);
 
-  const isDevPath = useCallback((value: string | null | undefined) => {
-    if (typeof value !== "string") {
-      return false;
-    }
-
-    return value.startsWith("/dev");
-  }, []);
-
-  const open = useCallback((options?: DevModeOpenOptions) => {
-    const currentPath = readCurrentPath();
-    if (!currentPath) {
-      return;
-    }
-
-    if (!isDevPath(currentPath)) {
-      lastVisitedPathRef.current = currentPath;
-    }
-
-    const requestedTab = options?.tab ?? "edit";
-    const slug = options?.slug?.trim();
-    const nextPath = slug && slug.length > 0 ? `/dev/${requestedTab}/${slug}` : `/dev/${requestedTab}`;
-
-    if (currentPath !== nextPath) {
-      navigateToPath(nextPath);
-      return;
-    }
-
-    if (!isDevPath(currentPath)) {
-      navigateToPath(nextPath);
-    }
-  }, [isDevPath, navigateToPath, readCurrentPath]);
-
   const close = useCallback(() => {
     const currentPath = readCurrentPath();
-    const fallback = lastVisitedPathRef.current && !isDevPath(lastVisitedPathRef.current)
-      ? lastVisitedPathRef.current
-      : "/substances";
 
-    if (currentPath !== fallback) {
-      navigateToPath(fallback);
+    if (currentPath !== "/substances") {
+      navigateToPath("/substances");
       return;
     }
 
@@ -93,7 +55,7 @@ export function useDevNavigationState({
       window.history.pushState(null, "", "/substances");
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
-  }, [isDevPath, navigate, navigateToPath, readCurrentPath]);
+  }, [navigate, navigateToPath, readCurrentPath]);
 
-  return { close, open };
+  return { close };
 }

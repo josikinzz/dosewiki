@@ -1,12 +1,11 @@
 import { getServerSession } from "next-auth";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { authOptions } from "@auth";
 import {
   buildNoIndexPageMetadata,
   getProtectedRouteRedirectTarget,
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
-import { isEffectIndex } from "@/config/siteFlavor";
 import { getDevRouteDecision } from "@/lib/auth/roles";
 import { ThemeLabWorkbench } from "./ThemeLabWorkbench";
 
@@ -17,11 +16,9 @@ export const metadata = buildNoIndexPageMetadata({
   pathname: STATUS_PAGE_PATHS.dev,
 });
 
+// The Effect Index build never reaches this page: middleware answers the whole `/dev`
+// prefix with a real 404 there (`dev` in `FlavorGatedRoute`), so only the role gate is left.
 export default async function DevThemesPage() {
-  if (isEffectIndex()) {
-    notFound();
-  }
-
   const session = await getServerSession(authOptions);
   const decision = getDevRouteDecision({
     pathname: STATUS_PAGE_PATHS.dev,

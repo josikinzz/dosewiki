@@ -7,15 +7,15 @@ import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { useDevMode } from "../../context/DevModeContext";
 import { EditorCitationDiagnosticsPanel } from "../../forms/EditorCitationDiagnosticsPanel";
 import {
+  CITATION_QUEUE_FILTER_LABEL,
   buildCitationReviewChecklist,
   buildCitationReviewCommands,
   groupCitationEvidenceBySection,
 } from "./citationReviewModels";
+import { CitationQueueHeader, CitationQueuePanel } from "./CitationQueuePanel";
 import {
   CitationChecklistPanel,
   CitationEvidenceSection,
-  CitationQueueHeader,
-  CitationQueuePanel,
   CitationSelectedSummary,
 } from "./CitationReviewPanels";
 import { useCitationReviewData } from "./useCitationReviewData";
@@ -39,6 +39,8 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   const { allSubstanceRecords } = useLibrary();
   const {
     queue,
+    queueFilter,
+    setQueueFilter,
     queueError,
     isQueueLoading,
     selectedSlug,
@@ -161,15 +163,27 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
     );
   }
 
+  const queueHeader = (
+    <CitationQueueHeader
+      queue={queue}
+      queueFilter={queueFilter}
+      onQueueFilterChange={setQueueFilter}
+      onRefreshQueue={() => {
+        void refreshQueue();
+      }}
+    />
+  );
+
   if (queue.length === 0) {
     return (
-      <div className="mt-6">
+      <div className="mt-6 space-y-8">
+        {queueHeader}
         <StateCard
           badge="Citation Review"
-          title="No citation review rows"
-          description="Protected citation evidence exists, but there are no review rows queued right now."
-          icon="lucide:badge-check"
-          tone="success"
+          title="No evidence rows match this filter"
+          description={`No articles have evidence rows matching the ${CITATION_QUEUE_FILTER_LABEL[queueFilter].toLowerCase()} filter. Switch the queue filter to revisit other rows.`}
+          icon={queueFilter === "open" ? "lucide:badge-check" : "lucide:filter"}
+          tone={queueFilter === "open" ? "success" : "neutral"}
         />
       </div>
     );
@@ -177,12 +191,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
 
   return (
     <div className="mt-6 space-y-8">
-      <CitationQueueHeader
-        queue={queue}
-        onRefreshQueue={() => {
-          void refreshQueue();
-        }}
-      />
+      {queueHeader}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[24rem_minmax(0,1fr)]">
         <CitationQueuePanel

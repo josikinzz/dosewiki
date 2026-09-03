@@ -20,7 +20,7 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
   App Paths and are crawlable.
 - `middleware.ts` keeps host-specific boundaries: public-host `/dev`, `/review`,
   `/sign-in`, and `/unauthorized` links redirect to `dev.dose.wiki`.
-  Credentialed endpoints (`/api/auth`, `/api/dev`, `/api/save-user-profile`)
+  Credentialed endpoints (`/api/auth`, `/api/dev`)
   remain unavailable on the public origin because a cross-origin redirect would
   lose cookies and misreport the caller as signed out.
 - Both editor hosts answer `Disallow: /` and an empty sitemap. They mirror the

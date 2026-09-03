@@ -164,5 +164,24 @@ describe("citationReviewModels", () => {
       approveDisabled: true,
       rejectDisabled: false,
     });
+    expect(commands.rows["legality:approved"]).toMatchObject({
+      canApprove: true,
+      isPending: false,
+      approveDisabled: true,
+      rejectDisabled: false,
+    });
+  });
+
+  it("disables Reject on a row that already holds the rejected verdict", () => {
+    const commands = buildCitationReviewCommands({
+      rows: [createRow({ claimKey: "summary:rejected", status: "rejected" })],
+      pendingClaimKeys: [],
+      isBulkUpdating: false,
+    });
+
+    expect(commands.rows["summary:rejected"]).toMatchObject({
+      approveDisabled: true,
+      rejectDisabled: true,
+    });
   });
 });

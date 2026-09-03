@@ -23,6 +23,10 @@ export type TripReportSubmissionListFilters = {
   limit?: number;
 };
 
+export type TripReportSubmissionStatusFilters = {
+  statuses: readonly TripReportSubmissionStatus[];
+};
+
 export type TripReportSubmissionCreateResult = {
   row: TripReportSubmissionRow;
   warnings: string[];
@@ -50,7 +54,12 @@ export type TripReportSubmissionPromotionOptions = {
 
 export interface TripReportSubmissionStore {
   create(input: TripReportSubmissionInput): Promise<TripReportSubmissionCreateResult>;
+  /** Newest rows first, capped at 250: the browse path. */
   list(filters?: TripReportSubmissionListFilters): Promise<TripReportSubmissionRow[]>;
+  /** Every row in the given statuses, newest first, uncapped: what `count` counts. */
+  listByStatuses(filters: TripReportSubmissionStatusFilters): Promise<TripReportSubmissionRow[]>;
+  /** Total rows in the given statuses, computed on the server: no list travels. */
+  count(filters: TripReportSubmissionStatusFilters): Promise<number>;
   get(id: string): Promise<TripReportSubmissionRow | null>;
   transition(id: string, options: TransitionTripReportSubmissionOptions): Promise<TripReportSubmissionRow>;
   previewPromotion(
@@ -88,6 +97,18 @@ const listSubmissionsRef = makeFunctionReference<
   { apiKey: string; status?: TripReportSubmissionStatus; limit?: number },
   TripReportSubmissionRow[]
 >("tripReportSubmissions:list");
+
+const listSubmissionsByStatusesRef = makeFunctionReference<
+  "query",
+  { apiKey: string; statuses: TripReportSubmissionStatus[] },
+  TripReportSubmissionRow[]
+>("tripReportSubmissions:listByStatuses");
+
+const countSubmissionsRef = makeFunctionReference<
+  "query",
+  { apiKey: string; statuses: TripReportSubmissionStatus[] },
+  number
+>("tripReportSubmissions:countByStatus");
 
 const getSubmissionRef = makeFunctionReference<
   "query",
@@ -170,6 +191,20 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
       ...(filters.status ? { status: filters.status } : {}),
       limit: clampLimit(filters.limit),
     }) as TripReportSubmissionRow[];
+  }
+
+  async listByStatuses(filters: TripReportSubmissionStatusFilters): Promise<TripReportSubmissionRow[]> {
+    return await this.options.client.query(listSubmissionsByStatusesRef, {
+      apiKey: this.options.apiKey,
+      statuses: [...filters.statuses],
+    }) as TripReportSubmissionRow[];
+  }
+
+  async count(filters: TripReportSubmissionStatusFilters): Promise<number> {
+    return await this.options.client.query(countSubmissionsRef, {
+      apiKey: this.options.apiKey,
+      statuses: [...filters.statuses],
+    }) as number;
   }
 
   async get(id: string): Promise<TripReportSubmissionRow | null> {

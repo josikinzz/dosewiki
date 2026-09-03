@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 
+import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
 import { DevModeChangeLogTab } from "./DevModeChangeLogTab";
 import {
   DevModePageChrome,
@@ -9,10 +10,11 @@ import {
 } from "./DevModePageChrome";
 import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
+import { findDevTab, type DevTabDescriptor } from "./devTabRegistry";
 
 /**
- * Every tool is its own lazily-loaded chunk. The shell used to pull all ten
- * bundles into the first paint even though exactly one of them is ever on
+ * Every tool is its own lazily-loaded chunk. The shell used to pull every tool
+ * bundle into the first paint even though exactly one of them is ever on
  * screen; splitting them keeps the tab rail cheap and lets a tool's code arrive
  * alongside its data instead of ahead of every other tool's.
  *
@@ -23,10 +25,6 @@ const loading = () => <DevToolLoadingPanel />;
 
 const WritingTab = dynamic(
   () => import("../tools/writing/WritingTab").then((m) => m.WritingTab),
-  { ssr: false, loading },
-);
-const BlogTab = dynamic(
-  () => import("../tools/writing/BlogTab").then((m) => m.BlogTab),
   { ssr: false, loading },
 );
 const CopyStudioTab = dynamic(
@@ -61,21 +59,13 @@ const SubstanceEditorTab = dynamic(
   () => import("../tools/substance-editor/SubstanceEditorTab").then((m) => m.SubstanceEditorTab),
   { ssr: false, loading },
 );
-const ArticleFeedbackReviewTab = dynamic(
-  () => import("../tools/article-feedback/ArticleFeedbackReviewTab").then((m) => m.ArticleFeedbackReviewTab),
-  { ssr: false, loading },
-);
-const SiteFeedbackReviewTab = dynamic(
-  () => import("../tools/site-feedback/SiteFeedbackReviewTab").then((m) => m.SiteFeedbackReviewTab),
+const FeedbackTab = dynamic(
+  () => import("../tools/feedback/FeedbackTab").then((m) => m.FeedbackTab),
   { ssr: false, loading },
 );
 const TripReportPortalTab = dynamic(
   () =>
     import("../tools/trip-report-portal/TripReportPortalTab").then((m) => m.TripReportPortalTab),
-  { ssr: false, loading },
-);
-const ProfileEditorTab = dynamic(
-  () => import("../profile").then((m) => m.ProfileEditorTab),
   { ssr: false, loading },
 );
 const TagEditorTab = dynamic(
@@ -86,6 +76,38 @@ const TagEditorTab = dynamic(
 type DevModePageViewProps = {
   controller: DevModePageControllerState;
 };
+
+const SAVE_FAMILY_PILL: Record<
+  DevTabDescriptor["saveFamily"],
+  { label: string; icon: string; tone: EditorStatusPillTone }
+> = {
+  staged: {
+    label: "Staged: commit to publish",
+    icon: "lucide:git-commit-horizontal",
+    tone: "info",
+  },
+  immediate: { label: "Saves immediately", icon: "lucide:zap", tone: "success" },
+};
+
+/**
+ * One line above every tool naming its save family, read off the registry
+ * descriptor so a tool cannot say one thing and do another. Only tools the
+ * shell renders get one: the chrome cluster (Change log) is not a tool, and
+ * an external destination (Review) never renders here at all.
+ */
+function DevToolSaveFamily({ tab }: { tab: DevTabDescriptor }) {
+  if (tab.group === "chrome" || tab.destination.kind !== "shell") {
+    return null;
+  }
+  const pill = SAVE_FAMILY_PILL[tab.saveFamily];
+  return (
+    <div className="mt-4 flex justify-end">
+      <EditorStatusPill tone={pill.tone} icon={pill.icon} title={`${tab.label}: ${pill.label}`}>
+        {pill.label}
+      </EditorStatusPill>
+    </div>
+  );
+}
 
 export function DevModePageView({ controller }: DevModePageViewProps) {
   const isWaitingOnLibrary =
@@ -100,8 +122,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       <DevModePageChrome
         activePrimaryTab={controller.activePrimaryTab}
         activeTab={controller.activeTab}
-        hasStoredCredentials={controller.hasProfileSession}
-        hasNextEditorSession={controller.hasNextEditorSession}
+        isSignedIn={controller.isSignedIn}
+        canEdit={controller.canEdit}
         sessionStatus={controller.sessionStatus}
         userEmail={controller.userEmail}
         userImage={controller.userImage}
@@ -112,12 +134,11 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       />
 
       <div className={controller.contentWrapperClass}>
+        <DevToolSaveFamily tab={findDevTab(controller.activeTab)} />
         {isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
         ) : controller.activeTab === "change-log" ? (
           <DevModeChangeLogTab controller={controller.changeLog} />
-        ) : controller.activeTab === "profile" ? (
-          <ProfileEditorTab {...controller.profileTabProps} />
         ) : controller.activeTab === "index-layout" ? (
           <IndexLayoutTab
             commitPanel={controller.renderCommitPanel(
@@ -127,32 +148,27 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           />
         ) : controller.activeTab === "writing" ? (
           <WritingTab
-            aboutTabProps={controller.aboutTabProps}
             contributorProfiles={controller.contributorDirectory.profiles}
             profilesLoading={controller.contributorDirectory.isLoading}
             initialSlug={controller.writingInitialSlug}
-          />
-        ) : controller.activeTab === "blog" ? (
-          <BlogTab
-            contributorProfiles={controller.contributorDirectory.profiles}
-            profilesLoading={controller.contributorDirectory.isLoading}
-            initialSlug={controller.writingInitialSlug}
+            initialKind={controller.initialFilter}
           />
         ) : controller.activeTab === "copy-studio" ? (
-          <CopyStudioTab />
+          <CopyStudioTab initialKey={controller.copyStudioInitialKey} />
         ) : controller.activeTab === "contributors" ? (
           <ContributorsTab
             profiles={controller.contributorDirectory.profiles}
             isDirectoryLoading={controller.contributorDirectory.isLoading}
+            canEdit={controller.canEdit}
+            sessionProfileKey={controller.sessionProfileKey}
+            initialScope={controller.initialFilter}
           />
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
           <TripReportPortalTab />
         ) : controller.activeTab === "article-feedback" ? (
-          <ArticleFeedbackReviewTab />
-        ) : controller.activeTab === "site-feedback" ? (
-          <SiteFeedbackReviewTab />
+          <FeedbackTab initialSource={controller.initialFilter} />
         ) : controller.activeTab === "tag-editor" ? (
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (

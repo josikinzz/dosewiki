@@ -128,6 +128,25 @@ export function groupCopyStudioBlocks(
 }
 
 /**
+ * The blocks whose key or label contains `query`, case-insensitively, in
+ * catalogue order. A blank query matches nothing: the rail shows the active
+ * group instead, so the search never has to enumerate all 400-odd blocks.
+ */
+export function filterCopyStudioBlocks(
+  blocks: readonly CopyStudioBlock[],
+  query: string,
+): CopyStudioBlock[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) {
+    return [];
+  }
+  return blocks.filter(
+    (block) =>
+      block.key.toLowerCase().includes(needle) || block.label.toLowerCase().includes(needle),
+  );
+}
+
+/**
  * Publication label for a flavored block.
  *
  * A flavor row is just a key — `footer-tagline-effect-index` sits in the same

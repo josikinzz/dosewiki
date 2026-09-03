@@ -47,7 +47,7 @@ describe("citation review queue route", () => {
     });
   });
 
-  it("returns the protected citation review queue summary", async () => {
+  it("returns the open queue summary by default so fully approved articles drain", async () => {
     const { GET } = await import("./route");
 
     const response = await GET(new Request("https://dose.wiki/api/citation-evidence/queue"));
@@ -60,6 +60,36 @@ describe("citation review queue route", () => {
     expect(mocks.query).toHaveBeenCalledWith("citationEvidence.getQueueSummary", {
       apiKey: "review-token",
       actorEmail: "editor@example.com",
+      status: "open",
     });
+  });
+
+  it("forwards an explicit status filter to the queue summary", async () => {
+    const { GET } = await import("./route");
+
+    const response = await GET(
+      new Request("https://dose.wiki/api/citation-evidence/queue?status=rejected"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.query).toHaveBeenCalledWith("citationEvidence.getQueueSummary", {
+      apiKey: "review-token",
+      actorEmail: "editor@example.com",
+      status: "rejected",
+    });
+  });
+
+  it("rejects an unknown status filter without querying", async () => {
+    const { GET } = await import("./route");
+
+    const response = await GET(
+      new Request("https://dose.wiki/api/citation-evidence/queue?status=archived"),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "Unknown citation review queue filter: archived",
+    });
+    expect(mocks.query).not.toHaveBeenCalled();
   });
 });

@@ -2,27 +2,18 @@ import { memo } from "react";
 import { Icon } from "@/components/common/Icon";
 import { parseGeneratedYaml } from "./yamlParser";
 import { EditorCitationDiagnosticsPanel } from "@/features/dev/forms/EditorCitationDiagnosticsPanel";
-import {
-  HeroSection,
-  DosageDurationSection,
-  SubjectiveEffectsSection,
-  PharmacologySection,
-  InteractionsSection,
-  ToleranceSection,
-  HistoryCultureSection,
-  HarmPotentialSection,
-  ReagentSection,
-  LegalitySection,
-  CitationsSection,
-} from "@/features/article/components/sections";
+import { ArticleLayout } from "@/features/article/components/ArticleLayout";
 
 interface GeneratorOutputPreviewProps {
   yamlContent: string;
 }
 
 /**
- * Main preview orchestrator component.
- * Parses YAML content and renders a visual article preview.
+ * Parses the draft YAML and renders it through the public article layout, so
+ * the preview is the page the draft will ship as. Only the citation
+ * diagnostics sit above it; those are editor tooling, not article content.
+ * Route-resolved inputs (banners, copy blocks, avatars, molecule depiction)
+ * are left at ArticleLayout's defaults because the draft carries none.
  */
 export const GeneratorOutputPreview = memo(function GeneratorOutputPreview({
   yamlContent,
@@ -56,17 +47,7 @@ export const GeneratorOutputPreview = memo(function GeneratorOutputPreview({
   return (
     <div className="space-y-6">
       <EditorCitationDiagnosticsPanel article={article} />
-      <HeroSection article={article} />
-      <DosageDurationSection article={article} />
-      <SubjectiveEffectsSection article={article} />
-      <ReagentSection article={article} />
-      <PharmacologySection article={article} />
-      <InteractionsSection article={article} />
-      <ToleranceSection article={article} />
-      <HarmPotentialSection article={article} />
-      <HistoryCultureSection article={article} />
-      <LegalitySection article={article} />
-      <CitationsSection article={article} />
+      <ArticleLayout article={article} />
     </div>
   );
 });

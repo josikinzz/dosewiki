@@ -3,87 +3,43 @@ import type { SaveArticlesResult, SaveToConvexPayload, SaveToConvexResult } from
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import { slugify } from "@/utils/slug";
+import { DEV_TAB_REGISTRY, findDevTab, type DevChromeTab, type DevModeTab } from "./devTabRegistry";
 
 export type ArticleRecord = SubstanceArticle;
 
-export type DevModeTab =
-  | "change-log"
-  | "tag-editor"
-  | "profile"
-  | "index-layout"
-  | "writing"
-  | "blog"
-  | "copy-studio"
-  | "contributors"
-  | "citation-review"
-  | "trip-report-submissions"
-  | "article-feedback"
-  | "site-feedback"
-  | "articles"
-  | "molecule-editor"
-  | "replications"
-  | "banners"
-  | "review";
-
-export type DevModePrimaryTab = "tools" | "change-log" | "profile";
+export type DevModePrimaryTab = "tools" | DevChromeTab;
 
 /**
  * Tools that read the substance corpus. Only these wait on the library drain;
  * everything else fetches its own data and renders straight away.
  */
-export const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
-  "articles",
-  "citation-review",
-  "index-layout",
-  "tag-editor",
-  "change-log",
-]);
+export const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set(
+  DEV_TAB_REGISTRY.filter((tab) => tab.data.has("library")).map((tab) => tab.id),
+);
 
 /**
- * Tabs that make the shell drain the editor corpus at all.
- *
- * This is the blocking set plus `writing`, which hosts the About editor whose
- * placeholder counts are derived from the library but which renders straight
- * away with them filled in late. Every other tab — profile, trip reports,
- * article feedback, the molecule editor, the replication studio, the blog —
+ * Tabs that make the shell drain the editor corpus at all: the blocking set
+ * plus the tabs that render straight away and fill in late. Every other tab
  * reads none of it and must issue zero corpus requests.
  */
-export const LIBRARY_FETCHING_TABS: ReadonlySet<DevModeTab> = new Set<DevModeTab>([
-  ...LIBRARY_DEPENDENT_TABS,
-  "writing",
-]);
+export const LIBRARY_FETCHING_TABS: ReadonlySet<DevModeTab> = new Set(
+  DEV_TAB_REGISTRY.filter((tab) => tab.data.has("library") || tab.data.has("library-deferred")).map(
+    (tab) => tab.id,
+  ),
+);
 
 export function tabNeedsLibrary(tab: DevModeTab): boolean {
   return LIBRARY_FETCHING_TABS.has(tab);
 }
 
-/**
- * Tabs that read the shared changelog feed (`changelog.getRecent`): the change
- * log itself, and the profile tab's contribution history.
- */
+/** Tabs that read the shared changelog feed (`changelog.getRecent`). */
 export function tabNeedsChangelogFeed(tab: DevModeTab): boolean {
-  return tab === "change-log" || tab === "profile";
+  return findDevTab(tab).data.has("changelog");
 }
 
-/**
- * Tabs that read the contributor profile directory: the profile editor, the
- * Contributors curation tab, the Writing tab (the About founder picker plus the
- * byline picker), the Blog tab's byline picker, and the changelog attribution
- * used by the change log and by the save flows that commit from the corpus
- * tools.
- *
- * The Contributors and Blog tabs are here and deliberately not in
- * `LIBRARY_FETCHING_TABS`: they curate people and posts, and read not one
- * substance article.
- */
+/** Tabs that read the contributor profile directory. */
 export function tabNeedsContributorProfiles(tab: DevModeTab): boolean {
-  return (
-    tab === "profile" ||
-    tab === "writing" ||
-    tab === "blog" ||
-    tab === "contributors" ||
-    LIBRARY_DEPENDENT_TABS.has(tab)
-  );
+  return findDevTab(tab).data.has("contributors");
 }
 
 export type MarkdownChange = {
@@ -91,30 +47,12 @@ export type MarkdownChange = {
   hasChanges: boolean;
 };
 
+function isChromeTab(tab: DevModeTab): tab is DevChromeTab {
+  return findDevTab(tab).group === "chrome";
+}
+
 export function resolvePrimaryTab(tab: DevModeTab): DevModePrimaryTab {
-  if (
-    tab === "tag-editor" ||
-    tab === "index-layout" ||
-    tab === "writing" ||
-    tab === "blog" ||
-    tab === "copy-studio" ||
-    tab === "contributors" ||
-    tab === "citation-review" ||
-    tab === "trip-report-submissions" ||
-    tab === "article-feedback" ||
-    tab === "site-feedback" ||
-    tab === "articles" ||
-    tab === "molecule-editor" ||
-    tab === "replications" ||
-    tab === "banners" ||
-    tab === "review"
-  ) {
-    return "tools";
-  }
-  if (tab === "change-log") {
-    return "change-log";
-  }
-  return "profile";
+  return isChromeTab(tab) ? tab : "tools";
 }
 
 export function formatArticleLabel(article: unknown, index: number): string {
@@ -232,18 +170,10 @@ export function getChangedArticles(
 export function buildConvexSavePayload({
   articles,
   originalArticles,
-  hasAboutChanges,
-  aboutMarkdown,
-  aboutSubtitle,
-  aboutFounderKeys,
   datasetChangelog,
 }: {
   articles: readonly ArticleRecord[];
   originalArticles: readonly ArticleRecord[];
-  hasAboutChanges: boolean;
-  aboutMarkdown: string;
-  aboutSubtitle: string;
-  aboutFounderKeys: string[];
   datasetChangelog: DatasetChangelogResult;
 }): {
   changedArticles: ArticleRecord[];
@@ -255,13 +185,6 @@ export function buildConvexSavePayload({
     changedArticles,
     payload: {
       articles: changedArticles,
-      about: hasAboutChanges
-        ? {
-            aboutMarkdown,
-            aboutSubtitle,
-            founderProfileKeys: aboutFounderKeys,
-          }
-        : undefined,
       changelog:
         changedArticles.length > 0 && datasetChangelog.sections.length > 0
           ? {

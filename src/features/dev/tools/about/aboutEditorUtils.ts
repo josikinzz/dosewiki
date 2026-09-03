@@ -6,6 +6,19 @@ export type AboutCopyNotice = {
 };
 
 /**
+ * The Copy Studio blocks that render on the public About page. Listed here
+ * rather than filtered from `COPY_BLOCK_DEFAULTS` so the About editor does not
+ * carry the whole copy-block catalogue in its chunk; the About editor test
+ * checks this list against the catalogue's "About" group.
+ */
+export const ABOUT_COPY_BLOCKS: readonly { key: string; label: string }[] = [
+  { key: "about-reuse-notice", label: "Reuse notice" },
+  { key: "about-reuse-notice-effect-index", label: "Reuse notice (Effect Index)" },
+  { key: "about-doc-link-blurbs", label: "Documentation card blurbs" },
+  { key: "about-mission-effect-index", label: "Mission statement (Effect Index)" },
+];
+
+/**
  * Drops the leading `# Heading` line that `buildTextChangelog` prepends —
  * the editor renders its own labels above each diff well.
  */

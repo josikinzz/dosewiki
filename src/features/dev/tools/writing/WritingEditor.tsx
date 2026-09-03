@@ -14,7 +14,7 @@ import {
   EditorToolbar,
 } from "@/features/dev/components";
 
-import type { WritingDraft, WritingKind } from "./writingEditorModel";
+import type { WritingDraft } from "./writingEditorModel";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";
 
 const INPUT_CLASS =
@@ -23,21 +23,18 @@ const TEXTAREA_CLASS =
   "theme-editor-field w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2.5 font-mono text-[0.8125rem] leading-6 theme-text-primary transition focus:outline-none focus:ring-2";
 
 type WritingEditorProps = {
-  kind: WritingKind;
-  emphasiseCover: boolean;
   contributorProfiles: NormalizedUserProfile[];
   profilesLoading: boolean;
   controller: WritingWorkbenchController;
 };
 
 export function WritingEditor({
-  kind,
-  emphasiseCover,
   contributorProfiles,
   profilesLoading,
   controller,
 }: WritingEditorProps) {
   const {
+    kind,
     draft,
     saveState,
     notice,
@@ -50,6 +47,8 @@ export function WritingEditor({
     toggleByline,
     save,
   } = controller;
+  // Blog posts lead with a cover image and a teaser; articles do not.
+  const emphasiseCover = kind === "blog";
 
   return (
     <>
@@ -66,12 +65,15 @@ export function WritingEditor({
       ) : null}
 
       <EditorField label="Title">
-        <input
-          className={INPUT_CLASS}
-          value={draft.title}
-          disabled={readOnly}
-          onChange={(event) => updateTitle(event.target.value)}
-        />
+        {(control) => (
+          <input
+            {...control}
+            className={INPUT_CLASS}
+            value={draft.title}
+            disabled={readOnly}
+            onChange={(event) => updateTitle(event.target.value)}
+          />
+        )}
       </EditorField>
 
       <EditorField
@@ -81,15 +83,20 @@ export function WritingEditor({
         }
         counter={slugStatusLabel(slugAvailability.state)}
       >
-        <input
-          className={INPUT_CLASS}
-          value={draft.slug}
-          disabled={readOnly}
-          onChange={(event) => updateSlug(event.target.value)}
-        />
-        {"message" in slugAvailability ? (
-          <p className="theme-text-faint mt-1.5 text-xs">{slugAvailability.message}</p>
-        ) : null}
+        {(control) => (
+          <>
+            <input
+              {...control}
+              className={INPUT_CLASS}
+              value={draft.slug}
+              disabled={readOnly}
+              onChange={(event) => updateSlug(event.target.value)}
+            />
+            {"message" in slugAvailability ? (
+              <p className="theme-text-faint mt-1.5 text-xs">{slugAvailability.message}</p>
+            ) : null}
+          </>
+        )}
       </EditorField>
 
       {emphasiseCover ? (
@@ -97,12 +104,15 @@ export function WritingEditor({
           label="Cover image URL"
           description="Shown on the blog index card and above the post."
         >
-          <input
-            className={INPUT_CLASS}
-            value={draft.coverImageUrl}
-            disabled={readOnly}
-            onChange={(event) => updateDraft({ coverImageUrl: event.target.value })}
-          />
+          {(control) => (
+            <input
+              {...control}
+              className={INPUT_CLASS}
+              value={draft.coverImageUrl}
+              disabled={readOnly}
+              onChange={(event) => updateDraft({ coverImageUrl: event.target.value })}
+            />
+          )}
         </EditorField>
       ) : null}
 
@@ -115,13 +125,16 @@ export function WritingEditor({
         }
         counter={`${draft.teaser.length} characters`}
       >
-        <textarea
-          className={TEXTAREA_CLASS}
-          rows={2}
-          value={draft.teaser}
-          disabled={readOnly}
-          onChange={(event) => updateDraft({ teaser: event.target.value })}
-        />
+        {(control) => (
+          <textarea
+            {...control}
+            className={TEXTAREA_CLASS}
+            rows={2}
+            value={draft.teaser}
+            disabled={readOnly}
+            onChange={(event) => updateDraft({ teaser: event.target.value })}
+          />
+        )}
       </EditorField>
 
       <EditorField label="Byline" description="Contributor profiles credited on the page.">
@@ -149,21 +162,27 @@ export function WritingEditor({
       </EditorField>
 
       <EditorField label="Tags" description="Comma separated.">
-        <input
-          className={INPUT_CLASS}
-          value={draft.tags}
-          disabled={readOnly}
-          onChange={(event) => updateDraft({ tags: event.target.value })}
-        />
+        {(control) => (
+          <input
+            {...control}
+            className={INPUT_CLASS}
+            value={draft.tags}
+            disabled={readOnly}
+            onChange={(event) => updateDraft({ tags: event.target.value })}
+          />
+        )}
       </EditorField>
 
       <EditorField label="Publication date" description="YYYY-MM-DD.">
-        <input
-          className={INPUT_CLASS}
-          value={draft.publicationDate}
-          disabled={readOnly}
-          onChange={(event) => updateDraft({ publicationDate: event.target.value })}
-        />
+        {(control) => (
+          <input
+            {...control}
+            className={INPUT_CLASS}
+            value={draft.publicationDate}
+            disabled={readOnly}
+            onChange={(event) => updateDraft({ publicationDate: event.target.value })}
+          />
+        )}
       </EditorField>
 
       <EditorField
@@ -171,24 +190,28 @@ export function WritingEditor({
         description="Markdown. Headings become the article's contents rail."
         counter={`${draft.body.length} characters`}
       >
-        <textarea
-          className={TEXTAREA_CLASS}
-          rows={20}
-          value={draft.body}
-          disabled={readOnly}
-          onChange={(event) => updateDraft({ body: event.target.value })}
-        />
+        {(control) => (
+          <textarea
+            {...control}
+            className={TEXTAREA_CLASS}
+            rows={20}
+            value={draft.body}
+            disabled={readOnly}
+            onChange={(event) => updateDraft({ body: event.target.value })}
+          />
+        )}
       </EditorField>
 
       <EditorToolbar variant="split">
         <div className="flex flex-wrap items-center gap-2">
+          {/* Follows the save button: a state that cannot be saved is not a choice. */}
           <EditorSegmentedControl
             label="Publication state"
             value={draft.status}
             onChange={(value) => updateDraft({ status: value as WritingDraft["status"] })}
             options={[
-              { value: "draft", label: "Draft" },
-              { value: "published", label: "Published" },
+              { value: "draft", label: "Draft", disabled: !canSave },
+              { value: "published", label: "Published", disabled: !canSave },
             ]}
           />
           <Button
@@ -204,7 +227,7 @@ export function WritingEditor({
         </div>
         {saveState === "idle" ? (
           <EditorStatusPill tone={draft.status === "published" ? "success" : "warning"}>
-            {draft.status === "published" ? "Public" : "Draft — not public"}
+            {draft.status === "published" ? "Public" : "Draft, not public"}
           </EditorStatusPill>
         ) : (
           <EditorActionStatus status={saveState} />

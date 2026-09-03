@@ -1,7 +1,7 @@
 /**
  * Editor write endpoint for one Writing/Blog row (the /dev Writing and Blog tabs).
  *
- *   POST /api/dev/writing-article  { slug, kind, status, title?, teaser?, … }
+ *   POST /api/dev/writing-article  { slug, originalSlug?, kind, status, title?, teaser?, … }
  *
  * Same shape as `/api/dev/copy-block`: the browser holds no admin intent token,
  * so the write is delegated here, which checks the editor session and then calls
@@ -43,6 +43,7 @@ const MAX_AUTHORS = 12;
 
 type WritingArticleBody = {
   slug?: unknown;
+  originalSlug?: unknown;
   kind?: unknown;
   status?: unknown;
   title?: unknown;
@@ -56,6 +57,11 @@ type WritingArticleBody = {
 
 type ParsedWritingArticle = {
   slug: string;
+  /**
+   * The slug the editor loaded the row with. When it differs from `slug` the
+   * mutation renames that row instead of inserting a second one.
+   */
+  originalSlug?: string;
   kind: "article" | "blog";
   status: "draft" | "published";
   title: string;
@@ -67,13 +73,10 @@ type ParsedWritingArticle = {
   publicationDate?: string;
 };
 
-function requireSlug(raw: unknown): string {
+function requireSlug(raw: unknown, label = "A valid slug is required"): string {
   const slug = typeof raw === "string" ? raw.trim().toLowerCase() : "";
   if (!SLUG_PATTERN.test(slug)) {
-    throw new JsonBodyError(
-      400,
-      "A valid slug is required: lowercase letters, digits and single hyphens.",
-    );
+    throw new JsonBodyError(400, `${label}: lowercase letters, digits and single hyphens.`);
   }
   return slug;
 }
@@ -141,9 +144,13 @@ function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingArticle 
   }
 
   const publicationDate = optionalText(raw.publicationDate, "The publication date", 40);
+  const originalSlug = optionalText(raw.originalSlug, "The original slug", 200);
 
   return {
     slug,
+    originalSlug: originalSlug
+      ? requireSlug(originalSlug, "The original slug must be a valid slug")
+      : undefined,
     kind: raw.kind,
     status: raw.status,
     title,
@@ -222,10 +229,11 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       apiKey,
       actorEmail,
       slug: body.slug,
+      originalSlug: body.originalSlug,
       title: body.title,
       kind: body.kind,
       status: body.status,
-      // Kept in step with `status` on purpose — see the file header.
+      // Kept in step with `status` on purpose; see the file header.
       publication_status: body.status === "published" ? "published" : "draft",
       bodyFormat: "markdown",
       body_raw: body.body,

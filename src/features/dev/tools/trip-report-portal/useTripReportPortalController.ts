@@ -7,6 +7,7 @@ import type {
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
+import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
 import type { PromotionAttribution } from "./PortalSubmissionReview";
@@ -14,6 +15,7 @@ import {
   EMPTY_PORTAL_FACETS,
   filterPortalRows,
   groupPortalRows,
+  isNeedsReviewStatus,
   portalStats,
   toPortalRowFromReport,
   toPortalRowFromSubmission,
@@ -28,7 +30,14 @@ import {
 
 const CORPUS_API = "/api/dev/trip-reports";
 const RECORD_API = "/api/dev/trip-reports/record";
-const QUEUE_API = "/api/trip-report-submissions/queue";
+/**
+ * Every row the rail badge counts, uncapped: the Needs review bucket is cut
+ * from these with the same status list the badge reads, so the two cannot
+ * disagree however deep the queue gets.
+ */
+const NEEDS_REVIEW_QUEUE_API = "/api/trip-report-submissions/queue?scope=needs-review";
+/** The rest of the private queue, at the store's cap: browse history, not a work list. */
+const QUEUE_API = "/api/trip-report-submissions/queue?limit=250";
 
 type CorpusPayload = {
   reports: PublishedReportPayload[];
@@ -50,7 +59,7 @@ type Feedback = { tone: "success" | "danger"; message: string };
 /**
  * Last corpus this tab saw, kept outside React so leaving and re-entering the
  * tab paints the previous rows immediately instead of replaying the loading
- * state. The refetch still runs on every mount — it just happens behind the
+ * state. The refetch still runs on every mount; it just happens behind the
  * already-rendered list.
  */
 let cachedCorpus: CorpusPayload | null = null;
@@ -127,8 +136,9 @@ export function useTripReportPortalController() {
     }
 
     try {
-      const [corpusResponse, queueResponse] = await Promise.all([
+      const [corpusResponse, needsReviewResponse, queueResponse] = await Promise.all([
         fetch(CORPUS_API),
+        fetch(NEEDS_REVIEW_QUEUE_API),
         fetch(QUEUE_API),
       ]);
 
@@ -137,13 +147,28 @@ export function useTripReportPortalController() {
         return;
       }
 
-      const corpusPayload = await corpusResponse.json();
-      const queuePayload = queueResponse.ok ? await queueResponse.json() : { submissions: [] };
+      const failedQueue = [needsReviewResponse, queueResponse].find((response) => !response.ok);
+      if (failedQueue) {
+        setLoad({
+          status: "error",
+          message: await readError(failedQueue, "Failed to load the submission queue."),
+        });
+        return;
+      }
+
+      const [corpusPayload, needsReviewPayload, queuePayload] = await Promise.all([
+        corpusResponse.json(),
+        needsReviewResponse.json(),
+        queueResponse.json(),
+      ]);
 
       const next: CorpusPayload = {
         reports: Array.isArray(corpusPayload.reports) ? corpusPayload.reports : [],
         contributors: Array.isArray(corpusPayload.contributors) ? corpusPayload.contributors : [],
-        submissions: Array.isArray(queuePayload.submissions) ? queuePayload.submissions : [],
+        submissions: mergeSubmissions(
+          Array.isArray(needsReviewPayload.submissions) ? needsReviewPayload.submissions : [],
+          Array.isArray(queuePayload.submissions) ? queuePayload.submissions : [],
+        ),
       };
 
       cachedCorpus = next;
@@ -351,6 +376,7 @@ export function useTripReportPortalController() {
 
       setFeedback({ tone: "success", message: `Moved "${selectedSubmission.title}" to ${status}.` });
       setPromotionPayload(null);
+      invalidateDevRailBadge("trip-reports");
       await loadCorpus(selectedSubmission.id);
     } catch {
       setFeedback({ tone: "danger", message: "Network error while updating the submission." });
@@ -390,6 +416,7 @@ export function useTripReportPortalController() {
       });
 
       if (publish) {
+        invalidateDevRailBadge("trip-reports");
         await loadCorpus();
       }
     } catch {
@@ -440,4 +467,24 @@ export function useTripReportPortalController() {
 async function readError(response: Response, fallback: string): Promise<string> {
   const payload = await response.json().catch(() => ({}));
   return typeof payload.error === "string" ? payload.error : fallback;
+}
+
+/**
+ * The uncapped needs-review rows plus whatever else the capped queue page
+ * holds. A row that changed status between the two reads could appear in
+ * both; the needs-review read wins so the bucket never double-counts.
+ */
+function mergeSubmissions(
+  needsReview: TripReportSubmissionRow[],
+  queue: TripReportSubmissionRow[],
+): TripReportSubmissionRow[] {
+  const seen = new Set(needsReview.map((row) => row.id));
+  const merged = [...needsReview];
+  for (const row of queue) {
+    if (!isNeedsReviewStatus(row.status) && !seen.has(row.id)) {
+      merged.push(row);
+    }
+  }
+
+  return merged;
 }

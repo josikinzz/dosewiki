@@ -1,14 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { buildFallbackProfile, getProfileByKeyFromList } from "@/data/userProfiles";
 import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { useDevMode } from "../context/DevModeContext";
-import {
-  tabNeedsChangelogFeed,
-  tabNeedsContributorProfiles,
-  type DevModeTab,
-} from "./devModePageUtils";
+import { tabNeedsChangelogFeed, tabNeedsContributorProfiles } from "./devModePageUtils";
+import type { DevModeTab } from "./devTabRegistry";
 import type { DevModePageControllerState, DevModePageProps } from "./devModePageTypes";
 import { useDevChangelogFeed } from "./useDevChangelogFeed";
 import { useDevChromeEnvironment } from "./useDevChromeEnvironment";
@@ -21,6 +16,7 @@ import { useDevRouteAccess } from "./useDevRouteAccess";
 export function useDevModePageController({
   activeTab,
   initialArticleSlug,
+  initialFilter,
   initialProfileKey,
   isLibraryLoading = false,
   onTabChange,
@@ -31,34 +27,14 @@ export function useDevModePageController({
     psychoactiveIndexManual,
     chemicalIndexManual,
     mechanismIndexManual,
-    aboutMarkdown,
-    aboutSubtitle,
-    aboutFounderKeys,
     close,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
     getOriginalChemicalIndexManual,
     getOriginalMechanismIndexManual,
-    getOriginalAboutMarkdown,
-    getOriginalAboutSubtitle,
-    getOriginalAboutFounderKeys,
-    replaceAboutMarkdown,
-    resetAboutMarkdown,
-    replaceAboutSubtitle,
-    resetAboutSubtitle,
-    replaceAboutFounderKeys,
-    resetAboutFounderKeys,
     markChangesSaved,
   } = useDevMode();
-  const {
-    chemicalClassIndexGroups,
-    dosageCategoryGroups,
-    effectSummaries,
-    mechanismIndexGroups,
-    substanceRecords,
-  } = useLibrary();
 
-  const [profileData, setProfileData] = useState(() => buildFallbackProfile("Contributor"));
   // The contributor directory and the changelog feed are per-tab, not per-shell:
   // the trip-report, article-feedback, molecule and replication tools read
   // neither, and used to pay for both on every load.
@@ -70,20 +46,12 @@ export function useDevModePageController({
     psychoactiveIndexManual,
     chemicalIndexManual,
     mechanismIndexManual,
-    aboutMarkdown,
-    aboutSubtitle,
-    aboutFounderKeys,
-    availableProfiles,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
     getOriginalChemicalIndexManual,
     getOriginalMechanismIndexManual,
-    getOriginalAboutMarkdown,
-    getOriginalAboutSubtitle,
-    getOriginalAboutFounderKeys,
   });
 
-  const profileVerifyAttemptRef = useRef(false);
   const clearSaveNoticesRef = useRef<(() => void) | null>(null);
   const clearChangeLogNoticeRef = useRef<(() => void) | null>(null);
 
@@ -106,13 +74,9 @@ export function useDevModePageController({
 
   const {
     changeLogEntries,
-    getProfileHistory,
     convexEnabled,
     appendChangeLogEntryToState,
-  } = useDevChangelogFeed({
-    profileKey: routeAccess.sessionProfileKey,
-    active: tabNeedsChangelogFeed(activeTab),
-  });
+  } = useDevChangelogFeed({ active: tabNeedsChangelogFeed(activeTab) });
   const chromeEnvironment = useDevChromeEnvironment({
     activeTab,
     close,
@@ -130,9 +94,6 @@ export function useDevModePageController({
   }, [clearChangeLogNotice]);
 
   const {
-    passwordKey,
-    setPasswordKey,
-    verifyDevCredentials,
     commitPanel,
     renderCommitPanel,
     clearSaveNotices,
@@ -141,27 +102,17 @@ export function useDevModePageController({
     psychoactiveIndexManual,
     chemicalIndexManual,
     mechanismIndexManual,
-    aboutMarkdown,
-    aboutSubtitle,
-    aboutFounderKeys,
     getOriginalArticles,
     articlesAreComplete: articleHydration.isFullCorpusHydrated,
     markChangesSaved,
-    hasAuthenticatedSession: routeAccess.hasAuthenticatedSession,
-    hasStoredCredentials: routeAccess.hasNextEditorSession,
-    hasNextEditorSession: routeAccess.hasNextEditorSession,
+    isSignedIn: routeAccess.isSignedIn,
+    canEdit: routeAccess.canEdit,
     sessionProfileKey: routeAccess.sessionProfileKey,
     convexEnabled,
     datasetChangelog: changelogState.datasetChangelog,
     psychoactiveManualChangelog: changelogState.psychoactiveManualChangelog,
     chemicalManualChangelog: changelogState.chemicalManualChangelog,
     mechanismManualChangelog: changelogState.mechanismManualChangelog,
-    aboutMarkdownChangelog: changelogState.aboutMarkdownChangelog,
-    aboutSubtitleChangelog: changelogState.aboutSubtitleChangelog,
-    aboutFounderChangelog: changelogState.aboutFounderChangelog,
-    hasAboutMarkdownChanges: changelogState.hasAboutMarkdownChanges,
-    hasAboutSubtitleChanges: changelogState.hasAboutSubtitleChanges,
-    hasAboutFounderChanges: changelogState.hasAboutFounderChanges,
     hasPendingChanges: changelogState.hasPendingChanges,
     onAppendChangeLogEntry: appendChangeLogEntryToState,
     onTabChange: routeAccess.onTabChange,
@@ -172,95 +123,10 @@ export function useDevModePageController({
     clearSaveNoticesRef.current = clearSaveNotices;
   }, [clearSaveNotices]);
 
-  const effectiveProfileKey =
-    passwordKey?.trim().toUpperCase() || routeAccess.sessionProfileKey || "";
-  const profileHistory = useMemo(
-    () => getProfileHistory(effectiveProfileKey),
-    [effectiveProfileKey, getProfileHistory],
-  );
-
-  useEffect(() => {
-    setProfileData(getProfileByKeyFromList(availableProfiles, effectiveProfileKey));
-  }, [availableProfiles, effectiveProfileKey]);
-
-  useEffect(() => {
-    if (activeTab !== "profile") {
-      profileVerifyAttemptRef.current = false;
-      return;
-    }
-
-    if (
-      profileVerifyAttemptRef.current ||
-      !routeAccess.hasProfileSession ||
-      passwordKey
-    ) {
-      return;
-    }
-
-    profileVerifyAttemptRef.current = true;
-    verifyDevCredentials().catch(() => {
-      // handled through notice state
-    });
-  }, [
-    activeTab,
-    passwordKey,
-    routeAccess.hasProfileSession,
-    verifyDevCredentials,
-  ]);
-
-  const aboutPlaceholderValues = useMemo(() => {
-    const formatCount = (value: number) => value.toLocaleString();
-
-    return {
-      compoundCount: formatCount(substanceRecords.length),
-      psychoactiveClassCount: formatCount(dosageCategoryGroups.length),
-      categoryCount: formatCount(dosageCategoryGroups.length),
-      chemicalClassCount: formatCount(chemicalClassIndexGroups.length),
-      mechanismClassCount: formatCount(mechanismIndexGroups.length),
-      mechanismOfActionClassCount: formatCount(mechanismIndexGroups.length),
-      effectCount: formatCount(effectSummaries.length),
-      // The dev shell loads no published-report or replication corpus (the
-      // Trip Report Portal and gallery fetch their own, tab-locally), so
-      // these preview counts stay at zero.
-      reportCount: formatCount(0),
-      replicationCount: formatCount(0),
-    };
-  }, [
-    chemicalClassIndexGroups.length,
-    dosageCategoryGroups.length,
-    effectSummaries.length,
-    mechanismIndexGroups.length,
-    substanceRecords.length,
-  ]);
-
-  const { profileTabProps, aboutTabProps, tagEditorTabProps } = useDevSupportTabsController({
-    profileData,
-    profileHistory,
-    availableProfiles,
-    profilesLoading,
-    verifyDevCredentials,
-    setProfileData,
-    setPasswordKey,
-    hasStoredCredentials: routeAccess.hasProfileSession,
+  const { tagEditorTabProps } = useDevSupportTabsController({
     commitPanel,
     combinedChangelogMarkdown: changelogState.combinedChangelogMarkdown,
     hasPendingChanges: changelogState.hasPendingChanges,
-    aboutMarkdown,
-    originalAboutMarkdown: changelogState.originalAboutMarkdown,
-    replaceAboutMarkdown,
-    resetAboutMarkdown,
-    aboutSubtitle,
-    originalAboutSubtitle: changelogState.originalAboutSubtitle,
-    replaceAboutSubtitle,
-    resetAboutSubtitle,
-    aboutFounderKeys,
-    originalAboutFounderKeys: changelogState.originalAboutFounderKeys,
-    replaceAboutFounderKeys,
-    resetAboutFounderKeys,
-    markdownDiff: changelogState.aboutMarkdownChangelog.markdown,
-    subtitleDiff: changelogState.aboutSubtitleChangelog.markdown,
-    subtitleHasChanges: changelogState.aboutSubtitleChangelog.hasChanges,
-    placeholderValues: aboutPlaceholderValues,
   });
 
   const contributorDirectory = useMemo(
@@ -277,8 +143,9 @@ export function useDevModePageController({
     activePrimaryTab: routeAccess.activePrimaryTab,
     mainClassName: chromeEnvironment.mainClassName,
     contentWrapperClass: chromeEnvironment.contentWrapperClass,
-    hasProfileSession: routeAccess.hasProfileSession,
-    hasNextEditorSession: routeAccess.hasNextEditorSession,
+    isSignedIn: routeAccess.isSignedIn,
+    canEdit: routeAccess.canEdit,
+    sessionProfileKey: routeAccess.sessionProfileKey,
     sessionStatus: routeAccess.sessionStatus,
     userEmail: routeAccess.userEmail,
     userImage: routeAccess.userImage,
@@ -296,10 +163,9 @@ export function useDevModePageController({
     replicationsInitialSlug: initialArticleSlug,
     bannersInitialSlug: initialArticleSlug,
     writingInitialSlug: initialArticleSlug,
-    profileTabProps,
-    aboutTabProps,
+    copyStudioInitialKey: initialArticleSlug,
+    initialFilter,
     tagEditorTabProps,
-    profileHistory,
     contributorDirectory,
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,

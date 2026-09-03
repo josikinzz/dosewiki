@@ -1,0 +1,181 @@
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+
+import { useWritingWorkbenchController } from "./useWritingWorkbenchController";
+import type { WritingArticleRow, WritingListEntry } from "./writingEditorModel";
+
+const ENTRIES: WritingListEntry[] = [
+  { slug: "field-notes", title: "Field notes", kind: "article", status: "published", creationTime: 1 },
+  { slug: "launch-post", title: "Launch post", kind: "blog", status: "published", creationTime: 2 },
+];
+
+const ROWS: Record<string, WritingArticleRow> = {
+  "field-notes": {
+    slug: "field-notes",
+    title: "Field notes",
+    kind: "article",
+    status: "published",
+    bodyFormat: "markdown",
+    body_raw: "Notes.",
+  },
+  "launch-post": {
+    slug: "launch-post",
+    title: "Launch post",
+    kind: "blog",
+    status: "published",
+    bodyFormat: "markdown",
+    body_raw: "Post.",
+  },
+};
+
+type FetchMock = Mock<typeof fetch>;
+
+function stubWritingApi(post: (body: Record<string, unknown>) => Response): FetchMock {
+  const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
+    if (init?.method === "POST") {
+      return post(JSON.parse(String(init.body)));
+    }
+    const slug = new URL(String(input), "https://dose.wiki").searchParams.get("slug");
+    if (slug) {
+      return Response.json({ ok: true, article: ROWS[slug] ?? null });
+    }
+    return Response.json({ ok: true, articles: ENTRIES });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function postedBody(fetchMock: FetchMock): Record<string, unknown> {
+  const call = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+  if (!call) throw new Error("No save was posted.");
+  return JSON.parse(String(call[1]?.body));
+}
+
+describe("useWritingWorkbenchController", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("switches the rail filter to a loaded row's kind instead of relabelling the row", async () => {
+    stubWritingApi(() => Response.json({ ok: true }));
+
+    const { result } = renderHook(() =>
+      useWritingWorkbenchController({ initialSelection: "launch-post" }),
+    );
+
+    await waitFor(() => expect(result.current.draft.title).toBe("Launch post"));
+
+    expect(result.current.kind).toBe("blog");
+    expect(result.current.kindEntries.map((entry) => entry.slug)).toEqual(["launch-post"]);
+  });
+
+  it("saves a loaded row under its own kind and original slug", async () => {
+    const fetchMock = stubWritingApi(() => Response.json({ ok: true, slug: "launch-day" }));
+
+    const { result } = renderHook(() =>
+      useWritingWorkbenchController({ initialSelection: "launch-post" }),
+    );
+    await waitFor(() => expect(result.current.draft.title).toBe("Launch post"));
+
+    act(() => result.current.updateSlug("launch-day"));
+    await act(async () => {
+      await result.current.save("published");
+    });
+
+    expect(postedBody(fetchMock)).toMatchObject({
+      slug: "launch-day",
+      originalSlug: "launch-post",
+      kind: "blog",
+    });
+    expect(result.current.selection).toEqual({ type: "row", slug: "launch-day" });
+  });
+
+  it("saves a new row under the tab's kind with no original slug", async () => {
+    const fetchMock = stubWritingApi(() => Response.json({ ok: true, slug: "fresh" }));
+
+    const { result } = renderHook(() => useWritingWorkbenchController({ initialKind: "blog" }));
+    await waitFor(() => expect(result.current.entries).not.toBeNull());
+
+    act(() => result.current.updateTitle("Fresh"));
+    await act(async () => {
+      await result.current.save("draft");
+    });
+
+    const body = postedBody(fetchMock);
+    expect(body).toMatchObject({ slug: "fresh", kind: "blog" });
+    expect(body.originalSlug).toBeUndefined();
+  });
+
+  it("lists the kind the filter names and starts new rows under it", async () => {
+    const fetchMock = stubWritingApi(() => Response.json({ ok: true, slug: "fresh" }));
+
+    const { result } = renderHook(() => useWritingWorkbenchController({ pinnedEntryId: "about" }));
+    await waitFor(() => expect(result.current.entries).not.toBeNull());
+    expect(result.current.kind).toBe("article");
+    expect(result.current.kindEntries.map((entry) => entry.slug)).toEqual(["field-notes"]);
+
+    act(() => result.current.selectKind("blog"));
+    expect(result.current.kind).toBe("blog");
+    expect(result.current.kindEntries.map((entry) => entry.slug)).toEqual(["launch-post"]);
+    // The pinned entry belongs to no kind; switching the filter leaves it open.
+    expect(result.current.selection).toEqual({ type: "pinned" });
+
+    act(() => result.current.startNew());
+    act(() => result.current.updateTitle("Fresh"));
+    await act(async () => {
+      await result.current.save("draft");
+    });
+    expect(postedBody(fetchMock)).toMatchObject({ slug: "fresh", kind: "blog" });
+  });
+
+  it("drops a loaded row of the other kind when the filter moves away from it", async () => {
+    stubWritingApi(() => Response.json({ ok: true }));
+
+    const { result } = renderHook(() =>
+      useWritingWorkbenchController({ initialKind: "blog", initialSelection: "launch-post" }),
+    );
+    await waitFor(() => expect(result.current.draft.title).toBe("Launch post"));
+
+    act(() => result.current.selectKind("blog"));
+    expect(result.current.selection).toEqual({ type: "row", slug: "launch-post" });
+
+    act(() => result.current.selectKind("article"));
+    expect(result.current.selection).toEqual({ type: "new" });
+    expect(result.current.draft.title).toBe("");
+    expect(result.current.kind).toBe("article");
+  });
+
+  it("shows a rename collision as a save failure and keeps the row where it was", async () => {
+    stubWritingApi(() =>
+      Response.json(
+        {
+          error: '"field-notes" already belongs to "Field notes". Choose another slug.',
+          code: "SLUG_TAKEN",
+        },
+        { status: 400 },
+      ),
+    );
+
+    const { result } = renderHook(() =>
+      useWritingWorkbenchController({ initialKind: "blog", initialSelection: "launch-post" }),
+    );
+    await waitFor(() => expect(result.current.draft.title).toBe("Launch post"));
+
+    act(() => result.current.updateSlug("field-notes"));
+    await act(async () => {
+      await result.current.save("published");
+    });
+
+    expect(result.current.saveState).toBe("error");
+    expect(result.current.notice).toEqual({
+      tone: "danger",
+      title: "Save failed",
+      message: '"field-notes" already belongs to "Field notes". Choose another slug.',
+    });
+    expect(result.current.selection).toEqual({ type: "row", slug: "launch-post" });
+  });
+});

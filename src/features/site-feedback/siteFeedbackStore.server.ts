@@ -50,6 +50,10 @@ export type SiteFeedbackListFilters = {
   limit?: number;
 };
 
+export type SiteFeedbackCountFilters = {
+  statuses: readonly SiteFeedbackStatus[];
+};
+
 const createFeedbackRef = makeFunctionReference<
   "mutation",
   { apiKey: string; feedback: SiteFeedbackRow },
@@ -62,6 +66,12 @@ const listFeedbackRef = makeFunctionReference<
   SiteFeedbackRow[]
 >("siteFeedback:list");
 
+const countFeedbackRef = makeFunctionReference<
+  "query",
+  { apiKey: string; statuses: SiteFeedbackStatus[] },
+  number
+>("siteFeedback:countByStatus");
+
 const transitionFeedbackRef = makeFunctionReference<
   "mutation",
   {
@@ -69,7 +79,7 @@ const transitionFeedbackRef = makeFunctionReference<
     id: string;
     status: SiteFeedbackStatus;
     reviewer: string;
-    notes?: string;
+    note?: string;
   },
   SiteFeedbackRow
 >("siteFeedback:transition");
@@ -113,9 +123,17 @@ export class ConvexSiteFeedbackStore {
     }) as SiteFeedbackRow[];
   }
 
+  /** Total rows in the given statuses, computed on the server: no list travels. */
+  async count(filters: SiteFeedbackCountFilters): Promise<number> {
+    return await this.options.client.query(countFeedbackRef, {
+      apiKey: this.options.apiKey,
+      statuses: [...filters.statuses],
+    }) as number;
+  }
+
   async transition(
     id: string,
-    options: { status: SiteFeedbackStatus; reviewer: string; notes?: string },
+    options: { status: SiteFeedbackStatus; reviewer: string; note?: string },
   ): Promise<SiteFeedbackRow> {
     try {
       return await this.options.client.mutation(transitionFeedbackRef, {
@@ -123,7 +141,7 @@ export class ConvexSiteFeedbackStore {
         id,
         status: options.status,
         reviewer: options.reviewer,
-        ...(options.notes !== undefined ? { notes: options.notes } : {}),
+        ...(options.note !== undefined ? { note: options.note } : {}),
       }) as SiteFeedbackRow;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Site feedback not found")) {

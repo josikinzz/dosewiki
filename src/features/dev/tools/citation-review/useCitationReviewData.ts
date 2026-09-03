@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { CitationEvidenceRow, CitationReviewQueueSummary } from "./citationReviewModels";
+import type {
+  CitationEvidenceRow,
+  CitationReviewQueueFilter,
+  CitationReviewQueueSummary,
+} from "./citationReviewModels";
 
 async function readJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const response = await fetch(input, init);
@@ -18,6 +22,7 @@ async function readJson<T>(input: RequestInfo | URL, init?: RequestInit): Promis
 
 export function useCitationReviewData(initialSlug?: string) {
   const [queue, setQueue] = useState<CitationReviewQueueSummary[]>([]);
+  const [queueFilter, setQueueFilter] = useState<CitationReviewQueueFilter>("open");
   const [queueError, setQueueError] = useState<string | null>(null);
   const [isQueueLoading, setIsQueueLoading] = useState(true);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialSlug ?? null);
@@ -33,7 +38,10 @@ export function useCitationReviewData(initialSlug?: string) {
     setQueueError(null);
 
     try {
-      const result = await readJson<{ queue?: CitationReviewQueueSummary[] }>("/api/citation-evidence/queue");
+      const searchParams = new URLSearchParams({ status: queueFilter });
+      const result = await readJson<{ queue?: CitationReviewQueueSummary[] }>(
+        `/api/citation-evidence/queue?${searchParams.toString()}`,
+      );
       const nextQueue = Array.isArray(result.queue) ? result.queue : [];
       setQueue(nextQueue);
 
@@ -52,7 +60,7 @@ export function useCitationReviewData(initialSlug?: string) {
     } finally {
       setIsQueueLoading(false);
     }
-  }, [initialSlug]);
+  }, [initialSlug, queueFilter]);
 
   const refreshDetail = useCallback(async (slug: string) => {
     setIsDetailLoading(true);
@@ -123,6 +131,8 @@ export function useCitationReviewData(initialSlug?: string) {
 
   return {
     queue,
+    queueFilter,
+    setQueueFilter,
     queueError,
     isQueueLoading,
     selectedSlug,

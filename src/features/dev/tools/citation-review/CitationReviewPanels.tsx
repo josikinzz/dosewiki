@@ -5,7 +5,6 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import type { EditorStatusPillTone } from "@/features/dev/components";
 import {
   EditorActionGroup,
-  EditorListItem,
   EditorPanel,
   EditorPanelBody,
   EditorSection,
@@ -24,22 +23,6 @@ import {
   type CitationReviewCommands,
   type CitationReviewQueueSummary,
 } from "./citationReviewModels";
-
-function formatUpdatedAt(value: string | null) {
-  if (!value) {
-    return "No review activity yet";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
 
 /**
  * Tokenized callout-tile surface for a semantic tone. Shares the same
@@ -80,108 +63,6 @@ function toneTileClass(tone: EditorStatusPillTone): string {
 
 function toneIconClass(tone: EditorStatusPillTone): string {
   return TONE_TILE_SURFACE[tone].icon;
-}
-
-export function CitationQueueHeader({
-  queue,
-  onRefreshQueue,
-}: {
-  queue: CitationReviewQueueSummary[];
-  onRefreshQueue: () => void;
-}) {
-  const readyApprovalCount = queue.reduce((total, entry) => total + entry.supportedCount, 0);
-  const blockingGapCount = queue.reduce(
-    (total, entry) =>
-      total +
-      entry.blockingNeedsSourceCount +
-      entry.blockingNeedsReviewCount +
-      entry.blockingRejectedCount,
-    0,
-  );
-
-  return (
-    <EditorSection
-      icon="lucide:list-checks"
-      title="Citation review queue"
-      description="Evidence snippets, gap states, and reviewer decisions never leave the protected dev area."
-      actions={(
-        <Button variant="outline" size="pill" className="rounded-full" onClick={onRefreshQueue}>
-          <Icon icon="lucide:refresh-cw" size={16} />
-          Refresh queue
-        </Button>
-      )}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <EditorStatusPill tone="neutral">{queue.length} articles</EditorStatusPill>
-        <EditorStatusPill tone="success">{readyApprovalCount} ready approvals</EditorStatusPill>
-        <EditorStatusPill tone={blockingGapCount > 0 ? "danger" : "neutral"}>
-          {blockingGapCount} blocking gaps
-        </EditorStatusPill>
-      </div>
-    </EditorSection>
-  );
-}
-
-export function CitationQueuePanel({
-  queue,
-  selectedSlug,
-  articleTitleBySlug,
-  onSelectSlug,
-}: {
-  queue: CitationReviewQueueSummary[];
-  selectedSlug: string | null;
-  articleTitleBySlug: Map<string, string>;
-  onSelectSlug: (slug: string) => void;
-}) {
-  return (
-    <EditorSection
-      icon="lucide:files"
-      title="Articles"
-      description="Select an article, then approve or reject ready evidence rows on the right."
-      actions={<EditorStatusPill tone="neutral">{queue.length} queued</EditorStatusPill>}
-      className="h-fit lg:sticky lg:top-6"
-    >
-      <div className="space-y-2 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto lg:pr-1">
-        {queue.map((entry) => {
-          const unresolvedBlocking =
-            entry.blockingNeedsSourceCount +
-            entry.blockingNeedsReviewCount +
-            entry.blockingRejectedCount;
-          const isSelected = selectedSlug === entry.slug;
-          return (
-            <EditorListItem
-              key={entry.slug}
-              active={isSelected}
-              onSelect={() => onSelectSlug(entry.slug)}
-              className="flex-col items-stretch gap-1 px-4 py-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <p
-                  className={`min-w-0 truncate text-sm font-semibold ${
-                    isSelected ? "theme-accent-heading" : "theme-text-primary"
-                  }`}
-                >
-                  {articleTitleBySlug.get(entry.slug) ?? entry.slug}
-                </p>
-                <span className="flex shrink-0 flex-wrap justify-end gap-2">
-                  {unresolvedBlocking > 0 ? (
-                    <EditorStatusPill tone="danger">{unresolvedBlocking} blocking</EditorStatusPill>
-                  ) : null}
-                  {entry.supportedCount > 0 ? (
-                    <EditorStatusPill tone="success">{entry.supportedCount} ready</EditorStatusPill>
-                  ) : null}
-                </span>
-              </div>
-              <p className="truncate text-xs theme-text-faint">
-                {entry.slug} · {formatCitationCount(entry.totalRows, "row")} ·{" "}
-                {entry.approvedCount} approved · Updated {formatUpdatedAt(entry.updatedAt)}
-              </p>
-            </EditorListItem>
-          );
-        })}
-      </div>
-    </EditorSection>
-  );
 }
 
 export function CitationSelectedSummary({

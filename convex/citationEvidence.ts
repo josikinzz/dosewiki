@@ -3,6 +3,12 @@ import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { requireEditorWrite, type AuthorizedActor } from "./lib/auth";
 import {
+  compareQueueSummaries,
+  matchesQueueSummaryStatus,
+  queueSummaryStatus,
+  type CitationQueueSummary,
+} from "./lib/citationQueueFilter";
+import {
   mergeArticleReferenceMetadataForReplacement,
   remapReferenceIds,
 } from "./lib/substanceIngestion";
@@ -426,6 +432,8 @@ export const getQueueSummary = query({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
+    // See `matchesQueueSummaryStatus` for the semantics of each value.
+    status: v.optional(queueSummaryStatus),
   },
   handler: async (ctx, args) => {
     await requireEditorWrite(ctx, {
@@ -434,26 +442,9 @@ export const getQueueSummary = query({
       adminIntent: "citationEvidenceReview",
     });
 
+    const status = args.status ?? "open";
     const rows = await ctx.db.query("citationEvidence").collect();
-    const summaries = new Map<string, {
-      slug: string;
-      articleId: number | null;
-      totalRows: number;
-      supportedCount: number;
-      needsSourceCount: number;
-      needsReviewCount: number;
-      approvedCount: number;
-      rejectedCount: number;
-      blockingCount: number;
-      blockingNeedsSourceCount: number;
-      blockingNeedsReviewCount: number;
-      blockingSupportedCount: number;
-      blockingRejectedCount: number;
-      diagnosticErrorCount: number;
-      diagnosticWarningCount: number;
-      sectionIds: string[];
-      updatedAt: string | null;
-    }>();
+    const summaries = new Map<string, CitationQueueSummary>();
 
     for (const row of rows) {
       const summary = summaries.get(row.slug) ?? {
@@ -532,17 +523,12 @@ export const getQueueSummary = query({
     }
 
     return [...summaries.values()]
+      .filter((summary) => matchesQueueSummaryStatus(status, summary))
       .map((summary) => ({
         ...summary,
         sectionIds: [...summary.sectionIds].sort((left, right) => left.localeCompare(right)),
       }))
-      .sort((left, right) => (
-        (right.blockingNeedsSourceCount + right.blockingNeedsReviewCount + right.blockingRejectedCount) -
-          (left.blockingNeedsSourceCount + left.blockingNeedsReviewCount + left.blockingRejectedCount) ||
-        right.supportedCount - left.supportedCount ||
-        right.totalRows - left.totalRows ||
-        left.slug.localeCompare(right.slug)
-      ));
+      .sort(compareQueueSummaries);
   },
 });
 

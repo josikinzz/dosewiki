@@ -4,6 +4,7 @@ import {
   addAlias,
   applyOrderDrag,
   buildContributorPatch,
+  buildOwnContributorPatch,
   curateSlug,
   filterContributors,
   isContributorFormDirty,
@@ -256,6 +257,30 @@ describe("the profile form", () => {
       approved_replicator: false,
       // A blank note clears the field even when an attribution was left behind.
       staffNote: null,
+    });
+  });
+
+  it("keeps the self-serve patch to name, bio, avatar, and links", () => {
+    const patch = buildOwnContributorPatch({
+      displayName: "  Josie  ",
+      bio: "Hi.",
+      role: "Admin",
+      membershipEmail: "josie@example.com",
+      avatarUrl: " https://cdn.example/josie.png ",
+      aliases: ["gremblin"],
+      links: [{ label: "Site", url: "https://example.com" }],
+      exclude_from_gallery: true,
+      archival: true,
+      approved_replicator: true,
+      staffNoteMarkdown: "self-awarded",
+      staffNoteAttribution: "",
+    });
+
+    expect(patch).toEqual({
+      displayName: "Josie",
+      bio: "Hi.",
+      avatarUrl: "https://cdn.example/josie.png",
+      links: [{ label: "Site", url: "https://example.com" }],
     });
   });
 

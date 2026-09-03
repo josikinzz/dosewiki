@@ -7,6 +7,10 @@
  * whole corpus would put the cost back into first paint, which is exactly what
  * the dev shell stopped doing when the tools were split into dynamic bundles.
  *
+ * The statuses counted are `NEEDS_REVIEW_SUBMISSION_STATUSES`, the same list
+ * the portal's Needs review bucket is built from, so the badge and the queue
+ * cannot disagree about which rows are waiting.
+ *
  *   GET /api/dev/trip-reports/needs-review-count → { count }
  */
 import { NextResponse } from "next/server";
@@ -34,13 +38,8 @@ export const GET = protectedRouteOperation({
   },
   operation: async () => {
     const store = await getTripReportSubmissionStore();
-    const queues = await Promise.all(
-      NEEDS_REVIEW_SUBMISSION_STATUSES.map((status) => store.list({ status, limit: 250 })),
-    );
+    const count = await store.count({ statuses: NEEDS_REVIEW_SUBMISSION_STATUSES });
 
-    return NextResponse.json({
-      ok: true,
-      count: queues.reduce((total, queue) => total + queue.length, 0),
-    });
+    return NextResponse.json({ ok: true, count });
   },
 });

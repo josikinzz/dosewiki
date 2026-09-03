@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import {
+  LIBRARY_DEPENDENT_TABS,
+  LIBRARY_FETCHING_TABS,
   buildCombinedChangelogMarkdown,
   buildCommitMarkdown,
   buildConvexSavePayload,
@@ -11,13 +13,43 @@ import {
   normalizeConvexChangeLogEntry,
   normalizeGitHubChangeLogEntry,
   resolvePrimaryTab,
+  tabNeedsChangelogFeed,
+  tabNeedsContributorProfiles,
 } from "./devModePageUtils";
+import { DEV_TAB_REGISTRY } from "./devTabRegistry";
 
 describe("devModePageUtils", () => {
   it("resolves primary tabs for dev mode navigation", () => {
     expect(resolvePrimaryTab("articles")).toBe("tools");
+    expect(resolvePrimaryTab("contributors")).toBe("tools");
     expect(resolvePrimaryTab("change-log")).toBe("change-log");
-    expect(resolvePrimaryTab("profile")).toBe("profile");
+  });
+
+  it("derives the corpus loading policy from the registry", () => {
+    expect([...LIBRARY_DEPENDENT_TABS].sort()).toEqual(
+      ["articles", "change-log", "citation-review", "index-layout", "tag-editor"],
+    );
+    // Writing drains the corpus for the About placeholder counts but renders
+    // without waiting on it.
+    expect([...LIBRARY_FETCHING_TABS].sort()).toEqual(
+      ["articles", "change-log", "citation-review", "index-layout", "tag-editor", "writing"],
+    );
+  });
+
+  it("derives the changelog and contributor feeds from the registry", () => {
+    const ids = DEV_TAB_REGISTRY.map((tab) => tab.id);
+    // Only the change log reads the feed; the profile tab that used to fetch it
+    // and never render it folded into Contributors.
+    expect(ids.filter(tabNeedsChangelogFeed)).toEqual(["change-log"]);
+    expect(ids.filter(tabNeedsContributorProfiles).sort()).toEqual([
+      "articles",
+      "change-log",
+      "citation-review",
+      "contributors",
+      "index-layout",
+      "tag-editor",
+      "writing",
+    ]);
   });
 
   it("formats labels and extracts changelog summaries", () => {
@@ -63,21 +95,12 @@ describe("devModePageUtils", () => {
       buildConvexSavePayload({
         articles,
         originalArticles,
-        hasAboutChanges: true,
-        aboutMarkdown: "About",
-        aboutSubtitle: "Subtitle",
-        aboutFounderKeys: ["JOSIE"],
         datasetChangelog,
       }),
     ).toEqual({
       changedArticles: [{ id: 2, title: "MDMA" }],
       payload: {
         articles: [{ id: 2, title: "MDMA" }],
-        about: {
-          aboutMarkdown: "About",
-          aboutSubtitle: "Subtitle",
-          founderProfileKeys: ["JOSIE"],
-        },
         changelog: {
           markdown: "# Changes\n\n+ MDMA",
           articles: [{ id: 2, title: "MDMA", slug: "mdma" }],

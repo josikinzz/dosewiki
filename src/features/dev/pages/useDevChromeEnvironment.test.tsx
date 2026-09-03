@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { DevModeTab } from "./devModePageUtils";
+import type { DevModeTab } from "./devTabRegistry";
 import { useDevChromeEnvironment } from "./useDevChromeEnvironment";
 
 describe("useDevChromeEnvironment", () => {
@@ -91,26 +91,6 @@ describe("useDevChromeEnvironment", () => {
       input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     });
     input.remove();
-
-    expect(close).not.toHaveBeenCalled();
-  });
-
-  it("leaves Escape alone on the review workbench", () => {
-    // The workbench is a standalone surface, so `close()` would push the
-    // reviewer to /substances instead of dismissing anything.
-    const close = vi.fn();
-    renderHook(() =>
-      useDevChromeEnvironment({
-        activeTab: "review",
-        close,
-        hasPendingChanges: false,
-        onTabNoticeClear: vi.fn(),
-      }),
-    );
-
-    act(() => {
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-    });
 
     expect(close).not.toHaveBeenCalled();
   });

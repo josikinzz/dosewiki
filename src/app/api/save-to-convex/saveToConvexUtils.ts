@@ -3,12 +3,6 @@ import { slugify } from "@/utils/slug";
 
 export { slugify };
 
-export type AboutPayload = {
-  aboutMarkdown?: string;
-  aboutSubtitle?: string;
-  founderProfileKeys?: string[];
-};
-
 export type ChangelogArticle = {
   id: number;
   title: string;
@@ -65,28 +59,6 @@ export type ArticleWriteOutcome = {
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
-}
-
-export function parseAboutPayload(value: unknown): AboutPayload | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const aboutMarkdown = typeof value.aboutMarkdown === "string" ? value.aboutMarkdown : undefined;
-  const aboutSubtitle = typeof value.aboutSubtitle === "string" ? value.aboutSubtitle : undefined;
-  const founderProfileKeys = Array.isArray(value.founderProfileKeys)
-    ? value.founderProfileKeys.filter((entry): entry is string => typeof entry === "string")
-    : undefined;
-
-  if (aboutMarkdown === undefined && aboutSubtitle === undefined && founderProfileKeys === undefined) {
-    return null;
-  }
-
-  return {
-    aboutMarkdown,
-    aboutSubtitle,
-    founderProfileKeys,
-  };
 }
 
 export function parseChangelogPayload(value: unknown): ChangelogPayload | null {

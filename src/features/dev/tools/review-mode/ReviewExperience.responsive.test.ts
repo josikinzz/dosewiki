@@ -7,7 +7,7 @@ describe("ReviewExperience command bar responsiveness", () => {
     const source = readFileSync(
       join(
         process.cwd(),
-        "src/features/dev/tools/review-mode/ReviewExperience.tsx",
+        "src/features/dev/tools/review-mode/ReviewCommandBar.tsx",
       ),
       "utf8",
     );
@@ -23,7 +23,7 @@ describe("ReviewExperience command bar responsiveness", () => {
     const source = readFileSync(
       join(
         process.cwd(),
-        "src/features/dev/tools/review-mode/ReviewExperience.tsx",
+        "src/features/dev/tools/review-mode/ReviewCommandBar.tsx",
       ),
       "utf8",
     );

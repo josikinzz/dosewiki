@@ -3,15 +3,15 @@ import { v } from "convex/values";
 import { requireEditorWrite } from "./lib/auth";
 
 /**
- * Canonical molecule depictions (the `/dev` → Molecules editor and public pages).
+ * Canonical molecule depictions used by the Molecules editor and public pages.
  *
  * One document per substance slug holds the current published depiction:
- *   • `svg`      — the live display asset (the editor's in-browser RDKit.js render)
- *   • `molblock` — the re-editable source of truth (atom coords + wedge/hash stereo)
+ *   • `svg`: the display asset rendered from the MOL block by OpenChemLib
+ *   • `molblock`: the re-editable source of atom coordinates and bond stereo
  *
- * Reads are public (the article render uses `svg` when a document exists);
- * writes require an editor/admin actor via `requireEditorWrite`, mirroring the
- * substance-article and index-layout editors.
+ * Reads are public. Public pages display `svg` when a document exists and show
+ * no depiction when it does not. Writes require an editor or admin actor via
+ * `requireEditorWrite`, matching the substance-article and index-layout editors.
  */
 
 const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
@@ -25,7 +25,7 @@ function assertValidSlug(slug: string) {
   }
 }
 
-/** One canonical depiction by slug. Null falls back to the legacy static asset. */
+/** Returns one canonical depiction by slug; null means none has been published. */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {

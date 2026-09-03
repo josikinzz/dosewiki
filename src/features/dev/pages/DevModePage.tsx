@@ -5,6 +5,7 @@ import { useDevModePageController } from "./useDevModePageController";
 export function DevModePage({
   activeTab,
   initialArticleSlug,
+  initialFilter,
   initialProfileKey,
   isLibraryLoading,
   onTabChange,
@@ -12,6 +13,7 @@ export function DevModePage({
   const controller = useDevModePageController({
     activeTab,
     initialArticleSlug,
+    initialFilter,
     initialProfileKey,
     isLibraryLoading,
     onTabChange,

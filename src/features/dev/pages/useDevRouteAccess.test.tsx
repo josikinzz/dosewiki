@@ -52,25 +52,7 @@ describe("useDevRouteAccess", () => {
     expect(onTabChange).not.toHaveBeenCalled();
   });
 
-  it("redirects unauthenticated profile access back to articles", async () => {
-    const onTabChange = vi.fn();
-
-    renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "profile",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
-
-    await waitFor(() => {
-      expect(onTabChange).toHaveBeenCalledWith("articles");
-    });
-  });
-
-  it("redirects authenticated non-editors to profile from protected tabs", async () => {
-    sessionState.status = "authenticated";
-    sessionState.data = { user: { email: "reader@example.com", role: "member" } };
+  it("sends a signed-out session from an editor-only tab to Contributors", async () => {
     const onTabChange = vi.fn();
 
     renderHook(() =>
@@ -82,8 +64,44 @@ describe("useDevRouteAccess", () => {
     );
 
     await waitFor(() => {
-      expect(onTabChange).toHaveBeenCalledWith("profile");
+      expect(onTabChange).toHaveBeenCalledWith("contributors");
     });
+  });
+
+  it("sends authenticated non-editors from editor-only tabs to Contributors and reports the flags", async () => {
+    sessionState.status = "authenticated";
+    sessionState.data = { user: { email: "reader@example.com", role: "member" } };
+    const onTabChange = vi.fn();
+
+    const { result } = renderHook(() =>
+      useDevRouteAccess({
+        activeTab: "articles",
+        onTabChange,
+        onClearNoticesForTab: vi.fn(),
+      }),
+    );
+
+    await waitFor(() => {
+      expect(onTabChange).toHaveBeenCalledWith("contributors");
+    });
+    expect(result.current.isSignedIn).toBe(true);
+    expect(result.current.canEdit).toBe(false);
+  });
+
+  it("leaves a non-editor alone on Contributors", () => {
+    sessionState.status = "authenticated";
+    sessionState.data = { user: { email: "reader@example.com", role: "member" } };
+    const onTabChange = vi.fn();
+
+    renderHook(() =>
+      useDevRouteAccess({
+        activeTab: "contributors",
+        onTabChange,
+        onClearNoticesForTab: vi.fn(),
+      }),
+    );
+
+    expect(onTabChange).not.toHaveBeenCalled();
   });
 
   it("allows editors to remain on protected tabs", async () => {
@@ -99,8 +117,8 @@ describe("useDevRouteAccess", () => {
       }),
     );
 
-    expect(result.current.hasNextEditorSession).toBe(true);
-    expect(result.current.hasProfileSession).toBe(true);
+    expect(result.current.isSignedIn).toBe(true);
+    expect(result.current.canEdit).toBe(true);
     expect(onTabChange).not.toHaveBeenCalled();
   });
 
@@ -148,7 +166,7 @@ describe("useDevRouteAccess", () => {
     rerender();
 
     await waitFor(() => {
-      expect(onTabChange).toHaveBeenCalledWith("profile");
+      expect(onTabChange).toHaveBeenCalledWith("contributors");
     });
   });
 
@@ -158,7 +176,7 @@ describe("useDevRouteAccess", () => {
 
     const explicit = renderHook(() =>
       useDevRouteAccess({
-        activeTab: "profile",
+        activeTab: "contributors",
         initialProfileKey: " abc ",
         onTabChange: vi.fn(),
         onClearNoticesForTab: vi.fn(),
@@ -168,7 +186,7 @@ describe("useDevRouteAccess", () => {
 
     const email = renderHook(() =>
       useDevRouteAccess({
-        activeTab: "profile",
+        activeTab: "contributors",
         onTabChange: vi.fn(),
         onClearNoticesForTab: vi.fn(),
       }),
@@ -178,7 +196,7 @@ describe("useDevRouteAccess", () => {
     sessionState.data = { user: { name: "Jane Doe!" } };
     const name = renderHook(() =>
       useDevRouteAccess({
-        activeTab: "profile",
+        activeTab: "contributors",
         onTabChange: vi.fn(),
         onClearNoticesForTab: vi.fn(),
       }),

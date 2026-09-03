@@ -30,16 +30,21 @@ export type WritingSelection =
   | { type: "row"; slug: string };
 
 type WritingControllerOptions = {
-  kind: WritingKind;
+  /** The kind filter the rail opens on; what a new row is saved as. */
+  initialKind?: WritingKind;
   pinnedEntryId?: string;
   initialSelection?: string;
 };
 
 export function useWritingWorkbenchController({
-  kind,
+  initialKind = "article",
   pinnedEntryId,
   initialSelection,
 }: WritingControllerOptions) {
+  // The rail's kind filter. A deep link can open a row of the other kind
+  // (`/dev/writing/<blog slug>`): loading such a row moves the filter to the
+  // row's kind; the row itself is never relabelled to match the filter.
+  const [kind, setKind] = useState<WritingKind>(initialKind);
   const [entries, setEntries] = useState<WritingListEntry[] | null>(null);
   const [selection, setSelection] = useState<WritingSelection>(() =>
     pinnedEntryId && (!initialSelection || initialSelection === pinnedEntryId)
@@ -111,6 +116,7 @@ export function useWritingWorkbenchController({
           return;
         }
         slugTouchedRef.current = true;
+        setKind(payload.article.kind ?? "article");
         setLoadedRow(payload.article);
         setDraft(draftFromRow(payload.article));
         setSaveState("idle");
@@ -147,6 +153,20 @@ export function useWritingWorkbenchController({
     setSaveState("idle");
     setNotice(null);
   }, []);
+
+  // The kind filter. A loaded row of the other kind cannot stay open under a
+  // rail that no longer lists it, so the editor drops to a fresh draft of the
+  // new kind; an unsaved draft has no kind yet and follows the filter, and the
+  // pinned entry belongs to no kind at all.
+  const selectKind = useCallback(
+    (next: WritingKind) => {
+      setKind(next);
+      if (selection.type === "row" && loadedRow && (loadedRow.kind ?? "article") !== next) {
+        startNew();
+      }
+    },
+    [loadedRow, selection.type, startNew],
+  );
 
   const selectPinned = useCallback(() => {
     setSelection({ type: "pinned" });
@@ -194,7 +214,10 @@ export function useWritingWorkbenchController({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             slug: draft.slug.trim(),
-            kind,
+            // The loaded row keeps its own slug and kind: a differing slug is a
+            // rename of that row, and the kind is the row's, not the tab's.
+            originalSlug: loadedRow?.slug,
+            kind: loadedRow ? (loadedRow.kind ?? "article") : kind,
             status,
             title: draft.title.trim(),
             teaser: draft.teaser,
@@ -229,10 +252,11 @@ export function useWritingWorkbenchController({
         });
       }
     },
-    [draft, kind, refreshList],
+    [draft, kind, loadedRow, refreshList],
   );
 
   return {
+    kind,
     entries,
     selection,
     kindEntries,
@@ -246,6 +270,7 @@ export function useWritingWorkbenchController({
     readOnly,
     canSave,
     startNew,
+    selectKind,
     selectPinned,
     selectRow,
     updateTitle,
