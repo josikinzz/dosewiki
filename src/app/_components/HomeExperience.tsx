@@ -317,17 +317,18 @@ export function HomeExperience({
             clear of the hero's vertical rhythm at every viewport height. It sits outside
             <section> because the hero stage animates `transform`, and a transformed
             ancestor would become the containing block for a fixed child. Last in the DOM,
-            so it is also last in reading order. */}
+            so it is also last in reading order. `theme-home-corner-widget` hides it on
+            short phone viewports where it would otherwise sit under the tile rows. */}
         <SiteSupporter
           markHeightRem={1.75}
-          className="fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
+          className="theme-home-corner-widget fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
         />
 
         {/* The mailing-list trigger takes the remaining free corner, bottom-right,
             opposite the supporter credit. Like `SiteSupporter` it sits outside
             <section> because the hero stage animates `transform`, and a transformed
             ancestor would become the containing block for a fixed child. */}
-        <MailingListInvite className="fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
+        <MailingListInvite className="theme-home-corner-widget fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
       </main>
     </>
   );

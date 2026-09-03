@@ -1362,6 +1362,17 @@ html[data-theme="light"]
       padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4.5rem);
     }
   }
+
+  /* Corner widgets (supporter credit, mailing-list trigger) are fixed to the
+     shell's bottom corners. Below ~620px of viewport height the hero's minimum
+     content (header + lockup + intro + two tile rows at their clamped floors)
+     reaches into that bottom band, so the widgets would sit under the tiles.
+     They are supplementary, so they hide outright rather than overlap. */
+  @media (max-height: 620px) {
+    .theme-home-corner-widget {
+      display: none;
+    }
+  }
 }
 
 .theme-home-logo {
