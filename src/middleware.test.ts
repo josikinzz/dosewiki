@@ -392,17 +392,31 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
-  it.each(["/docs/license", "/api/csp-report", "/robots.txt", "/sitemap.xml"])(
-    "serves launched public endpoint %s directly",
-    async (path) => {
-      const { middleware } = await import("../middleware");
+  it.each([
+    "/docs/license",
+    "/api/csp-report",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/llms.txt",
+    "/SubstanceIndex.json",
+  ])("serves launched public endpoint %s directly", async (path) => {
+    const { middleware } = await import("../middleware");
 
-      const response = await middleware(makePublicRequest(path));
+    const response = await middleware(makePublicRequest(path));
 
-      expect(response.status).toBe(200);
-      expect(response.headers.get("location")).toBeNull();
-    },
-  );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    // A rewrite to the 404 target is also a 200 here; only the header tells.
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("rejects an unknown root slug that is not a file", async () => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makePublicRequest("/not-a-substance"));
+
+    expect(response.headers.get("x-middleware-rewrite")).toContain("/");
+  });
 
   it("does not override database-backed SVG route content policies", async () => {
     const { middleware } = await import("../middleware");

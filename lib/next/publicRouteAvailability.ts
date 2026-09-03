@@ -67,7 +67,10 @@ export function isUnavailablePublicDynamicPath(pathname: string): boolean {
   const rootMatch = pathname.match(/^\/([^/]+)\/?$/);
   if (!rootMatch) return false;
   const slug = decodeSegment(rootMatch[1]);
-  return Boolean(
-    !slug || (!ROOT_ROUTE_SEGMENTS.has(slug) && !substanceSlugs.has(slug)),
-  );
+  if (!slug) return true;
+  // A root file (`/robots.txt`, `/llms.txt`, the open-data JSON dumps) is a
+  // metadata route or a public/ asset, never a substance slug: no slug carries
+  // a dot. Left to the slug check they answered 404 from 2026-08-31 until this.
+  if (slug.includes(".")) return false;
+  return !ROOT_ROUTE_SEGMENTS.has(slug) && !substanceSlugs.has(slug);
 }
