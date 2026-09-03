@@ -16,6 +16,7 @@ import {
 } from "@server/convex/publicData";
 import { getPublicEffectDetail } from "@server/convex/publicLibrary";
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
+import { getPublicArticleHistory } from "@server/convex/publicData.changelog";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
 import { getCopy } from "./copyBlocks";
@@ -100,6 +101,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     warningBannerPresets,
     warningBannerIconSize,
     copy,
+    recentChanges,
   ] = await Promise.all([
     getPublicContributorByKey("JOSIE"),
     getPublicContributorByKey("LYREA"),
@@ -124,6 +126,10 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     // to the checked-in default inside the resolver, so an un-seeded deployment
     // still renders the sentence.
     getCopy(),
+    // Human edits for the Article Status ledger. Needs the directory to name
+    // contributors; the directory read is request-cached, so chaining it here
+    // costs nothing extra over the parallel call above.
+    getPublicContributorDirectory().then((directory) => getPublicArticleHistory(slug, directory)),
   ]);
 
   const moleculeOverrideUrl = moleculeUpdatedAt
@@ -181,6 +187,7 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     toleranceDisclaimer: copy.text(TOLERANCE_SECTION_DISCLAIMER_KEY),
     reviewStatusCopy: copy.text(REVIEW_STATUS_BANNER_KEY),
     expertReviewCredit: copy.text(EXPERT_REVIEW_CREDIT_KEY),
+    recentChanges,
   });
 
   return {

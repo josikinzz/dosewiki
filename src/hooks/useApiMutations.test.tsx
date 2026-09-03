@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useSaveToConvexMutation } from "./useApiMutations";
+import { useSaveToConvexMutation, useSubmitProposalMutation } from "./useApiMutations";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -150,5 +150,52 @@ describe("useApiMutations", () => {
     ).rejects.toThrow(
       "Editor access required for Convex writes. Missing admin/editor membership. (code=convex_editor_access_required, phase=article-mutation, requestId=save-test)",
     );
+  });
+
+  it("posts a proposal to the proposals route and returns its id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, proposalId: "cp_123" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useSubmitProposalMutation(), {
+      wrapper: createWrapper(),
+    });
+
+    await expect(
+      result.current.mutateAsync({
+        payload: { articles: [{ slug: "lsd" }] },
+        summary: "Update LSD",
+        diff: "+ changed",
+      }),
+    ).resolves.toEqual({ proposalId: "cp_123" });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/dev/proposals",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ payload: { articles: [{ slug: "lsd" }] }, summary: "Update LSD", diff: "+ changed" }),
+      }),
+    );
+  });
+
+  it("surfaces the proposal route's error and code when submission is refused", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: "LSD: summary: Invalid input", code: "PROPOSAL_ARTICLE_INVALID" }),
+      }),
+    );
+
+    const { result } = renderHook(() => useSubmitProposalMutation(), {
+      wrapper: createWrapper(),
+    });
+
+    await expect(
+      result.current.mutateAsync({ payload: { articles: [{ slug: "lsd" }] }, summary: "x", diff: "" }),
+    ).rejects.toThrow("LSD: summary: Invalid input (code=PROPOSAL_ARTICLE_INVALID)");
   });
 });

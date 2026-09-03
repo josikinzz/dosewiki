@@ -14,6 +14,7 @@ import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
 import { ArticleLayout } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
 import type { ContributorDirectory } from "@server/contributorDirectory";
+import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
 
 interface SubstanceArticlePageProps {
   article: SubstanceArticle;
@@ -55,6 +56,7 @@ interface SubstanceArticlePageProps {
    */
   reviewStatusCopy?: string;
   expertReviewCredit?: string;
+  recentChanges?: ArticleRecentChange[];
 }
 
 export function SubstanceArticlePage({
@@ -77,6 +79,7 @@ export function SubstanceArticlePage({
   toleranceDisclaimer,
   reviewStatusCopy,
   expertReviewCredit,
+  recentChanges,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -100,6 +103,7 @@ export function SubstanceArticlePage({
         toleranceDisclaimer={toleranceDisclaimer}
         reviewStatusCopy={reviewStatusCopy}
         expertReviewCredit={expertReviewCredit}
+        recentChanges={recentChanges}
       />
     </main>
   );

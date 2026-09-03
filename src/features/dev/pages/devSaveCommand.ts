@@ -1,7 +1,13 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
-import type { SaveToConvexPayload, SaveToConvexResult } from "@/hooks/useApiMutations";
+import type {
+  SaveToConvexPayload,
+  SaveToConvexResult,
+  SubmitProposalPayload,
+  SubmitProposalResult,
+} from "@/hooks/useApiMutations";
 import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
 import type { SubstanceArticle } from "@/schema";
+import type { DevCommitDestination } from "../components/DevCommitCard";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import {
   buildCommitMarkdown,
@@ -48,6 +54,8 @@ export type DevSaveDraftInput = {
 };
 
 export type DevSaveCommandResult = {
+  /** Where the save went: written to production, or held as a proposal. */
+  destination: DevCommitDestination;
   savedItems: string[];
   warnings: string[];
   resolvedSubmitterKey: string;
@@ -55,6 +63,9 @@ export type DevSaveCommandResult = {
   markChangesSaved: boolean;
   revalidatedPaths?: string[];
   requestId?: string;
+  /** Follow-up link shown beside the success notice (e.g. the review queue). */
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 export type DevSaveAvailability =
@@ -165,6 +176,7 @@ export function createConvexSaveAdapter({
       const resolvedSubmitterKey = result.submittedBy?.trim() || credentials.key;
 
       return {
+        destination: "convex",
         savedItems: result.savedItems,
         warnings: result.warnings ?? [],
         resolvedSubmitterKey,
@@ -172,6 +184,65 @@ export function createConvexSaveAdapter({
         markChangesSaved: result.savedItems.length > 0 && !(result.warnings?.length),
         revalidatedPaths: result.revalidatedPaths,
         requestId: result.requestId,
+      };
+    },
+  };
+}
+
+/** Short id shown in the notice: the tail of a Convex id is what differs between rows. */
+const PROPOSAL_ID_DISPLAY_LENGTH = 6;
+
+/**
+ * One-line summary of a proposal for the queue: the changed article titles and
+ * layout types, in payload order, so an admin can tell rows apart at a glance.
+ */
+export function buildProposalSummary(draft: DevSaveDraft, payload: SaveToConvexPayload): string {
+  const articleTitles = (payload.articles ?? []).map((article) => {
+    const record = article && typeof article === "object" ? (article as { title?: unknown }) : {};
+    return typeof record.title === "string" && record.title.trim() ? record.title.trim() : "Untitled article";
+  });
+  const layoutLabels = (payload.indexLayouts ?? []).map(
+    (layout) => draft.layouts.find((candidate) => candidate.type === layout.type)?.label ?? `${layout.type} layout`,
+  );
+  const items = [...articleTitles, ...layoutLabels];
+  if (items.length === 0) {
+    return "Editor update";
+  }
+  const shown = items.slice(0, 3).join(", ");
+  return items.length > 3 ? `Update ${shown} and ${items.length - 3} more` : `Update ${shown}`;
+}
+
+/**
+ * The editor-side adapter: the same payload the Convex adapter would save is
+ * posted to /api/dev/proposals and held for an admin. The diff is the commit
+ * markdown the shell already renders in the change log.
+ */
+export function createProposalSaveAdapter({
+  submitProposal,
+}: {
+  submitProposal: (input: SubmitProposalPayload) => Promise<SubmitProposalResult>;
+}): DevSaveCommandAdapter {
+  return {
+    noChangesMessage: "No changes to submit.",
+    verifiedMessage: (key) => `Credentials verified for ${key}. Submitting for review...`,
+    validateAvailability: () => ({ ok: true }),
+    execute: async (draft, credentials) => {
+      const { payload } = buildConvexCommandPayload(draft);
+      const result = await submitProposal({
+        payload,
+        summary: buildProposalSummary(draft, payload),
+        diff: payload.changelog?.markdown ?? "",
+      });
+
+      return {
+        destination: "proposal",
+        savedItems: [`Proposal #${result.proposalId.slice(-PROPOSAL_ID_DISPLAY_LENGTH)}`],
+        warnings: [],
+        resolvedSubmitterKey: credentials.key,
+        changelogEntry: null,
+        markChangesSaved: true,
+        actionLabel: "View in queue",
+        actionHref: "/dev/queue",
       };
     },
   };

@@ -10,7 +10,17 @@ import {
   type ChangeLogArticleSummary,
   type ChangeLogEntry,
 } from "../../src/data/changelog/changeLog";
+import {
+  sliceArticleDiff,
+  type ArticleRecentChange,
+} from "../../src/data/changelog/articleRecentChanges";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import type { ContributorDirectory } from "../contributorDirectory";
+import {
+  findContributorProfileByKeyOrAlias,
+  toContributorDisplayName,
+} from "../contributorProfileIdentity";
+import { publicHref } from "../../src/utils/publicHref";
 import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CONVEX_CACHE_TAGS,
@@ -175,5 +185,100 @@ export const getPublicProfileHistory = cache(
       .map((entry) =>
         entry.submittedBy === profile.key ? entry : { ...entry, submittedBy: profile.key },
       );
+  },
+);
+
+/**
+ * How many human edits one article page lists. The disclosure is collapsed by
+ * default and each row collapses its diff, so the cap is about payload, not
+ * screen space: 8 rows × ≤50 KB sliced diff stays far inside the 2 MB cache
+ * entry limit.
+ */
+export const PUBLIC_ARTICLE_HISTORY_LIMIT = 8;
+
+type ConvexArticleChangelogRow = Omit<ConvexChangelogRow, "articles"> & { articles: unknown };
+
+/** The cached, per-article projection before contributor resolution. */
+type StampedArticleChange = Omit<ArticleRecentChange, "contributor"> & {
+  submittedBy: string | null;
+};
+
+const readChangelogByArticleSlug = cache(
+  unstable_cache(
+    // Slicing to this article and the diff cap both run inside the cache
+    // boundary: a bulk save's 500 KB multi-article diff never reaches the
+    // cached value, only this article's section of it.
+    async (slug: string): Promise<StampedArticleChange[]> => {
+      const rows = await queryConvex<ConvexArticleChangelogRow[], { slug: string; limit: number }>(
+        "changelog:getByArticleSlug",
+        { slug, limit: PUBLIC_ARTICLE_HISTORY_LIMIT },
+      );
+      if (!Array.isArray(rows)) {
+        return [];
+      }
+      const changes: StampedArticleChange[] = [];
+      for (const row of rows) {
+        if (typeof row !== "object" || row === null) continue;
+        if (typeof row.entryId !== "string" || typeof row.createdAt !== "string") continue;
+        const articles = normalizeArticles(row.articles);
+        const article = articles.find((candidate) => candidate.slug === slug);
+        if (!article) continue;
+        const markdown = typeof row.markdown === "string" ? row.markdown : "";
+        changes.push({
+          id: row.entryId,
+          createdAt: row.createdAt,
+          message: typeof row.message === "string" ? row.message : "",
+          diff: truncateDiffMarkdown(sliceArticleDiff(markdown, article)),
+          articleCount: articles.length,
+          submittedBy: typeof row.submittedBy === "string" ? row.submittedBy : null,
+        });
+      }
+      return changes;
+    },
+    ["convex-public-changelog-by-article-slug"],
+    {
+      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.changelog],
+    },
+  ),
+);
+
+/**
+ * The human edits recorded against one article, newest first, for the public
+ * article page. Only signed-in editor saves write changelog rows (agent and
+ * script pipelines mutate articles without one), so every row here is a human
+ * edit by construction.
+ *
+ * Contributor identity resolves here against the directory so the page never
+ * ships raw submitter stamps for known profiles. Returns [] when the query is
+ * not deployed yet or Convex is unreachable: the disclosure simply does not
+ * render, which is the same thing an unedited article shows.
+ */
+export const getPublicArticleHistory = cache(
+  async (slug: string, directory: ContributorDirectory): Promise<ArticleRecentChange[]> => {
+    let rows: StampedArticleChange[] = [];
+    try {
+      rows = await readChangelogByArticleSlug(slug);
+    } catch (error) {
+      console.warn(`[publicData] article changelog unavailable for ${slug}; hiding recent changes.`, error);
+      return [];
+    }
+
+    return rows.map(({ submittedBy, ...change }) => {
+      if (!submittedBy) {
+        return { ...change, contributor: null };
+      }
+      const profile = findContributorProfileByKeyOrAlias(directory, submittedBy);
+      return {
+        ...change,
+        contributor: profile
+          ? {
+              name: profile.displayName,
+              href: publicHref.contributor(profile.key.toLowerCase()),
+              avatarUrl: profile.avatarUrl ?? null,
+            }
+          : { name: toContributorDisplayName(submittedBy), href: null, avatarUrl: null },
+      };
+    });
   },
 );

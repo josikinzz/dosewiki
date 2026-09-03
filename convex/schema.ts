@@ -103,6 +103,55 @@ const inviteCode = v.object({
   note: v.optional(v.string()),
 });
 
+// Editor change proposals: one staged commit-panel save per row, held for an
+// admin. `payload` is the exact save-to-convex body the shell built; `targets`
+// pins each production row it touches with a content hash taken at submit
+// time, so apply can refuse a proposal whose base has moved on. Status moves
+// only along lib/proposals/proposalStatus.ts.
+export const changeProposalStatusValidator = v.union(
+  v.literal("submitted"),
+  v.literal("changes_requested"),
+  v.literal("approved"),
+  v.literal("applied"),
+  v.literal("rejected"),
+  v.literal("superseded"),
+  v.literal("reverted"),
+);
+
+export const changeProposalTargetKindValidator = v.union(
+  v.literal("article"),
+  v.literal("indexLayout"),
+  v.literal("about"),
+  v.literal("copyBlock"),
+);
+
+export const changeProposalTargetValidator = v.object({
+  kind: changeProposalTargetKindValidator,
+  key: v.string(),
+  baseHash: v.string(),
+});
+
+const changeProposal = v.object({
+  proposedBy: v.string(),
+  createdAt: v.string(),
+  updatedAt: v.string(),
+  status: changeProposalStatusValidator,
+  targets: v.array(changeProposalTargetValidator),
+  payload: v.any(),
+  summary: v.string(),
+  diff: v.string(),
+  revisionOf: v.optional(v.id("changeProposals")),
+  reviewedBy: v.optional(v.string()),
+  reviewedAt: v.optional(v.string()),
+  reviewNotes: v.optional(v.string()),
+  comments: v.array(v.object({ by: v.string(), at: v.string(), text: v.string() })),
+  appliedAt: v.optional(v.string()),
+  appliedChangelogEntryId: v.optional(v.string()),
+  snapshotBefore: v.optional(v.any()),
+  revertedAt: v.optional(v.string()),
+  conflictReason: v.optional(v.string()),
+});
+
 const generatedPublicationProfile = v.union(
   v.literal("summary"),
   v.literal("dosage_duration"),
@@ -485,7 +534,8 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_username", ["username"])
     .index("by_role", ["role"])
-    .index("by_provider_account", ["provider", "providerAccountId"]),
+    .index("by_provider_account", ["provider", "providerAccountId"])
+    .index("by_reset_token_hash", ["resetTokenHash"]),
 
   inviteCodes: defineTable(inviteCode)
     .index("by_code_hash", ["codeHash"])
@@ -626,4 +676,9 @@ export default defineSchema({
       })),
     })),
   }).index("by_type", ["type"]),
+
+  changeProposals: defineTable(changeProposal)
+    .index("by_status", ["status"])
+    .index("by_proposed_by", ["proposedBy"])
+    .index("by_created_at", ["createdAt"]),
 });

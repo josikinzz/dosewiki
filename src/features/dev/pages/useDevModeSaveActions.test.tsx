@@ -5,14 +5,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { useDevModeSaveActions } from "./useDevModeSaveActions";
 
-const { refreshConvexServerHealthMock, saveToConvexMutateAsyncMock } = vi.hoisted(() => ({
-  refreshConvexServerHealthMock: vi.fn(),
-  saveToConvexMutateAsyncMock: vi.fn(),
-}));
+const { refreshConvexServerHealthMock, saveToConvexMutateAsyncMock, submitProposalMutateAsyncMock } =
+  vi.hoisted(() => ({
+    refreshConvexServerHealthMock: vi.fn(),
+    saveToConvexMutateAsyncMock: vi.fn(),
+    submitProposalMutateAsyncMock: vi.fn(),
+  }));
 
 vi.mock("@/hooks/useApiMutations", () => ({
   useSaveToConvexMutation: () => ({
     mutateAsync: saveToConvexMutateAsyncMock,
+    isPending: false,
+  }),
+  useSubmitProposalMutation: () => ({
+    mutateAsync: submitProposalMutateAsyncMock,
     isPending: false,
   }),
 }));
@@ -63,6 +69,7 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     markChangesSaved: vi.fn(),
     isSignedIn: true,
     canDraft: true,
+    canApprove: true,
     sessionProfileKey: "JOSIE",
     convexEnabled: true,
     datasetChangelog: {
@@ -87,6 +94,7 @@ describe("useDevModeSaveActions", () => {
   beforeEach(() => {
     refreshConvexServerHealthMock.mockReset();
     saveToConvexMutateAsyncMock.mockReset();
+    submitProposalMutateAsyncMock.mockReset();
     saveToConvexMutateAsyncMock.mockResolvedValue({
       success: true,
       requestId: "save-test",
@@ -95,6 +103,42 @@ describe("useDevModeSaveActions", () => {
       warnings: [],
       revalidatedPaths: ["/lsd", "/substances"],
     });
+    submitProposalMutateAsyncMock.mockResolvedValue({ proposalId: "k57abc123" });
+  });
+
+  it("labels the admin action Save to Convex and never offers Submit for review", () => {
+    render(<TestHarness args={createArgs()} />);
+
+    expect(screen.getByRole("button", { name: /save to convex/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /submit for review/i })).not.toBeInTheDocument();
+  });
+
+  it("submits an editor's draft as a proposal and never calls the save route", async () => {
+    const args = { ...createArgs(), canApprove: false };
+    render(<TestHarness args={args} />);
+
+    expect(screen.queryByRole("button", { name: /save to convex/i })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /submit for review/i }));
+
+    await waitFor(() => {
+      expect(submitProposalMutateAsyncMock).toHaveBeenCalledTimes(1);
+    });
+    expect(submitProposalMutateAsyncMock).toHaveBeenCalledWith({
+      payload: expect.objectContaining({
+        articles: [changedArticles[0]],
+        changelog: {
+          markdown: "# LSD\n\n+ Changed summary",
+          articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+        },
+      }),
+      summary: "Update LSD",
+      diff: "# LSD\n\n+ Changed summary",
+    });
+    expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
+    expect(screen.getByText("Submitted Proposal #abc123 for review as JOSIE.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+    expect(args.markChangesSaved).toHaveBeenCalledTimes(1);
+    expect(args.onAppendChangeLogEntry).not.toHaveBeenCalled();
   });
 
   it("executes the Convex save once the session is verified", async () => {

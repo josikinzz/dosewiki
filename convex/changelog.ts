@@ -88,6 +88,48 @@ export const getBySubmitter = query({
 });
 
 /**
+ * Newest-first changelog rows that touched one article, by slug.
+ *
+ * Powers the public article's "Recent changes" disclosure. `articles` is an
+ * array field, which Convex cannot index into, so this walks `by_created_at`
+ * descending and filters in the handler, stopping as soon as `limit` matches
+ * are in hand or `scanCap` rows have been read. The cap bounds the worst case
+ * (an article nobody has ever edited) to one bounded index walk; promote to a
+ * junction table with a `by_slug_created` index if the table outgrows it.
+ */
+export const getByArticleSlug = query({
+  args: {
+    slug: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = Math.min(Math.max(args.limit ?? 8, 1), 50);
+    const scanCap = 2000;
+    const slug = args.slug;
+
+    const matches = [];
+    let scanned = 0;
+    for await (const row of ctx.db.query("changelog").withIndex("by_created_at").order("desc")) {
+      scanned += 1;
+      if (row.articles.some((article) => article.slug === slug)) {
+        matches.push({
+          entryId: row.entryId,
+          createdAt: row.createdAt,
+          message: row.message,
+          markdown: row.markdown,
+          submittedBy: row.submittedBy,
+          articles: row.articles,
+        });
+        if (matches.length >= limit) break;
+      }
+      if (scanned >= scanCap) break;
+    }
+
+    return matches;
+  },
+});
+
+/**
  * One-off idempotent migration normalizing legacy `submittedBy` stamps
  * (DW-21: WITCHY → LYREA). Internal: only runnable via `npx convex run`
  * with deployment credentials, never from the public API surface.

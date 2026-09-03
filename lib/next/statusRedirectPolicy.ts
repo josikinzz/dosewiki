@@ -51,6 +51,8 @@ export const STATUS_PAGE_PATHS = {
   dev: "/dev",
   review: "/review",
   search: "/search",
+  invite: "/invite",
+  resetPassword: "/reset-password",
 } as const;
 
 export type ProtectedRouteRedirectTarget =
@@ -102,6 +104,16 @@ export const noIndexRoutePolicies = [
     pathname: STATUS_PAGE_PATHS.unauthorized,
     robotsDisallow: STATUS_PAGE_PATHS.unauthorized,
     reason: "Authorization status page",
+  },
+  {
+    pathname: STATUS_PAGE_PATHS.invite,
+    robotsDisallow: STATUS_PAGE_PATHS.invite,
+    reason: "Invite redemption page",
+  },
+  {
+    pathname: STATUS_PAGE_PATHS.resetPassword,
+    robotsDisallow: STATUS_PAGE_PATHS.resetPassword,
+    reason: "Password reset page",
   },
   {
     pathname: STATUS_PAGE_PATHS.search,

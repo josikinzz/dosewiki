@@ -109,6 +109,7 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
+          destination: "convex",
           savedItems: ["articles", "about"],
           warnings: [],
           resolvedSubmitterKey: "ADMIN",
@@ -185,6 +186,7 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
+          destination: "convex",
           savedItems: ["articles"],
           warnings: ["Revalidation failed"],
           resolvedSubmitterKey: "ADMIN",
@@ -208,6 +210,7 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
+          destination: "convex",
           savedItems: [],
           warnings: [],
           resolvedSubmitterKey: "ADMIN",
@@ -218,6 +221,39 @@ describe("saveOrchestratorReducer", () => {
 
       expect(state.notice?.type).toBe("error");
       expect(state.notice?.message).toBe("No Convex-compatible changes to save.");
+    });
+
+    it("phrases a proposal submission as held for review and carries the queue link", () => {
+      let state = createInitialSaveOrchestratorState();
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
+      state = saveOrchestratorReducer(state, { type: "validationPassed" });
+      state = saveOrchestratorReducer(state, {
+        type: "credentialsVerified",
+        credentials: { key: "EDITOR" },
+        message: "Credentials verified for EDITOR. Submitting for review...",
+      });
+      expect(state.notice?.message).toBe("Credentials verified for EDITOR. Submitting for review...");
+
+      state = saveOrchestratorReducer(state, {
+        type: "saveSucceeded",
+        result: {
+          destination: "proposal",
+          savedItems: ["Proposal #abc123"],
+          warnings: [],
+          resolvedSubmitterKey: "EDITOR",
+          changelogEntry: null,
+          markChangesSaved: true,
+          actionHref: "/dev/queue",
+          actionLabel: "View in queue",
+        },
+      });
+
+      expect(state.notice).toEqual({
+        type: "success",
+        message: "Submitted Proposal #abc123 for review as EDITOR.",
+        actionHref: "/dev/queue",
+        actionLabel: "View in queue",
+      });
     });
   });
 

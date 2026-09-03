@@ -64,6 +64,43 @@ export const substanceArticleLightValidator = v.object({
 });
 
 /**
+ * Index layout arg validator, shared by `indexLayouts.save` and the change
+ * proposal submit path so a proposed layout is checked exactly like a saved one.
+ */
+export const indexLayoutValidator = v.object({
+  type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
+  version: v.number(),
+  categories: v.array(
+    v.object({
+      key: v.string(),
+      label: v.string(),
+      iconKey: v.string(),
+      notes: v.optional(v.string()),
+      columns: v.optional(v.any()),
+      drugs: v.array(v.string()),
+      sections: v.array(
+        v.object({
+          key: v.string(),
+          label: v.string(),
+          notes: v.optional(v.string()),
+          link: v.optional(
+            v.object({
+              type: v.union(
+                v.literal("chemicalClass"),
+                v.literal("psychoactiveClass"),
+                v.literal("mechanism"),
+              ),
+              value: v.string(),
+            }),
+          ),
+          drugs: v.array(v.string()),
+        }),
+      ),
+    }),
+  ),
+});
+
+/**
  * Validate the complete article contract before writing to Convex.
  * The Convex storage schema remains permissive for rollout/migrations, but
  * ingestion uses the same Zod contract as frontend article rendering.

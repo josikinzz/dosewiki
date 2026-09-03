@@ -113,7 +113,7 @@ export type DevModeSaveOrchestratorEvent =
   | { type: "validationPassed" }
 
   // Credential verification
-  | { type: "credentialsVerified"; credentials: DevSaveCredentials }
+  | { type: "credentialsVerified"; credentials: DevSaveCredentials; message?: string }
   | { type: "credentialsFailed"; message: string }
 
   // Save execution results
@@ -261,7 +261,8 @@ export function saveOrchestratorReducer(
         },
         notice: {
           type: "pending",
-          message: `Credentials verified for ${event.credentials.key}. Saving to Convex...`,
+          message:
+            event.message ?? `Credentials verified for ${event.credentials.key}. Saving to Convex...`,
         },
       };
     }
@@ -270,21 +271,33 @@ export function saveOrchestratorReducer(
       return failOperation(state, event.message);
 
     case "saveSucceeded": {
+      const { result } = event;
+      const items = result.savedItems.join(" and ");
+      const link = result.actionHref
+        ? { actionHref: result.actionHref, actionLabel: result.actionLabel }
+        : {};
       let notice: SaveNotice;
-      if (event.result.savedItems.length === 0) {
+      if (result.savedItems.length === 0) {
         notice = {
           type: "error",
           message: "No Convex-compatible changes to save.",
         };
-      } else if (event.result.warnings.length > 0) {
+      } else if (result.destination === "proposal") {
+        notice = {
+          type: "success",
+          message: `Submitted ${items} for review as ${result.resolvedSubmitterKey}.`,
+          ...link,
+        };
+      } else if (result.warnings.length > 0) {
         notice = {
           type: "error",
-          message: `Saved ${event.result.savedItems.join(" and ")} to Convex as ${event.result.resolvedSubmitterKey}, but ${event.result.warnings.length} issue(s) occurred.`,
+          message: `Saved ${items} to Convex as ${result.resolvedSubmitterKey}, but ${result.warnings.length} issue(s) occurred.`,
         };
       } else {
         notice = {
           type: "success",
-          message: `Saved ${event.result.savedItems.join(" and ")} to Convex as ${event.result.resolvedSubmitterKey}.`,
+          message: `Saved ${items} to Convex as ${result.resolvedSubmitterKey}.`,
+          ...link,
         };
       }
 

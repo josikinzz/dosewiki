@@ -116,8 +116,10 @@ function getSafeConvexSaveError(error: unknown): {
   };
 }
 
+// Admin floor: editors stage the same payload through /api/dev/proposals and an
+// admin applies it; only an admin writes production directly from the panel.
 export const POST = protectedRouteOperation<SaveToConvexBody>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorHeavyWrite",
   body: {
     maxBytes: MAX_SAVE_PAYLOAD_BYTES,

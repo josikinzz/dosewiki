@@ -7,7 +7,7 @@ import {
   useEditorServerConfigHealth,
   type EditorServerConfigHealth,
 } from "@/hooks/useEditorServerConfigHealth";
-import { useSaveToConvexMutation } from "@/hooks/useApiMutations";
+import { useSaveToConvexMutation, useSubmitProposalMutation } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
@@ -22,6 +22,7 @@ import { DevModeCommitPanel } from "./DevModeCommitPanel";
 import {
   buildDevSaveDraft,
   createConvexSaveAdapter,
+  createProposalSaveAdapter,
   type DevSaveCredentials,
 } from "./devSaveCommand";
 import type { ChangeNotice } from "./useDevModeChangeLog";
@@ -37,6 +38,8 @@ type UseDevModeSaveActionsArgs = {
   isSignedIn: boolean;
   /** Admin or editor: gates the save button and server-health polling. */
   canDraft: boolean;
+  /** Admin: saves write production; without it the same draft is submitted as a proposal. */
+  canApprove: boolean;
   sessionProfileKey: string;
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
@@ -58,6 +61,7 @@ const NOTICE_CLEAR_MS = { success: 5000, error: 10000 } as const;
 function ConvexSaveButton({
   convexEnabled,
   canDraft,
+  canApprove,
   convexServerHealth,
   refreshConvexServerHealth,
   isSaving,
@@ -67,6 +71,7 @@ function ConvexSaveButton({
 }: {
   convexEnabled: boolean;
   canDraft: boolean;
+  canApprove: boolean;
   convexServerHealth: EditorServerConfigHealth;
   refreshConvexServerHealth: () => Promise<void>;
   isSaving: boolean;
@@ -80,7 +85,7 @@ function ConvexSaveButton({
 
   return (
     <div className="flex items-center gap-2">
-      {canDraft ? (
+      {canApprove ? (
         <EditorServerHealthIndicator
           health={convexServerHealth}
           onRefresh={() => {
@@ -93,11 +98,17 @@ function ConvexSaveButton({
         size="pill"
         className="rounded-full px-4 py-2 text-sm font-medium"
         onClick={onSaveToConvex}
-        disabled={!canDraft || isSaving || !hasPendingChanges || isConvexSaveBlocked}
+        disabled={!canDraft || isSaving || !hasPendingChanges || (canApprove && isConvexSaveBlocked)}
         title={canDraft ? undefined : "Editor role required"}
       >
-        <Icon icon="lucide:cloud" size={16} />
-        {isSaving ? "Saving..." : "Save to Convex"}
+        <Icon icon={canApprove ? "lucide:cloud" : "lucide:send"} size={16} />
+        {canApprove
+          ? isSaving
+            ? "Saving..."
+            : "Save to Convex"
+          : isSaving
+            ? "Submitting..."
+            : "Submit for review"}
       </Button>
     </div>
   );
@@ -112,6 +123,7 @@ export function useDevModeSaveActions({
   markChangesSaved,
   isSignedIn,
   canDraft,
+  canApprove,
   sessionProfileKey,
   convexEnabled,
   datasetChangelog,
@@ -121,8 +133,10 @@ export function useDevModeSaveActions({
   hasPendingChanges,
   onAppendChangeLogEntry,
 }: UseDevModeSaveActionsArgs): UseDevModeSaveActionsResult {
+  // Only an admin writes production, so only an admin polls the server health
+  // that gates that write; an editor's proposal has no such precondition.
   const { health: convexServerHealth, refresh: refreshConvexServerHealth } =
-    useEditorServerConfigHealth(convexEnabled && canDraft);
+    useEditorServerConfigHealth(convexEnabled && canApprove);
   // The session cookie is the credential; this only names who the save is
   // attributed to and refuses to start a save nobody is signed in for.
   const verifySaveSession = useCallback(async (): Promise<DevSaveCredentials> => {
@@ -133,6 +147,7 @@ export function useDevModeSaveActions({
   }, [isSignedIn, sessionProfileKey]);
 
   const saveToConvexMutation = useSaveToConvexMutation();
+  const submitProposalMutation = useSubmitProposalMutation();
 
   // Create orchestrator once
   const orchestratorRef = useRef<DevModeSaveOrchestrator | null>(null);
@@ -234,10 +249,14 @@ export function useDevModeSaveActions({
   // Effect handler for async operations
   const handleEffect = useCallback(
     async function runEffect(effect: SaveOrchestratorEffect): Promise<void> {
-      const adapter = createConvexSaveAdapter({
-        serverHealth: convexServerHealth,
-        saveToConvex: saveToConvexMutation.mutateAsync,
-      });
+      const adapter = canApprove
+        ? createConvexSaveAdapter({
+            serverHealth: convexServerHealth,
+            saveToConvex: saveToConvexMutation.mutateAsync,
+          })
+        : createProposalSaveAdapter({
+            submitProposal: submitProposalMutation.mutateAsync,
+          });
 
       if (effect.kind === "verifyCredentials") {
         console.info("[dev-save] effect:verify-start", { effectId: effect.id });
@@ -266,6 +285,7 @@ export function useDevModeSaveActions({
           const saveEffect = orchestrator.dispatch({
             type: "credentialsVerified",
             credentials,
+            message: adapter.verifiedMessage(credentials.key),
           });
           if (saveEffect) {
             await runEffect(saveEffect);
@@ -308,12 +328,14 @@ export function useDevModeSaveActions({
       }
     },
     [
+      canApprove,
       convexServerHealth,
       draft,
       markChangesSaved,
       onAppendChangeLogEntry,
       orchestrator,
       saveToConvexMutation.mutateAsync,
+      submitProposalMutation.mutateAsync,
       scheduleNoticeAutoClear,
       verifySaveSession,
     ],
@@ -349,13 +371,14 @@ export function useDevModeSaveActions({
   const notice: ChangeNotice | null = orchestratorState.notice;
 
   const isConvexSaveBlocked =
-    convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
+    canApprove && convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
 
   const convexSaveButton = useMemo(
     () => (
       <ConvexSaveButton
         convexEnabled={convexEnabled}
         canDraft={canDraft}
+        canApprove={canApprove}
         convexServerHealth={convexServerHealth}
         refreshConvexServerHealth={refreshConvexServerHealth}
         isSaving={isSaving}
@@ -371,6 +394,7 @@ export function useDevModeSaveActions({
       convexServerHealth,
       handleSaveToConvex,
       canDraft,
+      canApprove,
       hasPendingChanges,
       isConvexSaveBlocked,
       isSaving,
@@ -378,12 +402,16 @@ export function useDevModeSaveActions({
     ],
   );
 
-  const commitPanel = <DevModeCommitPanel notice={notice} actionSlot={convexSaveButton} />;
+  const destination = canApprove ? "convex" : "proposal";
+  const commitPanel = (
+    <DevModeCommitPanel notice={notice} destination={destination} actionSlot={convexSaveButton} />
+  );
 
   const renderCommitPanel = useCallback(
     (extraActionSlot?: ReactNode, description?: ReactNode) => (
       <DevModeCommitPanel
         notice={notice}
+        destination={destination}
         description={description}
         actionSlot={
           extraActionSlot ? (
@@ -397,7 +425,7 @@ export function useDevModeSaveActions({
         }
       />
     ),
-    [convexSaveButton, notice],
+    [convexSaveButton, destination, notice],
   );
 
   return {

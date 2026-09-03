@@ -15,7 +15,9 @@ const SCRYPT_P = 1;
 const SALT_BYTES = 16;
 const KEY_BYTES = 64;
 
-export const MIN_PASSWORD_LENGTH = 12;
+// The acceptance rule lives in `passwordPolicy.ts` (no `node:crypto`) so
+// browser forms can share it; re-exported here for the server callers.
+export { MIN_PASSWORD_LENGTH, validateNewPassword } from "./passwordPolicy";
 
 const scryptAsync = promisify(scrypt) as (
   password: string,
@@ -26,17 +28,6 @@ const scryptAsync = promisify(scrypt) as (
 
 function deriveKey(plain: string, salt: Buffer, N: number, r: number, p: number): Promise<Buffer> {
   return scryptAsync(plain, salt, KEY_BYTES, { N, r, p, maxmem: 128 * N * r * 2 });
-}
-
-/** Returns a reason the password is unacceptable, or `null` when it is fine. */
-export function validateNewPassword(plain: string): string | null {
-  if (typeof plain !== "string" || plain.length < MIN_PASSWORD_LENGTH) {
-    return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
-  }
-  if (plain.trim().length !== plain.length) {
-    return "Password must not start or end with whitespace.";
-  }
-  return null;
 }
 
 export async function hashPassword(plain: string): Promise<string> {

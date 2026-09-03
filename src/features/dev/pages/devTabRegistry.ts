@@ -196,6 +196,17 @@ const REGISTRY = [
     filter: { param: "scope", values: ["all", "me"], segments: { profile: "me", profiles: "me" } },
   },
   {
+    id: "members",
+    label: "Members",
+    group: "site",
+    aliases: [],
+    // Roster, roles, bans, resets, invites: every action is admin-only in Convex too.
+    role: "admin",
+    data: NO_DATA,
+    saveFamily: "immediate",
+    destination: SHELL,
+  },
+  {
     id: "index-layout",
     label: "Index layout",
     group: "content",

@@ -103,6 +103,8 @@ describe("status and redirect policy", () => {
       "/review",
       "/sign-in",
       "/unauthorized",
+      "/invite",
+      "/reset-password",
       "/search",
       "/preview",
     ]);

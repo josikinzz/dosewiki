@@ -64,6 +64,16 @@ export interface SaveToConvexResult {
   error?: string;
 }
 
+export interface SubmitProposalPayload {
+  payload: SaveToConvexPayload;
+  summary: string;
+  diff: string;
+}
+
+export interface SubmitProposalResult {
+  proposalId: string;
+}
+
 // ============================================================================
 // API Functions
 // ============================================================================
@@ -212,6 +222,37 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
   };
 }
 
+const SUBMIT_PROPOSAL_TIMEOUT_MS = 60_000;
+
+async function submitProposal(input: SubmitProposalPayload): Promise<SubmitProposalResult> {
+  const { response, result } = await postJson("/api/dev/proposals", {
+    body: input,
+    timeoutMs: SUBMIT_PROPOSAL_TIMEOUT_MS,
+    onNetworkError: (networkError) => {
+      const aborted = networkError instanceof DOMException && networkError.name === "AbortError";
+      throw new Error(
+        aborted
+          ? `Proposal request timed out after ${SUBMIT_PROPOSAL_TIMEOUT_MS / 1000} seconds.`
+          : `Proposal request failed: ${
+              networkError instanceof Error ? networkError.message : String(networkError)
+            }`,
+      );
+    },
+  });
+
+  if (!response.ok) {
+    const error = pickString(result.error) ?? "Unable to submit the proposal.";
+    const code = pickString(result.code);
+    throw new Error(code ? `${error} (code=${code})` : error);
+  }
+
+  const proposalId = pickString(result.proposalId);
+  if (!proposalId) {
+    throw new Error("Proposal response did not include a proposal id.");
+  }
+  return { proposalId };
+}
+
 // ============================================================================
 // Mutation Hooks
 // ============================================================================
@@ -219,5 +260,11 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
 export function useSaveToConvexMutation() {
   return useMutation({
     mutationFn: saveToConvex,
+  });
+}
+
+export function useSubmitProposalMutation() {
+  return useMutation({
+    mutationFn: submitProposal,
   });
 }

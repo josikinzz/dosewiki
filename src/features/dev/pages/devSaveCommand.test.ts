@@ -3,7 +3,9 @@ import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHeal
 import {
   buildConvexCommandPayload,
   buildDevSaveDraft,
+  buildProposalSummary,
   createConvexSaveAdapter,
+  createProposalSaveAdapter,
   type DevSaveCredentials,
 } from "./devSaveCommand";
 
@@ -182,5 +184,40 @@ describe("dev save command contract", () => {
       ok: false,
       message: "Missing CONVEX_ADMIN_KEY",
     });
+  });
+
+  it("submits the same payload as a proposal, never touches Convex health, and points at the queue", async () => {
+    const submitProposal = vi.fn().mockResolvedValue({ proposalId: "k57zyx987654" });
+    const adapter = createProposalSaveAdapter({ submitProposal });
+    const draft = createDraft();
+
+    expect(adapter.validateAvailability(draft)).toEqual({ ok: true });
+    expect(adapter.noChangesMessage).toBe("No changes to submit.");
+    expect(adapter.verifiedMessage("EDITOR")).toContain("Submitting for review");
+
+    await expect(adapter.execute(draft, credentials)).resolves.toEqual({
+      destination: "proposal",
+      savedItems: ["Proposal #987654"],
+      warnings: [],
+      resolvedSubmitterKey: "EDITOR",
+      changelogEntry: null,
+      markChangesSaved: true,
+      actionLabel: "View in queue",
+      actionHref: "/dev/queue",
+    });
+    expect(submitProposal).toHaveBeenCalledWith({
+      payload: buildConvexCommandPayload(draft).payload,
+      summary: "Update MDMA, Psychoactive class, Chemical class and 1 more",
+      diff: buildConvexCommandPayload(draft).payload.changelog?.markdown,
+    });
+  });
+
+  it("summarizes a proposal from the changed titles and layout labels", () => {
+    const draft = createDraft();
+    expect(buildProposalSummary(draft, { articles: [{ id: 2, title: "MDMA" }] })).toBe("Update MDMA");
+    expect(buildProposalSummary(draft, { indexLayouts: [{ type: "mechanism", version: 1, categories: [] }] })).toBe(
+      "Update Mechanism of action",
+    );
+    expect(buildProposalSummary(draft, {})).toBe("Editor update");
   });
 });

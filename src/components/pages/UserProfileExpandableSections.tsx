@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChangelogDiff } from "@/components/changelog/ChangelogDiff";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { PublicPill } from "@/components/common/PublicTokens";
@@ -107,43 +108,6 @@ export function UserTripReportsSection({
   );
 }
 
-function ContributionDiff({ entry, id }: { entry: ChangeLogEntry; id: string }) {
-  return (
-    <div id={id} className="theme-code-surface overflow-x-auto border-t border-dose-border p-4">
-      <pre
-        className="font-mono text-xs leading-relaxed"
-        aria-label="Diff of changed lines"
-      >
-        <code>
-          {entry.markdown.split("\n").map((line, index) => {
-            const isAdded = line.startsWith("+");
-            const isRemoved = line.startsWith("-");
-            const isHunk = line.startsWith("@@");
-            const lineClass = isHunk
-              ? "text-[color:var(--theme-semantic-info-badge-text)]"
-              : isAdded
-                ? "bg-[color:var(--editor-code-line-add-bg)] text-[color:var(--editor-code-line-add-text)]"
-                : isRemoved
-                  ? "bg-[color:var(--editor-code-line-remove-bg)] text-[color:var(--editor-code-line-remove-text)]"
-                  : "theme-text-muted";
-
-            return (
-              <div
-                key={`${entry.id}-line-${index}`}
-                className={`${lineClass} ${isAdded || isRemoved ? "-mx-2 rounded px-2" : ""}`}
-              >
-                {isAdded ? <span className="sr-only">Added: </span> : null}
-                {isRemoved ? <span className="sr-only">Removed: </span> : null}
-                {line.trim().length > 0 ? line : "\u00A0"}
-              </div>
-            );
-          })}
-        </code>
-      </pre>
-    </div>
-  );
-}
-
 const CONTRIBUTION_ARTICLE_PILL_CAP = 3;
 
 /**
@@ -207,7 +171,9 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
           )}
         </div>
       </div>
-      {hasDiff && isDiffExpanded && <ContributionDiff entry={entry} id={diffId} />}
+      {hasDiff && isDiffExpanded && (
+        <ChangelogDiff markdown={entry.markdown} id={diffId} keyPrefix={entry.id} />
+      )}
     </div>
   );
 }

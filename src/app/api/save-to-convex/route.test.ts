@@ -67,8 +67,28 @@ describe("save-to-convex route", () => {
     nextCacheMocks.revalidatePath.mockReset();
     nextCacheMocks.revalidateTag.mockReset();
     publicLibraryMocks.invalidatePublicDerivedDataCache.mockReset();
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
+    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin"));
     mocks.getServerConvexWriteCapability.mockReset();
+  });
+
+  it("refuses an editor: the panel routes editors through /api/dev/proposals instead", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const client = { query: vi.fn(), mutation: vi.fn() };
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: { adminKey: "admin-key", client },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-to-convex", {
+        method: "POST",
+        body: JSON.stringify({ articles: [{ id: 1, title: "LSD", slug: "lsd" }] }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(client.mutation).not.toHaveBeenCalled();
   });
 
   it("uses substance ingestion outcomes for verification and revalidation", async () => {

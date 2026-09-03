@@ -37,6 +37,28 @@ const touchSignInMutation = makeFunctionReference<
   null
 >("memberships:touchSignIn");
 
+const consumePasswordResetMutation = makeFunctionReference<
+  "mutation",
+  { apiKey: string; tokenHash: string; passwordHash: string },
+  null
+>("memberships:consumePasswordReset");
+
+export type RedeemInviteInput = {
+  codeHash: string;
+  username: string;
+  email?: string;
+  name?: string;
+  passwordHash: string;
+};
+
+export type RedeemedInvite = { email: string; role: "editor" | "contributor" };
+
+const redeemInviteMutation = makeFunctionReference<
+  "mutation",
+  { apiKey: string } & RedeemInviteInput,
+  RedeemedInvite
+>("inviteCodes:redeem");
+
 let cachedClient: ConvexHttpClient | null = null;
 let cachedUrl: string | null = null;
 
@@ -100,4 +122,31 @@ export async function getMembershipByEmail(email: string): Promise<MembershipRec
     image: membership.image,
     bannedAt: membership.bannedAt,
   };
+}
+
+/**
+ * Redeems a password reset link. Like sign-in, the caller has no session, so
+ * this goes through the server-key client rather than the route write
+ * capability (which insists on an actor). Throws the Convex rejection for an
+ * unknown or expired token.
+ */
+export async function consumePasswordReset(tokenHash: string, passwordHash: string): Promise<void> {
+  await getConvexClient().mutation(consumePasswordResetMutation, {
+    apiKey: getConvexAdminKeyOrThrow(),
+    tokenHash,
+    passwordHash,
+  });
+}
+
+/**
+ * Accepts an invite: creates the membership and records the redemption. The
+ * visitor has no session yet, so this is a server-key call with no actor.
+ * Throws the Convex rejection (`INVITE_*`, `USERNAME_TAKEN`, `EMAIL_TAKEN`)
+ * for the route to map.
+ */
+export async function redeemInviteCode(input: RedeemInviteInput): Promise<RedeemedInvite> {
+  return await getConvexClient().mutation(redeemInviteMutation, {
+    apiKey: getConvexAdminKeyOrThrow(),
+    ...input,
+  });
 }

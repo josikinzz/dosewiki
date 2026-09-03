@@ -15,6 +15,7 @@ import { buildSubstanceRecord } from "../../src/data/builders/contentBuilder";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import type { ContributorDirectory } from "../contributorDirectory";
 import type { ContributorAvatarMap } from "../../src/features/article/components/sections/ContributorsSection";
+import type { ArticleRecentChange } from "../../src/data/changelog/articleRecentChanges";
 import {
   buildEffectArticleModel,
   getEffectArticleReplicationState,
@@ -166,6 +167,7 @@ export interface SubstanceArticleViewModel {
     toleranceDisclaimer?: string;
     reviewStatusCopy?: string;
     expertReviewCredit?: string;
+    recentChanges?: ArticleRecentChange[];
   };
 }
 
@@ -274,6 +276,8 @@ export function buildSubstanceArticleViewModel(input: {
   /** The `review-status-banner` and `expert-review-credit` bodies; same contract. */
   reviewStatusCopy?: string;
   expertReviewCredit?: string;
+  /** Human edits against this article, resolved by the route loader. */
+  recentChanges?: ArticleRecentChange[];
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;
   const publicArticle = article as SubstanceArticle;
@@ -317,6 +321,7 @@ export function buildSubstanceArticleViewModel(input: {
       toleranceDisclaimer: input.toleranceDisclaimer,
       reviewStatusCopy: input.reviewStatusCopy,
       expertReviewCredit: input.expertReviewCredit,
+      recentChanges: input.recentChanges,
     },
   };
 }

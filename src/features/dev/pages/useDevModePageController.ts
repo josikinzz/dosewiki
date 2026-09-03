@@ -106,6 +106,7 @@ export function useDevModePageController({
     markChangesSaved,
     isSignedIn: routeAccess.isSignedIn,
     canDraft: routeAccess.canDraft,
+    canApprove: routeAccess.canApprove,
     sessionProfileKey: routeAccess.sessionProfileKey,
     convexEnabled,
     datasetChangelog: changelogState.datasetChangelog,

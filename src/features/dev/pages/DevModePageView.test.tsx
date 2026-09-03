@@ -26,6 +26,7 @@ vi.mock("../tools/warning-banners/WarningBannersTab", () => tool("WarningBanners
 vi.mock("../tools/substance-editor/SubstanceEditorTab", () => tool("SubstanceEditorTab"));
 vi.mock("../tools/feedback/FeedbackTab", () => tool("FeedbackTab"));
 vi.mock("../tools/trip-report-portal/TripReportPortalTab", () => tool("TripReportPortalTab"));
+vi.mock("../tools/members/MembersTab", () => tool("MembersTab"));
 
 import { DevModePageView } from "./DevModePageView";
 

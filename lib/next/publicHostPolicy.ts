@@ -34,6 +34,8 @@ const EDITOR_HANDOFF_PREFIXES: readonly string[] = [
   "/review",
   "/sign-in",
   "/unauthorized",
+  "/invite",
+  "/reset-password",
 ];
 
 /**
@@ -43,6 +45,8 @@ const EDITOR_HANDOFF_PREFIXES: readonly string[] = [
 const PUBLIC_RESTRICTED_API_PREFIXES: readonly string[] = [
   "/api/auth",
   "/api/dev",
+  "/api/invite",
+  "/api/reset-password",
 ];
 
 function matchesPrefix(pathname: string, prefixes: readonly string[]): boolean {

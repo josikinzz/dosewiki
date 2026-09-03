@@ -24,6 +24,7 @@ import { LegalitySection } from "./sections/LegalitySection";
 import { CitationsSection } from "./sections/CitationsSection";
 import { ContributorsSection, type ContributorAvatarMap } from "./sections/ContributorsSection";
 import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
+import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
 import { FeedbackSection } from "./sections/FeedbackSection";
 import { TripReportsSection } from "./sections/TripReportsSection";
 import { reportMatchesSubstance } from "@/features/reports/domain/tripReportIndex";
@@ -103,6 +104,11 @@ export interface ArticleLayoutProps {
    */
   reviewStatusCopy?: string;
   expertReviewCredit?: string;
+  /**
+   * Human edits against this article for the Article Status ledger, resolved
+   * by the substance route loader. Absent on preview surfaces.
+   */
+  recentChanges?: ArticleRecentChange[];
 }
 
 interface DeferredSectionProps {
@@ -154,6 +160,7 @@ export function ArticleLayout({
   toleranceDisclaimer,
   reviewStatusCopy,
   expertReviewCredit,
+  recentChanges,
 }: ArticleLayoutProps) {
   // Credit hrefs resolve here rather than in the credit components: those are
   // client components, and handing them the directory would serialize every
@@ -327,6 +334,7 @@ export function ArticleLayout({
                 profileHrefs={creditHrefs}
                 expertReviewCredit={expertReviewCredit}
                 reviewStatusCopy={reviewStatusCopy}
+                recentChanges={recentChanges}
               />
             </DeferredSection>
             <DeferredSection>

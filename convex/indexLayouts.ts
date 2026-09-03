@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireRole } from "./lib/auth";
 import { mirrorPsychoactiveLayout } from "./lib/categoryLayoutMirror";
+import { indexLayoutValidator } from "./lib/validators";
 
 /**
  * Index layouts - stores category/classification index definitions.
@@ -16,35 +17,8 @@ import { mirrorPsychoactiveLayout } from "./lib/categoryLayoutMirror";
 
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";
 
-// Section with optional link for cross-referencing
-const sectionValidator = v.object({
-  key: v.string(),
-  label: v.string(),
-  notes: v.optional(v.string()),
-  link: v.optional(v.object({
-    type: v.union(v.literal("chemicalClass"), v.literal("psychoactiveClass"), v.literal("mechanism")),
-    value: v.string(),
-  })),
-  drugs: v.array(v.string()),
-});
-
-// Category definition
-const categoryValidator = v.object({
-  key: v.string(),
-  label: v.string(),
-  iconKey: v.string(),
-  notes: v.optional(v.string()),
-  columns: v.optional(v.any()),  // Column assignments for responsive layout
-  drugs: v.array(v.string()),
-  sections: v.array(sectionValidator),
-});
-
-// Full index layout
-const indexLayoutValidator = v.object({
-  type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
-  version: v.number(),
-  categories: v.array(categoryValidator),
-});
+// Full index layout; the validator lives in lib/validators so the change
+// proposal submit path checks a proposed layout exactly like a saved one.
 
 /**
  * Get an index layout by type.

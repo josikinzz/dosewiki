@@ -73,6 +73,10 @@ const TagEditorTab = dynamic(
   () => import("../tags").then((m) => m.TagEditorTab),
   { ssr: false, loading },
 );
+const MembersTab = dynamic(
+  () => import("../tools/members/MembersTab").then((m) => m.MembersTab),
+  { ssr: false, loading },
+);
 
 type DevModePageViewProps = {
   controller: DevModePageControllerState;
@@ -201,6 +205,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <ReplicationStudioTab initialSubstanceSlug={controller.replicationsInitialSlug} />
         ) : controller.activeTab === "banners" ? (
           <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
+        ) : controller.activeTab === "members" ? (
+          <MembersTab />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
             renderCommitPanel={controller.renderCommitPanel}

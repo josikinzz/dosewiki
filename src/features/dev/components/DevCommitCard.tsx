@@ -20,20 +20,48 @@ export type DevCommitNotice = {
   actionLabel?: string;
 };
 
+/** Where the primary action sends the draft: written to production or held for review. */
+export type DevCommitDestination = "convex" | "proposal";
+
+const DESTINATION_COPY: Record<
+  DevCommitDestination,
+  { title: string; description: string; idle: string }
+> = {
+  convex: {
+    title: "Save to Convex",
+    description: "Save changes to Convex. Requires login to save.",
+    idle: "Changes are saved to Convex and appear live instantly.",
+  },
+  proposal: {
+    title: "Submit for review",
+    description: "Submit changes for admin review. Requires login to submit.",
+    idle: "Proposals wait in the review queue until an admin applies them.",
+  },
+};
+
 type DevCommitCardProps = {
   notice: DevCommitNotice | null;
+  /** Defaults to a direct Convex save; editors without approval rights propose instead. */
+  destination?: DevCommitDestination;
   footerSlot?: ReactNode;
   /** The save controls (server health, save button). */
   actionSlot?: ReactNode;
   /**
    * Panel description. Override per tab so the copy names what is actually
    * being saved (e.g. "Save index layout changes to Convex. Requires login
-   * to save."). Defaults to neutral "Save changes…" copy.
+   * to save."). Defaults to copy for the destination.
    */
   description?: ReactNode;
 };
 
-export function DevCommitCard({ notice, footerSlot, actionSlot, description }: DevCommitCardProps) {
+export function DevCommitCard({
+  notice,
+  destination = "convex",
+  footerSlot,
+  actionSlot,
+  description,
+}: DevCommitCardProps) {
+  const copy = DESTINATION_COPY[destination];
   const noticeContent = notice
     ? (() => {
         const meta = noticeToneMap[notice.type];
@@ -65,15 +93,15 @@ export function DevCommitCard({ notice, footerSlot, actionSlot, description }: D
       title={
         <span className="flex flex-col gap-0.5">
           <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">Convex</span>
-          Save to Convex
+          {copy.title}
         </span>
       }
-      description={description ?? "Save changes to Convex. Requires login to save."}
+      description={description ?? copy.description}
     >
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">
           {noticeContent ?? (
-            <p className="theme-text-faint text-xs">Changes are saved to Convex and appear live instantly.</p>
+            <p className="theme-text-faint text-xs">{copy.idle}</p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">

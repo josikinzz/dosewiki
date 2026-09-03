@@ -9,6 +9,8 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
+import { RecentChangesList } from "./RecentChangesList";
 import {
   EXPERT_REVIEW_CREDIT_FALLBACK,
   REVIEW_STATUS_BANNER_FALLBACK,
@@ -49,6 +51,12 @@ interface ContributorsSectionProps {
    * and the status ladder never disagree.
    */
   reviewStatusCopy?: string;
+  /**
+   * Human edits recorded against this article, newest first, resolved by the
+   * route loader. Empty or absent renders no Recent changes disclosure: an
+   * article nobody has touched has nothing to disclose.
+   */
+  recentChanges?: ArticleRecentChange[];
 }
 
 /** How dose.wiki articles are assembled, for the synthesis credit. */
@@ -181,6 +189,64 @@ function StatusStep({
   );
 }
 
+// Same fixed locale and zone as the rows inside, so the summary and the list
+// never disagree about a date across the server/client boundary.
+const summaryDateFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+/**
+ * Collapsed-by-default ledger of the article's human edits, sitting under the
+ * process ladder. Native <details>, so the section stays server-rendered; the
+ * one-line summary carries the count and the latest date, and nothing about
+ * any specific change is visible until the reader opens it. The rows inside
+ * are the client leaf.
+ */
+function RecentChangesDisclosure({ changes }: { changes: ArticleRecentChange[] }) {
+  const latest = changes[0];
+  const count = changes.length;
+  return (
+    <details className="group/changes mt-6 border-t border-dose-border pt-3">
+      <summary
+        className={cn(
+          "theme-focus-ring flex cursor-pointer list-none items-center gap-3 rounded-md py-1.5",
+          "[&::marker]:content-[''] [&::-webkit-details-marker]:hidden",
+        )}
+      >
+        <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center sm:mt-0">
+          <Icon
+            icon="lucide:git-commit-horizontal"
+            size={18}
+            className="theme-icon-muted transition-colors group-open/changes:text-dose-accent-strong"
+          />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="theme-text-faint flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.15em]">
+            Recent changes
+          </span>
+          <span className="theme-text-secondary mt-0.5 block text-sm leading-snug">
+            {count === 1 ? "1 human edit" : `${count} human edits`}
+            <span className="theme-text-faint">
+              {" · latest "}
+              <time dateTime={latest.createdAt}>{summaryDateFormat.format(new Date(latest.createdAt))}</time>
+            </span>
+          </span>
+        </span>
+        <Icon
+          icon="lucide:chevron-down"
+          size={16}
+          className="theme-icon-muted shrink-0 transition-transform duration-200 group-open/changes:rotate-180"
+        />
+      </summary>
+      <div className="pl-[3.25rem]">
+        <RecentChangesList changes={changes} />
+      </div>
+    </details>
+  );
+}
+
 /**
  * Public article status: the article's three-step production process, in
  * order. Step 1 (automated synthesis) is always complete; step 2 (first-pass
@@ -195,6 +261,7 @@ export const ContributorsSection = memo(function ContributorsSection({
   profileHrefs,
   expertReviewCredit,
   reviewStatusCopy,
+  recentChanges = [],
 }: ContributorsSectionProps) {
   // Same `in` narrowing as ReviewStatusBanner: `expert_reviewed` is stamped on
   // the public projection at runtime and SubstanceArticle doesn't type it.
@@ -272,6 +339,10 @@ export const ContributorsSection = memo(function ContributorsSection({
           checks each claim against the source it cites.
         </StatusStep>
       </ul>
+
+      {recentChanges.length > 0 ? (
+        <RecentChangesDisclosure changes={recentChanges} />
+      ) : null}
     </ArticleSection>
   );
 });

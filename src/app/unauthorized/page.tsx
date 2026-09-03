@@ -51,6 +51,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
           <SignOutButton callbackUrl={STATUS_PAGE_PATHS.signIn} variant="outline">
             Use a different account
           </SignOutButton>
+          <Button asChild variant="ghost">
+            <Link href={STATUS_PAGE_PATHS.invite}>Have an invite code?</Link>
+          </Button>
         </>
       }
       complementHeading="Authorization"

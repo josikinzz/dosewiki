@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { ContributorsSection } from "./ContributorsSection";
@@ -57,5 +57,54 @@ describe("ContributorsSection", () => {
     render(<ContributorsSection article={reviewed} />);
 
     expect(screen.getByText("Lyrea")).toBeInTheDocument();
+  });
+
+  it("renders no Recent changes ledger when the article has no human edits", () => {
+    render(<ContributorsSection article={baseArticle} recentChanges={[]} />);
+
+    expect(screen.queryByText("Recent changes")).not.toBeInTheDocument();
+  });
+
+  it("collapses the ledger by default and never shows diff text until a row is opened", () => {
+    render(
+      <ContributorsSection
+        article={baseArticle}
+        recentChanges={[
+          {
+            id: "direct-1",
+            createdAt: "2026-08-12T10:00:00.000Z",
+            message: "Inline edit — Dosage / Threshold",
+            contributor: { name: "Josie Kins", href: "/contributors/josie", avatarUrl: null },
+            diff: "@@ Dosage / Threshold @@\n- 5 mg\n+ 4 mg",
+            articleCount: 1,
+          },
+          {
+            id: "bulk-1",
+            createdAt: "2026-07-02T10:00:00.000Z",
+            message: "Dev editor update - 2026-07-02",
+            contributor: null,
+            diff: "",
+            articleCount: 14,
+          },
+        ]}
+      />,
+    );
+
+    const details = screen.getByText("Recent changes").closest("details");
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute("open");
+    expect(screen.getByText(/2 human edits/)).toBeInTheDocument();
+    expect(screen.getByText("12 Aug").closest("time")).toHaveAttribute("dateTime", "2026-08-12T10:00:00.000Z");
+    expect(screen.queryByText("+ 4 mg")).not.toBeInTheDocument();
+
+    // Rows exist in the DOM (native details keeps them for search and a11y)
+    // but a row's diff mounts only when its own expander is pressed.
+    expect(screen.getByText("Inline edit — Dosage / Threshold")).toBeInTheDocument();
+    expect(screen.getByText(/one of 14 articles in this save/)).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Show what changed" })).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Show what changed" }));
+    expect(screen.getByText("+ 4 mg")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Hide what changed" })).toBeInTheDocument();
   });
 });

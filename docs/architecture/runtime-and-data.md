@@ -219,12 +219,12 @@ Editor pages use client-side Convex queries against the sole deployment,
 
 ### Editor save-to-Convex flow
 
-The preferred live-content save path is:
+The preferred live-content save path, for an admin session, is:
 
 1. client collects article/about/changelog payload
 2. client calls `POST /api/save-to-convex`
 3. route enforces rate limit
-4. route requires an Auth.js editor session
+4. route requires an Auth.js admin session
 5. route requires a server write URL and `CONVEX_ADMIN_KEY`; the URL must resolve
    to `glad-minnow-656`
 6. each mutation uses its intent-scoped token when configured and otherwise uses
@@ -237,6 +237,26 @@ The preferred live-content save path is:
 11. client receives verification/revalidation metadata
 
 This is the cleanest write path in the current system because it preserves Convex as the live store.
+
+### Editor proposal flow
+
+An editor session sees the same commit panel, but its primary action reads
+"Submit for review" and nothing it does writes production:
+
+1. client builds the identical `SaveToConvexPayload`, a one-line summary, and
+   the commit markdown as the diff
+2. client calls `POST /api/dev/proposals` (editor floor)
+3. route sanitizes the payload with the save-to-convex utilities and derives one
+   target per article slug and per index layout type
+4. `changeProposals.submit` (editor floor) validates the payload with the save
+   validators and the article ingestion contract, reads each target's current
+   production row, records its `contentHash` (`lib/proposals/contentHash.ts`) as
+   `baseHash`, and inserts the row with status `submitted`
+5. the panel marks the draft saved and links to the review queue
+
+Status moves only along `lib/proposals/proposalStatus.ts`; review, apply (with a
+`baseHash` conflict check), reject, and revert are admin operations on the same
+document.
 
 ### Reviewed generated-section publication flow
 

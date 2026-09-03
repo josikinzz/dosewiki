@@ -58,6 +58,7 @@ describe("devTabRegistry", () => {
       "molecule-editor",
       "banners",
       "replications",
+      "members",
     ]);
     expect(byRole("editor")).toEqual([
       "articles",

@@ -286,3 +286,45 @@ bunx convex run memberships:retireViewerMemberships '{"apiKey":"<CONVEX_ADMIN_KE
 It deletes only rows with role `viewer` and no `username`, and reports the
 count. Rows that already carry a username are accounts and are kept whatever
 their role.
+
+### Roster, roles, bans, and password resets
+
+Everything after seeding happens in `/dev/members` (admin only). The tab reads
+`memberships:listRoster` through `GET /api/dev/members` (a projection with no
+hashes or tokens) and writes through `POST /api/dev/members/{role,ban,unban,reset}`,
+each passing the session's `actorEmail` so `requireRole` decides at the admin
+floor. Convex refuses three targets whatever the route says: an admin row (use
+the seed script), the actor's own row, and, for roles, anything but `editor`
+or `contributor` (the validator has no `admin` value).
+
+A password reset is a one-time link. The reset route draws 32 random bytes,
+stores only their sha256 in `resetTokenHash` with a one-hour
+`resetTokenExpiresAt` (index `by_reset_token_hash`), and returns
+`/reset-password?token=<hex>` exactly once; the tab shows it with a copy
+button. The public page posts `{ token, password }` to `POST /api/reset-password`,
+which shares the sign-in rate limit, validates with `validateNewPassword`,
+hashes with `hashPassword`, and calls `memberships:consumePasswordReset` with
+the server key alone (no session exists yet). That mutation clears the token
+fields, so a link dies on first use or after the hour. An admin who needs a
+reset re-runs the seed script for their own username.
+
+### Invites
+
+Invites are the only way an account is created. An admin mints one in
+`/dev/members` (`POST /api/dev/invites`, session actor at the admin floor):
+the route draws 24 random base32-style characters, shown once as
+`xxxx-xxxx-xxxx-xxxx-xxxx-xxxx`, and stores only the sha256 of the
+normalized code (lowercase, dashes stripped) in `inviteCodes` with the role
+(`editor` or `contributor`), expiry (default 7 days), and use count (default
+1). `GET /api/dev/invites` lists rows with a derived status (`active`,
+`expired`, `exhausted`, `revoked`) and never the hash; `POST
+/api/dev/invites/{id}/revoke` refuses a fully redeemed code. The public page
+`/invite?code=...` posts `{ code, username, password, email?, name? }` to
+`POST /api/invite/redeem`, which shares the sign-in rate limit, validates the
+username (`lib/auth/usernamePolicy.ts`) and password, hashes both, and calls
+`inviteCodes:redeem` with the server key alone. That mutation checks the
+code, then refuses a taken username or email before it inserts the
+membership (role from the code, `invitedBy`, `inviteCodeId`) and appends the
+redemption; without an email the row is keyed `<username>@members.dose.wiki`.
+The page then signs in with the new credentials. `/invite` and `/api/invite`
+live on the editor host like sign-in.

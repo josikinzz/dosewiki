@@ -1,9 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ban,
+  consumePasswordReset,
   getCredentialsByUsername,
+  issuePasswordReset,
+  listRoster,
   retireViewerMemberships,
   setAdminAccount,
+  setRole,
   touchSignIn,
+  unban,
 } from "../convex/memberships";
 
 const SERVER_KEY = "test-admin-key";
@@ -16,6 +22,9 @@ type Row = {
   name?: string;
   passwordHash?: string;
   passwordUpdatedAt?: string;
+  resetTokenHash?: string;
+  resetTokenExpiresAt?: string;
+  invitedBy?: string;
   bannedAt?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -23,8 +32,9 @@ type Row = {
 };
 
 /**
- * In-memory memberships table supporting the three indexes the module uses:
- * `by_email`, `by_username`, `by_role`. `requireRole` reads `by_email` too.
+ * In-memory memberships table supporting the indexes the module uses
+ * (`by_email`, `by_username`, `by_role`, `by_reset_token_hash`) plus an
+ * unindexed `collect` for the roster. `requireRole` reads `by_email` too.
  */
 function createCtx(seed: Row[]) {
   const rows = new Map(seed.map((row) => [row._id, { ...row }]));
@@ -56,6 +66,7 @@ function createCtx(seed: Row[]) {
         collect: async () => matches(),
       };
     },
+    collect: async () => [...rows.values()],
   });
 
   return {
@@ -64,7 +75,13 @@ function createCtx(seed: Row[]) {
       db: {
         query: vi.fn(query),
         patch: vi.fn(async (id: string, patch: Partial<Row>) => {
-          rows.set(id, { ...rows.get(id)!, ...patch });
+          const next = { ...rows.get(id)!, ...patch };
+          for (const key of Object.keys(patch) as (keyof Row)[]) {
+            if (patch[key] === undefined) {
+              delete next[key];
+            }
+          }
+          rows.set(id, next);
         }),
         insert: vi.fn(async (_table: string, doc: Omit<Row, "_id">) => {
           const _id = `m${nextId++}`;
@@ -83,10 +100,24 @@ function createCtx(seed: Row[]) {
 type Handler = (ctx: never, args: unknown) => Promise<unknown>;
 const handlerOf = (fn: unknown) => (fn as { _handler: Handler })._handler;
 
+/** The registered function's args validator as Convex exports it (JSON). */
+function argsSchemaOf(fn: unknown): string {
+  if (typeof fn === "function" && "exportArgs" in fn && typeof fn.exportArgs === "function") {
+    return String(fn.exportArgs());
+  }
+  throw new Error("not a registered Convex function");
+}
+
 const credentialsHandler = handlerOf(getCredentialsByUsername);
 const touchHandler = handlerOf(touchSignIn);
 const setAdminHandler = handlerOf(setAdminAccount);
 const retireHandler = handlerOf(retireViewerMemberships);
+const rosterHandler = handlerOf(listRoster);
+const setRoleHandler = handlerOf(setRole);
+const banHandler = handlerOf(ban);
+const unbanHandler = handlerOf(unban);
+const issueResetHandler = handlerOf(issuePasswordReset);
+const consumeResetHandler = handlerOf(consumePasswordReset);
 
 const josie: Row = {
   _id: "m1",
@@ -255,6 +286,191 @@ describe("memberships account functions", () => {
 
       await expect(retireHandler(ctx, { apiKey: SERVER_KEY })).resolves.toEqual({ deleted: 1 });
       expect([...rows.keys()].sort()).toEqual(["m1", "m3", "m4"]);
+    });
+  });
+
+  const ada: Row = {
+    _id: "m2",
+    email: "ada@example.com",
+    username: "ada",
+    role: "editor",
+    name: "Ada",
+    passwordHash: "scrypt$ada",
+    invitedBy: "josie@example.com",
+    lastSeenAt: "2026-08-02T00:00:00.000Z",
+  };
+  const otherAdmin: Row = {
+    _id: "m3",
+    email: "lyrea@example.com",
+    username: "lyrea",
+    role: "admin",
+    passwordHash: "scrypt$lyrea",
+  };
+  const asJosie = { apiKey: SERVER_KEY, actorEmail: "josie@example.com" };
+
+  describe("listRoster", () => {
+    it("refuses an editor actor", async () => {
+      const { ctx } = createCtx([josie, ada]);
+      await expect(
+        rosterHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "ada@example.com" }),
+      ).rejects.toThrow(/Admin access required/);
+    });
+
+    it("returns every row with only the roster fields, never hashes or tokens", async () => {
+      const { ctx } = createCtx([
+        josie,
+        { ...ada, resetTokenHash: "abc", resetTokenExpiresAt: "2099-01-01T00:00:00.000Z" },
+      ]);
+
+      const roster = (await rosterHandler(ctx, asJosie)) as Record<string, unknown>[];
+      expect(roster).toHaveLength(2);
+      expect(roster[1]).toEqual({
+        email: "ada@example.com",
+        username: "ada",
+        name: "Ada",
+        role: "editor",
+        createdAt: undefined,
+        lastSeenAt: ada.lastSeenAt,
+        bannedAt: undefined,
+        invitedBy: "josie@example.com",
+        inviteCodeId: undefined,
+      });
+      for (const row of roster) {
+        expect(row).not.toHaveProperty("passwordHash");
+        expect(row).not.toHaveProperty("resetTokenHash");
+        expect(row).not.toHaveProperty("resetTokenExpiresAt");
+      }
+    });
+  });
+
+  describe("setRole", () => {
+    it("changes a non-admin row's role", async () => {
+      const { ctx, rows } = createCtx([josie, ada]);
+      await setRoleHandler(ctx, { ...asJosie, email: "ADA@example.com", role: "contributor" });
+      expect(rows.get("m2")?.role).toBe("contributor");
+    });
+
+    it("refuses self, admin targets, unknown rows, and granting admin", async () => {
+      const { ctx, rows } = createCtx([josie, ada, otherAdmin]);
+
+      await expect(
+        setRoleHandler(ctx, { ...asJosie, email: "josie@example.com", role: "editor" }),
+      ).rejects.toThrow(/your own membership/);
+      await expect(
+        setRoleHandler(ctx, { ...asJosie, email: "lyrea@example.com", role: "editor" }),
+      ).rejects.toThrow(/Admin accounts/);
+      await expect(
+        setRoleHandler(ctx, { ...asJosie, email: "nobody@example.com", role: "editor" }),
+      ).rejects.toThrow(/No membership/);
+      // The validator refuses `admin` before the handler runs; the exported
+      // args validator is the contract, so assert on it directly.
+      const roleValidator = argsSchemaOf(setRole);
+      expect(roleValidator).toContain('"editor"');
+      expect(roleValidator).toContain('"contributor"');
+      expect(roleValidator).not.toContain('"admin"');
+      expect(rows.get("m3")?.role).toBe("admin");
+      expect(rows.get("m2")?.role).toBe("editor");
+    });
+
+    it("refuses an editor actor before touching the row", async () => {
+      const { ctx, rows } = createCtx([josie, ada, { ...ada, _id: "m4", email: "b@example.com", username: "b" }]);
+      await expect(
+        setRoleHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "ada@example.com", email: "b@example.com", role: "contributor" }),
+      ).rejects.toThrow(/Admin access required/);
+      expect(rows.get("m4")?.role).toBe("editor");
+    });
+  });
+
+  describe("ban and unban", () => {
+    it("stamps and clears bannedAt on a non-admin row", async () => {
+      const { ctx, rows } = createCtx([josie, ada]);
+
+      await banHandler(ctx, { ...asJosie, email: "ada@example.com" });
+      expect(rows.get("m2")?.bannedAt).toMatch(/^\d{4}-/);
+
+      await unbanHandler(ctx, { ...asJosie, email: "ada@example.com" });
+      expect(rows.get("m2")).not.toHaveProperty("bannedAt");
+    });
+
+    it("refuses self and admin targets", async () => {
+      const { ctx, rows } = createCtx([josie, otherAdmin]);
+      await expect(banHandler(ctx, { ...asJosie, email: "josie@example.com" })).rejects.toThrow(/your own/);
+      await expect(banHandler(ctx, { ...asJosie, email: "lyrea@example.com" })).rejects.toThrow(/Admin accounts/);
+      await expect(unbanHandler(ctx, { ...asJosie, email: "lyrea@example.com" })).rejects.toThrow(/Admin accounts/);
+      expect(rows.get("m3")).not.toHaveProperty("bannedAt");
+    });
+  });
+
+  describe("issuePasswordReset", () => {
+    it("stores the hash with a one-hour expiry", async () => {
+      const { ctx, rows } = createCtx([josie, ada]);
+      const before = Date.now();
+
+      await expect(issueResetHandler(ctx, { ...asJosie, email: "ada@example.com", tokenHash: "deadbeef" })).resolves.toBeNull();
+
+      const row = rows.get("m2")!;
+      expect(row.resetTokenHash).toBe("deadbeef");
+      const expires = Date.parse(row.resetTokenExpiresAt!);
+      expect(expires - before).toBeGreaterThanOrEqual(60 * 60 * 1000 - 50);
+      expect(expires - before).toBeLessThan(60 * 60 * 1000 + 5_000);
+    });
+
+    it("refuses self, admin targets, and an empty hash", async () => {
+      const { ctx, rows } = createCtx([josie, ada, otherAdmin]);
+      await expect(issueResetHandler(ctx, { ...asJosie, email: "josie@example.com", tokenHash: "x" })).rejects.toThrow(/your own/);
+      await expect(issueResetHandler(ctx, { ...asJosie, email: "lyrea@example.com", tokenHash: "x" })).rejects.toThrow(/Admin accounts/);
+      await expect(issueResetHandler(ctx, { ...asJosie, email: "ada@example.com", tokenHash: "" })).rejects.toThrow(/required/);
+      expect(rows.get("m2")).not.toHaveProperty("resetTokenHash");
+    });
+  });
+
+  describe("consumePasswordReset", () => {
+    const pending = {
+      ...ada,
+      resetTokenHash: "deadbeef",
+      resetTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    };
+
+    it("rotates the password and clears the token for a live hash", async () => {
+      const { ctx, rows } = createCtx([pending]);
+
+      await expect(
+        consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
+      ).resolves.toBeNull();
+
+      const row = rows.get("m2")!;
+      expect(row.passwordHash).toBe("scrypt$new");
+      expect(row.passwordUpdatedAt).toMatch(/^\d{4}-/);
+      expect(row).not.toHaveProperty("resetTokenHash");
+      expect(row).not.toHaveProperty("resetTokenExpiresAt");
+
+      // The same link cannot be used twice.
+      await expect(
+        consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$again" }),
+      ).rejects.toThrow(/invalid or has expired/);
+    });
+
+    it("refuses an expired token and leaves the password alone", async () => {
+      const { ctx, rows } = createCtx([
+        { ...pending, resetTokenExpiresAt: new Date(Date.now() - 1000).toISOString() },
+      ]);
+      await expect(
+        consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
+      ).rejects.toThrow(/invalid or has expired/);
+      expect(rows.get("m2")?.passwordHash).toBe("scrypt$ada");
+    });
+
+    it("refuses an unknown token, a blank token, and a caller without the server key", async () => {
+      const { ctx } = createCtx([pending]);
+      await expect(
+        consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "nope", passwordHash: "scrypt$new" }),
+      ).rejects.toThrow(/invalid or has expired/);
+      await expect(
+        consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "", passwordHash: "scrypt$new" }),
+      ).rejects.toThrow(/required/);
+      await expect(
+        consumeResetHandler(ctx, { apiKey: "wrong", tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
+      ).rejects.toThrow();
     });
   });
 });
