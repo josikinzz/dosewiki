@@ -1,5 +1,5 @@
 import type { QueryCtx } from "../_generated/server";
-import { requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import { contributorReviewerEmails, normalizeProfileKey } from "./contributorProfiles";
 import {
   projectEditorArticle,
@@ -26,11 +26,11 @@ export async function getEditorSubstanceBySlugHandler(
   ctx: QueryCtx,
   args: { slug: string; id?: number; apiKey?: string; actorEmail?: string },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   const matches = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))

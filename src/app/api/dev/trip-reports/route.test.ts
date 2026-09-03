@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(),
+  requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(async () => null),
   query: vi.fn(),
   mutation: vi.fn(),
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: mocks.requireEditorSession,
+  requireRoleSession: mocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -43,7 +43,7 @@ const reportFields = {
 
 beforeEach(() => {
   vi.resetModules();
-  mocks.requireEditorSession.mockReset().mockResolvedValue(editorSession);
+  mocks.requireRoleSession.mockReset().mockResolvedValue(editorSession);
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   mocks.query.mockReset().mockResolvedValue([]);
   mocks.mutation.mockReset().mockResolvedValue({ updated: true, slug: "alpine-clarity" });
@@ -64,13 +64,13 @@ describe("dev trip report corpus route", () => {
 
     const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
 
-    expect(mocks.requireEditorSession).toHaveBeenCalled();
+    expect(mocks.requireRoleSession).toHaveBeenCalled();
     expect(mocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "diagnosticRead");
     expect(response.status).toBe(200);
   });
 
   it("refuses a non-editor without touching Convex", async () => {
-    mocks.requireEditorSession.mockResolvedValue({
+    mocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: new Response(JSON.stringify({ error: "Editor access required" }), { status: 403 }),
     });
@@ -109,14 +109,14 @@ describe("dev trip report record route", () => {
       postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
     );
 
-    expect(mocks.requireEditorSession).toHaveBeenCalled();
+    expect(mocks.requireRoleSession).toHaveBeenCalled();
     expect(mocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "editorSmallWrite");
     expect(response.status).toBe(200);
     expect(mocks.mutation).toHaveBeenCalled();
   });
 
   it("refuses a non-editor without touching Convex", async () => {
-    mocks.requireEditorSession.mockResolvedValue({
+    mocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: new Response(JSON.stringify({ error: "Editor access required" }), { status: 403 }),
     });

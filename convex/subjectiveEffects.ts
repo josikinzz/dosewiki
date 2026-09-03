@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   matchesSubjectiveEffectCategory,
   projectPublicEffectArticle,
@@ -297,6 +297,7 @@ const legacyMediaField = v.union(
 export const repairLegacyMedia = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     slug: v.string(),
     changes: v.array(v.object({
       field: legacyMediaField,
@@ -308,7 +309,7 @@ export const repairLegacyMedia = mutation({
     replacementSocialMediaImage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const effect = await ctx.db
       .query("subjectiveEffects")
@@ -344,6 +345,7 @@ export const repairLegacyMedia = mutation({
 export const update = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     slug: v.string(),
     updates: v.object({
       name: v.optional(v.string()),
@@ -391,7 +393,7 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const existing = await ctx.db
       .query("subjectiveEffects")

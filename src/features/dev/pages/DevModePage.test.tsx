@@ -94,10 +94,6 @@ vi.mock("@/hooks/useContributorProfiles", () => ({
   useContributorProfiles: () => contributorProfilesState,
 }));
 
-vi.mock("@/lib/auth/roles", () => ({
-  canAccessDev: (role?: string) => role === "admin" || role === "editor",
-}));
-
 vi.mock("@/lib/convex", () => ({
   isConvexEnabled: () => false,
 }));
@@ -152,21 +148,40 @@ describe("DevModePage", () => {
     sessionState.data = null;
   });
 
-  it("sends a session that cannot edit off an editor-only tab to Contributors", async () => {
-    render(<DevModePage activeTab="articles" onTabChange={onTabChangeMock} />);
+  it("swaps an editor-only tool for its locked panel once a signed-out session settles", async () => {
+    const { getByText, queryByText } = render(
+      <DevModePage activeTab="articles" onTabChange={onTabChangeMock} />,
+    );
 
     await waitFor(() => {
-      expect(onTabChangeMock).toHaveBeenCalledWith("contributors");
+      expect(getByText("Sign in required")).toBeInTheDocument();
     });
+    expect(queryByText("Substance Editor")).not.toBeInTheDocument();
+    expect(onTabChangeMock).not.toHaveBeenCalled();
+  });
+
+  it("locks an admin tool for an editor with the admin reason and never loads the tool", () => {
+    sessionState.status = "authenticated";
+    sessionState.data = { user: { email: "editor@example.com", role: "editor" } };
+
+    const { getByText } = render(<DevModePage activeTab="banners" onTabChange={onTabChangeMock} />);
+
+    expect(getByText("Chrome")).toBeInTheDocument();
+    expect(getByText("Admin role required")).toBeInTheDocument();
+    expect(getByText(/Banners is closed to your role/)).toBeInTheDocument();
+    expect(onTabChangeMock).not.toHaveBeenCalled();
   });
 
   it("mounts the same shell for a contributor session on Contributors", () => {
     sessionState.status = "authenticated";
-    sessionState.data = { user: { email: "reader@example.com", role: "viewer" } };
+    sessionState.data = { user: { email: "reader@example.com", role: "contributor" } };
 
-    const { getByText } = render(<DevModePage activeTab="contributors" onTabChange={onTabChangeMock} />);
+    const { getByText, queryByText } = render(
+      <DevModePage activeTab="contributors" onTabChange={onTabChangeMock} />,
+    );
 
     expect(getByText("Chrome")).toBeInTheDocument();
+    expect(queryByText(/role required/)).not.toBeInTheDocument();
     expect(onTabChangeMock).not.toHaveBeenCalled();
   });
 });

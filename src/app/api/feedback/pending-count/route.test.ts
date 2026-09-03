@@ -1,18 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { roleSessionFor } from "@/test/routeSession";
+
 import { ARTICLE_FEEDBACK_PENDING_STATUSES } from "@/features/article/feedback/articleFeedback";
 import { SITE_FEEDBACK_PENDING_STATUSES } from "@/features/site-feedback/siteFeedback";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
+import { requireRoleSession } from "@/lib/auth/requireEditorSession";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 vi.mock("server-only", () => ({}));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
+  requireRoleSession: vi.fn(roleSessionFor("editor")),
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -73,7 +71,7 @@ describe("feedback pending-count route", () => {
   });
 
   it("refuses non-editors before touching either store", async () => {
-    vi.mocked(requireEditorSession).mockResolvedValueOnce({
+    vi.mocked(requireRoleSession).mockResolvedValueOnce({
       ok: false,
       response: Response.json({ error: "Editor access required." }, { status: 403 }),
     } as never);

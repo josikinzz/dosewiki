@@ -1,5 +1,5 @@
 import type { ChangeLogArticleSummary, ChangeLogEntry } from "@/data/changelog/changeLog";
-import type { SaveArticlesResult, SaveToConvexPayload, SaveToConvexResult } from "@/hooks/useApiMutations";
+import type { SaveToConvexPayload, SaveToConvexResult } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import { slugify } from "@/utils/slug";
@@ -214,40 +214,5 @@ export function normalizeConvexChangeLogEntry(
     articles: entry.articles,
     markdown: entry.markdown,
     submittedBy: entry.submittedBy,
-  };
-}
-
-export function normalizeGitHubChangeLogEntry(
-  entry: SaveArticlesResult["entry"] | undefined,
-  fallbackMessage: string,
-  resolvedKey: string,
-): ChangeLogEntry | null {
-  if (!entry || typeof entry !== "object") {
-    return null;
-  }
-
-  const articles = Array.isArray(entry.articles)
-    ? entry.articles.filter(
-        (article): article is ChangeLogArticleSummary =>
-          typeof article === "object" &&
-          article !== null &&
-          typeof (article as { id?: unknown }).id === "number" &&
-          typeof (article as { title?: unknown }).title === "string" &&
-          typeof (article as { slug?: unknown }).slug === "string",
-      )
-    : [];
-  const markdown = (entry as { markdown?: unknown }).markdown;
-
-  return {
-    id: entry.timestamp,
-    createdAt: entry.timestamp,
-    commit: {
-      sha: entry.commit?.sha ?? "",
-      url: entry.commit?.url ?? "",
-      message: entry.commit?.message ?? fallbackMessage,
-    },
-    articles,
-    markdown: typeof markdown === "string" ? markdown : "",
-    submittedBy: entry.submittedBy ?? resolvedKey,
   };
 }

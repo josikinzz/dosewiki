@@ -1,7 +1,7 @@
 import { citationEvidenceGateErrors } from "../lib/citations/citationSafety.mjs";
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
-import { requireEditorWrite, type AuthorizedActor } from "./lib/auth";
+import { requireRole, type AuthorizedActor } from "./lib/auth";
 import {
   compareQueueSummaries,
   matchesQueueSummaryStatus,
@@ -413,11 +413,11 @@ export const getBySlug = query({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceReview",
-    });
+    }, "editor");
 
     const rows = await ctx.db
       .query("citationEvidence")
@@ -441,11 +441,11 @@ export const getQueueSummary = query({
     status: v.optional(queueSummaryStatus),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceReview",
-    });
+    }, "editor");
 
     const status = args.status ?? "open";
     const summaries = new Map<string, CitationQueueSummary>();
@@ -686,11 +686,11 @@ export const upsertMany = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceWrite",
-    });
+    }, "admin");
     const now = new Date().toISOString();
     return await applyEvidenceWrite({
       ctx,
@@ -718,11 +718,11 @@ export const applyDraft = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceWrite",
-    });
+    }, "admin");
 
     // Run the shared Zod article contract before patching citable sections so
     // citation applies cannot persist structurally invalid article content.
@@ -856,11 +856,11 @@ export const setManyStatus = mutation({
     status: evidenceStatus,
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceReview",
-    });
+    }, "admin");
     const now = new Date().toISOString();
     const existingRows = await ctx.db
       .query("citationEvidence")

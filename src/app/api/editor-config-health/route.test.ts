@@ -12,7 +12,7 @@ vi.mock("@server/convex/serverWriteHealth", async (importOriginal) => {
 });
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
+  requireRoleSession: vi.fn(async () => ({
     ok: true,
     session: { user: { email: "editor@example.com" } },
     role: "editor",

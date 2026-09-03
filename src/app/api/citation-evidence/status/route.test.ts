@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -10,12 +11,10 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -37,6 +36,9 @@ describe("citation evidence status route", () => {
     mocks.mutation.mockReset();
     mocks.getServerConvexWriteCapability.mockReset();
     mocks.mutation.mockResolvedValue({ updated: 1 });
+    authMocks.requireRoleSession.mockReset().mockImplementation(
+      roleSessionFor("admin", { email: "editor@example.com", name: "Editor" }),
+    );
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: {
@@ -74,6 +76,22 @@ describe("citation evidence status route", () => {
       claimKeys: ["summary:0"],
       status: "approved",
     });
+  });
+
+  it("refuses an editor session with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/citation-evidence/status", {
+        method: "POST",
+        body: JSON.stringify({ slug: "lsd", claimKey: "summary:0", status: "approved" }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
   it("rejects unsupported review statuses", async () => {

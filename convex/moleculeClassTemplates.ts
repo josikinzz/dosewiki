@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 /**
  * Plain-scaffold orientation templates authored in `/dev` → Molecules.
@@ -40,7 +40,7 @@ export const listKeys = query({
   },
 });
 
-/** Create or replace one orientation template. Editor/admin only. */
+/** Create or replace one orientation template. Admin only. */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -51,11 +51,11 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidClassKey(args.classKey);
     if (!args.molblock || args.molblock.length > MAX_MOLBLOCK_BYTES) {

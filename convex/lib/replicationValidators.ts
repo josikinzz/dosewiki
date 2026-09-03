@@ -66,7 +66,10 @@ export const getByArtistNamesPageArgs = v.object({
 });
 export const getBySlugsArgs = v.object({ slugs: v.array(v.string()) });
 export const resolveStorageUrlsArgs = v.object({ storageIds: v.array(v.string()) });
-export const generateUploadUrlArgs = v.object({ apiKey: v.optional(v.string()) });
+export const generateUploadUrlArgs = v.object({
+  apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
+});
 
 /** Full public detail row after media locators have been resolved. */
 export const resolvedReplication = v.object({
@@ -110,6 +113,7 @@ export const resolvedReplicationPage = v.object({
 
 export const insertReplicationArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   slug: v.string(),
   title: v.string(),
   artist: v.string(),
@@ -130,6 +134,7 @@ export const insertReplicationArgs = v.object({
 
 export const insertMediaAssetArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   expected_absent: v.literal(true),
   slug: v.string(),
   title: v.string(),
@@ -204,6 +209,7 @@ export const bulkImportArgs = v.object({
 
 export const updateGalleryOrderArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   effect_slug: v.string(),
   replication_slugs: v.array(v.string()),
   expected_replication_slugs: v.optional(v.array(v.string())),
@@ -211,6 +217,7 @@ export const updateGalleryOrderArgs = v.object({
 
 export const renameSlugArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   from: v.string(),
   to: v.string(),
   id: v.optional(v.id("replications")),
@@ -218,11 +225,13 @@ export const renameSlugArgs = v.object({
 
 export const deleteBySlugArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   slug: v.string(),
 });
 
 export const deleteAuditedRowArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   expectedSlug: v.string(),
   expectedTitle: v.string(),
@@ -233,12 +242,14 @@ export const deleteAuditedRowArgs = v.object({
 
 export const updateEffectSlugArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   slug: v.string(),
   effect_slug: v.string(),
 });
 
 export const updateUrlArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   url: v.string(),
   thumbnail_url: v.optional(v.string()),
@@ -246,6 +257,7 @@ export const updateUrlArgs = v.object({
 
 export const updateDeliveredFileSizeArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   expectedStorageId: v.string(),
   file_size: v.number(),
@@ -253,6 +265,7 @@ export const updateDeliveredFileSizeArgs = v.object({
 
 export const updateStorageIdsArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   storage_id: v.string(),
   thumbnail_storage_id: v.optional(v.string()),
@@ -260,6 +273,7 @@ export const updateStorageIdsArgs = v.object({
 
 export const updatePreviewStorageIdsArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   updates: v.array(
     v.object({
       id: v.id("replications"),
@@ -271,6 +285,7 @@ export const updatePreviewStorageIdsArgs = v.object({
 
 export const updateMotionStorageIdsArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   updates: v.array(
     v.object({
       id: v.id("replications"),
@@ -289,6 +304,7 @@ export const updateMotionStorageIdsArgs = v.object({
  */
 export const updateR2KeysArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   updates: v.array(
     v.object({
       id: v.id("replications"),
@@ -308,11 +324,13 @@ export const updateR2KeysArgs = v.object({
 
 export const getResolvedByIdArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
 });
 
 export const applySourceRecoveryArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   expectedStorageId: v.string(),
   expectedSourceUrl: v.union(v.string(), v.null()),
@@ -322,6 +340,7 @@ export const applySourceRecoveryArgs = v.object({
 
 export const mergeUnknownTwinArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   keeperId: v.id("replications"),
   duplicateId: v.id("replications"),
   expectedSlug: v.string(),
@@ -332,6 +351,7 @@ export const mergeUnknownTwinArgs = v.object({
 
 export const applyProvenanceCorrectionArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   expected: replicationCreditSnapshot,
   updates: replicationCreditUpdates,
@@ -339,14 +359,19 @@ export const applyProvenanceCorrectionArgs = v.object({
 
 export const updateRightsMetadataArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   slug: v.string(),
   updates: v.object(replicationRightsFields),
 });
 
-export const getStudioRowsArgs = v.object({ apiKey: v.optional(v.string()) });
+export const getStudioRowsArgs = v.object({
+  apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
+});
 
 export const updateEditorialFieldsArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   id: v.id("replications"),
   expected: replicationEditorialSnapshot,
   updates: replicationEditorialSnapshot,
@@ -354,6 +379,7 @@ export const updateEditorialFieldsArgs = v.object({
 
 export const bulkUpdateEditorialFieldsArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   ids: v.array(v.id("replications")),
   effect_slug: v.optional(v.string()),
   artist: v.optional(v.string()),
@@ -414,6 +440,7 @@ export const compareAndSetEffectTaxonomyResult = v.object({
 
 export const setAudioPresenceArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   entries: v.array(
     v.object({
       id: v.id("replications"),

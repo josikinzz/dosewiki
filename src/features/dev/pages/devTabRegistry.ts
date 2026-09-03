@@ -4,9 +4,11 @@
  * loading policy, and the primary-tab resolver all read from it, so adding a
  * tab is one entry here plus its render branch in `DevModePageView`.
  *
- * Kept free of React and app imports on purpose: the server route and the
- * client router both load it.
+ * Kept free of React and runtime app imports on purpose: the server route and
+ * the client router both load it. The role type is a type-only import.
  */
+
+import type { RoleFloor } from "@/lib/auth/roles";
 
 export type DevToolGroup = "content" | "intake" | "site";
 
@@ -30,7 +32,8 @@ type DevTabDescriptorOf<Id extends string> = {
   group: DevToolGroup | "chrome";
   /** Route path segments, other than `id`, that resolve to this tab. */
   aliases: readonly string[];
-  role: "any" | "editor";
+  /** Lowest role that may use the tool; the rail disables the tab, with a reason, for anyone below it. */
+  role: RoleFloor;
   data: ReadonlySet<DevTabDataNeed>;
   /** `staged` tools commit through the shared commit panel; `immediate` tools publish on save. */
   saveFamily: "staged" | "immediate";
@@ -83,7 +86,7 @@ const REGISTRY = [
     label: "Citations",
     group: "intake",
     aliases: ["citations"],
-    role: "editor",
+    role: "admin",
     data: CORPUS,
     saveFamily: "immediate",
     destination: SHELL,
@@ -93,7 +96,7 @@ const REGISTRY = [
     label: "Trip reports",
     group: "intake",
     aliases: ["trip-reports"],
-    role: "editor",
+    role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
@@ -104,7 +107,7 @@ const REGISTRY = [
     label: "Feedback",
     group: "intake",
     aliases: ["feedback"],
-    role: "editor",
+    role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
@@ -127,7 +130,7 @@ const REGISTRY = [
     label: "Molecules",
     group: "content",
     aliases: ["molecules"],
-    role: "editor",
+    role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
@@ -140,7 +143,7 @@ const REGISTRY = [
     // article is likely to type; the tool itself is named Banners per the
     // design brief's glossary.
     aliases: ["warnings"],
-    role: "editor",
+    role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
@@ -150,7 +153,7 @@ const REGISTRY = [
     label: "Replications",
     group: "content",
     aliases: ["replication-studio"],
-    role: "editor",
+    role: "admin",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,
@@ -182,10 +185,10 @@ const REGISTRY = [
     label: "Contributors",
     group: "site",
     aliases: ["contributor"],
-    // The one people editor: a contributor without editor role opens it on
-    // their own record, so the descriptor is open to any signed-in role and
-    // the shell decides what that role may see.
-    role: "any",
+    // The one people editor: a contributor opens it on their own record, so
+    // the descriptor sits at the contributor floor and the tab decides what
+    // that role may see.
+    role: "contributor",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveFamily: "immediate",
     destination: SHELL,

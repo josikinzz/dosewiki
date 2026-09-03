@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { isShowcaseEligible } from "../src/data/substanceReplicationGallery";
 
 /**
@@ -23,9 +23,13 @@ const MAX_PLAYLIST_SLUGS = 250;
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const list = query({
-  args: { apiKey: v.optional(v.string()) },
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "editor",
+    );
     const rows = await ctx.db.query("replicationPlaylists").collect();
     return rows
       .map((row) => ({
@@ -40,9 +44,13 @@ export const list = query({
 });
 
 export const get = query({
-  args: { apiKey: v.optional(v.string()), key: v.string() },
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), key: v.string() },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "editor",
+    );
     const row = await ctx.db
       .query("replicationPlaylists")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -78,11 +86,11 @@ export const upsert = mutation({
     expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     if (!KEBAB_CASE.test(args.key)) {
       throw new Error(`Playlist key "${args.key}" must be kebab-case.`);
@@ -179,11 +187,11 @@ export const setMembership = mutation({
     included: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
     const existing = await ctx.db
       .query("replicationPlaylists")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -236,11 +244,11 @@ export const remove = mutation({
     key: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "admin",
+    );
 
     const existing = await ctx.db
       .query("replicationPlaylists")

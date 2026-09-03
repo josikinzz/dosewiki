@@ -1,5 +1,5 @@
 import type { QueryCtx } from "../_generated/server";
-import { requireAuthenticatedWrite, requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import {
   deriveProfileKeyFromEmail,
   materializeProfile,
@@ -47,12 +47,13 @@ export async function getContributorProfileByKeyHandler(
 
 export async function getContributorProfilesForBulkImportHandler(
   ctx: QueryCtx,
-  args: { apiKey?: string; keys: string[] },
+  args: { apiKey?: string; actorEmail?: string; keys: string[] },
 ) {
-  await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "editor",
+  );
   const profiles = await Promise.all(
     Array.from(new Set(args.keys.map((key) => normalizeProfileKey(key)).filter(Boolean))).map(
       async (key) => await getStoredContributorProfile(ctx, key),
@@ -65,11 +66,11 @@ export async function getEditorContributorProfileHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string; key: string },
 ) {
-  await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "profileMediaWrite",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "editor",
+  );
   const key = normalizeProfileKey(args.key);
   if (!key) return null;
   const existing = await getStoredContributorProfile(ctx, key);
@@ -109,11 +110,15 @@ export async function getOwnedContributorProfileHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; email: string },
 ) {
-  const actor = await requireAuthenticatedWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-    actorEmail: args.apiKey ? args.email : undefined,
-  });
+  const actor = await requireRole(
+    ctx,
+    {
+      apiKey: args.apiKey,
+      adminIntent: "profileMediaWrite",
+      actorEmail: args.apiKey ? args.email : undefined,
+    },
+    "contributor",
+  );
   const email = actor.email;
   const directMatch = await ctx.db
     .query("contributorProfiles")

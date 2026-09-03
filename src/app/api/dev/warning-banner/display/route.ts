@@ -45,7 +45,7 @@ function parseBannerDisplayBody(raw: BannerDisplayBody): number {
 }
 
 export const POST = protectedRouteOperation<BannerDisplayBody, number>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 4 * 1024,

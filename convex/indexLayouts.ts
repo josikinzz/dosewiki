@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
+import { mirrorPsychoactiveLayout } from "./lib/categoryLayoutMirror";
 
 /**
  * Index layouts - stores category/classification index definitions.
@@ -69,9 +70,9 @@ export const getAll = query({
 });
 
 /**
- * Save/update an index layout.
- *
- * @param apiKey - Required API key for authentication
+ * Save/update an index layout. Editor floor: this is the staged save route's
+ * layout write. Psychoactive layouts are mirrored into `categoryLayout`,
+ * which the public /substances page reads.
  */
 export const save = mutation({
   args: {
@@ -80,11 +81,11 @@ export const save = mutation({
     ...indexLayoutValidator.fields,
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const { apiKey: _apiKey, actorEmail: _actorEmail, ...layoutData } = args;
     const existing = await ctx.db
@@ -92,28 +93,30 @@ export const save = mutation({
       .withIndex("by_type", (q) => q.eq("type", layoutData.type))
       .first();
 
+    let result;
     if (existing) {
       await ctx.db.patch(existing._id, layoutData);
-      return { updated: true, id: existing._id };
+      result = { updated: true, id: existing._id };
+    } else {
+      const id = await ctx.db.insert("indexLayouts", layoutData);
+      result = { updated: false, id };
     }
-
-    const id = await ctx.db.insert("indexLayouts", layoutData);
-    return { updated: false, id };
+    await mirrorPsychoactiveLayout(ctx, layoutData);
+    return result;
   },
 });
 
 /**
- * Bulk import all index layouts.
- *
- * @param apiKey - Required API key for authentication
+ * Bulk import all index layouts. Script-only (seed); admin floor.
  */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     layouts: v.array(indexLayoutValidator),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const results = {
       created: 0,
@@ -135,6 +138,7 @@ export const bulkImport = mutation({
           await ctx.db.insert("indexLayouts", layout);
           results.created++;
         }
+        await mirrorPsychoactiveLayout(ctx, layout);
       } catch (error) {
         results.errors.push(`Layout ${layout.type}: ${error}`);
       }
@@ -145,17 +149,16 @@ export const bulkImport = mutation({
 });
 
 /**
- * Delete an index layout by type.
- *
- * @param apiKey - Required API key for authentication
+ * Delete an index layout by type. Admin floor.
  */
 export const deleteByType = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const existing = await ctx.db
       .query("indexLayouts")

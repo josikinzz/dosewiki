@@ -11,7 +11,6 @@ import {
 import { authRuntimePolicy } from "@server/auth/runtimePolicy";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon } from "@/components/common/Icon";
-import { SignInButton } from "../_components/SignInButton";
 import { CredentialsSignInForm } from "../_components/CredentialsSignInForm";
 import { Button } from "@/components/ui/button";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
@@ -34,20 +33,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const callbackUrl = getSignInCallbackUrl(resolvedSearchParams?.callbackUrl);
   const publicSiteLink = getStatusRecoveryLink("substances");
-  const hasGitHubAuthConfigured = authRuntimePolicy.github.available;
-  const hasLegacyCredentialsAuthConfigured = authRuntimePolicy.legacyCredentials.available;
-  const hasAuthSecretConfigured = Boolean(authRuntimePolicy.authSecret);
   const inlineCodeClassName =
     "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,var(--theme-body-bg))] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
   if (session?.user) {
     redirect(callbackUrl);
   }
-
-  // When the credentials form is shown it owns the primary action, so the
-  // GitHub button moves inside the form as the "or" alternative. When only
-  // GitHub is configured it becomes the page's single accent CTA.
-  const showGitHubInActions = hasGitHubAuthConfigured && !hasLegacyCredentialsAuthConfigured;
 
   return (
     <StatusPageShell
@@ -58,28 +49,25 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       title="Sign in to dose.wiki"
       description={
         <>
-          Editor access to <code className={inlineCodeClassName}>/dev</code> is limited to accounts with the{" "}
-          <code className={inlineCodeClassName}>admin</code> or <code className={inlineCodeClassName}>editor</code>{" "}
-          role.
+          Accounts are created by invitation. Sign in with the username and password you set when you
+          accepted your invite.
         </>
       }
       actions={
-        <>
-          {showGitHubInActions ? <SignInButton callbackUrl={callbackUrl} variant="accent" /> : null}
-          <Button asChild variant="ghost">
-            <Link href={publicSiteLink.href}>Back to public site</Link>
-          </Button>
-        </>
+        <Button asChild variant="ghost">
+          <Link href={publicSiteLink.href}>Back to public site</Link>
+        </Button>
       }
       complementHeading="Access details"
       complement={
         <>
           <StatusFact
             tone="plain"
-            label="Allowed roles"
+            label="Roles"
             value={
               <>
-                <code className={inlineCodeClassName}>admin</code> or <code className={inlineCodeClassName}>editor</code>
+                <code className={inlineCodeClassName}>admin</code>, <code className={inlineCodeClassName}>editor</code>,{" "}
+                or <code className={inlineCodeClassName}>contributor</code>
               </>
             }
           />
@@ -91,31 +79,15 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         </>
       }
     >
-      {hasLegacyCredentialsAuthConfigured ? (
-        <CredentialsSignInForm
-          callbackUrl={callbackUrl}
-          alternative={hasGitHubAuthConfigured ? <SignInButton callbackUrl={callbackUrl} className="w-full" /> : undefined}
-        />
-      ) : null}
-
-      {hasGitHubAuthConfigured || hasLegacyCredentialsAuthConfigured ? null : (
+      {authRuntimePolicy.sessionsAvailable ? (
+        <CredentialsSignInForm callbackUrl={callbackUrl} />
+      ) : (
         <Alert variant="warning">
           <Icon icon="lucide:triangle-alert" size={16} />
           <AlertTitle>Sign-in is not configured</AlertTitle>
           <AlertDescription>
-            {hasAuthSecretConfigured ? (
-              <>
-                Add at least one editor password env var such as{" "}
-                <code className={inlineCodeClassName}>ADMIN_PASSWORD</code> or{" "}
-                <code className={inlineCodeClassName}>JOSIE</code> to enable sign-in.
-              </>
-            ) : (
-              <>
-                Add <code className={inlineCodeClassName}>AUTH_SECRET</code> and at least one editor password env var
-                such as <code className={inlineCodeClassName}>ADMIN_PASSWORD</code> or{" "}
-                <code className={inlineCodeClassName}>JOSIE</code> to enable sign-in.
-              </>
-            )}
+            Set <code className={inlineCodeClassName}>AUTH_SECRET</code> on this deployment before anyone can sign
+            in.
           </AlertDescription>
         </Alert>
       )}

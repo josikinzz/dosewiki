@@ -1,3 +1,4 @@
+import { makeFunctionReference } from "convex/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -5,6 +6,8 @@ vi.mock("server-only", () => ({}));
 const mocks = vi.hoisted(() => ({
   convexClients: [] as Array<{ url: string }>,
   query: vi.fn(),
+  mutation: vi.fn(),
+  action: vi.fn(),
 }));
 
 vi.mock("convex/browser", () => ({
@@ -18,6 +21,14 @@ vi.mock("convex/browser", () => ({
 
     query(reference: unknown, args: unknown) {
       return mocks.query(reference, args);
+    }
+
+    mutation(reference: unknown, args: unknown, options?: unknown) {
+      return mocks.mutation(reference, args, options);
+    }
+
+    action(reference: unknown, args: unknown) {
+      return mocks.action(reference, args);
     }
   },
 }));
@@ -43,6 +54,10 @@ describe("server Convex write capability", () => {
     mocks.convexClients.length = 0;
     mocks.query.mockReset();
     mocks.query.mockResolvedValue(null);
+    mocks.mutation.mockReset();
+    mocks.mutation.mockResolvedValue({ updated: 1 });
+    mocks.action.mockReset();
+    mocks.action.mockResolvedValue({ ran: true });
   });
 
   afterEach(() => {
@@ -161,5 +176,73 @@ describe("server Convex write capability", () => {
     mocks.query.mockRejectedValue(new Error("Server Error"));
 
     await expect(module.probeServerConvexAdminCredential("editor@example.com")).rejects.toThrow("Server Error");
+  });
+
+  describe("actor gate on the route client", () => {
+    const setField = makeFunctionReference<"mutation", { apiKey: string; actorEmail?: string; slug: string }, unknown>(
+      "substanceIndex:setArticleField",
+    );
+    const syncAction = makeFunctionReference<"action", { apiKey: string; actorEmail?: string }, unknown>(
+      "replications:sync",
+    );
+    const readQuery = makeFunctionReference<"query", { apiKey: string; slug: string }, unknown>(
+      "substanceIndex:getBySlug",
+    );
+
+    async function readyClient() {
+      const module = await loadModule();
+      process.env.CONVEX_ADMIN_KEY = "admin-key";
+      process.env.CONVEX_URL = "https://write.convex.cloud";
+      return module.getServerConvexWriteCapabilityOrThrow().client;
+    }
+
+    it("refuses a mutation that names no actor before sending it", async () => {
+      const client = await readyClient();
+
+      await expect(client.mutation(setField, { apiKey: "admin-key", slug: "lsd" })).rejects.toThrow(
+        "Server Convex write without actorEmail: substanceIndex:setArticleField",
+      );
+      await expect(
+        client.mutation(setField, { apiKey: "admin-key", actorEmail: "   ", slug: "lsd" }),
+      ).rejects.toThrow("Server Convex write without actorEmail: substanceIndex:setArticleField");
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
+    it("passes a mutation that names its actor through with args and options intact", async () => {
+      const client = await readyClient();
+      const args = { apiKey: "admin-key", actorEmail: "editor@example.com", slug: "lsd" };
+
+      await expect(client.mutation(setField, args, { skipQueue: true })).resolves.toEqual({ updated: 1 });
+
+      expect(mocks.mutation).toHaveBeenCalledTimes(1);
+      expect(mocks.mutation).toHaveBeenCalledWith(setField, args, { skipQueue: true });
+    });
+
+    it("gates actions the same way as mutations", async () => {
+      const client = await readyClient();
+
+      await expect(client.action(syncAction, { apiKey: "admin-key" })).rejects.toThrow(
+        "Server Convex write without actorEmail: replications:sync",
+      );
+      expect(mocks.action).not.toHaveBeenCalled();
+
+      await expect(
+        client.action(syncAction, { apiKey: "admin-key", actorEmail: "admin@example.com" }),
+      ).resolves.toEqual({ ran: true });
+      expect(mocks.action).toHaveBeenCalledWith(syncAction, {
+        apiKey: "admin-key",
+        actorEmail: "admin@example.com",
+      });
+    });
+
+    it("leaves queries ungated", async () => {
+      const client = await readyClient();
+      mocks.query.mockResolvedValue({ slug: "lsd" });
+
+      await expect(client.query(readQuery, { apiKey: "admin-key", slug: "lsd" })).resolves.toEqual({
+        slug: "lsd",
+      });
+      expect(mocks.query).toHaveBeenCalledWith(readQuery, { apiKey: "admin-key", slug: "lsd" });
+    });
   });
 });

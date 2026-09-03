@@ -121,15 +121,20 @@ describe("copyBlocks write authorization", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("rejects a delete from a non-editor before touching the table", async () => {
+  it("rejects a delete from anyone below admin before touching the table", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
 
-    await expect(
-      removeHandler(
-        createCtx({ identity: null, memberships: { "viewer@example.com": "viewer" } }),
-        { key: "home-hero-title", apiKey: "secret", actorEmail: "viewer@example.com" },
-      ),
-    ).rejects.toThrow("Editor access required");
+    for (const actorEmail of ["viewer@example.com", "editor@example.com"]) {
+      await expect(
+        removeHandler(
+          createCtx({
+            identity: null,
+            memberships: { "viewer@example.com": "viewer", "editor@example.com": "editor" },
+          }),
+          { key: "home-hero-title", apiKey: "secret", actorEmail },
+        ),
+      ).rejects.toThrow("Admin access required");
+    }
 
     expect(remove_).not.toHaveBeenCalled();
   });

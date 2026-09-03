@@ -1,5 +1,5 @@
 /**
- * Editor-only load/save endpoint for molecule class orientation templates.
+ * Admin-only load/save endpoint for molecule class orientation templates.
  *
  * Templates are isolated from `moleculeOverrides`; this route deliberately
  * performs no public-page revalidation and has no apply behavior.
@@ -105,7 +105,7 @@ function parseSaveBody(body: SaveTemplateBody): ParsedSaveTemplate {
 }
 
 export const GET = protectedRouteOperation({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load molecule class template via Next route:",
@@ -126,7 +126,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<SaveTemplateBody, ParsedSaveTemplate>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: MAX_PAYLOAD_BYTES,

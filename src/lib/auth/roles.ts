@@ -1,66 +1,47 @@
-export const APP_ROLES = ["admin", "editor", "viewer"] as const;
+export const APP_ROLES = ["admin", "editor", "contributor", "viewer"] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
 
-export const DEV_ACCESS_ROLES: readonly AppRole[] = ["admin", "editor"];
-export const CREDENTIAL_PROVIDER_ROLE: AppRole = "admin";
+/** Lowest role a route or mutation admits. `viewer` is never a floor. */
+export type RoleFloor = "admin" | "editor" | "contributor";
+
+const ROLE_RANK: Record<AppRole, number> = { viewer: 0, contributor: 1, editor: 2, admin: 3 };
+
+export function roleMeetsFloor(role: AppRole | null | undefined, floor: RoleFloor): boolean {
+  return role != null && ROLE_RANK[role] >= ROLE_RANK[floor];
+}
+
+export function canApprove(role: AppRole | null | undefined): boolean {
+  return roleMeetsFloor(role, "admin");
+}
+
+export function canDraft(role: AppRole | null | undefined): boolean {
+  return roleMeetsFloor(role, "editor");
+}
 
 export function isAppRole(value: unknown): value is AppRole {
   return typeof value === "string" && APP_ROLES.includes(value as AppRole);
 }
 
-export function resolveSessionRole(input: {
-  role?: unknown;
-  isCredentialProviderUser?: boolean;
-  isDevelopmentCredentialUser?: boolean;
-  nodeEnv?: string;
-}): AppRole | null {
-  if (input.isCredentialProviderUser || input.isDevelopmentCredentialUser) {
-    return CREDENTIAL_PROVIDER_ROLE;
-  }
-
+/** The stored membership role, or null when the token carries nothing usable. */
+export function resolveSessionRole(input: { role?: unknown }): AppRole | null {
   return isAppRole(input.role) ? input.role : null;
 }
 
+/** Any role that may open the dev shell at all: `viewer` is the only stored role that cannot. */
 export function canAccessDev(role: AppRole | null | undefined): boolean {
-  return canAccessDevShell({ role });
-}
-
-export function canAccessDevShell(input: { role: unknown }): boolean {
-  const role = resolveSessionRole({ role: input.role });
-  return role === "admin" || role === "editor";
-}
-
-export function canUseEditorWriteRoute(input: { role: unknown }): boolean {
-  return canAccessDevShell(input);
+  return roleMeetsFloor(role, "contributor");
 }
 
 export function canUseSelfProfileRoute(input: { email: unknown }): boolean {
   return typeof input.email === "string" && input.email.trim().length > 0;
 }
 
-/**
- * The one editor-shell address a signed-in contributor without editor role
- * may open: the Contributors tab, which shows them only their own record. The
- * two legacy Profile addresses still resolve there.
- */
-export function isDevSelfProfilePath(pathname: string): boolean {
-  return (
-    pathname === "/dev/contributors" ||
-    pathname.startsWith("/dev/contributors/") ||
-    pathname === "/dev/profile" ||
-    pathname.startsWith("/dev/profile/") ||
-    pathname === "/dev/profiles" ||
-    pathname.startsWith("/dev/profiles/")
-  );
-}
-
-
 export type DevRouteDecision =
   | {
       type: "allow";
-      role: AppRole | null;
-      access: "profile" | "editor";
+      /** The member's own role; the shell disables every tab above it. */
+      access: RoleFloor;
     }
   | {
       type: "sign-in";
@@ -72,14 +53,20 @@ export type DevRouteDecision =
       role: AppRole | null;
     };
 
+/**
+ * Server decision for a protected editor address. `floor` is the lowest role
+ * the surface admits; the `/dev` shell leaves it at `contributor` because a
+ * tab above the member's role still loads, rendered disabled with a reason,
+ * while full-page surfaces such as `/review` pass their descriptor's role.
+ */
 export function getDevRouteDecision(input: {
   pathname: string;
   search?: string;
   email?: unknown;
   role?: unknown;
+  floor?: RoleFloor;
 }): DevRouteDecision {
   const callbackUrl = `${input.pathname}${input.search ?? ""}`;
-
 
   if (!canUseSelfProfileRoute({ email: input.email })) {
     return {
@@ -90,12 +77,8 @@ export function getDevRouteDecision(input: {
 
   const role = resolveSessionRole({ role: input.role });
 
-  if (isDevSelfProfilePath(input.pathname) || canAccessDevShell({ role })) {
-    return {
-      type: "allow",
-      role,
-      access: isDevSelfProfilePath(input.pathname) ? "profile" : "editor",
-    };
+  if (role && role !== "viewer" && roleMeetsFloor(role, input.floor ?? "contributor")) {
+    return { type: "allow", access: role };
   }
 
   return {
@@ -111,4 +94,16 @@ export function getRoleDisplayName(role: AppRole | null | undefined): string {
   }
 
   return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+/**
+ * Why a surface at `floor` is closed to `role`, or null when it is open. The
+ * shell shows it as the disabled tab's title and the locked tool's heading.
+ */
+export function getRoleFloorLockReason(role: AppRole | null | undefined, floor: RoleFloor): string | null {
+  if (roleMeetsFloor(role, floor)) {
+    return null;
+  }
+
+  return role ? `${getRoleDisplayName(floor)} role required` : "Sign in required";
 }

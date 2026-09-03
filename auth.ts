@@ -1,59 +1,48 @@
 import type { NextAuthOptions } from "next-auth";
-import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { resolveSessionRole } from "./src/lib/auth/roles";
-import { syncMembershipFromAuth } from "./lib/auth/convexMemberships";
-import { verifyLegacyCredentials } from "./lib/auth/legacyCredentials";
 import {
-  authRuntimePolicy,
-  authSecret,
-  hasGitHubAuthConfigured,
-  hasLegacyCredentialsAuthConfigured,
-} from "./lib/auth/runtimePolicy";
+  getCredentialsByUsername,
+  getMembershipByEmail,
+  touchSignIn,
+} from "./lib/auth/convexMemberships";
+import { verifyPassword } from "./lib/auth/passwords";
+import { authSecret } from "./lib/auth/runtimePolicy";
 
-const legacyCredentialEmailDomain = "@local.dose.wiki";
+type AuthorizedMember = {
+  id: string;
+  email: string;
+  name: string;
+};
 
-function isLegacyCredentialEmail(email: string | null | undefined): boolean {
-  return typeof email === "string" && email.trim().toLowerCase().endsWith(legacyCredentialEmailDomain);
-}
+/**
+ * Username + password against the Convex memberships table. Returns the
+ * member for the session, or null for every failure: unknown username,
+ * banned member, no password set, wrong password. Auth.js maps null to a
+ * generic CredentialsSignin error, so the reason never reaches the browser.
+ */
+export async function authorizeCredentials(
+  credentials: Partial<Record<"username" | "password", unknown>> | undefined,
+): Promise<AuthorizedMember | null> {
+  const username = typeof credentials?.username === "string" ? credentials.username.trim() : "";
+  const password = typeof credentials?.password === "string" ? credentials.password : "";
 
-const providers = [];
+  if (!username || !password) {
+    return null;
+  }
 
-if (hasGitHubAuthConfigured) {
-  providers.push(
-    GitHubProvider({
-      clientId: authRuntimePolicy.github.clientId!,
-      clientSecret: authRuntimePolicy.github.clientSecret!,
-    }),
-  );
-}
+  const member = await getCredentialsByUsername(username);
+  if (!member || member.bannedAt || !member.passwordHash) {
+    return null;
+  }
 
-if (hasLegacyCredentialsAuthConfigured) {
-  providers.push(
-    CredentialsProvider({
-      name: "Editor credentials",
-      credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const username = typeof credentials?.username === "string" ? credentials.username : "";
-        const password = typeof credentials?.password === "string" ? credentials.password : "";
-        const matchedKey = verifyLegacyCredentials(username, password);
+  if (!(await verifyPassword(password, member.passwordHash))) {
+    return null;
+  }
 
-        if (!matchedKey) {
-          return null;
-        }
+  await touchSignIn(member.email);
 
-        return {
-          id: matchedKey,
-          name: matchedKey,
-          email: `${matchedKey.toLowerCase()}@local.dose.wiki`,
-          image: null,
-        };
-      },
-    }),
-  );
+  return { id: member.email, email: member.email, name: member.name ?? username };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -65,47 +54,33 @@ export const authOptions: NextAuthOptions = {
     signIn: "/sign-in",
     error: "/sign-in",
   },
-  providers,
+  providers: [
+    CredentialsProvider({
+      name: "Account",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: authorizeCredentials,
+    }),
+  ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "credentials") {
-        return true;
-      }
-
-      return typeof user.email === "string" && user.email.trim().length > 0;
-    },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       const email = user?.email ?? token.email;
 
       if (!email) {
         return token;
       }
 
-      const isCredentialProviderUser =
-        account?.provider === "credentials" || isLegacyCredentialEmail(email);
-      const credentialRole = resolveSessionRole({
-        isCredentialProviderUser,
-        nodeEnv: process.env.NODE_ENV,
-      });
-
-      if (isCredentialProviderUser && credentialRole) {
-        token.role = credentialRole;
-        return token;
-      }
-
+      // Re-read the stored role on every JWT refresh so a role change or a
+      // ban takes effect on the next request instead of at the next sign-in.
       try {
-        const role = await syncMembershipFromAuth({
-          email,
-          name: user?.name ?? token.name,
-          image:
-            user?.image ?? (typeof token.picture === "string" ? token.picture : null),
-          provider: account?.provider,
-          providerAccountId: account?.providerAccountId,
-        });
-
-        token.role = role;
+        const membership = await getMembershipByEmail(email);
+        token.role = membership?.bannedAt
+          ? "viewer"
+          : (resolveSessionRole({ role: membership?.role }) ?? "viewer");
       } catch (error) {
-        console.error("[Auth] Failed to sync membership from Auth.js", error);
+        console.error("[Auth] Failed to read membership role", error);
         token.role = resolveSessionRole({ role: token.role }) ?? "viewer";
       }
 
@@ -126,10 +101,6 @@ export const authOptions: NextAuthOptions = {
 
       if (typeof token.name === "string") {
         session.user.name = token.name;
-      }
-
-      if (typeof token.picture === "string") {
-        session.user.image = token.picture;
       }
 
       session.user.role = token.role;

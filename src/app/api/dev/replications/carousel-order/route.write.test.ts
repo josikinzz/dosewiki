@@ -31,9 +31,9 @@ vi.mock("@server/convex/publicData", () => ({
   PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications" },
 }));
 
-const authMocks = vi.hoisted(() => ({ requireEditorSession: vi.fn() }));
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: authMocks.requireEditorSession,
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
@@ -64,7 +64,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireEditorSession.mockResolvedValue({
+  authMocks.requireRoleSession.mockResolvedValue({
     ok: true,
     session: { user: { email: "editor@example.com" } },
     role: "editor",
@@ -81,7 +81,7 @@ beforeEach(() => {
 
 describe("carousel order PATCH", () => {
   it("refuses an anonymous request before Convex", async () => {
-    authMocks.requireEditorSession.mockResolvedValue({
+    authMocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
     });
@@ -110,6 +110,7 @@ describe("carousel order PATCH", () => {
       "replications.updateGalleryOrder",
       {
         apiKey: "admin-key",
+        actorEmail: "editor@example.com",
         effect_slug: "tracers",
         replication_slugs: ["still", "video"],
         expected_replication_slugs: ["video", "still"],
@@ -118,7 +119,7 @@ describe("carousel order PATCH", () => {
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/effects/tracers");
   });
   it("fails closed on a public host before Convex", async () => {
-    authMocks.requireEditorSession.mockRejectedValue(
+    authMocks.requireRoleSession.mockRejectedValue(
       new Error("Effect Index has no editor auth configuration."),
     );
     const { PATCH } = await import("./route");

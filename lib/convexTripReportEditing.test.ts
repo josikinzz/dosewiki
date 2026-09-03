@@ -160,11 +160,16 @@ describe("trip report save validation", () => {
 describe("Convex trip report update boundary", () => {
   const source = readSource("convex/tripReports.ts");
 
-  it("gates the per-record write and the delete on editor role", () => {
-    const editorGuards = source.match(/await requireEditorWrite\(ctx, \{/g) ?? [];
+  it("gates the portal reads and the per-record write on editor role, and the delete on admin", () => {
+    const floors = [...source.matchAll(/await requireRole\([\s\S]*?"(admin|editor|contributor)",\n\s*\);/g)].map(
+      (match) => match[1],
+    );
 
-    // getPortalRows, getPortalRecord, update, deleteById.
-    expect(editorGuards.length).toBe(4);
+    // getPortalRows, getPortalRecord, update, deleteById, renameAuthor.
+    expect(floors).toEqual(["editor", "editor", "editor", "admin"]);
+    expect(source).toContain(
+      'await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");',
+    );
   });
 
   it("refuses a save whose snapshot no longer matches storage", () => {

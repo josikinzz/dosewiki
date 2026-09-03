@@ -9,9 +9,12 @@
  * the session, then talks to Convex with the server's own token plus the
  * actor's email for the audit trail.
  *
- * Two roles share the route. An editor may read and patch any record. A
- * signed-in contributor without editor role may read and save only their own
- * record (the one whose membership email is theirs, or the still-unclaimed
+ * Three roles share the route. An admin may read and patch any record and any
+ * field. An editor may read and patch any record, but `saveProfileAsEditor`
+ * refuses the trust fields (role, membership email, approved replicator,
+ * gallery exclusion, archival, staff note) for anyone below admin, whatever
+ * the payload carries. A signed-in contributor may read and save only their
+ * own record (the one whose membership email is theirs, or the still-unclaimed
  * record their sign-in derives to) and only its self-serve fields; that write
  * goes through `saveProfile`, whose ownership rule Convex enforces with the
  * actor's real membership role, and the read withholds the staff-only fields.
@@ -37,7 +40,8 @@ import {
   normalizeProfileKey,
   toContributorDisplayName,
 } from "@server/contributorProfileIdentity";
-import { canAccessDevShell } from "@/lib/auth/roles";
+import { roleMeetsFloor } from "@/lib/auth/roles";
+import { classifyConvexRejection } from "@/lib/http/convexRejection";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
@@ -364,7 +368,7 @@ function blankOwnProfile(key: string) {
 const OWN_RECORD_ONLY = { error: "You can only view your own contributor profile." };
 
 export const GET = protectedRouteOperation({
-  auth: "authenticated",
+  auth: "contributor",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load a contributor profile via Next route:",
@@ -383,7 +387,7 @@ export const GET = protectedRouteOperation({
       );
     }
 
-    const isEditor = canAccessDevShell({ role: auth.role });
+    const isEditor = roleMeetsFloor(auth.role, "editor");
     // Resolved before any record is read, so a non-editor never fetches a
     // record that is not theirs.
     const ownKey = isEditor ? null : await resolveOwnProfileKey(convexWrite, actorEmail);
@@ -459,7 +463,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch>({
-  auth: "authenticated",
+  auth: "contributor",
   rateLimit: "authenticatedProfileWrite",
   body: {
     maxBytes: MAX_PAYLOAD_BYTES,
@@ -471,6 +475,10 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
   mapError: (error) => {
     if (error instanceof JsonBodyError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    const rejection = classifyConvexRejection(error);
+    if (rejection?.code === "ADMIN_ONLY_PROFILE_FIELD") {
+      return NextResponse.json({ error: rejection.message, code: rejection.code }, { status: 403 });
     }
     // Convex wraps thrown mutation errors, so match by substring.
     const message = error instanceof Error ? error.message : "";
@@ -488,7 +496,7 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     }
 
     const apiKey = adminIntentToken(convexWrite);
-    const isEditor = canAccessDevShell({ role: auth.role });
+    const isEditor = roleMeetsFloor(auth.role, "editor");
     const avatarStorageId = body.avatarUpload
       ? await uploadAvatarToConvex(body.avatarUpload, convexWrite, actorEmail)
       : undefined;

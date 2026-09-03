@@ -193,6 +193,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
           apiKey:
             convexWrite.getAdminIntentToken?.("replicationMaintenance") ??
             convexWrite.adminKey,
+          actorEmail,
           effect_slug: body.targetKey,
           replication_slugs: body.slugs,
           expected_replication_slugs: body.expectedOrder,

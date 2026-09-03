@@ -8,7 +8,7 @@
  *
  *   GET  ?id=…  → { report: { id, slug, fields } }
  *   POST { mode: "save",   id, expected, updates, profile_key?, confirm_author_name_claim? }
- *   POST { mode: "delete", id }
+ *   POST { mode: "delete", id }   (admin only; refused here and again in Convex)
  *
  * The GET is the read half of the portal's split payload: `/api/dev/trip-reports`
  * returns an index projection with no report bodies in it, and this returns the
@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
+import { canApprove } from "@/lib/auth/roles";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -178,7 +179,7 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
 
     return null;
   },
-  operation: async ({ actorEmail, body, convexWrite }) => {
+  operation: async ({ auth, actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -186,6 +187,9 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
     const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
 
     if (body.mode === "delete") {
+      if (!canApprove(auth.role)) {
+        return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+      }
       const result = await convexWrite.client.mutation(api.tripReports.deleteById, {
         apiKey,
         actorEmail,

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   replicationDateBackfillArgs,
   replicationDateBackfillResult,
@@ -57,7 +57,7 @@ export const applyResearchBatch = mutation({
   args: replicationDateBackfillArgs.fields,
   returns: replicationDateBackfillResult,
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "replicationMaintenance" }, "admin");
     if (args.items.length === 0 || args.items.length > MAX_BACKFILL_BATCH) {
       throw new Error(`Date backfill batches must contain 1-${MAX_BACKFILL_BATCH} items.`);
     }
@@ -155,7 +155,7 @@ export const getResearchByReplicationIds = query({
   args: replicationDateResearchReadArgs.fields,
   returns: v.array(replicationDateResearchReadRow),
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "replicationMaintenance" }, "admin");
     if (args.replicationIds.length > MAX_READ_BATCH) {
       throw new Error(`Date-research reads are limited to ${MAX_READ_BATCH} IDs.`);
     }

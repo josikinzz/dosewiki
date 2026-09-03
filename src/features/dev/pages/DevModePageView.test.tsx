@@ -29,13 +29,19 @@ vi.mock("../tools/trip-report-portal/TripReportPortalTab", () => tool("TripRepor
 
 import { DevModePageView } from "./DevModePageView";
 
-function buildController(activeTab: DevModePageControllerState["activeTab"]): DevModePageControllerState {
+function buildController(
+  activeTab: DevModePageControllerState["activeTab"],
+  activeTabLockReason: string | null = null,
+): DevModePageControllerState {
   return {
     activePrimaryTab: "tools",
     mainClassName: "",
     contentWrapperClass: "",
     isSignedIn: true,
-    canEdit: true,
+    role: "admin",
+    canDraft: true,
+    canApprove: true,
+    activeTabLockReason,
     sessionStatus: "authenticated",
     articlesLength: 0,
     isLibraryLoading: false,
@@ -89,5 +95,15 @@ describe("DevModePageView", () => {
     const { queryByText } = render(<DevModePageView controller={buildController("change-log")} />);
 
     expect(queryByText(/Saves immediately|Staged/)).toBeNull();
+  });
+
+  it("renders the locked panel instead of the tool when the settled session is below the tab's role", () => {
+    const { getByText, queryByTestId } = render(
+      <DevModePageView controller={buildController("banners", "Admin role required")} />,
+    );
+
+    expect(getByText("Admin role required")).toBeTruthy();
+    expect(getByText(/Banners is closed to your role/)).toBeTruthy();
+    expect(queryByTestId("dev-tool")).toBeNull();
   });
 });

@@ -56,13 +56,18 @@ describe("status and redirect policy", () => {
       { type: "sign-in", href: "/sign-in?callbackUrl=%2Fdev%2Fprofile", callbackUrl: "/dev/profile" },
     ],
     [
-      "non-editor /dev",
+      "viewer /dev",
       getDevRouteDecision({ pathname: "/dev", email: "viewer@example.com", role: "viewer" }),
       { type: "unauthorized", href: "/unauthorized?from=%2Fdev", from: "/dev" },
     ],
     [
-      "authenticated /dev/profile",
+      "viewer /dev/profile",
       getDevRouteDecision({ pathname: "/dev/profile", email: "viewer@example.com", role: "viewer" }),
+      { type: "unauthorized", href: "/unauthorized?from=%2Fdev%2Fprofile", from: "/dev/profile" },
+    ],
+    [
+      "contributor /dev/profile",
+      getDevRouteDecision({ pathname: "/dev/profile", email: "member@example.com", role: "contributor" }),
       { type: "allow" },
     ],
   ] as const)("builds protected route redirects for %s", (_label, decision, expected) => {

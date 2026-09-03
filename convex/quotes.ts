@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   getAvailabilityQuoteSectionIds,
   normalizeQuoteSectionId,
@@ -130,11 +130,11 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "quoteMigrationWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "quoteMigrationWrite" },
+      "editor",
+    );
 
     const { slug, content, updatedBy } = args;
     const section = requireQuoteSection(args.section).id;
@@ -176,11 +176,16 @@ export const save = mutation({
 export const deleteBySlugAndSection = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     slug: v.string(),
     section: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "quoteMigrationWrite");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "quoteMigrationWrite" },
+      "admin",
+    );
     const section = requireQuoteSection(args.section).id;
 
     const existing = await ctx.db
@@ -207,6 +212,7 @@ export const deleteBySlugAndSection = mutation({
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     quotes: v.array(v.object({
       slug: v.string(),
       section: v.string(),
@@ -215,7 +221,11 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "quoteMigrationWrite");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "quoteMigrationWrite" },
+      "admin",
+    );
 
     const updatedAt = new Date().toISOString();
     const results = {

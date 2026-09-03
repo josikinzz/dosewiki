@@ -3,12 +3,12 @@
  * (`/dev` → Replications → Featured).
  *
  *   GET  /api/dev/replications/featured            → { slugs, curated, updatedAt, updatedBy }
- *   POST /api/dev/replications/featured  { slugs } → replace the selection
+ *   POST /api/dev/replications/featured  { slugs } → replace the selection (admin only)
  *
  * The browser holds no admin intent token, so the write is delegated here the
- * way the Copy Studio delegates its own: the route checks the editor session,
+ * way the Copy Studio delegates its own: the route checks the session floor,
  * then calls Convex with the server's token plus the actor's email for the
- * audit trail.
+ * audit trail. The selection is site configuration, so the write is admin.
  *
  * `curated: false` on the GET means this deployment has never stored a
  * selection and the homepage is still running on the checked-in JSON list. The
@@ -87,7 +87,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<FeaturedBody, string[]>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseFeaturedBody },
   capabilities: [{ type: "convexWrite" }],

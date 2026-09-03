@@ -317,7 +317,7 @@ describe("TripReportPortalTab", () => {
     });
 
     function Badge() {
-      const count = useDevRailBadges(true)["trip-reports"];
+      const count = useDevRailBadges("admin")["trip-reports"];
       return <span data-testid="badge">{count === undefined ? "none" : String(count)}</span>;
     }
 

@@ -9,11 +9,12 @@
  * These three were script-only until now, and each rewrites identity rather
  * than content: a merge and a delete remove a row that bylines resolve through,
  * and a retarget re-points existing reports at a different person. None has an
- * undo, so every one requires `confirmKey` to be typed to match the profile
- * that is about to change — the source of a merge, the profile being deleted,
- * the contributor being credited. The check lives here as well as in the UI
- * because a confirmation that only exists in the browser is not a confirmation,
- * and the Convex mutations see only intent flags.
+ * undo, so the route sits at the admin floor and every one requires
+ * `confirmKey` to be typed to match the profile that is about to change: the
+ * source of a merge, the profile being deleted, the contributor being credited.
+ * The check lives here as well as in the UI because a confirmation that only
+ * exists in the browser is not a confirmation, and the Convex mutations see
+ * only intent flags.
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
@@ -98,7 +99,7 @@ export function parseDangerBody(raw: DangerBody): ParsedDanger {
 }
 
 export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 8 * 1024,
@@ -117,6 +118,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
     if (body.action === "merge") {
       const result = await convexWrite.client.mutation(api.contributorProfiles.mergeProfileInto, {
         apiKey,
+        actorEmail,
         fromKey: body.fromKey,
         toKey: body.toKey,
         discardSourceContent: body.discardSourceContent,
@@ -140,6 +142,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
     if (body.action === "delete") {
       const result = await convexWrite.client.mutation(api.contributorProfiles.deleteProfile, {
         apiKey,
+        actorEmail,
         key: body.key,
         confirmDelete: true,
       });

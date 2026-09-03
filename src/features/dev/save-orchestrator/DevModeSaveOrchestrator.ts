@@ -4,8 +4,8 @@
  * Owns:
  * - Draft aggregation state
  * - hasPendingChanges (2 sources -> 1 computation)
- * - Save operation state (destination/in-progress/credentials)
- * - Two notice channels (github/convex)
+ * - Save operation state (phase/credentials) for the one destination, Convex
+ * - The save notice
  *
  * Does NOT own (these stay as React hooks feeding events):
  * - Convex reactivity
@@ -48,24 +48,17 @@ export type SaveNotice = {
   actionLabel?: string;
 };
 
-export type NoticeChannel = "github" | "convex";
-
 // -----------------------------------------------------------------------------
 // Save Operation Types
 // -----------------------------------------------------------------------------
-
-export type SaveDestination = "github" | "convex";
 
 export type SavePhase =
   | "idle"
   | "validating"
   | "verifying-credentials"
-  | "executing"
-  | "completed"
-  | "failed";
+  | "executing";
 
 export type SaveOperationState = {
-  destination: SaveDestination | null;
   phase: SavePhase;
   error: string | null;
 };
@@ -85,9 +78,8 @@ export type DevModeSaveOrchestratorState = {
   /** Save operation state */
   saveOperation: SaveOperationState;
 
-  /** Notice channels */
-  githubNotice: SaveNotice | null;
-  convexNotice: SaveNotice | null;
+  /** The save notice shown in the commit panel */
+  notice: SaveNotice | null;
 
   /** Last resolved submitter key from credentials */
   resolvedSubmitterKey: string | null;
@@ -102,16 +94,8 @@ export type DevModeSaveOrchestratorState = {
 // -----------------------------------------------------------------------------
 
 export type SaveOrchestratorEffect =
-  | {
-      kind: "save";
-      id: number;
-      destination: SaveDestination;
-    }
-  | {
-      kind: "verifyCredentials";
-      id: number;
-      destination: SaveDestination;
-    };
+  | { kind: "save"; id: number }
+  | { kind: "verifyCredentials"; id: number };
 
 // -----------------------------------------------------------------------------
 // Events
@@ -122,12 +106,11 @@ export type DevModeSaveOrchestratorEvent =
   | { type: "changelogSourcesUpdated"; sources: ChangelogSources }
 
   // Save initiation
-  | { type: "saveToGitHubRequested" }
-  | { type: "saveToConvexRequested" }
+  | { type: "saveRequested" }
 
   // Validation results
-  | { type: "validationFailed"; destination: SaveDestination; message: string }
-  | { type: "validationPassed"; destination: SaveDestination }
+  | { type: "validationFailed"; message: string }
+  | { type: "validationPassed" }
 
   // Credential verification
   | { type: "credentialsVerified"; credentials: DevSaveCredentials }
@@ -135,12 +118,11 @@ export type DevModeSaveOrchestratorEvent =
 
   // Save execution results
   | { type: "saveSucceeded"; result: DevSaveCommandResult }
-  | { type: "saveFailed"; destination: SaveDestination; message: string }
+  | { type: "saveFailed"; message: string }
 
   // Notice management
-  | { type: "setNotice"; channel: NoticeChannel; notice: SaveNotice | null }
-  | { type: "clearNotices" }
-  | { type: "clearNotice"; channel: NoticeChannel }
+  | { type: "setNotice"; notice: SaveNotice | null }
+  | { type: "clearNotice" }
 
   // Effect lifecycle
   | { type: "effectCompleted"; effectId: number }
@@ -156,12 +138,10 @@ export function createInitialSaveOrchestratorState(): DevModeSaveOrchestratorSta
     hasArticleDatasetChanges: false,
     hasManualLayoutChanges: false,
     saveOperation: {
-      destination: null,
       phase: "idle",
       error: null,
     },
-    githubNotice: null,
-    convexNotice: null,
+    notice: null,
     resolvedSubmitterKey: null,
     pendingEffect: null,
     effectSequence: 0,
@@ -199,13 +179,26 @@ export function computeHasPendingChanges(sources: ChangelogSources): {
 
 function nextEffect(
   state: DevModeSaveOrchestratorState,
-  effect: Omit<SaveOrchestratorEffect, "id">,
+  kind: SaveOrchestratorEffect["kind"],
 ): DevModeSaveOrchestratorState {
   const id = state.effectSequence + 1;
   return {
     ...state,
     effectSequence: id,
-    pendingEffect: { ...effect, id } as SaveOrchestratorEffect,
+    pendingEffect: { kind, id },
+  };
+}
+
+/** Ends the in-flight operation with an error notice. */
+function failOperation(
+  state: DevModeSaveOrchestratorState,
+  message: string,
+): DevModeSaveOrchestratorState {
+  return {
+    ...state,
+    saveOperation: { phase: "idle", error: message },
+    pendingEffect: null,
+    notice: { type: "error", message },
   };
 }
 
@@ -226,62 +219,28 @@ export function saveOrchestratorReducer(
       };
     }
 
-    case "saveToGitHubRequested": {
+    case "saveRequested": {
       if (state.saveOperation.phase !== "idle") {
         return state;
       }
       return {
-        ...nextEffect(state, { kind: "verifyCredentials", destination: "github" }),
-        saveOperation: {
-          destination: "github",
-          phase: "validating",
-          error: null,
-        },
-        githubNotice: null,
+        ...nextEffect(state, "verifyCredentials"),
+        saveOperation: { phase: "validating", error: null },
+        notice: null,
       };
     }
 
-    case "saveToConvexRequested": {
-      if (state.saveOperation.phase !== "idle") {
-        return state;
-      }
-      return {
-        ...nextEffect(state, { kind: "verifyCredentials", destination: "convex" }),
-        saveOperation: {
-          destination: "convex",
-          phase: "validating",
-          error: null,
-        },
-        convexNotice: null,
-      };
-    }
-
-    case "validationFailed": {
-      const noticeKey = event.destination === "github" ? "githubNotice" : "convexNotice";
-      return {
-        ...state,
-        saveOperation: {
-          destination: null,
-          phase: "idle",
-          error: event.message,
-        },
-        pendingEffect: null,
-        [noticeKey]: {
-          type: "error",
-          message: event.message,
-        },
-      };
-    }
+    case "validationFailed":
+      return failOperation(state, event.message);
 
     case "validationPassed": {
-      const noticeKey = event.destination === "github" ? "githubNotice" : "convexNotice";
       return {
         ...state,
         saveOperation: {
           ...state.saveOperation,
           phase: "verifying-credentials",
         },
-        [noticeKey]: {
+        notice: {
           type: "pending",
           message: "Verifying credentials...",
         },
@@ -289,131 +248,72 @@ export function saveOrchestratorReducer(
     }
 
     case "credentialsVerified": {
-      const dest = state.saveOperation.destination;
-      if (!dest || state.saveOperation.phase !== "verifying-credentials") {
+      if (state.saveOperation.phase !== "verifying-credentials") {
         return state;
       }
 
-      const noticeKey = dest === "github" ? "githubNotice" : "convexNotice";
-      const targetLabel = dest === "github" ? "Archiving to GitHub" : "Saving to Convex";
-
       return {
-        ...nextEffect(state, { kind: "save", destination: dest }),
+        ...nextEffect(state, "save"),
         resolvedSubmitterKey: event.credentials.key,
         saveOperation: {
           ...state.saveOperation,
           phase: "executing",
         },
-        [noticeKey]: {
+        notice: {
           type: "pending",
-          message: `Credentials verified for ${event.credentials.key}. ${targetLabel}...`,
+          message: `Credentials verified for ${event.credentials.key}. Saving to Convex...`,
         },
       };
     }
 
-    case "credentialsFailed": {
-      const dest = state.saveOperation.destination;
-      const noticeKey = dest === "github" ? "githubNotice" : "convexNotice";
-      return {
-        ...state,
-        saveOperation: {
-          destination: null,
-          phase: "idle",
-          error: event.message,
-        },
-        pendingEffect: null,
-        [noticeKey]: {
-          type: "error",
-          message: event.message,
-        },
-      };
-    }
+    case "credentialsFailed":
+      return failOperation(state, event.message);
 
     case "saveSucceeded": {
-      const dest = state.saveOperation.destination;
-      const noticeKey = dest === "github" ? "githubNotice" : "convexNotice";
-
       let notice: SaveNotice;
-      if (dest === "github") {
+      if (event.result.savedItems.length === 0) {
         notice = {
-          type: "success",
-          message: "Archived to GitHub.",
-          actionHref: event.result.actionHref,
-          actionLabel: event.result.actionLabel,
+          type: "error",
+          message: "No Convex-compatible changes to save.",
+        };
+      } else if (event.result.warnings.length > 0) {
+        notice = {
+          type: "error",
+          message: `Saved ${event.result.savedItems.join(" and ")} to Convex as ${event.result.resolvedSubmitterKey}, but ${event.result.warnings.length} issue(s) occurred.`,
         };
       } else {
-        if (event.result.savedItems.length === 0) {
-          notice = {
-            type: "error",
-            message: "No Convex-compatible changes to save.",
-          };
-        } else if (event.result.warnings.length > 0) {
-          notice = {
-            type: "error",
-            message: `Saved ${event.result.savedItems.join(" and ")} to Convex as ${event.result.resolvedSubmitterKey}, but ${event.result.warnings.length} issue(s) occurred.`,
-          };
-        } else {
-          notice = {
-            type: "success",
-            message: `Saved ${event.result.savedItems.join(" and ")} to Convex as ${event.result.resolvedSubmitterKey}.`,
-          };
-        }
+        notice = {
+          type: "success",
+          message: `Saved ${event.result.savedItems.join(" and ")} to Convex as ${event.result.resolvedSubmitterKey}.`,
+        };
       }
 
       return {
         ...state,
-        saveOperation: {
-          destination: null,
-          phase: "idle",
-          error: null,
-        },
+        saveOperation: { phase: "idle", error: null },
         pendingEffect: null,
         resolvedSubmitterKey: event.result.resolvedSubmitterKey,
-        [noticeKey]: notice,
+        notice,
       };
     }
 
-    case "saveFailed": {
-      const noticeKey = event.destination === "github" ? "githubNotice" : "convexNotice";
-      return {
-        ...state,
-        saveOperation: {
-          destination: null,
-          phase: "idle",
-          error: event.message,
-        },
-        pendingEffect: null,
-        [noticeKey]: {
-          type: "error",
-          message: event.message,
-        },
-      };
-    }
+    case "saveFailed":
+      return failOperation(state, event.message);
 
     case "setNotice": {
-      const noticeKey = event.channel === "github" ? "githubNotice" : "convexNotice";
       return {
         ...state,
-        [noticeKey]: event.notice,
-      };
-    }
-
-    case "clearNotices": {
-      if (state.githubNotice === null && state.convexNotice === null) {
-        return state;
-      }
-      return {
-        ...state,
-        githubNotice: null,
-        convexNotice: null,
+        notice: event.notice,
       };
     }
 
     case "clearNotice": {
-      const noticeKey = event.channel === "github" ? "githubNotice" : "convexNotice";
+      if (state.notice === null) {
+        return state;
+      }
       return {
         ...state,
-        [noticeKey]: null,
+        notice: null,
       };
     }
 
@@ -431,21 +331,7 @@ export function saveOrchestratorReducer(
       if (state.pendingEffect?.id !== event.effectId) {
         return state;
       }
-      const dest = state.saveOperation.destination;
-      const noticeKey = dest === "github" ? "githubNotice" : "convexNotice";
-      return {
-        ...state,
-        saveOperation: {
-          destination: null,
-          phase: "idle",
-          error: event.message,
-        },
-        pendingEffect: null,
-        [noticeKey]: {
-          type: "error",
-          message: event.message,
-        },
-      };
+      return failOperation(state, event.message);
     }
 
     default:
@@ -505,25 +391,4 @@ export class DevModeSaveOrchestrator {
 
 export function selectIsSaving(state: DevModeSaveOrchestratorState): boolean {
   return state.saveOperation.phase !== "idle";
-}
-
-export function selectIsConvexSaving(state: DevModeSaveOrchestratorState): boolean {
-  return (
-    state.saveOperation.destination === "convex" &&
-    state.saveOperation.phase !== "idle"
-  );
-}
-
-export function selectIsGitHubSaving(state: DevModeSaveOrchestratorState): boolean {
-  return (
-    state.saveOperation.destination === "github" &&
-    state.saveOperation.phase !== "idle"
-  );
-}
-
-export function selectPrimaryNotice(
-  state: DevModeSaveOrchestratorState,
-  convexEnabled: boolean,
-): SaveNotice | null {
-  return convexEnabled ? state.convexNotice : state.githubNotice;
 }

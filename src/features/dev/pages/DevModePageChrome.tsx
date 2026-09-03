@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
+import { canDraft, getRoleDisplayName, getRoleFloorLockReason, type AppRole } from "@/lib/auth/roles";
 import type { DevModePrimaryTab } from "./devModePageUtils";
 import {
   DEV_TAB_REGISTRY,
@@ -22,8 +23,6 @@ import { useDevRailBadges } from "./useDevRailBadges";
  * arrived (or is zero) looks exactly as it did before.
  */
 type ToolTabItem = Pick<DevTabDescriptor, "id" | "label" | "role" | "destination"> & { badge?: number };
-
-const EDITOR_ROLE_REQUIRED = "Editor role required";
 
 /**
  * Rail groups in display order, each holding its descriptors in registry
@@ -50,8 +49,8 @@ type DevModePageChromeProps = {
   activeTab: DevModeTab;
   /** An Auth.js session is present. */
   isSignedIn: boolean;
-  /** The session role may use editor tools; `role: "editor"` tabs disable without it. */
-  canEdit: boolean;
+  /** The session role, null while signed out; every tab above it renders disabled with a reason. */
+  role: AppRole | null;
   sessionStatus: SessionStatus;
   userEmail?: string | null;
   userImage?: string | null;
@@ -121,7 +120,7 @@ export function DevModePageChrome({
   activePrimaryTab,
   activeTab,
   isSignedIn,
-  canEdit,
+  role,
   sessionStatus,
   userEmail,
   userName,
@@ -131,8 +130,9 @@ export function DevModePageChrome({
 }: DevModePageChromeProps) {
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
-  // Only asked for once the editor is actually signed in for editing.
-  const badgeCounts = useDevRailBadges(canEdit);
+  const mayDraft = canDraft(role);
+  // Each badge is only asked for by a role that may open its tab.
+  const badgeCounts = useDevRailBadges(role);
   const toolGroups = TOOL_GROUPS.map((group) => ({
     ...group,
     tabs: group.tabs.map(({ id, label, role, destination, badge }): ToolTabItem => ({
@@ -143,8 +143,8 @@ export function DevModePageChrome({
       badge: badge === undefined ? undefined : badgeCounts[badge],
     })),
   }));
-  const changeLogLocked = !canEdit && findDevTab("change-log").role === "editor";
-  const sessionDetail = canEdit
+  const changeLogLockReason = getRoleFloorLockReason(role, findDevTab("change-log").role);
+  const sessionDetail = mayDraft
     ? "Authenticated via Auth.js. You have permission to edit articles."
     : "Authenticated via Auth.js. You can edit your own contributor record from the Contributors tab.";
 
@@ -199,14 +199,14 @@ export function DevModePageChrome({
                   );
                 }
                 const isActive = isToolsSection && activeTab === item.id;
-                const locked = !canEdit && item.role === "editor";
+                const lockReason = getRoleFloorLockReason(role, item.role);
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    disabled={locked}
-                    aria-disabled={locked || undefined}
-                    title={locked ? EDITOR_ROLE_REQUIRED : undefined}
+                    disabled={lockReason !== null}
+                    aria-disabled={lockReason !== null ? "true" : undefined}
+                    title={lockReason ?? undefined}
                     aria-current={isActive ? "page" : undefined}
                     data-state={isActive ? "active" : "inactive"}
                     onClick={() => onTabChange(item.id)}
@@ -226,9 +226,9 @@ export function DevModePageChrome({
         <nav aria-label="Dev mode sections" className="flex shrink-0 items-center gap-0.5">
           <button
             type="button"
-            disabled={changeLogLocked}
-            aria-disabled={changeLogLocked || undefined}
-            title={changeLogLocked ? EDITOR_ROLE_REQUIRED : undefined}
+            disabled={changeLogLockReason !== null}
+            aria-disabled={changeLogLockReason !== null ? "true" : undefined}
+            title={changeLogLockReason ?? undefined}
             aria-current={activePrimaryTab === "change-log" ? "page" : undefined}
             data-state={activePrimaryTab === "change-log" ? "active" : "inactive"}
             onClick={() => onPrimaryTabChange("change-log")}
@@ -251,10 +251,13 @@ export function DevModePageChrome({
             <>
               <span
                 title={sessionDetail}
-                className="theme-dev-rail-user max-w-[10rem] truncate text-[0.75rem] font-semibold tracking-wide uppercase"
+                className="theme-dev-rail-user flex min-w-0 items-baseline gap-1.5 text-[0.75rem] font-semibold tracking-wide uppercase"
               >
                 <span className="sr-only">Signed in as </span>
-                {userLabel}
+                <span className="max-w-[10rem] truncate">{userLabel}</span>
+                <span className="theme-text-muted text-[0.625rem] font-medium normal-case tracking-normal">
+                  {getRoleDisplayName(role)}
+                </span>
               </span>
               <button
                 type="button"

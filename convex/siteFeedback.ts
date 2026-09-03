@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 const statusValidator = v.union(
   v.literal("new"),
@@ -66,7 +66,9 @@ export const create = mutation({
   },
   returns: feedbackRowValidator,
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
+    // Public intake relays an unauthenticated submitter: the server acts as
+    // itself, so no actor is delegated.
+    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "editorArticleWrite" }, "editor");
     validateCreatedFeedback(args.feedback);
 
     const existing = await findFeedbackByPublicId(ctx, args.feedback.id);
@@ -82,15 +84,17 @@ export const create = mutation({
 export const list = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     status: v.optional(statusValidator),
     limit: v.optional(v.number()),
   },
   returns: v.array(feedbackRowValidator),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const limit = clampLimit(args.limit);
     const docs = args.status
@@ -118,14 +122,16 @@ export const list = query({
 export const countByStatus = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     statuses: v.array(statusValidator),
   },
   returns: v.number(),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     let count = 0;
     for (const status of new Set(args.statuses)) {
@@ -143,6 +149,7 @@ export const countByStatus = query({
 export const transition = mutation({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     id: v.string(),
     status: statusValidator,
     reviewer: v.string(),
@@ -150,10 +157,11 @@ export const transition = mutation({
   },
   returns: feedbackRowValidator,
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "admin",
+    );
 
     const doc = await findFeedbackByPublicId(ctx, args.id);
     if (!doc) {

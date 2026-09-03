@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useSaveArticlesMutation, useSaveToConvexMutation } from "./useApiMutations";
+import { useSaveToConvexMutation } from "./useApiMutations";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -24,20 +24,18 @@ describe("useApiMutations", () => {
     vi.restoreAllMocks();
   });
 
-  it("surfaces save-article network failures with the shared transport helper", async () => {
+  it("surfaces Convex save network failures with the shared transport helper", async () => {
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
-    const { result } = renderHook(() => useSaveArticlesMutation(), {
+    const { result } = renderHook(() => useSaveToConvexMutation(), {
       wrapper: createWrapper(),
     });
 
-    await expect(
-      result.current.mutateAsync({
-        username: "editor",
-        articlesData: [],
-        commitMessage: "Test commit",
-      }),
-    ).rejects.toThrow("Network error: offline");
+    await expect(result.current.mutateAsync({ articles: [{ slug: "lsd" }] })).rejects.toThrow(
+      "Convex save request failed: offline",
+    );
   });
 
   it("returns normalized Convex save metadata from a successful response", async () => {

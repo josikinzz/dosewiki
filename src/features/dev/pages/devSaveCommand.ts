@@ -1,10 +1,5 @@
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
-import type {
-  SaveArticlesPayload,
-  SaveArticlesResult,
-  SaveToConvexPayload,
-  SaveToConvexResult,
-} from "@/hooks/useApiMutations";
+import type { SaveToConvexPayload, SaveToConvexResult } from "@/hooks/useApiMutations";
 import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
@@ -12,15 +7,14 @@ import {
   buildCommitMarkdown,
   buildConvexSavePayload,
   normalizeConvexChangeLogEntry,
-  normalizeGitHubChangeLogEntry,
   type ArticleRecord,
   type MarkdownChange,
 } from "./devModePageUtils";
 
 /**
  * Who a save is attributed to. The Auth.js session cookie is the credential;
- * every save route authorizes from it server-side. `key` is the contributor
- * key the client shows and sends as the archive's `username` label.
+ * the save route authorizes from it server-side. `key` is the contributor
+ * key the client shows while the save runs.
  */
 export type DevSaveCredentials = {
   key: string;
@@ -39,7 +33,6 @@ export type DevSaveDraft = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
   layouts: ManualLayoutDocument[];
-  convexEnabled: boolean;
   hasPendingChanges: boolean;
   changelog: {
     dataset: DatasetChangelogResult;
@@ -50,20 +43,16 @@ export type DevSaveDraftInput = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
   layouts: ManualLayoutDocument[];
-  convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
   hasPendingChanges: boolean;
 };
 
 export type DevSaveCommandResult = {
-  destination: "convex" | "github";
   savedItems: string[];
   warnings: string[];
   resolvedSubmitterKey: string;
   changelogEntry: ChangeLogEntry | null;
   markChangesSaved: boolean;
-  actionHref?: string;
-  actionLabel?: string;
   revalidatedPaths?: string[];
   requestId?: string;
 };
@@ -76,7 +65,6 @@ export type DevSaveAvailability =
     };
 
 export type DevSaveCommandAdapter = {
-  destination: DevSaveCommandResult["destination"];
   noChangesMessage: string;
   verifiedMessage: (key: string) => string;
   validateAvailability: (draft: DevSaveDraft) => DevSaveAvailability;
@@ -107,37 +95,10 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
     articles: input.articles,
     originalArticles: input.originalArticles,
     layouts: input.layouts,
-    convexEnabled: input.convexEnabled,
     hasPendingChanges: input.hasPendingChanges,
     changelog: {
       dataset: input.datasetChangelog,
     },
-  };
-}
-
-export function buildGitHubSavePayload(
-  draft: DevSaveDraft,
-  credentials: DevSaveCredentials,
-  now: Date = new Date(),
-): SaveArticlesPayload {
-  const changelogMarkdown = buildCommitMarkdown([
-    {
-      hasChanges: draft.changelog.dataset.markdown.trim().length > 0,
-      markdown: draft.changelog.dataset.markdown,
-    },
-    ...draft.layouts.map((layout) => layout.changelog),
-  ]);
-
-  return {
-    username: credentials.key,
-    articlesData: draft.articles,
-    commitMessage: `Dev editor update - ${now.toLocaleString()}`,
-    changelogMarkdown,
-    changedArticles: draft.changelog.dataset.articles,
-    psychoactiveIndexManualData: draft.layouts.find((layout) => layout.type === "psychoactive")?.data,
-    chemicalIndexManualData: draft.layouts.find((layout) => layout.type === "chemical")?.data,
-    mechanismIndexManualData: draft.layouts.find((layout) => layout.type === "mechanism")?.data,
-    skipArticles: draft.convexEnabled,
   };
 }
 
@@ -184,7 +145,6 @@ export function createConvexSaveAdapter({
   saveToConvex: (payload: SaveToConvexPayload) => Promise<SaveToConvexResult>;
 }): DevSaveCommandAdapter {
   return {
-    destination: "convex",
     noChangesMessage: "No changes to save.",
     verifiedMessage: (key) => `Credentials verified for ${key}. Saving to Convex...`,
     validateAvailability: () => {
@@ -205,7 +165,6 @@ export function createConvexSaveAdapter({
       const resolvedSubmitterKey = result.submittedBy?.trim() || credentials.key;
 
       return {
-        destination: "convex",
         savedItems: result.savedItems,
         warnings: result.warnings ?? [],
         resolvedSubmitterKey,
@@ -213,52 +172,6 @@ export function createConvexSaveAdapter({
         markChangesSaved: result.savedItems.length > 0 && !(result.warnings?.length),
         revalidatedPaths: result.revalidatedPaths,
         requestId: result.requestId,
-      };
-    },
-  };
-}
-
-export function createGitHubSaveAdapter({
-  saveArticles,
-  now = () => new Date(),
-}: {
-  saveArticles: (payload: SaveArticlesPayload) => Promise<SaveArticlesResult>;
-  now?: () => Date;
-}): DevSaveCommandAdapter {
-  return {
-    destination: "github",
-    noChangesMessage: "No changes detected to archive.",
-    verifiedMessage: (key) => `Credentials verified for ${key}. Archiving to GitHub...`,
-    // The GitHub archive rewrites the whole articles file from `draft.articles`,
-    // and the browser only ever holds the slim library list plus the rows an
-    // editor hydrated, so that path can never be fed a whole corpus again.
-    // Convex saves are diff-scoped and unaffected; the archive refuses.
-    validateAvailability: (draft) =>
-      draft.convexEnabled
-        ? { ok: true }
-        : {
-            ok: false,
-            message:
-              "Archiving articles to GitHub needs the whole corpus, which the editor no longer loads. Export it from a workstation with scripts/citations/archive-production-dataset.mjs instead.",
-          },
-    execute: async (draft, credentials) => {
-      const payload = buildGitHubSavePayload(draft, credentials, now());
-      const result = await saveArticles(payload);
-      const resolvedSubmitterKey = result.submittedBy?.trim() || credentials.key;
-
-      return {
-        destination: "github",
-        savedItems: ["GitHub"],
-        warnings: [],
-        resolvedSubmitterKey,
-        changelogEntry: normalizeGitHubChangeLogEntry(
-          result.entry,
-          payload.commitMessage,
-          resolvedSubmitterKey,
-        ),
-        markChangesSaved: false,
-        actionHref: result.commitUrl,
-        actionLabel: result.commitUrl ? "Open commit" : undefined,
       };
     },
   };

@@ -248,6 +248,42 @@ function resolveFirst(keys, env) {
   return null;
 }
 
+/** Env vars the retired sign-in paths read; the app ignores them now. */
+const RETIRED_AUTH_KEYS = [
+  "ADMIN_PASSWORD",
+  "DEV_PASSWORD_KEYS",
+  "AUTH_ADMIN_EMAILS",
+  "AUTH_GITHUB_ID",
+  "AUTH_GITHUB_SECRET",
+  "GITHUB_ID",
+  "GITHUB_SECRET",
+  "GITHUB_TOKEN",
+];
+
+/**
+ * Sign-in is username + password against Convex memberships. The only
+ * auth-specific env the app needs is the session secret; the credentials
+ * lookup rides on the write target and admin key reported elsewhere.
+ */
+function reportSignInEnv(env) {
+  const secret = resolveFirst(["AUTH_SECRET", "NEXTAUTH_SECRET"], env);
+  console.log("Sign-in env (username + password accounts live in Convex memberships)");
+  console.log(
+    `  session secret     ${secret ? `set via ${secret.key}` : "(unset) -> only NODE_ENV=development can issue sessions"}`,
+  );
+  console.log(
+    "  accounts           seed with: node scripts/auth/seed-admin-accounts.mjs (needs TARGET_CONVEX_URL + CONVEX_ADMIN_KEY)",
+  );
+  const retired = RETIRED_AUTH_KEYS.filter((key) => env[key]?.trim());
+  if (retired.length > 0) {
+    console.log(
+      `  -> ignored: ${retired.join(", ")} still set. Nothing reads them; remove them so nobody\n` +
+        "     mistakes an env password or OAuth app for a working sign-in.",
+    );
+  }
+  console.log("");
+}
+
 function main() {
   const args = parseArgs(process.argv);
   loadEnvFiles({ rootDir: REPO_ROOT, env: process.env });
@@ -276,6 +312,7 @@ function main() {
   );
 
   reportEditorTargetAlignment(env);
+  reportSignInEnv(env);
 
   const inspectUrl = args.url ?? target?.value ?? null;
   const inspectName = deploymentName(inspectUrl);

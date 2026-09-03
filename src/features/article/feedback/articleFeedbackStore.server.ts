@@ -76,6 +76,7 @@ const transitionFeedbackRef = makeFunctionReference<
   "mutation",
   {
     apiKey: string;
+    actorEmail: string;
     id: string;
     status: ArticleFeedbackStatus;
     reviewer: string;
@@ -133,11 +134,12 @@ export class ConvexArticleFeedbackStore {
 
   async transition(
     id: string,
-    options: { status: ArticleFeedbackStatus; reviewer: string; note?: string },
+    options: { status: ArticleFeedbackStatus; reviewer: string; actorEmail: string; note?: string },
   ): Promise<ArticleFeedbackRow> {
     try {
       return await this.options.client.mutation(transitionFeedbackRef, {
         apiKey: this.options.apiKey,
+        actorEmail: options.actorEmail,
         id,
         status: options.status,
         reviewer: options.reviewer,

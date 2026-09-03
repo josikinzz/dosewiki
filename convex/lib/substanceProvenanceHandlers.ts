@@ -1,6 +1,6 @@
 import { ConvexError } from "convex/values";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import {
   applyReferenceAuthorRepair,
   selectUniqueArticleForReferenceAuthorRepair,
@@ -53,11 +53,11 @@ export async function repairArticleReferenceAuthorsHandler(
     proposedAuthors: string[];
   },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "admin");
   const articleMatches = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
@@ -103,11 +103,11 @@ export async function repairArticleReferenceMetadataProvenanceHandler(
     proposedMetadataProvenance: unknown;
   },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "admin");
   const articleMatches = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))

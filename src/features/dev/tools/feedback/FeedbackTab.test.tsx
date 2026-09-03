@@ -164,7 +164,7 @@ describe("FeedbackTab", () => {
     stubFeedback([1, 0]);
 
     function Badge() {
-      const count = useDevRailBadges(true).feedback;
+      const count = useDevRailBadges("admin").feedback;
       return <span data-testid="badge">{count === undefined ? "none" : String(count)}</span>;
     }
 

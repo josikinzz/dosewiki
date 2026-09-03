@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
+import { requireRoleSession } from "@/lib/auth/requireEditorSession";
+import { canApprove } from "@/lib/auth/roles";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import {
   getTripReportSubmissionStore,
@@ -33,7 +34,9 @@ export async function POST(request: Request, context: PromoteRouteContext) {
     return rateLimited;
   }
 
-  const auth = await requireEditorSession();
+  // Previewing the promotion payload is an editor read; publishing it is an
+  // admin decision, checked once the body says which one this is.
+  const auth = await requireRoleSession("editor");
   if (auth.ok === false) {
     return auth.response;
   }
@@ -51,6 +54,7 @@ export async function POST(request: Request, context: PromoteRouteContext) {
         profileKey,
         confirmAuthorNameClaim,
         reviewer: auth.session.user.email,
+        actorEmail: auth.session.user.email,
       });
       return NextResponse.json({
         ok: true,
@@ -60,8 +64,13 @@ export async function POST(request: Request, context: PromoteRouteContext) {
       });
     }
 
+    if (!canApprove(auth.role)) {
+      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    }
+
     const result = await store.promote(id, {
       reviewer: auth.session.user.email,
+      actorEmail: auth.session.user.email,
       notes: "Published from accepted trip report submission.",
       profileKey,
       confirmAuthorNameClaim,

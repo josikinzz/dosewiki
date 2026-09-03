@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireAuthenticatedSession } from "@/lib/auth/requireAuthenticatedSession";
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
+import { requireRoleSession } from "@/lib/auth/requireEditorSession";
 import { convexRejectionResponse } from "@/lib/http/convexRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { getServerConvexWriteCapability, type ServerConvexWriteCapability, type ServerConvexWriteConfigurationFailure } from "@server/convex/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
 
-type EditorAuth = Awaited<ReturnType<typeof requireEditorSession>>;
+type EditorAuth = Awaited<ReturnType<typeof requireRoleSession>>;
 type AuthenticatedAuth = Awaited<ReturnType<typeof requireAuthenticatedSession>>;
 type SuccessfulAuth = Extract<EditorAuth | AuthenticatedAuth, { ok: true }>;
 
@@ -24,7 +24,8 @@ type ProtectedRouteOperationContext = {
 };
 
 type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
-  auth: "editor" | "authenticated";
+  /** Lowest role admitted. `authenticated` is any signed-in account (self-service routes). */
+  auth: "admin" | "editor" | "contributor" | "authenticated";
   rateLimit: RateLimitPolicyName;
   body?: {
     maxBytes: number;
@@ -44,7 +45,7 @@ type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
 };
 
 async function requireSession(auth: ProtectedRouteOperationOptions<unknown, unknown>["auth"]) {
-  return auth === "editor" ? requireEditorSession() : requireAuthenticatedSession();
+  return auth === "authenticated" ? requireAuthenticatedSession() : requireRoleSession(auth);
 }
 
 function mapDefaultError(error: unknown): NextResponse | null {

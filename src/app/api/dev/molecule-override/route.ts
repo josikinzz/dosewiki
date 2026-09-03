@@ -1,5 +1,5 @@
 /**
- * Editor write endpoint for the Molecule Depiction Editor (`/dev` → Molecules).
+ * Admin write endpoint for the Molecule Depiction Editor (`/dev` → Molecules).
  *
  * This persists the canonical MOL block + SVG to `moleculeOverrides`, so the
  * deployed editor and public pages share one depiction. Writes require an
@@ -101,7 +101,7 @@ function revalidateMoleculeOwner(slug: string) {
  * deployment when editor and public deployments intentionally differ.
  */
 export const GET = protectedRouteOperation({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load molecule override via Next route:",
@@ -118,7 +118,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: MAX_PAYLOAD_BYTES,
@@ -154,7 +154,7 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
 });
 
 export const DELETE = protectedRouteOperation({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to remove molecule override via Next route:",

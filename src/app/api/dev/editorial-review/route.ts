@@ -3,8 +3,10 @@
  *
  * Flips only the editor-only `editorial_review` state for one article via
  * `substanceIndex.setEditorialReview`, which preserves review notes and stamps
- * who completed the review. The full save flow (diff, commit message,
- * changelog) stays reserved for content edits.
+ * who completed the review. Editors move a review between `needed` and
+ * `in_progress` and manage flags; marking it `completed` is admin-only, since
+ * that is what the public `expert_reviewed` derivation reads. The full save
+ * flow (diff, commit message, changelog) stays reserved for content edits.
  *
  *   POST /api/dev/editorial-review   { slug, status }  → set review status
  */
@@ -15,6 +17,7 @@ import { api } from "../../../../../convex/_generated/api";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { canApprove } from "@/lib/auth/roles";
 
 export const runtime = "nodejs";
 
@@ -88,9 +91,12 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to set editorial review via Next route:",
   unexpectedErrorMessage: "Unable to update the review status right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
+  operation: async ({ auth, actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
+    }
+    if (body.action === "status" && body.status === "completed" && !canApprove(auth.role)) {
+      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
     }
 
     const apiKey =

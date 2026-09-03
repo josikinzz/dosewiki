@@ -27,7 +27,7 @@ export const GET = protectedRouteOperation({
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load article source stats via Next route:",
   unexpectedErrorMessage: "Unable to load source statistics right now.",
-  operation: async ({ convexWrite }) => {
+  operation: async ({ actorEmail, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -42,7 +42,7 @@ export const GET = protectedRouteOperation({
     for (let page = 0; page < MAX_PAGES; page += 1) {
       const result = (await convexWrite.client.query(
         api.articleSources.getSubstanceList,
-        { apiKey, limit: PAGE_LIMIT, ...(cursor ? { cursor } : {}) },
+        { apiKey, actorEmail, limit: PAGE_LIMIT, ...(cursor ? { cursor } : {}) },
       )) as { items: SourceListItem[]; cursor: string; isDone: boolean };
 
       for (const item of result.items) {

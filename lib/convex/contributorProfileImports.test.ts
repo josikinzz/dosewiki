@@ -84,7 +84,7 @@ function mutationContext(
       });
       const matches =
         table === "memberships"
-          ? [{ email: "editor@example.com", role: options.role ?? "editor" }]
+          ? [{ email: "editor@example.com", role: options.role ?? "admin" }]
           : rows.filter((row) => row[field] === value);
       return {
         unique: async () => matches[0] ?? null,
@@ -544,8 +544,8 @@ describe("importReviewedProfilePlanHandler", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("rejects an authenticated viewer before projecting the import", async () => {
-    const { ctx, insert, patch } = mutationContext([], { role: "viewer" });
+  it.each(["viewer", "editor"] as const)("rejects an authenticated %s before projecting the import", async (role) => {
+    const { ctx, insert, patch } = mutationContext([], { role });
 
     await expect(
       importReviewedProfilePlanHandler(ctx, {
@@ -561,7 +561,7 @@ describe("importReviewedProfilePlanHandler", () => {
           },
         ],
       }),
-    ).rejects.toThrow(/Editor access required/);
+    ).rejects.toThrow(/Admin access required/);
     expect(insert).not.toHaveBeenCalled();
     expect(patch).not.toHaveBeenCalled();
   });

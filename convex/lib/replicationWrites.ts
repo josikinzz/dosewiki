@@ -1,6 +1,6 @@
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
-import { requireAuth, requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import {
   assertEffectExists,
   KEBAB_CASE,
@@ -314,12 +314,13 @@ function validateRightsCoherence(
 
 export async function generateUploadUrlHandler(
   ctx: MutationCtx,
-  args: { apiKey?: string },
+  args: { apiKey?: string; actorEmail?: string },
 ) {
-  await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "replicationMaintenance",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
   return await ctx.storage.generateUploadUrl();
 }
 
@@ -340,10 +341,11 @@ export async function insertMediaAssetHandler(
   ctx: MutationCtx,
   args: InsertMediaAssetArgs,
 ) {
-  await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "replicationMaintenance",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
   const {
     apiKey: _apiKey,
     expected_absent: _expectedAbsent,
@@ -573,7 +575,11 @@ export async function updateGalleryOrderHandler(
   ctx: MutationCtx,
   args: UpdateGalleryOrderArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
   const effect = await ctx.db
     .query("subjectiveEffects")
     .withIndex("by_slug", (q) => q.eq("slug", args.effect_slug))
@@ -595,7 +601,11 @@ export async function updateGalleryOrderHandler(
 }
 
 export async function renameSlugHandler(ctx: MutationCtx, args: RenameSlugArgs) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   if (args.from === args.to) {
     return { success: true, renamed: false, galleryOrdersPatched: 0 };
   }
@@ -641,7 +651,11 @@ export async function deleteBySlugHandler(
   ctx: MutationCtx,
   args: DeleteBySlugArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const replication = await ctx.db
     .query("replications")
     .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -656,7 +670,11 @@ export async function deleteAuditedRowHandler(
   ctx: MutationCtx,
   args: DeleteAuditedRowArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const replication = await ctx.db.get(args.id);
   if (
     !replication
@@ -745,7 +763,11 @@ export async function updateEffectSlugHandler(
   ctx: MutationCtx,
   args: UpdateEffectSlugArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
   const replication = await ctx.db
     .query("replications")
     .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -757,7 +779,11 @@ export async function updateEffectSlugHandler(
 }
 
 export async function updateUrlHandler(ctx: MutationCtx, args: UpdateUrlArgs) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const updates: { url: string; thumbnail_url?: string } = { url: args.url };
   if (args.thumbnail_url) updates.thumbnail_url = args.thumbnail_url;
   await ctx.db.patch(args.id, updates);
@@ -768,7 +794,11 @@ export async function updateDeliveredFileSizeHandler(
   ctx: MutationCtx,
   args: UpdateDeliveredFileSizeArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   if (!Number.isFinite(args.file_size) || args.file_size <= 0) {
     throw new Error("file_size must be a positive number of bytes.");
   }
@@ -793,7 +823,11 @@ export async function setAudioPresenceHandler(
   ctx: MutationCtx,
   args: SetAudioPresenceArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   if (args.entries.length === 0) {
     throw new Error("setAudioPresence needs at least one entry.");
   }
@@ -818,7 +852,11 @@ export async function updateStorageIdsHandler(
   ctx: MutationCtx,
   args: UpdateStorageIdsArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const updates: { storage_id: string; thumbnail_storage_id?: string } = {
     storage_id: args.storage_id,
   };

@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   classSourceFromSubstanceDocument,
   normalizeEnabledSlugs,
@@ -106,11 +106,16 @@ const TARGET_MAX_PAGE_SIZE = 200;
 export const listSubstanceTargetsPage = query({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
+    await requireRole(ctx, {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    }, "editor");
 
     const numItems = Math.min(
       Math.max(Math.floor(args.limit ?? TARGET_PAGE_SIZE), 1),
@@ -177,11 +182,11 @@ export const upsertPreset = mutation({
     enabledSlugs: v.array(v.string()),
   }),
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     const key = args.key.trim();
     if (!WARNING_BANNER_KEY_PATTERN.test(key)) {
@@ -305,11 +310,11 @@ export const removePreset = mutation({
   },
   returns: v.object({ removed: v.boolean(), key: v.string() }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     const key = args.key.trim();
     const existing = await ctx.db

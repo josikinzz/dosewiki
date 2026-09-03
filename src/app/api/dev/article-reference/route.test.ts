@@ -1,5 +1,6 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -24,12 +25,12 @@ vi.mock("next/cache", async (importOriginal) => ({
  * apiece — an allowed session and a refusal that carries its own response.
  */
 const authMocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(async (): Promise<unknown> => null),
+  requireRoleSession: vi.fn(async (_floor: string): Promise<unknown> => null),
   enforceRateLimit: vi.fn(async (): Promise<unknown> => null),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: authMocks.requireEditorSession,
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -78,11 +79,7 @@ describe("article reference route", () => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    authMocks.requireEditorSession.mockResolvedValue({
-      ok: true,
-      session: { user: { email: "editor@example.com", name: "Editor" } },
-      role: "editor",
-    });
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     authMocks.enforceRateLimit.mockResolvedValue(null);
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
@@ -139,14 +136,11 @@ describe("article reference route", () => {
       expect.any(Request),
       "editorSmallWrite",
     );
-    expect(authMocks.requireEditorSession).toHaveBeenCalled();
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
   });
 
   it("does not reach Convex when the session is not an editor's", async () => {
-    authMocks.requireEditorSession.mockResolvedValue({
-      ok: false,
-      response: new Response("Forbidden", { status: 403 }),
-    });
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
     const { POST } = await import("./route");
 
     const response = await POST(doiRequest());

@@ -2,10 +2,10 @@
  * Editor write endpoint for one copy block (the /dev Copy Studio).
  *
  *   POST   /api/dev/copy-block   { key, kind, label, group, flavor?, body?, items? }
- *   DELETE /api/dev/copy-block   { key }   → revert the key to its local default
+ *   DELETE /api/dev/copy-block   { key }   → revert the key to its local default (admin)
  *
  * The browser holds no admin intent token, so the write is delegated here: the
- * route checks the editor session, then calls `copyBlocks.upsert` with the
+ * route checks the editor session (admin for DELETE), then calls `copyBlocks.upsert` with the
  * server's own token plus the actor's email for the audit trail.
  *
  * Both verbs finish by revalidating `PUBLIC_CONVEX_CACHE_TAGS.copy` with
@@ -167,7 +167,7 @@ export const POST = protectedRouteOperation<CopyBlockBody, ParsedCopyBlock>({
 });
 
 export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 4 * 1024,

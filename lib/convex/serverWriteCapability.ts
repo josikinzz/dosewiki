@@ -1,7 +1,14 @@
 import "server-only";
 
-import { ConvexHttpClient } from "convex/browser";
-import { makeFunctionReference } from "convex/server";
+import { ConvexHttpClient, type HttpMutationOptions } from "convex/browser";
+import {
+  getFunctionName,
+  makeFunctionReference,
+  type ArgsAndOptions,
+  type FunctionReference,
+  type FunctionReturnType,
+  type OptionalRestArgs,
+} from "convex/server";
 import {
   getConvexRuntimeTargetMatrix,
   getPrivilegedWriteTarget,
@@ -26,8 +33,52 @@ export type ServerConvexDeploymentMetadata = {
   sourceEnvVar: ConvexRuntimeTarget["sourceEnvVar"];
 };
 
+/**
+ * The Convex client handed to Next routes. Same `query`/`mutation`/`action`
+ * surface as `ConvexHttpClient`, except that every write must name the actor it
+ * runs as: a mutation or action whose args carry no non-empty `actorEmail`
+ * throws before anything is sent. A server-key call with no actor resolves to
+ * admin inside `requireRole`, which is right for workstation scripts and never
+ * right for a route acting on behalf of a signed-in user.
+ */
+export class ServerConvexWriteClient {
+  constructor(private readonly inner: ConvexHttpClient) {}
+
+  query<Query extends FunctionReference<"query">>(
+    query: Query,
+    ...args: OptionalRestArgs<Query>
+  ): Promise<FunctionReturnType<Query>> {
+    return this.inner.query(query, ...args);
+  }
+
+  async mutation<Mutation extends FunctionReference<"mutation">>(
+    mutation: Mutation,
+    ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
+  ): Promise<FunctionReturnType<Mutation>> {
+    assertNamesActor(mutation, args[0]);
+    return await this.inner.mutation(mutation, ...args);
+  }
+
+  async action<Action extends FunctionReference<"action">>(
+    action: Action,
+    ...args: OptionalRestArgs<Action>
+  ): Promise<FunctionReturnType<Action>> {
+    assertNamesActor(action, args[0]);
+    return await this.inner.action(action, ...args);
+  }
+}
+
+function assertNamesActor(reference: FunctionReference<"mutation" | "action">, args: unknown): void {
+  const actorEmail =
+    args !== null && typeof args === "object" && "actorEmail" in args ? args.actorEmail : undefined;
+
+  if (typeof actorEmail !== "string" || actorEmail.trim().length === 0) {
+    throw new Error(`Server Convex write without actorEmail: ${getFunctionName(reference)}`);
+  }
+}
+
 export type ServerConvexWriteCapability = {
-  client: ConvexHttpClient;
+  client: ServerConvexWriteClient;
   adminKey: string;
   getAdminIntentToken: (intent: AdminIntent) => string;
   deployment: ServerConvexDeploymentMetadata;
@@ -45,7 +96,7 @@ export type ServerConvexWriteCapabilityResult =
   | { ok: true; capability: ServerConvexWriteCapability }
   | { ok: false; failure: ServerConvexWriteConfigurationFailure };
 
-let cachedWriteClient: ConvexHttpClient | null = null;
+let cachedWriteClient: ServerConvexWriteClient | null = null;
 let cachedWriteUrl: string | null = null;
 
 function hasNonEmptyValue(value: string | undefined): value is string {
@@ -135,9 +186,9 @@ export function getServerConvexWriteHealth(): ServerConvexWriteHealth {
   };
 }
 
-function getCachedWriteClient(writeUrl: string): ConvexHttpClient {
+function getCachedWriteClient(writeUrl: string): ServerConvexWriteClient {
   if (!cachedWriteClient || cachedWriteUrl !== writeUrl) {
-    cachedWriteClient = new ConvexHttpClient(writeUrl);
+    cachedWriteClient = new ServerConvexWriteClient(new ConvexHttpClient(writeUrl));
     cachedWriteUrl = writeUrl;
   }
 

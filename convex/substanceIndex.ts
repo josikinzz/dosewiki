@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { substanceArticleLightValidator } from "./lib/validators";
 import {
   projectEditorLibraryEntry,
@@ -185,11 +185,11 @@ export const getEditorLibraryPage = query({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const result = await ctx.db.query("substanceIndex").paginate({
       ...args.paginationOpts,
@@ -211,11 +211,11 @@ export const getTagRegistryPage = query({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const result = await ctx.db.query("substanceIndex").paginate({
       ...args.paginationOpts,

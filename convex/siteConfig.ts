@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { clampSafetyBannerIconSize } from "../src/data/substanceWarningBanners";
 
 /**
@@ -33,11 +33,11 @@ export const saveAbout = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const existing = await ctx.db
       .query("siteConfig")
@@ -120,11 +120,11 @@ export const saveFeaturedReplications = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     if (args.slugs.length > MAX_FEATURED_REPLICATIONS) {
       throw new Error(
@@ -230,11 +230,11 @@ export const saveBannerDisplay = mutation({
     iconSize: v.number(),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     const iconSize = clampSafetyBannerIconSize(args.iconSize);
     const updatedAt = new Date().toISOString();

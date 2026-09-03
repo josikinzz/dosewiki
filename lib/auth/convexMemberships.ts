@@ -3,19 +3,20 @@ import { makeFunctionReference } from "convex/server";
 import type { AppRole } from "../../src/lib/auth/roles";
 import { getAuthMembershipTarget, getServerConvexAdminKey } from "../convex/serverWriteHealth";
 
-type SyncMembershipInput = {
-  email: string;
-  name?: string | null;
-  image?: string | null;
-  provider?: string | null;
-  providerAccountId?: string | null;
-};
-
-type MembershipRecord = {
+export type MembershipRecord = {
   email: string;
   role: AppRole;
   name?: string;
   image?: string;
+  bannedAt?: string;
+};
+
+export type MembershipCredentials = {
+  email: string;
+  role: AppRole;
+  name?: string;
+  passwordHash?: string;
+  bannedAt?: string;
 };
 
 const getMembershipByEmailQuery = makeFunctionReference<
@@ -24,24 +25,22 @@ const getMembershipByEmailQuery = makeFunctionReference<
   MembershipRecord | null
 >("memberships:getByEmail");
 
-const upsertMembershipFromAuthMutation = makeFunctionReference<
+const getCredentialsByUsernameQuery = makeFunctionReference<
+  "query",
+  { apiKey: string; username: string },
+  MembershipCredentials | null
+>("memberships:getCredentialsByUsername");
+
+const touchSignInMutation = makeFunctionReference<
   "mutation",
-  {
-    apiKey: string;
-    email: string;
-    name?: string;
-    image?: string;
-    provider?: string;
-    providerAccountId?: string;
-    adminEmails?: string[];
-  },
-  { membershipId: string; role: AppRole }
->("memberships:upsertFromAuth");
+  { apiKey: string; email: string },
+  null
+>("memberships:touchSignIn");
 
 let cachedClient: ConvexHttpClient | null = null;
 let cachedUrl: string | null = null;
 
-function getServerConvexUrl(): string {
+function getConvexClient(): ConvexHttpClient {
   const url = getAuthMembershipTarget().selectedUrl;
 
   if (!url) {
@@ -49,12 +48,6 @@ function getServerConvexUrl(): string {
       "Convex URL is not configured. Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL."
     );
   }
-
-  return url;
-}
-
-function getConvexClient(): ConvexHttpClient {
-  const url = getServerConvexUrl();
 
   if (!cachedClient || cachedUrl !== url) {
     cachedClient = new ConvexHttpClient(url);
@@ -69,34 +62,25 @@ function getConvexAdminKeyOrThrow(): string {
 
   if (!adminKey) {
     throw new Error(
-      "CONVEX_ADMIN_KEY is not configured on the server; membership sync requires it."
+      "CONVEX_ADMIN_KEY is not configured on the server; membership lookups require it."
     );
   }
 
   return adminKey;
 }
 
-function getAdminEmails(): string[] {
-  const rawValue = process.env.AUTH_ADMIN_EMAILS ?? "";
-
-  return rawValue
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter((email) => email.length > 0);
+export async function getCredentialsByUsername(username: string): Promise<MembershipCredentials | null> {
+  return await getConvexClient().query(getCredentialsByUsernameQuery, {
+    apiKey: getConvexAdminKeyOrThrow(),
+    username,
+  });
 }
 
-export async function syncMembershipFromAuth(input: SyncMembershipInput): Promise<AppRole> {
-  const result = await getConvexClient().mutation(upsertMembershipFromAuthMutation, {
+export async function touchSignIn(email: string): Promise<void> {
+  await getConvexClient().mutation(touchSignInMutation, {
     apiKey: getConvexAdminKeyOrThrow(),
-    email: input.email,
-    name: input.name ?? undefined,
-    image: input.image ?? undefined,
-    provider: input.provider ?? undefined,
-    providerAccountId: input.providerAccountId ?? undefined,
-    adminEmails: getAdminEmails(),
+    email,
   });
-
-  return result.role;
 }
 
 export async function getMembershipByEmail(email: string): Promise<MembershipRecord | null> {
@@ -114,5 +98,6 @@ export async function getMembershipByEmail(email: string): Promise<MembershipRec
     role: membership.role,
     name: membership.name,
     image: membership.image,
+    bannedAt: membership.bannedAt,
   };
 }

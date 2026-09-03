@@ -1,19 +1,21 @@
 /**
  * Editorial write endpoint for the Replication Studio (`/dev` → Replications).
  *
- * One verb, two shapes, because the studio has two ways to edit and both are
- * the same authorization decision:
+ * One verb, two shapes, because the studio has two ways to edit:
  *
  *   POST /api/dev/replications/editorial  { mode: "single", id, expected, updates }
  *   POST /api/dev/replications/editorial  { mode: "bulk", ids, …fields }
  *
  * The single edit carries the snapshot the drawer was opened with so Convex can
  * refuse a stale save rather than re-assert fields somebody else has since
- * changed; the bulk edit carries only the fields it means to set.
+ * changed; the bulk edit carries only the fields it means to set. An editor may
+ * make the single edit; a bulk rewrite is an admin decision, refused here and
+ * again in Convex.
  */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { api } from "../../../../../../convex/_generated/api";
+import { canApprove } from "@/lib/auth/roles";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -172,7 +174,7 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to save replication editorial fields via Next route:",
   unexpectedErrorMessage: "Unable to save those replication edits right now.",
-  operation: async ({ body, convexWrite }) => {
+  operation: async ({ auth, actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -182,6 +184,7 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
     if (body.mode === "single") {
       const result = await convexWrite.client.mutation(api.replications.updateEditorialFields, {
         apiKey,
+        actorEmail,
         id: body.id as Id<"replications">,
         expected: body.expected,
         updates: body.updates,
@@ -194,8 +197,13 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       return NextResponse.json({ ok: true, updated: 1, slugs: [result.slug] });
     }
 
+    if (!canApprove(auth.role)) {
+      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    }
+
     const result = await convexWrite.client.mutation(api.replications.bulkUpdateEditorialFields, {
       apiKey,
+      actorEmail,
       ids: body.ids as Id<"replications">[],
       effect_slug: body.effectSlug,
       artist: body.artist,

@@ -1,19 +1,104 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getAll, getBySlug, getSubstanceList } from "../../convex/articleSources";
 
-const source = readFileSync(path.join(process.cwd(), "convex/articleSources.ts"), "utf8");
+type Role = "admin" | "editor" | "contributor" | "viewer";
+
+const collect = vi.fn(async () => [] as unknown[]);
+const first = vi.fn(async () => null);
+const paginate = vi.fn(async () => ({ page: [], continueCursor: "", isDone: true }));
+
+/** Same fake ctx shape as `lib/convexSubstanceIndexEditorReadAuth.test.ts`. */
+function createCtx(memberships: Record<string, Role>) {
+  return {
+    auth: { getUserIdentity: vi.fn(async () => null) },
+    db: {
+      query: vi.fn((table: string) => {
+        if (table === "articleSources") {
+          return {
+            collect,
+            paginate,
+            withIndex: () => ({ first }),
+          };
+        }
+        return {
+          withIndex: (
+            _indexName: string,
+            selector: (query: { eq: (field: string, value: string) => unknown }) => unknown,
+          ) => {
+            let email = "";
+            selector({
+              eq: (_field, value) => {
+                email = value;
+                return {};
+              },
+            });
+            return {
+              unique: vi.fn(async () => {
+                const role = memberships[email];
+                return role ? { email, role } : null;
+              }),
+            };
+          },
+        };
+      }),
+    },
+  } as never;
+}
+
+type Handler = (ctx: never, args: unknown) => Promise<unknown>;
+
+// Convex registered functions keep the original handler on `_handler`; there is
+// no in-repo Convex runtime harness, so the handler is exercised directly.
+function handlerOf(registered: unknown): Handler {
+  const withHandler = registered as { _handler: Handler };
+  return withHandler._handler;
+}
+
+const handlers: Array<[string, Handler, Record<string, unknown>]> = [
+  ["getBySlug", handlerOf(getBySlug), { slug: "lsd" }],
+  ["getSubstanceList", handlerOf(getSubstanceList), {}],
+  ["getAll", handlerOf(getAll), {}],
+];
 
 describe("articleSources query security", () => {
-  it("authenticates every source-content query", () => {
-    for (const queryName of ["getBySlug", "getSubstanceList", "getAll"]) {
-      const start = source.indexOf(`export const ${queryName} = query(`);
-      const end = source.indexOf("\n});", start);
-      const queryDefinition = source.slice(start, end);
+  beforeEach(() => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    collect.mockClear();
+    first.mockClear();
+    paginate.mockClear();
+  });
 
-      expect(start, `${queryName} query exists`).toBeGreaterThanOrEqual(0);
-      expect(queryDefinition).toContain("apiKey: v.optional(v.string())");
-      expect(queryDefinition).toContain('requireAuth(ctx, args.apiKey, "articleSourceMigration")');
-    }
+  afterEach(() => {
+    delete process.env.CONVEX_ADMIN_KEY;
+  });
+
+  it.each(handlers)("%s refuses an unauthenticated caller before reading", async (_name, handler, args) => {
+    await expect(handler(createCtx({}), args)).rejects.toThrow("Authentication required");
+    expect(collect).not.toHaveBeenCalled();
+    expect(first).not.toHaveBeenCalled();
+    expect(paginate).not.toHaveBeenCalled();
+  });
+
+  it.each(handlers)("%s refuses a delegated actor below the editor floor", async (_name, handler, args) => {
+    await expect(
+      handler(createCtx({ "viewer@example.com": "viewer" }), {
+        ...args,
+        apiKey: "secret",
+        actorEmail: "viewer@example.com",
+      }),
+    ).rejects.toThrow("Editor access required");
+    expect(collect).not.toHaveBeenCalled();
+    expect(first).not.toHaveBeenCalled();
+    expect(paginate).not.toHaveBeenCalled();
+  });
+
+  it.each(handlers)("%s serves a delegated editor", async (_name, handler, args) => {
+    await expect(
+      handler(createCtx({ "editor@example.com": "editor" }), {
+        ...args,
+        apiKey: "secret",
+        actorEmail: "editor@example.com",
+      }),
+    ).resolves.toBeDefined();
   });
 });

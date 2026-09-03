@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 /**
  * Article source functions.
@@ -8,6 +8,10 @@ import { requireAuth } from "./lib/auth";
  * These functions provide read-only access to scraped source content per substance.
  * Data is populated via a one-time migration and not editable via UI.
  */
+
+function actorArgs(args: { apiKey?: string; actorEmail?: string }) {
+  return { apiKey: args.apiKey, actorEmail: args.actorEmail };
+}
 
 function validateArticleSourcePayload(source: {
   slug: string;
@@ -34,9 +38,9 @@ function validateArticleSourcePayload(source: {
  * Get article sources for a specific substance by slug.
  */
 export const getBySlug = query({
-  args: { slug: v.string(), apiKey: v.optional(v.string()) },
+  args: { slug: v.string(), apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
+    await requireRole(ctx, { ...actorArgs(args), adminIntent: "articleSourceMigration" }, "editor");
     return await ctx.db
       .query("articleSources")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -53,9 +57,10 @@ export const getSubstanceList = query({
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
+    await requireRole(ctx, { ...actorArgs(args), adminIntent: "articleSourceMigration" }, "editor");
     const limit = args.limit ?? 100;
 
     const query = ctx.db.query("articleSources");
@@ -80,9 +85,9 @@ export const getSubstanceList = query({
  * Get all article sources (for migration/sync).
  */
 export const getAll = query({
-  args: { apiKey: v.optional(v.string()) },
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
+    await requireRole(ctx, { ...actorArgs(args), adminIntent: "articleSourceMigration" }, "editor");
     return await ctx.db.query("articleSources").collect();
   },
 });
@@ -93,6 +98,7 @@ export const getAll = query({
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     sources: v.array(v.object({
       slug: v.string(),
       substanceName: v.string(),
@@ -107,8 +113,7 @@ export const bulkImport = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
+    await requireRole(ctx, { ...actorArgs(args), adminIntent: "articleSourceMigration" }, "admin");
 
     const results = {
       created: 0,
@@ -147,6 +152,7 @@ export const bulkImport = mutation({
 export const importOne = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     slug: v.string(),
     substanceName: v.string(),
     sources: v.array(v.object({
@@ -159,10 +165,9 @@ export const importOne = mutation({
     contents: v.record(v.string(), v.string()),
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey, "articleSourceMigration");
+    await requireRole(ctx, { ...actorArgs(args), adminIntent: "articleSourceMigration" }, "admin");
 
-    const { apiKey: _apiKey, ...sourceData } = args;
+    const { apiKey: _apiKey, actorEmail: _actorEmail, ...sourceData } = args;
     validateArticleSourcePayload(sourceData);
 
     // Check if source with this slug already exists

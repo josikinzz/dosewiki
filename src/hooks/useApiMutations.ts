@@ -5,40 +5,6 @@ import { pickString, pickStringArray, postJson } from "./apiMutationClient";
 // Types
 // ============================================================================
 
-export interface SaveArticlesPayload {
-  /** Contributor key the archive commit is attributed to; the session authorizes. */
-  username: string;
-  articlesData: unknown[];
-  commitMessage: string;
-  changelogMarkdown?: string;
-  changedArticles?: unknown[];
-  psychoactiveIndexManualData?: unknown;
-  chemicalIndexManualData?: unknown;
-  mechanismIndexManualData?: unknown;
-  /**
-   * When true, skip updating SubstanceIndex.json in GitHub.
-   * Use when articles are managed via Convex instead.
-   */
-  skipArticles?: boolean;
-}
-
-export interface SaveArticlesResult {
-  success: boolean;
-  commitUrl?: string;
-  submittedBy?: string;
-  entry?: {
-    timestamp: string;
-    commit?: {
-      sha: string;
-      url: string;
-      message: string;
-    };
-    submittedBy?: string;
-    articles?: unknown[];
-  };
-  error?: string;
-}
-
 export interface SaveToConvexPayload {
   articles?: unknown[];
   indexLayouts?: Array<{
@@ -103,38 +69,6 @@ export interface SaveToConvexResult {
 // ============================================================================
 
 const SAVE_TO_CONVEX_TIMEOUT_MS = 60_000;
-
-async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesResult> {
-  const { response, result } = await postJson("/api/save-substance-index", {
-    body: payload,
-    onNetworkError: (networkError) => {
-      console.error("[saveArticles] Network error - fetch failed:", networkError);
-      console.error("[saveArticles] This usually means:");
-      console.error("  - The API endpoint is not deployed/reachable");
-      console.error("  - CORS issues");
-      console.error("  - Network connectivity problems");
-      throw new Error(
-        `Network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`,
-      );
-    },
-  });
-
-  if (!response.ok) {
-    const error = result.details || result.error || "Failed to save articles.";
-    console.error("[saveArticles] Server returned error:", error);
-    throw new Error(typeof error === "string" ? error : "Failed to save articles.");
-  }
-
-  return {
-    success: true,
-    commitUrl: pickString(result.commitUrl),
-    submittedBy: pickString(result.submittedBy),
-    entry:
-      result.entry && typeof result.entry === "object"
-        ? (result.entry as SaveArticlesResult["entry"])
-        : undefined,
-  };
-}
 
 async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
   const requestSummary = {
@@ -281,16 +215,6 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
 // ============================================================================
 // Mutation Hooks
 // ============================================================================
-
-/**
- * Mutation hook for saving articles to GitHub.
- * Handles articles, changelog, and index layouts.
- */
-export function useSaveArticlesMutation() {
-  return useMutation({
-    mutationFn: saveArticles,
-  });
-}
 
 export function useSaveToConvexMutation() {
   return useMutation({

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 const archiveEntryValidator = v.object({
   kind: v.string(),
@@ -16,13 +16,15 @@ const archiveEntryValidator = v.object({
 export const getByKind = query({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     kind: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "profileMediaWrite",
-    });
+    }, "editor");
 
     return await ctx.db
       .query("effectIndexArchive")
@@ -67,17 +69,19 @@ export const getPostBySlug = query({
   },
 });
 
-/** Upsert raw Effect Index source records by stable kind/key identity. */
+/** Upsert raw Effect Index source records by stable kind/key identity. Script-only; admin floor. */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     entries: v.array(archiveEntryValidator),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "profileMediaWrite",
-    });
+    }, "admin");
 
     let created = 0;
     let updated = 0;

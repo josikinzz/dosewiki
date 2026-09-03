@@ -1,5 +1,5 @@
 /**
- * Editor-only preview/apply endpoint for saved class orientation templates.
+ * Admin-only preview/apply endpoint for saved class orientation templates.
  *
  * GET reads current MOL blocks/source markers for up to 50 rolled members.
  * POST applies up to 50 confirmed depictions. The 16 MiB aggregate body cap is
@@ -141,7 +141,7 @@ function parseApplyBody(body: ApplyTemplateBody): ParsedApplyTemplate {
 }
 
 export const GET = protectedRouteOperation({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load molecule template preview inputs:",
@@ -165,7 +165,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<ApplyTemplateBody, ParsedApplyTemplate>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorHeavyWrite",
   body: {
     maxBytes: MAX_BATCH_PAYLOAD_BYTES,

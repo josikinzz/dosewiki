@@ -120,6 +120,23 @@ bunx convex env get CONVEX_ADMIN_KEY --prod
 
 Minting a new key does not help unless you also set it on the deployment.
 
+## Who a write acts as
+
+The admin key only proves the caller is our server or a workstation. It never
+decides the role. `requireRole(ctx, args, floor)` in `convex/lib/auth.ts` is
+the one write gate and resolves the actor from `actorEmail`:
+
+- Every server route write names an actor. The client returned by
+  `getServerConvexWriteCapability` (`ServerConvexWriteClient` in
+  `lib/convex/serverWriteCapability.ts`) refuses any mutation or action whose
+  args carry no non-empty `actorEmail`, before sending it. The role then comes
+  from that email's membership row, and a banned member is refused at every
+  floor.
+- Scripts run headless as admin. A server-key call with no `actorEmail` is a
+  workstation or Convex-environment script and resolves to admin.
+- No email pattern grants admin. The old `@local.dose.wiki` shortcut is gone;
+  an actor without a membership row has no role, whatever the address.
+
 ## Sole Convex target
 
 All local, development, Vercel Preview, and Production reads and writes target:
@@ -219,3 +236,53 @@ Production writes additionally require, per `scripts/lib/production-write-comman
 
 Every script's default is a dry run. Dry runs need no credential and are the
 correct way to inspect a plan.
+
+## Sign-in accounts
+
+Editor sign-in is username + password. Each account is a `memberships` row
+carrying `username`, a scrypt `passwordHash` (`lib/auth/passwords.ts`, format
+`scrypt$N$r$p$saltB64$hashB64`), and its `role`. The Auth.js server callback
+(`auth.ts`) looks the row up through `memberships:getCredentialsByUsername`
+with `CONVEX_ADMIN_KEY`, refuses banned rows, verifies the password, and stamps
+`lastSeenAt` via `memberships:touchSignIn`. The stored role is the session
+role; no env var and no email pattern grants admin.
+
+The only auth-specific env the Next app needs is `AUTH_SECRET` (session
+signing). `ADMIN_PASSWORD`, `DEV_PASSWORD_KEYS`, `AUTH_ADMIN_EMAILS`, and the
+GitHub OAuth variables are retired; the doctor lists any that are still set so
+they can be removed.
+
+### Seeding the first admins
+
+Accounts are normally created by invitation. The very first admins (and any
+admin whose password must be reset from a workstation) are seeded with:
+
+```bash
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  node scripts/auth/seed-admin-accounts.mjs
+```
+
+The script needs `TARGET_CONVEX_URL` (or `--target-url=`) and
+`CONVEX_ADMIN_KEY` from the environment or `.env.local`; the ambiguous
+`CONVEX_URL` fallbacks are refused. It prompts for username, email, display
+name, and password (hidden, entered twice, minimum 12 characters), hashes the
+password locally with `scripts/auth/password-hash.mjs` (the same scheme the app
+verifies against), and calls `memberships:setAdminAccount`. Re-running for an
+existing username rotates that password and forces the role to `admin`; an
+existing email-only row gains the username instead of being duplicated. Leave
+the username blank to finish. Passwords are never read from env, files, or
+argv.
+
+### Retiring OAuth-era viewer rows
+
+The retired OAuth sign-in minted `viewer` rows for anyone who signed in. They
+grant nothing and have no username. Delete them once, after the admins are
+seeded:
+
+```bash
+bunx convex run memberships:retireViewerMemberships '{"apiKey":"<CONVEX_ADMIN_KEY>"}' --prod
+```
+
+It deletes only rows with role `viewer` and no `username`, and reports the
+count. Rows that already carry a username are accounts and are kept whatever
+their role.

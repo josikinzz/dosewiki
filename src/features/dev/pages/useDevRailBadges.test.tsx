@@ -1,14 +1,15 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { AppRole } from "@/lib/auth/roles";
 import {
   invalidateDevRailBadge,
   resetDevRailBadgesForTests,
   useDevRailBadges,
 } from "./useDevRailBadges";
 
-function Badges({ enabled = true }: { enabled?: boolean }) {
-  const counts = useDevRailBadges(enabled);
+function Badges({ role = "admin" }: { role?: AppRole | null }) {
+  const counts = useDevRailBadges(role);
   return (
     <>
       <span data-testid="trip-reports">{counts["trip-reports"] ?? "none"}</span>
@@ -99,12 +100,12 @@ describe("useDevRailBadges", () => {
     await waitFor(() => expect(screen.getByTestId("trip-reports")).toHaveTextContent("1"));
   });
 
-  it("does not fetch while disabled", async () => {
+  it("does not fetch for a role below the badged tabs' floor", async () => {
     stubCounts({ tripReports: [0] });
-    const { rerender } = render(<Badges enabled={false} />);
+    const { rerender } = render(<Badges role="editor" />);
     expect(fetch).not.toHaveBeenCalled();
 
-    rerender(<Badges enabled />);
+    rerender(<Badges role="admin" />);
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
     expect(screen.getByTestId("trip-reports")).toHaveTextContent("none");
   });

@@ -6,7 +6,7 @@ import {
   remapBindingSiteEvidencePath,
 } from "../lib/article/normalization.mjs";
 import { mutation, query } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { validateArticleForIngestion } from "./lib/validators";
 
 const DEFAULT_ARTICLE_PAGE_SIZE = 10;
@@ -140,11 +140,11 @@ export const migrateArticlesPage = mutation({
     isDone: v.boolean(),
   }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     const page = await ctx.db.query("substanceIndex").paginate({
       cursor: args.cursor ?? null,
@@ -246,11 +246,11 @@ export const auditEvidencePage = query({
     isDone: v.boolean(),
   }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceWrite",
-    });
+    }, "admin");
     const page = await ctx.db.query("citationEvidence").paginate({
       cursor: args.cursor ?? null,
       numItems: boundedLimit(args.limit, DEFAULT_EVIDENCE_PAGE_SIZE, MAX_EVIDENCE_PAGE_SIZE),
@@ -307,11 +307,11 @@ export const migrateEvidencePage = mutation({
     isDone: v.boolean(),
   }),
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "citationEvidenceWrite",
-    });
+    }, "admin");
     const page = await ctx.db.query("citationEvidence").paginate({
       cursor: args.cursor ?? null,
       numItems: boundedLimit(args.limit, DEFAULT_EVIDENCE_PAGE_SIZE, MAX_EVIDENCE_PAGE_SIZE),

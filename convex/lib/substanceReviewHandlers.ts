@@ -2,7 +2,7 @@ import { ConvexError } from "convex/values";
 import type { MutationCtx } from "../_generated/server";
 import {
   requireAdminIntent,
-  requireEditorWrite,
+  requireRole,
   requireRegisteredDelegatedEditorWrite,
 } from "./auth";
 import {
@@ -120,15 +120,24 @@ export async function publishReviewedSectionHandler(
   }
 }
 
+/**
+ * Editors move a review between `needed` and `in_progress` and keep notes and
+ * flags; only an admin marks it `completed`, which is the public
+ * `expert_reviewed` signal.
+ */
 export async function setEditorialReviewHandler(
   ctx: MutationCtx,
   args: EditorArgs & { status: "needed" | "in_progress" | "completed" },
 ) {
-  const actor = await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "editorArticleWrite",
-  });
+  const actor = await requireRole(
+    ctx,
+    {
+      apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
+      adminIntent: "editorArticleWrite",
+    },
+    args.status === "completed" ? "admin" : "editor",
+  );
   const article = await requireArticle(ctx, args);
   const existing = storedReview(article);
   const editorialReview: Record<string, unknown> = {
@@ -147,11 +156,11 @@ export async function addHumanReviewFlagHandler(
   ctx: MutationCtx,
   args: EditorArgs & { flag: ReviewFlagInput },
 ) {
-  const actor = await requireEditorWrite(ctx, {
+  const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   try {
     assertAgentReviewFlagInput(args.flag);
   } catch (error) {
@@ -180,11 +189,11 @@ export async function deleteReviewFlagHandler(
     identity: { created_at: string; label: string; source: "agent" | "human" };
   },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   const article = await requireArticle(ctx, args);
   const existing = storedReview(article);
   let flags: StoredReviewFlag[];
@@ -209,11 +218,11 @@ export async function replaceAgentReviewFlagsHandler(
   ctx: MutationCtx,
   args: EditorArgs & { runId: string; flags: ReviewFlagInput[] },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   if (!args.runId.trim()) {
     throw new ConvexError({ code: "INVALID_REVIEW_RUN", message: "Review Run id is required." });
   }

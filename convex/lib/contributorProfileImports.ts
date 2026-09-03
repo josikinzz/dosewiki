@@ -1,7 +1,7 @@
 import { type Infer, v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
-import { requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import { normalizeProfileKey } from "./contributorProfiles";
 import { isPlaceholderStorageId, isValidR2Key } from "./replicationUrls";
 import {
@@ -83,6 +83,7 @@ export const reviewedProfileImportEntryValidator = v.union(
 
 export const reviewedProfileImportArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   operationId: v.string(),
   dryRun: v.boolean(),
   entries: v.array(reviewedProfileImportEntryValidator),
@@ -124,6 +125,7 @@ export const reviewedProfileImportResult = v.object({
 
 export const reviewedProfileRollbackArgs = v.object({
   apiKey: v.optional(v.string()),
+  actorEmail: v.optional(v.string()),
   operationId: v.string(),
   dryRun: v.boolean(),
   entries: v.array(reviewedProfileImportEntryValidator),
@@ -301,10 +303,11 @@ function storedPatch(profile: ReviewedProfileState, updatedAt: string, updatedBy
 }
 
 export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: ReviewedProfileImportArgs) {
-  const actor = await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-  });
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "admin",
+  );
   if (!args.operationId.trim()) throw new Error("Profile import operationId is required.");
   if (args.entries.length === 0 || args.entries.length > 50) {
     throw new Error("A reviewed profile import needs 1 to 50 entries.");
@@ -579,10 +582,11 @@ export async function rollbackReviewedProfilePlanHandler(
   ctx: MutationCtx,
   args: ReviewedProfileRollbackArgs,
 ) {
-  const actor = await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-  });
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "admin",
+  );
   const operationId = args.operationId.trim();
   if (!operationId) throw new Error("Profile rollback operationId is required.");
   if (args.entries.length === 0 || args.entries.length > 50) {

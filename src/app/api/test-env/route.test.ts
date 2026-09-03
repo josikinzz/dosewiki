@@ -1,18 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com" } },
-    role: "editor",
-  })),
+  requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(async () => null),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: mocks.requireEditorSession,
+  requireRoleSession: mocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -25,6 +22,7 @@ describe("test env route", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     process.env = { ...ORIGINAL_ENV };
     delete process.env.CONVEX_ADMIN_KEY;
     delete process.env.CONVEX_URL;
@@ -32,15 +30,7 @@ describe("test env route", () => {
     delete process.env.NEXT_PUBLIC_CONVEX_URL;
     delete process.env.ENABLE_TEST_ENV;
     delete process.env.VERCEL_ENV;
-    delete process.env.GITHUB_TOKEN;
-    delete process.env.ADMIN_PASSWORD;
-    delete process.env.ZENBY;
-    delete process.env.KOSM;
-    delete process.env.COE;
-    delete process.env.JOSIE;
-    delete process.env.LYREA;
-    delete process.env.WITCHY;
-    delete process.env.ARCTIC;
+    delete process.env.AUTH_SECRET;
   });
 
   afterEach(() => {
@@ -51,7 +41,7 @@ describe("test env route", () => {
   it("returns the editor diagnostic view without secret names or values", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret-admin-key-value";
     process.env.CONVEX_URL = "https://write.convex.cloud";
-    process.env.ADMIN_PASSWORD = "p_w";
+    process.env.AUTH_SECRET = "auth-secret-value";
     const { POST } = await import("./route");
 
     const response = await POST(new Request("https://dose.wiki/api/test-env", { method: "POST" }));
@@ -63,7 +53,7 @@ describe("test env route", () => {
       audience: "editor",
       available: true,
       keysFound: 2,
-      totalKeys: 10,
+      totalKeys: 2,
       convexAdminKeyConfigured: true,
       convexUrlConfigured: true,
       canSaveToConvex: true,
@@ -71,8 +61,8 @@ describe("test env route", () => {
     });
     expect(body.keyNames).toBeUndefined();
     expect(serialized).not.toContain("secret-admin-key-value");
-    expect(serialized).not.toContain("p_w");
-    expect(serialized).not.toContain("ADMIN_PASSWORD");
+    expect(serialized).not.toContain("auth-secret-value");
+    expect(serialized).not.toContain("AUTH_SECRET");
   });
 
   it("does not expose production diagnostics when ENABLE_TEST_ENV is disabled", async () => {
@@ -87,6 +77,6 @@ describe("test env route", () => {
     expect(response.status).toBe(404);
     expect(body).toEqual({ error: "Not found." });
     expect(mocks.enforceRateLimit).not.toHaveBeenCalled();
-    expect(mocks.requireEditorSession).not.toHaveBeenCalled();
+    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
   });
 });

@@ -4,10 +4,7 @@ import {
   createInitialSaveOrchestratorState,
   DevModeSaveOrchestrator,
   saveOrchestratorReducer,
-  selectIsConvexSaving,
-  selectIsGitHubSaving,
   selectIsSaving,
-  selectPrimaryNotice,
   type ChangelogSources,
   type DevModeSaveOrchestratorState,
 } from "./DevModeSaveOrchestrator";
@@ -75,8 +72,7 @@ describe("saveOrchestratorReducer", () => {
     const state = createInitialSaveOrchestratorState();
     expect(state.hasPendingChanges).toBe(false);
     expect(state.saveOperation.phase).toBe("idle");
-    expect(state.githubNotice).toBeNull();
-    expect(state.convexNotice).toBeNull();
+    expect(state.notice).toBeNull();
   });
 
   it("updates hasPendingChanges when sources change", () => {
@@ -89,128 +85,30 @@ describe("saveOrchestratorReducer", () => {
     expect(state.hasArticleDatasetChanges).toBe(true);
   });
 
-  describe("GitHub save flow", () => {
+  describe("save flow", () => {
     it("transitions through save phases", () => {
       let state = createInitialSaveOrchestratorState();
 
-      // Request save
-      state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
-      expect(state.saveOperation.destination).toBe("github");
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
       expect(state.saveOperation.phase).toBe("validating");
       expect(state.pendingEffect?.kind).toBe("verifyCredentials");
 
-      // Validation passes
-      state = saveOrchestratorReducer(state, {
-        type: "validationPassed",
-        destination: "github",
-      });
+      state = saveOrchestratorReducer(state, { type: "validationPassed" });
       expect(state.saveOperation.phase).toBe("verifying-credentials");
-      expect(state.githubNotice?.type).toBe("pending");
+      expect(state.notice?.type).toBe("pending");
 
-      // Credentials verified
-      state = saveOrchestratorReducer(state, {
-        type: "credentialsVerified",
-        credentials: { key: "TEST" },
-      });
-      expect(state.saveOperation.phase).toBe("executing");
-      expect(state.resolvedSubmitterKey).toBe("TEST");
-      expect(state.pendingEffect?.kind).toBe("save");
-
-      // Save succeeds
-      state = saveOrchestratorReducer(state, {
-        type: "saveSucceeded",
-        result: {
-          destination: "github",
-          savedItems: ["GitHub"],
-          warnings: [],
-          resolvedSubmitterKey: "TEST",
-          changelogEntry: null,
-          markChangesSaved: false,
-          actionHref: "https://github.com/commit/abc",
-          actionLabel: "Open commit",
-        },
-      });
-      expect(state.saveOperation.phase).toBe("idle");
-      expect(state.githubNotice?.type).toBe("success");
-      expect(state.githubNotice?.actionHref).toBe("https://github.com/commit/abc");
-    });
-
-    it("handles validation failure", () => {
-      let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
-      state = saveOrchestratorReducer(state, {
-        type: "validationFailed",
-        destination: "github",
-        message: "No changes to archive",
-      });
-
-      expect(state.saveOperation.phase).toBe("idle");
-      expect(state.githubNotice?.type).toBe("error");
-      expect(state.githubNotice?.message).toBe("No changes to archive");
-    });
-
-    it("handles credential failure", () => {
-      let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
-      state = saveOrchestratorReducer(state, {
-        type: "validationPassed",
-        destination: "github",
-      });
-      state = saveOrchestratorReducer(state, {
-        type: "credentialsFailed",
-        message: "Invalid credentials",
-      });
-
-      expect(state.saveOperation.phase).toBe("idle");
-      expect(state.githubNotice?.type).toBe("error");
-    });
-
-    it("handles save failure", () => {
-      let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
-      state = saveOrchestratorReducer(state, {
-        type: "validationPassed",
-        destination: "github",
-      });
-      state = saveOrchestratorReducer(state, {
-        type: "credentialsVerified",
-        credentials: { key: "TEST" },
-      });
-      state = saveOrchestratorReducer(state, {
-        type: "saveFailed",
-        destination: "github",
-        message: "Network error",
-      });
-
-      expect(state.saveOperation.phase).toBe("idle");
-      expect(state.githubNotice?.type).toBe("error");
-      expect(state.githubNotice?.message).toBe("Network error");
-    });
-  });
-
-  describe("Convex save flow", () => {
-    it("transitions through save phases", () => {
-      let state = createInitialSaveOrchestratorState();
-
-      state = saveOrchestratorReducer(state, { type: "saveToConvexRequested" });
-      expect(state.saveOperation.destination).toBe("convex");
-      expect(state.saveOperation.phase).toBe("validating");
-
-      state = saveOrchestratorReducer(state, {
-        type: "validationPassed",
-        destination: "convex",
-      });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
         credentials: { key: "ADMIN" },
       });
       expect(state.saveOperation.phase).toBe("executing");
-      expect(state.convexNotice?.message).toContain("Saving to Convex");
+      expect(state.pendingEffect?.kind).toBe("save");
+      expect(state.resolvedSubmitterKey).toBe("ADMIN");
+      expect(state.notice?.message).toContain("Saving to Convex");
 
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
-          destination: "convex",
           savedItems: ["articles", "about"],
           warnings: [],
           resolvedSubmitterKey: "ADMIN",
@@ -218,17 +116,68 @@ describe("saveOrchestratorReducer", () => {
           markChangesSaved: true,
         },
       });
-      expect(state.convexNotice?.type).toBe("success");
-      expect(state.convexNotice?.message).toContain("articles and about");
+      expect(state.saveOperation.phase).toBe("idle");
+      expect(state.pendingEffect).toBeNull();
+      expect(state.notice?.type).toBe("success");
+      expect(state.notice?.message).toContain("articles and about");
     });
 
-    it("handles Convex save with warnings", () => {
+    it("ignores credentialsVerified outside the verifying phase", () => {
+      const state = createInitialSaveOrchestratorState();
+      expect(
+        saveOrchestratorReducer(state, { type: "credentialsVerified", credentials: { key: "ADMIN" } }),
+      ).toBe(state);
+    });
+
+    it("handles validation failure", () => {
       let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, { type: "saveToConvexRequested" });
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
       state = saveOrchestratorReducer(state, {
-        type: "validationPassed",
-        destination: "convex",
+        type: "validationFailed",
+        message: "No changes to save",
       });
+
+      expect(state.saveOperation.phase).toBe("idle");
+      expect(state.saveOperation.error).toBe("No changes to save");
+      expect(state.pendingEffect).toBeNull();
+      expect(state.notice).toEqual({ type: "error", message: "No changes to save" });
+    });
+
+    it("handles credential failure", () => {
+      let state = createInitialSaveOrchestratorState();
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
+      state = saveOrchestratorReducer(state, { type: "validationPassed" });
+      state = saveOrchestratorReducer(state, {
+        type: "credentialsFailed",
+        message: "Sign in before continuing.",
+      });
+
+      expect(state.saveOperation.phase).toBe("idle");
+      expect(state.notice?.type).toBe("error");
+    });
+
+    it("handles save failure", () => {
+      let state = createInitialSaveOrchestratorState();
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
+      state = saveOrchestratorReducer(state, { type: "validationPassed" });
+      state = saveOrchestratorReducer(state, {
+        type: "credentialsVerified",
+        credentials: { key: "ADMIN" },
+      });
+      state = saveOrchestratorReducer(state, {
+        type: "saveFailed",
+        message: "Network error",
+      });
+
+      expect(state.saveOperation.phase).toBe("idle");
+      expect(state.notice?.type).toBe("error");
+      expect(state.notice?.message).toBe("Network error");
+    });
+
+    it("handles a save with warnings", () => {
+      let state = createInitialSaveOrchestratorState();
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
+      state = saveOrchestratorReducer(state, { type: "validationPassed" });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
         credentials: { key: "ADMIN" },
@@ -236,7 +185,6 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
-          destination: "convex",
           savedItems: ["articles"],
           warnings: ["Revalidation failed"],
           resolvedSubmitterKey: "ADMIN",
@@ -245,17 +193,14 @@ describe("saveOrchestratorReducer", () => {
         },
       });
 
-      expect(state.convexNotice?.type).toBe("error");
-      expect(state.convexNotice?.message).toContain("1 issue(s) occurred");
+      expect(state.notice?.type).toBe("error");
+      expect(state.notice?.message).toContain("1 issue(s) occurred");
     });
 
-    it("handles empty Convex save result", () => {
+    it("handles an empty save result", () => {
       let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, { type: "saveToConvexRequested" });
-      state = saveOrchestratorReducer(state, {
-        type: "validationPassed",
-        destination: "convex",
-      });
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
+      state = saveOrchestratorReducer(state, { type: "validationPassed" });
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
         credentials: { key: "ADMIN" },
@@ -263,7 +208,6 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
-          destination: "convex",
           savedItems: [],
           warnings: [],
           resolvedSubmitterKey: "ADMIN",
@@ -272,59 +216,50 @@ describe("saveOrchestratorReducer", () => {
         },
       });
 
-      expect(state.convexNotice?.type).toBe("error");
-      expect(state.convexNotice?.message).toBe("No Convex-compatible changes to save.");
+      expect(state.notice?.type).toBe("error");
+      expect(state.notice?.message).toBe("No Convex-compatible changes to save.");
     });
   });
 
   describe("notice management", () => {
-    it("sets and clears individual notices", () => {
+    it("sets and clears the notice", () => {
       let state = createInitialSaveOrchestratorState();
 
       state = saveOrchestratorReducer(state, {
         type: "setNotice",
-        channel: "github",
         notice: { type: "success", message: "Done!" },
       });
-      expect(state.githubNotice?.message).toBe("Done!");
-      expect(state.convexNotice).toBeNull();
+      expect(state.notice?.message).toBe("Done!");
 
-      state = saveOrchestratorReducer(state, {
-        type: "clearNotice",
-        channel: "github",
-      });
-      expect(state.githubNotice).toBeNull();
+      state = saveOrchestratorReducer(state, { type: "clearNotice" });
+      expect(state.notice).toBeNull();
     });
+  });
 
-    it("clears all notices", () => {
+  describe("effect lifecycle", () => {
+    it("only acknowledges the effect it scheduled", () => {
       let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, {
-        type: "setNotice",
-        channel: "github",
-        notice: { type: "success", message: "GitHub done" },
-      });
-      state = saveOrchestratorReducer(state, {
-        type: "setNotice",
-        channel: "convex",
-        notice: { type: "success", message: "Convex done" },
-      });
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
+      const effectId = state.pendingEffect!.id;
 
-      state = saveOrchestratorReducer(state, { type: "clearNotices" });
-      expect(state.githubNotice).toBeNull();
-      expect(state.convexNotice).toBeNull();
+      expect(saveOrchestratorReducer(state, { type: "effectCompleted", effectId: effectId + 1 })).toBe(state);
+      expect(saveOrchestratorReducer(state, { type: "effectFailed", effectId: effectId + 1, message: "x" })).toBe(
+        state,
+      );
+
+      const failed = saveOrchestratorReducer(state, { type: "effectFailed", effectId, message: "boom" });
+      expect(failed.saveOperation.phase).toBe("idle");
+      expect(failed.notice).toEqual({ type: "error", message: "boom" });
     });
   });
 
   describe("concurrent save prevention", () => {
     it("ignores save requests while already saving", () => {
       let state = createInitialSaveOrchestratorState();
-      state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
       const prevState = state;
 
-      state = saveOrchestratorReducer(state, { type: "saveToConvexRequested" });
-      expect(state).toBe(prevState); // No change
-
-      state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
+      state = saveOrchestratorReducer(state, { type: "saveRequested" });
       expect(state).toBe(prevState); // No change
     });
   });
@@ -355,12 +290,12 @@ describe("DevModeSaveOrchestrator class", () => {
     expect(states).toHaveLength(1); // No new notifications after unsubscribe
   });
 
-  it("returns pending effect from dispatch", () => {
+  it("returns the effect only from the dispatch that scheduled it", () => {
     const orchestrator = new DevModeSaveOrchestrator();
-    const effect = orchestrator.dispatch({ type: "saveToGitHubRequested" });
+    const effect = orchestrator.dispatch({ type: "saveRequested" });
 
     expect(effect?.kind).toBe("verifyCredentials");
-    expect(effect?.destination).toBe("github");
+    expect(orchestrator.dispatch({ type: "saveRequested" })).toBeNull();
   });
 
   it("does not notify subscribers when state unchanged", () => {
@@ -369,7 +304,7 @@ describe("DevModeSaveOrchestrator class", () => {
     orchestrator.subscribe((state) => states.push(state));
 
     // Dispatch event that doesn't change state
-    orchestrator.dispatch({ type: "clearNotices" }); // Already null
+    orchestrator.dispatch({ type: "clearNotice" }); // Already null
     expect(states).toHaveLength(0);
   });
 });
@@ -379,37 +314,7 @@ describe("selectors", () => {
     let state = createInitialSaveOrchestratorState();
     expect(selectIsSaving(state)).toBe(false);
 
-    state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
+    state = saveOrchestratorReducer(state, { type: "saveRequested" });
     expect(selectIsSaving(state)).toBe(true);
-  });
-
-  it("selectIsConvexSaving/selectIsGitHubSaving are destination-specific", () => {
-    let state = createInitialSaveOrchestratorState();
-
-    state = saveOrchestratorReducer(state, { type: "saveToGitHubRequested" });
-    expect(selectIsGitHubSaving(state)).toBe(true);
-    expect(selectIsConvexSaving(state)).toBe(false);
-
-    state = createInitialSaveOrchestratorState();
-    state = saveOrchestratorReducer(state, { type: "saveToConvexRequested" });
-    expect(selectIsGitHubSaving(state)).toBe(false);
-    expect(selectIsConvexSaving(state)).toBe(true);
-  });
-
-  it("selectPrimaryNotice picks based on convexEnabled", () => {
-    let state = createInitialSaveOrchestratorState();
-    state = saveOrchestratorReducer(state, {
-      type: "setNotice",
-      channel: "github",
-      notice: { type: "success", message: "GitHub" },
-    });
-    state = saveOrchestratorReducer(state, {
-      type: "setNotice",
-      channel: "convex",
-      notice: { type: "success", message: "Convex" },
-    });
-
-    expect(selectPrimaryNotice(state, false)?.message).toBe("GitHub");
-    expect(selectPrimaryNotice(state, true)?.message).toBe("Convex");
   });
 });

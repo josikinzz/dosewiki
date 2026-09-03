@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@auth";
-import { canUseEditorWriteRoute, resolveSessionRole, type AppRole } from "@/lib/auth/roles";
+import { resolveSessionRole, roleMeetsFloor, type AppRole, type RoleFloor } from "@/lib/auth/roles";
 
 type EditorSession = Awaited<ReturnType<typeof getServerSession>> & {
   user: {
@@ -22,7 +22,12 @@ type SessionGuardResult =
       response: NextResponse;
     };
 
-export async function requireEditorSession(): Promise<SessionGuardResult> {
+/**
+ * Session gate for protected routes. `floor` is the lowest role admitted:
+ * `admin` for destructive and publishing routes, `editor` for drafting and
+ * review metadata, `contributor` for routes that then check ownership.
+ */
+export async function requireRoleSession(floor: RoleFloor): Promise<SessionGuardResult> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -33,10 +38,11 @@ export async function requireEditorSession(): Promise<SessionGuardResult> {
   }
 
   const role = resolveSessionRole({ role: session.user.role });
-  if (!canUseEditorWriteRoute({ role })) {
+  if (!role || !roleMeetsFloor(role, floor)) {
+    const label = floor.charAt(0).toUpperCase() + floor.slice(1);
     return {
       ok: false,
-      response: NextResponse.json({ error: "Editor access required." }, { status: 403 }),
+      response: NextResponse.json({ error: `${label} access required.` }, { status: 403 }),
     };
   }
 
@@ -45,4 +51,8 @@ export async function requireEditorSession(): Promise<SessionGuardResult> {
     role,
     session: session as EditorSession,
   };
+}
+
+export async function requireEditorSession(): Promise<SessionGuardResult> {
+  return requireRoleSession("editor");
 }

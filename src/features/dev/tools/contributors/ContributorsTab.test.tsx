@@ -64,6 +64,7 @@ function renderTab(props: Partial<Parameters<typeof ContributorsTab>[0]> = {}) {
       profiles={DIRECTORY}
       isDirectoryLoading={false}
       canEdit
+      canApprove
       sessionProfileKey="JOSIE"
       {...props}
     />,
@@ -208,6 +209,78 @@ describe("ContributorsTab", () => {
       bio: "A bio.",
       avatarUrl: null,
       links: [],
+    });
+  });
+
+  it("shows an editor the trust fields disabled with the reason, and never sends them", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubProfileApi({ JOSIE: storedProfile("JOSIE", "Josie Kins") });
+    renderTab({ canApprove: false, initialScope: "me" });
+    const displayName = await screen.findByLabelText("Display name");
+    await waitFor(() => expect(displayName).toHaveValue("Josie Kins"));
+
+    const reason = "Admin only: an editor can see this but not change it.";
+    for (const label of [
+      "Role",
+      "Membership email",
+      "Exclude from the Replications gallery",
+      "Archival profile",
+      "Approved replicator",
+      "Note (markdown)",
+      "Attribution",
+    ]) {
+      const control = screen.getByLabelText(label);
+      expect(control).toBeDisabled();
+      expect(control).toHaveAttribute("title", reason);
+    }
+    expect(screen.getAllByText(reason).length).toBeGreaterThan(0);
+
+    await user.clear(displayName);
+    await user.type(displayName, "Josie K.");
+    await user.click(screen.getByRole("button", { name: "Save profile" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/dev/contributor-profile",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+      key: "JOSIE",
+      displayName: "Josie K.",
+      bio: "A bio.",
+      avatarUrl: null,
+      links: [],
+      aliases: [],
+    });
+  });
+
+  it("lets an admin edit the trust fields and sends them", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubProfileApi({ JOSIE: storedProfile("JOSIE", "Josie Kins") });
+    renderTab({ initialScope: "me" });
+    const role = await screen.findByLabelText("Role");
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
+
+    expect(role).toBeEnabled();
+    await user.type(role, "Founder");
+    await user.click(screen.getByLabelText("Approved replicator"));
+    await user.click(screen.getByRole("button", { name: "Save profile" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/dev/contributor-profile",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+    expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({
+      key: "JOSIE",
+      role: "Founder",
+      approved_replicator: true,
+      membershipEmail: null,
+      staffNote: null,
     });
   });
 });

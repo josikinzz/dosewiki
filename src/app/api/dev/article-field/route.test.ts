@@ -1,5 +1,6 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 import { EDITABLE_FIELD_CONFLICT_REASON } from "../../../../../convex/lib/articleFieldWrites";
 
@@ -19,11 +20,7 @@ vi.mock("next/cache", async (importOriginal) => ({
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
+  requireRoleSession: vi.fn(roleSessionFor("editor")),
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({

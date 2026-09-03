@@ -6,14 +6,14 @@ import { JsonBodyError } from "./readJsonBody";
 vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(),
+  requireRoleSession: vi.fn(),
   requireAuthenticatedSession: vi.fn(),
   enforceRateLimit: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: mocks.requireEditorSession,
+  requireRoleSession: mocks.requireRoleSession,
 }));
 
 vi.mock("@/lib/auth/requireAuthenticatedSession", () => ({
@@ -58,7 +58,7 @@ describe("protectedRouteOperation", () => {
     vi.resetModules();
     vi.clearAllMocks();
     mocks.enforceRateLimit.mockResolvedValue(null);
-    mocks.requireEditorSession.mockResolvedValue(editorSession);
+    mocks.requireRoleSession.mockResolvedValue(editorSession);
     mocks.requireAuthenticatedSession.mockResolvedValue(editorSession);
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
@@ -68,7 +68,7 @@ describe("protectedRouteOperation", () => {
 
   it("returns unauthenticated responses without invoking the operation", async () => {
     const operation = vi.fn();
-    mocks.requireEditorSession.mockResolvedValue(
+    mocks.requireRoleSession.mockResolvedValue(
       {
         ok: false,
         response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
@@ -91,7 +91,7 @@ describe("protectedRouteOperation", () => {
 
   it("returns unauthorized responses without invoking the operation", async () => {
     const operation = vi.fn();
-    mocks.requireEditorSession.mockResolvedValue(
+    mocks.requireRoleSession.mockResolvedValue(
       {
         ok: false,
         response: NextResponse.json({ error: "Editor access required." }, { status: 403 }),
@@ -128,7 +128,7 @@ describe("protectedRouteOperation", () => {
     const response = await handler(request());
 
     expect(response.status).toBe(429);
-    expect(mocks.requireEditorSession).not.toHaveBeenCalled();
+    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
     expect(operation).not.toHaveBeenCalled();
   });
 

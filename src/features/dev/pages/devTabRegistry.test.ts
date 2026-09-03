@@ -41,12 +41,34 @@ describe("devTabRegistry", () => {
     expect(external[0].destination).toEqual({ kind: "external", href: "/review" });
   });
 
-  it("keeps change log as the only chrome entry and contributors open to any role", () => {
+  it("keeps change log as the only chrome entry", () => {
     const chrome = DEV_TAB_REGISTRY.filter((tab) => tab.group === "chrome").map((tab) => tab.id);
     expect(chrome).toEqual(["change-log"]);
-    expect(DEV_TAB_REGISTRY.filter((tab) => tab.role === "any").map((tab) => tab.id)).toEqual([
-      "contributors",
+  });
+
+  it("assigns every descriptor a role floor", () => {
+    const byRole = (role: string) => DEV_TAB_REGISTRY.filter((tab) => tab.role === role).map((tab) => tab.id);
+    for (const tab of DEV_TAB_REGISTRY) {
+      expect(["admin", "editor", "contributor"]).toContain(tab.role);
+    }
+    expect(byRole("admin")).toEqual([
+      "citation-review",
+      "trip-report-submissions",
+      "article-feedback",
+      "molecule-editor",
+      "banners",
+      "replications",
     ]);
+    expect(byRole("editor")).toEqual([
+      "articles",
+      "review",
+      "tag-editor",
+      "writing",
+      "copy-studio",
+      "index-layout",
+      "change-log",
+    ]);
+    expect(byRole("contributor")).toEqual(["contributors"]);
   });
 
   it("falls back to the default tab and keeps the slug for unknown segments", () => {

@@ -6,14 +6,14 @@ import { enforceRateLimit } from "@server/http/nextRateLimit";
 const handler = NextAuth(authOptions);
 
 /**
- * Password-guessing brake for the legacy credential provider.
+ * Password-guessing brake for the credentials provider.
  *
  * Scoped deliberately narrow so nothing else about auth changes:
  * only POSTs to the credentials callback are counted, and only above the
  * `authCredentialAttempt` policy (10 per 10 minutes per IP). Session polling
- * (GET), sign-out, and the GitHub callback are untouched. The limiter itself
- * fails open to an in-memory counter when Upstash is unavailable, so a
- * rate-limit storage outage can never lock a colleague out.
+ * (GET) and sign-out are untouched. The limiter itself fails open to an
+ * in-memory counter when Upstash is unavailable, so a rate-limit storage
+ * outage can never lock a colleague out.
  *
  * The 429 body is NextAuth-shaped on purpose: `next-auth/react` signIn with
  * `redirect: false` reads `new URL(data.url).searchParams.get("error")`, so a

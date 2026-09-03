@@ -1,5 +1,6 @@
+import { ConvexError } from "convex/values";
 import type { MutationCtx } from "../_generated/server";
-import { requireAuthenticatedWrite, requireEditorWrite } from "./auth";
+import { requireRole, roleMeetsFloor } from "./auth";
 import {
   buildEditorProfilePatch,
   buildStoredProfile,
@@ -16,15 +17,45 @@ import {
   patchReportsForContributorKey,
 } from "./contributorProfilePersistence";
 
+/**
+ * Trust settings on a profile: who the record belongs to, how it is
+ * presented to readers, and staff commentary. An editor may polish a
+ * profile's copy, but changing these is an admin decision.
+ */
+export const ADMIN_ONLY_PROFILE_PATCH_FIELDS = [
+  "role",
+  "membershipEmail",
+  "approved_replicator",
+  "exclude_from_gallery",
+  "archival",
+  "staffNote",
+] as const;
+
+export function assertEditorProfilePatchAllowed(
+  patch: Record<string, unknown>,
+  actorRole: Parameters<typeof roleMeetsFloor>[0],
+): void {
+  if (roleMeetsFloor(actorRole, "admin")) return;
+  for (const field of ADMIN_ONLY_PROFILE_PATCH_FIELDS) {
+    if (field in patch && patch[field] !== undefined) {
+      throw new ConvexError({
+        code: "ADMIN_ONLY_PROFILE_FIELD",
+        field,
+        message: `Only an admin can change "${field}" on a contributor profile.`,
+      });
+    }
+  }
+}
+
 export async function generateContributorAvatarUploadUrlHandler(
   ctx: MutationCtx,
   args: { apiKey?: string; actorEmail?: string },
 ) {
-  await requireAuthenticatedWrite(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "profileMediaWrite",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "contributor",
+  );
   return await ctx.storage.generateUploadUrl();
 }
 
@@ -36,11 +67,11 @@ export async function saveContributorProfileHandler(
     profile: Parameters<typeof buildStoredProfile>[0];
   },
 ) {
-  const actor = await requireAuthenticatedWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-    actorEmail: args.actorEmail,
-  });
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "contributor",
+  );
   const targetKey = resolveOwnedProfileKey(args.profile.key, actor.email);
   if (!targetKey) throw new Error("Profile key is required.");
 
@@ -96,12 +127,13 @@ export async function saveContributorProfileHandler(
 
 export async function deleteContributorProfileHandler(
   ctx: MutationCtx,
-  args: { apiKey?: string; key: string; confirmDelete: boolean },
+  args: { apiKey?: string; actorEmail?: string; key: string; confirmDelete: boolean },
 ) {
-  await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "admin",
+  );
   if (!args.confirmDelete) {
     throw new Error("deleteProfile requires confirmDelete: there is no undo.");
   }
@@ -130,12 +162,19 @@ export async function deleteContributorProfileHandler(
 
 export async function mergeContributorProfileHandler(
   ctx: MutationCtx,
-  args: { apiKey?: string; fromKey: string; toKey: string; discardSourceContent?: boolean },
+  args: {
+    apiKey?: string;
+    actorEmail?: string;
+    fromKey: string;
+    toKey: string;
+    discardSourceContent?: boolean;
+  },
 ) {
-  await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-  });
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "admin",
+  );
   const fromKey = normalizeProfileKey(args.fromKey);
   const toKey = normalizeProfileKey(args.toKey);
   if (!fromKey || !toKey) throw new Error("Both fromKey and toKey are required.");
@@ -194,11 +233,11 @@ export async function retargetTripReportsToContributorHandler(
     embeddedAuthorName?: string;
   },
 ) {
-  const actor = await requireAuthenticatedWrite(ctx, {
-    apiKey: args.apiKey,
-    adminIntent: "profileMediaWrite",
-    actorEmail: args.actorEmail,
-  });
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "contributor",
+  );
   const targetKey = normalizeProfileKey(args.contributorKey);
   const existing = await getStoredContributorProfile(ctx, targetKey);
   const existingProfile = existing as StoredProfile | null;
@@ -242,11 +281,12 @@ export async function saveContributorProfileAsEditorHandler(
     patch: Parameters<typeof buildEditorProfilePatch>[0];
   },
 ) {
-  const actor = await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "profileMediaWrite",
-  });
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "editor",
+  );
+  assertEditorProfilePatchAllowed(args.patch, actor.role);
   const key = normalizeProfileKey(args.key);
   if (!key) throw new Error("Profile key is required.");
   const existing = await getStoredContributorProfile(ctx, key);

@@ -96,7 +96,7 @@ export const bulkImportProfileValidator = v.object({
   updatedBy: v.optional(v.string()),
 });
 
-export type ContributorRole = "admin" | "editor" | "viewer" | undefined;
+export type ContributorRole = "admin" | "editor" | "contributor" | "viewer" | undefined;
 
 export type ProfileLink = {
   label: string;

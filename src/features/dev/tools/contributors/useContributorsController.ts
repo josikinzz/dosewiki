@@ -40,8 +40,10 @@ export type ContributorScope = "all" | "me";
 export type ContributorsControllerOptions = {
   /** The shared contributor directory, fetched by the dev shell. */
   profiles: readonly NormalizedUserProfile[];
-  /** Editor role: the directory, the admin fields, and the danger zone. Otherwise self only. */
+  /** Editor role: the directory, the curated fields, and the danger zone. Otherwise self only. */
   canEdit: boolean;
+  /** Admin role: the trust fields. Without it they are shown but not sent. */
+  canApprove: boolean;
   /** The signed-in user's own key; resolved against the directory by key or alias. */
   sessionProfileKey: string;
   /** The route's `?scope=` value, validated by the registry; anything else opens on all. */
@@ -71,6 +73,7 @@ function reportMeta(report: ContributorReport): string {
 export function useContributorsController({
   profiles,
   canEdit,
+  canApprove,
   sessionProfileKey,
   initialScope,
 }: ContributorsControllerOptions) {
@@ -233,9 +236,10 @@ export function useContributorsController({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           key: detail.profile.key,
-          // A non-editor's body carries only the fields they may set; the
-          // route would drop the rest anyway.
-          ...(canEdit ? buildContributorPatch(form) : buildOwnContributorPatch(form)),
+          // A body carries only the fields its role may set: Convex refuses
+          // an editor's save that names a trust field, and the route drops
+          // everything but the self-serve fields for a contributor.
+          ...(canEdit ? buildContributorPatch(form, { canApprove }) : buildOwnContributorPatch(form)),
           ...(avatarUpload ? { avatarUpload } : {}),
         }),
       });
@@ -255,7 +259,7 @@ export function useContributorsController({
         message: error instanceof Error ? error.message : "The profile could not be saved.",
       });
     }
-  }, [avatarFile, canEdit, detail, form]);
+  }, [avatarFile, canApprove, canEdit, detail, form]);
 
   const saveOrdering = useCallback(
     async (which: "works" | "reports") => {
@@ -366,6 +370,7 @@ export function useContributorsController({
 
   return {
     canEdit,
+    canApprove,
     scope,
     setScope: setChosenScope,
     search,

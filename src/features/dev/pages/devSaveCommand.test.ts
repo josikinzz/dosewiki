@@ -3,9 +3,7 @@ import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHeal
 import {
   buildConvexCommandPayload,
   buildDevSaveDraft,
-  buildGitHubSavePayload,
   createConvexSaveAdapter,
-  createGitHubSaveAdapter,
   type DevSaveCredentials,
 } from "./devSaveCommand";
 
@@ -49,7 +47,6 @@ function createDraft() {
         changelog: { markdown: "# Mechanism Index\n\n+ 5ht2a", hasChanges: true },
       },
     ],
-    convexEnabled: true,
     datasetChangelog: {
       markdown: "# Dataset\n\n+ MDMA",
       articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
@@ -103,33 +100,6 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("builds GitHub payloads from the same draft snapshot", () => {
-    const payload = buildGitHubSavePayload(
-      createDraft(),
-      credentials,
-      new Date("2026-04-26T12:00:00.000Z"),
-    );
-
-    expect(payload).toMatchObject({
-      username: "EDITOR",
-      articlesData: [
-        { id: 1, title: "LSD" },
-        { id: 2, title: "MDMA" },
-      ],
-      changedArticles: [{ id: 2, title: "MDMA", slug: "mdma" }],
-      psychoactiveIndexManualData: { version: 1, categories: ["classic"] },
-      chemicalIndexManualData: { version: 1, categories: ["tryptamines"] },
-      mechanismIndexManualData: { version: 1, categories: ["5ht2a"] },
-      skipArticles: true,
-    });
-    expect("aboutMarkdown" in payload).toBe(false);
-    expect("generatorPrompt" in payload).toBe(false);
-    expect(payload.commitMessage).toContain("Dev editor update - ");
-    expect(payload.changelogMarkdown).toContain("# Dataset\n\n+ MDMA");
-    expect(payload.changelogMarkdown).not.toContain("# Founders");
-    expect(payload.changelogMarkdown).toContain("# Chemical Index\n\n+ tryptamines");
-  });
-
   it("normalizes successful Convex saves and marks local changes saved", async () => {
     const saveToConvex = vi.fn().mockResolvedValue({
       success: true,
@@ -150,7 +120,6 @@ describe("dev save command contract", () => {
     const adapter = createConvexSaveAdapter({ serverHealth: healthyServer, saveToConvex });
 
     await expect(adapter.execute(createDraft(), credentials)).resolves.toMatchObject({
-      destination: "convex",
       savedItems: ["1 article(s)"],
       warnings: [],
       resolvedSubmitterKey: "JOSIE",
@@ -198,13 +167,6 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("surfaces GitHub credential failures before returning a command result", async () => {
-    const saveArticles = vi.fn().mockRejectedValue(new Error("Invalid credentials."));
-    const adapter = createGitHubSaveAdapter({ saveArticles });
-
-    await expect(adapter.execute(createDraft(), credentials)).rejects.toThrow("Invalid credentials.");
-  });
-
   it("reports unavailable Convex credentials before mutation", () => {
     const adapter = createConvexSaveAdapter({
       serverHealth: {
@@ -219,38 +181,6 @@ describe("dev save command contract", () => {
     expect(adapter.validateAvailability(createDraft())).toEqual({
       ok: false,
       message: "Missing CONVEX_ADMIN_KEY",
-    });
-  });
-
-  it("normalizes GitHub saves without marking local changes saved", async () => {
-    const saveArticles = vi.fn().mockResolvedValue({
-      success: true,
-      commitUrl: "https://github.example/commit/abc",
-      submittedBy: "JOSIE",
-      entry: {
-        timestamp: "2026-04-26T12:00:00.000Z",
-        commit: { sha: "abc", url: "https://github.example/commit/abc", message: "Saved" },
-        submittedBy: "JOSIE",
-        articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
-      },
-    });
-    const adapter = createGitHubSaveAdapter({
-      saveArticles,
-      now: () => new Date("2026-04-26T12:00:00.000Z"),
-    });
-
-    await expect(adapter.execute(createDraft(), credentials)).resolves.toMatchObject({
-      destination: "github",
-      savedItems: ["GitHub"],
-      warnings: [],
-      resolvedSubmitterKey: "JOSIE",
-      markChangesSaved: false,
-      actionHref: "https://github.example/commit/abc",
-      actionLabel: "Open commit",
-      changelogEntry: {
-        id: "2026-04-26T12:00:00.000Z",
-        submittedBy: "JOSIE",
-      },
     });
   });
 });

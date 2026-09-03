@@ -53,7 +53,7 @@ function profileMergeContext(options: {
   const targetId = options.targetId ?? TARGET;
   const targetKey = options.targetKey ?? "LOKA";
   const tables: Record<string, StoredRow[]> = {
-    memberships: [row("membership", { email: ACTOR, role: "editor" })],
+    memberships: [row("membership", { email: ACTOR, role: "admin" })],
     contributorProfiles: [
       row(sourceId, {
         key: sourceKey,

@@ -178,7 +178,7 @@ describe("ConvexTripReportSubmissionStore", () => {
     ]);
   });
 
-  it("uses private Convex functions for editor queue reads and explicit promotion", async () => {
+  it("uses private Convex functions for editor queue reads and explicit promotion, naming the actor", async () => {
     const recorder = createClientRecorder();
     const store = new ConvexTripReportSubmissionStore({
       client: recorder.client,
@@ -187,7 +187,10 @@ describe("ConvexTripReportSubmissionStore", () => {
 
     await expect(store.list({ status: "submitted", limit: 25 })).resolves.toHaveLength(1);
     await expect(
-      store.previewPromotion("submission-1", { reviewer: "editor@example.com" }),
+      store.previewPromotion("submission-1", {
+        reviewer: "editor@example.com",
+        actorEmail: "editor@example.com",
+      }),
     ).resolves.toMatchObject({
       payload: {
         slug: "careful-low-dose-museum-walk",
@@ -196,7 +199,8 @@ describe("ConvexTripReportSubmissionStore", () => {
     });
     await expect(
       store.promote("submission-1", {
-        reviewer: "editor@example.com",
+        reviewer: "admin@example.com",
+        actorEmail: "admin@example.com",
         notes: "Published from accepted submission.",
         profileKey: "ADA",
         confirmAuthorNameClaim: true,
@@ -205,24 +209,48 @@ describe("ConvexTripReportSubmissionStore", () => {
       submission: { status: "exported" },
       payload: { slug: "careful-low-dose-museum-walk" },
     });
+    await expect(
+      store.transition("submission-1", {
+        status: "accepted",
+        reviewer: "admin@example.com",
+        actorEmail: "admin@example.com",
+      }),
+    ).resolves.toMatchObject({ id: "submission-1" });
 
     expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
       ["query", "tripReportSubmissions:list", { apiKey: "test-key", status: "submitted", limit: 25 }],
       [
         "query",
         "tripReportSubmissions:previewPromotion",
-        { apiKey: "test-key", id: "submission-1", reviewer: "editor@example.com" },
+        {
+          apiKey: "test-key",
+          actorEmail: "editor@example.com",
+          id: "submission-1",
+          reviewer: "editor@example.com",
+        },
       ],
       [
         "mutation",
         "tripReportSubmissions:promote",
         {
           apiKey: "test-key",
+          actorEmail: "admin@example.com",
           id: "submission-1",
-          reviewer: "editor@example.com",
+          reviewer: "admin@example.com",
           notes: "Published from accepted submission.",
           profileKey: "ADA",
           confirmAuthorNameClaim: true,
+        },
+      ],
+      [
+        "mutation",
+        "tripReportSubmissions:transition",
+        {
+          apiKey: "test-key",
+          actorEmail: "admin@example.com",
+          id: "submission-1",
+          status: "accepted",
+          reviewer: "admin@example.com",
         },
       ],
     ]);

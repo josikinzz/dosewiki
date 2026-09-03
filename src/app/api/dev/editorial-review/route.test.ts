@@ -1,5 +1,6 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -13,8 +14,8 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
-const authMocks = vi.hoisted(() => ({ requireEditorSession: vi.fn(), enforceRateLimit: vi.fn() }));
-vi.mock("@/lib/auth/requireEditorSession", () => ({ requireEditorSession: authMocks.requireEditorSession }));
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn(), enforceRateLimit: vi.fn() }));
+vi.mock("@/lib/auth/requireEditorSession", () => ({ requireRoleSession: authMocks.requireRoleSession }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: authMocks.enforceRateLimit }));
 
 const mocks = vi.hoisted(() => ({
@@ -26,11 +27,11 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
 }));
 
-function tickRequest() {
+function tickRequest(status: "needed" | "in_progress" | "completed" = "completed") {
   return new Request("https://dose.wiki/api/dev/editorial-review", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ slug: "2c-b", status: "completed" }),
+    body: JSON.stringify({ slug: "2c-b", status }),
   });
 }
 
@@ -47,7 +48,9 @@ describe("editorial review route failure reporting", () => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    authMocks.requireEditorSession.mockResolvedValue({ ok: true, session: { user: { email: "editor@example.com", name: "Editor" } }, role: "editor" });
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
     authMocks.enforceRateLimit.mockResolvedValue(null);
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
@@ -74,11 +77,48 @@ describe("editorial review route failure reporting", () => {
   });
 
   it("does not reach Convex when the session is not an editor's", async () => {
-    authMocks.requireEditorSession.mockResolvedValue({ ok: false, response: new Response("Forbidden", { status: 403 }) });
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
     const { POST } = await import("./route");
-    const response = await POST(tickRequest());
+    const response = await POST(tickRequest("in_progress"));
     expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
     expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("refuses an editor marking a review completed with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { POST } = await import("./route");
+    const response = await POST(tickRequest("completed"));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "Admin access required." });
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("lets an editor move a review to in_progress", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    mocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "in_progress", notes: "" } });
+    const { POST } = await import("./route");
+    const response = await POST(tickRequest("in_progress"));
+    expect(response.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenCalledWith("substanceIndex.setEditorialReview", {
+      apiKey: "admin-key",
+      actorEmail: "editor@example.com",
+      slug: "2c-b",
+      status: "in_progress",
+    });
+  });
+
+  it("lets an admin mark a review completed", async () => {
+    mocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "completed", notes: "" } });
+    const { POST } = await import("./route");
+    const response = await POST(tickRequest("completed"));
+    expect(response.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenCalledWith("substanceIndex.setEditorialReview", {
+      apiKey: "admin-key",
+      actorEmail: "admin@example.com",
+      slug: "2c-b",
+      status: "completed",
+    });
   });
 
   it("keeps an internal failure generic", async () => {

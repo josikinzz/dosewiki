@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireEditorSession } from "@/lib/auth/requireEditorSession";
+import { requireRoleSession } from "@/lib/auth/requireEditorSession";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import {
   isSiteFeedbackStatus,
@@ -32,7 +32,8 @@ export async function POST(request: Request, context: StatusRouteContext) {
     return rateLimited;
   }
 
-  const auth = await requireEditorSession();
+  // Triage moves feedback through the queue; that is an admin decision.
+  const auth = await requireRoleSession("admin");
   if (auth.ok === false) {
     return auth.response;
   }
@@ -46,6 +47,7 @@ export async function POST(request: Request, context: StatusRouteContext) {
     const feedback = await store.transition(id, {
       status,
       reviewer: auth.session.user.email,
+      actorEmail: auth.session.user.email,
       note,
     });
 

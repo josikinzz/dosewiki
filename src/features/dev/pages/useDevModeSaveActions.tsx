@@ -7,27 +7,25 @@ import {
   useEditorServerConfigHealth,
   type EditorServerConfigHealth,
 } from "@/hooks/useEditorServerConfigHealth";
-import { useSaveArticlesMutation, useSaveToConvexMutation } from "@/hooks/useApiMutations";
+import { useSaveToConvexMutation } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
 import {
   DevModeSaveOrchestrator,
   createInitialSaveOrchestratorState,
-  selectIsConvexSaving,
   selectIsSaving,
   type ChangelogSources,
   type SaveOrchestratorEffect,
 } from "../save-orchestrator";
 import { DevModeCommitPanel } from "./DevModeCommitPanel";
-import type { DevModeTab } from "./devTabRegistry";
 import {
   buildDevSaveDraft,
   createConvexSaveAdapter,
-  createGitHubSaveAdapter,
   type DevSaveCredentials,
 } from "./devSaveCommand";
 import type { ChangeNotice } from "./useDevModeChangeLog";
+
 type UseDevModeSaveActionsArgs = {
   articles: SubstanceArticle[];
   psychoactiveIndexManual: unknown;
@@ -37,8 +35,8 @@ type UseDevModeSaveActionsArgs = {
   markChangesSaved: () => void;
   /** An Auth.js session is present; saves refuse to start without one. */
   isSignedIn: boolean;
-  /** The session role may write; gates the commit button and server-health polling. */
-  canEdit: boolean;
+  /** Admin or editor: gates the save button and server-health polling. */
+  canDraft: boolean;
   sessionProfileKey: string;
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
@@ -47,8 +45,6 @@ type UseDevModeSaveActionsArgs = {
   mechanismManualChangelog: { markdown: string; hasChanges: boolean };
   hasPendingChanges: boolean;
   onAppendChangeLogEntry: (entry: ChangeLogEntry) => void;
-  onTabChange: (tab: DevModeTab) => void;
-  pushChangeLogNotice: (notice: ChangeNotice) => void;
 };
 
 type UseDevModeSaveActionsResult = {
@@ -57,24 +53,22 @@ type UseDevModeSaveActionsResult = {
   clearSaveNotices: () => void;
 };
 
+const NOTICE_CLEAR_MS = { success: 5000, error: 10000 } as const;
+
 function ConvexSaveButton({
   convexEnabled,
-  canEdit,
+  canDraft,
   convexServerHealth,
   refreshConvexServerHealth,
-  convexNotice,
-  isConvexSaving,
   isSaving,
   hasPendingChanges,
   isConvexSaveBlocked,
   onSaveToConvex,
 }: {
   convexEnabled: boolean;
-  canEdit: boolean;
+  canDraft: boolean;
   convexServerHealth: EditorServerConfigHealth;
   refreshConvexServerHealth: () => Promise<void>;
-  convexNotice: ChangeNotice | null;
-  isConvexSaving: boolean;
   isSaving: boolean;
   hasPendingChanges: boolean;
   isConvexSaveBlocked: boolean;
@@ -86,7 +80,7 @@ function ConvexSaveButton({
 
   return (
     <div className="flex items-center gap-2">
-      {canEdit ? (
+      {canDraft ? (
         <EditorServerHealthIndicator
           health={convexServerHealth}
           onRefresh={() => {
@@ -94,44 +88,20 @@ function ConvexSaveButton({
           }}
         />
       ) : null}
-      {convexNotice ? (
-        <span
-          className={`text-xs ${
-            convexNotice.type === "error"
-              ? "text-[color:var(--theme-danger-text)]"
-              : convexNotice.type === "pending"
-                ? "text-[color:var(--theme-semantic-info-badge-text)]"
-                : "text-[color:var(--theme-success-text)]"
-          }`}
-        >
-          {convexNotice.message}
-        </span>
-      ) : null}
       <Button
         variant="outline"
         size="pill"
         className="rounded-full px-4 py-2 text-sm font-medium"
         onClick={onSaveToConvex}
-        disabled={isSaving || !hasPendingChanges || isConvexSaveBlocked}
+        disabled={!canDraft || isSaving || !hasPendingChanges || isConvexSaveBlocked}
+        title={canDraft ? undefined : "Editor role required"}
       >
         <Icon icon="lucide:cloud" size={16} />
-        {isConvexSaving ? "Saving..." : "Save to Convex"}
+        {isSaving ? "Saving..." : "Save to Convex"}
       </Button>
     </div>
   );
 }
-
-const toChangeNotice = (notice: { type: string; message: string; actionHref?: string; actionLabel?: string } | null): ChangeNotice | null => {
-  if (!notice) {
-    return null;
-  }
-  return {
-    type: notice.type as ChangeNotice["type"],
-    message: notice.message,
-    actionHref: notice.actionHref,
-    actionLabel: notice.actionLabel,
-  };
-};
 
 export function useDevModeSaveActions({
   articles,
@@ -141,7 +111,7 @@ export function useDevModeSaveActions({
   getOriginalArticles,
   markChangesSaved,
   isSignedIn,
-  canEdit,
+  canDraft,
   sessionProfileKey,
   convexEnabled,
   datasetChangelog,
@@ -150,11 +120,9 @@ export function useDevModeSaveActions({
   mechanismManualChangelog,
   hasPendingChanges,
   onAppendChangeLogEntry,
-  onTabChange,
-  pushChangeLogNotice,
 }: UseDevModeSaveActionsArgs): UseDevModeSaveActionsResult {
   const { health: convexServerHealth, refresh: refreshConvexServerHealth } =
-    useEditorServerConfigHealth(convexEnabled && canEdit);
+    useEditorServerConfigHealth(convexEnabled && canDraft);
   // The session cookie is the credential; this only names who the save is
   // attributed to and refuses to start a save nobody is signed in for.
   const verifySaveSession = useCallback(async (): Promise<DevSaveCredentials> => {
@@ -164,8 +132,6 @@ export function useDevModeSaveActions({
     return { key: sessionProfileKey || "USER" };
   }, [isSignedIn, sessionProfileKey]);
 
-  // Mutation hooks
-  const saveArticlesMutation = useSaveArticlesMutation();
   const saveToConvexMutation = useSaveToConvexMutation();
 
   // Create orchestrator once
@@ -229,7 +195,6 @@ export function useDevModeSaveActions({
             changelog: mechanismManualChangelog,
           },
         ],
-        convexEnabled,
         datasetChangelog,
         hasPendingChanges,
       }),
@@ -237,7 +202,6 @@ export function useDevModeSaveActions({
       articles,
       chemicalIndexManual,
       chemicalManualChangelog,
-      convexEnabled,
       datasetChangelog,
       getOriginalArticles,
       hasPendingChanges,
@@ -248,24 +212,20 @@ export function useDevModeSaveActions({
     ],
   );
 
-  // Auto-clear timer refs
-  const clearTimerRefs = useRef<{ github: number | null; convex: number | null }>({
-    github: null,
-    convex: null,
-  });
+  const clearTimerRef = useRef<number | null>(null);
 
   const scheduleNoticeAutoClear = useCallback(
-    (channel: "github" | "convex", clearAfterMs: number) => {
+    (clearAfterMs: number) => {
       if (typeof window === "undefined") {
         return;
       }
 
-      if (clearTimerRefs.current[channel] !== null) {
-        window.clearTimeout(clearTimerRefs.current[channel]!);
+      if (clearTimerRef.current !== null) {
+        window.clearTimeout(clearTimerRef.current);
       }
-      clearTimerRefs.current[channel] = window.setTimeout(() => {
-        orchestrator.dispatch({ type: "clearNotice", channel });
-        clearTimerRefs.current[channel] = null;
+      clearTimerRef.current = window.setTimeout(() => {
+        orchestrator.dispatch({ type: "clearNotice" });
+        clearTimerRef.current = null;
       }, clearAfterMs);
     },
     [orchestrator],
@@ -274,53 +234,32 @@ export function useDevModeSaveActions({
   // Effect handler for async operations
   const handleEffect = useCallback(
     async function runEffect(effect: SaveOrchestratorEffect): Promise<void> {
-      if (effect.kind === "verifyCredentials") {
-        console.info("[dev-save] effect:verify-start", {
-          destination: effect.destination,
-          effectId: effect.id,
-        });
+      const adapter = createConvexSaveAdapter({
+        serverHealth: convexServerHealth,
+        saveToConvex: saveToConvexMutation.mutateAsync,
+      });
 
-        // First validate availability
-        const adapter = effect.destination === "convex"
-          ? createConvexSaveAdapter({
-              serverHealth: convexServerHealth,
-              saveToConvex: saveToConvexMutation.mutateAsync,
-            })
-          : createGitHubSaveAdapter({
-              saveArticles: saveArticlesMutation.mutateAsync,
-            });
+      if (effect.kind === "verifyCredentials") {
+        console.info("[dev-save] effect:verify-start", { effectId: effect.id });
 
         const availability = adapter.validateAvailability(draft);
         if (availability.ok === false) {
-          orchestrator.dispatch({
-            type: "validationFailed",
-            destination: effect.destination,
-            message: availability.message,
-          });
-          scheduleNoticeAutoClear(effect.destination, 10000);
+          orchestrator.dispatch({ type: "validationFailed", message: availability.message });
+          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
           return;
         }
 
         if (!draft.hasPendingChanges) {
-          const clearAfterMs = effect.destination === "github" ? 5000 : 10000;
-          orchestrator.dispatch({
-            type: "validationFailed",
-            destination: effect.destination,
-            message: adapter.noChangesMessage,
-          });
-          scheduleNoticeAutoClear(effect.destination, clearAfterMs);
+          orchestrator.dispatch({ type: "validationFailed", message: adapter.noChangesMessage });
+          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
           return;
         }
 
-        orchestrator.dispatch({
-          type: "validationPassed",
-          destination: effect.destination,
-        });
+        orchestrator.dispatch({ type: "validationPassed" });
 
         try {
           const credentials = await verifySaveSession();
           console.info("[dev-save] effect:credentials-verified", {
-            destination: effect.destination,
             effectId: effect.id,
             key: credentials.key,
           });
@@ -333,78 +272,38 @@ export function useDevModeSaveActions({
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Credential verification failed.";
-          console.error("[dev-save] effect:credentials-failed", {
-            destination: effect.destination,
-            effectId: effect.id,
-            message,
-          });
-          orchestrator.dispatch({
-            type: "credentialsFailed",
-            message,
-          });
-          scheduleNoticeAutoClear(effect.destination, 10000);
+          console.error("[dev-save] effect:credentials-failed", { effectId: effect.id, message });
+          orchestrator.dispatch({ type: "credentialsFailed", message });
+          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
         }
       } else if (effect.kind === "save") {
         try {
-          console.info("[dev-save] effect:save-start", {
-            destination: effect.destination,
-            effectId: effect.id,
-          });
+          console.info("[dev-save] effect:save-start", { effectId: effect.id });
           const credentials = await verifySaveSession();
-
-          const adapter = effect.destination === "convex"
-            ? createConvexSaveAdapter({
-                serverHealth: convexServerHealth,
-                saveToConvex: saveToConvexMutation.mutateAsync,
-              })
-            : createGitHubSaveAdapter({
-                saveArticles: saveArticlesMutation.mutateAsync,
-              });
-
           const result = await adapter.execute(draft, credentials);
           console.info("[dev-save] effect:save-succeeded", {
-            destination: effect.destination,
             effectId: effect.id,
             savedItems: result.savedItems,
             warningCount: result.warnings.length,
             requestId: result.requestId ?? null,
           });
 
-          orchestrator.dispatch({
-            type: "saveSucceeded",
-            result,
-          });
+          orchestrator.dispatch({ type: "saveSucceeded", result });
 
           if (result.changelogEntry) {
             onAppendChangeLogEntry(result.changelogEntry);
           }
 
-          if (effect.destination === "github" && result.changelogEntry) {
-            onTabChange("change-log");
-            pushChangeLogNotice({
-              type: "success",
-              message: "Archive logged in the Change log tab.",
-            });
-          }
-
-          if (effect.destination === "convex" && result.markChangesSaved) {
+          if (result.markChangesSaved) {
             markChangesSaved();
           }
 
-          scheduleNoticeAutoClear(effect.destination, effect.destination === "github" ? 10000 : 5000);
+          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.success);
         } catch (error) {
           const message = error instanceof Error ? error.message : "Save failed.";
-          console.error("[dev-save] effect:save-failed", {
-            destination: effect.destination,
-            effectId: effect.id,
-            message,
-          });
-          orchestrator.dispatch({
-            type: "saveFailed",
-            destination: effect.destination,
-            message,
-          });
-          scheduleNoticeAutoClear(effect.destination, 10000);
+          console.error("[dev-save] effect:save-failed", { effectId: effect.id, message });
+          orchestrator.dispatch({ type: "saveFailed", message });
+          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
         }
       }
     },
@@ -413,76 +312,52 @@ export function useDevModeSaveActions({
       draft,
       markChangesSaved,
       onAppendChangeLogEntry,
-      onTabChange,
       orchestrator,
-      pushChangeLogNotice,
-      saveArticlesMutation.mutateAsync,
       saveToConvexMutation.mutateAsync,
       scheduleNoticeAutoClear,
       verifySaveSession,
     ],
   );
 
-  const handleSaveToGitHub = useCallback(async () => {
-    const effect = orchestrator.dispatch({ type: "saveToGitHubRequested" });
-    if (effect) {
-      await handleEffect(effect);
-    }
-  }, [handleEffect, orchestrator]);
-
   const handleSaveToConvex = useCallback(async () => {
-    const effect = orchestrator.dispatch({ type: "saveToConvexRequested" });
+    const effect = orchestrator.dispatch({ type: "saveRequested" });
     if (effect) {
       await handleEffect(effect);
     }
   }, [handleEffect, orchestrator]);
 
   const clearSaveNotices = useCallback(() => {
-    // Clear all timers
-    if (clearTimerRefs.current.github !== null && typeof window !== "undefined") {
-      window.clearTimeout(clearTimerRefs.current.github);
-      clearTimerRefs.current.github = null;
-    }
-    if (clearTimerRefs.current.convex !== null && typeof window !== "undefined") {
-      window.clearTimeout(clearTimerRefs.current.convex);
-      clearTimerRefs.current.convex = null;
+    if (clearTimerRef.current !== null && typeof window !== "undefined") {
+      window.clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
     }
 
-    orchestrator.dispatch({ type: "clearNotices" });
+    orchestrator.dispatch({ type: "clearNotice" });
   }, [orchestrator]);
 
-  // Cleanup timers on unmount
+  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
-      if (clearTimerRefs.current.github !== null && typeof window !== "undefined") {
-        window.clearTimeout(clearTimerRefs.current.github);
-      }
-      if (clearTimerRefs.current.convex !== null && typeof window !== "undefined") {
-        window.clearTimeout(clearTimerRefs.current.convex);
+      if (clearTimerRef.current !== null && typeof window !== "undefined") {
+        window.clearTimeout(clearTimerRef.current);
       }
     };
   }, []);
 
   // Derive state from orchestrator
-  const isSaving = selectIsSaving(orchestratorState) || saveArticlesMutation.isPending;
-  const isConvexSaving = selectIsConvexSaving(orchestratorState);
-  const githubNotice = toChangeNotice(orchestratorState.githubNotice);
-  const convexNotice = toChangeNotice(orchestratorState.convexNotice);
+  const isSaving = selectIsSaving(orchestratorState);
+  const notice: ChangeNotice | null = orchestratorState.notice;
 
   const isConvexSaveBlocked =
     convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
-  const primaryCommitNotice = convexEnabled ? convexNotice : githubNotice;
-  const isCommitDisabled = isSaving || !canEdit || !hasPendingChanges;
 
   const convexSaveButton = useMemo(
     () => (
       <ConvexSaveButton
         convexEnabled={convexEnabled}
-        canEdit={canEdit}
+        canDraft={canDraft}
         convexServerHealth={convexServerHealth}
         refreshConvexServerHealth={refreshConvexServerHealth}
-        convexNotice={convexNotice}
-        isConvexSaving={isConvexSaving}
         isSaving={isSaving}
         hasPendingChanges={hasPendingChanges}
         isConvexSaveBlocked={isConvexSaveBlocked}
@@ -493,45 +368,22 @@ export function useDevModeSaveActions({
     ),
     [
       convexEnabled,
-      convexNotice,
       convexServerHealth,
       handleSaveToConvex,
-      canEdit,
+      canDraft,
       hasPendingChanges,
       isConvexSaveBlocked,
-      isConvexSaving,
       isSaving,
       refreshConvexServerHealth,
     ],
   );
 
-  const commitPanel = (
-    <DevModeCommitPanel
-      notice={primaryCommitNotice}
-      hasEditorSession={canEdit}
-      submitterKey={orchestratorState.resolvedSubmitterKey}
-      hasInvalidJsonDraft={false}
-      isSaving={isSaving}
-      isCommitDisabled={isCommitDisabled}
-      onCommit={() => {
-        void handleSaveToGitHub();
-      }}
-      actionSlot={convexSaveButton}
-    />
-  );
+  const commitPanel = <DevModeCommitPanel notice={notice} actionSlot={convexSaveButton} />;
 
   const renderCommitPanel = useCallback(
     (extraActionSlot?: ReactNode, description?: ReactNode) => (
       <DevModeCommitPanel
-        notice={primaryCommitNotice}
-        hasEditorSession={canEdit}
-        submitterKey={orchestratorState.resolvedSubmitterKey}
-        hasInvalidJsonDraft={false}
-        isSaving={isSaving}
-        isCommitDisabled={isCommitDisabled}
-        onCommit={() => {
-          void handleSaveToGitHub();
-        }}
+        notice={notice}
         description={description}
         actionSlot={
           extraActionSlot ? (
@@ -545,15 +397,7 @@ export function useDevModeSaveActions({
         }
       />
     ),
-    [
-      canEdit,
-      convexSaveButton,
-      handleSaveToGitHub,
-      isCommitDisabled,
-      isSaving,
-      orchestratorState.resolvedSubmitterKey,
-      primaryCommitNotice,
-    ],
+    [convexSaveButton, notice],
   );
 
   return {

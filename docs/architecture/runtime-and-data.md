@@ -289,52 +289,36 @@ static `public/molecules` fallback. Editor saves
 revalidate the owner page. The versioned image response is immutable, so propagation is governed
 by page revalidation rather than stale image bytes.
 
-### GitHub-backed file save flow
-
-Selected workflows still persist to GitHub-managed files:
-
-- `POST /api/save-substance-index`
-
-These routes:
-
-- require an editor session
-- require `GITHUB_TOKEN`
-- validate request payloads
-- call helpers in `lib/server/github/`
-- write repository files through GitHub APIs
-
-These flows exist because not all operational/editor data has been fully consolidated behind Convex-only editing.
-
 ## Auth and Authorization
 
 ### Auth.js
 
 Auth.js configuration lives in `auth.ts`.
 
-Supported sign-in modes:
-
-- editor credentials backed by server-side password env vars such as `ADMIN_PASSWORD`, `JOSIE`, or keys listed in `DEV_PASSWORD_KEYS`
-- optional GitHub OAuth when configured
+Sign-in is a single credentials provider: username + password. Accounts live in
+the Convex `memberships` table with a scrypt password hash
+(`lib/auth/passwords.ts`); nothing about an account lives in env.
 
 Session model:
 
 - JWT session strategy
 - session user object enriched with role
-- role synchronized from Convex `memberships`
+- role re-read from Convex `memberships` on every JWT refresh; a banned member
+  degrades to `viewer` on the next request
 
-### Membership synchronization
+### Membership lookup
 
-On sign-in, the app syncs user identity into Convex:
-
-- `lib/auth/convexMemberships.ts`
-- `convex/memberships.ts`
+- `lib/auth/convexMemberships.ts` wraps the server-key Convex calls
+- `convex/memberships.ts` exposes `getCredentialsByUsername`, `touchSignIn`,
+  `getByEmail`, and the seed/migration mutations `setAdminAccount` and
+  `retireViewerMemberships`
 
 Role resolution:
 
-- `AUTH_ADMIN_EMAILS` can bootstrap first admin users
-- existing membership role is preserved otherwise
-- credentials-provider users receive the editor credential role
-- allowed roles are `admin`, `editor`, `viewer`
+- the stored membership role is the session role; nothing in env grants admin
+- the first admin accounts are seeded with `scripts/auth/seed-admin-accounts.mjs`
+- roles are `admin`, `editor`, `contributor`; `viewer` survives only as a legacy
+  stored value and grants nothing
 
 ### Route protection
 
@@ -392,14 +376,6 @@ Prompt seed markdown under `src/data/config/generatorPrompt.md` and
 prompt drift Module in `scripts/lib/prompt-drift-policy.mjs`. The compare and
 migration scripts use the same local inventory, so `generator` and `section_*`
 prompt keys are included in drift reports before Convex writes.
-
-### GitHub
-
-Used for:
-
-- selected file-backed persistence flows
-- `SubstanceIndex.json`-style history paths
-- user profile file updates
 
 ### Upstash Redis
 

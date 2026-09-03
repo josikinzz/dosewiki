@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   assertAuthorNameClaimAdjudicated,
   normalizeAssignedProfileKey,
@@ -218,11 +218,11 @@ const editableTripReportFieldsValidator = v.object({
 export const getPortalRows = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const reports = await ctx.db.query("tripReports").collect();
 
@@ -261,11 +261,11 @@ export const getPortalRecord = query({
     id: v.id("tripReports"),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const report = await ctx.db.get(args.id);
     if (!report) {
@@ -311,11 +311,11 @@ export const update = mutation({
     confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const row = await ctx.db.get(args.id);
     if (!row) {
@@ -470,11 +470,11 @@ export const deleteById = mutation({
     id: v.id("tripReports"),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "admin",
+    );
 
     const existing = await ctx.db.get(args.id);
     if (!existing) {
@@ -495,11 +495,12 @@ export const deleteById = mutation({
 export const renameAuthor = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     oldName: v.string(),
     newName: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const allReports = await ctx.db.query("tripReports").collect();
     const lowerOldName = args.oldName.toLowerCase();

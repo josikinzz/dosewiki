@@ -1,5 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { requireAuth } from "./auth";
+import { requireRole } from "./auth";
 import { definedReplicationRightsPatch } from "./replicationPolicy";
 import {
   isPlaceholderStorageId,
@@ -23,7 +23,11 @@ export async function updatePreviewStorageIdsHandler(
   ctx: MutationCtx,
   args: UpdatePreviewStorageIdsArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const validated: Array<{
     id: (typeof args.updates)[number]["id"];
     previewStorageId: string;
@@ -60,7 +64,11 @@ export async function updateMotionStorageIdsHandler(
   ctx: MutationCtx,
   args: UpdateMotionStorageIdsArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const validated: Array<{
     id: (typeof args.updates)[number]["id"];
     motionStorageId: string;
@@ -177,7 +185,11 @@ export function validateR2KeyUpdate(
 }
 
 export async function updateR2KeysHandler(ctx: MutationCtx, args: UpdateR2KeysArgs) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   if (args.updates.length === 0 || args.updates.length > R2_KEYS_BATCH_LIMIT) {
     throw new Error(`R2 key batches must contain 1-${R2_KEYS_BATCH_LIMIT} updates.`);
   }
@@ -202,7 +214,11 @@ export async function getResolvedByIdHandler(
   ctx: QueryCtx,
   args: GetResolvedByIdArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const replication = await ctx.db.get(args.id);
   if (!replication) return null;
   const resolved = await resolveReplicationUrls(ctx, replication);
@@ -213,7 +229,11 @@ export async function applySourceRecoveryHandler(
   ctx: MutationCtx,
   args: ApplySourceRecoveryArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const replication = await ctx.db.get(args.id);
   if (!replication) {
     throw new Error("Replication source recovery target no longer exists.");
@@ -235,7 +255,11 @@ export async function mergeUnknownTwinHandler(
   ctx: MutationCtx,
   args: MergeUnknownTwinArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const keeper = await ctx.db.get(args.keeperId);
   const duplicate = await ctx.db.get(args.duplicateId);
   if (!keeper || !duplicate) {
@@ -272,7 +296,11 @@ export async function applyProvenanceCorrectionHandler(
   ctx: MutationCtx,
   args: ApplyProvenanceCorrectionArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const replication = await ctx.db.get(args.id);
   if (!replication) throw new Error("Replication provenance row no longer exists");
 
@@ -303,7 +331,11 @@ export async function updateRightsMetadataHandler(
   ctx: MutationCtx,
   args: UpdateRightsMetadataArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   const replication = await ctx.db
     .query("replications")
     .withIndex("by_slug", (q) => q.eq("slug", args.slug))

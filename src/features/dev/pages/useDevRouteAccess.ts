@@ -2,7 +2,12 @@ import { getSession, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
-import { canAccessDev } from "@/lib/auth/roles";
+import {
+  canApprove,
+  canDraft,
+  getRoleFloorLockReason,
+  resolveSessionRole,
+} from "@/lib/auth/roles";
 import { resolvePrimaryTab, type DevModePrimaryTab } from "./devModePageUtils";
 import { findDevTab, type DevModeTab } from "./devTabRegistry";
 
@@ -10,9 +15,6 @@ const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
   tools: "articles",
   "change-log": "change-log",
 };
-
-/** Where a session that cannot edit is sent when it sits on an editor-only tab. */
-const NON_EDITOR_HOME: DevModeTab = "contributors";
 
 type UseDevRouteAccessArgs = {
   activeTab: DevModeTab;
@@ -29,7 +31,7 @@ export function useDevRouteAccess({
 }: UseDevRouteAccessArgs) {
   const nextSession = useSession();
   const isSignedIn = nextSession.status === "authenticated";
-  const canEdit = isSignedIn && canAccessDev(nextSession.data?.user?.role);
+  const role = isSignedIn ? resolveSessionRole({ role: nextSession.data?.user?.role }) : null;
 
   const defaultSessionProfileKey = useMemo(() => {
     const email = nextSession.data?.user?.email?.trim() ?? "";
@@ -83,9 +85,11 @@ export function useDevRouteAccess({
    * place mid-pass. Confirm a vanished session with one forced re-check before
    * acting on it; only a second unauthenticated answer routes.
    *
-   * This is presentation routing only. Access itself is decided server-side by
+   * This is presentation only. Access itself is decided server-side by
    * `getDevRouteDecision` in the /dev and /review route handlers, and every
-   * write path keeps its own session and role checks.
+   * write path keeps its own session and role checks. The settled reading
+   * decides whether the open tool is swapped for its locked panel, so a blip
+   * never unmounts a tool mid-edit.
    */
   const sawAuthenticatedSessionRef = useRef(false);
   const recheckInFlightRef = useRef(false);
@@ -141,23 +145,20 @@ export function useDevRouteAccess({
   const isSessionSettled =
     sessionStatus !== "loading" && (isSignedIn || sessionLossConfirmed);
 
-  // Presentation routing only: the rail already disables editor-only tabs for
-  // a contributor, so this fires when the session changes underneath an open
-  // tab (role downgrade, sign-out confirmed above). The server decides access.
-  useEffect(() => {
-    if (!isSessionSettled || canEdit) {
-      return;
-    }
-
-    if (findDevTab(activeTab).role === "editor") {
-      handleTabChange(NON_EDITOR_HOME);
-    }
-  }, [activeTab, canEdit, handleTabChange, isSessionSettled]);
+  // The rail disables every tab above the role, so this covers deep links and
+  // sessions that change underneath an open tab (role downgrade, sign-out
+  // confirmed above). Null while the reading is unsettled: the tool stays up.
+  const activeTabLockReason = isSessionSettled
+    ? getRoleFloorLockReason(role, findDevTab(activeTab).role)
+    : null;
 
   return {
     activePrimaryTab,
+    activeTabLockReason,
     isSignedIn,
-    canEdit,
+    role,
+    canDraft: canDraft(role),
+    canApprove: canApprove(role),
     sessionProfileKey,
     sessionStatus: nextSession.status,
     userEmail: nextSession.data?.user?.email,

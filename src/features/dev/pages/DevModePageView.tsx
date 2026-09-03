@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 
+import { StateCard } from "@/components/common/StateCard";
 import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
 import { DevModeChangeLogTab } from "./DevModeChangeLogTab";
 import {
@@ -109,7 +110,27 @@ function DevToolSaveFamily({ tab }: { tab: DevTabDescriptor }) {
   );
 }
 
+/**
+ * Stands in for a tool the settled session may not use. The tab stays
+ * addressable so a deep link explains itself instead of bouncing; the tool's
+ * chunk is never loaded and none of its reads start.
+ */
+function DevToolLockedPanel({ label, reason }: { label: string; reason: string }) {
+  return (
+    <div className="mx-auto mt-10 max-w-xl">
+      <StateCard
+        icon="lucide:lock"
+        tone="warning"
+        align="center"
+        title={reason}
+        description={`${label} is closed to your role. Ask an admin if you need it.`}
+      />
+    </div>
+  );
+}
+
 export function DevModePageView({ controller }: DevModePageViewProps) {
+  const activeDescriptor = findDevTab(controller.activeTab);
   const isWaitingOnLibrary =
     controller.isLibraryLoading && LIBRARY_DEPENDENT_TABS.has(controller.activeTab);
 
@@ -123,7 +144,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         activePrimaryTab={controller.activePrimaryTab}
         activeTab={controller.activeTab}
         isSignedIn={controller.isSignedIn}
-        canEdit={controller.canEdit}
+        role={controller.role}
         sessionStatus={controller.sessionStatus}
         userEmail={controller.userEmail}
         userImage={controller.userImage}
@@ -134,8 +155,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       />
 
       <div className={controller.contentWrapperClass}>
-        <DevToolSaveFamily tab={findDevTab(controller.activeTab)} />
-        {isWaitingOnLibrary ? (
+        <DevToolSaveFamily tab={activeDescriptor} />
+        {controller.activeTabLockReason !== null ? (
+          <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
+        ) : isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
         ) : controller.activeTab === "change-log" ? (
           <DevModeChangeLogTab controller={controller.changeLog} />
@@ -159,7 +182,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <ContributorsTab
             profiles={controller.contributorDirectory.profiles}
             isDirectoryLoading={controller.contributorDirectory.isLoading}
-            canEdit={controller.canEdit}
+            canEdit={controller.canDraft}
+            canApprove={controller.canApprove}
             sessionProfileKey={controller.sessionProfileKey}
             initialScope={controller.initialFilter}
           />

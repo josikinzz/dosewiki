@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 /**
  * Query to get all changelog entries.
@@ -175,11 +175,11 @@ export const addEntry = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     // Check if entry with this ID already exists (prevent duplicates)
     const existing = await ctx.db

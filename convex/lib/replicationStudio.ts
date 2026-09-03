@@ -1,5 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { requireAuth } from "./auth";
+import { requireRole } from "./auth";
 import {
   assertEffectExists,
   editorialSnapshotOf,
@@ -19,7 +19,11 @@ export async function getStudioRowsHandler(
   ctx: QueryCtx,
   args: GetStudioRowsArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
   const rows = await ctx.db.query("replications").collect();
   const effects = await ctx.db.query("subjectiveEffects").collect();
   const effectNames = new Map(
@@ -73,7 +77,11 @@ export async function updateEditorialFieldsHandler(
   ctx: MutationCtx,
   args: UpdateEditorialFieldsArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "editor",
+  );
   const row = await ctx.db.get(args.id);
   if (!row) throw new Error(`Replication ${args.id} no longer exists.`);
 
@@ -114,7 +122,11 @@ export async function bulkUpdateEditorialFieldsHandler(
   ctx: MutationCtx,
   args: BulkUpdateEditorialFieldsArgs,
 ) {
-  await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+  await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "admin",
+  );
   if (args.ids.length === 0) {
     throw new Error("A bulk edit needs at least one row.");
   }

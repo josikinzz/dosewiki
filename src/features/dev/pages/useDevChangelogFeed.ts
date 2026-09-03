@@ -74,8 +74,9 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
         normalizeConvexChangelogEntries(convexChangelogEntries),
       );
 
-      // Keep locally appended entries (GitHub archives are not persisted to
-      // the Convex changelog) instead of rebuilding from the static snapshot.
+      // Keep locally appended entries (a save's entry can land here before
+      // the Convex subscription catches up) instead of rebuilding from the
+      // static snapshot.
       const mergedIds = new Set(merged.map((entry) => entry.id));
       const localOnlyEntries = previous.filter((entry) => !mergedIds.has(entry.id));
 

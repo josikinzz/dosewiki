@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 /**
  * Canonical molecule depictions used by the Molecules editor and public pages.
@@ -11,7 +11,7 @@ import { requireEditorWrite } from "./lib/auth";
  *
  * Reads are public. Public pages display `svg` when a document exists and show
  * no depiction when it does not. Writes require an editor or admin actor via
- * `requireEditorWrite`, matching the substance-article and index-layout editors.
+ * `requireRole`, matching the substance-article and index-layout editors.
  */
 
 const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
@@ -77,11 +77,11 @@ export const getCurrentBySlugs = query({
     slugs: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     if (args.slugs.length > MAX_TEMPLATE_APPLY_SLUGS) {
       throw new Error(`Template preview is limited to ${MAX_TEMPLATE_APPLY_SLUGS} molecules.`);
@@ -114,7 +114,7 @@ export const getCurrentBySlugs = query({
   },
 });
 
-/** Create or replace the canonical depiction for a slug. Editor/admin only. */
+/** Create or replace the canonical depiction for a slug. Admin only. */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -127,11 +127,11 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidSlug(args.slug);
     if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
@@ -193,11 +193,11 @@ export const replicate = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidSlug(args.slug);
     if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
@@ -251,11 +251,11 @@ export const applyTemplateDepiction = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidSlug(args.slug);
     if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
@@ -320,11 +320,11 @@ export const rerenderSvg = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidSlug(args.slug);
     if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
@@ -366,11 +366,11 @@ export const seedMissing = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidSlug(args.slug);
     if (!args.svg.includes("<svg") || args.svg.length > MAX_SVG_BYTES) {
@@ -409,11 +409,11 @@ export const remove = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     assertValidSlug(args.slug);
 

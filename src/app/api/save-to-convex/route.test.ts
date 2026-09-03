@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -36,25 +37,16 @@ vi.mock("../../../../convex/_generated/api", () => ({
     indexLayouts: {
       save: "indexLayouts.save",
     },
-    categoryLayout: {
-      save: "categoryLayout.save",
-    },
     changelog: {
       addEntry: "changelog.addEntry",
     },
   },
 }));
 
-const authMocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
-}));
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: authMocks.requireEditorSession,
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -75,12 +67,7 @@ describe("save-to-convex route", () => {
     nextCacheMocks.revalidatePath.mockReset();
     nextCacheMocks.revalidateTag.mockReset();
     publicLibraryMocks.invalidatePublicDerivedDataCache.mockReset();
-    authMocks.requireEditorSession.mockReset();
-    authMocks.requireEditorSession.mockResolvedValue({
-      ok: true,
-      session: { user: { email: "editor@example.com", name: "Editor" } },
-      role: "editor",
-    });
+    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
     mocks.getServerConvexWriteCapability.mockReset();
   });
 
@@ -311,86 +298,6 @@ describe("save-to-convex route", () => {
     });
   });
 
-  it("uses system Convex writes for local credential users while preserving submittedBy metadata", async () => {
-    authMocks.requireEditorSession.mockResolvedValue({
-      ok: true,
-      session: { user: { email: "josie@local.dose.wiki", name: "JOSIE" } },
-      role: "admin",
-    });
-    const client = {
-      query: vi.fn(),
-      mutation: vi.fn(async (name: string) => {
-        if (name === "substanceIndex.saveSubstances") {
-          return {
-            created: 0,
-            updated: 1,
-            skipped: 0,
-            errors: [],
-            affectedPaths: ["/lsd", "/substances"],
-            outcomes: [
-              {
-                target: "id:1",
-                action: "updated",
-                title: "LSD",
-                requestedSlug: "lsd",
-                fallbackSlug: "lsd",
-                canonicalSlug: "lsd",
-                previous: { id: 1, title: "LSD", slug: "lsd" },
-                next: { id: 1, title: "LSD", slug: "lsd" },
-                affectedPaths: ["/lsd", "/substances"],
-              },
-            ],
-          };
-        }
-
-        if (name === "changelog.addEntry") {
-          return { created: true, id: "entry-id" };
-        }
-
-        throw new Error(`Unexpected mutation ${name}`);
-      }),
-    };
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client,
-        getAdminIntentToken: vi.fn(() => "article-token"),
-      },
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/save-to-convex", {
-        method: "POST",
-        body: JSON.stringify({
-          articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-          changelog: {
-            markdown: "Changed LSD.",
-            articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-          },
-        }),
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(client.mutation).toHaveBeenCalledWith("substanceIndex.saveSubstances", {
-      apiKey: "article-token",
-      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-    });
-    expect(client.mutation).toHaveBeenCalledWith("changelog.addEntry", expect.objectContaining({
-      submittedBy: "JOSIE",
-    }));
-    const mutationCalls = client.mutation.mock.calls as unknown as Array<[string, Record<string, unknown>]>;
-    const articleCall = mutationCalls.find(([name]) => name === "substanceIndex.saveSubstances");
-    const changelogCall = mutationCalls.find(([name]) => name === "changelog.addEntry");
-    expect(articleCall?.[1]).not.toHaveProperty("actorEmail");
-    expect(changelogCall?.[1]).not.toHaveProperty("actorEmail");
-    await expect(response.json()).resolves.toMatchObject({
-      submittedBy: "JOSIE",
-    });
-  });
-
   it("persists every changed index layout dataset through the authenticated Convex route", async () => {
     const client = {
       query: vi.fn(),
@@ -449,11 +356,11 @@ describe("save-to-convex route", () => {
     });
   });
 
-  it("mirrors psychoactive index layout saves into the categoryLayout table the public page reads", async () => {
+  it("sends psychoactive layouts to indexLayouts.save only; Convex mirrors them into categoryLayout", async () => {
     const client = {
       query: vi.fn(),
       mutation: vi.fn(async (name: string) => {
-        if (name === "indexLayouts.save" || name === "categoryLayout.save") {
+        if (name === "indexLayouts.save") {
           return { updated: true, id: "layout-id" };
         }
 
@@ -504,26 +411,14 @@ describe("save-to-convex route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(client.mutation).toHaveBeenCalledWith("categoryLayout.save", {
-      apiKey: "admin-key",
+    expect(client.mutation).toHaveBeenCalledTimes(1);
+    expect(client.mutation).toHaveBeenCalledWith("indexLayouts.save", expect.objectContaining({
+      apiKey: "article-token",
+      actorEmail: "editor@example.com",
+      type: "psychoactive",
       version: 4,
-      categories: [
-        {
-          key: "psychedelics",
-          label: "Psychedelics",
-          iconKey: "sparkle",
-          columns: { "3": 1 },
-          drugs: ["lsd"],
-          sections: [
-            {
-              key: "lysergamides",
-              label: "Lysergamides",
-              drugs: ["ald-52"],
-            },
-          ],
-        },
-      ],
-    });
+    }));
+    expect(client.mutation).not.toHaveBeenCalledWith("categoryLayout.save", expect.anything());
     await expect(response.json()).resolves.toMatchObject({
       success: true,
       savedItems: ["1 index layout(s)"],

@@ -1,4 +1,7 @@
+import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { roleSessionFor } from "@/test/routeSession";
 
 import { GET, POST } from "./route";
 
@@ -18,11 +21,11 @@ vi.mock("../../../../../convex/_generated/api", () => ({
 }));
 
 const sessionMocks = vi.hoisted(() => ({
-  requireAuthenticatedSession: vi.fn(),
+  requireRoleSession: vi.fn(),
 }));
 
-vi.mock("@/lib/auth/requireAuthenticatedSession", () => ({
-  requireAuthenticatedSession: sessionMocks.requireAuthenticatedSession,
+vi.mock("@/lib/auth/requireEditorSession", () => ({
+  requireRoleSession: sessionMocks.requireRoleSession,
 }));
 
 const rateLimitMocks = vi.hoisted(() => ({
@@ -58,12 +61,10 @@ vi.mock("@server/next/contributorAvatarUpload", () => ({
   uploadAvatarToConvex: vi.fn(),
 }));
 
-function signIn(role: "viewer" | "editor", email: string) {
-  sessionMocks.requireAuthenticatedSession.mockResolvedValue({
-    ok: true,
-    role,
-    session: { user: { email, name: "Someone", role } },
-  });
+function signIn(role: "viewer" | "contributor" | "editor" | "admin", email: string) {
+  sessionMocks.requireRoleSession.mockImplementation(
+    roleSessionFor(role, { email, name: "Someone" }),
+  );
 }
 
 const storedProfile = (overrides: Record<string, unknown> = {}) => ({
@@ -119,12 +120,22 @@ describe("contributor profile route", () => {
     mocks.query.mockReset();
     mocks.mutation.mockReset();
     mocks.revalidateContributorSurfaces.mockReset();
-    sessionMocks.requireAuthenticatedSession.mockReset();
+    sessionMocks.requireRoleSession.mockReset();
     rateLimitMocks.enforceRateLimit.mockClear();
   });
 
+  it("refuses a legacy viewer sign-in on both verbs before touching Convex", async () => {
+    signIn("viewer", "ada@example.com");
+
+    expect((await GET(getRequest("ADA"))).status).toBe(403);
+    expect((await POST(postRequest({ key: "ADA", displayName: "Ada" }))).status).toBe(403);
+    expect(sessionMocks.requireRoleSession).toHaveBeenCalledWith("contributor");
+    expect(mocks.query).not.toHaveBeenCalled();
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
   describe("as a contributor without editor role", () => {
-    beforeEach(() => signIn("viewer", "ada@example.com"));
+    beforeEach(() => signIn("contributor", "ada@example.com"));
 
     it("refuses to read anyone else's record", async () => {
       routeQueries({ owned: { key: "ADA" }, editorProfile: storedProfile({ key: "JOSIE" }) });
@@ -277,16 +288,33 @@ describe("contributor profile route", () => {
         revalidate: { contributorKeys: ["ADA"], reportSlugs: [] },
       });
 
-      const response = await POST(
-        postRequest({ key: "ADA", aliases: ["Countess"], approved_replicator: true }),
-      );
+      const response = await POST(postRequest({ key: "ADA", aliases: ["Countess"] }));
 
       expect(response.status).toBe(200);
       expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.saveProfileAsEditor", {
         apiKey: "admin-key",
         actorEmail: "editor@example.com",
         key: "ADA",
-        patch: { aliases: ["Countess"], approved_replicator: true },
+        patch: { aliases: ["Countess"] },
+      });
+    });
+
+    it("relays Convex's admin-only field refusal as a 403 naming the field", async () => {
+      routeQueries({ editorProfile: storedProfile() });
+      mocks.mutation.mockRejectedValue(
+        new ConvexError({
+          code: "ADMIN_ONLY_PROFILE_FIELD",
+          field: "approved_replicator",
+          message: 'Only an admin can change "approved_replicator" on a contributor profile.',
+        }),
+      );
+
+      const response = await POST(postRequest({ key: "ADA", approved_replicator: true }));
+
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({
+        error: 'Only an admin can change "approved_replicator" on a contributor profile.',
+        code: "ADMIN_ONLY_PROFILE_FIELD",
       });
     });
 
@@ -309,6 +337,30 @@ describe("contributor profile route", () => {
           profile: expect.objectContaining({ key: "EDITOR" }),
         }),
       );
+    });
+  });
+
+  describe("as an admin", () => {
+    beforeEach(() => signIn("admin", "admin@example.com"));
+
+    it("forwards the trust fields to the editor mutation as the admin", async () => {
+      routeQueries({ editorProfile: storedProfile() });
+      mocks.mutation.mockResolvedValue({
+        profile: storedProfile({ approved_replicator: true }),
+        revalidate: { contributorKeys: ["ADA"], reportSlugs: [] },
+      });
+
+      const response = await POST(
+        postRequest({ key: "ADA", role: "Founder", approved_replicator: true, membershipEmail: "" }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.saveProfileAsEditor", {
+        apiKey: "admin-key",
+        actorEmail: "admin@example.com",
+        key: "ADA",
+        patch: { role: "Founder", approved_replicator: true, membershipEmail: null },
+      });
     });
   });
 });

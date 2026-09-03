@@ -1212,7 +1212,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Auth: body",
     "group": "Docs · Code",
-    "body": "`auth.ts` configures sign-in: GitHub OAuth plus a legacy credentials provider for `@local.dose.wiki` editor accounts. `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. Editor roles (admin / editor / viewer) live in the Convex `memberships` table."
+    "body": "`auth.ts` configures sign-in: a single username + password credentials provider backed by the Convex `memberships` table (scrypt hashes, never env passwords). `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. Roles (admin / editor / contributor) live on the membership row."
   },
   {
     "key": "docs-code-s3-ai-label",

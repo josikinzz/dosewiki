@@ -24,6 +24,7 @@ export default async function DevThemesPage() {
     pathname: STATUS_PAGE_PATHS.dev,
     email: session?.user?.email ?? null,
     role: session?.user?.role ?? null,
+    floor: "editor",
   });
   const redirectTarget = getProtectedRouteRedirectTarget(decision);
 

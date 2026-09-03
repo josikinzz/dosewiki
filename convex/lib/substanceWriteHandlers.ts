@@ -1,6 +1,6 @@
 import { ConvexError } from "convex/values";
 import type { MutationCtx } from "../_generated/server";
-import { requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import {
   applyEditableFieldWrite,
   applyIupacNameWrite,
@@ -21,11 +21,11 @@ export async function saveSubstanceHandler(
   ctx: MutationCtx,
   args: EditorArgs & { article: SubstanceArticleInput },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   const outcome = await ingestSubstanceArticle({ db: ctx.db, article: args.article });
   if (outcome.action === "skipped") {
     throw new Error(outcome.error ?? "Unable to save substance.");
@@ -42,11 +42,11 @@ export async function saveSubstancesHandler(
   ctx: MutationCtx,
   args: EditorArgs & { articles: SubstanceArticleInput[] },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   return ingestSubstanceArticles({ db: ctx.db, articles: args.articles });
 }
 
@@ -63,11 +63,11 @@ export async function setArticleFieldHandler(
     expected?: EditableFieldValue;
   },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   if (!isEditableArticleFieldPath(args.path)) {
     throw new ConvexError({
       code: "FIELD_NOT_EDITABLE",
@@ -127,11 +127,11 @@ export async function setIupacNameHandler(
     expected: string;
   },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   const article = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
@@ -171,11 +171,11 @@ export async function appendArticleReferenceHandler(
   ctx: MutationCtx,
   args: EditorArgs & { slug: string; reference: unknown },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   const article = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
@@ -209,11 +209,11 @@ export async function removeArticleReferenceHandler(
   ctx: MutationCtx,
   args: EditorArgs & { slug: string; referenceId: string },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "editor");
   const article = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
@@ -260,11 +260,11 @@ export async function deleteSubstanceHandler(
   ctx: MutationCtx,
   args: EditorArgs & { id: number },
 ) {
-  await requireEditorWrite(ctx, {
+  await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  });
+  }, "admin");
   const existing = await ctx.db
     .query("substanceIndex")
     .withIndex("by_article_id", (query) => query.eq("id", args.id))

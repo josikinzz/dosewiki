@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 /**
  * `getAll`, `getBySlug` and `getByTag` are unauthenticated public reads, so the
@@ -66,11 +66,11 @@ export const listForEditor = query({
     actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const all = await ctx.db.query("effectIndexArticles").collect();
 
@@ -98,11 +98,11 @@ export const getForEditor = query({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     return await ctx.db
       .query("effectIndexArticles")
@@ -156,11 +156,11 @@ export const upsertArticle = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, ...rest } = args;
 
@@ -231,11 +231,12 @@ export const upsertArticle = mutation({
 });
 
 /**
- * Bulk import EffectIndex articles.
+ * Bulk import EffectIndex articles. Script-only; admin floor.
  */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     articles: v.array(
       v.object({
         slug: v.string(),
@@ -260,8 +261,7 @@ export const bulkImport = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const results = {
       created: 0,

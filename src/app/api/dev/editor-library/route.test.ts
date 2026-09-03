@@ -1,17 +1,18 @@
 import { getFunctionName } from "convex/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(),
+  requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(async () => null),
   query: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: mocks.requireEditorSession,
+  requireRoleSession: mocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -22,12 +23,6 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
 }));
 
-const editorSession = {
-  ok: true as const,
-  session: { user: { email: "editor@example.com", name: "Editor" } },
-  role: "editor",
-};
-
 function queriedNames(): string {
   return mocks.query.mock.calls
     .map(([reference]) => getFunctionName(reference as never))
@@ -36,7 +31,7 @@ function queriedNames(): string {
 
 beforeEach(() => {
   vi.resetModules();
-  mocks.requireEditorSession.mockReset().mockResolvedValue(editorSession);
+  mocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   mocks.query.mockReset().mockResolvedValue({ page: [], continueCursor: "", isDone: true });
   mocks.getServerConvexWriteCapability.mockReset().mockReturnValue({
@@ -55,7 +50,7 @@ describe("dev editor library route", () => {
 
     const response = await GET(new Request("https://dose.wiki/api/dev/editor-library"));
 
-    expect(mocks.requireEditorSession).toHaveBeenCalled();
+    expect(mocks.requireRoleSession).toHaveBeenCalledWith("editor");
     expect(mocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "diagnosticRead");
     expect(response.status).toBe(200);
   });

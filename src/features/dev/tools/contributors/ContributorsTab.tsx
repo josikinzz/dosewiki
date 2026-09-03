@@ -22,6 +22,8 @@ export type ContributorsTabProps = {
   isDirectoryLoading: boolean;
   /** Editor role. Without it the tab is the signed-in user's own record and nothing else. */
   canEdit: boolean;
+  /** Admin role: the trust fields (role, membership, flags, staff note) are editable only with it. */
+  canApprove: boolean;
   /** The signed-in user's own contributor key. */
   sessionProfileKey: string;
   /** The route's `?scope=` value, validated by the registry; anything else opens on all. */
@@ -50,10 +52,17 @@ export function ContributorsTab({
   profiles,
   isDirectoryLoading,
   canEdit,
+  canApprove,
   sessionProfileKey,
   initialScope,
 }: ContributorsTabProps) {
-  const controller = useContributorsController({ profiles, canEdit, sessionProfileKey, initialScope });
+  const controller = useContributorsController({
+    profiles,
+    canEdit,
+    canApprove,
+    sessionProfileKey,
+    initialScope,
+  });
   const {
     scope,
     setScope,

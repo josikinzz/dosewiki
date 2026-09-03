@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
-import type { DevTabDescriptor } from "./devTabRegistry";
+import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
+import { DEV_TAB_REGISTRY, type DevTabDescriptor } from "./devTabRegistry";
 
 /** A named count source a descriptor can declare; the rail renders it as a badge. */
 export type DevRailBadge = NonNullable<DevTabDescriptor["badge"]>;
@@ -17,6 +18,11 @@ const BADGE_SOURCES: Record<DevRailBadge, { url: string; field: string }> = {
 };
 
 const BADGES = Object.keys(BADGE_SOURCES) as DevRailBadge[];
+
+/** The badged tab's role floor: a member below it never asks for that count. */
+const BADGE_FLOORS = Object.fromEntries(
+  DEV_TAB_REGISTRY.flatMap((tab) => (tab.badge ? [[tab.badge, tab.role]] : [])),
+) as Record<DevRailBadge, DevTabDescriptor["role"]>;
 
 type BadgeEntry = {
   /** Last count the rail saw; null until the endpoint has answered once. */
@@ -100,17 +106,16 @@ async function loadCount(badge: DevRailBadge, generation: number) {
  * This lives beside the shell rather than inside any tool so the rail does not
  * pull a tool's bundle into first paint.
  */
-export function useDevRailBadges(enabled: boolean): DevRailBadgeCounts {
+export function useDevRailBadges(role: AppRole | null): DevRailBadgeCounts {
   const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
   // Generations this mount has already asked for; a remount asks again.
   const requestedRef = useRef<Partial<Record<DevRailBadge, number>>>({});
 
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
     for (const badge of BADGES) {
+      if (!roleMeetsFloor(role, BADGE_FLOORS[badge])) {
+        continue;
+      }
       const { generation } = current[badge];
       if (requestedRef.current[badge] === generation) {
         continue;
@@ -118,7 +123,7 @@ export function useDevRailBadges(enabled: boolean): DevRailBadgeCounts {
       requestedRef.current[badge] = generation;
       void loadCount(badge, generation);
     }
-  }, [enabled, current]);
+  }, [role, current]);
 
   const counts: Partial<Record<DevRailBadge, number>> = {};
   for (const badge of BADGES) {

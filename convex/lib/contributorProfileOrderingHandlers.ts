@@ -1,5 +1,5 @@
 import type { MutationCtx } from "../_generated/server";
-import { requireEditorWrite } from "./auth";
+import { requireRole } from "./auth";
 import {
   normalizeOrderSlugs,
   normalizeProfileKey,
@@ -38,11 +38,11 @@ export async function setContributorOrderingHandler(
     reportOrder?: string[];
   },
 ) {
-  const actor = await requireEditorWrite(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "profileMediaWrite",
-  });
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+    "editor",
+  );
   const key = normalizeProfileKey(args.key);
   if (!key) throw new Error("Profile key is required.");
   const existing = await getStoredContributorProfile(ctx, key);

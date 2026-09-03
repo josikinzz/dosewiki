@@ -225,24 +225,26 @@ describe("the profile form", () => {
     expect(isContributorFormDirty(profile, form, false)).toBe(true);
   });
 
+  const clearableForm = {
+    displayName: "  Josie  ",
+    bio: "",
+    role: "   ",
+    membershipEmail: "",
+    avatarUrl: "",
+    aliases: ["  gremblin ", ""],
+    links: [
+      { label: "Site", url: "https://example.com" },
+      { label: "", url: "https://dropped.example" },
+    ],
+    exclude_from_gallery: false,
+    archival: false,
+    approved_replicator: false,
+    staffNoteMarkdown: "   ",
+    staffNoteAttribution: "Someone",
+  };
+
   it("sends null for emptied clearable fields and keeps an empty bio as a string", () => {
-    const patch = buildContributorPatch({
-      displayName: "  Josie  ",
-      bio: "",
-      role: "   ",
-      membershipEmail: "",
-      avatarUrl: "",
-      aliases: ["  gremblin ", ""],
-      links: [
-        { label: "Site", url: "https://example.com" },
-        { label: "", url: "https://dropped.example" },
-      ],
-      exclude_from_gallery: false,
-      archival: false,
-      approved_replicator: false,
-      staffNoteMarkdown: "   ",
-      staffNoteAttribution: "Someone",
-    });
+    const patch = buildContributorPatch(clearableForm, { canApprove: true });
 
     expect(patch).toEqual({
       displayName: "Josie",
@@ -258,6 +260,31 @@ describe("the profile form", () => {
       // A blank note clears the field even when an attribution was left behind.
       staffNote: null,
     });
+  });
+
+  it("never names a trust field in an editor's patch, even unchanged", () => {
+    const patch = buildContributorPatch(
+      { ...clearableForm, role: "Founder", approved_replicator: true, staffNoteMarkdown: "Kept." },
+      { canApprove: false },
+    );
+
+    expect(patch).toEqual({
+      displayName: "Josie",
+      bio: "",
+      avatarUrl: null,
+      aliases: ["gremblin"],
+      links: [{ label: "Site", url: "https://example.com" }],
+    });
+    for (const field of [
+      "role",
+      "membershipEmail",
+      "exclude_from_gallery",
+      "archival",
+      "approved_replicator",
+      "staffNote",
+    ]) {
+      expect(patch).not.toHaveProperty(field);
+    }
   });
 
   it("keeps the self-serve patch to name, bio, avatar, and links", () => {
@@ -291,7 +318,7 @@ describe("the profile form", () => {
 
     const toggled = { ...toContributorForm(profile), exclude_from_gallery: true };
     expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
-    expect(buildContributorPatch(toggled).exclude_from_gallery).toBe(true);
+    expect(buildContributorPatch(toggled, { canApprove: true }).exclude_from_gallery).toBe(true);
   });
 
   it("round-trips the archival flag and notices it toggling", () => {
@@ -301,7 +328,7 @@ describe("the profile form", () => {
 
     const toggled = { ...toContributorForm(profile), archival: true };
     expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
-    expect(buildContributorPatch(toggled).archival).toBe(true);
+    expect(buildContributorPatch(toggled, { canApprove: true }).archival).toBe(true);
   });
 
   it("round-trips the approved replicator flag and notices it toggling", () => {
@@ -311,7 +338,7 @@ describe("the profile form", () => {
 
     const toggled = { ...toContributorForm(profile), approved_replicator: true };
     expect(isContributorFormDirty(profile, toggled, false)).toBe(true);
-    expect(buildContributorPatch(toggled).approved_replicator).toBe(true);
+    expect(buildContributorPatch(toggled, { canApprove: true }).approved_replicator).toBe(true);
   });
 
   it("round-trips the staff note and only sends an attribution beside a kept note", () => {
@@ -324,13 +351,13 @@ describe("the profile form", () => {
     expect(form.staffNoteAttribution).toBe("Josie Kins · founder");
     expect(isContributorFormDirty(noted, form, false)).toBe(false);
 
-    expect(buildContributorPatch(form).staffNote).toEqual({
+    expect(buildContributorPatch(form, { canApprove: true }).staffNote).toEqual({
       markdown: "A **signed** note.",
       attribution: "Josie Kins · founder",
     });
 
     const unattributed = { ...form, staffNoteAttribution: "   " };
-    expect(buildContributorPatch(unattributed).staffNote).toEqual({
+    expect(buildContributorPatch(unattributed, { canApprove: true }).staffNote).toEqual({
       markdown: "A **signed** note.",
     });
   });

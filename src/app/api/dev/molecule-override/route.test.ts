@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
+
+import { DELETE, GET, POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
@@ -12,12 +15,10 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -26,6 +27,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
+  mutation: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
 }));
 
@@ -33,21 +35,33 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
 }));
 
+const postRequest = (body: Record<string, unknown>) =>
+  new Request("https://dose.wiki/api/dev/molecule-override", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+const deleteRequest = (slug: string) =>
+  new Request(`https://dose.wiki/api/dev/molecule-override?slug=${slug}`, { method: "DELETE" });
+
 describe("molecule override route", () => {
   beforeEach(() => {
-    vi.resetModules();
+    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", {
+      email: "admin@example.com",
+      name: "Admin",
+    }));
     mocks.query.mockReset();
+    mocks.mutation.mockReset();
     mocks.getServerConvexWriteCapability.mockReset();
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
-      capability: { client: { query: mocks.query }, adminKey: "admin-key" },
+      capability: { client: { query: mocks.query, mutation: mocks.mutation }, adminKey: "admin-key" },
     });
   });
 
-  it("loads a selected substance depiction through the authenticated editor deployment", async () => {
+  it("loads a selected substance depiction through the authenticated admin deployment", async () => {
     mocks.query.mockResolvedValue({ slug: "2c-b", molblock: "mol", svg: "<svg />" });
-    const { GET } = await import("./route");
-
     const response = await GET(
       new Request("https://dose.wiki/api/dev/molecule-override?slug=2c-b"),
     );
@@ -58,5 +72,19 @@ describe("molecule override route", () => {
       override: { slug: "2c-b", molblock: "mol", svg: "<svg />" },
     });
     expect(mocks.query).toHaveBeenCalledWith("moleculeOverrides.getBySlug", { slug: "2c-b" });
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+  });
+
+  it("refuses an editor session on every verb before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const responses = await Promise.all([
+      GET(new Request("https://dose.wiki/api/dev/molecule-override?slug=2c-b")),
+      POST(postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />" })),
+      DELETE(deleteRequest("2c-b")),
+    ]);
+
+    expect(responses.map((response) => response.status)).toEqual([403, 403, 403]);
+    expect(mocks.query).not.toHaveBeenCalled();
+    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 });

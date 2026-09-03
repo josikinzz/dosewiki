@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -25,10 +25,10 @@ vi.mock("@server/convex/publicData", () => ({
   PUBLIC_CONVEX_CACHE_TAGS: { banners: "convex-public:banners" },
 }));
 
-const authMocks = vi.hoisted(() => ({ requireEditorSession: vi.fn() }));
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: authMocks.requireEditorSession,
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -58,11 +58,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireEditorSession.mockResolvedValue({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  });
+  authMocks.requireRoleSession.mockImplementation(
+    roleSessionFor("admin", { email: "editor@example.com", name: "Editor" }),
+  );
   convexMocks.getServerConvexWriteCapability.mockReturnValue({
     ok: true,
     capability: {
@@ -74,16 +72,25 @@ beforeEach(() => {
 });
 
 describe("banner display route", () => {
-  it("refuses a non-editor before touching Convex", async () => {
-    authMocks.requireEditorSession.mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
-    });
+  it("refuses a signed-out caller before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor(null));
     const { POST } = await import("./route");
 
     const response = await POST(saveRequest({ iconSize: 56 }));
 
     expect(response.status).toBe(401);
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("refuses an editor session with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { POST } = await import("./route");
+
+    const response = await POST(saveRequest({ iconSize: 56 }));
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(convexMocks.query).not.toHaveBeenCalled();
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 

@@ -111,7 +111,11 @@ const saveHandler = asHandler(saveProfileAsEditor);
 const orderingHandler = asHandler(setContributorOrdering);
 
 const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com" };
-const editorMemberships: Record<string, Role> = { "editor@example.com": "editor" };
+const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com" };
+const editorMemberships: Record<string, Role> = {
+  "editor@example.com": "editor",
+  "admin@example.com": "admin",
+};
 
 describe("contributorProfiles.saveProfileAsEditor authorization", () => {
   afterEach(() => {
@@ -152,15 +156,50 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     const result = await saveHandler(harness.ctx, {
       ...editorArgs,
       key: "josie",
-      patch: { displayName: "Josie", bio: "New bio.", role: "Project Lead" },
+      patch: { displayName: "Josie", bio: "New bio.", aliases: ["jo"] },
     });
 
     expect(harness.patch).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({
       updated: true,
-      profile: { key: "JOSIE", displayName: "Josie", bio: "New bio.", role: "Project Lead" },
+      profile: { key: "JOSIE", displayName: "Josie", bio: "New bio." },
     });
     expect(harness.read()?.updatedBy).toBe("editor@example.com");
+  });
+
+  it.each([
+    ["role", { role: "Project Lead" }],
+    ["membershipEmail", { membershipEmail: "someone@example.com" }],
+    ["approved_replicator", { approved_replicator: true }],
+    ["exclude_from_gallery", { exclude_from_gallery: false }],
+    ["archival", { archival: true }],
+    ["staffNote", { staffNote: null }],
+  ])("refuses an editor's patch that names the %s field, even alongside allowed ones", async (field, patch) => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    await expect(
+      saveHandler(harness.ctx, { ...editorArgs, key: "JOSIE", patch: { bio: "fine", ...patch } }),
+    ).rejects.toMatchObject({
+      data: { code: "ADMIN_ONLY_PROFILE_FIELD", field },
+    });
+
+    expect(harness.patch).not.toHaveBeenCalled();
+  });
+
+  it("lets an admin set the trust fields", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    const result = await saveHandler(harness.ctx, {
+      ...adminArgs,
+      key: "josie",
+      patch: { role: "Project Lead", membershipEmail: "josie@new.example" },
+    });
+
+    expect(result).toMatchObject({ profile: { key: "JOSIE", role: "Project Lead" } });
+    expect(harness.read()?.membershipEmail).toBe("josie@new.example");
+    expect(harness.read()?.updatedBy).toBe("admin@example.com");
   });
 
   it("patches only the named fields and never clears the omitted ones", async () => {
@@ -187,14 +226,14 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     const harness = createCtx({ memberships: editorMemberships });
 
     await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...adminArgs,
       key: "JOSIE",
       patch: { exclude_from_gallery: true },
     });
     expect(harness.read()?.exclude_from_gallery).toBe(true);
 
     await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...adminArgs,
       key: "JOSIE",
       patch: { exclude_from_gallery: false },
     });
@@ -207,7 +246,7 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     const harness = createCtx({ memberships: editorMemberships });
 
     await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...adminArgs,
       key: "JOSIE",
       patch: { archival: true, staffNote: { markdown: "A note.", attribution: "Josie" } },
     });
@@ -215,7 +254,7 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     expect(harness.read()?.staffNote).toEqual({ markdown: "A note.", attribution: "Josie" });
 
     await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...adminArgs,
       key: "JOSIE",
       patch: { archival: false, staffNote: null },
     });
@@ -229,14 +268,14 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     const harness = createCtx({ memberships: editorMemberships });
 
     await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...adminArgs,
       key: "JOSIE",
       patch: { approved_replicator: true },
     });
     expect(harness.read()?.approved_replicator).toBe(true);
 
     await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...adminArgs,
       key: "JOSIE",
       patch: { approved_replicator: false },
     });

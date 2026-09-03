@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { replicationTaxonomyLocatorMatches } from "./lib/replicationTaxonomyCas";
 import {
   artistPrimaryTypeValidator,
@@ -108,10 +108,11 @@ export const getMigrationPage = query({
     isDone: v.boolean(),
   }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "replicationMaintenance",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
     const limit = Math.max(1, Math.min(200, Math.floor(args.limit)));
     const page = await ctx.db.query("replications").order("asc").paginate({
       cursor: args.cursor ?? null,
@@ -136,10 +137,11 @@ export const getByIds = query({
     missing: v.array(v.id("replications")),
   }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "replicationMaintenance",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
     if (args.ids.length > 100) throw new Error("Taxonomy read-back is limited to 100 rows.");
     const rows: ReturnType<typeof projectReplication>[] = [];
     const missing: Id<"replications">[] = [];
@@ -159,10 +161,11 @@ export const getArtistsByKeys = query({
   },
   returns: v.array(artistProjectionValidator),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "replicationMaintenance",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
     if (args.keys.length > 200) throw new Error("Artist taxonomy read-back is limited to 200 rows.");
     const rows = [];
     for (const rawKey of args.keys) {
@@ -236,10 +239,11 @@ export const applyBatch = mutation({
     artist_rows: v.number(),
   }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "replicationMaintenance",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
     if (args.replications.length + args.artists.length === 0) {
       throw new Error("A taxonomy batch needs at least one update.");
     }

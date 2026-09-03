@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
 import {
   replicationMediaType,
@@ -323,11 +323,16 @@ const CURATION_CANDIDATE_MAX_PAGE_SIZE = 100;
 export const listCurationCandidatesPage = query({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "editor",
+    );
 
     const numItems = Math.min(
       Math.max(Math.floor(args.limit ?? CURATION_CANDIDATE_PAGE_SIZE), 1),
@@ -380,10 +385,15 @@ export const listCurationCandidatesPage = query({
 export const getCurationDetail = query({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     substance_slug: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "editor",
+    );
 
     const substance = await uniqueSubstanceBySlug(ctx, args.substance_slug);
     if (!substance) {
@@ -489,11 +499,11 @@ export const upsert = mutation({
     expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     if (args.curated_slugs.length > MAX_GALLERY_CURATION_SLUGS) {
       throw new Error(
@@ -598,11 +608,11 @@ export const setCarouselOrder = mutation({
     expectedCarouselOrder: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
     if (args.carousel_order.length > MAX_GALLERY_CURATION_SLUGS) {
       throw new Error(
         `This carousel orders ${args.carousel_order.length} works; the limit is ${MAX_GALLERY_CURATION_SLUGS}.`,
@@ -705,12 +715,17 @@ function associationProvenance(
 export const getReplicationAssociationsPage = query({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     replicationSlug: v.string(),
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "replicationMaintenance");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "editor",
+    );
 
     const numItems = Math.min(
       Math.max(Math.floor(args.limit ?? CURATION_CANDIDATE_PAGE_SIZE), 1),
@@ -777,11 +792,11 @@ export const setReplicationDirectAssociation = mutation({
     assigned: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
     const replication = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.replicationSlug))
@@ -884,11 +899,11 @@ export const setReplicationExclusions = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    });
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     if (args.excludedSubstanceSlugs.length > MAX_GALLERY_CURATION_SLUGS) {
       throw new Error(

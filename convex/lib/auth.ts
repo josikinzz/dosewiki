@@ -20,7 +20,6 @@ import {
  * Set this in the Convex dashboard under Settings > Environment Variables.
  */
 const ADMIN_KEY_ENV_VAR = "CONVEX_ADMIN_KEY";
-const LOCAL_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
 
 /**
  * Authenticated user information returned by requireAuth.
@@ -31,7 +30,25 @@ export type AuthenticatedUser = {
   name: string;
 };
 
-export type AuthorizedRole = "admin" | "editor" | "viewer";
+export type AuthorizedRole = "admin" | "editor" | "contributor" | "viewer";
+
+/**
+ * Role floors, lowest to highest. `requireRole` admits an actor whose role
+ * sits at or above the floor. `viewer` is a legacy stored value only: it is
+ * never a floor and never passes one.
+ */
+export type RoleFloor = "admin" | "editor" | "contributor";
+
+const ROLE_RANK: Record<AuthorizedRole, number> = {
+  viewer: 0,
+  contributor: 1,
+  editor: 2,
+  admin: 3,
+};
+
+export function roleMeetsFloor(role: AuthorizedRole, floor: RoleFloor): boolean {
+  return ROLE_RANK[role] >= ROLE_RANK[floor];
+}
 
 export type AuthorizedActor = AuthenticatedUser & {
   role: AuthorizedRole;
@@ -122,22 +139,25 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-function isLocalCredentialEmail(email: string): boolean {
-  return normalizeEmail(email).endsWith(LOCAL_CREDENTIAL_EMAIL_DOMAIN);
-}
-
-async function getMembershipRole(
-  ctx: MutationCtx | QueryCtx,
-  email: string
-): Promise<AuthorizedRole | null> {
-  const membership = await ctx.db
+async function getMembership(ctx: MutationCtx | QueryCtx, email: string) {
+  return await ctx.db
     .query("memberships")
     .withIndex("by_email", (query) => query.eq("email", normalizeEmail(email)))
     .unique();
-
-  return membership?.role ?? null;
 }
 
+/**
+ * Resolves who a call acts as.
+ *
+ * - Identity calls (browser) act as the signed-in identity's membership.
+ * - Server-key calls that name an `actorEmail` act as that member; the key
+ *   only proves the caller is our server, the role comes from memberships.
+ * - Server-key calls that name nobody are scripts running from a workstation
+ *   or the Convex environment. They act as admin. The Next server must never
+ *   take this path: every route passes the session's email (enforced by the
+ *   server write capability), and there is no email pattern that shortcuts to
+ *   admin any more.
+ */
 async function resolveActor(
   ctx: MutationCtx | QueryCtx,
   args: {
@@ -149,7 +169,7 @@ async function resolveActor(
   const adminIntent = args.adminIntent ?? "legacyAdmin";
   const authenticated = await requireAuth(ctx, args.apiKey, adminIntent);
   const authMethod = args.apiKey ? "apiKey" : "identity";
-  const delegatedActorEmail = args.apiKey ? args.actorEmail : undefined;
+  const delegatedActorEmail = args.apiKey ? args.actorEmail?.trim() : undefined;
   const email = delegatedActorEmail
     ? normalizeEmail(delegatedActorEmail)
     : normalizeEmail(authenticated.email);
@@ -164,18 +184,11 @@ async function resolveActor(
     };
   }
 
-  if (authMethod === "apiKey" && delegatedActorEmail && isLocalCredentialEmail(email)) {
-    return {
-      ...authenticated,
-      email,
-      name: email,
-      role: "admin",
-      authMethod,
-      adminIntent,
-    };
+  const membership = await getMembership(ctx, email);
+  if (membership?.bannedAt) {
+    throw new AuthError("This account is banned");
   }
-
-  const role = (await getMembershipRole(ctx, email)) ?? "viewer";
+  const role = membership?.role ?? "viewer";
 
   return {
     userId: authenticated.userId,
@@ -187,29 +200,25 @@ async function resolveActor(
   };
 }
 
-export async function requireAuthenticatedWrite(
+/**
+ * The one authorization choke point for writes. Resolves the actor and then
+ * checks a role floor: `admin` for destructive and publishing mutations,
+ * `editor` for review metadata and proposals, `contributor` (plus an
+ * ownership check at the call site) for owned records.
+ */
+export async function requireRole(
   ctx: MutationCtx | QueryCtx,
   args: {
     apiKey?: string;
     actorEmail?: string;
     adminIntent?: AdminIntent;
-  } = {}
-): Promise<AuthorizedActor> {
-  return await resolveActor(ctx, args);
-}
-
-export async function requireEditorWrite(
-  ctx: MutationCtx | QueryCtx,
-  args: {
-    apiKey?: string;
-    actorEmail?: string;
-    adminIntent?: AdminIntent;
-  } = {}
+  },
+  floor: RoleFloor
 ): Promise<AuthorizedActor> {
   const actor = await resolveActor(ctx, args);
 
-  if (actor.role !== "admin" && actor.role !== "editor") {
-    throw new AuthError("Editor access required");
+  if (!roleMeetsFloor(actor.role, floor)) {
+    throw new AuthError(`${floor.charAt(0).toUpperCase()}${floor.slice(1)} access required`);
   }
 
   return actor;
@@ -217,8 +226,7 @@ export async function requireEditorWrite(
 
 /**
  * Authorizes a server-token write while requiring the delegated audit identity
- * to exist in memberships. Unlike legacy credential writes, local credential
- * email syntax is not itself an authorization fact.
+ * to exist in memberships at the editor floor or above.
  */
 export async function requireRegisteredDelegatedEditorWrite(
   ctx: MutationCtx | QueryCtx,
@@ -234,8 +242,12 @@ export async function requireRegisteredDelegatedEditorWrite(
 
   const authenticated = await requireAuth(ctx, args.apiKey, args.adminIntent);
   const email = normalizeEmail(args.actorEmail);
-  const role = (await getMembershipRole(ctx, email)) ?? "viewer";
-  if (role !== "admin" && role !== "editor") {
+  const membership = await getMembership(ctx, email);
+  if (membership?.bannedAt) {
+    throw new AuthError("This account is banned");
+  }
+  const role = membership?.role ?? "viewer";
+  if (!roleMeetsFloor(role, "editor")) {
     throw new AuthError("Registered editor access required");
   }
 

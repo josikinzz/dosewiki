@@ -257,8 +257,8 @@ makes the deployment read-only:
 - `CONVEX_ADMIN_KEY` and every `CONVEX_ADMIN_TOKEN_*` intent token — without an
   admin credential, `lib/convex/serverWriteCapability.ts` reports a
   configuration failure instead of returning a usable write client.
-- `AUTH_SECRET` / `NEXTAUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`,
-  `AUTH_ADMIN_EMAILS` — no sign-in, sessions, or admin membership.
+- `AUTH_SECRET` / `NEXTAUTH_SECRET`: no sessions. Sign-in also needs the
+  admin credential above to read `memberships`, so it fails twice over.
 
 Editor routes and `/sign-in` therefore fail on `effectindex.com`. That is the
 intended read-only posture. Editing stays on `dosewiki-admin`; copying write

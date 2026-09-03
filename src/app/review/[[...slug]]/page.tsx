@@ -46,7 +46,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
-  const decision = getDevRouteDecision({ pathname: STATUS_PAGE_PATHS.dev, email, role });
+  const decision = getDevRouteDecision({ pathname: STATUS_PAGE_PATHS.dev, email, role, floor: "editor" });
   const redirectTarget = getProtectedRouteRedirectTarget(decision);
 
   if (redirectTarget.type === "sign-in" || redirectTarget.type === "unauthorized") {

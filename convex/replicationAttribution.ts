@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   attributionBatchUpdateValidator,
   attributionRollbackUpdateValidator,
@@ -48,10 +48,11 @@ export const getByReplicationIds = query({
   },
   returns: v.array(storedAttribution),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "replicationMaintenance",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
     if (args.replication_ids.length > 100) {
       throw new Error("Attribution read-back is limited to 100 rows.");
     }
@@ -74,10 +75,11 @@ export const getRepairReadback = query({
   },
   returns: v.array(repairReadbackRow),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "replicationMaintenance",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
     if (args.replication_ids.length === 0 || args.replication_ids.length > 50) {
       throw new Error("Attribution repair read-back is limited to 1 to 50 rows.");
     }

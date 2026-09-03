@@ -8,7 +8,6 @@ describe("runtime env contract", () => {
       NODE_ENV: "development",
       VITE_CONVEX_URL: "https://dev.convex.cloud",
       CONVEX_ADMIN_KEY: "secret-admin-key",
-      ADMIN_PASSWORD: "p_w",
     });
 
     expect(contract.profile).toBe("local");
@@ -21,7 +20,8 @@ describe("runtime env contract", () => {
       convexUrlSourceEnvVar: "VITE_CONVEX_URL",
       adminKeyConfigured: true,
     });
-    expect(contract.authConfig.policy.activeMode).toBe("legacy-credentials");
+    expect(contract.authConfig.policy.sessionsAvailable).toBe(true);
+    expect(contract.authConfig.policy.authSecretSource).toBe("development-fallback");
   });
 
   it("reports missing preview and production requirements without throwing", () => {
@@ -42,7 +42,7 @@ describe("runtime env contract", () => {
         }),
         expect.objectContaining({
           capability: "authConfig",
-          envVars: ["AUTH_SECRET", "ADMIN_PASSWORD"],
+          envVars: ["AUTH_SECRET"],
           severity: "error",
         }),
       ]),
@@ -54,7 +54,6 @@ describe("runtime env contract", () => {
       NEXT_PUBLIC_CONVEX_URL: "https://browser.convex.cloud",
       CONVEX_ADMIN_KEY: "secret-admin-key",
       AUTH_SECRET: "auth-secret",
-      AUTH_GITHUB_SECRET: "github-secret",
     });
 
     expect(JSON.stringify(contract.publicBrowserConfig)).not.toContain("secret");
@@ -70,13 +69,12 @@ describe("runtime env contract", () => {
       CONVEX_PUBLIC_READ_URL: "https://read.convex.cloud",
       CONVEX_ADMIN_KEY: "secret-admin-key",
       AUTH_SECRET: "auth-secret",
-      ADMIN_PASSWORD: "p_w",
     });
 
     expect(contract.profile).toBe("production");
     expect(contract.diagnostics.issues.filter((candidate) => candidate.severity === "error")).toEqual([]);
     expect(contract.serverReadConfig.sourceEnvVar).toBe("CONVEX_PUBLIC_READ_URL");
-    expect(contract.authConfig.policy.activeMode).toBe("legacy-credentials");
+    expect(contract.authConfig.policy.sessionsAvailable).toBe(true);
   });
 
   it("keeps env docs aligned with contract variable names", () => {
@@ -90,10 +88,6 @@ describe("runtime env contract", () => {
       "CONVEX_ADMIN_KEY",
       "AUTH_SECRET",
       "NEXTAUTH_SECRET",
-      "AUTH_GITHUB_ID",
-      "AUTH_GITHUB_SECRET",
-      "GITHUB_ID",
-      "GITHUB_SECRET",
       "ENABLE_TEST_ENV",
     ];
 

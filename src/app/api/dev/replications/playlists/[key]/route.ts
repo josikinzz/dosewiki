@@ -3,7 +3,7 @@
  *
  *   GET    /api/dev/replications/playlists/<key> → the playlist, or 404
  *   PATCH  /api/dev/replications/playlists/<key> → add/remove one work
- *   DELETE /api/dev/replications/playlists/<key> → drop it
+ *   DELETE /api/dev/replications/playlists/<key> → drop it (admin only)
  * Updates go through the collection route's POST, which is already an upsert
  * keyed by `key`; there is no second write shape to maintain here.
  */
@@ -98,7 +98,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
 }));
 
 export const DELETE = protectedRouteOperation({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to delete a replication playlist via Next route:",

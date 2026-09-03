@@ -7,89 +7,37 @@ describe("resolveAuthRuntimePolicy", () => {
 
     expect(policy.authSecret).toBe(DEVELOPMENT_AUTH_SECRET);
     expect(policy.authSecretSource).toBe("development-fallback");
+    expect(policy.sessionsAvailable).toBe(true);
+    expect(policy.requiredSecrets).toEqual([]);
   });
 
   it("keeps AUTH_SECRET and NEXTAUTH_SECRET aliases", () => {
-    expect(resolveAuthRuntimePolicy({ AUTH_SECRET: "auth-secret" }).authSecret).toBe("auth-secret");
-    expect(resolveAuthRuntimePolicy({ NEXTAUTH_SECRET: "nextauth-secret" }).authSecret).toBe("nextauth-secret");
-  });
-
-  it("resolves GitHub provider aliases", () => {
-    const policy = resolveAuthRuntimePolicy({
-      NODE_ENV: "production",
-      GITHUB_ID: "github-id",
-      GITHUB_SECRET: "github-secret",
-      AUTH_SECRET: "auth-secret",
+    expect(resolveAuthRuntimePolicy({ AUTH_SECRET: "auth-secret" })).toMatchObject({
+      authSecret: "auth-secret",
+      authSecretSource: "AUTH_SECRET",
     });
-
-    expect(policy.activeMode).toBe("github");
-    expect(policy.providers).toEqual(["github"]);
-    expect(policy.github).toMatchObject({
-      configured: true,
-      available: true,
-      clientId: "github-id",
-      clientSecret: "github-secret",
+    expect(resolveAuthRuntimePolicy({ NEXTAUTH_SECRET: "nextauth-secret" })).toMatchObject({
+      authSecret: "nextauth-secret",
+      authSecretSource: "NEXTAUTH_SECRET",
     });
   });
 
-  it("makes local editor credentials explicit", () => {
-    const policy = resolveAuthRuntimePolicy({
-      NODE_ENV: "development",
-      ADMIN_PASSWORD: "p_w",
-    });
+  it("does not fall back to the development secret outside development", () => {
+    const policy = resolveAuthRuntimePolicy({ NODE_ENV: "production", VERCEL_ENV: "preview" });
 
-    expect(policy.activeMode).toBe("legacy-credentials");
-    expect(policy.providers).toEqual(["credentials"]);
-    expect(policy.legacyCredentials).toMatchObject({
-      configured: true,
-      available: true,
-      reason: "available",
-    });
+    expect(policy.deploymentTarget).toBe("preview");
+    expect(policy.authSecret).toBeUndefined();
+    expect(policy.authSecretSource).toBe("missing");
+    expect(policy.sessionsAvailable).toBe(false);
+    expect(policy.requiredSecrets).toEqual(["AUTH_SECRET"]);
+    expect(policy.restrictions).toEqual(["AUTH_SECRET is required before Auth.js can issue sessions."]);
   });
 
-  it("allows env credentials in preview and production when AUTH_SECRET is present", () => {
-    const policy = resolveAuthRuntimePolicy({
-      NODE_ENV: "production",
-      VERCEL_ENV: "preview",
-      AUTH_SECRET: "auth-secret",
-      ADMIN_PASSWORD: "p_w",
-    });
-
-    expect(policy.activeMode).toBe("legacy-credentials");
-    expect(policy.providers).toEqual(["credentials"]);
-    expect(policy.legacyCredentials).toMatchObject({
-      configured: true,
-      available: true,
-      reason: "available",
-    });
-  });
-
-  it("requires AUTH_SECRET before enabling production env credentials", () => {
-    const policy = resolveAuthRuntimePolicy({
-      NODE_ENV: "production",
-      VERCEL_ENV: "preview",
-      ADMIN_PASSWORD: "p_w",
-    });
-
-    expect(policy.activeMode).toBe("disabled");
-    expect(policy.providers).toEqual([]);
-    expect(policy.legacyCredentials).toMatchObject({
-      configured: true,
-      available: false,
-      reason: "missing-auth-secret",
-    });
-    expect(policy.restrictions).toContain("AUTH_SECRET is required before Auth.js providers can issue sessions.");
-  });
-
-  it("reports preview and production required secrets without hard-blocking callers", () => {
-    const policy = resolveAuthRuntimePolicy({
-      NODE_ENV: "production",
-      VERCEL_ENV: "production",
-    });
+  it("reports a production target from NODE_ENV when VERCEL_ENV is absent", () => {
+    const policy = resolveAuthRuntimePolicy({ NODE_ENV: "production", AUTH_SECRET: "auth-secret" });
 
     expect(policy.deploymentTarget).toBe("production");
-    expect(policy.activeMode).toBe("disabled");
-    expect(policy.requiredSecrets).toEqual(["AUTH_SECRET", "ADMIN_PASSWORD"]);
-    expect(policy.authSecret).toBeUndefined();
+    expect(policy.sessionsAvailable).toBe(true);
+    expect(policy.requiredSecrets).toEqual([]);
   });
 });

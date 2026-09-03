@@ -23,10 +23,6 @@ vi.mock("next-auth/react", () => ({
   useSession: () => sessionState,
 }));
 
-vi.mock("@/lib/auth/roles", () => ({
-  canAccessDev: (role?: string | null) => role === "admin" || role === "editor",
-}));
-
 import { useDevRouteAccess } from "./useDevRouteAccess";
 
 describe("useDevRouteAccess", () => {
@@ -37,103 +33,75 @@ describe("useDevRouteAccess", () => {
     getSessionMock.mockResolvedValue(null);
   });
 
-  it("does not redirect while the session is still loading", () => {
+  function renderAccess(activeTab: Parameters<typeof useDevRouteAccess>[0]["activeTab"]) {
+    return renderHook(() =>
+      useDevRouteAccess({
+        activeTab,
+        onTabChange: vi.fn(),
+        onClearNoticesForTab: vi.fn(),
+      }),
+    );
+  }
+
+  it("reports no lock and no role while the session is still loading", () => {
     sessionState.status = "loading";
-    const onTabChange = vi.fn();
 
-    renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "citation-review",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
+    const { result } = renderAccess("citation-review");
 
-    expect(onTabChange).not.toHaveBeenCalled();
+    expect(result.current.role).toBeNull();
+    expect(result.current.activeTabLockReason).toBeNull();
   });
 
-  it("sends a signed-out session from an editor-only tab to Contributors", async () => {
-    const onTabChange = vi.fn();
-
-    renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "articles",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
+  it("locks every tab behind sign-in for a session that never authenticated", async () => {
+    const { result } = renderAccess("articles");
 
     await waitFor(() => {
-      expect(onTabChange).toHaveBeenCalledWith("contributors");
+      expect(result.current.activeTabLockReason).toBe("Sign in required");
     });
+    expect(result.current.isSignedIn).toBe(false);
+    expect(result.current.canDraft).toBe(false);
   });
 
-  it("sends authenticated non-editors from editor-only tabs to Contributors and reports the flags", async () => {
+  it.each([
+    // role, tab, lock reason, canDraft, canApprove
+    ["admin", "banners", null, true, true],
+    ["editor", "articles", null, true, false],
+    ["editor", "banners", "Admin role required", true, false],
+    ["contributor", "contributors", null, false, false],
+    ["contributor", "articles", "Editor role required", false, false],
+    ["contributor", "banners", "Admin role required", false, false],
+    ["viewer", "contributors", "Contributor role required", false, false],
+  ] as const)("resolves %s on %s", async (role, activeTab, lockReason, draft, approve) => {
     sessionState.status = "authenticated";
-    sessionState.data = { user: { email: "reader@example.com", role: "member" } };
-    const onTabChange = vi.fn();
+    sessionState.data = { user: { email: "member@example.com", role } };
 
-    const { result } = renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "articles",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
+    const { result } = renderAccess(activeTab);
 
     await waitFor(() => {
-      expect(onTabChange).toHaveBeenCalledWith("contributors");
+      expect(result.current.activeTabLockReason).toBe(lockReason);
     });
     expect(result.current.isSignedIn).toBe(true);
-    expect(result.current.canEdit).toBe(false);
+    expect(result.current.role).toBe(role);
+    expect(result.current.canDraft).toBe(draft);
+    expect(result.current.canApprove).toBe(approve);
   });
 
-  it("leaves a non-editor alone on Contributors", () => {
+  it("treats an unknown stored role as no role", () => {
     sessionState.status = "authenticated";
-    sessionState.data = { user: { email: "reader@example.com", role: "member" } };
-    const onTabChange = vi.fn();
+    sessionState.data = { user: { email: "reader@example.com", role: "owner" } };
 
-    renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "contributors",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
+    const { result } = renderAccess("contributors");
 
-    expect(onTabChange).not.toHaveBeenCalled();
+    expect(result.current.role).toBeNull();
+    expect(result.current.activeTabLockReason).toBe("Sign in required");
   });
 
-  it("allows editors to remain on protected tabs", async () => {
+  it("keeps an editor's tool open when a resolved session momentarily reads as signed out", async () => {
     sessionState.status = "authenticated";
     sessionState.data = { user: { email: "editor@example.com", role: "editor" } };
-    const onTabChange = vi.fn();
 
-    const { result } = renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "articles",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
-
-    expect(result.current.isSignedIn).toBe(true);
-    expect(result.current.canEdit).toBe(true);
-    expect(onTabChange).not.toHaveBeenCalled();
-  });
-
-  it("keeps an editor in place when a resolved session momentarily reads as signed out", async () => {
-    sessionState.status = "authenticated";
-    sessionState.data = { user: { email: "editor@example.com", role: "editor" } };
-    const onTabChange = vi.fn();
-
-    const { rerender } = renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "review",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
+    const { result, rerender } = renderAccess("articles");
+    expect(result.current.activeTabLockReason).toBeNull();
 
     // A failed /api/auth/session refetch resolves to null, which next-auth
     // reports as a clean sign-out; the forced re-check says otherwise.
@@ -145,28 +113,21 @@ describe("useDevRouteAccess", () => {
     await waitFor(() => {
       expect(getSessionMock).toHaveBeenCalledTimes(1);
     });
-    expect(onTabChange).not.toHaveBeenCalled();
+    expect(result.current.activeTabLockReason).toBeNull();
   });
 
-  it("redirects once the re-check confirms the session is really gone", async () => {
+  it("locks the tool once the re-check confirms the session is really gone", async () => {
     sessionState.status = "authenticated";
     sessionState.data = { user: { email: "editor@example.com", role: "editor" } };
-    const onTabChange = vi.fn();
 
-    const { rerender } = renderHook(() =>
-      useDevRouteAccess({
-        activeTab: "review",
-        onTabChange,
-        onClearNoticesForTab: vi.fn(),
-      }),
-    );
+    const { result, rerender } = renderAccess("articles");
 
     sessionState.status = "unauthenticated";
     sessionState.data = null;
     rerender();
 
     await waitFor(() => {
-      expect(onTabChange).toHaveBeenCalledWith("contributors");
+      expect(result.current.activeTabLockReason).toBe("Sign in required");
     });
   });
 

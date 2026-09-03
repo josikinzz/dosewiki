@@ -38,10 +38,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
       title={copy.text("unauthorized-title") || "You do not have editor access"}
       description={
         <>
-          Your account signed in successfully, but it does not currently have the required role for{" "}
-          <code className={inlineCodeClassName}>{from}</code>. Ask an admin to grant the{" "}
-          <code className={inlineCodeClassName}>editor</code> or <code className={inlineCodeClassName}>admin</code>{" "}
-          role in Convex memberships.
+          Your account signed in successfully, but it does not have the role{" "}
+          <code className={inlineCodeClassName}>{from}</code> requires. Access is by invitation: ask an admin to
+          invite you at the role you need, or to raise the role on your existing account.
         </>
       }
       actions={
@@ -63,7 +62,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
             label="Required role"
             value={
               <>
-                <code className={inlineCodeClassName}>editor</code> or <code className={inlineCodeClassName}>admin</code>
+                <code className={inlineCodeClassName}>contributor</code>,{" "}
+                <code className={inlineCodeClassName}>editor</code>, or{" "}
+                <code className={inlineCodeClassName}>admin</code>, depending on the route
               </>
             }
           />

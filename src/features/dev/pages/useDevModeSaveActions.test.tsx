@@ -5,21 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { useDevModeSaveActions } from "./useDevModeSaveActions";
 
-const {
-  refreshConvexServerHealthMock,
-  saveArticlesMutateAsyncMock,
-  saveToConvexMutateAsyncMock,
-} = vi.hoisted(() => ({
+const { refreshConvexServerHealthMock, saveToConvexMutateAsyncMock } = vi.hoisted(() => ({
   refreshConvexServerHealthMock: vi.fn(),
-  saveArticlesMutateAsyncMock: vi.fn(),
   saveToConvexMutateAsyncMock: vi.fn(),
 }));
 
 vi.mock("@/hooks/useApiMutations", () => ({
-  useSaveArticlesMutation: () => ({
-    mutateAsync: saveArticlesMutateAsyncMock,
-    isPending: false,
-  }),
   useSaveToConvexMutation: () => ({
     mutateAsync: saveToConvexMutateAsyncMock,
     isPending: false,
@@ -71,7 +62,7 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     getOriginalArticles: () => originalArticles,
     markChangesSaved: vi.fn(),
     isSignedIn: true,
-    canEdit: true,
+    canDraft: true,
     sessionProfileKey: "JOSIE",
     convexEnabled: true,
     datasetChangelog: {
@@ -84,8 +75,6 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     mechanismManualChangelog: { markdown: "", hasChanges: false },
     hasPendingChanges: true,
     onAppendChangeLogEntry: vi.fn(),
-    onTabChange: vi.fn(),
-    pushChangeLogNotice: vi.fn(),
   };
 }
 
@@ -97,7 +86,6 @@ function TestHarness({ args }: { args: Parameters<typeof useDevModeSaveActions>[
 describe("useDevModeSaveActions", () => {
   beforeEach(() => {
     refreshConvexServerHealthMock.mockReset();
-    saveArticlesMutateAsyncMock.mockReset();
     saveToConvexMutateAsyncMock.mockReset();
     saveToConvexMutateAsyncMock.mockResolvedValue({
       success: true,
@@ -126,7 +114,7 @@ describe("useDevModeSaveActions", () => {
         },
       }),
     );
-    expect(screen.getAllByText("Saved 1 article(s) to Convex as JOSIE.").length).toBeGreaterThan(0);
+    expect(screen.getByText("Saved 1 article(s) to Convex as JOSIE.")).toBeInTheDocument();
   });
 
   it("attributes the save to the session profile key and reports it", async () => {
@@ -142,7 +130,7 @@ describe("useDevModeSaveActions", () => {
     await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
 
     await waitFor(() => {
-      expect(screen.getAllByText("Saved 1 article(s) to Convex as JOSIE.").length).toBeGreaterThan(0);
+      expect(screen.getByText("Saved 1 article(s) to Convex as JOSIE.")).toBeInTheDocument();
     });
   });
 
@@ -152,7 +140,7 @@ describe("useDevModeSaveActions", () => {
     await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
 
     await waitFor(() => {
-      expect(screen.getAllByText("Sign in before continuing.").length).toBeGreaterThan(0);
+      expect(screen.getByText("Sign in before continuing.")).toBeInTheDocument();
     });
     expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
   });

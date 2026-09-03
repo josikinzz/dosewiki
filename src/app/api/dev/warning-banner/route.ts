@@ -1,5 +1,5 @@
 /**
- * Editor write endpoint for one drug-class safety banner preset (the /dev
+ * Admin write endpoint for one drug-class safety banner preset (the /dev
  * Banner Studio).
  *
  *   POST   /api/dev/warning-banner   { key, tone, icon, severityLabel,
@@ -8,7 +8,7 @@
  *   DELETE /api/dev/warning-banner   { key }
  *
  * The browser holds no admin intent token, so the write is delegated here: the
- * route checks the editor session, then calls `warningBanners.upsertPreset`
+ * route checks the admin session, then calls `warningBanners.upsertPreset`
  * with the server's own token plus the actor's email for the audit trail.
  *
  * Both verbs revalidate `PUBLIC_CONVEX_CACHE_TAGS.banners` with `expire: 0`,
@@ -201,7 +201,7 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
 }
 
 export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBanner>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 64 * 1024,
@@ -267,7 +267,7 @@ export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBann
 });
 
 export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 4 * 1024,

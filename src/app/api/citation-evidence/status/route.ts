@@ -57,7 +57,7 @@ export const POST = protectedRouteOperation<
   CitationEvidenceStatusBody,
   { slug: string; claimKeys: string[]; status: "approved" | "rejected" }
 >({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: MAX_STATUS_PAYLOAD_BYTES,

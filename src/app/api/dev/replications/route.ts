@@ -143,7 +143,7 @@ export const GET = protectedRouteOperation({
 
     const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
     try {
-      const corpus = await convexWrite.client.query(api.replications.getStudioRows, { apiKey });
+      const corpus = await convexWrite.client.query(api.replications.getStudioRows, { apiKey, actorEmail });
       return NextResponse.json({ ok: true, ...corpus });
     } catch (error) {
       // A stale admin token is a configuration fact, not an outage — but Convex
@@ -165,7 +165,7 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to create a replication via Next route:",
   unexpectedErrorMessage: "Unable to create that replication right now.",
-  operation: async ({ body, convexWrite }) => {
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -173,6 +173,7 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
     const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
     const result = await convexWrite.client.mutation(api.replications.insertMediaAsset, {
       apiKey,
+      actorEmail,
       expected_absent: true,
       slug: body.slug,
       title: body.title,

@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 /**
  * Editable site copy ("copy blocks").
@@ -12,7 +12,7 @@ import { requireEditorWrite } from "./lib/auth";
  * renders exactly what the hardcoded strings rendered.
  *
  * Reads are public on purpose: this is the copy a reader already sees. Writes
- * are editor-gated through `requireEditorWrite`, the same delegated
+ * are editor-gated through `requireRole`, the same delegated
  * server-token path the other editor tools use.
  */
 
@@ -121,11 +121,11 @@ export const upsert = mutation({
     key: v.string(),
   }),
   handler: async (ctx, args) => {
-    const actor = await requireEditorWrite(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const key = args.key.trim();
     if (!KEY_PATTERN.test(key)) {
@@ -184,11 +184,11 @@ export const remove = mutation({
   },
   returns: v.object({ removed: v.boolean(), key: v.string() }),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "admin");
 
     const key = args.key.trim();
     const existing = await ctx.db

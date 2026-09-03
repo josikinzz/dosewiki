@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   buildImportedStoredProfile,
   buildRenamedProfilePatch,
@@ -88,6 +88,7 @@ export const getByKey = query({
 export const getForBulkImport = query({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     keys: v.array(v.string()),
   },
   handler: getContributorProfilesForBulkImportHandler,
@@ -130,13 +131,15 @@ export const saveProfile = mutation({
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     profiles: v.array(bulkImportProfileValidator),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "profileMediaWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+      "admin",
+    );
     let created = 0;
     let updated = 0;
     for (const entry of args.profiles) {
@@ -188,15 +191,17 @@ export const rollbackReviewedProfilePlan = mutation({
 export const renameKey = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     fromKey: v.string(),
     toKey: v.string(),
     aliasesToAdd: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "profileMediaWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
+      "admin",
+    );
     const rename = buildRenamedProfilePatch({
       existingAliases: undefined,
       fromKey: args.fromKey,
@@ -237,6 +242,7 @@ export const renameKey = mutation({
 export const deleteProfile = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     key: v.string(),
     confirmDelete: v.boolean(),
   },
@@ -246,6 +252,7 @@ export const deleteProfile = mutation({
 export const mergeProfileInto = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     fromKey: v.string(),
     toKey: v.string(),
     discardSourceContent: v.optional(v.boolean()),

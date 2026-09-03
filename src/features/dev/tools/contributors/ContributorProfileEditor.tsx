@@ -37,9 +37,13 @@ function initialsFor(name: string, key: string): string {
   return initials || key.slice(0, 2).toUpperCase();
 }
 
+/** Why a trust field is inert for an editor. Shown once per group, and as each control's title. */
+const ADMIN_ONLY_REASON = "Admin only: an editor can see this but not change it.";
+
 export function ContributorProfileEditor({ controller }: { controller: ContributorsController }) {
   const {
     canEdit,
+    canApprove,
     detail,
     form,
     updateForm,
@@ -112,6 +116,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
                   value={form.role}
                   onChange={(event) => updateForm({ role: event.target.value })}
                   placeholder="Editor, Researcher, Artist…"
+                  disabled={!canApprove}
+                  title={canApprove ? undefined : ADMIN_ONLY_REASON}
                 />
               </div>
               <div className="space-y-2 md:col-span-2">
@@ -122,10 +128,13 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
                   value={form.membershipEmail}
                   onChange={(event) => updateForm({ membershipEmail: event.target.value })}
                   placeholder="name@example.com"
+                  disabled={!canApprove}
+                  title={canApprove ? undefined : ADMIN_ONLY_REASON}
                 />
                 <p className="theme-text-faint text-xs">
-                  Links this profile to a sign-in, so the owner edits it themselves. Clearing it
-                  leaves the profile editor-curated only.
+                  {canApprove
+                    ? "Links this profile to a sign-in, so the owner edits it themselves. Clearing it leaves the profile editor-curated only."
+                    : ADMIN_ONLY_REASON}
                 </p>
               </div>
             </>
@@ -251,7 +260,11 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
             headingLevel="h3"
             icon="lucide:eye-off"
             title="Visibility & provenance"
-            description="Where this artist's works surface, and how the profile itself is labelled."
+            description={
+              canApprove
+                ? "Where this artist's works surface, and how the profile itself is labelled."
+                : ADMIN_ONLY_REASON
+            }
           >
             <EditorCheckbox
               id="contributor-exclude-from-gallery"
@@ -259,6 +272,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
               description="Hides all of this artist's works on /replications. Effect and substance articles still show them."
               checked={form.exclude_from_gallery}
               onChange={(event) => updateForm({ exclude_from_gallery: event.target.checked })}
+              disabled={!canApprove}
+              title={canApprove ? undefined : ADMIN_ONLY_REASON}
             />
             <EditorCheckbox
               id="contributor-archival"
@@ -266,6 +281,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
               description={'Shows the public "maintained by staff, not created by this person" notice under the profile handle.'}
               checked={form.archival}
               onChange={(event) => updateForm({ archival: event.target.checked })}
+              disabled={!canApprove}
+              title={canApprove ? undefined : ADMIN_ONLY_REASON}
             />
             <EditorCheckbox
               id="contributor-approved-replicator"
@@ -273,6 +290,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
               description="Stars this artist's name on the /replications index and lifts their rail above the rest of the default order."
               checked={form.approved_replicator}
               onChange={(event) => updateForm({ approved_replicator: event.target.checked })}
+              disabled={!canApprove}
+              title={canApprove ? undefined : ADMIN_ONLY_REASON}
             />
           </EditorSection>
 
@@ -280,7 +299,11 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
             headingLevel="h3"
             icon="lucide:message-circle"
             title="Editor's note"
-            description="Signed staff commentary rendered as a speech bubble under the public bio. Leave the note empty to remove the section."
+            description={
+              canApprove
+                ? "Signed staff commentary rendered as a speech bubble under the public bio. Leave the note empty to remove the section."
+                : ADMIN_ONLY_REASON
+            }
           >
             <EditorField
               id="contributor-staff-note"
@@ -301,6 +324,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
                   onChange={(event) => updateForm({ staffNoteMarkdown: event.target.value })}
                   placeholder="Why this person's work matters, in the site's voice."
                   variant={form.staffNoteMarkdown.length > MAX_BIO_LENGTH ? "error" : "default"}
+                  disabled={!canApprove}
+                  title={canApprove ? undefined : ADMIN_ONLY_REASON}
                 />
               )}
             </EditorField>
@@ -312,6 +337,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
                 onChange={(event) => updateForm({ staffNoteAttribution: event.target.value })}
                 placeholder="Josie Kins · founder"
                 className="max-w-xs"
+                disabled={!canApprove}
+                title={canApprove ? undefined : ADMIN_ONLY_REASON}
               />
               <p className="theme-text-faint text-xs">
                 Shown beneath the bubble next to Josie&apos;s avatar. Empty falls back to

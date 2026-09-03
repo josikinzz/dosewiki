@@ -30,12 +30,12 @@ const MAX_PAGES = 100;
 export const GET = protectedRouteOperation({
   auth: "editor",
   rateLimit: "diagnosticRead",
-  // Read-only, but the Convex query is admin-gated like every corpus walk, and
-  // the browser holds no token — the capability is what supplies one here.
+  // Read-only, but the Convex query is editor-gated like every corpus walk, and
+  // the browser holds no token; the capability is what supplies one here.
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load the warning banner substance targets via Next route:",
   unexpectedErrorMessage: "Unable to load the substance list right now.",
-  operation: async ({ convexWrite }) => {
+  operation: async ({ actorEmail, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -48,6 +48,7 @@ export const GET = protectedRouteOperation({
     for (let pages = 0; pages < MAX_PAGES; pages += 1) {
       const page = (await convexWrite.client.query(api.warningBanners.listSubstanceTargetsPage, {
         apiKey,
+        actorEmail,
         cursor,
         limit: PAGE_LIMIT,
       })) as { items: WarningBannerTarget[]; cursor: string; isDone: boolean };

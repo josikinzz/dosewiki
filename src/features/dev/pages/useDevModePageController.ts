@@ -87,7 +87,7 @@ export function useDevModePageController({
     changeLogEntries,
     enableStickyPanels: chromeEnvironment.enableStickyPanels,
   });
-  const { clearNotice: clearChangeLogNotice, pushNotice: pushChangeLogNotice } = changeLog;
+  const { clearNotice: clearChangeLogNotice } = changeLog;
 
   useEffect(() => {
     clearChangeLogNoticeRef.current = clearChangeLogNotice;
@@ -105,7 +105,7 @@ export function useDevModePageController({
     getOriginalArticles,
     markChangesSaved,
     isSignedIn: routeAccess.isSignedIn,
-    canEdit: routeAccess.canEdit,
+    canDraft: routeAccess.canDraft,
     sessionProfileKey: routeAccess.sessionProfileKey,
     convexEnabled,
     datasetChangelog: changelogState.datasetChangelog,
@@ -114,8 +114,6 @@ export function useDevModePageController({
     mechanismManualChangelog: changelogState.mechanismManualChangelog,
     hasPendingChanges: changelogState.hasPendingChanges,
     onAppendChangeLogEntry: appendChangeLogEntryToState,
-    onTabChange: routeAccess.onTabChange,
-    pushChangeLogNotice,
   });
 
   useEffect(() => {
@@ -143,7 +141,10 @@ export function useDevModePageController({
     mainClassName: chromeEnvironment.mainClassName,
     contentWrapperClass: chromeEnvironment.contentWrapperClass,
     isSignedIn: routeAccess.isSignedIn,
-    canEdit: routeAccess.canEdit,
+    role: routeAccess.role,
+    canDraft: routeAccess.canDraft,
+    canApprove: routeAccess.canApprove,
+    activeTabLockReason: routeAccess.activeTabLockReason,
     sessionProfileKey: routeAccess.sessionProfileKey,
     sessionStatus: routeAccess.sessionStatus,
     userEmail: routeAccess.userEmail,

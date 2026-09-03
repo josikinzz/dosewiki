@@ -52,10 +52,9 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
-  // Contributors is the one tab a session without editor role may open; the
-  // tab itself narrows that session to its own record.
-  const pathname = route.tab === "contributors" ? STATUS_PAGE_PATHS.devContributors : STATUS_PAGE_PATHS.dev;
-  const decision = getDevRouteDecision({ pathname, email, role });
+  // Any signed-in member role may open the shell; a tab above the role
+  // renders disabled with a reason rather than bouncing.
+  const decision = getDevRouteDecision({ pathname: STATUS_PAGE_PATHS.dev, email, role });
   const redirectTarget = getProtectedRouteRedirectTarget(decision);
 
   if (redirectTarget.type === "sign-in") {

@@ -49,7 +49,6 @@ export const STATUS_PAGE_PATHS = {
   signIn: "/sign-in",
   unauthorized: "/unauthorized",
   dev: "/dev",
-  devContributors: "/dev/contributors",
   review: "/review",
   search: "/search",
 } as const;

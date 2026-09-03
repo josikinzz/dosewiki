@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth } from "./lib/auth";
+import { requireRole } from "./lib/auth";
+import { writeCategoryLayout } from "./lib/categoryLayoutMirror";
 
 /**
  * Category layout queries and mutations.
@@ -39,31 +40,20 @@ export const get = query({
 });
 
 /**
- * Save/update the category layout.
- * If a layout exists, it updates it. Otherwise, it creates a new one.
- * Used by DevTools and the seed script.
+ * Save/update the category layout directly. Script-only (seed); editor
+ * saves reach this table through the `indexLayouts.save` mirror.
  */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     ...categoryLayoutValidator.fields,
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
-    // Extract layout data without apiKey
-    const { apiKey: _apiKey, ...layoutData } = args;
-
-    const existing = await ctx.db.query("categoryLayout").first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, layoutData);
-      return { updated: true, id: existing._id };
-    }
-
-    const id = await ctx.db.insert("categoryLayout", layoutData);
-    return { updated: false, id };
+    const { apiKey: _apiKey, actorEmail: _actorEmail, ...layoutData } = args;
+    return await writeCategoryLayout(ctx, layoutData);
   },
 });
 
@@ -74,10 +64,10 @@ export const save = mutation({
 export const clear = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireAuth(ctx, args.apiKey);
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const existing = await ctx.db.query("categoryLayout").first();
     if (existing) {

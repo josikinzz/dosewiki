@@ -28,11 +28,11 @@ vi.mock("@server/convex/publicData", () => ({
 }));
 
 const authMocks = vi.hoisted(() => ({
-  requireEditorSession: vi.fn(),
+  requireRoleSession: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: authMocks.requireEditorSession,
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -70,7 +70,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireEditorSession.mockResolvedValue({
+  authMocks.requireRoleSession.mockResolvedValue({
     ok: true,
     session: { user: { email: "editor@example.com", name: "Editor" } },
     role: "editor",
@@ -86,7 +86,7 @@ beforeEach(() => {
 
 describe("substance gallery route auth", () => {
   it("refuses a non-editor before touching Convex, on both verbs", async () => {
-    authMocks.requireEditorSession.mockResolvedValue({
+    authMocks.requireRoleSession.mockResolvedValue({
       ok: false,
       response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
     });

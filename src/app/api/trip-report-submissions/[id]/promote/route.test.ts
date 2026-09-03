@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { roleSessionFor } from "@/test/routeSession";
+
 vi.mock("server-only", () => ({}));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireEditorSession: vi.fn(async () => ({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  })),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
+
+const ADMIN = { email: "admin@example.com", name: "Admin" };
 
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
@@ -28,6 +30,7 @@ vi.mock("@/features/reports/submissions/tripReportSubmissionStore.server", () =>
 describe("trip report submission promotion route", () => {
   beforeEach(() => {
     vi.resetModules();
+    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", ADMIN));
     mocks.storePreviewPromotion.mockReset();
     mocks.storePromote.mockReset();
     mocks.getTripReportSubmissionStore.mockReset();
@@ -66,7 +69,8 @@ describe("trip report submission promotion route", () => {
     });
   });
 
-  it("previews an accepted submission without publishing automatically", async () => {
+  it("previews an accepted submission without publishing automatically, as an editor", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { enforceRateLimit } = await import("@server/http/nextRateLimit");
     const { POST } = await import("./route");
 
@@ -79,10 +83,12 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "editorSmallWrite");
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
     expect(mocks.storePreviewPromotion).toHaveBeenCalledWith("submission-1", {
       profileKey: undefined,
       confirmAuthorNameClaim: false,
       reviewer: "editor@example.com",
+      actorEmail: "editor@example.com",
     });
     expect(mocks.storePromote).not.toHaveBeenCalled();
     expect(response.status).toBe(200);
@@ -108,7 +114,8 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "editor@example.com",
+      reviewer: "admin@example.com",
+      actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: undefined,
       confirmAuthorNameClaim: false,
@@ -126,6 +133,23 @@ describe("trip report submission promotion route", () => {
     });
   });
 
+  it("refuses to publish for an editor without calling the store", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/trip-report-submissions/submission-1/promote", {
+        method: "POST",
+        body: JSON.stringify({ publish: true }),
+      }),
+      { params: Promise.resolve({ id: "submission-1" }) },
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.storePromote).not.toHaveBeenCalled();
+    expect(mocks.storePreviewPromotion).not.toHaveBeenCalled();
+  });
+
   it("forwards editor-assigned contributor attribution to the promotion", async () => {
     const { POST } = await import("./route");
 
@@ -138,7 +162,8 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "editor@example.com",
+      reviewer: "admin@example.com",
+      actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: "ada",
       confirmAuthorNameClaim: false,
@@ -203,7 +228,8 @@ describe("trip report submission promotion route", () => {
     );
 
     expect(mocks.storePromote).toHaveBeenCalledWith("submission-1", {
-      reviewer: "editor@example.com",
+      reviewer: "admin@example.com",
+      actorEmail: "admin@example.com",
       notes: "Published from accepted trip report submission.",
       profileKey: undefined,
       confirmAuthorNameClaim: true,

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
-import { requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 
 export const listValidator = v.union(
   v.literal("josiekins"),
@@ -96,16 +96,18 @@ export const subscribe = internalMutation({
 export const list = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     list: v.optional(listValidator),
     status: v.optional(statusValidator),
     limit: v.optional(v.number()),
   },
   returns: v.array(subscriberRowValidator),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
+    await requireRole(ctx, {
       apiKey: args.apiKey,
+      actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    });
+    }, "editor");
 
     const limit = clampLimit(args.limit);
     const listFilter = args.list;

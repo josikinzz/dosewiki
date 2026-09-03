@@ -43,6 +43,11 @@ export type TripReportSubmissionPromotionResult = {
   payload: ConvexTripReportImportPayload;
 };
 
+/** The signed-in member a route acts as; Convex resolves their real role from it. */
+export type TripReportSubmissionActor = {
+  actorEmail: string;
+};
+
 // Contributor attribution for a published report is chosen by the promoting
 // editor, so it travels with the promotion call rather than the submission.
 export type TripReportSubmissionPromotionOptions = {
@@ -61,14 +66,18 @@ export interface TripReportSubmissionStore {
   /** Total rows in the given statuses, computed on the server: no list travels. */
   count(filters: TripReportSubmissionStatusFilters): Promise<number>;
   get(id: string): Promise<TripReportSubmissionRow | null>;
-  transition(id: string, options: TransitionTripReportSubmissionOptions): Promise<TripReportSubmissionRow>;
+  transition(
+    id: string,
+    options: TransitionTripReportSubmissionOptions & TripReportSubmissionActor,
+  ): Promise<TripReportSubmissionRow>;
   previewPromotion(
     id: string,
-    options?: TripReportSubmissionPromotionOptions & { reviewer?: string },
+    options?: TripReportSubmissionPromotionOptions & { reviewer?: string; actorEmail?: string },
   ): Promise<TripReportSubmissionPromotionPreviewResult>;
   promote(
     id: string,
-    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions,
+    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions &
+      TripReportSubmissionActor,
   ): Promise<TripReportSubmissionPromotionResult>;
 }
 
@@ -120,6 +129,7 @@ const transitionSubmissionRef = makeFunctionReference<
   "mutation",
   {
     apiKey: string;
+    actorEmail: string;
     id: string;
     status: TripReportSubmissionStatus;
     reviewer: string;
@@ -132,6 +142,7 @@ const previewPromotionRef = makeFunctionReference<
   "query",
   {
     apiKey: string;
+    actorEmail?: string;
     id: string;
     profileKey?: string;
     reviewer?: string;
@@ -144,6 +155,7 @@ const promoteSubmissionRef = makeFunctionReference<
   "mutation",
   {
     apiKey: string;
+    actorEmail: string;
     id: string;
     reviewer: string;
     notes?: string;
@@ -216,11 +228,12 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
 
   async transition(
     id: string,
-    options: TransitionTripReportSubmissionOptions,
+    options: TransitionTripReportSubmissionOptions & TripReportSubmissionActor,
   ): Promise<TripReportSubmissionRow> {
     try {
       return await this.options.client.mutation(transitionSubmissionRef, {
         apiKey: this.options.apiKey,
+        actorEmail: options.actorEmail,
         id,
         status: options.status,
         reviewer: options.reviewer,
@@ -233,11 +246,12 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
 
   async previewPromotion(
     id: string,
-    options: TripReportSubmissionPromotionOptions & { reviewer?: string } = {},
+    options: TripReportSubmissionPromotionOptions & { reviewer?: string; actorEmail?: string } = {},
   ): Promise<TripReportSubmissionPromotionPreviewResult> {
     try {
       return await this.options.client.query(previewPromotionRef, {
         apiKey: this.options.apiKey,
+        ...(options.actorEmail ? { actorEmail: options.actorEmail } : {}),
         id,
         ...(options.profileKey ? { profileKey: options.profileKey } : {}),
         ...(options.reviewer ? { reviewer: options.reviewer } : {}),
@@ -250,11 +264,13 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
 
   async promote(
     id: string,
-    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions,
+    options: { reviewer: string; notes?: string } & TripReportSubmissionPromotionOptions &
+      TripReportSubmissionActor,
   ): Promise<TripReportSubmissionPromotionResult> {
     try {
       return await this.options.client.mutation(promoteSubmissionRef, {
         apiKey: this.options.apiKey,
+        actorEmail: options.actorEmail,
         id,
         reviewer: options.reviewer,
         ...(options.notes !== undefined ? { notes: options.notes } : {}),

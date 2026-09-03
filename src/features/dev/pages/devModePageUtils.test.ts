@@ -11,7 +11,6 @@ import {
   getChangedArticles,
   mergeArticleWithOriginal,
   normalizeConvexChangeLogEntry,
-  normalizeGitHubChangeLogEntry,
   resolvePrimaryTab,
   tabNeedsChangelogFeed,
   tabNeedsContributorProfiles,
@@ -132,26 +131,6 @@ describe("devModePageUtils", () => {
       commit: { sha: "", url: "", message: "Saved" },
       articles: [{ id: 1, title: "LSD", slug: "lsd" }],
       markdown: "# Saved",
-      submittedBy: "JOSIE",
-    });
-
-    expect(
-      normalizeGitHubChangeLogEntry(
-        {
-          timestamp: "2026-04-09T00:00:00.000Z",
-          commit: { sha: "abc", url: "https://example.com", message: "Saved" },
-          submittedBy: "JOSIE",
-          articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
-        },
-        "fallback",
-        "JOSIE",
-      ),
-    ).toEqual({
-      id: "2026-04-09T00:00:00.000Z",
-      createdAt: "2026-04-09T00:00:00.000Z",
-      commit: { sha: "abc", url: "https://example.com", message: "Saved" },
-      articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
-      markdown: "",
       submittedBy: "JOSIE",
     });
   });

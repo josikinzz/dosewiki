@@ -59,16 +59,48 @@ import { reagentTestDocumentValidator } from "./reagentTestContract";
  */
 
 
+// One row per account. `email` is the actor key every write is stamped with;
+// `username` is what the person types at sign-in. `viewer` is a legacy stored
+// value from the retired GitHub sign-in and grants nothing.
+export const membershipRoleValidator = v.union(
+  v.literal("admin"),
+  v.literal("editor"),
+  v.literal("contributor"),
+  v.literal("viewer"),
+);
+
 const membership = v.object({
   email: v.string(),
+  username: v.optional(v.string()),
+  passwordHash: v.optional(v.string()),
+  passwordUpdatedAt: v.optional(v.string()),
+  resetTokenHash: v.optional(v.string()),
+  resetTokenExpiresAt: v.optional(v.string()),
+  invitedBy: v.optional(v.string()),
+  inviteCodeId: v.optional(v.id("inviteCodes")),
+  bannedAt: v.optional(v.string()),
   name: v.optional(v.string()),
   image: v.optional(v.string()),
-  role: v.union(v.literal("admin"), v.literal("editor"), v.literal("viewer")),
+  role: membershipRoleValidator,
   provider: v.optional(v.string()),
   providerAccountId: v.optional(v.string()),
   createdAt: v.string(),
   updatedAt: v.string(),
   lastSeenAt: v.optional(v.string()),
+});
+
+// Invite codes: the only way an account is created. The plaintext is shown
+// once at mint time; only its hash is stored.
+const inviteCode = v.object({
+  codeHash: v.string(),
+  role: v.union(v.literal("editor"), v.literal("contributor")),
+  createdBy: v.string(),
+  createdAt: v.string(),
+  expiresAt: v.string(),
+  maxUses: v.number(),
+  redemptions: v.array(v.object({ email: v.string(), at: v.string() })),
+  revokedAt: v.optional(v.string()),
+  note: v.optional(v.string()),
 });
 
 const generatedPublicationProfile = v.union(
@@ -451,8 +483,13 @@ export default defineSchema({
 
   memberships: defineTable(membership)
     .index("by_email", ["email"])
+    .index("by_username", ["username"])
     .index("by_role", ["role"])
     .index("by_provider_account", ["provider", "providerAccountId"]),
+
+  inviteCodes: defineTable(inviteCode)
+    .index("by_code_hash", ["codeHash"])
+    .index("by_created_at", ["createdAt"]),
 
   contributorProfiles: defineTable(contributorProfile)
     .index("by_key", ["key"])
@@ -461,10 +498,9 @@ export default defineSchema({
 
   // Category layout - stores the manually curated psychoactive index structure
   // as a single document containing the full layout configuration.
-  // The public /substances page still reads this table; the index-layout save
-  // route (src/app/api/save-to-convex/route.ts) mirrors indexLayouts writes
-  // into it to keep the public read in sync. Durable fix: point public reads
-  // at the indexLayouts table, then retire this mirror.
+  // The public /substances page still reads this table; indexLayouts.save and
+  // bulkImport mirror psychoactive layouts into it (convex/lib/categoryLayoutMirror.ts).
+  // Durable fix: point public reads at the indexLayouts table, then retire this mirror.
   categoryLayout: defineTable({
     version: v.number(),
     categories: v.array(v.object({

@@ -17,18 +17,19 @@ vi.mock("./useDevRailBadges", () => ({
   useDevRailBadges: () => badgeState.counts,
 }));
 
+import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import { DevModePageChrome } from "./DevModePageChrome";
 import { DEV_TAB_REGISTRY, type DevModeTab } from "./devTabRegistry";
 
 const TOOL_TABS = DEV_TAB_REGISTRY.filter((tab) => tab.group !== "chrome");
 
-function renderChrome(activeTab: DevModeTab) {
+function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
   const utils = render(
     <DevModePageChrome
       activePrimaryTab={activeTab === "change-log" ? activeTab : "tools"}
       activeTab={activeTab}
       isSignedIn
-      canEdit
+      role={role}
       sessionStatus="authenticated"
       userEmail="editor@example.test"
       userName="Editor"
@@ -115,7 +116,7 @@ describe("DevModePageChrome rail", () => {
         activePrimaryTab="tools"
         activeTab="articles"
         isSignedIn
-        canEdit
+        role="admin"
         sessionStatus="authenticated"
         onPrimaryTabChange={vi.fn()}
         onTabChange={onTabChange}
@@ -127,25 +128,31 @@ describe("DevModePageChrome rail", () => {
     expect(onTabChange).toHaveBeenCalledWith("molecule-editor");
   });
 
-  it("leaves every tab enabled for an editor session", () => {
-    const { nav } = renderChrome("articles");
+  it("leaves every tab enabled for an admin session and labels the role", () => {
+    const { nav, getByText } = renderChrome("articles", "admin");
 
     for (const button of Array.from(nav.querySelectorAll("button"))) {
       expect(button.hasAttribute("disabled")).toBe(false);
       expect(button.getAttribute("aria-disabled")).toBeNull();
     }
+    expect(getByText("Admin")).toBeInTheDocument();
   });
 
-  it("disables editor-only tabs with a reason for a signed-in contributor and keeps the rest live", () => {
+  /**
+   * Every shell tab is clicked; only the open ones may reach `onTabChange`, and
+   * every closed one carries the reason as its title.
+   */
+  function expectRailForRole(role: AppRole, roleLabel: string) {
     const onTabChange = vi.fn();
-    const { getByRole } = render(
+    const { getByRole, getByText } = render(
       <DevModePageChrome
         activePrimaryTab="tools"
         activeTab="contributors"
         isSignedIn
-        canEdit={false}
+        role={role}
         sessionStatus="authenticated"
-        userEmail="reader@example.test"
+        userEmail="member@example.test"
+        userName="Member"
         onPrimaryTabChange={vi.fn()}
         onTabChange={onTabChange}
         onSignIn={vi.fn()}
@@ -156,27 +163,68 @@ describe("DevModePageChrome rail", () => {
     const shellTabs = TOOL_TABS.filter((tab) => tab.destination.kind === "shell");
     for (const tab of shellTabs) {
       const button = within(nav).getByRole("button", { name: tab.label });
-      if (tab.role === "editor") {
-        expect(button).toBeDisabled();
-        expect(button.getAttribute("aria-disabled")).toBe("true");
-        expect(button.getAttribute("title")).toBe("Editor role required");
-      } else {
+      if (roleMeetsFloor(role, tab.role)) {
         expect(button).toBeEnabled();
         expect(button.getAttribute("aria-disabled")).toBeNull();
         expect(button.hasAttribute("title")).toBe(false);
+      } else {
+        expect(button).toBeDisabled();
+        expect(button.getAttribute("aria-disabled")).toBe("true");
+        expect(button.getAttribute("title")).toBe(`${tab.role === "admin" ? "Admin" : "Editor"} role required`);
       }
       button.click();
     }
-    const openTabs = shellTabs.filter((tab) => tab.role !== "editor").map((tab) => tab.id);
+    const openTabs = shellTabs.filter((tab) => roleMeetsFloor(role, tab.role)).map((tab) => tab.id);
+    expect(openTabs.length).toBeGreaterThan(0);
+    expect(openTabs.length).toBeLessThan(shellTabs.length);
     expect(onTabChange.mock.calls.map(([tab]) => tab)).toEqual(openTabs);
 
     // The external launcher stays a plain link: the review route enforces its own role.
     const review = within(nav).getByRole("link", { name: /Review/ });
     expect(review.getAttribute("href")).toBe("/review");
 
+    expect(within(nav).getByRole("button", { name: "Banners" }).getAttribute("title")).toBe("Admin role required");
+    expect(getByText(roleLabel)).toBeInTheDocument();
+    expect(getByRole("button", { name: "Sign out" })).toBeEnabled();
+    return { getByRole };
+  }
+
+  it("disables admin tabs with a reason for an editor and keeps editor tabs live", () => {
+    const { getByRole } = expectRailForRole("editor", "Editor");
+    expect(within(getByRole("navigation", { name: "Dev mode tools" })).getByRole("button", { name: "Substances" })).toBeEnabled();
+    expect(getByRole("button", { name: "Change log" })).toBeEnabled();
+  });
+
+  it("disables editor and admin tabs with reasons for a contributor and keeps Contributors live", () => {
+    const { getByRole } = expectRailForRole("contributor", "Contributor");
+    const nav = getByRole("navigation", { name: "Dev mode tools" });
+    expect(within(nav).getByRole("button", { name: "Substances" }).getAttribute("title")).toBe("Editor role required");
+    expect(within(nav).getByRole("button", { name: "Contributors" })).toBeEnabled();
+
     const changeLog = getByRole("button", { name: "Change log" });
     expect(changeLog).toBeDisabled();
+    expect(changeLog.getAttribute("aria-disabled")).toBe("true");
     expect(changeLog.getAttribute("title")).toBe("Editor role required");
-    expect(getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("asks a signed-out session to sign in on every tab", () => {
+    const { getByRole } = render(
+      <DevModePageChrome
+        activePrimaryTab="tools"
+        activeTab="articles"
+        isSignedIn={false}
+        role={null}
+        sessionStatus="unauthenticated"
+        onPrimaryTabChange={vi.fn()}
+        onTabChange={vi.fn()}
+        onSignIn={vi.fn()}
+      />,
+    );
+    const nav = getByRole("navigation", { name: "Dev mode tools" });
+    for (const button of Array.from(nav.querySelectorAll("button"))) {
+      expect(button).toBeDisabled();
+      expect(button.getAttribute("title")).toBe("Sign in required");
+    }
+    expect(getByRole("button", { name: "Sign in" })).toBeEnabled();
   });
 });

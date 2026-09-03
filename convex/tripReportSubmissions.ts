@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   assertAuthorNameClaimAdjudicated,
   resolveEditorAssignedProfileKey,
@@ -102,7 +102,9 @@ export const create = mutation({
   },
   returns: submissionRowValidator,
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "editorArticleWrite");
+    // Public intake relays an unauthenticated submitter: the server acts as
+    // itself, so no actor is delegated.
+    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "editorArticleWrite" }, "editor");
 
     // The intake route relays an unauthenticated submitter, so the payload
     // cannot be trusted with contributor attribution or reader-facing links
@@ -125,15 +127,17 @@ export const create = mutation({
 export const list = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     status: v.optional(statusValidator),
     limit: v.optional(v.number()),
   },
   returns: v.array(submissionRowValidator),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const limit = clampLimit(args.limit);
     const docs = args.status
@@ -160,14 +164,16 @@ export const list = query({
 export const listByStatuses = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     statuses: v.array(statusValidator),
   },
   returns: v.array(submissionRowValidator),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const docs = await collectByStatuses(ctx, args.statuses);
     docs.sort((left, right) => right.created_at.localeCompare(left.created_at));
@@ -184,14 +190,16 @@ export const listByStatuses = query({
 export const countByStatus = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     statuses: v.array(statusValidator),
   },
   returns: v.number(),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const docs = await collectByStatuses(ctx, args.statuses);
     return docs.length;
@@ -215,14 +223,16 @@ async function collectByStatuses(ctx: ConvexReadCtx, statuses: SubmissionStatus[
 export const get = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     id: v.string(),
   },
   returns: v.union(submissionRowValidator, v.null()),
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const doc = await findSubmissionByPublicId(ctx, args.id);
     return doc ? toSubmissionRow(doc) : null;
@@ -232,6 +242,7 @@ export const get = query({
 export const transition = mutation({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     id: v.string(),
     status: statusValidator,
     reviewer: v.string(),
@@ -239,10 +250,11 @@ export const transition = mutation({
   },
   returns: submissionRowValidator,
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "admin",
+    );
 
     const doc = await requireSubmission(ctx, args.id);
     if (!VALID_TRANSITIONS[doc.status].includes(args.status)) {
@@ -266,6 +278,7 @@ export const transition = mutation({
 export const previewPromotion = query({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     id: v.string(),
     profileKey: v.optional(v.string()),
     // Preview runs the same attribution guard as promote, so an editor meets a
@@ -275,10 +288,11 @@ export const previewPromotion = query({
   },
   returns: promotionPreviewValidator,
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "editor",
+    );
 
     const doc = await requireSubmission(ctx, args.id);
     assertPromotable(doc);
@@ -298,6 +312,7 @@ export const previewPromotion = query({
 export const promote = mutation({
   args: {
     apiKey: v.string(),
+    actorEmail: v.optional(v.string()),
     id: v.string(),
     reviewer: v.string(),
     notes: v.optional(v.string()),
@@ -310,10 +325,11 @@ export const promote = mutation({
   },
   returns: promotionResultValidator,
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      adminIntent: "editorArticleWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+      "admin",
+    );
 
     const doc = await requireSubmission(ctx, args.id);
     assertPromotable(doc);

@@ -67,7 +67,7 @@ function facts(overrides: Partial<DiagnosticDisclosureFacts> = {}): DiagnosticDi
         {
           severity: "error",
           capability: "authConfig",
-          envVars: ["AUTH_SECRET", "AUTH_GITHUB_SECRET"],
+          envVars: ["AUTH_SECRET", "NEXTAUTH_SECRET"],
           message: "Missing required production auth configuration.",
         },
       ],
@@ -136,7 +136,7 @@ describe("diagnostics disclosure policy", () => {
     expect(view.keyNames).toBeUndefined();
     expect(view.issueDetails?.[0]).not.toHaveProperty("envVars");
     expect(serialized).not.toContain("admin-key-value");
-    expect(serialized).not.toContain("AUTH_GITHUB_SECRET");
+    expect(serialized).not.toContain("NEXTAUTH_SECRET");
   });
 
   it("allows admin and build-preflight audiences to see key names but never values", () => {
@@ -145,9 +145,8 @@ describe("diagnostics disclosure policy", () => {
       const serialized = JSON.stringify(view);
 
       expect(view.keyNames).toEqual(["CONVEX_ADMIN_KEY", "AUTH_SECRET", "OPTIONAL_TOKEN"]);
-      expect(view.issueDetails?.[0].envVars).toEqual(["AUTH_SECRET", "AUTH_GITHUB_SECRET"]);
+      expect(view.issueDetails?.[0].envVars).toEqual(["AUTH_SECRET", "NEXTAUTH_SECRET"]);
       expect(serialized).not.toContain("admin-key-value");
-      expect(serialized).not.toContain("github-secret-value");
     }
   });
 

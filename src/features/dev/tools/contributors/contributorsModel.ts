@@ -292,19 +292,49 @@ export function isContributorFormDirty(
 }
 
 /**
- * The patch body for `/api/dev/contributor-profile`.
+ * The patch body for `/api/dev/contributor-profile`, shaped for the role that
+ * is saving. `saveProfileAsEditor` refuses the trust fields (role, membership
+ * email, gallery exclusion, archival, approved replicator, staff note) from
+ * anyone below admin even when they are unchanged, so an editor's body must
+ * not carry them at all.
  *
  * Emptied clearable fields become `null`, the only way a patch-only mutation
  * can be told to clear something rather than to leave it alone. `bio` is not
- * clearable that way — an empty bio is a stored empty string, and the public
+ * clearable that way: an empty bio is a stored empty string, and the public
  * page falls back to its generated blurb.
  */
-export function buildContributorPatch(form: ContributorFormState) {
-  return {
+export type OwnContributorPatch = {
+  displayName: string;
+  bio: string;
+  avatarUrl: string | null;
+  links: Array<{ label: string; url: string }>;
+};
+
+export type ContributorPatch = OwnContributorPatch & {
+  aliases: string[];
+  role?: string | null;
+  membershipEmail?: string | null;
+  exclude_from_gallery?: boolean;
+  archival?: boolean;
+  approved_replicator?: boolean;
+  staffNote?: { markdown: string; attribution?: string } | null;
+};
+
+export function buildContributorPatch(
+  form: ContributorFormState,
+  options: { canApprove: boolean },
+): ContributorPatch {
+  const editorPatch: ContributorPatch = {
     ...buildOwnContributorPatch(form),
+    aliases: form.aliases.map((alias) => alias.trim()).filter(Boolean),
+  };
+  if (!options.canApprove) {
+    return editorPatch;
+  }
+  return {
+    ...editorPatch,
     role: form.role.trim() ? form.role.trim() : null,
     membershipEmail: form.membershipEmail.trim() ? form.membershipEmail.trim() : null,
-    aliases: form.aliases.map((alias) => alias.trim()).filter(Boolean),
     exclude_from_gallery: form.exclude_from_gallery,
     archival: form.archival,
     approved_replicator: form.approved_replicator,
@@ -326,7 +356,7 @@ export function buildContributorPatch(form: ContributorFormState) {
  * bio, avatar, links. Everything else on the form is editor-curated, and the
  * route refuses to write it for a session without editor role.
  */
-export function buildOwnContributorPatch(form: ContributorFormState) {
+export function buildOwnContributorPatch(form: ContributorFormState): OwnContributorPatch {
   return {
     displayName: form.displayName.trim(),
     bio: form.bio,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon } from "@/components/common/Icon";
@@ -10,16 +10,9 @@ import { Label } from "@/components/ui/label";
 
 type CredentialsSignInFormProps = {
   callbackUrl: string;
-  /**
-   * Optional alternative sign-in method (e.g. the GitHub button). When
-   * provided it renders below the form, separated by an "or" divider, so the
-   * two methods read as a single "pick one" choice rather than two unrelated
-   * surfaces.
-   */
-  alternative?: ReactNode;
 };
 
-export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsSignInFormProps) {
+export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +23,7 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    setStatusMessage("Verifying local development credentials…");
+    setStatusMessage("Checking your credentials…");
     setIsSubmitting(true);
 
     const result = await signIn("credentials", {
@@ -50,7 +43,7 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
 
     if (!result || result.error) {
       setStatusMessage(null);
-      setError("Username or password didn't match. Check for typos, or confirm the credentials configured for this deployment.");
+      setError("Username or password didn't match. Check for typos, or ask an admin to reset your password.");
       return;
     }
 
@@ -61,96 +54,83 @@ export function CredentialsSignInForm({ callbackUrl, alternative }: CredentialsS
   const errorId = error ? "credentials-sign-in-error" : undefined;
 
   return (
-    <div className="space-y-5">
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-1.5">
-          <Label htmlFor="username">Username</Label>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-1.5">
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          autoComplete="username"
+          required
+          aria-invalid={Boolean(error)}
+          aria-describedby={errorId}
+          variant={error ? "error" : "default"}
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Password</Label>
+        <div className="relative">
           <Input
-            id="username"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            autoComplete="username"
+            id="password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
             required
             aria-invalid={Boolean(error)}
             aria-describedby={errorId}
             variant={error ? "error" : "default"}
+            className="pr-11"
           />
+          <Button
+            type="button"
+            variant="iconGhost"
+            size="quiet"
+            onClick={() => setShowPassword((shown) => !shown)}
+            aria-pressed={showPassword}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2"
+          >
+            <Icon icon={showPassword ? "lucide:eye-off" : "lucide:eye"} size={16} className="h-4 w-4" />
+          </Button>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password"
-              required
-              aria-invalid={Boolean(error)}
-              aria-describedby={errorId}
-              variant={error ? "error" : "default"}
-              className="pr-11"
+        {error ? (
+          <Alert id={errorId} variant="destructive">
+            <Icon icon="lucide:alert-circle" size={16} />
+            <AlertTitle>Sign-in failed</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+      </div>
+
+      <p
+        role="status"
+        aria-live="polite"
+        className="theme-text-secondary flex min-h-5 items-center gap-2 text-sm"
+      >
+        {!error && statusMessage ? (
+          <>
+            <Icon
+              icon="lucide:loader-circle"
+              size={16}
+              className={isSubmitting ? "h-4 w-4 animate-spin" : "h-4 w-4"}
             />
-            <Button
-              type="button"
-              variant="iconGhost"
-              size="quiet"
-              onClick={() => setShowPassword((shown) => !shown)}
-              aria-pressed={showPassword}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2"
-            >
-              <Icon icon={showPassword ? "lucide:eye-off" : "lucide:eye"} size={16} className="h-4 w-4" />
-            </Button>
-          </div>
+            <span>{statusMessage}</span>
+          </>
+        ) : null}
+      </p>
 
-          {error ? (
-            <Alert id={errorId} variant="destructive">
-              <Icon icon="lucide:alert-circle" size={16} />
-              <AlertTitle>Sign-in failed</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-        </div>
-
-        <p
-          role="status"
-          aria-live="polite"
-          className="theme-text-secondary flex min-h-5 items-center gap-2 text-sm"
-        >
-          {!error && statusMessage ? (
-            <>
-              <Icon
-                icon="lucide:loader-circle"
-                size={16}
-                className={isSubmitting ? "h-4 w-4 animate-spin" : "h-4 w-4"}
-              />
-              <span>{statusMessage}</span>
-            </>
-          ) : null}
-        </p>
-
-        <Button
-          type="submit"
-          variant="accent"
-          disabled={isSubmitting}
-          className="min-h-11 w-full justify-center"
-        >
-          {isSubmitting ? "Signing in…" : "Sign in"}
-        </Button>
-      </form>
-
-      {alternative ? (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3" aria-hidden="true">
-            <span className="theme-horizontal-divider h-px flex-1" />
-            <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">or</span>
-            <span className="theme-horizontal-divider h-px flex-1" />
-          </div>
-          {alternative}
-        </div>
-      ) : null}
-    </div>
+      <Button
+        type="submit"
+        variant="accent"
+        disabled={isSubmitting}
+        className="min-h-11 w-full justify-center"
+      >
+        {isSubmitting ? "Signing in…" : "Sign in"}
+      </Button>
+    </form>
   );
 }

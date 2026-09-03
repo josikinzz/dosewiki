@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAuth, requireEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import { isKnownPromptKey } from "../src/data/config/promptRegistry";
 
 /**
@@ -47,11 +47,11 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireEditorWrite(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "promptMigrationWrite",
-    });
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "promptMigrationWrite" },
+      "editor",
+    );
 
     const { key, content, updatedBy } = args;
     if (!isKnownPromptKey(key)) {
@@ -93,10 +93,15 @@ export const save = mutation({
 export const deleteByKey = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     key: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "promptMigrationWrite");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "promptMigrationWrite" },
+      "admin",
+    );
 
     const existing = await ctx.db
       .query("prompts")
@@ -120,6 +125,7 @@ export const deleteByKey = mutation({
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
     prompts: v.array(v.object({
       key: v.string(),
       content: v.string(),
@@ -127,7 +133,11 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.apiKey, "promptMigrationWrite");
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "promptMigrationWrite" },
+      "admin",
+    );
 
     const updatedAt = new Date().toISOString();
     const results = {

@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
-import { requireRegisteredDelegatedEditorWrite } from "./lib/auth";
+import { requireRole } from "./lib/auth";
 import {
   contributorProfileMergeInputValidator,
   contributorProfileMergeOperationValidator,
@@ -174,7 +174,7 @@ export async function previewProfileMergeHandler(
   ctx: QueryCtx,
   args: { apiKey: string; actor_email: string; input: ContributorProfileMergeInput },
 ) {
-    await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" }, "admin");
     const captured = await captureState(ctx, args.input);
     return { state_digest: captured.digest, source_profile_id: args.input.source_profile_id, target_profile_id: args.input.target_profile_id, attribution_count: captured.state.attributions.length, binding_count: captured.state.sourceBindings.length, report_count: captured.state.sourceReports.length };
 }
@@ -195,7 +195,7 @@ export async function applyProfileMergeHandler(
     input: ContributorProfileMergeInput;
   },
 ) {
-    const actor = await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
+    const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" }, "admin");
     const payloadDigest = await profileMergeDigest({ operation_id: args.operation_id, input: args.input });
     const existing = await ctx.db.query("contributorProfileMergeOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", args.operation_id)).unique();
     if (existing) {
@@ -227,7 +227,7 @@ export async function profileMergeReceiptHandler(
   ctx: QueryCtx,
   args: { apiKey: string; actor_email: string; operation_id: string },
 ) {
-    await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" }, "admin");
     const operation = await ctx.db.query("contributorProfileMergeOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", args.operation_id)).unique(); if (!operation) return null;
     const { _id: _operationId, _creationTime: _operationCreationTime, ...receiptOperation } = operation;
     const items = await ctx.db.query("contributorProfileMergeItems").withIndex("by_operation_id_and_ordinal", (q) => q.eq("operation_id", args.operation_id)).take(operation.item_count + 1);
@@ -251,7 +251,7 @@ export async function rollbackProfileMergeHandler(
     dry_run: boolean;
   },
 ) {
-    await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
+    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" }, "admin");
     const operation = await ctx.db.query("contributorProfileMergeOperations").withIndex("by_operation_id", (q) => q.eq("operation_id", args.rollback_of)).unique();
     if (!operation) throw new Error("Profile merge rollback target does not exist.");
     if (operation.status === "rolled-back") { if (operation.rollback_operation_id !== args.operation_id) throw new Error("Profile merge was rolled back by another operation."); return { operation_id: args.operation_id, payload_digest: operation.payload_digest, state_digest: operation.expected_state_digest, item_count: operation.item_count, idempotent_replay: true, dry_run: false }; }

@@ -55,7 +55,6 @@ vi.mock("@server/convex/serverWriteHealth", () => ({
 vi.mock("@server/next/statusRedirectPolicy", () => ({
   STATUS_PAGE_PATHS: {
     dev: "/dev",
-    devContributors: "/dev/contributors",
   },
   buildNoIndexPageMetadata: vi.fn(() => ({})),
   getProtectedRouteRedirectTarget: vi.fn((decision) => ({ type: decision.type, href: `/${decision.type}` })),
@@ -80,14 +79,14 @@ describe("NextDevPage shell selection", () => {
     getEditorBrowserReadTargetMock.mockReturnValue({ selectedUrl: "https://convex.test" });
   });
 
-  it("mounts the one shell on Contributors for an authenticated non-editor", async () => {
+  it("mounts the one shell on Contributors for an authenticated contributor", async () => {
     getServerSessionMock.mockResolvedValue({
       user: {
-        email: "viewer@example.com",
-        role: "viewer",
+        email: "member@example.com",
+        role: "contributor",
       },
     });
-    getOwnedContributorProfileMock.mockResolvedValue({ key: "VIEWER" });
+    getOwnedContributorProfileMock.mockResolvedValue({ key: "MEMBER" });
 
     const element = await NextDevPage({ params: Promise.resolve({ segments: ["contributors", "me"] }) });
 
@@ -97,20 +96,34 @@ describe("NextDevPage shell selection", () => {
         convexUrl: "https://convex.test",
         initialTab: "contributors",
         initialSlug: "me",
-        initialProfileKey: "VIEWER",
+        initialProfileKey: "MEMBER",
       }),
     );
-    await expect(element.props.ownedProfileKey).resolves.toBe("VIEWER");
+    await expect(element.props.ownedProfileKey).resolves.toBe("MEMBER");
   });
 
-  it("refuses editor-only tabs to a non-editor before any shell is built", async () => {
+  it("still loads the shell for a contributor on an editor tab, which the shell renders locked", async () => {
+    getServerSessionMock.mockResolvedValue({
+      user: { email: "member@example.com", role: "contributor" },
+    });
+    getOwnedContributorProfileMock.mockResolvedValue(null);
+
+    const element = await NextDevPage({ params: Promise.resolve({ segments: ["articles"] }) });
+
+    expect(element.type).toBe(NextDevRouteClient);
+    expect(element.props).toEqual(expect.objectContaining({ initialTab: "articles" }));
+  });
+
+  it("refuses a viewer account any tab before any shell is built", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { email: "viewer@example.com", role: "viewer" },
     });
 
-    await expect(NextDevPage({ params: Promise.resolve({ segments: ["articles"] }) })).rejects.toThrow(
-      "redirect:/unauthorized",
-    );
+    for (const segments of [["articles"], ["contributors", "me"]]) {
+      await expect(NextDevPage({ params: Promise.resolve({ segments }) })).rejects.toThrow(
+        "redirect:/unauthorized",
+      );
+    }
     expect(getEditorBrowserReadTargetMock).not.toHaveBeenCalled();
   });
 

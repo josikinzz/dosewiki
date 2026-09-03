@@ -1,4 +1,5 @@
 import type { NormalizedUserProfile } from "@/data/userProfiles";
+import type { AppRole } from "@/lib/auth/roles";
 import type { useDevModeChangeLog } from "./useDevModeChangeLog";
 import type { DevModePrimaryTab } from "./devModePageUtils";
 import type { DevModeTab } from "./devTabRegistry";
@@ -26,8 +27,14 @@ export type DevModePageControllerState = {
   contentWrapperClass: string;
   /** An Auth.js session is present. */
   isSignedIn: boolean;
-  /** The session role may use editor tools; drives disabled rail tabs and save gating. */
-  canEdit: boolean;
+  /** The session role, null while signed out; the rail disables every tab above it. */
+  role: AppRole | null;
+  /** Admin or editor: may draft saves; the commit panel and save buttons disable without it. */
+  canDraft: boolean;
+  /** Admin: may approve, delete, and use admin-only fields. */
+  canApprove: boolean;
+  /** Why the active tab is closed to the settled session, or null when it is open. */
+  activeTabLockReason: string | null;
   sessionStatus: DevModePageChromeSessionStatus;
   userEmail?: string | null;
   userImage?: string | null;

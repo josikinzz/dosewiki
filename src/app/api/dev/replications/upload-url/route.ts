@@ -20,13 +20,16 @@ export const POST = protectedRouteOperation({
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to mint a replication upload URL via Next route:",
   unexpectedErrorMessage: "Unable to start that upload right now.",
-  operation: async ({ convexWrite }) => {
+  operation: async ({ actorEmail, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
 
     const apiKey = convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
-    const uploadUrl = await convexWrite.client.mutation(api.replications.generateUploadUrl, { apiKey });
+    const uploadUrl = await convexWrite.client.mutation(api.replications.generateUploadUrl, {
+      apiKey,
+      actorEmail,
+    });
 
     return NextResponse.json({ ok: true, uploadUrl });
   },
