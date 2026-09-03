@@ -1762,7 +1762,7 @@
     "kind": "markdown",
     "label": "08 · Scripts · workflow families",
     "group": "Docs · Code",
-    "body": "**Article prose is not the only pipeline.** The same conventions drive the citation entailment audit (`scripts/citations/verdict-*`, run by the `citation-pi` skill), the legality-source workflow (`scripts/legality/`, run by `legality-pi`), replication intake and R2 media migration (`scripts/replications/`, the largest family; section 09), contributor avatar tooling (`scripts/contributors/`), molecule and chemistry audits (`scripts/chemistry/`), Convex migrations and exports (`scripts/migrate/`, `scripts/convex/`), and the build-time generators for social cards and theme CSS (`scripts/build/`). The registry in `scripts/lib/workflow-command-surface.mjs` (with `citation-command-surface.mjs` beside it) is the index of runnable commands."
+    "body": "The same conventions drive pipelines beyond article prose: the citation entailment audit (`scripts/citations/verdict-*`, run by the `citation-pi` skill), the legality-source workflow (`scripts/legality/`, run by `legality-pi`), replication intake and R2 media migration (`scripts/replications/`, the largest family; section 09), contributor avatar tooling (`scripts/contributors/`), molecule and chemistry audits (`scripts/chemistry/`), Convex migrations and exports (`scripts/migrate/`, `scripts/convex/`), and the build-time generators for social cards and theme CSS (`scripts/build/`). The registry in `scripts/lib/workflow-command-surface.mjs` (with `citation-command-surface.mjs` beside it) is the index of runnable commands."
   },
   {
     "key": "docs-code-s8-deferral",
@@ -1790,7 +1790,7 @@
     "kind": "markdown",
     "label": "09 · Replications · curation paragraph",
     "group": "Docs · Code",
-    "body": "Curation is data, not deploys. `substanceGalleries` pins and suppresses what each substance's **Replication Showcase** shows; `replicationPlaylists` are reusable ordered sets applied into a gallery draft; the Effect Index homepage carousel is an ordered list in `siteConfig`. The public gallery reads through `lib/convex/publicData.replications.ts` and two cacheable JSON endpoints (`/api/replications/gallery` and `/showcase`)."
+    "body": "`substanceGalleries` pins and suppresses what each substance's **Replication Showcase** shows; `replicationPlaylists` are reusable ordered sets applied into a gallery draft; the Effect Index homepage carousel is an ordered list in `siteConfig`. All three are data, so curation changes ship without a deploy. The public gallery reads through `lib/convex/publicData.replications.ts` and two cacheable JSON endpoints (`/api/replications/gallery` and `/showcase`)."
   },
   {
     "key": "docs-code-s9-rights",
