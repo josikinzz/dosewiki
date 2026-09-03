@@ -17,7 +17,7 @@ describe("psychoactive index manual", () => {
     });
 
     const members = category?.sections.flatMap(({ drugs }) => drugs) ?? [];
-    expect(new Set(members)).toHaveLength(45);
+    expect(new Set(members)).toHaveLength(51);
     expect(members).toContain("pregabalin");
     expect(members).not.toContain("morphine");
     expect(category?.sections.find(({ key }) => key === "common")?.drugs).toContain("alprazolam");
@@ -27,16 +27,21 @@ describe("psychoactive index manual", () => {
   it("places every requested index substance in its intended section", () => {
     const expectedSections = {
       "2-fluorodeschloroketamine": ["dissociative", "arylcyclohexylamine"],
+      "2m2b": ["gabaergic", "other-gabaergics"],
       "3-fa": ["stimulant", "amphetamine"],
       "4-aco-met": ["psychedelic", "tryptamine"],
       clonazolam: ["gabaergic", "benzodiazepines"],
       desoxypipradrol: ["stimulant", "other-stimulants"],
       dexmethylphenidate: ["stimulant", "other-stimulants"],
       dihydrocodeine: ["opioid", "morphinan"],
+      eszopiclone: ["gabaergic", "z-drugs"],
       "f-phenibut": ["gabaergic", "gaba-analogues"],
+      ghb: ["gabaergic", "gaba-analogues"],
+      kanna: ["entactogen", "other-entactogens"],
       mephedrone: ["stimulant", "cathinone"],
       methallylescaline: ["psychedelic", "scaline"],
       "o-desmethyltramadol": ["opioid", "other-opioids"],
+      phenibut: ["gabaergic", "gaba-analogues"],
     } as const;
 
     for (const [slug, [categoryKey, sectionKey]] of Object.entries(expectedSections)) {

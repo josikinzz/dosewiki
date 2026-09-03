@@ -211,7 +211,7 @@
             "nitrous"
           ],
           "key": "other-dissociatives",
-          "label": "Adamantanes"
+          "label": "Other dissociatives"
         }
       ]
     },
@@ -284,6 +284,7 @@
           "drugs": [
             "5-meo-dipt",
             "amt",
+            "kanna",
             "nm-2-ai"
           ],
           "key": "other-entactogens",
@@ -427,7 +428,6 @@
         },
         {
           "drugs": [
-            "kanna",
             "melatonin",
             "theanine"
           ],
@@ -465,7 +465,6 @@
           "drugs": [
             "bupropion",
             "lithium",
-            "propranolol",
             "sertraline",
             "trazodone"
           ],
@@ -620,6 +619,7 @@
         "6": 3
       },
       "drugs": [
+        "eszopiclone",
         "salvia",
         "zaleplon",
         "zolpidem",
@@ -705,11 +705,23 @@
         },
         {
           "drugs": [
+            "eszopiclone",
+            "zaleplon",
+            "zolpidem",
+            "zopiclone"
+          ],
+          "key": "z-drugs",
+          "label": "Z-drugs"
+        },
+        {
+          "drugs": [
             "1-4-butanediol",
             "baclofen",
             "f-phenibut",
             "gabapentin",
             "gbl",
+            "ghb",
+            "phenibut",
             "pregabalin"
           ],
           "key": "gaba-analogues",
@@ -717,12 +729,12 @@
         },
         {
           "drugs": [
+            "2m2b",
             "alcohol",
             "carisoprodol",
             "kava",
             "methaqualone",
-            "metizolam",
-            "phenibut"
+            "metizolam"
           ],
           "key": "other-gabaergics",
           "label": "Other GABAergics"
@@ -775,9 +787,8 @@
         "6": 3
       },
       "drugs": [
-        "2m2b",
-        "eszopiclone",
-        "hydroxyzine"
+        "hydroxyzine",
+        "propranolol"
       ],
       "iconKey": "miscellaneous",
       "key": "miscellaneous",
