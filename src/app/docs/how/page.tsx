@@ -1770,11 +1770,7 @@ export default async function DocsHowPage() {
           human-curated structure drawings that anyone can reuse.
         </p>
 
-        <p className={PULL_CLASS}>
-          The download is intended for independent reuse.
-        </p>
-
-        <p className={`${PROSE_CLASS} mt-5`}>
+        <p className={`${PROSE_CLASS} mt-4`}>
           Researchers, developers, educators, and community projects can download the
           dataset and build on it, without rebuilding a harm-reduction encyclopedia
           first.
