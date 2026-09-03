@@ -792,7 +792,7 @@
     "kind": "plain",
     "label": "How articles are made meta description",
     "group": "SEO",
-    "body": "An honest, detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and human expert review."
+    "body": "A detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and human expert review."
   },
   {
     "key": "seo-docs-license-description",

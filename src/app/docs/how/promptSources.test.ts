@@ -102,9 +102,11 @@ describe("/docs/how trust and review methodology", () => {
 });
 
 describe("/docs/how status and roadmap", () => {
-  it("states beta status and living-document framing", () => {
+  it("states beta status and ongoing public checks", () => {
     expect(PAGE).toContain("in <strong>beta</strong>");
-    expect(PAGE).toContain("living document");
+    expect(PAGE).toMatch(
+      /Every article is generated, checked, and\s+corrected in public through workflows that are still running/,
+    );
   });
 
   it("lists every roadmap phase", () => {

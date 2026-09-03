@@ -472,19 +472,19 @@ export default async function DocsHowPage() {
             {copy.text("docs-how-title")}
           </h1>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
-            Everything a substance article needs is already published, spread across ten
-            reference sites in ten formats. Compiling it was always the expensive part.{" "}
+            The source material for a substance article is already published across ten
+            reference sites in ten formats. Compiling those sources was always the expensive part.{" "}
             <a href="/contributors/josie" className={proseLinkClassName}>Josie Kins</a>, who
             co-founded dose.wiki, wrote hundreds of substance articles by hand for earlier
             reference sites, so we know the cost: each article is days of work, each writer
             sets a different standard, and when a writer leaves, the method leaves with them.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            Compiling is now what software does well, so substance articles begin as
+            Software now handles that compilation, so substance articles begin as
             pipeline drafts. Code copies the dose and duration tables. An LLM reads the
             sources and drafts the narrative sections from word-for-word excerpts, citing
-            the source of each one. The same steps and prompts run for each substance,
-            whoever runs them and whenever. Human editors take over from there. They verify
+            the source of each one. The same steps and prompts run for every substance,
+            regardless of who starts the pipeline or when. Human editors take over from there. They verify
             the pharmacology, check the doses and interactions where a wrong figure can hurt
             someone, and add what the sources left out. Each article&apos;s status subsection
             shows how much human review it has had.
@@ -539,8 +539,8 @@ export default async function DocsHowPage() {
           attribution from the Effect Index corpus. Replications are the image and video
           recreations of subjective effects shown in articles and the gallery. They are
           human artwork, made by the replications community and by artists who have sent
-          work to Josie Kins over the years. The site hosts them as education on
-          subjective-effect documentation and credits their creators.
+          work to Josie Kins over the years. The site hosts them as educational material
+          about subjective-effect documentation and credits their creators.
         </p>
 
         <div className={LEGEND_CLASS}>
@@ -1130,13 +1130,13 @@ export default async function DocsHowPage() {
               from &quot;this source was skipped&quot;.
             </p>
             <p className={`${PROSE_CLASS} mt-3`}>
-              We built it the other way first, and it did not hold. When an LLM reproduces
-              a passage, it re-types the passage, and drift enters in the re-typing. One
-              batch of 47 files turned an &quot;antihistamine&quot; into an
+              Our first version let the LLM reproduce each passage, but it did not preserve
+              the source wording. Each reproduction created an opportunity for wording to change.
+              One batch of 47 files turned an &quot;antihistamine&quot; into an
               &quot;antihistaminic&quot;, dropped a &quot;however,&quot;, and shortened
               the name of an organization by two words. These are small edits, easy to
-              miss, in text whose only job is to be an exact copy. Block selection removes
-              the opportunity for drift, where a warning in the prompt only described it.
+              miss, in text whose only job is to be an exact copy. Block selection prevents
+              that drift; a warning in the prompt only asked the model to avoid it.
             </p>
           </div>
           <div>
@@ -1292,8 +1292,8 @@ export default async function DocsHowPage() {
           the copy printed here.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          The pharmacology and harm potential prompts show how much of a section&apos;s
-          quality comes from the prompt itself.
+          The pharmacology and harm potential prompts show in detail how each prompt
+          shapes its section.
         </p>
 
         {SECTION_PROMPTS.map((prompt) => (
@@ -1501,9 +1501,9 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          Editorial review is the first stage specific to one article. Everything before
-          this point was produced for every substance at once. From here on, a named
-          person does the work.
+          Editorial review is the first person-led stage specific to one article. The
+          baseline pipeline before it was produced for every substance at once. From here
+          on, a named person does the work.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           Readers take part in this stage. The report-an-issue form at the bottom of
@@ -1517,7 +1517,7 @@ export default async function DocsHowPage() {
 
         <p className={`${PROSE_CLASS} mt-4`}>
           Each article shows this as a three-step Article Status. Step 1 is automated
-          synthesis, which builds the foundation. Step 2 is the editorial review described
+          synthesis, which creates the baseline draft. Step 2 is the editorial review described
           here. Step 3 is a human citation review that compares each claim with its
           source. Step 3 is the human pass planned as Phase 4 in{" "}
           <SectionRef s="status" />, not the automated entailment audit before it. No
@@ -1635,8 +1635,8 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={PULL_CLASS}>
-          dose.wiki is in <strong>beta</strong>. Every article is a living document:
-          generated, checked, and corrected in public, in stages that still run.
+          dose.wiki is in <strong>beta</strong>. Every article is generated, checked, and
+          corrected in public through workflows that are still running.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
@@ -1771,7 +1771,7 @@ export default async function DocsHowPage() {
         </p>
 
         <p className={PULL_CLASS}>
-          The published dataset is a goal in itself.
+          The download is intended for independent reuse.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
