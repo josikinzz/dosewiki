@@ -61,6 +61,20 @@ export function viewToPath(view: AppView): string {
   }
 }
 
+/**
+ * Whether a `usePathname()` value addresses the homepage.
+ *
+ * Next prerenders the root page under its internal `/index` name, and on Vercel an
+ * ISR regeneration of the root renders with that name too, so server-rendered client
+ * components see `/index` while the hydrated router reports `/`. Chrome that keys off
+ * a bare `=== "/"` therefore renders the non-home shell into the HTML and drops it
+ * on hydration: a footer and a desktop nav flashing on the homepage. Every homepage
+ * check goes through this predicate so both spellings agree before first paint.
+ */
+export function isHomePathname(pathname: string): boolean {
+  return pathname === "/" || pathname === "/index";
+}
+
 export function parsePath(
   pathValue: string | undefined,
   defaultSlug: string | null,

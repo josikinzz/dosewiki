@@ -48,6 +48,25 @@ interface IndexCardProps {
   hideIcon?: boolean;
 }
 
+/**
+ * Vertical centring of the digits, in two layers:
+ *
+ * 1. The inner block is trimmed to cap height with `text-box`, so a flex
+ *    centre puts the cap-height centre on the pill centre by definition,
+ *    whatever the face's ascent/descent split (Inter's is mild, Titillium
+ *    Web's is not).
+ * 2. The pill's line-height equals its height, so where `text-box` is not
+ *    supported the single line box fills the pill and the glyphs centre on
+ *    the font's content area instead, which both shipped faces land within
+ *    a pixel of centre.
+ *
+ * No sub-pixel transform anywhere in the badge or around it: Safari and
+ * Chromium snap glyphs and backgrounds to the device grid independently
+ * under a fractional translate, which is how the Clinical face ended up a
+ * pixel high in some clients and low in others.
+ *
+ * `leading-*` stays after `text-[..]`: tailwind-merge otherwise drops it.
+ */
 function IndexCardCountBadge({
   count,
   size = "md",
@@ -58,16 +77,14 @@ function IndexCardCountBadge({
   return (
     <span
       className={cn(
-        "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold tabular-nums",
+        "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold tabular-nums tracking-normal",
         size === "sm"
-          ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] leading-none tracking-normal"
-          : "h-[1.15rem] min-w-[1.4rem] px-1.5 text-[0.62rem] leading-none tracking-normal",
+          ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] leading-[1.12rem]"
+          : "h-[1.15rem] min-w-[1.4rem] px-1.5 text-[0.62rem] leading-[1.15rem]",
       )}
       aria-label={`${count} item${count === 1 ? "" : "s"}`}
     >
-      <span className="block translate-y-[0.5px] [text-box:trim-both_cap_alphabetic]">
-        {count}
-      </span>
+      <span className="block [text-box:trim-both_cap_alphabetic]">{count}</span>
     </span>
   );
 }
@@ -160,8 +177,10 @@ export const IndexCard = memo(function IndexCard({
         <span className="line-clamp-2 break-words">{title}</span>
       </h2>
       {/* The title line box carries more ascender than descender room, so
-          centering on it lands the badge ~0.9px below the cap-height center. */}
-      <span className="flex -translate-y-[0.875px]">
+          centering on it lands the badge about a pixel below the cap-height
+          center in both faces. A whole-pixel layout offset corrects that; a
+          fractional transform would take the pill off the device grid. */}
+      <span className="relative -top-px flex">
         <IndexCardCountBadge count={count} />
       </span>
     </div>

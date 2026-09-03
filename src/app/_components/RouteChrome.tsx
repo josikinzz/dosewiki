@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { RouteAnnouncer } from "@/components/common/RouteAnnouncer";
 import { NavigationProgress } from "./NavigationProgress";
-import { viewToPath } from "@/utils/routing";
+import { isHomePathname, viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { isEffectIndex } from "@/config/siteFlavor";
 
@@ -224,7 +224,7 @@ export function RouteChrome() {
         // Index's "/" is an ordinary content page (two columns of panels), and
         // the original site showed its full nav on the homepage, so it keeps
         // the desktop nav and its dropdowns.
-        forceMobileNav={pathname === "/" && !isEffectIndex()}
+        forceMobileNav={isHomePathname(pathname) && !isEffectIndex()}
       />
     </>
   );
@@ -234,11 +234,11 @@ export function RouteFooter() {
   const pathname = usePathname();
   const { model } = useRouteChromeModel();
 
-  // "/" is suppressed on dose.wiki because its homepage is a full-viewport
+  // The homepage is suppressed on dose.wiki because it is a full-viewport
   // splash that a footer would push into a scroll. Effect Index's homepage is
   // an ordinary content page and the original site footered it, so it keeps
   // the footer.
-  const suppressHomeFooter = pathname === "/" && !isEffectIndex();
+  const suppressHomeFooter = isHomePathname(pathname) && !isEffectIndex();
 
   if (
     suppressHomeFooter ||
