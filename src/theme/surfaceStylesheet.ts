@@ -1,3 +1,5 @@
+import { CHROMA_SUPPORT_PROBE } from "./appearanceChroma";
+import funTokenFallbacks from "./surfaceFunTokenFallbacks.generated.json";
 import funTokens from "./surfaceFunTokens.generated.json";
 
 /**
@@ -6,6 +8,12 @@ import funTokens from "./surfaceFunTokens.generated.json";
  * `var()` chain. The named surface colourways are retired — the reader's surface is the
  * continuous hue axis now (`--dw-surface-hue`, rotated by the generated chroma stylesheet) —
  * and the base surface under Pro is `pro-theme.css` as authored, so no Pro block is emitted.
+ *
+ * A token whose authored value is a relative-colour or colour-mix recipe ships twice, the
+ * way `site-colors.css` authors it: the baked literal in the block, then the recipe in a
+ * trailing `@supports` block on the same selector. This sheet out-ranks the authored one, so
+ * without that shape it would hand Safari 16.x (angle-typed or absent relative colour
+ * syntax) an invalid value and blank every frosted panel the authored fallback had rescued.
  */
 
 /**
@@ -28,16 +36,32 @@ export function surfaceBaseBlockSelector(theme: string): string {
   return `html:not([${SURFACE_ATTRIBUTE}])[data-theme="${theme}"]:where(:not([data-visual-style="pro"]))`;
 }
 
-function block(selector: string, declarations: Readonly<Record<string, string>>): string {
+type SchemeTokens = Readonly<Record<string, string>>;
+
+function block(selector: string, declarations: SchemeTokens, indent = ""): string {
   const entries = Object.entries(declarations);
   if (!entries.length) return "";
-  return `${selector} {\n${entries.map(([key, value]) => `  ${key}: ${value};`).join("\n")}\n}\n`;
+  const body = entries.map(([key, value]) => `${indent}  ${key}: ${value};`).join("\n");
+  return `${indent}${selector} {\n${body}\n${indent}}\n`;
+}
+
+/** One scheme: the base block with fallbacks substituted, then the recipes under the probe. */
+function schemeBlocks(selector: string, tokens: SchemeTokens, fallbacks: SchemeTokens): string {
+  const recipes = Object.fromEntries(
+    Object.keys(fallbacks).filter((key) => key in tokens).map((key) => [key, tokens[key]]),
+  );
+  const base = block(selector, { ...tokens, ...fallbacks });
+  const guarded = block(selector, recipes, "  ");
+  return guarded
+    ? `${base}\n@supports (color: ${CHROMA_SUPPORT_PROBE}) {\n${guarded}}\n`
+    : base;
 }
 
 export function buildSurfaceStylesheetCss(): string {
-  const base = funTokens.orchid as Record<"dark" | "light", Record<string, string>>;
+  const base = funTokens.orchid as Record<"dark" | "light", SchemeTokens>;
+  const fallbacks = funTokenFallbacks.orchid as Record<"dark" | "light", SchemeTokens>;
   const body = (["dark", "light"] as const)
-    .map((theme) => block(surfaceBaseBlockSelector(theme), base[theme]))
+    .map((theme) => schemeBlocks(surfaceBaseBlockSelector(theme), base[theme], fallbacks[theme]))
     .filter(Boolean)
     .join("\n");
   return `/* GENERATED FILE — Source: src/theme/surfaces.ts. Regenerate: npm run generate:surface-css */\n\n/* Orchid */\n${body}`;

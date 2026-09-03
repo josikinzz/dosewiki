@@ -49,12 +49,13 @@ function stripComments(source: string): string {
 }
 
 describe("site font selection", () => {
-  it("gives every flavor its own module with the same two exports", () => {
+  it("gives every flavor its own module with the same exports", () => {
     for (const modulePath of Object.values(FLAVOR_MODULES)) {
       const source = stripComments(read(modulePath));
 
       expect(source).toContain("export const siteFont = ");
       expect(source).toContain('variable: "--font-display"');
+      expect(source).toMatch(/export const bodyFont = /);
       expect(source).toMatch(/export const proFont = /);
     }
   });
@@ -98,6 +99,38 @@ describe("site font selection", () => {
     expect(proRegistration).toContain('variable: "--font-pro"');
     // The Fun face is the one this build always paints, so it keeps its preload.
     expect(source.slice(0, source.indexOf("export const proFont"))).not.toContain("preload");
+  });
+
+  it("registers the Inter body face from the committed variable subsets, preloaded, on dose.wiki only", () => {
+    const source = stripComments(read(FLAVOR_MODULES.dosewiki));
+    const start = source.indexOf("export const bodyFont");
+    expect(start).toBeGreaterThan(-1);
+    const bodyRegistration = source.slice(start, source.indexOf("export const proFont"));
+
+    // The reading face of every page: `base.css` leads --font-family-standard-body with
+    // --font-body, so it keeps the display face's preload rather than the Pro face's
+    // lazy terms. Both slopes are real variable files: with font-synthesis: none, a
+    // missing italic would render upright.
+    expect(bodyRegistration).toContain('variable: "--font-body"');
+    expect(bodyRegistration).toContain('display: "swap"');
+    expect(bodyRegistration).not.toContain("preload");
+    expect(bodyRegistration.match(/weight: "100 900"/g)).toHaveLength(2);
+    for (const face of [
+      "public/fonts/inter/inter-variable-normal-latin.woff2",
+      "public/fonts/inter/inter-variable-italic-latin.woff2",
+    ]) {
+      expect(bodyRegistration).toContain(face.replace("public/", "../../../public/"));
+      expect(fs.existsSync(path.join(REPO_ROOT, face))).toBe(true);
+    }
+    expect(fs.existsSync(path.join(REPO_ROOT, "public/fonts/inter/OFL.txt"))).toBe(true);
+    expect(read("src/styles/base.css")).toContain(
+      "--font-family-standard-body: var(--font-body, Inter), Inter,",
+    );
+
+    // Effect Index sets its body in Titillium and must not ship Inter bytes or preloads.
+    const effectindex = stripComments(read(FLAVOR_MODULES.effectindex));
+    expect(effectindex).toContain("export const bodyFont = null;");
+    expect(effectindex.toLowerCase()).not.toContain("inter");
   });
 
   it("registers Titillium once on the publication that already ships it", () => {
@@ -161,7 +194,7 @@ describe("site font selection", () => {
     const entry = stripComments(read("src/app/fonts.ts"));
 
     expect(entry).toContain(
-      'export { dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "@site-font"',
+      'export { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "@site-font"',
     );
     expect(entry).not.toContain("next/font");
     expect(entry).not.toContain("siteFlavor");

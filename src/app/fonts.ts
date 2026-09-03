@@ -1,6 +1,8 @@
 /**
  * The faces a build can paint: `siteFont`, bound to `--font-display`, is the face the
- * publication renders by default; `proFont`, bound to `--font-pro`, is the face the Pro
+ * publication renders by default; `bodyFont`, bound to `--font-body`, is the Inter
+ * reading face under it (null on Effect Index, whose body face is its display face);
+ * `proFont`, bound to `--font-pro`, is the face the Pro
  * visual style is set in; `dyslexicFont`, bound to `--font-dyslexic`, is the optional
  * Lexend face behind dose.wiki's dyslexic-type toggle (null on Effect Index, which offers
  * no such toggle). The root layout puts the variables on `<html>`, and
@@ -17,4 +19,4 @@
  * `tsconfig.json` maps `@site-font` to the dose.wiki module so `tsc` and editors have a
  * shape to check against; both modules export the same names.
  */
-export { dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "@site-font";
+export { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "@site-font";

@@ -14,6 +14,13 @@
    addition needs no wrap-around. Unset properties fall back to the authored
    denominator and 0, so a matched block with nothing on its axis is inert.
 
+   The whole sheet is wrapped in @supports on that exact grammar: a browser
+   whose relative colour syntax types h as an angle (Safari 16.4 to 17.x) or
+   lacks the syntax (Safari 16.3 and older) would otherwise turn every
+   rewritten token invalid and paint the accent, logo and panels blank. The
+   bootstrap and the provider probe CSS.supports with the same expression
+   before engaging the attribute.
+
    The harm-reduction ramp, dose tiers and plateau tiers are structurally
    absent: the Fun blocks' input token maps are filtered by paletteTokenRole,
    which routes every semantic family away from the appearance axes, and the
@@ -27,6 +34,7 @@
    charcoal exactly. Only the base colourways exist now — every other look is
    a (hue, level) point. */
 
+@supports (color: oklch(from red l c calc(h + 1))) {
 html[data-chroma]:not([data-surface])[data-theme="dark"]:where(:not([data-visual-style="pro"])) {
   --dw-surface-gain: calc(var(--dw-surface-level, 0.7763) / 0.7763);
   --theme-body-bg: oklch(from #110617 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)));
@@ -92,7 +100,7 @@ html[data-chroma]:not([data-surface])[data-theme="dark"]:where(:not([data-visual
     linear-gradient(135deg, oklch(from #1f0527 l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #1f0527 calc(l - 0.062) calc((c - 0.019) * var(--dw-surface-gain)) calc((h - 24) + var(--dw-surface-hue, 0))));
   --theme-frosted-panel-hover-border: oklch(from rgb(240 171 252 / 0.24) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)));
   --theme-frosted-panel-hover-bg: radial-gradient(circle at 12% 0%, oklch(from #1f0527 calc(l + 0.063) calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #1f0527 calc(l + 0.023) calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 38%),
-    linear-gradient(135deg, oklch(from #1f0527 calc(l + 0.023) calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #1f0527 calc(l - 0.046) calc((c - 0.011) * var(--dw-surface-gain)) calc((h - 24) + var(--dw-surface-hue, 0))));
+      linear-gradient(135deg, oklch(from #1f0527 calc(l + 0.023) calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #1f0527 calc(l - 0.046) calc((c - 0.011) * var(--dw-surface-gain)) calc((h - 24) + var(--dw-surface-hue, 0))));
   --theme-control-base: oklch(from #220c2a l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)));
   --theme-frosted-control-border: oklch(from rgb(240 171 252 / 0.18) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)));
   --theme-frosted-control-highlight: oklch(from #220c2a calc(l + 0.028) calc((c + 0.005) * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)));
@@ -104,7 +112,7 @@ html[data-chroma]:not([data-surface])[data-theme="dark"]:where(:not([data-visual
     inset 0 1px 0 rgb(255 255 255 / 0.075);
   --theme-frosted-control-hover-border: oklch(from rgb(240 171 252 / 0.3) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0)));
   --theme-frosted-control-hover-bg: radial-gradient(circle at 12% 0%, oklch(from #220c2a calc(l + 0.068) calc((c + 0.021) * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #220c2a calc(l + 0.031) calc((c + 0.015) * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))) 36%),
-    linear-gradient(135deg, oklch(from #220c2a calc(l + 0.031) calc((c + 0.015) * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #220c2a calc(l - 0.018) calc(c * var(--dw-surface-gain)) calc((h - 19) + var(--dw-surface-hue, 0))));
+      linear-gradient(135deg, oklch(from #220c2a calc(l + 0.031) calc((c + 0.015) * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))), oklch(from #220c2a calc(l - 0.018) calc(c * var(--dw-surface-gain)) calc((h - 19) + var(--dw-surface-hue, 0))));
   --theme-frosted-control-hover-shadow: 0 0 0 1px oklch(from rgb(240 171 252 / 0.3) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))),
     0 10px 22px -20px oklch(from rgb(240 171 252 / 0.32) l calc(c * var(--dw-surface-gain)) calc(h + var(--dw-surface-hue, 0))),
     inset 0 1px 0 rgb(255 255 255 / 0.1);
@@ -453,8 +461,8 @@ html[data-chroma]:not([data-accent])[data-theme="light"]:where(:not([data-visual
   --theme-search-highlight-text: oklch(from #a21caf l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --theme-search-overlay-panel-border: oklch(58% calc(0.085 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)) / 0.16);
   --theme-search-overlay-panel-bg: radial-gradient(circle at 12% 0%, oklch(99% calc(0.024 * var(--dw-accent-gain)) calc(333 + var(--dw-accent-hue, 0)) / 0.58), transparent 36%),
-    radial-gradient(circle at 92% 100%, oklch(72% calc(0.12 * var(--dw-accent-gain)) calc(324 + var(--dw-accent-hue, 0)) / 0.13), transparent 44%),
-    linear-gradient(135deg, oklch(from oklch(96% 0.032 334) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)) / 0.96) 0%, oklch(93% calc(0.048 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)) / 0.96) 58%, oklch(89% calc(0.064 * var(--dw-accent-gain)) calc(319 + var(--dw-accent-hue, 0)) / 0.97) 100%);
+      radial-gradient(circle at 92% 100%, oklch(72% calc(0.12 * var(--dw-accent-gain)) calc(324 + var(--dw-accent-hue, 0)) / 0.13), transparent 44%),
+      linear-gradient(135deg, oklch(from oklch(96% 0.032 334) l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)) / 0.96) 0%, oklch(93% calc(0.048 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)) / 0.96) 58%, oklch(89% calc(0.064 * var(--dw-accent-gain)) calc(319 + var(--dw-accent-hue, 0)) / 0.97) 100%);
   --theme-search-overlay-panel-ring: oklch(46% calc(0.13 * var(--dw-accent-gain)) calc(326 + var(--dw-accent-hue, 0)) / 0.08);
   --theme-search-overlay-panel-shadow: 0 24px 48px -34px oklch(48% calc(0.14 * var(--dw-accent-gain)) calc(318 + var(--dw-accent-hue, 0)) / 0.28),
     inset 0 1px 0 oklch(99% calc(0.01 * var(--dw-accent-gain)) calc(333 + var(--dw-accent-hue, 0)) / 0.78),
@@ -517,4 +525,5 @@ html[data-chroma]:not([data-accent])[data-theme="light"][data-visual-style="pro"
   --ei-selection: oklch(from #e9d9e8 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --ei-ring-soft: oklch(from #d4b7d4 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
   --ei-highlight: oklch(from #e9dfe9 l calc(c * var(--dw-accent-gain)) calc(h + var(--dw-accent-hue, 0)));
+}
 }

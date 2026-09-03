@@ -469,7 +469,7 @@ describe("pro visual style", () => {
     expect(skin).toContain("--font-family-display: var(--font-pro, var(--font-display))");
 
     const base = read(path.join(REPO_ROOT, "src", "styles", "base.css"));
-    expect(base).toContain("--font-family-standard-body: Inter");
+    expect(base).toContain("--font-family-standard-body: var(--font-body, Inter), Inter");
     expect(base).toContain("--font-family-body: var(--font-family-standard-body)");
   });
 

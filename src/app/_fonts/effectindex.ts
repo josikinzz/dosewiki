@@ -60,6 +60,17 @@ export const siteFont = localFont({
 export const proFont = siteFont;
 
 /**
+ * Effect Index sets body and display alike in Titillium: `pro-theme.css` re-seats
+ * `--font-family-standard-body` to `--font-pro`, and this publication is locked to Pro, so
+ * the Inter body face dose.wiki self-hosts would be an `@font-face` block, two preloads
+ * and ~150 KB no element here ever resolves to. `base.css` asks for it as
+ * `var(--font-body, Inter)`, so the missing variable costs nothing. The dose.wiki module
+ * exports a real registration under the same name; the root layout only appends the
+ * variable when this is non-null.
+ */
+export const bodyFont = null;
+
+/**
  * Effect Index offers no dyslexic type toggle (`showFontToggle: false`), so this build
  * registers no Lexend face at all: a `localFont` call here would emit an `@font-face`
  * block and fallback metrics no selector on this publication can ever resolve. The

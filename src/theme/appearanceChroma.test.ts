@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   ACCENT_HUE_PROPERTY,
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_LINK_ID,
+  CHROMA_SUPPORT_PROBE,
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
   applyChromaToDocument,
@@ -59,6 +60,42 @@ describe("colour axis runtime helpers", () => {
       root.style.removeProperty(ACCENT_LEVEL_PROPERTY);
       root.style.removeProperty(SURFACE_HUE_PROPERTY);
       root.style.removeProperty(ACCENT_HUE_PROPERTY);
+    }
+  });
+
+  it("disengages, and leaves the root disengaged, in a browser that cannot parse the sheet", () => {
+    // Safari 16.4 to 17.x types the relative-colour h channel as an angle, so the sheet's
+    // calc(h + shift) sums are invalid there; 16.3 and older lack the syntax. Engaging would
+    // turn every rewritten token invalid and blank the accent, logo and panels, so the
+    // writer asks CSS.supports for the exact grammar the sheet is built from and stays off
+    // when the answer is no: no attribute, no properties, no stylesheet link.
+    const root = document.documentElement;
+    document.head.innerHTML = "";
+    const supports = vi.spyOn(CSS, "supports").mockImplementation(
+      (property: string, value?: string) => !(property === "color" && value === CHROMA_SUPPORT_PROBE),
+    );
+
+    try {
+      root.dataset.chroma = "";
+      root.style.setProperty(SURFACE_LEVEL_PROPERTY, "0.5");
+
+      applyChromaToDocument(0.35, 1, 40, 300);
+
+      expect(supports).toHaveBeenCalledWith("color", CHROMA_SUPPORT_PROBE);
+      expect(root.dataset.chroma).toBeUndefined();
+      for (const property of [
+        SURFACE_LEVEL_PROPERTY,
+        ACCENT_LEVEL_PROPERTY,
+        SURFACE_HUE_PROPERTY,
+        ACCENT_HUE_PROPERTY,
+      ]) {
+        expect(root.style.getPropertyValue(property), property).toBe("");
+      }
+      expect(document.getElementById(CHROMA_STYLESHEET_LINK_ID)).toBeNull();
+    } finally {
+      supports.mockRestore();
+      delete root.dataset.chroma;
+      root.style.removeProperty(SURFACE_LEVEL_PROPERTY);
     }
   });
 });

@@ -18,7 +18,25 @@ import chromaManifest from "./appearanceChroma.generated.json";
  * writes all four properties (stored ?? appearance default) pre-paint.
  * Only a publication that locks both colour axes (Effect Index) stays inert —
  * and skips the `<link>` entirely.
+ *
+ * Engagement is also conditional on the browser: every chroma block is
+ * relative colour syntax with a bare-number hue sum (`calc(h + <shift>)`),
+ * which Safari 16.4 to 17.x parses with `h` typed as an `<angle>` (so the sum
+ * is invalid and every rewritten token becomes invalid at computed-value
+ * time) and Safari 16.3 and older does not parse at all. The stylesheet
+ * guards itself with `@supports`, and the two writers (bootstrap and
+ * provider) probe `CSS.supports` with the same expression before touching
+ * the root, so an unsupporting browser paints the authored palette instead
+ * of a blank one.
  */
+
+/**
+ * The grammar every chroma block depends on, as a `<color>` a browser can be
+ * asked about. Shared verbatim by the generated stylesheet's `@supports`
+ * wrapper and both runtime writers so the three can never disagree; the base
+ * sheets' hand-written `@supports` fallbacks spell the same expression.
+ */
+export const CHROMA_SUPPORT_PROBE = "oklch(from red l c calc(h + 1))";
 
 /** Root attribute every chroma block requires. Absent = the axis is inert. */
 export const CHROMA_ATTRIBUTE = "data-chroma";
@@ -131,12 +149,13 @@ export function ensureChromaStylesheet(): void {
 
 /**
  * Write both axes to the root. A level or hue is always a number on an
- * unlocked axis — the reader's saved value or the `DEFAULT_*` one — so `null`
- * here means "this axis is locked". With all four null (Effect Index) the
- * axes disengage entirely — attribute removed, properties cleared — so the
- * page renders the authored palette. The stylesheet stays attached once
- * fetched; the attribute alone gates it. Synchronous by design — one call is
- * one write batch; the provider rAF-throttles its calls during a slider drag.
+ * unlocked axis (the reader's saved value or the `DEFAULT_*` one), so `null`
+ * here means "this axis is locked". With all four null (Effect Index), or in
+ * a browser that fails the `CHROMA_SUPPORT_PROBE`, the axes disengage
+ * entirely (attribute removed, properties cleared) so the page renders the
+ * authored palette. The stylesheet stays attached once fetched; the attribute
+ * alone gates it. Synchronous by design: one call is one write batch; the
+ * provider rAF-throttles its calls during a slider drag.
  */
 export function applyChromaToDocument(
   surfaceLevel: number | null,
@@ -151,7 +170,13 @@ export function applyChromaToDocument(
     [SURFACE_HUE_PROPERTY, surfaceHue === null ? null : String(surfaceHue)],
     [ACCENT_HUE_PROPERTY, accentHue === null ? null : String(accentHue)],
   ];
-  if (properties.every(([, value]) => value === null)) {
+  // All four locked (Effect Index), or a browser that cannot parse the sheet: the
+  // axes disengage entirely, so the authored palette is what renders.
+  if (
+    properties.every(([, value]) => value === null) ||
+    typeof CSS === "undefined" ||
+    !CSS.supports("color", CHROMA_SUPPORT_PROBE)
+  ) {
     delete root.dataset.chroma;
     for (const [property] of properties) root.style.removeProperty(property);
     return;

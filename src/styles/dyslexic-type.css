@@ -31,10 +31,10 @@
    positive and stays untouched.
    ===================================================================== */
 html[data-font="dyslexic"][data-font][data-font] {
-  --font-family-body: var(--font-dyslexic), Lexend, Inter, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-family-display: var(--font-dyslexic), Lexend, Inter, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-body: var(--font-dyslexic), Lexend, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-family-display: var(--font-dyslexic), Lexend, var(--font-body, Inter), Inter, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --type-tracking-display: 0;
   --type-tracking-heading: 0;
   --type-tracking-body: 0;
@@ -69,6 +69,6 @@ html[data-font="dyslexic"][data-font][data-font] .font-sans {
    reader fetch the full face. The full-face variable follows in the stack so the
    label keeps rendering if the subset is ever missing. */
 .theme-font-preview-dyslexic {
-  font-family: var(--font-dyslexic-preview), var(--font-dyslexic), Lexend, Inter,
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-dyslexic-preview), var(--font-dyslexic), Lexend, var(--font-body, Inter),
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

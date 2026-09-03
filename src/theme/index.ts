@@ -6,6 +6,7 @@ import {
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_HREF,
   CHROMA_STYLESHEET_LINK_ID,
+  CHROMA_SUPPORT_PROBE,
   DEFAULT_APPEARANCE_COLORS,
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
@@ -325,6 +326,13 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   // guarded creation below is only a defensive fallback for a document missing that
   // markup, the same idempotent shape as ensureChromaStylesheet. The href's ?v= is the
   // stylesheet's content hash from appearanceChroma.generated.json.
+  //
+  // The whole write is gated on CSS.supports of the grammar the sheet is built from
+  // (CHROMA_SUPPORT_PROBE): Safari 16.4 to 17.x types the relative-colour h channel as an
+  // angle and 16.3 and older lacks the syntax, so engaging there would turn every
+  // rewritten token invalid and paint the accent, logo and panels blank. Such a browser
+  // keeps the authored palette; the sheet's own @supports wrapper makes the
+  // server-rendered link harmless there too.
   const chromaRead = ({
     levelVariable,
     hueVariable,
@@ -441,28 +449,30 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   const chromaWrite =
     surfaceLocked && accentLocked
       ? ""
-      : `\n\n  root.dataset.chroma = "";${
-          surfaceLocked
-            ? ""
-            : `
-  root.style.setProperty(${JSON.stringify(SURFACE_LEVEL_PROPERTY)}, "" + chromaSurface);
-  root.style.setProperty(${JSON.stringify(SURFACE_HUE_PROPERTY)}, "" + hueSurface);`
-        }${
-          accentLocked
-            ? ""
-            : `
-  root.style.setProperty(${JSON.stringify(ACCENT_LEVEL_PROPERTY)}, "" + chromaAccent);
-  root.style.setProperty(${JSON.stringify(ACCENT_HUE_PROPERTY)}, "" + hueAccent);`
-        }
-  try {
-    if (!document.getElementById(${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)})) {
-      const link = document.createElement("link");
-      link.id = ${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)};
-      link.rel = "stylesheet";
-      link.href = ${JSON.stringify(CHROMA_STYLESHEET_HREF)};
-      document.head.appendChild(link);
+      : `\n\n  if (typeof CSS !== "undefined" && CSS.supports("color", ${JSON.stringify(CHROMA_SUPPORT_PROBE)})) {
+    root.dataset.chroma = "";${
+      surfaceLocked
+        ? ""
+        : `
+    root.style.setProperty(${JSON.stringify(SURFACE_LEVEL_PROPERTY)}, "" + chromaSurface);
+    root.style.setProperty(${JSON.stringify(SURFACE_HUE_PROPERTY)}, "" + hueSurface);`
+    }${
+      accentLocked
+        ? ""
+        : `
+    root.style.setProperty(${JSON.stringify(ACCENT_LEVEL_PROPERTY)}, "" + chromaAccent);
+    root.style.setProperty(${JSON.stringify(ACCENT_HUE_PROPERTY)}, "" + hueAccent);`
     }
-  } catch {}`;
+    try {
+      if (!document.getElementById(${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)})) {
+        const link = document.createElement("link");
+        link.id = ${JSON.stringify(CHROMA_STYLESHEET_LINK_ID)};
+        link.rel = "stylesheet";
+        link.href = ${JSON.stringify(CHROMA_STYLESHEET_HREF)};
+        document.head.appendChild(link);
+      }
+    } catch {}
+  }`;
   // The type axis. Emitted only where the toggle is offered, on the locked-axis rule the
   // other axes follow — a locked publication's script carries neither the storage key nor
   // the attribute write, so Effect Index's pinned bootstrap stays byte-identical. No

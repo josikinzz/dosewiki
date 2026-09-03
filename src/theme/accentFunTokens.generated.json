@@ -76,7 +76,7 @@
       "--theme-search-highlight-bg": "color-mix(in srgb, #e879f9 15%, oklch(99.4% 0.002 326))",
       "--theme-search-highlight-text": "#a21caf",
       "--theme-search-overlay-panel-border": "oklch(58% 0.085 326 / 0.16)",
-      "--theme-search-overlay-panel-bg": "radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.58), transparent 36%),\n    radial-gradient(circle at 92% 100%, oklch(72% 0.12 324 / 0.13), transparent 44%),\n    linear-gradient(135deg, oklch(from oklch(96% 0.032 334) l c h / 0.96) 0%, oklch(93% 0.048 326 / 0.96) 58%, oklch(89% 0.064 319 / 0.97) 100%)",
+      "--theme-search-overlay-panel-bg": "radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.58), transparent 36%),\n      radial-gradient(circle at 92% 100%, oklch(72% 0.12 324 / 0.13), transparent 44%),\n      linear-gradient(135deg, oklch(from oklch(96% 0.032 334) l c h / 0.96) 0%, oklch(93% 0.048 326 / 0.96) 58%, oklch(89% 0.064 319 / 0.97) 100%)",
       "--theme-search-overlay-panel-ring": "oklch(46% 0.13 326 / 0.08)",
       "--theme-search-overlay-panel-shadow": "0 24px 48px -34px oklch(48% 0.14 318 / 0.28),\n    inset 0 1px 0 oklch(99% 0.01 333 / 0.78),\n    inset 0 0 0 1px oklch(99% 0.018 333 / 0.24)",
       "--theme-search-best-match-border": "oklch(54% 0.12 326 / 0.14)",

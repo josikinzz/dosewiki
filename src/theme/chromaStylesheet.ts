@@ -4,6 +4,7 @@ import {
   ACCENT_HUE_PROPERTY,
   ACCENT_LEVEL_PROPERTY,
   CHROMA_ATTRIBUTE,
+  CHROMA_SUPPORT_PROBE,
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
@@ -48,6 +49,15 @@ import surfaceFunTokens from "./surfaceFunTokens.generated.json";
  * with no saved values gets the site defaults (`DEFAULT_*` in
  * `appearanceChroma.ts`), so only a publication that locks both colour axes
  * (Effect Index) ships none of this.
+ *
+ * The whole sheet sits inside `@supports (color: <CHROMA_SUPPORT_PROBE>)`.
+ * Safari 16.4 to 17.x implements an older relative-colour draft in which `h`
+ * is an `<angle>`, so `calc(h + 352)` is a type mismatch and every rewritten
+ * token would be invalid at computed-value time; Safari 16.3 and older has no
+ * relative colour syntax at all. Inside the guard nothing changes for a
+ * current browser; outside it the sheet is empty and the base sheets' own
+ * values paint. The runtime writers probe the same expression, so such a
+ * browser never even engages the attribute.
  *
  * Safety: the input maps are already filtered by `paletteTokenRole`, which
  * routes the harm-reduction ramp (success/caution/unsafe/danger/info), the
@@ -469,6 +479,13 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    addition needs no wrap-around. Unset properties fall back to the authored
    denominator and 0, so a matched block with nothing on its axis is inert.
 
+   The whole sheet is wrapped in @supports on that exact grammar: a browser
+   whose relative colour syntax types h as an angle (Safari 16.4 to 17.x) or
+   lacks the syntax (Safari 16.3 and older) would otherwise turn every
+   rewritten token invalid and paint the accent, logo and panels blank. The
+   bootstrap and the provider probe CSS.supports with the same expression
+   before engaging the attribute.
+
    The harm-reduction ramp, dose tiers and plateau tiers are structurally
    absent: the Fun blocks' input token maps are filtered by paletteTokenRole,
    which routes every semantic family away from the appearance axes, and the
@@ -482,6 +499,12 @@ const HEADER = `/* GENERATED FILE — do not edit by hand.
    charcoal exactly. Only the base colourways exist now — every other look is
    a (hue, level) point. */
 `;
+
+/**
+ * The guard every block sits inside. Blocks are not indented under it: their
+ * selectors stay at column 0, which the structural tests key on.
+ */
+const SUPPORTS_OPEN = `@supports (color: ${CHROMA_SUPPORT_PROBE}) {\n`;
 
 /** The whole stylesheet. Deterministic: each axis Fun then Pro, dark before light. */
 export function buildChromaStylesheetCss(): string {
@@ -552,5 +575,5 @@ export function buildChromaStylesheetCss(): string {
     );
   }
 
-  return `${HEADER}\n${blocks.filter(Boolean).join("\n")}`;
+  return `${HEADER}\n${SUPPORTS_OPEN}${blocks.filter(Boolean).join("\n")}}\n`;
 }

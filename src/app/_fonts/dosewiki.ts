@@ -1,15 +1,15 @@
 import localFont from "next/font/local";
 
 /**
- * dose.wiki's two faces: the Fun face it renders by default, and the Pro face it
- * renders only if a reader selects the Pro visual style.
+ * dose.wiki's faces: the Fun display face it renders by default, the Inter body face
+ * under it, and the Pro face it renders only if a reader selects the Pro visual style.
  *
  * Why this lives in its own module: `next/font` is an SWC *compile-time* transform and
  * every option value has to be a written literal, so the two publications' faces cannot
  * be gated inside one module (`preload: !isEffectIndex` fails the build). Importing both
  * modules would not help either — the unused loader still emits its `@font-face` blocks
  * and its `<link rel="preload">` tags. So exactly one of these modules is resolved, via
- * the `@site-font` alias in `next.config.ts`, and both of them export the same two names.
+ * the `@site-font` alias in `next.config.ts`, and both of them export the same names.
  */
 
 /**
@@ -30,6 +30,36 @@ export const siteFont = localFont({
       path: "../../../public/fonts/Blinker-SemiBold.woff2",
       weight: "600",
       style: "normal",
+    },
+  ],
+});
+
+/**
+ * Body face. Inter has headed `--font-family-standard-body` in `src/styles/base.css`
+ * since the start, but only as a name: nothing served it, so a reader without Inter
+ * installed (Firefox on Linux or Windows, most of all) fell through to `system-ui` and
+ * read the site in whatever sans the OS ships. This registration binds the committed
+ * files to `--font-body`, which that stack now leads with, so every platform gets the
+ * same reading face. Preloaded, on the display face's reasoning: it paints on every page.
+ *
+ * Two sources, one family: Google serves Inter 4 as an upright and an italic VARIABLE
+ * font (`wght` 100 to 900, `opsz` 14 to 32), so every weight and both slopes the sheets
+ * ask for under `base.css`'s `font-synthesis: none` have a real face. See
+ * `public/fonts/inter/README.md` for provenance and the OFL beside it.
+ */
+export const bodyFont = localFont({
+  variable: "--font-body",
+  display: "swap",
+  src: [
+    {
+      path: "../../../public/fonts/inter/inter-variable-normal-latin.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "../../../public/fonts/inter/inter-variable-italic-latin.woff2",
+      weight: "100 900",
+      style: "italic",
     },
   ],
 });

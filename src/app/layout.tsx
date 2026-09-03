@@ -21,7 +21,7 @@ import {
 } from "@/theme/appearanceSheets";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
-import { dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
+import { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import "@site-styles";
@@ -44,10 +44,17 @@ const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
 // reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it. The
 // dyslexic face rides the same mechanism where the flavor offers the toggle (null where it
 // does not): `preload: false` again, so an untoggled reader downloads none of Lexend either.
-const rootFontClassName =
-  dyslexicFont && dyslexicPreviewFont
-    ? `${siteFont.variable} ${proFont.variable} ${dyslexicFont.variable} ${dyslexicPreviewFont.variable}`
-    : `${siteFont.variable} ${proFont.variable}`;
+// The Inter body face is dose.wiki's alone (null on Effect Index, whose body face is its
+// display face) and, like the display face, is preloaded: it paints on every page.
+const rootFontClassName = [
+  siteFont.variable,
+  bodyFont?.variable,
+  proFont.variable,
+  dyslexicFont?.variable,
+  dyslexicPreviewFont?.variable,
+]
+  .filter(Boolean)
+  .join(" ");
 
 export const metadata: Metadata = {
   title: SITE_FLAVOR_CONFIG.rootMetadata.title,
@@ -139,7 +146,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             document instead of becoming a serial critical request discovered only when the
             inline script executes. The bootstrap and provider both check for this id before
             creating a link, so this is the only copy a reader ever fetches; next.config.ts
-            serves it immutable, keyed on the href's ?v= content hash. */}
+            serves it immutable, keyed on the href's ?v= content hash. It is safe to render
+            unconditionally: the sheet is wrapped in @supports on the relative-colour grammar
+            it needs, so a browser that cannot parse it (Safari 16.x) fetches an inert file
+            while the bootstrap, probing the same grammar, never engages data-chroma. */}
         {rendersChromaStylesheet ? (
           <link id={CHROMA_STYLESHEET_LINK_ID} rel="stylesheet" href={CHROMA_STYLESHEET_HREF} />
         ) : null}

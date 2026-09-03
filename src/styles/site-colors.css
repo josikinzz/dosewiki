@@ -187,10 +187,19 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-page-halo-right: oklch(46% 0.1 var(--h-violet) / 0.03);
   --theme-page-edge-vignette: transparent;
 
-  /* Dark mode text hierarchy */
+  /* Dark mode text hierarchy.
+     A handful of tokens in both blocks are declared twice: a precomputed
+     literal here, then the relative-colour / colour-mix recipe it was baked
+     from inside the `@supports` section at the end of this file. The literal
+     is what Safari 16.3 and older (no relative colour syntax) and Safari 16.4
+     to 17.x (hue sums invalid: `h` is an angle in that draft) paint; every
+     current engine takes the recipe. Only tokens whose failure blanks a
+     masked element, an icon or a panel fill carry a fallback; re-bake it
+     whenever the recipe or its base changes (the test in
+     `siteColorsFallbacks.test.ts` measures the drift). */
   --theme-text-primary: #ffffff;
   --theme-text-secondary: #dcdcdc;
-  --theme-text-muted: color-mix(in srgb, rgb(var(--c-white)) 72%, var(--theme-body-bg));
+  --theme-text-muted: #bcb9be; /* paints the supporter mark; recipe below */
   --theme-text-faint: color-mix(in srgb, rgb(var(--c-white)) 56%, var(--theme-body-bg));
   /* Ghost is the decorative/divider step, not a prose step, so it is held to
      the 3:1 non-text floor rather than 4.5:1 — lifting it further would
@@ -209,7 +218,7 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-text-on-media-muted: rgb(245 245 245 / 0.72);
 
   /* Dark mode accent text, icon, and ring colors */
-  --theme-accent-strong: oklch(from rgb(var(--c-accent)) calc(l - 0.041) calc(c * 1.35) h);
+  --theme-accent-strong: #ef91ff; /* recipe in the @supports section */
   --theme-accent: #f0abfc;
   --theme-accent-soft: var(--c-fuchsia-200);
   --theme-accent-muted: color-mix(in srgb, rgb(var(--c-accent)) 72%, var(--theme-body-bg));
@@ -220,9 +229,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      gaining chroma, so the mark reads as one brand colour deepening rather
      than crossing into a second hue (or into white/black). */
   --site-logo-stop-1: rgb(var(--c-accent));
-  --site-logo-stop-2: oklch(from rgb(var(--c-accent)) calc(l - 0.08) calc(c * 1.15) h);
-  --site-logo-stop-3: oklch(from rgb(var(--c-accent)) calc(l - 0.16) calc(c * 1.3) h);
-  --site-logo-stop-4: oklch(from rgb(var(--c-accent)) calc(l - 0.24) calc(c * 1.4) h);
+  --site-logo-stop-2: #db8ce8; /* recipes in the @supports section */
+  --site-logo-stop-3: #c56ed5;
+  --site-logo-stop-4: #ae50bf;
   --theme-logo-fill:
     linear-gradient(118deg, var(--site-logo-stop-1) 0%, var(--site-logo-stop-2) 32%, var(--site-logo-stop-3) 64%, var(--site-logo-stop-4) 100%);
   --theme-logo-shadow: rgb(var(--c-brand) / 0.44);
@@ -311,9 +320,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
   --theme-chrome-surface-strong: color-mix(in srgb, oklch(33.6% 0.134 var(--h-plum)) 82%, var(--theme-body-bg));
   --theme-chrome-border: rgb(var(--c-brand) / 0.22);
   --theme-chrome-rail-base: oklch(15.5% 0.037 var(--h-plum));
-  --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.05) calc(c + 0.008) h);
+  --theme-chrome-rail-highlight: #201024; /* recipe in the @supports section */
   --theme-chrome-rail-primary: var(--theme-chrome-rail-base);
-  --theme-chrome-rail-secondary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.04) calc(c + 0.006) h);
+  --theme-chrome-rail-secondary: #1d0e21;
   --theme-chrome-rail-bg:
     radial-gradient(circle at 12% 0%, var(--theme-chrome-rail-highlight), var(--theme-chrome-rail-primary) 38%),
     linear-gradient(135deg, var(--theme-chrome-rail-primary), var(--theme-chrome-rail-secondary));
@@ -354,9 +363,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      duration rows, data chips). */
   --theme-article-neutral-panel-border: oklch(72% 0.012 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-base: oklch(22.9% 0.076 var(--h-plum));
-  --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg)));
+  --theme-article-neutral-panel-highlight: #351b3e; /* recipe in the @supports section */
   --theme-article-neutral-panel-primary: color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg));
-  --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.08) calc(c - 0.002) h) 94%, var(--theme-body-bg));
+  --theme-article-neutral-panel-secondary: #16001e;
   --theme-article-neutral-panel-bg:
     radial-gradient(circle at 14% 0%, var(--theme-article-neutral-panel-highlight), transparent 38%),
     linear-gradient(135deg, var(--theme-article-neutral-panel-primary), var(--theme-article-neutral-panel-secondary));
@@ -408,9 +417,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      whatever base color is chosen. */
   --theme-panel-base: #1f0527;
   --theme-frosted-panel-border: rgb(var(--c-brand) / 0.16);
-  --theme-frosted-panel-highlight: oklch(from var(--theme-panel-base) calc(l + 0.034) c h);
+  --theme-frosted-panel-highlight: #270d30; /* recipes in the @supports section */
   --theme-frosted-panel-primary: var(--theme-panel-base);
-  --theme-frosted-panel-secondary: oklch(from var(--theme-panel-base) calc(l - 0.062) calc(c - 0.019) calc(h - 24));
+  --theme-frosted-panel-secondary: #080218;
   --theme-frosted-panel-bg:
     radial-gradient(circle at 12% 0%, var(--theme-frosted-panel-highlight), var(--theme-frosted-panel-primary) 38%),
     linear-gradient(135deg, var(--theme-frosted-panel-primary), var(--theme-frosted-panel-secondary));
@@ -419,8 +428,8 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
     inset 0 1px 0 rgb(var(--c-white) / 0.1);
   --theme-frosted-panel-hover-border: rgb(var(--c-brand) / 0.24);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.063) c h), oklch(from var(--theme-panel-base) calc(l + 0.023) c h) 38%),
-    linear-gradient(135deg, oklch(from var(--theme-panel-base) calc(l + 0.023) c h), oklch(from var(--theme-panel-base) calc(l - 0.046) calc(c - 0.011) calc(h - 24)));
+    radial-gradient(circle at 12% 0%, #2f1437, #250a2d 38%),
+    linear-gradient(135deg, #250a2d, #0b031f);
   --theme-frosted-panel-hover-shadow:
     0 18px 34px -28px rgb(var(--c-black) / 0.72),
     inset 0 1px 0 rgb(var(--c-white) / 0.12);
@@ -432,9 +441,9 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
      default), so any chosen base keeps the same subtle highlight + shaded edge. */
   --theme-control-base: #220c2a;
   --theme-frosted-control-border: rgb(var(--c-brand) / 0.18);
-  --theme-frosted-control-highlight: oklch(from var(--theme-control-base) calc(l + 0.028) calc(c + 0.005) h);
+  --theme-frosted-control-highlight: #2a1133; /* recipes in the @supports section */
   --theme-frosted-control-primary: var(--theme-control-base);
-  --theme-frosted-control-secondary: oklch(from var(--theme-control-base) calc(l - 0.052) calc(c - 0.019) calc(h - 22));
+  --theme-frosted-control-secondary: #0d071c;
   --theme-frosted-control-bg:
     radial-gradient(circle at 12% 0%, var(--theme-frosted-control-highlight), var(--theme-frosted-control-primary) 36%),
     linear-gradient(135deg, var(--theme-frosted-control-primary), var(--theme-frosted-control-secondary));
@@ -443,8 +452,8 @@ html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-da
     inset 0 1px 0 rgb(var(--c-white) / 0.075);
   --theme-frosted-control-hover-border: rgb(var(--c-accent) / 0.3);
   --theme-frosted-control-hover-bg:
-    radial-gradient(circle at 12% 0%, oklch(from var(--theme-control-base) calc(l + 0.068) calc(c + 0.021) h), oklch(from var(--theme-control-base) calc(l + 0.031) calc(c + 0.015) h) 36%),
-    linear-gradient(135deg, oklch(from var(--theme-control-base) calc(l + 0.031) calc(c + 0.015) h), oklch(from var(--theme-control-base) calc(l - 0.018) c calc(h - 19)));
+    radial-gradient(circle at 12% 0%, #371742, #2c0f36 36%),
+    linear-gradient(135deg, #2c0f36, #170b2b);
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
     0 10px 22px -20px rgb(var(--c-brand) / 0.32),
@@ -852,8 +861,8 @@ html[data-theme="light"] {
   --theme-chrome-surface-strong: color-mix(in srgb, oklch(84% 0.07 var(--h-brand)) 94%, var(--theme-body-bg));
   --theme-chrome-border: oklch(46% 0.13 var(--h-brand) / 0.2);
   --theme-chrome-rail-base: oklch(88% 0.054 var(--h-brand));
-  --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.1) calc(c - 0.032) h);
-  --theme-chrome-rail-primary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.06) calc(c - 0.024) h);
+  --theme-chrome-rail-highlight: #fff4ff; /* recipes in the @supports section */
+  --theme-chrome-rail-primary: #f6e5f6;
   --theme-chrome-rail-secondary: var(--theme-chrome-rail-base);
   --theme-chrome-rail-bg:
     radial-gradient(circle at 12% 0%, var(--theme-chrome-rail-highlight), transparent 38%),
@@ -885,9 +894,9 @@ html[data-theme="light"] {
   /* In-between neutral: plum-tinted gray (hue 318) mirroring the dark theme. */
   --theme-article-neutral-panel-border: oklch(58% 0.022 var(--h-plum) / 0.16);
   --theme-article-neutral-panel-base: oklch(97% 0.006 var(--h-plum));
-  --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg)));
+  --theme-article-neutral-panel-highlight: #fdfcfd; /* recipe in the @supports section */
   --theme-article-neutral-panel-primary: color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg));
-  --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.04) calc(c + 0.006) h) 92%, var(--theme-body-bg));
+  --theme-article-neutral-panel-secondary: #ede7ee;
   --theme-article-neutral-panel-bg:
     radial-gradient(circle at 14% 0%, var(--theme-article-neutral-panel-highlight), transparent 38%),
     linear-gradient(135deg, var(--theme-article-neutral-panel-primary), var(--theme-article-neutral-panel-secondary));
@@ -932,9 +941,9 @@ html[data-theme="light"] {
      --theme-panel-base drives the fill; per-stop frosted alpha is preserved. */
   --theme-panel-base: oklch(95.5% 0.026 var(--h-brand));
   --theme-frosted-panel-border: oklch(58% 0.105 var(--h-brand) / 0.14);
-  --theme-frosted-panel-highlight: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 58%, var(--theme-panel-base));
-  --theme-frosted-panel-primary: color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg));
-  --theme-frosted-panel-secondary: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg));
+  --theme-frosted-panel-highlight: #fdf1fd; /* recipes in the @supports section */
+  --theme-frosted-panel-primary: #faedfa;
+  --theme-frosted-panel-secondary: #f0dcf0;
   --theme-frosted-panel-bg:
     radial-gradient(circle at 12% 0%, var(--theme-frosted-panel-highlight), transparent 38%), linear-gradient(135deg, var(--theme-frosted-panel-primary), var(--theme-frosted-panel-secondary));
   --theme-frosted-panel-shadow:
@@ -942,7 +951,7 @@ html[data-theme="light"] {
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-panel-hover-border: oklch(50% 0.13 var(--h-brand) / 0.2);
   --theme-frosted-panel-hover-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 64%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.035) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
+    radial-gradient(circle at 12% 0%, #fdf2fd, transparent 38%), linear-gradient(135deg, #ffeeff, #f5ddf5);
   --theme-frosted-panel-hover-shadow:
     0 18px 36px -28px oklch(48% 0.1 var(--h-plum) / 0.22),
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.8);
@@ -950,9 +959,9 @@ html[data-theme="light"] {
   /* Light mode frosted controls */
   --theme-control-base: oklch(94% 0.03 var(--h-brand));
   --theme-frosted-control-border: oklch(58% 0.105 var(--h-brand) / 0.16);
-  --theme-frosted-control-highlight: color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.01) h) 56%, var(--theme-control-base));
+  --theme-frosted-control-highlight: #fbeffb; /* recipes in the @supports section */
   --theme-frosted-control-primary: var(--theme-control-base);
-  --theme-frosted-control-secondary: oklch(from var(--theme-control-base) calc(l - 0.05) calc(c + 0.018) h);
+  --theme-frosted-control-secondary: #ecd0ec;
   --theme-frosted-control-bg:
     radial-gradient(circle at 12% 0%, var(--theme-frosted-control-highlight), transparent 36%), linear-gradient(135deg, var(--theme-frosted-control-primary), var(--theme-frosted-control-secondary));
   --theme-frosted-control-shadow:
@@ -960,7 +969,7 @@ html[data-theme="light"] {
     inset 0 1px 0 oklch(99% 0.01 var(--h-brand) / 0.72);
   --theme-frosted-control-hover-border: oklch(47% 0.14 var(--h-brand) / 0.24);
   --theme-frosted-control-hover-bg:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.006) h) 66%, var(--theme-control-base)), transparent 36%), linear-gradient(135deg, oklch(from var(--theme-control-base) calc(l + 0.02) calc(c + 0.002) h), oklch(from var(--theme-control-base) calc(l - 0.03) calc(c + 0.022) h));
+    radial-gradient(circle at 12% 0%, #fcf0fc, transparent 36%), linear-gradient(135deg, #feebfe, #f4d6f4);
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
     0 10px 24px -20px oklch(48% 0.14 var(--h-plum) / 0.2),
@@ -1024,7 +1033,7 @@ html[data-theme="light"] {
      multiplicatively because the whitespace `calc(l - 0.03)` needs is what
      makes the value unreadable to the appearance-grid fixture that measures
      this floor. */
-  --theme-success-text-strong: oklch(from var(--c-emerald-700) calc(l*0.941) c h);
+  --theme-success-text-strong: #006f4f; /* recipe in the @supports section */
   --theme-success-ring: rgb(var(--c-emerald-deep) / 0.18);
   --theme-warning-bg: color-mix(in srgb, rgb(var(--c-amber)) 14%, var(--theme-body-bg));
   --theme-warning-bg-strong: color-mix(in srgb, rgb(var(--c-amber)) 20%, var(--theme-body-bg));
@@ -1040,7 +1049,7 @@ html[data-theme="light"] {
      base. The fill is shared with the warning border and ring, so it is not
      lightened. Multiplicative for the same fixture reason as the success step
      above. */
-  --theme-warning-text-strong: oklch(from var(--c-amber-700) calc(l*0.928) c h);
+  --theme-warning-text-strong: #a74700; /* recipe in the @supports section */
   --theme-warning-ring: rgb(var(--c-amber-deep) / 0.16);
   --theme-danger-bg: color-mix(in srgb, rgb(var(--c-rose)) 12%, var(--theme-body-bg));
   --theme-danger-bg-strong: color-mix(in srgb, rgb(var(--c-rose)) 18%, var(--theme-body-bg));
@@ -1260,7 +1269,7 @@ html[data-theme="light"] {
   --theme-search-overlay-panel-bg:
     radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.58), transparent 36%),
     radial-gradient(circle at 92% 100%, oklch(72% 0.12 324 / 0.13), transparent 44%),
-    linear-gradient(135deg, oklch(from var(--theme-search-overlay-bg) l c h / 0.96) 0%, oklch(93% 0.048 326 / 0.96) 58%, oklch(89% 0.064 319 / 0.97) 100%);
+    linear-gradient(135deg, oklch(96% 0.032 334 / 0.96) 0%, oklch(93% 0.048 326 / 0.96) 58%, oklch(89% 0.064 319 / 0.97) 100%);
   --theme-search-overlay-panel-ring: oklch(46% 0.13 var(--h-brand) / 0.08);
   --theme-search-overlay-panel-shadow:
     0 24px 48px -34px oklch(48% 0.14 318 / 0.28),
@@ -1335,6 +1344,63 @@ html[data-theme="light"] {
   --theme-search-highlight-text: var(--c-fuchsia-700);
   --theme-search-overlay-bg: oklch(96% 0.032 334);
   --theme-toggle-pill-bg: #ffffff;
+}
+
+/* The relative-colour and colour-mix recipes behind the literal fallbacks
+   above, in the same blocks and at the same specificity, so on any engine
+   that passes the probe they win on source order and the tokens keep
+   following their base (`--theme-panel-base`, `--theme-control-base`,
+   `--c-accent`, the rail and neutral-panel bases). The probe is the exact
+   grammar the generated chroma sheet is built from (CHROMA_SUPPORT_PROBE in
+   src/theme/appearanceChroma.ts): relative colour syntax with a bare-number
+   hue sum. Safari 16.4 to 17.x fails it because that draft types `h` as an
+   angle; Safari 16.3 and older fails it for lack of the syntax; both keep the
+   literals. A recipe added here needs its literal above, and vice versa. */
+@supports (color: oklch(from red l c calc(h + 1))) {
+  :root,
+  html[data-theme="light"]:where(:not([data-visual-style="pro"])) .theme-chrome-dark {
+    --theme-text-muted: color-mix(in srgb, rgb(var(--c-white)) 72%, var(--theme-body-bg));
+    --theme-accent-strong: oklch(from rgb(var(--c-accent)) calc(l - 0.041) calc(c * 1.35) h);
+    --site-logo-stop-2: oklch(from rgb(var(--c-accent)) calc(l - 0.08) calc(c * 1.15) h);
+    --site-logo-stop-3: oklch(from rgb(var(--c-accent)) calc(l - 0.16) calc(c * 1.3) h);
+    --site-logo-stop-4: oklch(from rgb(var(--c-accent)) calc(l - 0.24) calc(c * 1.4) h);
+    --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.05) calc(c + 0.008) h);
+    --theme-chrome-rail-secondary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.04) calc(c + 0.006) h);
+    --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.5) calc(c - 0.004) h) 10%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 84%, var(--theme-body-bg)));
+    --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.08) calc(c - 0.002) h) 94%, var(--theme-body-bg));
+    --theme-frosted-panel-highlight: oklch(from var(--theme-panel-base) calc(l + 0.034) c h);
+    --theme-frosted-panel-secondary: oklch(from var(--theme-panel-base) calc(l - 0.062) calc(c - 0.019) calc(h - 24));
+    --theme-frosted-panel-hover-bg:
+      radial-gradient(circle at 12% 0%, oklch(from var(--theme-panel-base) calc(l + 0.063) c h), oklch(from var(--theme-panel-base) calc(l + 0.023) c h) 38%),
+      linear-gradient(135deg, oklch(from var(--theme-panel-base) calc(l + 0.023) c h), oklch(from var(--theme-panel-base) calc(l - 0.046) calc(c - 0.011) calc(h - 24)));
+    --theme-frosted-control-highlight: oklch(from var(--theme-control-base) calc(l + 0.028) calc(c + 0.005) h);
+    --theme-frosted-control-secondary: oklch(from var(--theme-control-base) calc(l - 0.052) calc(c - 0.019) calc(h - 22));
+    --theme-frosted-control-hover-bg:
+      radial-gradient(circle at 12% 0%, oklch(from var(--theme-control-base) calc(l + 0.068) calc(c + 0.021) h), oklch(from var(--theme-control-base) calc(l + 0.031) calc(c + 0.015) h) 36%),
+      linear-gradient(135deg, oklch(from var(--theme-control-base) calc(l + 0.031) calc(c + 0.015) h), oklch(from var(--theme-control-base) calc(l - 0.018) c calc(h - 19)));
+  }
+
+  html[data-theme="light"] {
+    --theme-chrome-rail-highlight: oklch(from var(--theme-chrome-rail-base) calc(l + 0.1) calc(c - 0.032) h);
+    --theme-chrome-rail-primary: oklch(from var(--theme-chrome-rail-base) calc(l + 0.06) calc(c - 0.024) h);
+    --theme-article-neutral-panel-highlight: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l + 0.03) calc(c - 0.006) h) 72%, color-mix(in srgb, var(--theme-article-neutral-panel-base) 90%, var(--theme-body-bg)));
+    --theme-article-neutral-panel-secondary: color-mix(in srgb, oklch(from var(--theme-article-neutral-panel-base) calc(l - 0.04) calc(c + 0.006) h) 92%, var(--theme-body-bg));
+    --theme-frosted-panel-highlight: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 58%, var(--theme-panel-base));
+    --theme-frosted-panel-primary: color-mix(in srgb, oklch(from var(--theme-panel-base) l c h) 88%, var(--theme-body-bg));
+    --theme-frosted-panel-secondary: color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.045) calc(c + 0.012) h) 92%, var(--theme-body-bg));
+    --theme-frosted-panel-hover-bg:
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.035) c h) 64%, var(--theme-panel-base)), transparent 38%), linear-gradient(135deg, color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l + 0.01) calc(c + 0.004) h) 92%, var(--theme-body-bg)), color-mix(in srgb, oklch(from var(--theme-panel-base) calc(l - 0.035) calc(c + 0.018) h) 94%, var(--theme-body-bg)));
+    --theme-frosted-control-highlight: color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.01) h) 56%, var(--theme-control-base));
+    --theme-frosted-control-secondary: oklch(from var(--theme-control-base) calc(l - 0.05) calc(c + 0.018) h);
+    --theme-frosted-control-hover-bg:
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, oklch(from var(--theme-control-base) calc(l + 0.05) calc(c - 0.006) h) 66%, var(--theme-control-base)), transparent 36%), linear-gradient(135deg, oklch(from var(--theme-control-base) calc(l + 0.02) calc(c + 0.002) h), oklch(from var(--theme-control-base) calc(l - 0.03) calc(c + 0.022) h));
+    --theme-search-overlay-panel-bg:
+      radial-gradient(circle at 12% 0%, oklch(99% 0.024 333 / 0.58), transparent 36%),
+      radial-gradient(circle at 92% 100%, oklch(72% 0.12 324 / 0.13), transparent 44%),
+      linear-gradient(135deg, oklch(from var(--theme-search-overlay-bg) l c h / 0.96) 0%, oklch(93% 0.048 326 / 0.96) 58%, oklch(89% 0.064 319 / 0.97) 100%);
+    --theme-success-text-strong: oklch(from var(--c-emerald-700) calc(l*0.941) c h);
+    --theme-warning-text-strong: oklch(from var(--c-amber-700) calc(l*0.928) c h);
+  }
 }
 
 /* The backdrop-blur kill switch the --theme-backdrop-blur token drives (see

@@ -14,6 +14,7 @@ import {
   wrapChromaValue,
 } from "./chromaStylesheet";
 import chromaManifest from "./appearanceChroma.generated.json";
+import { CHROMA_SUPPORT_PROBE } from "./appearanceChroma";
 
 describe("chroma value wrapping", () => {
   const GAIN = "--g";
@@ -141,6 +142,21 @@ describe("generated chroma stylesheet", () => {
         bare.includes('[data-visual-style="pro"]'),
       );
     }
+  });
+
+  it("wraps every block in @supports on the exact grammar the runtime probes", () => {
+    // Safari 16.4 to 17.x types the relative-colour h channel as an angle, so calc(h + shift)
+    // is invalid there and every rewritten token would blank its consumer; 16.3 and older
+    // lack the syntax. The sheet guards itself with the same expression the bootstrap and
+    // the provider ask CSS.supports about, so the server-rendered link is inert there.
+    const wrapper = `@supports (color: ${CHROMA_SUPPORT_PROBE}) {\n`;
+    const opening = built.indexOf(wrapper);
+    expect(opening).toBeGreaterThan(0);
+    expect(built.search(/^html\[/m)).toBeGreaterThan(opening);
+    expect(built.match(/^@supports/gm)).toHaveLength(1);
+    expect(built.endsWith("}\n}\n")).toBe(true);
+    // The probe is itself a bare-number hue sum, the very form the sheet depends on.
+    expect(CHROMA_SUPPORT_PROBE).toBe("oklch(from red l c calc(h + 1))");
   });
 
   it("emits one gain per gained block, derived from the base palette's own authored level", () => {

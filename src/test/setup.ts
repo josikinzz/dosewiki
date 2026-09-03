@@ -14,6 +14,19 @@ if (typeof window !== 'undefined' && typeof globalThis.ResizeObserver === 'undef
   };
 }
 
+// jsdom's `CSS` namespace has no `supports` (only `escape`). The appearance chroma
+// writers (the pre-paint bootstrap in src/theme/index.ts and applyChromaToDocument)
+// probe `CSS.supports` for relative colour syntax before engaging, so without it every
+// chroma test would throw or measure the disengaged branch. Model a current engine:
+// everything is supported. A test for the unsupporting branch spies on `supports`.
+if (typeof window !== 'undefined') {
+  const css = (globalThis as { CSS?: { supports?: unknown } }).CSS ?? {};
+  if (typeof css.supports !== 'function') {
+    css.supports = () => true;
+    Object.defineProperty(globalThis, 'CSS', { configurable: true, writable: true, value: css });
+  }
+}
+
 // `findBy*` and `waitFor` default to a one-second ceiling. That is generous for a
 // state update and far too tight for the first render of a `next/dynamic` chunk
 // while four hundred test files share the machine — the Theme Lab's editor is

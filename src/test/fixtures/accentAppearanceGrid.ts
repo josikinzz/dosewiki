@@ -219,6 +219,41 @@ const BASE_LADDER_DECLARATIONS = BASE_LADDER.flatMap((sheet, index) =>
   declarationsOf(read(sheet), index * 100_000),
 );
 
+/**
+ * The stylesheet as a browser that fails every `@supports` query reads it: each
+ * `@supports (…) { … }` block removed whole, braces balanced, comments gone. The base
+ * sheets keep their relative-colour recipes inside such blocks behind literal fallbacks
+ * (see the tail of `site-colors.css`), so this is the cascade Safari 16.x resolves.
+ */
+export function stripSupportsBlocks(css: string): string {
+  const source = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  let output = "";
+  let cursor = 0;
+
+  for (;;) {
+    const start = source.indexOf("@supports", cursor);
+    if (start === -1) break;
+    output += source.slice(cursor, start);
+
+    let depth = 0;
+    let end = source.indexOf("{", start);
+    for (; end < source.length; end += 1) {
+      if (source[end] === "{") depth += 1;
+      else if (source[end] === "}") {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    cursor = end + 1;
+  }
+
+  return output + source.slice(cursor);
+}
+
+const BASE_LADDER_FALLBACK_DECLARATIONS = BASE_LADDER.flatMap((sheet, index) =>
+  declarationsOf(stripSupportsBlocks(read(sheet)), index * 100_000),
+);
+
 /** The declaration that wins each property: highest specificity, then latest in source. */
 function cascade(
   state: AppearanceState,
@@ -342,6 +377,17 @@ export function resolveBasePaletteTokens(
     order: BASE_LADDER.length * 100_000 + index,
   }));
   return resolveTokenDeclarations(state, [...BASE_LADDER_DECLARATIONS, ...layer]);
+}
+
+/**
+ * The base ladder as a browser without relative colour syntax resolves it: the
+ * `@supports`-guarded recipes dropped, so every token that carries a literal fallback
+ * resolves to that literal and everything else resolves exactly as
+ * {@link resolveBasePaletteTokens}. The appearance-data generator diffs the two to learn
+ * which generated tokens need the same literal-then-recipe shape.
+ */
+export function resolveBasePaletteFallbackTokens(state: AppearanceState): Record<string, string> {
+  return resolveTokenDeclarations(state, BASE_LADDER_FALLBACK_DECLARATIONS);
 }
 
 /* -------------------------------------------------------------------------

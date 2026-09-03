@@ -31,6 +31,7 @@ import {
   ACCENT_LEVEL_PROPERTY,
   CHROMA_STYLESHEET_HREF,
   CHROMA_STYLESHEET_LINK_ID,
+  CHROMA_SUPPORT_PROBE,
   DEFAULT_APPEARANCE_COLORS,
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
@@ -360,6 +361,47 @@ describe("theme token interface", () => {
       expect(setItem).not.toHaveBeenCalled();
     } finally {
       document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+    }
+  });
+
+  it("leaves the colour axes disengaged in a browser that cannot parse the chroma sheet", () => {
+    // The sheet is relative colour syntax with bare-number hue sums, which Safari 16.4 to
+    // 17.x rejects (h is an angle in that draft) and 16.3 and older cannot parse at all.
+    // The script asks CSS.supports for that exact grammar and, on no, writes none of the
+    // attribute, the properties or the link: the base sheets' authored palette paints.
+    installMockStorage({
+      [SURFACE_CHROMA_STORAGE_KEY]: "0.35",
+      [ACCENT_CHROMA_STORAGE_KEY]: "1",
+      [SURFACE_HUE_STORAGE_KEY]: "40",
+      [ACCENT_HUE_STORAGE_KEY]: "300",
+    });
+    ensureThemeMeta();
+    const supports = vi.spyOn(CSS, "supports").mockImplementation(
+      (property: string, value?: string) => !(property === "color" && value === CHROMA_SUPPORT_PROBE),
+    );
+    const script = buildThemeBootstrapScript(DOSEWIKI);
+
+    try {
+      Function(script)();
+
+      expect(script).toContain(`CSS.supports("color", ${JSON.stringify(CHROMA_SUPPORT_PROBE)})`);
+      expect(supports).toHaveBeenCalledWith("color", CHROMA_SUPPORT_PROBE);
+      const root = document.documentElement;
+      expect(root.dataset.chroma).toBeUndefined();
+      for (const property of [
+        SURFACE_LEVEL_PROPERTY,
+        ACCENT_LEVEL_PROPERTY,
+        SURFACE_HUE_PROPERTY,
+        ACCENT_HUE_PROPERTY,
+      ]) {
+        expect(root.style.getPropertyValue(property), property).toBe("");
+      }
+      expect(document.getElementById(CHROMA_STYLESHEET_LINK_ID)).toBeNull();
+      // The rest of the bootstrap is unaffected: the scheme and style still paint.
+      expect(root.dataset.theme).toBe("dark");
+      expect(root.dataset.visualStyle).toBe("fun");
+    } finally {
+      supports.mockRestore();
     }
   });
 
