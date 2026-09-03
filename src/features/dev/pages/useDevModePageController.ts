@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useContributorProfiles } from "@/hooks/useContributorProfiles";
 import { useDevMode } from "../context/DevModeContext";
+import type { DevProposalSeed } from "../context/devModeTypes";
 import { tabNeedsChangelogFeed, tabNeedsContributorProfiles } from "./devModePageUtils";
 import type { DevModeTab } from "./devTabRegistry";
 import type { DevModePageControllerState, DevModePageProps } from "./devModePageTypes";
@@ -33,6 +34,10 @@ export function useDevModePageController({
     getOriginalChemicalIndexManual,
     getOriginalMechanismIndexManual,
     markChangesSaved,
+    activeProposal,
+    clearActiveProposal,
+    discardActiveProposal,
+    loadProposal,
   } = useDevMode();
 
   // The contributor directory and the changelog feed are per-tab, not per-shell:
@@ -115,6 +120,9 @@ export function useDevModePageController({
     mechanismManualChangelog: changelogState.mechanismManualChangelog,
     hasPendingChanges: changelogState.hasPendingChanges,
     onAppendChangeLogEntry: appendChangeLogEntryToState,
+    activeProposal,
+    onClearActiveProposal: clearActiveProposal,
+    onDiscardActiveProposal: discardActiveProposal,
   });
 
   useEffect(() => {
@@ -136,6 +144,17 @@ export function useDevModePageController({
     const callbackUrl = typeof window !== "undefined" ? window.location.pathname : "/dev";
     window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   }, []);
+
+  const { onTabChange: changeTab } = routeAccess;
+  // The seed lands in the working set before the editor opens on it, so the
+  // substances tab never renders a half-applied rebase.
+  const handleLoadProposal = useCallback(
+    async (seed: DevProposalSeed) => {
+      await loadProposal(seed);
+      changeTab("articles");
+    },
+    [changeTab, loadProposal],
+  );
 
   return {
     activePrimaryTab: routeAccess.activePrimaryTab,
@@ -170,6 +189,7 @@ export function useDevModePageController({
     contributorDirectory,
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,
+    onLoadProposal: handleLoadProposal,
     onSignIn: handleSignIn,
   };
 }

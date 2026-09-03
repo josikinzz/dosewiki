@@ -39,6 +39,8 @@ interface WritingTabProps {
   initialSlug?: string;
   /** The route's `?kind=` value, validated by the registry; anything else opens on articles. */
   initialKind?: string;
+  /** Admin: the pinned About entry and every writing row save directly; without it About is submitted as a proposal and rows are read-only for saving. */
+  canApprove: boolean;
 }
 
 /**
@@ -62,6 +64,7 @@ export function WritingTab({
   profilesLoading = false,
   initialSlug,
   initialKind,
+  canApprove,
 }: WritingTabProps) {
   const routeKind: WritingKind = initialKind === "blog" ? "blog" : "article";
   const controller = useWritingWorkbenchController({
@@ -190,6 +193,7 @@ export function WritingTab({
               <AboutEditorTab
                 availableProfiles={contributorProfiles}
                 profilesLoading={profilesLoading}
+                canApprove={canApprove}
               />
             ) : isLoadingRow ? (
               <p className="theme-text-faint text-sm">Loading…</p>
@@ -198,6 +202,7 @@ export function WritingTab({
                 contributorProfiles={contributorProfiles}
                 profilesLoading={profilesLoading}
                 controller={controller}
+                canApprove={canApprove}
               />
             )}
           </div>

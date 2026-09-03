@@ -19,8 +19,9 @@ type Row = Record<string, unknown> & { _id: string };
 /**
  * In-memory tables with the `withIndex(...).eq(field, value)` shape every
  * handler under test uses: `memberships.by_email` for `requireRole`,
- * `substanceIndex.by_slug`, `indexLayouts.by_type`, and the `changeProposals`
- * indexes, plus the bare `query(table).order(...)` walk the queue list takes.
+ * `substanceIndex.by_slug` and `by_article_id`, `indexLayouts.by_type`, and
+ * the `changeProposals` indexes, plus the bare `query(table).order(...)` walk
+ * the queue list takes.
  */
 function createCtx(seed: Record<string, Row[]>) {
   const tables = new Map<string, Map<string, Row>>();
@@ -144,7 +145,6 @@ function submitArgs(overrides: Record<string, unknown> = {}) {
     payload: { articles: [proposedLsd] },
     summary: "Update LSD",
     diff: "# LSD\n\n- Stored summary\n+ Proposed summary",
-    targets: [{ kind: "article", key: "lsd" }],
     ...overrides,
   };
 }
@@ -185,12 +185,34 @@ describe("changeProposals.submit", () => {
 
     await submitHandler(ctx, submitArgs({
       payload: { articles: [{ ...proposedLsd, id: null, title: "New Thing", slug: "new-thing" }] },
-      targets: [{ kind: "article", key: "new-thing" }],
     }) as never);
 
     expect(rowsOf("changeProposals").get("changeProposals:1")!.targets).toEqual([
       { kind: "article", key: "new-thing", baseHash: contentHash(null) },
     ]);
+  });
+
+  it("keys an article by the slug of the row its id names and refuses a proposal that moves it", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
+
+    // The payload slug is the id-row's current slug: pinned there, whatever the title says.
+    await submitHandler(ctx, submitArgs({ payload: { articles: [{ ...proposedLsd, title: "Lysergide" }] } }) as never);
+    const { _id: _rowId, _creationTime: _createdAt, ...storedContent } = projectEditorArticle(storedLsd as never) as Record<string, unknown>;
+    expect(rowsOf("changeProposals").get("changeProposals:1")!.targets).toEqual([
+      { kind: "article", key: "lsd", baseHash: contentHash(storedContent) },
+    ]);
+
+    // A renamed slug on an existing id would pin the new slug (absent, hash of
+    // null) while the apply patched the id-row: refused before anything is stored.
+    await expect(
+      submitHandler(ctx, submitArgs({ payload: { articles: [{ ...proposedLsd, slug: "lysergide" }] } }) as never),
+    ).rejects.toMatchObject({ data: { code: "PROPOSAL_SLUG_MOVE" } });
+    await expect(
+      submitHandler(ctx, submitArgs({
+        payload: { articles: [{ ...proposedLsd, slug: undefined, title: "Lysergic acid diethylamide" }] },
+      }) as never),
+    ).rejects.toMatchObject({ data: { code: "PROPOSAL_SLUG_MOVE" } });
+    expect(rowsOf("changeProposals").size).toBe(1);
   });
 
   it("hashes an index layout target from the stored layout without system fields", async () => {
@@ -205,7 +227,6 @@ describe("changeProposals.submit", () => {
 
     await submitHandler(ctx, submitArgs({
       payload: { indexLayouts: [{ type: "chemical", version: 4, categories: [] }] },
-      targets: [{ kind: "indexLayout", key: "chemical" }],
     }) as never);
 
     const { _id: _rowId, _creationTime: _createdAt, ...content } = layout;
@@ -236,18 +257,21 @@ describe("changeProposals.submit", () => {
     expect(rowsOf("changeProposals").size).toBe(0);
   });
 
-  it("rejects an empty payload and a payload whose rows the targets do not name", async () => {
-    const { ctx } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
+  it("rejects an empty payload, a payload that writes one row twice, and a blank summary", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
 
     await expect(
-      submitHandler(ctx, submitArgs({ payload: {}, targets: [] }) as never),
-    ).rejects.toThrow(/at least one article/);
+      submitHandler(ctx, submitArgs({ payload: {} }) as never),
+    ).rejects.toMatchObject({ data: { code: "PROPOSAL_EMPTY" } });
     await expect(
-      submitHandler(ctx, submitArgs({ targets: [{ kind: "article", key: "other" }] }) as never),
-    ).rejects.toThrow(/no target names it/);
+      submitHandler(ctx, submitArgs({
+        payload: { articles: [proposedLsd, { ...proposedLsd, id: null, title: "LSD" }] },
+      }) as never),
+    ).rejects.toMatchObject({ data: { code: "PROPOSAL_TARGET_DUPLICATE" } });
     await expect(
       submitHandler(ctx, submitArgs({ summary: "   " }) as never),
     ).rejects.toThrow(/Summary must be/);
+    expect(rowsOf("changeProposals").size).toBe(0);
   });
 });
 
@@ -373,13 +397,15 @@ describe("changeProposals reads", () => {
 });
 
 describe("deriveProposalTargets", () => {
-  it("names one article target per slug and one layout target per type", () => {
-    expect(
-      deriveProposalTargets({
+  it("names one article target per slug and one layout target per type", async () => {
+    const { ctx } = createCtx({ substanceIndex: [storedLsd] });
+
+    await expect(
+      deriveProposalTargets(ctx, {
         articles: [proposedLsd, { ...proposedLsd, id: 2, title: "Ketamine HCl", slug: undefined }],
         indexLayouts: [{ type: "psychoactive" }],
       }),
-    ).toEqual([
+    ).resolves.toEqual([
       { kind: "article", key: "lsd" },
       { kind: "article", key: "ketamine-hcl" },
       { kind: "indexLayout", key: "psychoactive" },

@@ -272,7 +272,7 @@ function reportSignInEnv(env) {
     `  session secret     ${secret ? `set via ${secret.key}` : "(unset) -> only NODE_ENV=development can issue sessions"}`,
   );
   console.log(
-    "  accounts           seed with: node scripts/auth/seed-admin-accounts.mjs (needs TARGET_CONVEX_URL + CONVEX_ADMIN_KEY)",
+    "  accounts           seed with: node scripts/auth/seed-admin-accounts.mjs --write ... (needs TARGET_CONVEX_URL + CONVEX_ADMIN_KEY)",
   );
   const retired = RETIRED_AUTH_KEYS.filter((key) => env[key]?.trim());
   if (retired.length > 0) {

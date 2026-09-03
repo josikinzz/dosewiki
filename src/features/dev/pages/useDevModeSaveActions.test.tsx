@@ -82,6 +82,9 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     mechanismManualChangelog: { markdown: "", hasChanges: false },
     hasPendingChanges: true,
     onAppendChangeLogEntry: vi.fn(),
+    activeProposal: null,
+    onClearActiveProposal: vi.fn(),
+    onDiscardActiveProposal: vi.fn(),
   };
 }
 
@@ -187,5 +190,60 @@ describe("useDevModeSaveActions", () => {
       expect(screen.getByText("Sign in before continuing.")).toBeInTheDocument();
     });
     expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("names the proposal being rebased with its reason, and Discard hands back to the context", async () => {
+    const args = {
+      ...createArgs(),
+      canApprove: false,
+      activeProposal: { proposalId: "k57zyx987654", reason: "Article lsd changed", summary: "Update LSD" },
+    };
+    render(<TestHarness args={args} />);
+
+    const banner = screen.getByTestId("commit-rebase-banner");
+    expect(banner).toHaveTextContent("Rebasing proposal #987654 - Article lsd changed");
+    await userEvent.click(screen.getByRole("button", { name: "Discard" }));
+    expect(args.onDiscardActiveProposal).toHaveBeenCalledTimes(1);
+    expect(args.onClearActiveProposal).not.toHaveBeenCalled();
+  });
+
+  it("renders the banner without a reason and never renders it when nothing is being rebased", () => {
+    const { unmount } = render(
+      <TestHarness
+        args={{ ...createArgs(), activeProposal: { proposalId: "k57zyx987654", reason: null, summary: "Update LSD" } }}
+      />,
+    );
+    expect(screen.getByTestId("commit-rebase-banner")).toHaveTextContent(/^Rebasing proposal #987654$/);
+    unmount();
+
+    render(<TestHarness args={createArgs()} />);
+    expect(screen.queryByTestId("commit-rebase-banner")).toBeNull();
+  });
+
+  it("submits the rebase with revisionOf and clears the proposal link on success", async () => {
+    const args = {
+      ...createArgs(),
+      canApprove: false,
+      activeProposal: { proposalId: "k57zyx987654", reason: "Article lsd changed", summary: "Update LSD" },
+    };
+    render(<TestHarness args={args} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /submit for review/i }));
+
+    await waitFor(() => expect(submitProposalMutateAsyncMock).toHaveBeenCalledTimes(1));
+    expect(submitProposalMutateAsyncMock).toHaveBeenCalledWith(expect.objectContaining({ revisionOf: "k57zyx987654" }));
+    await waitFor(() => expect(args.onClearActiveProposal).toHaveBeenCalledTimes(1));
+    expect(args.onDiscardActiveProposal).not.toHaveBeenCalled();
+  });
+
+  it("submits a fresh proposal without revisionOf and leaves the clear callback alone", async () => {
+    const args = { ...createArgs(), canApprove: false };
+    render(<TestHarness args={args} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /submit for review/i }));
+
+    await waitFor(() => expect(submitProposalMutateAsyncMock).toHaveBeenCalledTimes(1));
+    expect(submitProposalMutateAsyncMock).toHaveBeenCalledWith(expect.not.objectContaining({ revisionOf: expect.anything() }));
+    expect(args.onClearActiveProposal).not.toHaveBeenCalled();
   });
 });

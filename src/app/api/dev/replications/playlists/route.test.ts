@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
 import { GET, POST } from "./route";
-import { DELETE } from "./[key]/route";
+import { DELETE, GET as GET_BY_KEY } from "./[key]/route";
 import { POST as ASSIGN_OWNER } from "./[key]/owner/route";
 
 vi.mock("server-only", () => ({}));
@@ -14,6 +14,7 @@ vi.mock("../../../../../../convex/_generated/api", () => ({
     replicationPlaylists: {
       list: "replicationPlaylists.list",
       listOwned: "replicationPlaylists.listOwned",
+      get: "replicationPlaylists.get",
       upsert: "replicationPlaylists.upsert",
       remove: "replicationPlaylists.remove",
       assignOwner: "replicationPlaylists.assignOwner",
@@ -177,6 +178,32 @@ describe("POST /api/dev/replications/playlists", () => {
     const response = await POST(post(BASE, { key: "for-bob", title: "For Bob", slugs: [], ownerEmail: 7 }));
     expect(response.status).toBe(400);
     expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/dev/replications/playlists/[key]", () => {
+  it("lets an owning contributor read their playlist, with the actor forwarded for ownership", async () => {
+    signIn("contributor");
+    convexMocks.query.mockResolvedValue({ key: "adas-list", editable: true });
+
+    const response = await GET_BY_KEY(new Request(`${BASE}/adas-list`));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ ok: true, playlist: { key: "adas-list", editable: true } });
+    expect(convexMocks.query).toHaveBeenCalledWith("replicationPlaylists.get", {
+      apiKey: "admin-key",
+      actorEmail: "ada@example.com",
+      key: "adas-list",
+    });
+  });
+
+  it("answers 404 when Convex hides a playlist the contributor does not own", async () => {
+    signIn("contributor", "bob@example.com");
+    convexMocks.query.mockResolvedValue(null);
+
+    const response = await GET_BY_KEY(new Request(`${BASE}/adas-list`));
+
+    expect(response.status).toBe(404);
   });
 });
 

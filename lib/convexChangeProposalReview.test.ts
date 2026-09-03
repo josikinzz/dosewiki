@@ -1,162 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { MutationCtx } from "../convex/_generated/server";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { approveAndApplyHandler, rejectHandler, revertHandler } from "../convex/changeProposalReview";
-import { projectEditorArticle } from "../convex/lib/substanceReadProjections";
-import { minimalArticle } from "../src/test/fixtures/articles";
 import { contentHash } from "./proposals/contentHash";
+import {
+  SERVER_KEY,
+  createCtx,
+  admin,
+  editor,
+  storedLsd,
+  proposedLsd,
+  proposedLayout,
+  liveArticleDocument,
+  proposalRow,
+  asAdmin,
+  asEditor,
+} from "./changeProposalReviewFixture";
 
-const SERVER_KEY = "test-admin-key";
-
-type Row = Record<string, unknown> & { _id: string };
-
-/**
- * In-memory tables covering everything the review handlers and the write
- * handlers they delegate to touch: `withIndex(...).eq(field, value)` lookups,
- * the index-free `query("categoryLayout").first()` the layout mirror uses,
- * `get`, `insert`, `patch`, `replace`, and `delete`.
- */
-function createCtx(seed: Record<string, Row[]>) {
-  const tables = new Map<string, Map<string, Row>>();
-  for (const [table, rows] of Object.entries(seed)) {
-    tables.set(table, new Map(rows.map((row) => [row._id, structuredClone(row)])));
-  }
-  let nextId = 1;
-  const rowsOf = (table: string) => {
-    if (!tables.has(table)) {
-      tables.set(table, new Map());
-    }
-    return tables.get(table)!;
-  };
-  const rowById = (id: string) => {
-    for (const rows of tables.values()) {
-      const row = rows.get(id);
-      if (row) return { rows, row };
-    }
-    return null;
-  };
-
-  const results = (matches: Row[]) => ({
-    order: () => results(matches),
-    take: async (count: number) => matches.slice(0, count),
-    first: async () => matches[0] ?? null,
-    unique: async () => matches[0] ?? null,
-    collect: async () => matches,
-  });
-  const query = (table: string) => ({
-    ...results([...rowsOf(table).values()]),
-    withIndex: (
-      _indexName: string,
-      selector?: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
-    ) => {
-      let field = "";
-      let value: unknown;
-      selector?.({
-        eq: (name, candidate) => {
-          field = name;
-          value = candidate;
-          return {};
-        },
-      });
-      return results([...rowsOf(table).values()].filter((row) => field === "" || row[field] === value));
-    },
-  });
-
-  const db = {
-    query: vi.fn(query),
-    get: vi.fn(async (id: string) => rowById(id)?.row ?? null),
-    insert: vi.fn(async (table: string, doc: Record<string, unknown>) => {
-      const _id = `${table}:${nextId++}`;
-      rowsOf(table).set(_id, { _id, ...doc });
-      return _id;
-    }),
-    patch: vi.fn(async (id: string, patch: Record<string, unknown>) => {
-      const hit = rowById(id);
-      if (hit) hit.rows.set(id, { ...hit.row, ...patch });
-    }),
-    replace: vi.fn(async (id: string, doc: Record<string, unknown>) => {
-      const hit = rowById(id);
-      if (hit) hit.rows.set(id, { _id: id, ...doc });
-    }),
-    delete: vi.fn(async (id: string) => {
-      rowById(id)?.rows.delete(id);
-    }),
-  };
-
-  return {
-    ctx: { auth: { getUserIdentity: vi.fn(async () => null) }, db } as unknown as MutationCtx,
-    db,
-    rowsOf,
-  };
-}
-
-const admin: Row = {
-  _id: "m0",
-  email: "admin@example.com",
-  role: "admin",
-  createdAt: "2026-01-01T00:00:00.000Z",
-  updatedAt: "2026-01-01T00:00:00.000Z",
-};
-const editor: Row = { ...admin, _id: "m1", email: "editor@example.com", role: "editor" };
-
-const storedLsd: Row = {
-  _id: "s1",
-  _creationTime: 1700000000000,
-  ...structuredClone(minimalArticle),
-  id: 1,
-  title: "LSD",
-  slug: "lsd",
-  summary: "Stored summary",
-};
-
-const proposedLsd = {
-  ...structuredClone(minimalArticle),
-  id: 1,
-  title: "LSD",
-  slug: "lsd",
-  summary: "Proposed summary",
-};
-
-const proposedLayout = {
-  type: "psychoactive" as const,
-  version: 2,
-  categories: [
-    {
-      key: "psychedelics",
-      label: "Psychedelics",
-      iconKey: "psychedelics",
-      sections: [{ key: "classic", label: "Classic", drugs: ["lsd"] }],
-      drugs: [],
-    },
-  ],
-};
-
-/** What `readProposalTarget` returns for the stored article: the editor projection without system fields. */
-function liveArticleDocument(row: Row) {
-  const { _id: _rowId, _creationTime: _createdAt, ...content } = projectEditorArticle(row as never) as Record<
-    string,
-    unknown
-  >;
-  return content;
-}
-
-function proposalRow(overrides: Record<string, unknown> = {}): Row {
-  return {
-    _id: "changeProposals:p1",
-    proposedBy: "editor@example.com",
-    createdAt: "2026-02-01T00:00:00.000Z",
-    updatedAt: "2026-02-01T00:00:00.000Z",
-    status: "submitted",
-    targets: [{ kind: "article", key: "lsd", baseHash: contentHash(liveArticleDocument(storedLsd)) }],
-    payload: { articles: [proposedLsd] },
-    summary: "Update LSD",
-    diff: "# LSD\n\n- Stored summary\n+ Proposed summary",
-    comments: [],
-    ...overrides,
-  };
-}
-
-const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com", proposalId: "changeProposals:p1" as never };
-const asEditor = { ...asAdmin, actorEmail: "editor@example.com" };
 
 beforeEach(() => {
   process.env.CONVEX_ADMIN_KEY = SERVER_KEY;
@@ -258,6 +116,21 @@ describe("changeProposalReview.approveAndApply", () => {
       reviewedBy: "admin@example.com",
       conflictReason: expect.stringContaining('article "lsd"'),
     });
+  });
+
+  it("treats the id-row moving to another slug as drift, so the apply never patches an unpinned row", async () => {
+    // The proposal pinned the row with id 1 at "lsd"; an admin renamed it since.
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin],
+      substanceIndex: [{ ...storedLsd, slug: "lysergide" }],
+      changeProposals: [proposalRow()],
+    });
+
+    const result = await approveAndApplyHandler(ctx, asAdmin);
+
+    expect(result).toMatchObject({ status: "changes_requested" });
+    expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ slug: "lysergide", summary: "Stored summary" });
+    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "changes_requested" });
   });
 
   it("refuses a proposal that is not open for approval", async () => {
@@ -390,6 +263,94 @@ describe("changeProposalReview.revert", () => {
     expect(rowsOf("substanceIndex").size).toBe(0);
     expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "reverted" });
   });
+
+  it("puts the categoryLayout mirror back when reverting a psychoactive layout that did not exist before", async () => {
+    const seededMirror = {
+      _id: "cl1",
+      _creationTime: 1,
+      version: 1,
+      categories: [{ key: "seeded", label: "Seeded", iconKey: "seeded", sections: [], drugs: ["dmt"] }],
+    };
+    const layoutProposal = proposalRow({
+      targets: [{ kind: "indexLayout", key: "psychoactive", baseHash: contentHash(null) }],
+      payload: { indexLayouts: [proposedLayout] },
+    });
+
+    // The mirror was seeded directly (scripts/seed) and no indexLayouts row exists yet.
+    const withMirror = createCtx({
+      memberships: [admin],
+      categoryLayout: [seededMirror],
+      changeProposals: [layoutProposal],
+    });
+    await approveAndApplyHandler(withMirror.ctx, asAdmin);
+    expect([...withMirror.rowsOf("categoryLayout").values()]).toMatchObject([{ version: 2 }]);
+    expect(withMirror.rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+      snapshotBefore: [
+        {
+          kind: "indexLayout",
+          key: "psychoactive",
+          document: null,
+          categoryLayout: { version: 1, categories: seededMirror.categories },
+        },
+      ],
+    });
+
+    await revertHandler(withMirror.ctx, asAdmin);
+
+    expect(withMirror.rowsOf("indexLayouts").size).toBe(0);
+    expect([...withMirror.rowsOf("categoryLayout").values()]).toEqual([
+      { _id: "cl1", version: 1, categories: seededMirror.categories },
+    ]);
+
+    // Neither row existed: the revert clears the mirror the apply projected.
+    const withoutMirror = createCtx({ memberships: [admin], changeProposals: [layoutProposal] });
+    await approveAndApplyHandler(withoutMirror.ctx, asAdmin);
+    expect(withoutMirror.rowsOf("categoryLayout").size).toBe(1);
+    expect(withoutMirror.rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({
+      snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null, categoryLayout: null }],
+    });
+
+    await revertHandler(withoutMirror.ctx, asAdmin);
+
+    expect(withoutMirror.rowsOf("indexLayouts").size).toBe(0);
+    expect(withoutMirror.rowsOf("categoryLayout").size).toBe(0);
+  });
+
+  it("refuses with REVERT_INCOMPLETE when the reference merge keeps applied metadata the snapshot lacked", async () => {
+    // The stored reference has no journal; the proposal adds one. Writing the
+    // snapshot back merges against the applied row, which keeps the populated
+    // `containerTitle`, so the row can no longer hash to the proposal's base.
+    const reference = {
+      id: "ref-1",
+      type: "journal_article",
+      title: "Lysergide pharmacology",
+      authors: ["Hofmann A"],
+      doi: "10.1000/lsd",
+    };
+    const stored = { ...storedLsd, references: [reference] };
+    const proposed = { ...proposedLsd, references: [{ ...reference, containerTitle: "Journal of Ergolines" }] };
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin],
+      substanceIndex: [stored],
+      changeProposals: [
+        proposalRow({
+          targets: [{ kind: "article", key: "lsd", baseHash: contentHash(liveArticleDocument(stored)) }],
+          payload: { articles: [proposed] },
+        }),
+      ],
+    });
+    await approveAndApplyHandler(ctx, asAdmin);
+    expect(rowsOf("substanceIndex").get("s1")).toMatchObject({
+      summary: "Proposed summary",
+      references: [{ id: "ref-1", containerTitle: "Journal of Ergolines" }],
+    });
+
+    await expect(revertHandler(ctx, asAdmin)).rejects.toMatchObject({ data: { code: "REVERT_INCOMPLETE" } });
+
+    // The throw is what rolls the mutation back; nothing after the write ran.
+    expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "applied" });
+    expect(rowsOf("changelog").size).toBe(1);
+  });
 });
 
 describe("changeProposalReview admin floor", () => {
@@ -408,3 +369,4 @@ describe("changeProposalReview admin floor", () => {
     expect(rowsOf("changeProposals").get("changeProposals:p1")).toMatchObject({ status: "submitted" });
   });
 });
+

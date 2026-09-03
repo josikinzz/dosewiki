@@ -24,8 +24,10 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: nextCacheMocks.revalidateTag,
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(roleSessionFor("editor")),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -62,11 +64,25 @@ describe("about route", () => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
     });
     mocks.mutation.mockResolvedValue({ updated: true, id: "about-id" });
+  });
+
+  it("refuses an editor saving About with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+
+    const response = await POST(saveRequest(SAVE));
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
+    expect(nextCacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 
   it("saves the whole document through siteConfig.saveAbout and expires the About cache", async () => {
@@ -83,11 +99,11 @@ describe("about route", () => {
     });
     expect(mocks.mutation).toHaveBeenCalledWith("siteConfig.saveAbout", {
       apiKey: "admin-key",
-      actorEmail: "editor@example.com",
+      actorEmail: "admin@example.com",
       aboutMarkdown: SAVE.aboutMarkdown,
       aboutSubtitle: SAVE.aboutSubtitle,
       founderProfileKeys: ["JOSIE", "SAM"],
-      updatedBy: "editor@example.com",
+      updatedBy: "admin@example.com",
     });
     expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/about");
     expect(nextCacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:about", { expire: 0 });

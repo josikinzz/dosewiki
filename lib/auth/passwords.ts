@@ -43,6 +43,20 @@ export async function hashPassword(plain: string): Promise<string> {
   ].join("$");
 }
 
+/**
+ * Well-formed and never matched. Sign-in verifies against this when the
+ * username is unknown so the response costs one real derivation either way
+ * and timing does not reveal whether an account exists.
+ */
+export const UNMATCHABLE_PASSWORD_HASH = [
+  "scrypt",
+  String(SCRYPT_N),
+  String(SCRYPT_R),
+  String(SCRYPT_P),
+  Buffer.alloc(SALT_BYTES).toString("base64"),
+  Buffer.alloc(KEY_BYTES).toString("base64"),
+].join("$");
+
 function parsePositiveInt(value: string): number | null {
   if (!/^\d+$/.test(value)) {
     return null;

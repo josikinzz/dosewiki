@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { EditorNotice } from "./EditorNotice";
 import { EditorSection } from "./EditorSection";
 import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
 
@@ -22,6 +23,16 @@ export type DevCommitNotice = {
 
 /** Where the primary action sends the draft: written to production or held for review. */
 export type DevCommitDestination = "convex" | "proposal";
+
+/** The returned proposal the draft rebases; the card names it above the save controls. */
+export type DevCommitRebase = {
+  proposalId: string;
+  reason: string | null;
+  onDiscard: () => void;
+};
+
+/** Short id shown in the banner: the tail of a Convex id is what differs between rows. */
+const PROPOSAL_ID_DISPLAY_LENGTH = 6;
 
 const DESTINATION_COPY: Record<
   DevCommitDestination,
@@ -52,6 +63,8 @@ type DevCommitCardProps = {
    * to save."). Defaults to copy for the destination.
    */
   description?: ReactNode;
+  /** Set while the draft was seeded from a returned proposal; the next save supersedes it. */
+  rebase?: DevCommitRebase | null;
 };
 
 export function DevCommitCard({
@@ -60,6 +73,7 @@ export function DevCommitCard({
   footerSlot,
   actionSlot,
   description,
+  rebase,
 }: DevCommitCardProps) {
   const copy = DESTINATION_COPY[destination];
   const noticeContent = notice
@@ -98,6 +112,26 @@ export function DevCommitCard({
       }
       description={description ?? copy.description}
     >
+      {rebase ? (
+        <EditorNotice
+          className="mb-3"
+          notice={{
+            tone: "info",
+            icon: "lucide:git-branch",
+            message: (
+              <span data-testid="commit-rebase-banner">
+                Rebasing proposal #{rebase.proposalId.slice(-PROPOSAL_ID_DISPLAY_LENGTH)}
+                {rebase.reason ? ` - ${rebase.reason}` : ""}
+              </span>
+            ),
+            actions: (
+              <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={rebase.onDiscard}>
+                Discard
+              </Button>
+            ),
+          }}
+        />
+      ) : null}
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">
           {noticeContent ?? (

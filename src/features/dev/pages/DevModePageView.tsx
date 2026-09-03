@@ -191,11 +191,17 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             profilesLoading={controller.contributorDirectory.isLoading}
             initialSlug={controller.writingInitialSlug}
             initialKind={controller.initialFilter}
+            canApprove={controller.canApprove}
           />
         ) : controller.activeTab === "copy-studio" ? (
-          <CopyStudioTab initialKey={controller.copyStudioInitialKey} />
+          <CopyStudioTab initialKey={controller.copyStudioInitialKey} canApprove={controller.canApprove} />
         ) : controller.activeTab === "queue" ? (
-          <QueueTab canApprove={controller.canApprove} />
+          <QueueTab
+            canApprove={controller.canApprove}
+            actorEmail={controller.userEmail}
+            libraryReady={!controller.isLibraryLoading}
+            onLoadIntoEditor={controller.onLoadProposal}
+          />
         ) : controller.activeTab === "contributors" ? (
           <ContributorsTab
             profiles={controller.contributorDirectory.profiles}

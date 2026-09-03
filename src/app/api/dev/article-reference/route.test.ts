@@ -79,7 +79,9 @@ describe("article reference route", () => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
     authMocks.enforceRateLimit.mockResolvedValue(null);
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
@@ -126,7 +128,7 @@ describe("article reference route", () => {
     });
   });
 
-  it("enforces the editor session and the small-write rate limit", async () => {
+  it("enforces the admin session and the small-write rate limit", async () => {
     mocks.mutation.mockResolvedValue({ slug: "2c-b", created: true, reference: { id: "x" } });
     const { POST } = await import("./route");
 
@@ -136,16 +138,17 @@ describe("article reference route", () => {
       expect.any(Request),
       "editorSmallWrite",
     );
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
   });
 
-  it("does not reach Convex when the session is not an editor's", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
+  it("refuses an editor adding a source with 403 before reaching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");
 
     const response = await POST(doiRequest());
 
     expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
@@ -165,7 +168,7 @@ describe("article reference route", () => {
     expect(revalidateTag).not.toHaveBeenCalled();
   });
 
-  it("stamps an added source onto the editor's contribution history", async () => {
+  it("stamps an added source onto the admin's contribution history", async () => {
     mocks.mutation.mockImplementation(async (name: string, args: { reference?: unknown }) => {
       if (name === "substanceIndex.appendArticleReference") {
         return { slug: "2c-b", created: true, reference: args.reference, id: 42, title: "2C-B" };
@@ -186,7 +189,7 @@ describe("article reference route", () => {
       articles: Array<{ id: number; title: string; slug: string }>;
     };
 
-    expect(entry.submittedBy).toBe("EDITOR");
+    expect(entry.submittedBy).toBe("ADMIN");
     expect(entry.articles).toEqual([{ id: 42, title: "2C-B", slug: "2c-b" }]);
     expect(entry.message).toContain("source");
     expect(entry.markdown).toContain("+ An example study");
@@ -285,6 +288,19 @@ describe("article reference route", () => {
       };
     }
 
+    it("refuses an editor removing a source with 403 before reaching Convex", async () => {
+      authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+      const { DELETE } = await import("./route");
+
+      const response = await DELETE(
+        removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }),
+      );
+
+      expect(response.status).toBe(403);
+      expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
     it("removes the reference and reports what was stripped", async () => {
       mocks.mutation.mockResolvedValue(removedResult());
       const { DELETE } = await import("./route");
@@ -307,7 +323,7 @@ describe("article reference route", () => {
       expect(call?.[1]).toMatchObject({
         slug: "2c-b",
         referenceId: "doi-10-1000-example",
-        actorEmail: "editor@example.com",
+        actorEmail: "admin@example.com",
       });
     });
 
@@ -322,7 +338,7 @@ describe("article reference route", () => {
       expect(revalidateTag).toHaveBeenCalled();
     });
 
-    it("stamps the removal onto the editor's contribution history", async () => {
+    it("stamps the removal onto the admin's contribution history", async () => {
       mocks.mutation.mockImplementation(async (name: string) => {
         if (name === "substanceIndex.removeArticleReference") {
           return removedResult();

@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/aria-role -- `role` here is the component prop for the member role, not an ARIA role */
 import { render, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 

@@ -83,6 +83,13 @@ vi.mock("convex/react", () => ({
   useMutation: () => vi.fn(),
 }));
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({
+    status: "authenticated",
+    data: { user: { email: "admin@example.com", role: "admin" } },
+  }),
+}));
+
 vi.mock("@/features/article/components/ArticleLayout", () => ({
   ArticleLayout: ({ article }: { article: SubstanceArticle }) => (
     <div data-testid="article-layout">{article.title}</div>

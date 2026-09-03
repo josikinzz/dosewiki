@@ -260,8 +260,27 @@ describe("tripReports.update ownership", () => {
     expect(current.rowsOf("tripReports").get("r1")?.slug).toBe("alpine-clarity");
   });
 
-  it("keeps the editor path: an editor saves a report they do not own", async () => {
-    const result = await save("editor@example.com", { title: "Edited by staff" });
+  it("refuses an editor on a report they do not own with NOT_OWNER", async () => {
+    expect(await rejection(save("editor@example.com", { title: "Edited by staff" }))).toBe("NOT_OWNER");
+    expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Alpine clarity");
+  });
+
+  it("holds an editor who owns a report to content fields", async () => {
+    current = createCtx({
+      memberships: [editor],
+      tripReports: [{ ...ownedReport, owner_email: "editor@example.com" }],
+    });
+
+    expect(await rejection(save("editor@example.com", {}, { profileKey: "NERVEWING" }))).toBe(
+      "EDITOR_ONLY_REPORT_FIELD",
+    );
+    const result = await save("editor@example.com", { title: "Mine, retitled" });
+    expect(result.updated).toBe(true);
+    expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Mine, retitled");
+  });
+
+  it("keeps the admin path: an admin saves a report they do not own", async () => {
+    const result = await save("admin@example.com", { title: "Edited by staff" });
 
     expect(result.updated).toBe(true);
     expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Edited by staff");

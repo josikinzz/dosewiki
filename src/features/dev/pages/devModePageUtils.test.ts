@@ -28,10 +28,11 @@ describe("devModePageUtils", () => {
     expect([...LIBRARY_DEPENDENT_TABS].sort()).toEqual(
       ["articles", "change-log", "citation-review", "index-layout", "tag-editor"],
     );
-    // Writing drains the corpus for the About placeholder counts but renders
+    // Writing drains the corpus for the About placeholder counts, and the queue
+    // drains it so a loaded proposal overlays real production rows; both render
     // without waiting on it.
     expect([...LIBRARY_FETCHING_TABS].sort()).toEqual(
-      ["articles", "change-log", "citation-review", "index-layout", "tag-editor", "writing"],
+      ["articles", "change-log", "citation-review", "index-layout", "queue", "tag-editor", "writing"],
     );
   });
 

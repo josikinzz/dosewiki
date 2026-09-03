@@ -12,18 +12,46 @@ const normalizeUsername = (username: string) => username.trim().toLowerCase();
 // script are the only callers, and both hold the key. The deployment URL is
 // public, so nothing here may be reachable without it.
 
+/**
+ * JWT refresh lookup. Hashes and reset tokens never leave the row; the
+ * projection here is the whole contract, as with `listRoster`.
+ */
 export const getByEmail = query({
   args: {
     apiKey: v.string(),
     email: v.string(),
   },
+  returns: v.union(
+    v.null(),
+    v.object({
+      email: v.string(),
+      username: v.optional(v.string()),
+      role: roleValidator,
+      name: v.optional(v.string()),
+      image: v.optional(v.string()),
+      bannedAt: v.optional(v.string()),
+    }),
+  ),
   handler: async (ctx, args) => {
     await requireRole(ctx, { apiKey: args.apiKey }, "admin");
 
-    return await ctx.db
+    const membership = await ctx.db
       .query("memberships")
       .withIndex("by_email", (query) => query.eq("email", normalizeEmail(args.email)))
       .unique();
+
+    if (!membership) {
+      return null;
+    }
+
+    return {
+      email: membership.email,
+      username: membership.username,
+      role: membership.role,
+      name: membership.name,
+      image: membership.image,
+      bannedAt: membership.bannedAt,
+    };
   },
 });
 
@@ -306,7 +334,8 @@ const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 
 /**
  * Stores a reset token the route already generated and hashed. The plaintext
- * is shown to the admin exactly once; only its sha256 hex lands here.
+ * is shown to the admin exactly once; only its sha256 hex lands here. A banned
+ * member gets no link: unban first, so the ban stays the single switch.
  */
 export const issuePasswordReset = mutation({
   args: {
@@ -317,6 +346,12 @@ export const issuePasswordReset = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const membership = await requireManagedTarget(ctx, args);
+    if (membership.bannedAt) {
+      throw new ConvexError({
+        code: "MEMBER_BANNED",
+        message: `${membership.email} is banned; unban them before issuing a reset link.`,
+      });
+    }
     if (!args.tokenHash) {
       throw new Error("tokenHash is required");
     }
@@ -333,7 +368,9 @@ export const issuePasswordReset = mutation({
 /**
  * Redeems a reset link. Server key only: the person resetting has no session,
  * so the token is the whole credential and the route rate-limits it like a
- * sign-in attempt. Expired and unknown tokens fail identically.
+ * sign-in attempt. Expired and unknown tokens fail identically, and so does a
+ * link whose member was banned after it was issued: a ban must not leave an
+ * unexpired link that still rotates the hash.
  */
 export const consumePasswordReset = mutation({
   args: {
@@ -353,7 +390,7 @@ export const consumePasswordReset = mutation({
       .withIndex("by_reset_token_hash", (query) => query.eq("resetTokenHash", args.tokenHash))
       .unique();
     const expiresAt = membership?.resetTokenExpiresAt ? Date.parse(membership.resetTokenExpiresAt) : NaN;
-    if (!membership || !(expiresAt > Date.now())) {
+    if (!membership || !(expiresAt > Date.now()) || membership.bannedAt) {
       throw new ConvexError({
         code: "RESET_TOKEN_INVALID",
         message: "This reset link is invalid or has expired. Ask an admin for a new one.",

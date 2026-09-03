@@ -26,10 +26,6 @@ export {
   type EditorProfilePatchInput,
 } from "./contributorProfilePatches";
 
-// Authorization role. Distinct from the contributor's free-text `role` title
-// below, which is presentation-only and carries no privileges.
-export const roleValidator = v.union(v.literal("admin"), v.literal("editor"), v.literal("viewer"));
-
 // Contributor title. `null` clears it; `undefined` leaves whatever is stored.
 export const contributorRoleValidator = v.optional(v.union(v.string(), v.null()));
 
@@ -282,10 +278,6 @@ export function sanitizeLinks(links: ProfileLink[]): ProfileLink[] {
   return sanitizeContributorLinks(links);
 }
 
-export function isEditorRole(role: ContributorRole): boolean {
-  return role === "admin" || role === "editor";
-}
-
 export function canClaimContributorProfile(args: {
   actorEmail: string;
   targetKey: string;
@@ -304,13 +296,19 @@ export function canClaimContributorProfile(args: {
   );
 }
 
+/**
+ * Ownership rule for a contributor profile write. An admin edits any record.
+ * Everyone else, editors included, edits only the record whose membership
+ * email is theirs, or the still-unclaimed record their sign-in derives to.
+ * Editors read every record (`getEditorProfile`); this is the write half.
+ */
 export function canEditContributorProfile({
   actorEmail,
   actorRole,
   targetKey,
   existingProfile,
 }: SaveProfileAuthorizationInput): boolean {
-  if (isEditorRole(actorRole)) {
+  if (actorRole === "admin") {
     return true;
   }
 
@@ -369,13 +367,12 @@ export function buildStoredProfile(
   const existingMembershipEmail = existing?.membershipEmail
     ? normalizeEmail(existing.membershipEmail)
     : undefined;
-  const membershipEmail = isEditorRole(actorRole)
-    ? existingMembershipEmail
-    : canClaimContributorProfile({
-        actorEmail: normalizedActorEmail,
-        targetKey: key,
-        existingMembershipEmail,
-      }) || existingMembershipEmail === normalizedActorEmail
+  const membershipEmail =
+    canClaimContributorProfile({
+      actorEmail: normalizedActorEmail,
+      targetKey: key,
+      existingMembershipEmail,
+    }) || existingMembershipEmail === normalizedActorEmail
       ? normalizedActorEmail
       : existingMembershipEmail;
 

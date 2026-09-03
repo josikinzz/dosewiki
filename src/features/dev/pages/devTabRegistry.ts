@@ -186,9 +186,10 @@ const REGISTRY = [
     group: "site",
     aliases: ["proposals"],
     // Every editor reads the review queue and comments; approve, reject and
-    // revert are admin buttons inside the tab.
+    // revert are admin buttons inside the tab. The corpus drains behind it so
+    // "Load into editor" can seed a rebase over the production rows.
     role: "editor",
-    data: NO_DATA,
+    data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveFamily: "immediate",
     destination: SHELL,
     badge: "proposals",

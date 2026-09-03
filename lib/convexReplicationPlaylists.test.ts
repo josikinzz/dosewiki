@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   assignOwnerHandler,
   canEditPlaylist,
+  getHandler,
   listHandler,
   listOwnedHandler,
   removeHandler,
@@ -200,6 +201,28 @@ describe("replicationPlaylists ownership", () => {
     });
   });
 
+  it("stamps a contributor's save with their own email whatever updatedBy the request carried", async () => {
+    const { ctx, rowsOf } = seed();
+    await upsertHandler(ctx, {
+      ...as("ada@example.com"),
+      key: "adas-list",
+      title: "Ada's list",
+      replication_slugs: ["alpha"],
+      updatedBy: "admin@example.com",
+    });
+    expect(rowsOf("replicationPlaylists").get("p1")).toMatchObject({ updated_by: "ada@example.com" });
+
+    // An admin may attribute a write to someone else (migration scripts).
+    await upsertHandler(ctx, {
+      ...as("admin@example.com"),
+      key: "house-opener",
+      title: "House opener",
+      replication_slugs: ["alpha"],
+      updatedBy: "importer@example.com",
+    });
+    expect(rowsOf("replicationPlaylists").get("p2")).toMatchObject({ updated_by: "importer@example.com" });
+  });
+
   it("refuses a contributor writing to another member's playlist with NOT_OWNER", async () => {
     const { ctx, rowsOf } = seed();
     await expect(
@@ -379,5 +402,25 @@ describe("replicationPlaylists reads", () => {
       ["adas-list", false],
       ["house-opener", false],
     ]);
+  });
+
+  it("get lets a contributor read only a playlist they own; editors and admins read any", async () => {
+    const { ctx } = seed();
+    await expect(getHandler(ctx, { ...as("ada@example.com"), key: "adas-list" })).resolves.toMatchObject({
+      key: "adas-list",
+      editable: true,
+    });
+    // Bob does not own Ada's list, and nobody but an admin owns the unowned one.
+    await expect(getHandler(ctx, { ...as("bob@example.com"), key: "adas-list" })).resolves.toBeNull();
+    await expect(getHandler(ctx, { ...as("ada@example.com"), key: "house-opener" })).resolves.toBeNull();
+    await expect(getHandler(ctx, { ...as("editor@example.com"), key: "adas-list" })).resolves.toMatchObject({
+      key: "adas-list",
+      editable: false,
+    });
+    await expect(getHandler(ctx, { ...as("admin@example.com"), key: "house-opener" })).resolves.toMatchObject({
+      key: "house-opener",
+      editable: true,
+    });
+    await expect(getHandler(ctx, { ...as("ada@example.com"), key: "no-such-list" })).resolves.toBeNull();
   });
 });

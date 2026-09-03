@@ -160,7 +160,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   CarouselOrderBody,
   ParsedCarouselOrder
 >({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 32 * 1024, parse: parseCarouselOrderBody },
   capabilities: [{ type: "convexWrite" }],

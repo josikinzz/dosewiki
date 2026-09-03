@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -70,11 +71,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireRoleSession.mockResolvedValue({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  });
+  authMocks.requireRoleSession.mockImplementation(
+    roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+  );
   convexMocks.getServerConvexWriteCapability.mockReturnValue({
     ok: true,
     capability: {
@@ -99,6 +98,21 @@ describe("substance gallery route auth", () => {
     expect(write.status).toBe(401);
     expect(convexMocks.query).not.toHaveBeenCalled();
     expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("lets an editor read the detail but refuses the save with 403 before Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    convexMocks.query.mockResolvedValue(DETAIL);
+    const { GET, POST } = await import("./route");
+
+    const read = await GET(new Request("https://dose.wiki/api/dev/replications/substances/lsd"));
+    const write = await POST(saveRequest({ curatedSlugs: ["tracers-hand"], removedSlugs: [] }));
+
+    expect(read.status).toBe(200);
+    expect(write.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 });
 
@@ -175,11 +189,11 @@ describe("substance gallery POST", () => {
     });
     expect(convexMocks.mutation).toHaveBeenCalledWith("substanceGalleries.upsert", {
       apiKey: "admin-key",
-      actorEmail: "editor@example.com",
+      actorEmail: "admin@example.com",
       substance_slug: "lsd",
       curated_slugs: ["tracers-hand", "ghost-row"],
       removed_slugs: ["haze-room"],
-      updatedBy: "editor@example.com",
+      updatedBy: "admin@example.com",
       expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
     });
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });

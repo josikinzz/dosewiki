@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -99,11 +100,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireRoleSession.mockResolvedValue({
-    ok: true,
-    session: { user: { email: "editor@example.com", name: "Editor" } },
-    role: "editor",
-  });
+  authMocks.requireRoleSession.mockImplementation(
+    roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+  );
   convexMocks.getServerConvexWriteCapability.mockReturnValue({
     ok: true,
     capability: {
@@ -132,6 +131,24 @@ describe("replication associations route auth", () => {
     expect(write.status).toBe(401);
     expect(convexMocks.query).not.toHaveBeenCalled();
     expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("lets an editor read but refuses both writes with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    convexMocks.query.mockResolvedValue({ items: [], cursor: "", isDone: true });
+    const { GET, PATCH, POST } = await import("./route");
+
+    const read = await GET(readRequest());
+    const patch = await PATCH(patchRequest({ substanceSlug: "lsd", assigned: true }));
+    const write = await POST(saveRequest({ excludedSubstanceSlugs: ["lsd"] }));
+
+    expect(read.status).toBe(200);
+    expect(patch.status).toBe(403);
+    expect(write.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 });
 
@@ -219,7 +236,7 @@ describe("replication associations PATCH", () => {
       "substanceGalleries.setReplicationDirectAssociation",
       {
         apiKey: "admin-key",
-        actorEmail: "editor@example.com",
+        actorEmail: "admin@example.com",
         replicationSlug: "tracers-hand",
         substanceSlug: "ketamine",
         assigned: true,
@@ -259,10 +276,10 @@ describe("replication associations POST", () => {
       "substanceGalleries.setReplicationExclusions",
       {
         apiKey: "admin-key",
-        actorEmail: "editor@example.com",
+        actorEmail: "admin@example.com",
         replicationSlug: "tracers-hand",
         excludedSubstanceSlugs: ["lsd"],
-        updatedBy: "editor@example.com",
+        updatedBy: "admin@example.com",
       },
     );
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });

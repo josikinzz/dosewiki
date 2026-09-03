@@ -117,7 +117,7 @@ const redeemHandler = handlerOf(redeem);
 
 const HASH_A = "a".repeat(64);
 const HASH_B = "b".repeat(64);
-const PASSWORD_HASH = "scrypt$16384$8$1$c2FsdA==$aGFzaA==";
+const STORED_HASH = "scrypt$16384$8$1$c2FsdA==$aGFzaA==";
 
 const admin: MembershipRow = {
   _id: "m1",
@@ -335,7 +335,7 @@ describe("inviteCodes", () => {
       apiKey: SERVER_KEY,
       codeHash: HASH_A,
       username: "Ada",
-      passwordHash: PASSWORD_HASH,
+      passwordHash: STORED_HASH,
       ...overrides,
     });
 
@@ -406,7 +406,7 @@ describe("inviteCodes", () => {
         username: "ada",
         role: "contributor",
         name: "Ada Lovelace",
-        passwordHash: PASSWORD_HASH,
+        passwordHash: STORED_HASH,
         passwordUpdatedAt: "2026-09-03T12:00:00.000Z",
         invitedBy: admin.email,
         inviteCodeId: "inv1",

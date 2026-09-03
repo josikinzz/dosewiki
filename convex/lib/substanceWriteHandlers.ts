@@ -10,6 +10,12 @@ import {
 import { appendArticleReference, removeArticleReference } from "./articleReferenceWrites";
 import { ingestSubstanceArticle, ingestSubstanceArticles } from "./substanceIngestion";
 
+/**
+ * Every handler here writes a published article directly, so all of them sit
+ * on the admin floor: an editor's changes reach production only through an
+ * approved change proposal (`changeProposals.approveAndApply`), which calls
+ * `saveSubstancesHandler` with the approving admin as the actor.
+ */
 type EditorArgs = { apiKey?: string; actorEmail?: string };
 type SubstanceArticleInput = {
   id: number | null;
@@ -25,7 +31,7 @@ export async function saveSubstanceHandler(
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
   const outcome = await ingestSubstanceArticle({ db: ctx.db, article: args.article });
   if (outcome.action === "skipped") {
     throw new Error(outcome.error ?? "Unable to save substance.");
@@ -46,7 +52,7 @@ export async function saveSubstancesHandler(
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
   return ingestSubstanceArticles({ db: ctx.db, articles: args.articles });
 }
 
@@ -67,7 +73,7 @@ export async function setArticleFieldHandler(
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
   if (!isEditableArticleFieldPath(args.path)) {
     throw new ConvexError({
       code: "FIELD_NOT_EDITABLE",
@@ -131,7 +137,7 @@ export async function setIupacNameHandler(
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
   const article = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
@@ -175,7 +181,7 @@ export async function appendArticleReferenceHandler(
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
   const article = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
@@ -213,7 +219,7 @@ export async function removeArticleReferenceHandler(
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
   const article = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))

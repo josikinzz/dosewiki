@@ -4,6 +4,7 @@
  */
 
 import type { EditorStatusPillTone } from "@/features/dev/components";
+import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import type { ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
 
 export type { ProposalStatus };
@@ -38,12 +39,14 @@ export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   comments: ProposalComment[];
   revertedAt?: string;
   liveHashes: Array<{ kind: ProposalTargetKind; key: string; hash: string }>;
+  /** The staged save the proposal wraps; what "Load into editor" seeds the working set from. */
+  payload: DevProposalSeed["payload"];
 };
 
 /** What `POST /api/dev/proposals/<id>/approve` answers. */
 export type ApproveOutcome = { status: "applied" | "changes_requested"; conflictReason?: string };
 
-export type QueueGroupId = "submitted" | "changes_requested" | "approved" | "closed";
+export type QueueGroupId = "submitted" | "changes_requested" | "applied" | "closed";
 
 export type QueueGroup = {
   id: QueueGroupId;
@@ -55,14 +58,13 @@ export type QueueGroup = {
 export const QUEUE_GROUPS: readonly QueueGroup[] = [
   { id: "submitted", label: "Submitted", statuses: ["submitted"] },
   { id: "changes_requested", label: "Changes requested", statuses: ["changes_requested"] },
-  { id: "approved", label: "Approved / Applied", statuses: ["approved", "applied"] },
+  { id: "applied", label: "Applied", statuses: ["applied"] },
   { id: "closed", label: "Rejected / Superseded / Reverted", statuses: ["rejected", "superseded", "reverted"] },
 ];
 
 export const STATUS_LABELS: Record<ProposalStatus, string> = {
   submitted: "Submitted",
   changes_requested: "Changes requested",
-  approved: "Approved",
   applied: "Applied",
   rejected: "Rejected",
   superseded: "Superseded",
@@ -72,7 +74,6 @@ export const STATUS_LABELS: Record<ProposalStatus, string> = {
 export const STATUS_PILL_TONE: Record<ProposalStatus, EditorStatusPillTone> = {
   submitted: "info",
   changes_requested: "caution",
-  approved: "success",
   applied: "success",
   rejected: "danger",
   superseded: "neutral",
@@ -109,9 +110,36 @@ export function targetDrift(detail: Pick<ProposalDetail, "targets" | "liveHashes
 /** Admin actions the proposal's status still allows; the buttons render from this. */
 export function reviewActionsFor(status: ProposalStatus): { approve: boolean; reject: boolean; revert: boolean } {
   return {
-    approve: status === "submitted" || status === "approved",
-    reject: status === "submitted" || status === "changes_requested" || status === "approved",
+    approve: status === "submitted",
+    reject: status === "submitted" || status === "changes_requested",
     revert: status === "applied",
+  };
+}
+
+/**
+ * Whether the viewer may rebase this proposal: it is still open to its
+ * proposer (waiting, or returned with changes requested), the viewer is that
+ * proposer or an admin, and everything it changes is something the substances
+ * editor can hold (articles and index layouts; copy blocks and About have
+ * their own editors). Mirrors what `changeProposals.submit` accepts as
+ * `revisionOf`.
+ */
+export function canLoadIntoEditor(
+  proposal: Pick<ProposalSummary, "status" | "proposedBy" | "targets">,
+  viewer: { actorEmail: string | null | undefined; canApprove: boolean },
+): boolean {
+  const open = proposal.status === "submitted" || proposal.status === "changes_requested";
+  const seedable = proposal.targets.every((target) => target.kind === "article" || target.kind === "indexLayout");
+  return open && seedable && (viewer.canApprove || (!!viewer.actorEmail && proposal.proposedBy === viewer.actorEmail));
+}
+
+/** The seed the dev context takes: the row's identity, why it came back, and its staged save. */
+export function proposalSeedOf(proposal: ProposalDetail): DevProposalSeed {
+  return {
+    proposalId: proposal._id,
+    summary: proposal.summary,
+    reason: proposal.conflictReason ?? proposal.reviewNotes ?? null,
+    payload: proposal.payload,
   };
 }
 

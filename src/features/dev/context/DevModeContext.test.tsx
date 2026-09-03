@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { useQueryMock, useLibraryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -66,7 +67,67 @@ const INDEX_LAYOUTS = [
   { type: "mechanism", version: 1, categories: [] },
 ];
 
+const PROPOSAL_SEED = {
+  proposalId: "cp_1",
+  summary: "Update LSD",
+  reason: "Article lsd changed",
+  payload: {
+    articles: [
+      { title: "LSD (proposed)", slug: "lsd", summary: "Proposed summary" },
+      { title: "New Thing", slug: "new-thing", summary: "Brand new" },
+    ],
+    indexLayouts: [{ type: "psychoactive" as const, version: 7, categories: [] }],
+  },
+};
+
+function ProposalSeedConsumer() {
+  const {
+    activeProposal,
+    articles,
+    clearActiveProposal,
+    discardActiveProposal,
+    getOriginalArticles,
+    loadProposal,
+    psychoactiveIndexManual,
+  } = useDevMode();
+  const [error, setError] = useState("");
+  const first = articles[0] as { title?: string; summary?: string } | undefined;
+  const original = getOriginalArticles()[0] as { summary?: string } | undefined;
+
+  return (
+    <div>
+      <div data-testid="article-title">{first?.title ?? ""}</div>
+      <div data-testid="article-summary">{first?.summary ?? ""}</div>
+      <div data-testid="original-summary">{original?.summary ?? ""}</div>
+      <div data-testid="article-count">{articles.length}</div>
+      <div data-testid="psychoactive-version">{psychoactiveIndexManual.version}</div>
+      <div data-testid="active-proposal">
+        {activeProposal ? `${activeProposal.proposalId}:${activeProposal.reason}:${activeProposal.summary}` : "none"}
+      </div>
+      <div data-testid="load-error">{error}</div>
+      <button
+        type="button"
+        onClick={() => {
+          loadProposal(PROPOSAL_SEED).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)));
+        }}
+      >
+        Load proposal
+      </button>
+      <button type="button" onClick={clearActiveProposal}>
+        Clear proposal
+      </button>
+      <button type="button" onClick={discardActiveProposal}>
+        Discard proposal
+      </button>
+    </div>
+  );
+}
+
 describe("DevModeContext", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("closes the editor to the substances index", () => {
     let currentPath = "/dev/articles/lsd";
     const navigateMock = vi.fn((nextPath: string) => {
@@ -116,5 +177,95 @@ describe("DevModeContext", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reset article" }));
     expect(screen.getByTestId("article-title")).toHaveTextContent("LSD");
+  });
+
+  it("seeds the working set from a proposal over hydrated production rows, and discards it back", async () => {
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
+      Response.json({
+        article: { title: "LSD", slug: "lsd", identification: { common_name: "LSD" }, summary: "Stored summary" },
+        requested: String(input),
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <DevModeProvider>
+        <ProposalSeedConsumer />
+      </DevModeProvider>,
+    );
+
+    expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Load proposal" }));
+      await Promise.resolve();
+    });
+
+    // The production row was hydrated (draft and baseline), then overlaid with the proposed fields.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toBe("/api/dev/editor-library?slug=lsd");
+    expect(screen.getByTestId("article-title")).toHaveTextContent("LSD (proposed)");
+    expect(screen.getByTestId("article-summary")).toHaveTextContent("Proposed summary");
+    expect(screen.getByTestId("original-summary")).toHaveTextContent("Stored summary");
+    expect(screen.getByTestId("article-count")).toHaveTextContent("2");
+    expect(screen.getByTestId("psychoactive-version")).toHaveTextContent("7");
+    expect(screen.getByTestId("active-proposal")).toHaveTextContent("cp_1:Article lsd changed:Update LSD");
+
+    fireEvent.click(screen.getByRole("button", { name: "Discard proposal" }));
+
+    expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
+    expect(screen.getByTestId("article-title")).toHaveTextContent("LSD");
+    expect(screen.getByTestId("article-summary")).toHaveTextContent("Stored summary");
+    expect(screen.getByTestId("article-count")).toHaveTextContent("1");
+    expect(screen.getByTestId("psychoactive-version")).toHaveTextContent("1");
+  });
+
+  it("clears the proposal link after a save but keeps the seeded edits", async () => {
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ article: { title: "LSD", slug: "lsd", summary: "Stored summary" } })),
+    );
+
+    render(
+      <DevModeProvider>
+        <ProposalSeedConsumer />
+      </DevModeProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Load proposal" }));
+      await Promise.resolve();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Clear proposal" }));
+
+    expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
+    expect(screen.getByTestId("article-summary")).toHaveTextContent("Proposed summary");
+    expect(screen.getByTestId("article-count")).toHaveTextContent("2");
+  });
+
+  it("refuses to seed when a production article the proposal needs does not load", async () => {
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: "nope" }, { status: 500 })));
+
+    render(
+      <DevModeProvider>
+        <ProposalSeedConsumer />
+      </DevModeProvider>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Load proposal" }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("load-error")).toHaveTextContent("Could not load lsd from the library");
+    expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
+    expect(screen.getByTestId("article-summary")).toHaveTextContent("");
+    expect(screen.getByTestId("article-count")).toHaveTextContent("1");
   });
 });

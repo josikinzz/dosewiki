@@ -246,12 +246,18 @@ An editor session sees the same commit panel, but its primary action reads
 1. client builds the identical `SaveToConvexPayload`, a one-line summary, and
    the commit markdown as the diff
 2. client calls `POST /api/dev/proposals` (editor floor)
-3. route sanitizes the payload with the save-to-convex utilities and derives one
-   target per article slug and per index layout type
+3. route sanitizes the payload with the save-to-convex utilities and forwards
+   it; it never names targets
 4. `changeProposals.submit` (editor floor) validates the payload with the save
-   validators and the article ingestion contract, reads each target's current
-   production row, records its `contentHash` (`lib/proposals/contentHash.ts`) as
-   `baseHash`, and inserts the row with status `submitted`
+   validators and the article ingestion contract, derives one target per
+   article slug, index layout type, copy block key, and the About row, reads
+   each target's current production row, records its `contentHash`
+   (`lib/proposals/contentHash.ts`) as `baseHash`, and inserts the row with
+   status `submitted`. An article that carries an id is pinned to the slug the
+   id-row currently has; a payload that would move it to another slug is
+   refused (`PROPOSAL_SLUG_MOVE`), since renames go through the admin save. A
+   revision (`revisionOf`) must share at least one target with the proposal it
+   supersedes (`PROPOSAL_REVISION_MISMATCH`).
 5. the panel marks the draft saved and links to the review queue
 
 Status moves only along `lib/proposals/proposalStatus.ts`. Review is admin
@@ -273,7 +279,11 @@ floor and lives in `convex/changeProposalReview.ts`, reached through
 - **revert** is only allowed from `applied` and is the mirror CAS: every target
   must still hash to its `appliedHashes` entry, otherwise `REVERT_CONFLICT`
   refuses and nothing is written. It writes `snapshotBefore` back through the
-  same handlers (a target that was absent before is deleted) and appends a
+  same handlers (a target that was absent before is deleted; a psychoactive
+  layout that was absent also restores or clears the `categoryLayout` mirror
+  captured beside it), then checks that every article hashes back to its
+  `baseHash` and throws `REVERT_INCOMPLETE` (rolling the mutation back) when the
+  reference merge kept applied metadata the snapshot lacked. It appends a
   "Reverted proposal" changelog entry.
 
 `applyTarget` in `convex/lib/changeProposalApply.ts` is the one switch on

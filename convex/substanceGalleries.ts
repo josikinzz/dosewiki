@@ -502,7 +502,7 @@ export const upsert = mutation({
     const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
+      "admin",
     );
 
     if (args.curated_slugs.length > MAX_GALLERY_CURATION_SLUGS) {
@@ -611,7 +611,7 @@ export const setCarouselOrder = mutation({
     const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
+      "admin",
     );
     if (args.carousel_order.length > MAX_GALLERY_CURATION_SLUGS) {
       throw new Error(
@@ -795,7 +795,7 @@ export const setReplicationDirectAssociation = mutation({
     const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
+      "admin",
     );
     const replication = await ctx.db
       .query("replications")
@@ -902,7 +902,7 @@ export const setReplicationExclusions = mutation({
     const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
+      "admin",
     );
 
     if (args.excludedSubstanceSlugs.length > MAX_GALLERY_CURATION_SLUGS) {

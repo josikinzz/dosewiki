@@ -116,9 +116,8 @@ export const getAll = query({
 });
 
 /**
- * Save (create or update) a quote document.
- *
- * @param apiKey - Required API key for authentication
+ * Save (create or update) a quote document. Quotes render on public article
+ * pages, so the write is admin-only.
  */
 export const save = mutation({
   args: {
@@ -133,7 +132,7 @@ export const save = mutation({
     await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "quoteMigrationWrite" },
-      "editor",
+      "admin",
     );
 
     const { slug, content, updatedBy } = args;

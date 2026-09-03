@@ -317,10 +317,12 @@ export const getPortalRecord = query({
  * contributor's page and report list to whoever typed the name, and the read
  * path resolves bylines by exact name.
  *
- * Contributor floor plus ownership: an editor or admin saves any report with
- * the full form; a contributor saves only a report whose `owner_email` is
- * theirs, and only its content. Attribution (`profileKey`, the byline) stays
- * an editor decision, and `featured` and `slug` were never part of this write.
+ * Contributor floor plus ownership: an admin saves any report with the full
+ * form; an editor or contributor saves only a report whose `owner_email` is
+ * theirs, and only its content. Editors read every report (`getPortalRecord`)
+ * but do not write reports they do not own. Attribution (`profileKey`, the
+ * byline) stays an admin decision, and `featured` and `slug` were never part
+ * of this write.
  */
 type EditableFieldsInput = typeof editableTripReportFieldsValidator.type;
 
@@ -360,7 +362,7 @@ function assertOwnerEditsContentOnly(
   if (locked.length > 0) {
     throw new ConvexError({
       code: "EDITOR_ONLY_REPORT_FIELD",
-      message: `Only an editor can change ${locked.join(", ")} on trip report ${row.slug}.`,
+      message: `Only an admin can change ${locked.join(", ")} on trip report ${row.slug}.`,
     });
   }
 }
@@ -384,7 +386,7 @@ export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
   }
 
   const updates = normalizeEditableFields(args.updates);
-  if (!roleMeetsFloor(actor.role, "editor")) {
+  if (actor.role !== "admin") {
     if (!ownsReport(actor, row)) {
       refuseNotOwner(row);
     }

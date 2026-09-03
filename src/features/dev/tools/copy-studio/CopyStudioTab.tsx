@@ -26,6 +26,7 @@ import {
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { api } from "../../../../../convex/_generated/api";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
+import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import {
   blockCurrentText,
   buildCopyStudioBlocks,
@@ -55,6 +56,8 @@ type SaveState = EditorActionStatusState | "idle";
 type CopyStudioTabProps = {
   /** `/dev/copy-studio/<block key>`: the block to open on, wherever its group is. */
   initialKey?: string;
+  /** Admin: Save writes the block; without it the same draft is submitted as a proposal. */
+  canApprove: boolean;
 };
 
 /**
@@ -63,13 +66,14 @@ type CopyStudioTabProps = {
  * It reads only `copyBlocks` and combines the query result with 428 checked-in
  * defaults, never the substance corpus, so it renders as soon as its own query
  * resolves. Blocks without a stored row are still listed from those defaults.
- * Saving creates the row; reverting deletes it so the public read falls back
- * to the default again.
+ * An admin's save creates the row and reverting deletes it so the public read
+ * falls back to the default again; an editor's save is submitted as a change
+ * proposal for the Queue instead, and only an approval writes the row.
  *
  * The rail lists one group at a time; a search query replaces it with every
  * block whose key or label matches, across all groups.
  */
-export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
+export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const rows = useQuery(api.copyBlocks.getAll) as CopyBlockRow[] | undefined;
 
   const blocks = useMemo(() => buildCopyStudioBlocks(rows ?? []), [rows]);
@@ -146,20 +150,33 @@ export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
     setSaveState("saving");
     setNotice(null);
 
+    const block = {
+      key: activeBlock.key,
+      flavor: activeBlock.flavor,
+      kind: activeBlock.kind,
+      label: activeBlock.label,
+      group: activeBlock.group,
+      ...(activeBlock.kind === "list"
+        ? { items: draft.items.map((item) => item.trim()).filter(Boolean) }
+        : { body: draft.body }),
+    };
+
     try {
+      if (!canApprove) {
+        const { proposalId } = await submitToolProposal({
+          payload: { copyBlocks: [block] },
+          summary: `Update copy "${activeBlock.label}"`,
+          diff: buildFieldDiff([{ label: activeBlock.label, before: currentText, after: draftText }]),
+        });
+        setSaveState("saved");
+        setNotice(proposalSubmittedNotice(`“${activeBlock.label}”`, proposalId));
+        return;
+      }
+
       const response = await fetch("/api/dev/copy-block", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: activeBlock.key,
-          flavor: activeBlock.flavor,
-          kind: activeBlock.kind,
-          label: activeBlock.label,
-          group: activeBlock.group,
-          ...(activeBlock.kind === "list"
-            ? { items: draft.items.map((item) => item.trim()).filter(Boolean) }
-            : { body: draft.body }),
-        }),
+        body: JSON.stringify(block),
       });
 
       const payload = (await response.json()) as { error?: string };
@@ -176,11 +193,16 @@ export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
       setSaveState("error");
       setNotice({
         tone: "danger",
-        title: "Save failed",
-        message: error instanceof Error ? error.message : "The copy block could not be saved.",
+        title: canApprove ? "Save failed" : "Submission failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : canApprove
+              ? "The copy block could not be saved."
+              : "The proposal could not be submitted.",
       });
     }
-  }, [activeBlock, draft]);
+  }, [activeBlock, canApprove, currentText, draft, draftText]);
 
   /** Reset drops the draft back to the checked-in default without saving. */
   const handleResetDraft = useCallback(() => {
@@ -351,7 +373,7 @@ export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
                       : `${draft.body.length} characters`
                   }
                 >
-                  {activeBlock.kind === "list" ? (
+                  {(fieldProps) => activeBlock.kind === "list" ? (
                     <div className="space-y-2">
                       {draft.items.map((item, index) => (
                         <div key={index} className="flex items-center gap-2">
@@ -392,6 +414,7 @@ export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
                     </div>
                   ) : (
                     <textarea
+                      {...fieldProps}
                       className={TEXTAREA_CLASS}
                       rows={activeBlock.kind === "markdown" ? 12 : 4}
                       value={draft.body}
@@ -409,8 +432,8 @@ export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
                       disabled={!isDirty || saveState === "saving"}
                       onClick={() => void handleSave()}
                     >
-                      <Icon icon="lucide:save" size={15} />
-                      Save copy
+                      <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
+                      {canApprove ? "Save copy" : "Submit for review"}
                     </Button>
                     <Button
                       type="button"
@@ -422,20 +445,22 @@ export function CopyStudioTab({ initialKey }: CopyStudioTabProps) {
                       <Icon icon="lucide:rotate-ccw" size={15} />
                       Reset to default
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={activeBlock.source !== "convex" || saveState === "saving"}
-                      onClick={() => void handleRevertToDefault()}
-                    >
-                      <Icon icon="lucide:undo-2" size={15} />
-                      Remove stored copy
-                    </Button>
+                    {canApprove ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={activeBlock.source !== "convex" || saveState === "saving"}
+                        onClick={() => void handleRevertToDefault()}
+                      >
+                        <Icon icon="lucide:undo-2" size={15} />
+                        Remove stored copy
+                      </Button>
+                    ) : null}
                   </div>
                   {saveState === "idle" ? (
                     <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
-                      {isDirty ? "Unsaved changes" : "No changes"}
+                      {isDirty ? (canApprove ? "Unsaved changes" : "Changes to propose") : "No changes"}
                     </EditorStatusPill>
                   ) : (
                     <EditorActionStatus status={saveState} />

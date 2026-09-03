@@ -61,7 +61,7 @@ function stubWritingApi() {
 }
 
 function renderTab(props: Partial<Parameters<typeof WritingTab>[0]> = {}) {
-  return render(<WritingTab contributorProfiles={[]} profilesLoading={false} {...props} />);
+  return render(<WritingTab contributorProfiles={[]} profilesLoading={false} canApprove {...props} />);
 }
 
 /** Titles of the rail's entries, pinned entry included, in render order. */
@@ -168,5 +168,23 @@ describe("WritingTab", () => {
     expect(screen.getByRole("button", { name: "Save & publish" })).toBeDisabled();
     expect(publicationState().getByRole("button", { name: "Draft" })).toBeDisabled();
     expect(publicationState().getByRole("button", { name: "Published" })).toBeDisabled();
+  });
+
+  it("keeps the save inert for an editor with the admin reason, while the draft stays editable", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    renderTab({ canApprove: false });
+    await screen.findByText("Field notes");
+
+    await user.click(screen.getByRole("button", { name: "New" }));
+    await user.type(screen.getByLabelText("Title"), "Fresh");
+
+    // The same draft an admin could save: title present, not read-only.
+    expect(screen.getByLabelText("Title")).toHaveValue("Fresh");
+    const save = screen.getByRole("button", { name: "Save draft" });
+    expect(save).toBeDisabled();
+    expect(save).toHaveAttribute("title", "Admin role required");
+    expect(publicationState().getByRole("button", { name: "Published" })).toBeDisabled();
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
   });
 });

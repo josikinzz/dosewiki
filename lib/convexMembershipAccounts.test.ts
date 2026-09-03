@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ban,
   consumePasswordReset,
+  getByEmail,
   getCredentialsByUsername,
   issuePasswordReset,
   listRoster,
@@ -108,6 +109,15 @@ function argsSchemaOf(fn: unknown): string {
   throw new Error("not a registered Convex function");
 }
 
+/** The registered function's returns validator as Convex exports it (JSON). */
+function returnsSchemaOf(fn: unknown): string {
+  if (typeof fn === "function" && "exportReturns" in fn && typeof fn.exportReturns === "function") {
+    return String(fn.exportReturns());
+  }
+  throw new Error("not a registered Convex function");
+}
+
+const byEmailHandler = handlerOf(getByEmail);
 const credentialsHandler = handlerOf(getCredentialsByUsername);
 const touchHandler = handlerOf(touchSignIn);
 const setAdminHandler = handlerOf(setAdminAccount);
@@ -137,6 +147,37 @@ describe("memberships account functions", () => {
 
   afterEach(() => {
     delete process.env.CONVEX_ADMIN_KEY;
+  });
+
+  describe("getByEmail", () => {
+    it("refuses a caller without the server key", async () => {
+      const { ctx } = createCtx([josie]);
+      await expect(byEmailHandler(ctx, { apiKey: "wrong", email: "josie@example.com" })).rejects.toThrow();
+    });
+
+    it("looks up by normalized email and returns the session fields only, never hashes or tokens", async () => {
+      const bannedAt = "2026-08-01T00:00:00.000Z";
+      const { ctx } = createCtx([
+        { ...josie, bannedAt, resetTokenHash: "abc", resetTokenExpiresAt: "2099-01-01T00:00:00.000Z" },
+      ]);
+
+      await expect(byEmailHandler(ctx, { apiKey: SERVER_KEY, email: "  JOSIE@Example.com " })).resolves.toEqual({
+        email: "josie@example.com",
+        username: "josie",
+        role: "admin",
+        name: "Josie",
+        image: undefined,
+        bannedAt,
+      });
+      await expect(byEmailHandler(ctx, { apiKey: SERVER_KEY, email: "nobody@example.com" })).resolves.toBeNull();
+    });
+
+    it("declares a returns validator that excludes passwordHash and the reset token", () => {
+      const returns = returnsSchemaOf(getByEmail);
+      expect(returns).toContain('"bannedAt"');
+      expect(returns).not.toContain("passwordHash");
+      expect(returns).not.toContain("resetTokenHash");
+    });
   });
 
   describe("getCredentialsByUsername", () => {
@@ -422,6 +463,14 @@ describe("memberships account functions", () => {
       await expect(issueResetHandler(ctx, { ...asJosie, email: "ada@example.com", tokenHash: "" })).rejects.toThrow(/required/);
       expect(rows.get("m2")).not.toHaveProperty("resetTokenHash");
     });
+
+    it("refuses a banned member and leaves no token behind", async () => {
+      const { ctx, rows } = createCtx([josie, { ...ada, bannedAt: "2026-08-01T00:00:00.000Z" }]);
+      await expect(
+        issueResetHandler(ctx, { ...asJosie, email: "ada@example.com", tokenHash: "deadbeef" }),
+      ).rejects.toMatchObject({ data: { code: "MEMBER_BANNED" } });
+      expect(rows.get("m2")).not.toHaveProperty("resetTokenHash");
+    });
   });
 
   describe("consumePasswordReset", () => {
@@ -458,6 +507,15 @@ describe("memberships account functions", () => {
         consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
       ).rejects.toThrow(/invalid or has expired/);
       expect(rows.get("m2")?.passwordHash).toBe("scrypt$ada");
+    });
+
+    it("refuses a live token whose member was banned after it was issued", async () => {
+      const { ctx, rows } = createCtx([{ ...pending, bannedAt: "2026-08-01T00:00:00.000Z" }]);
+      await expect(
+        consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
+      ).rejects.toThrow(/invalid or has expired/);
+      expect(rows.get("m2")?.passwordHash).toBe("scrypt$ada");
+      expect(rows.get("m2")?.resetTokenHash).toBe("deadbeef");
     });
 
     it("refuses an unknown token, a blank token, and a caller without the server key", async () => {

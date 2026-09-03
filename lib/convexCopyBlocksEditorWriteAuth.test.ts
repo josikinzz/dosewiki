@@ -104,21 +104,29 @@ describe("copyBlocks write authorization", () => {
     expect(patch).not.toHaveBeenCalled();
   });
 
-  it("rejects an invalid API key and a non-editor membership", async () => {
+  it("rejects an invalid API key and anyone below admin, an editor included", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
 
     await expect(
       upsertHandler(createCtx({ identity: null }), { ...validBlock, apiKey: "wrong" }),
     ).rejects.toThrow("Authentication failed: Invalid API key");
 
-    await expect(
-      upsertHandler(
-        createCtx({ identity: null, memberships: { "viewer@example.com": "viewer" } }),
-        { ...validBlock, apiKey: "secret", actorEmail: "viewer@example.com" },
-      ),
-    ).rejects.toThrow("Editor access required");
+    // An editor's copy edits arrive as change proposals; the direct upsert is
+    // refused at the handler seam so a misconfigured route cannot escalate.
+    for (const actorEmail of ["viewer@example.com", "editor@example.com"]) {
+      await expect(
+        upsertHandler(
+          createCtx({
+            identity: null,
+            memberships: { "viewer@example.com": "viewer", "editor@example.com": "editor" },
+          }),
+          { ...validBlock, apiKey: "secret", actorEmail },
+        ),
+      ).rejects.toThrow("Admin access required");
+    }
 
     expect(insert).not.toHaveBeenCalled();
+    expect(patch).not.toHaveBeenCalled();
   });
 
   it("rejects a delete from anyone below admin before touching the table", async () => {
@@ -139,13 +147,13 @@ describe("copyBlocks write authorization", () => {
     expect(remove_).not.toHaveBeenCalled();
   });
 
-  it("inserts a new block for a delegated editor actor", async () => {
+  it("inserts a new block for a delegated admin actor", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
 
     await expect(
       upsertHandler(
-        createCtx({ identity: null, memberships: { "editor@example.com": "editor" } }),
-        { ...validBlock, apiKey: "secret", actorEmail: "editor@example.com" },
+        createCtx({ identity: null, memberships: { "admin@example.com": "admin" } }),
+        { ...validBlock, apiKey: "secret", actorEmail: "admin@example.com" },
       ),
     ).resolves.toMatchObject({ updated: false, key: "home-hero-title" });
 
@@ -154,8 +162,19 @@ describe("copyBlocks write authorization", () => {
       key: "home-hero-title",
       kind: "markdown",
       body: "Know what you are taking.",
-      updatedBy: "editor@example.com",
+      updatedBy: "admin@example.com",
     });
+  });
+
+  it("lets an admin attribute the write to someone else, as approveAndApply does", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+
+    await upsertHandler(
+      createCtx({ identity: null, memberships: { "admin@example.com": "admin" } }),
+      { ...validBlock, apiKey: "secret", actorEmail: "admin@example.com", updatedBy: "approver@example.com" },
+    );
+
+    expect(insert.mock.calls[0]?.[1]).toMatchObject({ updatedBy: "approver@example.com" });
   });
 
   it("patches the existing row for the same key rather than duplicating it", async () => {
@@ -165,10 +184,10 @@ describe("copyBlocks write authorization", () => {
       upsertHandler(
         createCtx({
           identity: null,
-          memberships: { "editor@example.com": "editor" },
+          memberships: { "admin@example.com": "admin" },
           existingBlock: { _id: "existing-id", key: "home-hero-title" },
         }),
-        { ...validBlock, apiKey: "secret", actorEmail: "editor@example.com" },
+        { ...validBlock, apiKey: "secret", actorEmail: "admin@example.com" },
       ),
     ).resolves.toMatchObject({ updated: true, id: "existing-id" });
 
@@ -180,7 +199,7 @@ describe("copyBlocks write authorization", () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
 
     await upsertHandler(
-      createCtx({ identity: null, memberships: { "editor@example.com": "editor" } }),
+      createCtx({ identity: null, memberships: { "admin@example.com": "admin" } }),
       {
         key: "home-hero-points",
         kind: "list",
@@ -189,7 +208,7 @@ describe("copyBlocks write authorization", () => {
         label: "Home hero points",
         group: "Home",
         apiKey: "secret",
-        actorEmail: "editor@example.com",
+        actorEmail: "admin@example.com",
       },
     );
 

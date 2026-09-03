@@ -47,18 +47,21 @@ function parseMembershipBody(raw: MembershipBody): {
 }
 
 export const GET = protectedRouteOperation({
-  auth: "editor",
+  auth: "contributor",
   rateLimit: "diagnosticRead",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to load a replication playlist via Next route:",
   unexpectedErrorMessage: "Unable to load that playlist right now.",
-  operation: async ({ request, convexWrite }) => {
+  operation: async ({ request, actorEmail, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
 
+    // Convex applies ownership: a contributor reads only their own playlist,
+    // so the actor must travel with the call.
     const playlist = await convexWrite.client.query(api.replicationPlaylists.get, {
       apiKey: convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey,
+      actorEmail,
       key: playlistKeyOf(request),
     });
 

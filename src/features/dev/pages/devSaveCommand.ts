@@ -215,12 +215,15 @@ export function buildProposalSummary(draft: DevSaveDraft, payload: SaveToConvexP
 /**
  * The editor-side adapter: the same payload the Convex adapter would save is
  * posted to /api/dev/proposals and held for an admin. The diff is the commit
- * markdown the shell already renders in the change log.
+ * markdown the shell already renders in the change log. With `revisionOf`
+ * the submission rebases that returned proposal, which the server supersedes.
  */
 export function createProposalSaveAdapter({
   submitProposal,
+  revisionOf = null,
 }: {
   submitProposal: (input: SubmitProposalPayload) => Promise<SubmitProposalResult>;
+  revisionOf?: string | null;
 }): DevSaveCommandAdapter {
   return {
     noChangesMessage: "No changes to submit.",
@@ -232,6 +235,7 @@ export function createProposalSaveAdapter({
         payload,
         summary: buildProposalSummary(draft, payload),
         diff: payload.changelog?.markdown ?? "",
+        ...(revisionOf ? { revisionOf } : {}),
       });
 
       return {

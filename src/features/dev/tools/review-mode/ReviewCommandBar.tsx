@@ -53,6 +53,8 @@ interface ReviewCommandBarProps {
   toggleMoleculePanel: () => void;
   toggleCitationPanel: () => void;
   toggleInlineEdit: () => void;
+  /** Admin: inline editing writes the published article, so only an admin may arm it. */
+  canApprove: boolean;
   helpOpen: boolean;
   setHelpOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -88,6 +90,7 @@ export function ReviewCommandBar({
   toggleMoleculePanel,
   toggleCitationPanel,
   toggleInlineEdit,
+  canApprove,
   helpOpen,
   setHelpOpen,
 }: ReviewCommandBarProps) {
@@ -178,7 +181,7 @@ export function ReviewCommandBar({
   // so it owns a pill beside M and C whose warning tone announces it while it
   // is on. The pill stays keycap-compact in both states: a label-width toggle
   // would push the 2xl tier past the row's 1500px cap and stack the view tabs.
-  const inlineEditActive = inlineEdit && viewMode === "webpage";
+  const inlineEditActive = inlineEdit && viewMode === "webpage" && canApprove;
 
   const settingsPanel = (
     <ReviewQueueSettingsPanel
@@ -413,15 +416,17 @@ export function ReviewCommandBar({
             size="pill"
             className={TOUCH_PILL}
             onClick={toggleInlineEdit}
-            disabled={!current || viewMode !== "webpage"}
+            disabled={!current || viewMode !== "webpage" || !canApprove}
             aria-pressed={inlineEditActive}
             aria-label="Inline editing"
             title={
-              viewMode !== "webpage"
-                ? "Inline editing applies to the Webpage view"
-                : inlineEditActive
-                  ? "Inline editing is on — clicking article text edits it (E)"
-                  : "Edit article text inline (E)"
+              !canApprove
+                ? "Admin role required"
+                : viewMode !== "webpage"
+                  ? "Inline editing applies to the Webpage view"
+                  : inlineEditActive
+                    ? "Inline editing is on — clicking article text edits it (E)"
+                    : "Edit article text inline (E)"
             }
           >
             <Icon icon="lucide:pencil-line" size={14} />

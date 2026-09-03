@@ -8,14 +8,13 @@
  *
  * The single edit carries the snapshot the drawer was opened with so Convex can
  * refuse a stale save rather than re-assert fields somebody else has since
- * changed; the bulk edit carries only the fields it means to set. An editor may
- * make the single edit; a bulk rewrite is an admin decision, refused here and
- * again in Convex.
+ * changed; the bulk edit carries only the fields it means to set. Both shapes
+ * rewrite the public corpus directly, so the route is admin-only and Convex
+ * enforces the same floor.
  */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { api } from "../../../../../../convex/_generated/api";
-import { canApprove } from "@/lib/auth/roles";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -168,13 +167,13 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
 }
 
 export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseEditorialBody },
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to save replication editorial fields via Next route:",
   unexpectedErrorMessage: "Unable to save those replication edits right now.",
-  operation: async ({ auth, actorEmail, body, convexWrite }) => {
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -195,10 +194,6 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       }
 
       return NextResponse.json({ ok: true, updated: 1, slugs: [result.slug] });
-    }
-
-    if (!canApprove(auth.role)) {
-      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
     }
 
     const result = await convexWrite.client.mutation(api.replications.bulkUpdateEditorialFields, {

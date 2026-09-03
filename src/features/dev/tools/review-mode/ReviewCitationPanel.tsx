@@ -22,6 +22,8 @@ import type { Reference } from "@/schema/substance/shared";
 import { cn } from "@/lib/utils";
 import { findEquivalentReference } from "../../../../../lib/citations/referenceIdentity.mjs";
 
+const ADMIN_ONLY_REASON = "Admin role required";
+
 export interface ReviewCitationPanelProps {
   /** Article whose sources are listed; recomputed when its references change. */
   article: SubstanceArticle;
@@ -40,6 +42,8 @@ export interface ReviewCitationPanelProps {
    * read it off the article itself; pass it when the caller already knows.
    */
   slug?: string;
+  /** Adding and removing sources publishes with no review step, so both are admin-only; listing stays live for everyone. */
+  canApprove: boolean;
   className?: string;
 }
 
@@ -81,6 +85,7 @@ export function ReviewCitationPanel({
   onReferenceRemoved,
   id,
   slug,
+  canApprove,
   className,
 }: ReviewCitationPanelProps) {
   const headingId = `${id}-heading`;
@@ -204,8 +209,8 @@ export function ReviewCitationPanel({
         size="pill"
         className="shrink-0 gap-1.5"
         onClick={() => void removeReference(referenceId)}
-        disabled={removingId !== null}
-        title={`Remove ${referenceId}, its inline markers, and its route references`}
+        disabled={!canApprove || removingId !== null}
+        title={canApprove ? `Remove ${referenceId}, its inline markers, and its route references` : ADMIN_ONLY_REASON}
         aria-label={`Remove ${referenceId}`}
       >
         <Icon icon="lucide:trash-2" size={13} />
@@ -389,6 +394,8 @@ export function ReviewCitationPanel({
                   size="pill"
                   className="gap-1.5"
                   onClick={() => setAddOpen(true)}
+                  disabled={!canApprove}
+                  title={canApprove ? undefined : ADMIN_ONLY_REASON}
                 >
                   <Icon icon="lucide:plus" size={13} />
                   Add a source

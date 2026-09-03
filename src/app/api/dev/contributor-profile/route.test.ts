@@ -281,8 +281,35 @@ describe("contributor profile route", () => {
       expect((await GET(getRequest("NOBODY"))).status).toBe(404);
     });
 
-    it("patches a stored record through the editor mutation", async () => {
+    it("refuses a patch on a record another sign-in holds with 403, before any write", async () => {
       routeQueries({ editorProfile: storedProfile() });
+
+      const response = await POST(postRequest({ key: "ADA", aliases: ["Countess"] }));
+
+      expect(response.status).toBe(403);
+      expect(await response.json()).toEqual({
+        error: "You can only edit your own contributor profile.",
+      });
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
+    it("maps Convex's ownership refusal on an unclaimed record to 403", async () => {
+      routeQueries({ editorProfile: storedProfile({ membershipEmail: null }) });
+      mocks.mutation.mockRejectedValue(
+        new Error("Uncaught Error: You can only edit your own contributor profile."),
+      );
+
+      const response = await POST(postRequest({ key: "ADA", aliases: ["Countess"] }));
+
+      expect(response.status).toBe(403);
+      expect(mocks.mutation).toHaveBeenCalledWith(
+        "contributorProfiles.saveProfileAsEditor",
+        expect.objectContaining({ actorEmail: "editor@example.com", key: "ADA" }),
+      );
+    });
+
+    it("patches the editor's own stored record through the editor mutation", async () => {
+      routeQueries({ editorProfile: storedProfile({ membershipEmail: "Editor@Example.com" }) });
       mocks.mutation.mockResolvedValue({
         profile: storedProfile({ aliases: ["Countess"] }),
         revalidate: { contributorKeys: ["ADA"], reportSlugs: [] },
@@ -300,7 +327,7 @@ describe("contributor profile route", () => {
     });
 
     it("relays Convex's admin-only field refusal as a 403 naming the field", async () => {
-      routeQueries({ editorProfile: storedProfile() });
+      routeQueries({ editorProfile: storedProfile({ membershipEmail: "editor@example.com" }) });
       mocks.mutation.mockRejectedValue(
         new ConvexError({
           code: "ADMIN_ONLY_PROFILE_FIELD",

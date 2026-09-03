@@ -55,7 +55,7 @@ function parseBody(body: SaveQuoteBody): { slug: string; section: string; conten
 }
 
 export const POST = protectedRouteOperation<SaveQuoteBody, { slug: string; section: string; content: string }>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: MAX_QUOTE_PAYLOAD_BYTES,

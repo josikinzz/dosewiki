@@ -69,6 +69,10 @@ function args(
   } as InsertMediaAssetArgs;
 }
 
+/**
+ * The identity defaults to admin: every write here lands on the public corpus
+ * with no review step, so admin is the floor and the role the happy paths run as.
+ */
 function mutationContext(options: {
   rows?: Record<string, unknown>[];
   taxonomyEvidenceRows?: Record<string, unknown>[];
@@ -94,7 +98,7 @@ function mutationContext(options: {
         : table === "replicationTaxonomyEvidence"
           ? options.taxonomyEvidenceRows ?? []
           : table === "memberships"
-            ? [{ email: "editor@example.com", role: options.identityRole ?? "editor" }]
+            ? [{ email: "editor@example.com", role: options.identityRole ?? "admin" }]
             : [];
       const match = () => tableRows.find(
         (row) => clauses.every(([field, value]) => row[field] === value),
@@ -414,22 +418,26 @@ describe("insertMediaAssetHandler", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("rejects an authenticated viewer before evaluating insert data", async () => {
-    const { ctx, insert } = mutationContext({ identityRole: "viewer" });
+  it("rejects an authenticated viewer and editor before evaluating insert data", async () => {
+    for (const identityRole of ["viewer", "editor"] as const) {
+      const { ctx, insert } = mutationContext({ identityRole });
 
-    await expect(insertMediaAssetHandler(ctx, args())).rejects.toThrow(
-      /Editor access required/,
-    );
-    expect(insert).not.toHaveBeenCalled();
+      await expect(insertMediaAssetHandler(ctx, args())).rejects.toThrow(
+        /Admin access required/,
+      );
+      expect(insert).not.toHaveBeenCalled();
+    }
   });
 
-  it("rejects a viewer requesting an upload URL", async () => {
-    const { ctx } = mutationContext({ identityRole: "viewer" });
+  it("rejects a viewer and an editor requesting an upload URL", async () => {
+    for (const identityRole of ["viewer", "editor"] as const) {
+      const { ctx } = mutationContext({ identityRole });
 
-    await expect(generateUploadUrlHandler(ctx, {})).rejects.toThrow(
-      /Editor access required/,
-    );
-    expect(ctx.storage.generateUploadUrl).not.toHaveBeenCalled();
+      await expect(generateUploadUrlHandler(ctx, {})).rejects.toThrow(
+        /Admin access required/,
+      );
+      expect(ctx.storage.generateUploadUrl).not.toHaveBeenCalled();
+    }
   });
 
   it("allows the scoped replication-maintenance token to request an upload URL", async () => {

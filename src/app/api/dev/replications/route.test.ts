@@ -8,12 +8,20 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
     replications: {
       getStudioRows: "replications.getStudioRows",
+      insertMediaAsset: "replications.insertMediaAsset",
     },
   },
 }));
 
+vi.mock("next/cache", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/cache")>()),
+  revalidatePath: vi.fn(),
+}));
+
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(roleSessionFor("editor")),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -22,6 +30,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
+  mutation: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
   probe: vi.fn(),
 }));
@@ -37,24 +46,27 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
  * are in place, which a static import cannot do. Same pattern as the
  * citation-evidence route tests.
  */
-describe("replication corpus route", () => {
-  beforeEach(() => {
-    vi.resetModules();
-    mocks.query.mockReset();
-    mocks.getServerConvexWriteCapability.mockReset();
-    mocks.probe.mockReset();
-    mocks.probe.mockResolvedValue(undefined);
-    mocks.query.mockResolvedValue({ rows: [], effects: [] });
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        client: { query: mocks.query },
-        adminKey: "admin-key",
-        getAdminIntentToken: vi.fn(() => "maintenance-token"),
-      },
-    });
+beforeEach(() => {
+  vi.resetModules();
+  authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+  mocks.query.mockReset();
+  mocks.mutation.mockReset();
+  mocks.getServerConvexWriteCapability.mockReset();
+  mocks.probe.mockReset();
+  mocks.probe.mockResolvedValue(undefined);
+  mocks.query.mockResolvedValue({ rows: [], effects: [] });
+  mocks.mutation.mockResolvedValue({ slug: "new-asset", id: "asset-id" });
+  mocks.getServerConvexWriteCapability.mockReturnValue({
+    ok: true,
+    capability: {
+      client: { query: mocks.query, mutation: mocks.mutation },
+      adminKey: "admin-key",
+      getAdminIntentToken: vi.fn(() => "maintenance-token"),
+    },
   });
+});
 
+describe("replication corpus route", () => {
   const request = () => new Request("https://dose.wiki/api/dev/replications");
 
   it("serves the corpus for an editor", async () => {
@@ -98,5 +110,46 @@ describe("replication corpus route", () => {
     expect(response.status).toBe(500);
     const payload = (await response.json()) as { error: string };
     expect(payload.error).not.toContain("convex:doctor");
+  });
+});
+
+describe("replication create route", () => {
+  const createRequest = () =>
+    new Request("https://dose.wiki/api/dev/replications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: "new-asset",
+        title: "New asset",
+        artist: "Archive Artist",
+        type: "image",
+        format: "webp",
+        storageId: "storage-id",
+      }),
+    });
+
+  it("refuses an editor creating an asset with 403 before touching Convex", async () => {
+    const { POST } = await import("./route");
+
+    const response = await POST(createRequest());
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("inserts the asset for an admin", async () => {
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
+    const { POST } = await import("./route");
+
+    const response = await POST(createRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenCalledWith(
+      "replications.insertMediaAsset",
+      expect.objectContaining({ slug: "new-asset", actorEmail: "admin@example.com" }),
+    );
   });
 });

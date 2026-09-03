@@ -291,6 +291,16 @@ export async function saveContributorProfileAsEditorHandler(
   if (!key) throw new Error("Profile key is required.");
   const existing = await getStoredContributorProfile(ctx, key);
   if (!existing) throw new Error(`Profile "${key}" not found.`);
+  if (
+    !canEditContributorProfile({
+      actorEmail: actor.email,
+      actorRole: actor.role,
+      targetKey: key,
+      existingProfile: existing as StoredProfile,
+    })
+  ) {
+    throw new Error("You can only edit your own contributor profile.");
+  }
   const patch = buildEditorProfilePatch(args.patch, existing as StoredProfile, actor.email);
   await ctx.db.patch(existing._id, patch);
   const updated = await getStoredContributorProfile(ctx, key);

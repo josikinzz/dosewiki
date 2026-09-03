@@ -10,9 +10,9 @@ vi.mock("next-auth/react", () => ({
 }));
 
 const CODE = "abcd-efgh-jkmn-pqrs-tuvw-xyz2";
-const PASSWORD = "correct horse battery";
+const PASSPHRASE = "correct horse battery";
 
-async function fillAccountFields(user: UserEvent, password = PASSWORD, confirm = password) {
+async function fillAccountFields(user: UserEvent, password = PASSPHRASE, confirm = password) {
   await user.type(screen.getByLabelText("Username"), "Ada");
   await user.type(screen.getByLabelText("Password"), password);
   await user.type(screen.getByLabelText("Confirm password"), confirm);
@@ -45,7 +45,7 @@ describe("InviteRedeemForm", () => {
     const user = userEvent.setup();
     render(<InviteRedeemForm initialCode={CODE} destination="/dev" />);
 
-    await fillAccountFields(user, PASSWORD, `${PASSWORD}!`);
+    await fillAccountFields(user, PASSPHRASE, `${PASSPHRASE}!`);
     await user.click(screen.getByRole("button", { name: "Create account" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("The two passwords do not match.");
@@ -87,12 +87,12 @@ describe("InviteRedeemForm", () => {
       "/api/invite/redeem",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ code: CODE, username: "Ada", password: PASSWORD, name: "Ada Lovelace", email: "" }),
+        body: JSON.stringify({ code: CODE, username: "Ada", password: PASSPHRASE, name: "Ada Lovelace", email: "" }),
       }),
     );
     expect(authMocks.signIn).toHaveBeenCalledWith("credentials", {
       username: "ada",
-      password: PASSWORD,
+      password: PASSPHRASE,
       callbackUrl: "/dev",
       redirect: false,
     });

@@ -1,6 +1,7 @@
 import type { MutationCtx } from "../_generated/server";
 import { requireRole } from "./auth";
 import {
+  canEditContributorProfile,
   normalizeOrderSlugs,
   normalizeProfileKey,
   pruneOrderSlugs,
@@ -47,6 +48,16 @@ export async function setContributorOrderingHandler(
   if (!key) throw new Error("Profile key is required.");
   const existing = await getStoredContributorProfile(ctx, key);
   if (!existing) throw new Error(`Profile "${key}" not found.`);
+  if (
+    !canEditContributorProfile({
+      actorEmail: actor.email,
+      actorRole: actor.role,
+      targetKey: key,
+      existingProfile: existing as StoredProfile,
+    })
+  ) {
+    throw new Error("You can only edit your own contributor profile.");
+  }
   if (
     args.expectedReplicationOrder !== undefined &&
     JSON.stringify(normalizeOrderSlugs(existing.replicationOrder)) !==

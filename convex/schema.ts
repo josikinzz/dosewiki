@@ -111,7 +111,6 @@ const inviteCode = v.object({
 export const changeProposalStatusValidator = v.union(
   v.literal("submitted"),
   v.literal("changes_requested"),
-  v.literal("approved"),
   v.literal("applied"),
   v.literal("rejected"),
   v.literal("superseded"),

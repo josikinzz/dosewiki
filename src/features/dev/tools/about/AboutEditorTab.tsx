@@ -31,13 +31,16 @@ const SUBTITLE_MIN_HEIGHT = 80;
 interface AboutEditorTabProps {
   availableProfiles: NormalizedUserProfile[];
   profilesLoading?: boolean;
+  /** Admin: Save writes About; without it the same draft is submitted as a proposal. */
+  canApprove: boolean;
 }
 
 export const AboutEditorTab = memo(function AboutEditorTab({
   availableProfiles,
   profilesLoading,
+  canApprove,
 }: AboutEditorTabProps) {
-  const controller = useAboutEditorController();
+  const controller = useAboutEditorController({ canApprove });
   const {
     isLoaded,
     draft,
@@ -281,12 +284,12 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             disabled={!isDirty || saveState === "saving"}
             onClick={() => void save()}
           >
-            <Icon icon="lucide:save" size={15} />
-            Save About page
+            <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
+            {canApprove ? "Save About page" : "Submit for review"}
           </Button>
           {saveState === "idle" ? (
             <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
-              {isDirty ? "Unsaved changes" : "No changes"}
+              {isDirty ? (canApprove ? "Unsaved changes" : "Changes to propose") : "No changes"}
             </EditorStatusPill>
           ) : (
             <EditorActionStatus status={saveState} />

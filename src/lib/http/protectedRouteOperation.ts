@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedSession } from "@/lib/auth/requireAuthenticatedSession";
-import { requireRoleSession } from "@/lib/auth/requireEditorSession";
+import { requireRoleSession, type RoleSessionGranted } from "@/lib/auth/requireEditorSession";
+import type { RoleFloor } from "@/lib/auth/roles";
 import { convexRejectionResponse } from "@/lib/http/convexRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { getServerConvexWriteCapability, type ServerConvexWriteCapability, type ServerConvexWriteConfigurationFailure } from "@server/convex/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
-
-type EditorAuth = Awaited<ReturnType<typeof requireRoleSession>>;
-type AuthenticatedAuth = Awaited<ReturnType<typeof requireAuthenticatedSession>>;
-type SuccessfulAuth = Extract<EditorAuth | AuthenticatedAuth, { ok: true }>;
 
 type ConvexWriteCapabilityPolicy = {
   type: "convexWrite";
@@ -18,14 +14,17 @@ type ConvexWriteCapabilityPolicy = {
 
 type ProtectedRouteOperationContext = {
   request: Request;
-  auth: SuccessfulAuth;
+  auth: RoleSessionGranted;
   actorEmail: string;
   convexWrite?: ServerConvexWriteCapability;
 };
 
 type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
-  /** Lowest role admitted. `authenticated` is any signed-in account (self-service routes). */
-  auth: "admin" | "editor" | "contributor" | "authenticated";
+  /**
+   * Lowest role admitted. `contributor` is the floor for self-service routes
+   * that then check ownership; a banned account (role `viewer`) never passes.
+   */
+  auth: RoleFloor;
   rateLimit: RateLimitPolicyName;
   body?: {
     maxBytes: number;
@@ -37,16 +36,12 @@ type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
   mapError?: (error: unknown) => NextResponse | null;
   operation: (input: {
     request: Request;
-    auth: SuccessfulAuth;
+    auth: RoleSessionGranted;
     actorEmail: string;
     body: ParsedBody;
     convexWrite?: ServerConvexWriteCapability;
   }) => Promise<NextResponse> | NextResponse;
 };
-
-async function requireSession(auth: ProtectedRouteOperationOptions<unknown, unknown>["auth"]) {
-  return auth === "authenticated" ? requireAuthenticatedSession() : requireRoleSession(auth);
-}
 
 function mapDefaultError(error: unknown): NextResponse | null {
   if (error instanceof JsonBodyError) {
@@ -65,7 +60,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       return rateLimited;
     }
 
-    const auth = await requireSession(options.auth);
+    const auth = await requireRoleSession(options.auth);
     if (auth.ok === false) {
       return auth.response;
     }

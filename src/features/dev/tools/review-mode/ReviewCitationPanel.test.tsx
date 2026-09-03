@@ -38,10 +38,12 @@ function CitationPanelHarness({
   article,
   onClose,
   onReferenceRemoved,
+  canApprove = true,
 }: {
   article: SubstanceArticle;
   onClose: () => void;
   onReferenceRemoved?: (referenceId: string) => void;
+  canApprove?: boolean;
 }) {
   const [articleForView, setArticleForView] = useState(article);
 
@@ -51,6 +53,7 @@ function CitationPanelHarness({
       name="Testium"
       id="review-citation-panel"
       slug="testium"
+      canApprove={canApprove}
       onClose={onClose}
       onReferenceSaved={(reference) => {
         setArticleForView((previous) => ({
@@ -183,6 +186,7 @@ describe("ReviewCitationPanel", () => {
         name="Testium"
         id="review-citation-panel"
         slug="testium"
+        canApprove
         onClose={vi.fn()}
         onReferenceSaved={vi.fn()}
         onReferenceRemoved={vi.fn()}
@@ -201,12 +205,25 @@ describe("ReviewCitationPanel", () => {
         article={{ ...createEmptyArticle(), summary: "Plain." } as SubstanceArticle}
         name="Testium"
         id="review-citation-panel"
+        canApprove
         onClose={vi.fn()}
         onReferenceSaved={vi.fn()}
         onReferenceRemoved={vi.fn()}
       />,
     );
     expect(screen.queryByRole("button", { name: "Add a source" })).toBeNull();
+  });
+
+  it("keeps add and remove inert for an editor while the markers stay copyable", () => {
+    render(<CitationPanelHarness article={makeArticle()} onClose={vi.fn()} canApprove={false} />);
+
+    const add = screen.getByRole("button", { name: "Add a source" });
+    expect(add).toBeDisabled();
+    expect(add).toHaveAttribute("title", "Admin role required");
+    const remove = screen.getByRole("button", { name: "Remove orphan" });
+    expect(remove).toBeDisabled();
+    expect(remove).toHaveAttribute("title", "Admin role required");
+    expect(screen.getByRole("button", { name: "Copy the citation marker for orphan" })).toBeEnabled();
   });
 
   it("resolves a pasted DOI, previews it, and saves it as an uncited source", async () => {

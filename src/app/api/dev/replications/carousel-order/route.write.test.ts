@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
 
@@ -64,11 +65,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireRoleSession.mockResolvedValue({
-    ok: true,
-    session: { user: { email: "editor@example.com" } },
-    role: "editor",
-  });
+  authMocks.requireRoleSession.mockImplementation(
+    roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+  );
   convexMocks.getServerConvexWriteCapability.mockReturnValue({
     ok: true,
     capability: {
@@ -93,6 +92,18 @@ describe("carousel order PATCH", () => {
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 
+  it("refuses an editor with 403 before Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { PATCH } = await import("./route");
+    const response = await PATCH(
+      orderRequest({ targetKind: "effect", targetKey: "tracers", slugs: ["still"] }),
+    );
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
   it("writes an effect gallery order with a stale-write baseline", async () => {
     const { PATCH } = await import("./route");
     const response = await PATCH(
@@ -110,7 +121,7 @@ describe("carousel order PATCH", () => {
       "replications.updateGalleryOrder",
       {
         apiKey: "admin-key",
-        actorEmail: "editor@example.com",
+        actorEmail: "admin@example.com",
         effect_slug: "tracers",
         replication_slugs: ["still", "video"],
         expected_replication_slugs: ["video", "still"],

@@ -7,17 +7,12 @@ vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
   requireRoleSession: vi.fn(),
-  requireAuthenticatedSession: vi.fn(),
   enforceRateLimit: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
   requireRoleSession: mocks.requireRoleSession,
-}));
-
-vi.mock("@/lib/auth/requireAuthenticatedSession", () => ({
-  requireAuthenticatedSession: mocks.requireAuthenticatedSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -59,7 +54,6 @@ describe("protectedRouteOperation", () => {
     vi.clearAllMocks();
     mocks.enforceRateLimit.mockResolvedValue(null);
     mocks.requireRoleSession.mockResolvedValue(editorSession);
-    mocks.requireAuthenticatedSession.mockResolvedValue(editorSession);
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: convexCapability,
@@ -110,6 +104,23 @@ describe("protectedRouteOperation", () => {
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ error: "Editor access required." });
     expect(operation).not.toHaveBeenCalled();
+  });
+
+  it("gates every route through the role floor it declares, contributor included", async () => {
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    for (const floor of ["contributor", "editor", "admin"] as const) {
+      mocks.requireRoleSession.mockClear();
+      const handler = protectedRouteOperation({
+        auth: floor,
+        rateLimit: "editorSmallWrite",
+        unexpectedErrorLabel: "test:",
+        operation: () => NextResponse.json({ ok: true }),
+      });
+
+      await handler(request());
+
+      expect(mocks.requireRoleSession).toHaveBeenCalledWith(floor);
+    }
   });
 
   it("returns rate-limit responses before auth and operation work", async () => {

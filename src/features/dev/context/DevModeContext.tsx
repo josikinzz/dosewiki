@@ -9,6 +9,7 @@ import { useDevArticleHydration } from "./useDevArticleHydration";
 import { useDevArticlesState } from "./useDevArticlesState";
 import { useDevIndexConfigsState } from "./useDevIndexConfigsState";
 import { useDevNavigationState } from "./useDevNavigationState";
+import { useDevProposalSeed } from "./useDevProposalSeed";
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
 
@@ -77,6 +78,27 @@ export function DevModeProvider({
   });
   const { hydrateArticles: _hydrateArticles, ...articleContextValue } = articlesState;
   const { markIndexManualsSaved, ...indexContextValue } = indexConfigsState;
+  const proposalLayouts = useMemo(
+    () => ({
+      psychoactive: { replace: indexConfigsState.replacePsychoactiveIndexManual, reset: indexConfigsState.resetPsychoactiveIndexManual },
+      chemical: { replace: indexConfigsState.replaceChemicalIndexManual, reset: indexConfigsState.resetChemicalIndexManual },
+      mechanism: { replace: indexConfigsState.replaceMechanismIndexManual, reset: indexConfigsState.resetMechanismIndexManual },
+    }),
+    [
+      indexConfigsState.replaceChemicalIndexManual,
+      indexConfigsState.replaceMechanismIndexManual,
+      indexConfigsState.replacePsychoactiveIndexManual,
+      indexConfigsState.resetChemicalIndexManual,
+      indexConfigsState.resetMechanismIndexManual,
+      indexConfigsState.resetPsychoactiveIndexManual,
+    ],
+  );
+  const proposalSeed = useDevProposalSeed({
+    hydrateArticlesNow: articleHydration.hydrateArticlesNow,
+    applyArticlesTransform: articlesState.applyArticlesTransform,
+    getOriginalArticles: articlesState.getOriginalArticles,
+    layouts: proposalLayouts,
+  });
 
   const markChangesSaved = useCallback(() => {
     articleContextValue.markChangesSaved();
@@ -89,12 +111,14 @@ export function DevModeProvider({
     articleHydration,
     ...indexContextValue,
     markChangesSaved,
+    ...proposalSeed,
   }), [
     articleContextValue,
     articleHydration,
     indexContextValue,
     markChangesSaved,
     navigationState,
+    proposalSeed,
   ]);
 
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;

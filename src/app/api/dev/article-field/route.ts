@@ -1,5 +1,8 @@
 /**
- * Editor write endpoint for the review portal's inline click-to-edit.
+ * Admin write endpoint for the review portal's inline click-to-edit.
+ *
+ * The edit lands on the published article with no review step, so it is
+ * admin-only; an editor's fixes travel as change proposals instead.
  *
  * Writes exactly one allow-listed string field on one article via
  * `substanceIndex.setArticleField`. The full editor save flow (whole-article
@@ -115,7 +118,7 @@ function describeFieldValue(value: EditableFieldValue): string {
 }
 
 export const POST = protectedRouteOperation<SetArticleFieldBody, ParsedSetArticleField>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 8 * 1024,

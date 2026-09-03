@@ -12,8 +12,10 @@ vi.mock("../../../../convex/_generated/api", () => ({
   },
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(roleSessionFor("editor")),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -34,6 +36,29 @@ describe("save prompt route write capability handling", () => {
     vi.resetModules();
     mocks.mutation.mockReset();
     mocks.getServerConvexWriteCapability.mockReset();
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
+  });
+
+  it("refuses an editor with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
+    });
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-prompt", {
+        method: "POST",
+        body: JSON.stringify({ key: "section_summary", content: "Prompt" }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
   it("maps missing write capability to the existing HTTP 500 response shape", async () => {
@@ -117,7 +142,7 @@ describe("save prompt route write capability handling", () => {
     });
   });
 
-  it("delegates the authenticated editor email to the Convex prompt write", async () => {
+  it("delegates the authenticated admin email to the Convex prompt write", async () => {
     mocks.mutation.mockResolvedValue({ updated: true, id: "prompt-id" });
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
@@ -141,10 +166,10 @@ describe("save prompt route write capability handling", () => {
     expect(response.status).toBe(200);
     expect(mocks.mutation).toHaveBeenCalledWith("prompts.save", {
       apiKey: "prompt-token",
-      actorEmail: "editor@example.com",
+      actorEmail: "admin@example.com",
       key: "section_summary",
       content: "Prompt",
-      updatedBy: "EDITOR",
+      updatedBy: "ADMIN",
     });
   });
 });

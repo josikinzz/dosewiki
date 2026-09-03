@@ -4,13 +4,17 @@
  *   GET  /api/dev/proposals?status=  the review queue, newest first, without payload or diff
  *   POST /api/dev/proposals          the commit panel's staged save, held for an admin instead of written
  *
- * The POST body is the same `SaveToConvexPayload` the save route takes, plus a
- * summary and the diff the shell rendered; nothing here touches production,
- * only `changeProposals`.
+ * The POST body is the same `SaveToConvexPayload` the save route takes, plus
+ * the tab-local documents editors cannot write directly (`copyBlocks[]`,
+ * parsed as `/api/dev/copy-block` parses one block, and `about`, parsed as
+ * `/api/dev/about` does), plus a summary and the diff the shell rendered;
+ * nothing here touches production, only `changeProposals`.
  */
 import { NextResponse } from "next/server";
+import type { Infer } from "convex/values";
 import { api } from "../../../../../convex/_generated/api";
-import { deriveProposalTargets } from "../../../../../convex/lib/changeProposalTargets";
+import type { Id } from "../../../../../convex/_generated/dataModel";
+import { substanceArticleLightValidator } from "../../../../../convex/lib/validators";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PROPOSAL_STATUSES, type ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
 import {
@@ -18,6 +22,8 @@ import {
   parseIndexLayoutPayloads,
   sanitizeArticleForConvexMutation,
 } from "../../save-to-convex/saveToConvexUtils";
+import { parseAboutPayload } from "../about/parseAboutBody";
+import { parseCopyBlockPayloads } from "../copy-block/parseCopyBlockBody";
 
 export const runtime = "nodejs";
 
@@ -25,9 +31,17 @@ const MAX_PROPOSAL_PAYLOAD_BYTES = 20 * 1024 * 1024;
 const MAX_DIFF_LENGTH = 500_000;
 
 type ProposalBody = {
-  payload?: { articles?: unknown; indexLayouts?: unknown; changelog?: unknown };
+  payload?: {
+    articles?: unknown;
+    indexLayouts?: unknown;
+    copyBlocks?: unknown;
+    about?: unknown;
+    changelog?: unknown;
+  };
   summary?: unknown;
   diff?: unknown;
+  /** The returned proposal this submission revises; Convex supersedes it in the same mutation. */
+  revisionOf?: unknown;
 };
 
 export const GET = protectedRouteOperation({
@@ -76,11 +90,17 @@ export const POST = protectedRouteOperation<ProposalBody>({
 
     const rawPayload = body.payload && typeof body.payload === "object" ? body.payload : {};
     const rawArticles = Array.isArray(rawPayload.articles) ? rawPayload.articles : [];
-    const articles = rawArticles.map(sanitizeArticleForConvexMutation);
+    // The sanitizer strips draft-only fields but returns `unknown`; the
+    // mutation's own validator is what checks the shape at the boundary.
+    const articles = rawArticles.map(sanitizeArticleForConvexMutation) as Infer<
+      typeof substanceArticleLightValidator
+    >[];
     const indexLayouts = parseIndexLayoutPayloads(rawPayload.indexLayouts);
+    const copyBlocks = parseCopyBlockPayloads(rawPayload.copyBlocks);
+    const about = parseAboutPayload(rawPayload.about);
     const changelog = parseChangelogPayload(rawPayload.changelog);
 
-    if (articles.length === 0 && indexLayouts.length === 0) {
+    if (articles.length === 0 && indexLayouts.length === 0 && copyBlocks.length === 0 && !about) {
       return NextResponse.json({ error: "No Convex-compatible changes to propose." }, { status: 400 });
     }
 
@@ -93,24 +113,27 @@ export const POST = protectedRouteOperation<ProposalBody>({
       diff.length > MAX_DIFF_LENGTH
         ? `${diff.slice(0, MAX_DIFF_LENGTH)}\n\n... [Diff truncated - too large to store]`
         : diff;
+    const revisionOf = typeof body.revisionOf === "string" ? body.revisionOf.trim() : "";
+    if (body.revisionOf !== undefined && body.revisionOf !== null && revisionOf.length === 0) {
+      return NextResponse.json({ error: "revisionOf must name a proposal." }, { status: 400 });
+    }
 
     const payload = {
-      articles: articles as never[],
+      articles,
       indexLayouts,
+      ...(copyBlocks.length > 0 ? { copyBlocks } : {}),
+      ...(about ? { about } : {}),
       ...(changelog ? { changelog } : {}),
     };
-    const targets = deriveProposalTargets({
-      articles: articles as Array<{ title: string; slug?: string }>,
-      indexLayouts,
-    });
 
+    // Targets are derived in the mutation from the payload it stores.
     const { proposalId } = await convexWrite.client.mutation(api.changeProposals.submit, {
       apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
       actorEmail,
       payload,
       summary,
       diff: truncatedDiff,
-      targets,
+      ...(revisionOf ? { revisionOf: revisionOf as Id<"changeProposals"> } : {}),
     });
 
     return NextResponse.json({ ok: true, proposalId });

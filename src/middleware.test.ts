@@ -107,59 +107,39 @@ describe("middleware role policy adapter", () => {
     );
   });
 
-  it("allows authenticated contributors into /dev/profile", async () => {
-    mocks.getToken.mockResolvedValue({
-      email: "member@example.com",
-      role: "contributor",
-    });
-    const { middleware } = await import("../middleware");
+  // The shell, not the middleware, disables tabs above the member's role.
+  it.each(["/dev/profile", "/dev/banners"])(
+    "allows authenticated contributors into %s",
+    async (path) => {
+      mocks.getToken.mockResolvedValue({
+        email: "member@example.com",
+        role: "contributor",
+      });
+      const { middleware } = await import("../middleware");
 
-    const response = await middleware(makeRequest("/dev/profile"));
+      const response = await middleware(makeRequest(path));
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-  });
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    },
+  );
 
-  it("allows authenticated contributors into any shell address; the shell disables tabs above the role", async () => {
-    mocks.getToken.mockResolvedValue({
-      email: "member@example.com",
-      role: "contributor",
-    });
-    const { middleware } = await import("../middleware");
-
-    const response = await middleware(makeRequest("/dev/banners"));
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
-  });
-
-  it("redirects viewers away from /dev/profile: viewer is a legacy value, not a member role", async () => {
+  // `viewer` is a legacy stored value, not a member role: it opens nothing, not even the profile.
+  it.each([
+    ["/dev", "%2Fdev"],
+    ["/dev/profile", "%2Fdev%2Fprofile"],
+  ])("redirects viewers away from %s", async (path, encoded) => {
     mocks.getToken.mockResolvedValue({
       email: "viewer@example.com",
       role: "viewer",
     });
     const { middleware } = await import("../middleware");
 
-    const response = await middleware(makeRequest("/dev/profile"));
+    const response = await middleware(makeRequest(path));
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://dosewiki-admin.vercel.app/unauthorized?from=%2Fdev%2Fprofile",
-    );
-  });
-
-  it("redirects viewers away from the editor shell without editor privileges", async () => {
-    mocks.getToken.mockResolvedValue({
-      email: "viewer@example.com",
-      role: "viewer",
-    });
-    const { middleware } = await import("../middleware");
-
-    const response = await middleware(makeRequest("/dev"));
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://dosewiki-admin.vercel.app/unauthorized?from=%2Fdev",
+      `https://dosewiki-admin.vercel.app/unauthorized?from=${encoded}`,
     );
   });
 
@@ -431,6 +411,15 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makePublicRequest("/not-a-substance"));
 
     expect(response.headers.get("x-middleware-rewrite")).toContain("/");
+  });
+
+  it.each(["/invite", "/reset-password"])("serves the account page %s on the editor host", async (path) => {
+    const { middleware } = await import("../middleware");
+
+    const response = await middleware(makeRequest(path));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
   });
 
   it("does not override database-backed SVG route content policies", async () => {

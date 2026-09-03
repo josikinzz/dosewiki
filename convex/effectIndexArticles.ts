@@ -112,7 +112,10 @@ export const getForEditor = query({
 });
 
 /**
- * Editor-gated slug-keyed upsert for the Writing/Blog system.
+ * Admin-gated slug-keyed upsert for the Writing/Blog system. Editors read the
+ * listing and detail (`listForEditor`, `getForEditor`); publishing or saving a
+ * row directly is an admin action because it lands on the public site with no
+ * review step.
  *
  * Update is a patch: any field the caller omits keeps its stored value, so a
  * partial save from one editor pane cannot clear what another pane owns.
@@ -160,7 +163,7 @@ export const upsertArticle = mutation({
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
-    }, "editor");
+    }, "admin");
 
     const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, ...rest } = args;
 

@@ -28,12 +28,12 @@ vi.mock("@server/auth/passwords", async (importOriginal) => ({
 }));
 
 const CODE = generateInviteCode();
-const PASSWORD = "correct horse battery";
+const PASSPHRASE = "correct horse battery";
 
 const validBody = {
   code: CODE,
   username: "Ada",
-  password: PASSWORD,
+  password: PASSPHRASE,
 };
 
 const request = (body: unknown) =>
@@ -74,11 +74,11 @@ describe("POST /api/invite/redeem", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, username: "ada" });
-    expect(mocks.hashPassword).toHaveBeenCalledWith(PASSWORD);
+    expect(mocks.hashPassword).toHaveBeenCalledWith(PASSPHRASE);
     expect(mocks.redeemInviteCode).toHaveBeenCalledWith({
       codeHash: hashInviteCode(normalizeInviteCode(CODE)),
       username: "ada",
-      passwordHash: `hashed:${PASSWORD}`,
+      passwordHash: `hashed:${PASSPHRASE}`,
       email: "ada@example.com",
       name: "Ada Lovelace",
     });
@@ -90,7 +90,7 @@ describe("POST /api/invite/redeem", () => {
     expect(mocks.redeemInviteCode).toHaveBeenCalledWith({
       codeHash: hashInviteCode(normalizeInviteCode(CODE)),
       username: "ada",
-      passwordHash: `hashed:${PASSWORD}`,
+      passwordHash: `hashed:${PASSPHRASE}`,
     });
   });
 

@@ -159,7 +159,7 @@ export const GET = protectedRouteOperation({
 });
 
 export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseCreateBody },
   capabilities: [{ type: "convexWrite" }],

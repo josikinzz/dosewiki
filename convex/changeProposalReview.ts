@@ -9,10 +9,11 @@ import { requireRole, type AuthorizedActor } from "./lib/auth";
 import {
   applyDocuments,
   payloadDocuments,
+  snapshotProposalTarget,
   type ProposalPayload,
   type ProposalSnapshotEntry,
 } from "./lib/changeProposalApply";
-import { hashProposalTarget, readProposalTarget } from "./lib/changeProposalTargets";
+import { hashProposalTarget } from "./lib/changeProposalTargets";
 
 /**
  * Admin review of change proposals: approve (which applies in the same
@@ -78,11 +79,11 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   const snapshotBefore: ProposalSnapshotEntry[] = [];
   const drifted: string[] = [];
   for (const target of proposal.targets) {
-    const document = await readProposalTarget(ctx, target);
-    if (contentHash(document) !== target.baseHash) {
+    const entry = await snapshotProposalTarget(ctx, target);
+    if (contentHash(entry.document) !== target.baseHash) {
       drifted.push(`${target.kind} "${target.key}"`);
     }
-    snapshotBefore.push({ kind: target.kind, key: target.key, document });
+    snapshotBefore.push(entry);
   }
   if (drifted.length > 0) {
     const conflictReason = `Production changed since this proposal was drafted: ${drifted.join(", ")}. Rebase and resubmit.`;
@@ -192,6 +193,19 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
 
   const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail };
   const revalidatePaths = await applyDocuments(ctx, auth, snapshotBefore);
+
+  // An article snapshot is written back through the same reference merge the
+  // apply used, and that merge keeps populated stored metadata over the
+  // incoming (older) values. When the row does not hash back to what the
+  // proposal pinned, the revert is incomplete and the throw rolls it back.
+  for (const target of proposal.targets) {
+    if (target.kind === "article" && (await hashProposalTarget(ctx, target)) !== target.baseHash) {
+      throw new ConvexError({
+        code: "REVERT_INCOMPLETE",
+        message: `Reverting article "${target.key}" did not restore the row the proposal was drafted against. Edit it directly instead.`,
+      });
+    }
+  }
   const now = new Date().toISOString();
   const payload = proposal.payload as ProposalPayload;
   const entryId = `revert-${proposal._id}`;

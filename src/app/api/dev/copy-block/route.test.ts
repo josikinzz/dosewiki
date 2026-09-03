@@ -71,16 +71,28 @@ beforeEach(() => {
 });
 
 describe("copy block route", () => {
-  it("lets an editor save a block as themselves", async () => {
+  it("refuses an editor saving a block with 403 before touching Convex", async () => {
+    const response = await POST(jsonRequest("POST", blockBody));
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
+  });
+
+  it("lets an admin save a block as themselves", async () => {
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
     convexMocks.mutation.mockResolvedValue({ updated: true, key: "home-hero" });
 
     const response = await POST(jsonRequest("POST", blockBody));
 
     expect(response.status).toBe(200);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(convexMocks.mutation).toHaveBeenCalledWith(
       "copyBlocks.upsert",
-      expect.objectContaining({ apiKey: "admin-key", actorEmail: "editor@example.com", key: "home-hero" }),
+      expect.objectContaining({ apiKey: "admin-key", actorEmail: "admin@example.com", key: "home-hero" }),
     );
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:copy", { expire: 0 });
   });

@@ -319,7 +319,7 @@ export async function generateUploadUrlHandler(
   await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-    "editor",
+    "admin",
   );
   return await ctx.storage.generateUploadUrl();
 }
@@ -344,7 +344,7 @@ export async function insertMediaAssetHandler(
   await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-    "editor",
+    "admin",
   );
   const {
     apiKey: _apiKey,
@@ -578,7 +578,7 @@ export async function updateGalleryOrderHandler(
   await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-    "editor",
+    "admin",
   );
   const effect = await ctx.db
     .query("subjectiveEffects")
@@ -766,7 +766,7 @@ export async function updateEffectSlugHandler(
   await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-    "editor",
+    "admin",
   );
   const replication = await ctx.db
     .query("replications")

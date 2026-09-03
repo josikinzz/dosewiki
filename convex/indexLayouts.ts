@@ -55,14 +55,16 @@ type IndexLayoutSaveArgs = {
 /**
  * The layout write behind `save`, also the write a change proposal's
  * indexLayout target applies through: one upsert by type plus the
- * `categoryLayout` mirror the public /substances page reads.
+ * `categoryLayout` mirror the public /substances page reads. Admin floor:
+ * an editor's layout edits arrive as proposals and are applied with the
+ * approving admin as the actor.
  */
 export async function saveIndexLayoutHandler(ctx: MutationCtx, args: IndexLayoutSaveArgs) {
   await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
-  }, "editor");
+  }, "admin");
 
   const { apiKey: _apiKey, actorEmail: _actorEmail, ...layoutData } = args;
   const existing = await ctx.db

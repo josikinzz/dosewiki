@@ -47,7 +47,7 @@ function parseBody(body: SavePromptBody): { key: string; content: string } {
 }
 
 export const POST = protectedRouteOperation<SavePromptBody, { key: string; content: string }>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: MAX_PROMPT_PAYLOAD_BYTES,

@@ -243,9 +243,37 @@ Editor sign-in is username + password. Each account is a `memberships` row
 carrying `username`, a scrypt `passwordHash` (`lib/auth/passwords.ts`, format
 `scrypt$N$r$p$saltB64$hashB64`), and its `role`. The Auth.js server callback
 (`auth.ts`) looks the row up through `memberships:getCredentialsByUsername`
-with `CONVEX_ADMIN_KEY`, refuses banned rows, verifies the password, and stamps
+with `CONVEX_ADMIN_KEY`, verifies the password, refuses banned rows, and stamps
 `lastSeenAt` via `memberships:touchSignIn`. The stored role is the session
 role; no env var and no email pattern grants admin.
+
+Two details of that callback are deliberate:
+
+- An unknown username still costs one scrypt derivation. `authorizeCredentials`
+  verifies against `UNMATCHABLE_PASSWORD_HASH` (well formed, all-zero digest)
+  when there is no row or no hash, so response time does not reveal whether an
+  account exists.
+- Every JWT refresh re-reads the role through `memberships:getByEmail`, a
+  projection (`email`, `username`, `role`, `name`, `image`, `bannedAt`) that
+  never carries a hash or reset token. A banned row, a missing row, and a
+  failed read all resolve to `viewer`: the session fails closed and regains its
+  role on the next successful refresh.
+
+**Hashing deviation.** The permissions spec asked for argon2id or bcrypt. The
+app uses Node's built-in scrypt (`N=16384, r=8, p=1`, 16-byte salt, 64-byte
+key) because it needs no native dependency on Vercel and the parameters travel
+with each hash, so they can be raised without invalidating rows. Do not swap
+the scheme without a migration that rehashes on next sign-in.
+
+**Admin is a stored role, not a list.** The permissions spec described an admin
+allow-list that would demote any `admin` row outside it on the next sign-in.
+That list was not implemented and there is no plan to add one. `admin` is
+granted only by `scripts/auth/seed-admin-accounts.mjs`
+(`memberships:setAdminAccount`) or by an existing admin editing the row
+directly on the deployment; the roster's `setRole` validator has no `admin`
+value and `requireManagedTarget` refuses every admin row, so the Members tab
+can neither grant nor revoke it. Auditing who holds admin means reading the
+`memberships` table by role, not an env var.
 
 The only auth-specific env the Next app needs is `AUTH_SECRET` (session
 signing). `ADMIN_PASSWORD`, `DEV_PASSWORD_KEYS`, `AUTH_ADMIN_EMAILS`, and the
@@ -259,10 +287,13 @@ admin whose password must be reset from a workstation) are seeded with:
 
 ```bash
 TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  node scripts/auth/seed-admin-accounts.mjs
+  node scripts/auth/seed-admin-accounts.mjs --write \
+    --confirm-write=seed-admin-accounts --expected-deployment=glad-minnow-656
 ```
 
-The script needs `TARGET_CONVEX_URL` (or `--target-url=`) and
+The script uses the shared production-write boundary: without `--write` it
+prints the target and exits, and the confirmation and deployment flags are
+required. It needs `TARGET_CONVEX_URL` (or `--target-url=`) and
 `CONVEX_ADMIN_KEY` from the environment or `.env.local`; the ambiguous
 `CONVEX_URL` fallbacks are refused. It prompts for username, email, display
 name, and password (hidden, entered twice, minimum 12 characters), hashes the
@@ -301,12 +332,14 @@ A password reset is a one-time link. The reset route draws 32 random bytes,
 stores only their sha256 in `resetTokenHash` with a one-hour
 `resetTokenExpiresAt` (index `by_reset_token_hash`), and returns
 `/reset-password?token=<hex>` exactly once; the tab shows it with a copy
-button. The public page posts `{ token, password }` to `POST /api/reset-password`,
-which shares the sign-in rate limit, validates with `validateNewPassword`,
-hashes with `hashPassword`, and calls `memberships:consumePasswordReset` with
-the server key alone (no session exists yet). That mutation clears the token
-fields, so a link dies on first use or after the hour. An admin who needs a
-reset re-runs the seed script for their own username.
+button. A banned member gets no link (`MEMBER_BANNED`): unban first. The public
+page posts `{ token, password }` to `POST /api/reset-password`, which shares
+the sign-in rate limit, validates with `validateNewPassword`, hashes with
+`hashPassword`, and calls `memberships:consumePasswordReset` with the server
+key alone (no session exists yet). That mutation clears the token fields, so a
+link dies on first use or after the hour, and it refuses a link whose member
+was banned after it was issued, so a ban is never undone by an unexpired link.
+An admin who needs a reset re-runs the seed script for their own username.
 
 ### Invites
 

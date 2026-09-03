@@ -70,6 +70,8 @@ interface ReviewArticleViewProps
   blockArticleLinks: (event: MouseEvent) => void;
   articlesRefreshConflict: boolean;
   inlineEdit: boolean;
+  /** Admin: inline field edits and source add/remove write production directly, so only an admin arms them. */
+  canApprove: boolean;
   articleEditContext: ArticleEditContextValue;
   draft: ReviewEditorDraft;
 }
@@ -96,6 +98,7 @@ export function ReviewArticleView({
   blockArticleLinks,
   articlesRefreshConflict,
   inlineEdit,
+  canApprove,
   articleEditContext,
   draft,
   renderCommitPanel,
@@ -129,6 +132,7 @@ export function ReviewArticleView({
             // has no slug, and the panel's add-source write needs an address
             // that survives any future projection of the stored doc.
             slug={current.slug}
+            canApprove={canApprove}
             onClose={closeCitationPanel}
             onReferenceSaved={(reference) =>
               rememberSavedReference(current.slug, reference)
@@ -203,8 +207,10 @@ export function ReviewArticleView({
                full draft of the article, and two live writers over one document
                is how an edit quietly disappears. A null value reaches every
                EditableValue as "no editing surface", so the toggle costs the
-               rendered page nothing when it is off. */
-            <ArticleEditProvider value={inlineEdit ? articleEditContext : null}>
+               rendered page nothing when it is off. The inline write lands on
+               the published article, so a non-admin never gets a surface even
+               with the setting persisted on. */
+            <ArticleEditProvider value={inlineEdit && canApprove ? articleEditContext : null}>
               <ArticleLayout
                 article={articleForView}
                 moleculeOverrideUrl={moleculeOverrideUrl}

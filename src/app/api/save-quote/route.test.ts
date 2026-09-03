@@ -12,8 +12,10 @@ vi.mock("../../../../convex/_generated/api", () => ({
   },
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(roleSessionFor("editor")),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -42,6 +44,25 @@ describe("save quote route operation envelope", () => {
         adminKey: "admin-key",
       },
     });
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
+  });
+
+  it("refuses an editor with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/save-quote", {
+        method: "POST",
+        body: JSON.stringify({ slug: "lsd", section: "subjective-effects", content: "Quote" }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
   it("saves a quote with the existing success response shape and canonical section", async () => {
@@ -59,15 +80,15 @@ describe("save quote route operation envelope", () => {
       ok: true,
       updated: true,
       id: "quote-id",
-      updatedBy: "EDITOR",
+      updatedBy: "ADMIN",
     });
     expect(mocks.mutation).toHaveBeenCalledWith("quotes.save", {
       apiKey: "admin-key",
-      actorEmail: "editor@example.com",
+      actorEmail: "admin@example.com",
       slug: "lsd",
       section: "subjective_effects",
       content: "Quote",
-      updatedBy: "EDITOR",
+      updatedBy: "ADMIN",
     });
   });
 

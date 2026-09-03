@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { requireRoleSession } from "./requireEditorSession";
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
@@ -12,16 +13,15 @@ vi.mock("@auth", () => ({
   authOptions: {},
 }));
 
-describe("requireEditorSession", () => {
+describe("requireRoleSession", () => {
   beforeEach(() => {
     mocks.getServerSession.mockReset();
   });
 
   it("rejects anonymous requests", async () => {
     mocks.getServerSession.mockResolvedValue(null);
-    const { requireEditorSession } = await import("./requireEditorSession");
 
-    const result = await requireEditorSession();
+    const result = await requireRoleSession("contributor");
 
     expect(result.ok).toBe(false);
     if (result.ok === false) {
@@ -29,27 +29,40 @@ describe("requireEditorSession", () => {
     }
   });
 
-  it("rejects authenticated viewers from editor write routes", async () => {
+  it("rejects a viewer session at every floor, including contributor", async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { email: "viewer@example.com", role: "viewer" },
     });
-    const { requireEditorSession } = await import("./requireEditorSession");
 
-    const result = await requireEditorSession();
+    for (const floor of ["contributor", "editor", "admin"] as const) {
+      const result = await requireRoleSession(floor);
+      expect(result.ok).toBe(false);
+      if (result.ok === false) {
+        expect(result.response.status).toBe(403);
+      }
+    }
+  });
+
+  it("rejects a session below the floor and names the floor", async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { email: "contributor@example.com", role: "contributor" },
+    });
+
+    const result = await requireRoleSession("editor");
 
     expect(result.ok).toBe(false);
     if (result.ok === false) {
       expect(result.response.status).toBe(403);
+      expect(await result.response.json()).toEqual({ error: "Editor access required." });
     }
   });
 
-  it("permits authenticated editors", async () => {
+  it("permits a session at or above the floor", async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { email: "editor@example.com", role: "editor" },
     });
-    const { requireEditorSession } = await import("./requireEditorSession");
 
-    const result = await requireEditorSession();
+    const result = await requireRoleSession("contributor");
 
     expect(result.ok).toBe(true);
     if (result.ok) {

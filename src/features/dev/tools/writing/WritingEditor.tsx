@@ -22,16 +22,21 @@ const INPUT_CLASS =
 const TEXTAREA_CLASS =
   "theme-editor-field w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2.5 font-mono text-[0.8125rem] leading-6 theme-text-primary transition focus:outline-none focus:ring-2";
 
+const ADMIN_ONLY_REASON = "Admin role required";
+
 type WritingEditorProps = {
   contributorProfiles: NormalizedUserProfile[];
   profilesLoading: boolean;
   controller: WritingWorkbenchController;
+  /** Admin: the save publishes straight to the site. Without it the editor drafts but cannot save. */
+  canApprove: boolean;
 };
 
 export function WritingEditor({
   contributorProfiles,
   profilesLoading,
   controller,
+  canApprove,
 }: WritingEditorProps) {
   const {
     kind,
@@ -49,6 +54,8 @@ export function WritingEditor({
   } = controller;
   // Blog posts lead with a cover image and a teaser; articles do not.
   const emphasiseCover = kind === "blog";
+  // Writing rows publish with no review step, so the save is an admin action.
+  const saveEnabled = canSave && canApprove;
 
   return (
     <>
@@ -210,15 +217,16 @@ export function WritingEditor({
             value={draft.status}
             onChange={(value) => updateDraft({ status: value as WritingDraft["status"] })}
             options={[
-              { value: "draft", label: "Draft", disabled: !canSave },
-              { value: "published", label: "Published", disabled: !canSave },
+              { value: "draft", label: "Draft", disabled: !saveEnabled },
+              { value: "published", label: "Published", disabled: !saveEnabled },
             ]}
           />
           <Button
             type="button"
             variant="accent"
             size="sm"
-            disabled={!canSave}
+            disabled={!saveEnabled}
+            title={canApprove ? undefined : ADMIN_ONLY_REASON}
             onClick={() => void save(draft.status)}
           >
             <Icon icon="lucide:save" size={15} />

@@ -15,9 +15,10 @@
  * one body the editor pane actually opened.
  *
  * Contributor floor: My reports (`/dev/my-reports`) reads and saves through the
- * same two handlers. Convex decides per row: an editor reaches any report, a
- * contributor only one whose `owner_email` is theirs (`NOT_OWNER` otherwise),
- * and only its content fields.
+ * same two handlers. Convex decides per row: an editor reads any report but,
+ * like a contributor, saves only one whose `owner_email` is theirs
+ * (`NOT_OWNER` otherwise) and only its content fields; an admin saves any
+ * report with the full form.
  */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";

@@ -15,7 +15,7 @@ import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 export const runtime = "nodejs";
 
 export const POST = protectedRouteOperation({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to mint a replication upload URL via Next route:",

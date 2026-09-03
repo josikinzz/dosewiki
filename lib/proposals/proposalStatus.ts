@@ -4,19 +4,19 @@
  * a status with an empty row is terminal.
  *
  *   submitted ---------> changes_requested --> submitted (resubmit)
- *       |                      |
- *       +--> approved --> applied --> reverted
+ *       |
+ *       +--> applied --> reverted
  *       |
  *       +--> rejected | superseded
  *
- * `superseded` is what an earlier revision becomes when a newer proposal
- * carrying `revisionOf` is submitted; `reverted` is an applied proposal whose
- * `snapshotBefore` has been written back.
+ * Approval and apply are one mutation (`approveAndApply`), so there is no
+ * resting "approved" status. `superseded` is what an earlier revision becomes
+ * when a newer proposal carrying `revisionOf` is submitted; `reverted` is an
+ * applied proposal whose `snapshotBefore` has been written back.
  */
 export const PROPOSAL_STATUSES = [
   "submitted",
   "changes_requested",
-  "approved",
   "applied",
   "rejected",
   "superseded",
@@ -26,9 +26,8 @@ export const PROPOSAL_STATUSES = [
 export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
 
 export const PROPOSAL_TRANSITIONS: Readonly<Record<ProposalStatus, readonly ProposalStatus[]>> = {
-  submitted: ["changes_requested", "approved", "applied", "rejected", "superseded"],
+  submitted: ["changes_requested", "applied", "rejected", "superseded"],
   changes_requested: ["submitted", "rejected", "superseded"],
-  approved: ["applied", "changes_requested", "rejected", "superseded"],
   applied: ["reverted"],
   rejected: [],
   superseded: [],
@@ -39,5 +38,5 @@ export function canTransition(from: ProposalStatus, to: ProposalStatus): boolean
   return PROPOSAL_TRANSITIONS[from].includes(to);
 }
 
-/** Statuses an admin still has to act on. */
-export const OPEN_PROPOSAL_STATUSES: readonly ProposalStatus[] = ["submitted", "approved"];
+/** Statuses an admin still has to act on; what `changeProposals.count` reports. */
+export const OPEN_PROPOSAL_STATUSES: readonly ProposalStatus[] = ["submitted"];

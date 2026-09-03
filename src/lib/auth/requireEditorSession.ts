@@ -11,12 +11,14 @@ type EditorSession = Awaited<ReturnType<typeof getServerSession>> & {
   };
 };
 
+export type RoleSessionGranted = {
+  ok: true;
+  role: AppRole;
+  session: EditorSession;
+};
+
 type SessionGuardResult =
-  | {
-      ok: true;
-      role: AppRole;
-      session: EditorSession;
-    }
+  | RoleSessionGranted
   | {
       ok: false;
       response: NextResponse;
@@ -51,8 +53,4 @@ export async function requireRoleSession(floor: RoleFloor): Promise<SessionGuard
     role,
     session: session as EditorSession,
   };
-}
-
-export async function requireEditorSession(): Promise<SessionGuardResult> {
-  return requireRoleSession("editor");
 }

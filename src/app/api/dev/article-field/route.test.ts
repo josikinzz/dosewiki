@@ -19,8 +19,10 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(roleSessionFor("editor")),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -56,12 +58,39 @@ function editRequest() {
   });
 }
 
+const ADMIN = { email: "admin@example.com", name: "Admin" };
+
+describe("article field route authorization", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
+    });
+  });
+
+  it("refuses an editor with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+    const { POST } = await import("./route");
+
+    const response = await POST(editRequest());
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+});
+
 describe("article field route failure reporting", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", ADMIN));
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
@@ -134,6 +163,7 @@ describe("article field route contribution history", () => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", ADMIN));
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
@@ -153,7 +183,7 @@ describe("article field route contribution history", () => {
     });
   });
 
-  it("stamps the inline edit onto the editor's contribution history", async () => {
+  it("stamps the inline edit onto the admin's contribution history", async () => {
     const { POST } = await import("./route");
 
     const response = await POST(editRequest());
@@ -168,7 +198,7 @@ describe("article field route contribution history", () => {
       articles: Array<{ id: number; title: string; slug: string }>;
     };
 
-    expect(entry.submittedBy).toBe("EDITOR");
+    expect(entry.submittedBy).toBe("ADMIN");
     expect(entry.articles).toEqual([{ id: 42, title: "2C-B", slug: "2c-b" }]);
     expect(entry.message).toContain("dosage.routes[0].notes");
     expect(entry.markdown).toContain("- Old note.");

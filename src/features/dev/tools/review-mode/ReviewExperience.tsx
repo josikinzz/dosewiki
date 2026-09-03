@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
+import { useSession } from "next-auth/react";
 
 import { api } from "../../../../../convex/_generated/api";
 
@@ -9,6 +10,7 @@ import { Icon } from "@/components/common/Icon";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
 import { EditorNotice } from "@/features/dev/components";
+import { canApprove as roleCanApprove, resolveSessionRole } from "@/lib/auth/roles";
 import type { SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
 import { useSubstanceEditorDraftController } from "../substance-editor/useSubstanceEditorDraftController";
@@ -76,6 +78,13 @@ export const ReviewExperience = memo(function ReviewExperience({
   const { hydratedSlugs, failedSlugs, isArticleHydrated, requestArticle } = articleHydration;
   const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
+
+  // Ticks and flags are editor work; the inline field write and the citation
+  // palette's add/remove land on the published article and stay admin-only.
+  const session = useSession();
+  const canApprove =
+    session.status === "authenticated" &&
+    roleCanApprove(resolveSessionRole({ role: session.data?.user?.role }));
 
   const settings = useReviewSettings({ initialSlug });
   const {
@@ -242,10 +251,11 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   // Scoped to the webpage view — the only place the mode does anything — so
   // neither the key nor the bar button can arm it invisibly from the editor.
+  // Admin-only for the same reason the pill is disabled: the write is direct.
   const toggleInlineEdit = useCallback(() => {
-    if (viewModeRef.current !== "webpage") return;
+    if (viewModeRef.current !== "webpage" || !canApprove) return;
     updateSettings({ inlineEdit: !inlineEdit });
-  }, [inlineEdit, updateSettings, viewModeRef]);
+  }, [canApprove, inlineEdit, updateSettings, viewModeRef]);
 
   /**
    * Swallow link activations inside the rendered article while the
@@ -373,6 +383,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         toggleMoleculePanel={toggleMoleculePanel}
         toggleCitationPanel={toggleCitationPanel}
         toggleInlineEdit={toggleInlineEdit}
+        canApprove={canApprove}
         helpOpen={helpOpen}
         setHelpOpen={setHelpOpen}
       />
@@ -398,6 +409,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         blockArticleLinks={blockArticleLinks}
         articlesRefreshConflict={articlesRefreshConflict !== null}
         inlineEdit={inlineEdit}
+        canApprove={canApprove}
         articleEditContext={articleEditContext}
         draft={draft}
         renderCommitPanel={renderCommitPanel}

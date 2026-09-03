@@ -110,10 +110,14 @@ const asHandler = (fn: unknown) =>
 const saveHandler = asHandler(saveProfileAsEditor);
 const orderingHandler = asHandler(setContributorOrdering);
 
+// `editorArgs` is an editor who does not own JOSIE; `ownerArgs` is the editor
+// whose membership email the JOSIE row carries.
 const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com" };
+const ownerArgs = { apiKey: "secret", actorEmail: "josie@example.com" };
 const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com" };
 const editorMemberships: Record<string, Role> = {
   "editor@example.com": "editor",
+  "josie@example.com": "editor",
   "admin@example.com": "admin",
 };
 
@@ -149,12 +153,23 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     expect(harness.patch).not.toHaveBeenCalled();
   });
 
-  it("lets an editor edit a profile that is not their own", async () => {
+  it("refuses an editor on a profile that is not their own", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    await expect(
+      saveHandler(harness.ctx, { ...editorArgs, key: "josie", patch: { bio: "New bio." } }),
+    ).rejects.toThrow("You can only edit your own contributor profile.");
+
+    expect(harness.patch).not.toHaveBeenCalled();
+  });
+
+  it("lets an editor edit their own profile", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: editorMemberships });
 
     const result = await saveHandler(harness.ctx, {
-      ...editorArgs,
+      ...ownerArgs,
       key: "josie",
       patch: { displayName: "Josie", bio: "New bio.", aliases: ["jo"] },
     });
@@ -164,7 +179,21 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
       updated: true,
       profile: { key: "JOSIE", displayName: "Josie", bio: "New bio." },
     });
-    expect(harness.read()?.updatedBy).toBe("editor@example.com");
+    expect(harness.read()?.updatedBy).toBe("josie@example.com");
+  });
+
+  it("lets an admin edit a profile that is not their own", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships });
+
+    const result = await saveHandler(harness.ctx, {
+      ...adminArgs,
+      key: "josie",
+      patch: { bio: "Staff edit." },
+    });
+
+    expect(result).toMatchObject({ updated: true, profile: { key: "JOSIE", bio: "Staff edit." } });
+    expect(harness.read()?.updatedBy).toBe("admin@example.com");
   });
 
   it.each([
@@ -174,12 +203,12 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     ["exclude_from_gallery", { exclude_from_gallery: false }],
     ["archival", { archival: true }],
     ["staffNote", { staffNote: null }],
-  ])("refuses an editor's patch that names the %s field, even alongside allowed ones", async (field, patch) => {
+  ])("refuses an owning editor's patch that names the %s field, even alongside allowed ones", async (field, patch) => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: editorMemberships });
 
     await expect(
-      saveHandler(harness.ctx, { ...editorArgs, key: "JOSIE", patch: { bio: "fine", ...patch } }),
+      saveHandler(harness.ctx, { ...ownerArgs, key: "JOSIE", patch: { bio: "fine", ...patch } }),
     ).rejects.toMatchObject({
       data: { code: "ADMIN_ONLY_PROFILE_FIELD", field },
     });
@@ -206,7 +235,7 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: editorMemberships });
 
-    await saveHandler(harness.ctx, { ...editorArgs, key: "JOSIE", patch: { bio: "Only the bio." } });
+    await saveHandler(harness.ctx, { ...ownerArgs, key: "JOSIE", patch: { bio: "Only the bio." } });
 
     const [, patchValue] = harness.patch.mock.calls[0] as [string, Record<string, unknown>];
     expect(Object.keys(patchValue).sort()).toEqual(["bio", "updatedAt", "updatedBy"]);
@@ -325,6 +354,31 @@ describe("contributorProfiles.setContributorOrdering", () => {
     expect(harness.patch).not.toHaveBeenCalled();
   });
 
+  it("refuses an editor on a profile that is not their own", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships, replicationSlugs: ["geometry"] });
+
+    await expect(
+      orderingHandler(harness.ctx, { ...editorArgs, key: "JOSIE", replicationOrder: ["geometry"] }),
+    ).rejects.toThrow("You can only edit your own contributor profile.");
+
+    expect(harness.patch).not.toHaveBeenCalled();
+  });
+
+  it("lets an admin order a profile that is not their own", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const harness = createCtx({ memberships: editorMemberships, replicationSlugs: ["geometry"] });
+
+    const result = await orderingHandler(harness.ctx, {
+      ...adminArgs,
+      key: "JOSIE",
+      replicationOrder: ["geometry"],
+    });
+
+    expect(result).toMatchObject({ status: "ok", key: "JOSIE", replicationOrder: ["geometry"] });
+    expect(harness.read()?.updatedBy).toBe("admin@example.com");
+  });
+
   it("stores the requested order and prunes slugs with no row", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({
@@ -334,7 +388,7 @@ describe("contributorProfiles.setContributorOrdering", () => {
     });
 
     const result = await orderingHandler(harness.ctx, {
-      ...editorArgs,
+      ...ownerArgs,
       key: "JOSIE",
       replicationOrder: ["tracers", "deleted-one", "geometry", "tracers"],
       reportOrder: ["first-report", "gone"],
@@ -357,7 +411,7 @@ describe("contributorProfiles.setContributorOrdering", () => {
       reportSlugs: ["first-report"],
     });
 
-    await orderingHandler(harness.ctx, { ...editorArgs, key: "JOSIE", reportOrder: [] });
+    await orderingHandler(harness.ctx, { ...ownerArgs, key: "JOSIE", reportOrder: [] });
 
     const [, patchValue] = harness.patch.mock.calls[0] as [string, Record<string, unknown>];
     expect(patchValue).not.toHaveProperty("replicationOrder");

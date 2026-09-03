@@ -20,8 +20,10 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
+const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
+
 vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: vi.fn(roleSessionFor("editor")),
+  requireRoleSession: authMocks.requireRoleSession,
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
@@ -59,11 +61,36 @@ function saveRequest(overrides: Record<string, unknown>) {
   });
 }
 
+describe("writing article route authorization", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.getServerConvexWriteCapability.mockReturnValue({
+      ok: true,
+      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
+    });
+  });
+
+  it("refuses an editor saving a row with 403 before touching Convex", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+
+    const response = await POST(saveRequest({}));
+
+    expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+});
+
 describe("writing article route rename", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },

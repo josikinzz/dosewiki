@@ -34,9 +34,8 @@ export const getAll = query({
 });
 
 /**
- * Save (create or update) a prompt.
- *
- * @param apiKey - Required API key for authentication
+ * Save (create or update) a prompt. Prompts drive generation on the live
+ * site, so the write is admin-only.
  */
 export const save = mutation({
   args: {
@@ -50,7 +49,7 @@ export const save = mutation({
     await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "promptMigrationWrite" },
-      "editor",
+      "admin",
     );
 
     const { key, content, updatedBy } = args;

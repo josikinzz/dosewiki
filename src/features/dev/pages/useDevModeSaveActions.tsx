@@ -10,7 +10,9 @@ import {
 import { useSaveToConvexMutation, useSubmitProposalMutation } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
+import type { DevCommitRebase } from "../components/DevCommitCard";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
+import type { DevActiveProposal } from "../context/devModeTypes";
 import {
   DevModeSaveOrchestrator,
   createInitialSaveOrchestratorState,
@@ -48,6 +50,12 @@ type UseDevModeSaveActionsArgs = {
   mechanismManualChangelog: { markdown: string; hasChanges: boolean };
   hasPendingChanges: boolean;
   onAppendChangeLogEntry: (entry: ChangeLogEntry) => void;
+  /** The returned proposal the working set was seeded from; a proposal save sends it as `revisionOf`. */
+  activeProposal: DevActiveProposal | null;
+  /** Forget the proposal link once its revision was submitted. */
+  onClearActiveProposal: () => void;
+  /** Put the seeded rows back and forget the proposal link (the banner's Discard). */
+  onDiscardActiveProposal: () => void;
 };
 
 type UseDevModeSaveActionsResult = {
@@ -132,6 +140,9 @@ export function useDevModeSaveActions({
   mechanismManualChangelog,
   hasPendingChanges,
   onAppendChangeLogEntry,
+  activeProposal,
+  onClearActiveProposal,
+  onDiscardActiveProposal,
 }: UseDevModeSaveActionsArgs): UseDevModeSaveActionsResult {
   // Only an admin writes production, so only an admin polls the server health
   // that gates that write; an editor's proposal has no such precondition.
@@ -256,6 +267,7 @@ export function useDevModeSaveActions({
           })
         : createProposalSaveAdapter({
             submitProposal: submitProposalMutation.mutateAsync,
+            revisionOf: activeProposal?.proposalId ?? null,
           });
 
       if (effect.kind === "verifyCredentials") {
@@ -317,6 +329,11 @@ export function useDevModeSaveActions({
           if (result.markChangesSaved) {
             markChangesSaved();
           }
+          // Whichever way the draft landed (superseding revision, or an
+          // admin's direct write), the rebase it carried is finished.
+          if (activeProposal) {
+            onClearActiveProposal();
+          }
 
           scheduleNoticeAutoClear(NOTICE_CLEAR_MS.success);
         } catch (error) {
@@ -328,11 +345,13 @@ export function useDevModeSaveActions({
       }
     },
     [
+      activeProposal,
       canApprove,
       convexServerHealth,
       draft,
       markChangesSaved,
       onAppendChangeLogEntry,
+      onClearActiveProposal,
       orchestrator,
       saveToConvexMutation.mutateAsync,
       submitProposalMutation.mutateAsync,
@@ -403,8 +422,15 @@ export function useDevModeSaveActions({
   );
 
   const destination = canApprove ? "convex" : "proposal";
+  const rebase = useMemo<DevCommitRebase | null>(
+    () =>
+      activeProposal
+        ? { proposalId: activeProposal.proposalId, reason: activeProposal.reason, onDiscard: onDiscardActiveProposal }
+        : null,
+    [activeProposal, onDiscardActiveProposal],
+  );
   const commitPanel = (
-    <DevModeCommitPanel notice={notice} destination={destination} actionSlot={convexSaveButton} />
+    <DevModeCommitPanel notice={notice} destination={destination} actionSlot={convexSaveButton} rebase={rebase} />
   );
 
   const renderCommitPanel = useCallback(
@@ -413,6 +439,7 @@ export function useDevModeSaveActions({
         notice={notice}
         destination={destination}
         description={description}
+        rebase={rebase}
         actionSlot={
           extraActionSlot ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -425,7 +452,7 @@ export function useDevModeSaveActions({
         }
       />
     ),
-    [convexSaveButton, destination, notice],
+    [convexSaveButton, destination, notice, rebase],
   );
 
   return {

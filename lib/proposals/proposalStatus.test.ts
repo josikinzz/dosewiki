@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  OPEN_PROPOSAL_STATUSES,
   PROPOSAL_STATUSES,
   PROPOSAL_TRANSITIONS,
   canTransition,
@@ -16,11 +17,11 @@ describe("proposal status transitions", () => {
     }
   });
 
-  it("walks the happy path: submitted, approved, applied, reverted", () => {
-    expect(canTransition("submitted", "approved")).toBe(true);
-    expect(canTransition("approved", "applied")).toBe(true);
+  it("walks the happy path: submitted, applied, reverted, with no resting approved state", () => {
     expect(canTransition("submitted", "applied")).toBe(true);
     expect(canTransition("applied", "reverted")).toBe(true);
+    expect(PROPOSAL_STATUSES).not.toContain("approved");
+    expect(OPEN_PROPOSAL_STATUSES).toEqual(["submitted"]);
   });
 
   it("lets a review send a proposal back and the editor resubmit", () => {
@@ -41,7 +42,7 @@ describe("proposal status transitions", () => {
     for (const status of PROPOSAL_STATUSES) {
       expect(canTransition(status, status)).toBe(false);
     }
-    const reopen: ProposalStatus[] = ["submitted", "approved", "changes_requested", "rejected"];
+    const reopen: ProposalStatus[] = ["submitted", "changes_requested", "rejected"];
     for (const to of reopen) {
       expect(canTransition("applied", to)).toBe(false);
     }

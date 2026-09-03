@@ -187,7 +187,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
   DirectAssociationBody,
   ReturnType<typeof parseDirectAssociationBody>
 >({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: 4 * 1024, parse: parseDirectAssociationBody },
   capabilities: [{ type: "convexWrite" }],
@@ -217,7 +217,7 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
 }));
 
 export const POST = protectedRouteOperation<ExclusionBody, ParsedExclusionBody>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: MAX_PAYLOAD_BYTES, parse: parseExclusionBody },
   capabilities: [{ type: "convexWrite" }],

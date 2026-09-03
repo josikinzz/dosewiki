@@ -71,17 +71,52 @@ describe("Convex contributor profile identity", () => {
     ).toBe(false);
   });
 
-  it("allows editor and admin edits regardless of membership email", () => {
-    for (const role of ["editor", "admin"] as const) {
-      expect(
-        canEditContributorProfile({
-          actorEmail: "other@example.com",
-          actorRole: role,
-          targetKey: "EDITOR",
-          existingProfile: baseProfile,
-        }),
-      ).toBe(true);
-    }
+  it("lets an admin edit any profile regardless of membership email", () => {
+    expect(
+      canEditContributorProfile({
+        actorEmail: "other@example.com",
+        actorRole: "admin",
+        targetKey: "EDITOR",
+        existingProfile: baseProfile,
+      }),
+    ).toBe(true);
+  });
+
+  it("holds an editor to their own profile", () => {
+    expect(
+      canEditContributorProfile({
+        actorEmail: "other@example.com",
+        actorRole: "editor",
+        targetKey: "EDITOR",
+        existingProfile: baseProfile,
+      }),
+    ).toBe(false);
+    expect(
+      canEditContributorProfile({
+        actorEmail: "editor@example.com",
+        actorRole: "editor",
+        targetKey: "EDITOR",
+        existingProfile: baseProfile,
+      }),
+    ).toBe(true);
+  });
+
+  it("claims the record for an editor's first self-serve save, and never rebinds another's", () => {
+    const claimed = buildStoredProfile(
+      { key: "", displayName: "Editor", bio: "", links: [] },
+      null,
+      "editor@example.com",
+      "editor",
+    );
+    expect(claimed.membershipEmail).toBe("editor@example.com");
+
+    const kept = buildStoredProfile(
+      { key: "EDITOR", displayName: "Editor", bio: "", links: [] },
+      baseProfile,
+      "admin@example.com",
+      "admin",
+    );
+    expect(kept.membershipEmail).toBe("editor@example.com");
   });
 
   it("keeps target key resolution inside the Convex identity module", () => {

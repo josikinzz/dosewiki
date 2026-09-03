@@ -63,6 +63,13 @@ vi.mock("convex/react", () => ({
   useMutation: () => vi.fn(),
 }));
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({
+    status: "authenticated",
+    data: { user: { email: "admin@example.com", role: "admin" } },
+  }),
+}));
+
 /** Every article the rendered page has been handed, oldest first. */
 const layoutArticles: SubstanceArticle[] = [];
 vi.mock("@/features/article/components/ArticleLayout", () => ({

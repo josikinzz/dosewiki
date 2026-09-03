@@ -212,6 +212,17 @@ describe("dev save command contract", () => {
     });
   });
 
+  it("sends revisionOf when the draft rebases a returned proposal", async () => {
+    const submitProposal = vi.fn().mockResolvedValue({ proposalId: "k57zyx987654" });
+    const draft = createDraft();
+
+    await createProposalSaveAdapter({ submitProposal, revisionOf: "cp_old" }).execute(draft, credentials);
+    expect(submitProposal).toHaveBeenLastCalledWith(expect.objectContaining({ revisionOf: "cp_old" }));
+
+    await createProposalSaveAdapter({ submitProposal, revisionOf: null }).execute(draft, credentials);
+    expect(submitProposal).toHaveBeenLastCalledWith(expect.not.objectContaining({ revisionOf: expect.anything() }));
+  });
+
   it("summarizes a proposal from the changed titles and layout labels", () => {
     const draft = createDraft();
     expect(buildProposalSummary(draft, { articles: [{ id: 2, title: "MDMA" }] })).toBe("Update MDMA");

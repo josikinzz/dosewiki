@@ -12,6 +12,7 @@ import type {
 import { useEditorDocument } from "@/features/dev/context/editorDocumentSession";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { api } from "../../../../../convex/_generated/api";
+import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import type { AboutCopyNotice } from "./aboutEditorUtils";
 
 const API_PATH = "/api/dev/about";
@@ -60,7 +61,13 @@ export interface AboutEditorController {
   toggleFounderKey: (key: string) => void;
   copyMarkdown: () => void;
   copySubtitle: () => void;
+  /** Admin: writes the document. Editor: submits it as a change proposal and keeps the draft pending. */
   save: () => Promise<void>;
+}
+
+export interface AboutEditorControllerOptions {
+  /** Admin: Save writes About; without it the same draft is submitted as a proposal. */
+  canApprove: boolean;
 }
 
 /**
@@ -70,9 +77,11 @@ export interface AboutEditorController {
  * siblings do: one immediate `POST /api/dev/about` carrying the whole
  * document, after which the draft becomes the new baseline. It stages nothing
  * into the shell's commit panel and contributes nothing to the dataset
- * changelog.
+ * changelog. Without `canApprove` the same document is posted to
+ * `/api/dev/proposals` instead and the draft stays pending until an admin
+ * approves it, since production has not changed yet.
  */
-export function useAboutEditorController(): AboutEditorController {
+export function useAboutEditorController({ canApprove }: AboutEditorControllerOptions): AboutEditorController {
   const aboutConfig = useQuery(api.siteConfig.getAbout, {});
   const document = useEditorDocument(toAboutDocument(aboutConfig));
   const { chemicalClassIndexGroups, dosageCategoryGroups, mechanismIndexGroups, substanceRecords } =
@@ -197,15 +206,35 @@ export function useAboutEditorController(): AboutEditorController {
   const save = useCallback(async () => {
     setSaveState("saving");
     setNotice(null);
+    const body = {
+      aboutMarkdown: draft.markdown,
+      aboutSubtitle: draft.subtitle,
+      founderProfileKeys: draft.founderKeys,
+    };
     try {
+      if (!canApprove) {
+        const { proposalId } = await submitToolProposal({
+          payload: { about: body },
+          summary: "Update the About page",
+          diff: buildFieldDiff([
+            { label: "About copy", before: original.markdown, after: draft.markdown },
+            { label: "About subtitle", before: original.subtitle, after: draft.subtitle },
+            {
+              label: "Founders",
+              before: original.founderKeys.join("\n"),
+              after: draft.founderKeys.join("\n"),
+            },
+          ]),
+        });
+        setSaveState("saved");
+        setNotice(proposalSubmittedNotice("The About page", proposalId));
+        return;
+      }
+
       const response = await fetch(API_PATH, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aboutMarkdown: draft.markdown,
-          aboutSubtitle: draft.subtitle,
-          founderProfileKeys: draft.founderKeys,
-        }),
+        body: JSON.stringify(body),
       });
       const payload = (await response.json()) as {
         about?: { aboutMarkdown: string; aboutSubtitle: string; founderProfileKeys: string[] };
@@ -227,11 +256,16 @@ export function useAboutEditorController(): AboutEditorController {
       setSaveState("error");
       setNotice({
         tone: "danger",
-        title: "Save failed",
-        message: error instanceof Error ? error.message : "The About page could not be saved.",
+        title: canApprove ? "Save failed" : "Submission failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : canApprove
+              ? "The About page could not be saved."
+              : "The proposal could not be submitted.",
       });
     }
-  }, [applyHydration, draft]);
+  }, [applyHydration, canApprove, draft, original]);
 
   return {
     isLoaded: aboutConfig !== undefined,

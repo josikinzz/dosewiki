@@ -80,7 +80,7 @@ export async function updateEditorialFieldsHandler(
   await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-    "editor",
+    "admin",
   );
   const row = await ctx.db.get(args.id);
   if (!row) throw new Error(`Replication ${args.id} no longer exists.`);

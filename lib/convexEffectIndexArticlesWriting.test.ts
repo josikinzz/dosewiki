@@ -100,8 +100,12 @@ function handlerOf(fn: unknown) {
   return (fn as { _handler: (ctx: never, args: unknown) => Promise<unknown> })._handler;
 }
 
+const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com" };
 const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com" };
-const editorMemberships: Record<string, Role> = { "editor@example.com": "editor" };
+const memberships: Record<string, Role> = {
+  "admin@example.com": "admin",
+  "editor@example.com": "editor",
+};
 
 const publishedRow: ArticleRow = {
   _id: "a",
@@ -139,7 +143,7 @@ describe("effectIndexArticles writing extensions", () => {
     );
   });
 
-  it("rejects unauthenticated and non-editor callers on the editor list and the upsert", async () => {
+  it("rejects unauthenticated, viewer, and editor callers on the upsert", async () => {
     const unauth = createCtx({ rows: [publishedRow] });
 
     await expect(handlerOf(listForEditor)(unauth.ctx, {})).rejects.toThrow(
@@ -162,18 +166,30 @@ describe("effectIndexArticles writing extensions", () => {
         slug: "published-post",
         title: "x",
       }),
-    ).rejects.toThrow("Editor access required");
+    ).rejects.toThrow("Admin access required");
+
+    // An editor reads the listing but publishes only through a proposal: the
+    // direct upsert is refused at the handler seam, whatever route called it.
+    const editor = createCtx({ rows: [publishedRow], memberships });
+    await expect(
+      handlerOf(listForEditor)(editor.ctx, editorArgs),
+    ).resolves.toHaveLength(1);
+    await expect(
+      handlerOf(upsertArticle)(editor.ctx, { ...editorArgs, slug: "published-post", title: "x" }),
+    ).rejects.toThrow("Admin access required");
 
     expect(unauth.patched).toHaveLength(0);
     expect(viewer.patched).toHaveLength(0);
     expect(viewer.inserted).toHaveLength(0);
+    expect(editor.patched).toHaveLength(0);
+    expect(editor.inserted).toHaveLength(0);
   });
 
   it("serves the slim editor listing, drafts included, without bodies", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const { ctx } = createCtx({
       rows: [publishedRow, draftRow],
-      memberships: editorMemberships,
+      memberships,
     });
 
     const listed = (await handlerOf(listForEditor)(ctx, editorArgs)) as Array<
@@ -194,11 +210,11 @@ describe("effectIndexArticles writing extensions", () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const { ctx, patched } = createCtx({
       rows: [{ ...publishedRow, teaser: "kept", shortDescription: "kept too" }],
-      memberships: editorMemberships,
+      memberships,
     });
 
     await expect(
-      handlerOf(upsertArticle)(ctx, { ...editorArgs, slug: "published-post", title: "Renamed" }),
+      handlerOf(upsertArticle)(ctx, { ...adminArgs, slug: "published-post", title: "Renamed" }),
     ).resolves.toMatchObject({ slug: "published-post", created: false });
 
     expect(patched).toHaveLength(1);
@@ -210,15 +226,15 @@ describe("effectIndexArticles writing extensions", () => {
   it("rejects an invalid slug and a publish with an empty body", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
 
-    const bad = createCtx({ memberships: editorMemberships });
+    const bad = createCtx({ memberships });
     await expect(
-      handlerOf(upsertArticle)(bad.ctx, { ...editorArgs, slug: "Not A Slug", title: "x" }),
+      handlerOf(upsertArticle)(bad.ctx, { ...adminArgs, slug: "Not A Slug", title: "x" }),
     ).rejects.toThrow("Invalid slug");
 
-    const empty = createCtx({ memberships: editorMemberships });
+    const empty = createCtx({ memberships });
     await expect(
       handlerOf(upsertArticle)(empty.ctx, {
-        ...editorArgs,
+        ...adminArgs,
         slug: "new-post",
         title: "New",
         status: "published",
@@ -227,10 +243,10 @@ describe("effectIndexArticles writing extensions", () => {
     ).rejects.toThrow("Cannot publish an article with an empty body");
 
     // A draft with an empty body is fine.
-    const draft = createCtx({ memberships: editorMemberships });
+    const draft = createCtx({ memberships });
     await expect(
       handlerOf(upsertArticle)(draft.ctx, {
-        ...editorArgs,
+        ...adminArgs,
         slug: "new-post",
         title: "New",
         status: "draft",
@@ -241,11 +257,11 @@ describe("effectIndexArticles writing extensions", () => {
     // Publishing an existing row whose stored body is empty is rejected too.
     const storedEmpty = createCtx({
       rows: [{ ...publishedRow, body_raw: "", status: "draft" }],
-      memberships: editorMemberships,
+      memberships,
     });
     await expect(
       handlerOf(upsertArticle)(storedEmpty.ctx, {
-        ...editorArgs,
+        ...adminArgs,
         slug: "published-post",
         status: "published",
       }),

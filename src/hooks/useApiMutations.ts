@@ -64,10 +64,36 @@ export interface SaveToConvexResult {
   error?: string;
 }
 
+/** One copy block as `POST /api/dev/proposals` accepts it under `payload.copyBlocks`. */
+export interface ProposalCopyBlock {
+  key: string;
+  kind: "markdown" | "plain" | "list";
+  label: string;
+  group: string;
+  flavor?: string;
+  body?: string;
+  items?: string[];
+}
+
+/** The About document as `POST /api/dev/proposals` accepts it under `payload.about`. */
+export interface ProposalAbout {
+  aboutMarkdown: string;
+  aboutSubtitle: string;
+  founderProfileKeys: string[];
+}
+
+/** Everything a proposal may carry: the save-to-convex body plus the tab-local documents. */
+export type ProposalPayload = SaveToConvexPayload & {
+  copyBlocks?: ProposalCopyBlock[];
+  about?: ProposalAbout;
+};
+
 export interface SubmitProposalPayload {
-  payload: SaveToConvexPayload;
+  payload: ProposalPayload;
   summary: string;
   diff: string;
+  /** The returned proposal this submission rebases; the server supersedes it. */
+  revisionOf?: string;
 }
 
 export interface SubmitProposalResult {

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type MutationCtx } from "./_generated/server";
+import { auditStampFor } from "./lib/auditStamp";
 import { requireRole } from "./lib/auth";
 import { clampSafetyBannerIconSize } from "../src/data/substanceWarningBanners";
 
@@ -21,47 +22,79 @@ export const getAbout = query({
   },
 });
 
+/** The site config row the About page reads. */
+export const ABOUT_KEY = "about";
+
+/**
+ * The About document as `saveAbout` takes it and as a change proposal carries
+ * it. Shared so a proposal can never smuggle a shape the direct save would
+ * refuse.
+ */
+export const aboutDocumentFields = {
+  aboutMarkdown: v.optional(v.string()),
+  aboutSubtitle: v.optional(v.string()),
+  founderProfileKeys: v.optional(v.array(v.string())),
+} as const;
+
+export const aboutDocumentValidator = v.object(aboutDocumentFields);
+
+export type AboutDocument = {
+  aboutMarkdown?: string;
+  aboutSubtitle?: string;
+  founderProfileKeys?: string[];
+};
+
+type SaveAboutArgs = AboutDocument & {
+  apiKey?: string;
+  actorEmail?: string;
+  updatedBy?: string;
+};
+
+/**
+ * The About write behind `saveAbout`, also the write an approved About
+ * proposal applies through. Admin floor: editors draft About changes as
+ * proposals and `approveAndApply` runs this with the approving admin as the
+ * actor.
+ */
+export async function saveAboutHandler(ctx: MutationCtx, args: SaveAboutArgs) {
+  const actor = await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "admin");
+
+  const existing = await ctx.db
+    .query("siteConfig")
+    .withIndex("by_key", (q) => q.eq("key", ABOUT_KEY))
+    .first();
+
+  const now = new Date().toISOString();
+  const data = {
+    key: ABOUT_KEY,
+    aboutMarkdown: args.aboutMarkdown,
+    aboutSubtitle: args.aboutSubtitle,
+    founderProfileKeys: args.founderProfileKeys,
+    updatedAt: now,
+    updatedBy: auditStampFor(actor, args.updatedBy),
+  };
+
+  if (existing) {
+    await ctx.db.patch(existing._id, data);
+    return { updated: true, id: existing._id };
+  }
+  const id = await ctx.db.insert("siteConfig", data);
+  return { updated: false, id };
+}
+
 // Save the About page configuration
 export const saveAbout = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
-    aboutMarkdown: v.optional(v.string()),
-    aboutSubtitle: v.optional(v.string()),
-    founderProfileKeys: v.optional(v.array(v.string())),
+    ...aboutDocumentFields,
     updatedBy: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    // Authenticate the request
-    await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    }, "editor");
-
-    const existing = await ctx.db
-      .query("siteConfig")
-      .withIndex("by_key", (q) => q.eq("key", "about"))
-      .first();
-
-    const now = new Date().toISOString();
-    const data = {
-      key: "about" as const,
-      aboutMarkdown: args.aboutMarkdown,
-      aboutSubtitle: args.aboutSubtitle,
-      founderProfileKeys: args.founderProfileKeys,
-      updatedAt: now,
-      updatedBy: args.updatedBy,
-    };
-
-    if (existing) {
-      await ctx.db.patch(existing._id, data);
-      return { updated: true, id: existing._id };
-    } else {
-      const id = await ctx.db.insert("siteConfig", data);
-      return { updated: false, id };
-    }
-  },
+  handler: saveAboutHandler,
 });
 
 /**

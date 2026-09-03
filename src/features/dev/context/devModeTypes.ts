@@ -9,6 +9,25 @@ export type ManualPsychoactiveIndexConfig = ManualIndexConfig;
 export type ManualChemicalIndexConfig = ManualIndexConfig;
 export type ManualMechanismIndexConfig = ManualIndexConfig;
 
+/** The returned proposal the working set is a rebase of; the next save supersedes it. */
+export type DevActiveProposal = {
+  proposalId: string;
+  /** Why it came back: the apply conflict, or the reviewer's note. Null when neither was recorded. */
+  reason: string | null;
+  summary: string;
+};
+
+/** What the queue hands the context to seed the working set from: one full proposal row. */
+export type DevProposalSeed = {
+  proposalId: string;
+  summary: string;
+  reason: string | null;
+  payload: {
+    articles?: ReadonlyArray<Partial<SubstanceArticle> & { title: string; slug?: string }>;
+    indexLayouts?: ReadonlyArray<ManualIndexConfig & { type: "psychoactive" | "chemical" | "mechanism" }>;
+  };
+};
+
 export type DevModeContextValue = {
   articles: ArticleRecord[];
   /**
@@ -62,4 +81,17 @@ export type DevModeContextValue = {
     transform: (previous: ManualMechanismIndexConfig) => ManualMechanismIndexConfig,
   ) => void;
   markChangesSaved: () => void;
+  /** Set while the working set was seeded from a returned proposal; null otherwise. */
+  activeProposal: DevActiveProposal | null;
+  /**
+   * Seed the working set from a proposal: every article it carries is
+   * hydrated from production, then overlaid with the proposed fields, and its
+   * index layouts replace the layout drafts. Resolves once the seed is in
+   * place; rejects when a production article it needs could not be loaded.
+   */
+  loadProposal: (seed: DevProposalSeed) => Promise<void>;
+  /** Forget the proposal link but keep the edits: the next save is a fresh proposal. */
+  clearActiveProposal: () => void;
+  /** Put the seeded rows back to production and forget the proposal link. */
+  discardActiveProposal: () => void;
 };

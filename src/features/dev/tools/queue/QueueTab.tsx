@@ -6,6 +6,8 @@
  * (flagged when production has drifted from them), the discussion, and, for
  * admins, the approve, reject and revert actions that post to the review
  * routes. Editors read and comment; the admin buttons never render for them.
+ * A proposal still open to its proposer offers "Load into editor", which
+ * seeds the substances working set from it so the next submit supersedes it.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,12 +29,15 @@ import {
   EditorToolbar,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
+import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import {
   STATUS_LABELS,
   STATUS_PILL_TONE,
+  canLoadIntoEditor,
   formatProposalDate,
   groupProposals,
+  proposalSeedOf,
   reviewActionsFor,
   targetDrift,
   type ProposalDetail,
@@ -51,6 +56,12 @@ import {
 type QueueTabProps = {
   /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
   canApprove: boolean;
+  /** The signed-in email; a proposer may load their own open proposal back into the editor. */
+  actorEmail?: string | null;
+  /** The substance corpus has drained: a rebase can seed over production rows. */
+  libraryReady: boolean;
+  /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
+  onLoadIntoEditor: (seed: DevProposalSeed) => Promise<void>;
 };
 
 type DetailState =
@@ -66,12 +77,12 @@ const TARGET_KIND_LABELS: Record<ProposalDetail["targets"][number]["kind"], stri
   copyBlock: "Copy block",
 };
 
-export function QueueTab({ canApprove }: QueueTabProps) {
+export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEditor }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
-  const [pending, setPending] = useState<"approve" | "reject" | "revert" | "comment" | null>(null);
+  const [pending, setPending] = useState<"approve" | "reject" | "revert" | "comment" | "load" | null>(null);
   const [commentText, setCommentText] = useState("");
   const [rejectNote, setRejectNote] = useState("");
   /** The latest detail request; an earlier answer arriving late is dropped. */
@@ -172,6 +183,30 @@ export function QueueTab({ canApprove }: QueueTabProps) {
       return { tone: "success", message: "Comment posted." };
     });
 
+  /**
+   * Rebase: re-read the row so the seed is what the server holds now, hand it
+   * to the shell, and let the shell move to the editor. Unlike the review
+   * actions nothing here refetches: on success this tab is left behind.
+   */
+  const loadIntoEditor = async () => {
+    if (!selectedId || pending) {
+      return;
+    }
+    setPending("load");
+    setNotice(null);
+    try {
+      const proposal = await fetchProposal(selectedId);
+      if (!canLoadIntoEditor(proposal, { actorEmail, canApprove })) {
+        throw new Error(`A ${STATUS_LABELS[proposal.status].toLowerCase()} proposal can no longer be loaded.`);
+      }
+      await onLoadIntoEditor(proposalSeedOf(proposal));
+    } catch (error) {
+      setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The proposal did not load." });
+    } finally {
+      setPending(null);
+    }
+  };
+
   const groups = groupProposals(proposals ?? []);
 
   return (
@@ -264,6 +299,8 @@ export function QueueTab({ canApprove }: QueueTabProps) {
             <ProposalReview
               proposal={detail.proposal}
               canApprove={canApprove}
+              canLoad={canLoadIntoEditor(detail.proposal, { actorEmail, canApprove })}
+              libraryReady={libraryReady}
               pending={pending}
               notice={notice}
               commentText={commentText}
@@ -274,6 +311,7 @@ export function QueueTab({ canApprove }: QueueTabProps) {
               onApprove={approve}
               onReject={reject}
               onRevert={revert}
+              onLoadIntoEditor={() => void loadIntoEditor()}
             />
           )}
         </EditorSection>
@@ -289,7 +327,10 @@ function StatusPill({ status }: { status: ProposalStatus }) {
 type ProposalReviewProps = {
   proposal: ProposalDetail;
   canApprove: boolean;
-  pending: "approve" | "reject" | "revert" | "comment" | null;
+  /** The viewer may rebase this proposal (proposer or admin, and it is still open). */
+  canLoad: boolean;
+  libraryReady: boolean;
+  pending: "approve" | "reject" | "revert" | "comment" | "load" | null;
   notice: EditorNoticeMessage | null;
   commentText: string;
   rejectNote: string;
@@ -299,11 +340,14 @@ type ProposalReviewProps = {
   onApprove: () => void;
   onReject: () => void;
   onRevert: () => void;
+  onLoadIntoEditor: () => void;
 };
 
 function ProposalReview({
   proposal,
   canApprove,
+  canLoad,
+  libraryReady,
   pending,
   notice,
   commentText,
@@ -314,6 +358,7 @@ function ProposalReview({
   onApprove,
   onReject,
   onRevert,
+  onLoadIntoEditor,
 }: ProposalReviewProps) {
   const targets = targetDrift(proposal);
   const actions = reviewActionsFor(proposal.status);
@@ -349,6 +394,23 @@ function ProposalReview({
 
       {proposal.status === "changes_requested" && proposal.conflictReason ? (
         <EditorNotice notice={{ tone: "warning", title: "Changes requested", message: proposal.conflictReason, live: true }} />
+      ) : null}
+
+      {canLoad ? (
+        <EditorPanel variant="toolbar" className="p-3">
+          <EditorToolbar label="Rebase" variant="split">
+            <EditorActionGroup label="Rebase">
+              <Button type="button" variant="accent" size="sm" disabled={busy || !libraryReady} onClick={onLoadIntoEditor}>
+                {pending === "load" ? "Loading..." : "Load into editor"}
+              </Button>
+              <span className="theme-text-faint text-sm">
+                {libraryReady
+                  ? "Seeds the substances editor with this proposal over current production; the next submit supersedes it."
+                  : "Waiting for the substance library to load."}
+              </span>
+            </EditorActionGroup>
+          </EditorToolbar>
+        </EditorPanel>
       ) : null}
 
       <section className="space-y-2">

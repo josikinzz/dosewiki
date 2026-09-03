@@ -1,18 +1,17 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
+import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
 import { requireRole } from "./lib/auth";
-import {
-  deriveProposalTargets,
-  hashProposalTarget,
-  type ProposalTargetRef,
-} from "./lib/changeProposalTargets";
+import { deriveProposalTargets, hashProposalTarget } from "./lib/changeProposalTargets";
 import {
   indexLayoutValidator,
   substanceArticleLightValidator,
   validateArticleForIngestion,
 } from "./lib/validators";
-import { changeProposalStatusValidator, changeProposalTargetKindValidator } from "./schema";
+import { copyBlockDocumentValidator, type CopyBlockDocument } from "./copyBlocks";
+import { changeProposalStatusValidator } from "./schema";
+import { aboutDocumentValidator, type AboutDocument } from "./siteConfig";
 
 /**
  * Editor change proposals: the commit panel's staged save, held for an admin
@@ -26,10 +25,12 @@ import { changeProposalStatusValidator, changeProposalTargetKindValidator } from
  *   optional review/apply fields declared in schema.ts.
  */
 
-/** The save-to-convex body a proposal wraps, validated with the save validators. */
+/** The body a proposal wraps, validated with the validators the direct saves use. */
 export const changeProposalPayloadValidator = v.object({
   articles: v.optional(v.array(substanceArticleLightValidator)),
   indexLayouts: v.optional(v.array(indexLayoutValidator)),
+  copyBlocks: v.optional(v.array(copyBlockDocumentValidator)),
+  about: v.optional(aboutDocumentValidator),
   changelog: v.optional(
     v.object({
       markdown: v.string(),
@@ -38,26 +39,27 @@ export const changeProposalPayloadValidator = v.object({
   ),
 });
 
-const proposalTargetRefValidator = v.object({
-  kind: changeProposalTargetKindValidator,
-  key: v.string(),
-});
-
 type SubmitArgs = {
   apiKey?: string;
   actorEmail?: string;
   payload: {
     articles?: Array<{ id: number | null; title: string; slug?: string } & Record<string, unknown>>;
     indexLayouts?: Array<{ type: "psychoactive" | "chemical" | "mechanism" } & Record<string, unknown>>;
+    copyBlocks?: CopyBlockDocument[];
+    about?: AboutDocument;
     changelog?: { markdown: string; articles: Array<{ id: number; title: string; slug: string }> };
   };
   summary: string;
   diff: string;
-  targets: ProposalTargetRef[];
+  /** The returned proposal this one replaces; it becomes `superseded` in the same mutation. */
+  revisionOf?: Id<"changeProposals">;
 };
 
 const SUMMARY_MAX_LENGTH = 500;
 const DIFF_MAX_LENGTH = 500_000;
+
+/** A proposal an editor may rebase: returned with changes requested, or still waiting. */
+const REVISABLE_STATUSES: readonly ProposalStatus[] = ["submitted", "changes_requested"];
 
 export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
   const actor = await requireRole(
@@ -66,15 +68,19 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     "editor",
   );
 
-  const articles = args.payload.articles ?? [];
-  const layouts = args.payload.indexLayouts ?? [];
-  if (articles.length === 0 && layouts.length === 0) {
+  // Targets are derived from the payload here, never taken from the caller:
+  // a proposal may never pin (and on revert, write back) a row the payload
+  // does not touch. Emptiness is derived from every kind the payload can
+  // carry, so a proposal that changes only a copy block or the About page is
+  // not refused here.
+  const implied = await deriveProposalTargets(ctx, args.payload);
+  if (implied.length === 0) {
     throw new ConvexError({
       code: "PROPOSAL_EMPTY",
-      message: "A proposal needs at least one article or index layout change.",
+      message: "A proposal needs at least one change.",
     });
   }
-  for (const article of articles) {
+  for (const article of args.payload.articles ?? []) {
     const validation = validateArticleForIngestion(article);
     if (validation.ok === false) {
       throw new ConvexError({
@@ -98,27 +104,46 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     });
   }
 
-  // The caller names the targets, but every row the payload writes must be
-  // among them: a proposal may never touch production the hashes did not pin.
-  const named = new Set(args.targets.map((target) => `${target.kind}:${target.key}`));
-  for (const implied of deriveProposalTargets(args.payload)) {
-    if (!named.has(`${implied.kind}:${implied.key}`)) {
-      throw new ConvexError({
-        code: "PROPOSAL_TARGET_MISSING",
-        message: `Payload changes ${implied.kind} "${implied.key}" but no target names it.`,
-      });
-    }
-  }
-  if (named.size !== args.targets.length) {
+  const keys = new Set(implied.map((target) => `${target.kind}:${target.key}`));
+  if (keys.size !== implied.length) {
     throw new ConvexError({
       code: "PROPOSAL_TARGET_DUPLICATE",
-      message: "Each target may appear once.",
+      message: "A payload may write each row once.",
     });
   }
 
   const targets = [];
-  for (const target of args.targets) {
+  for (const target of implied) {
     targets.push({ kind: target.kind, key: target.key, baseHash: await hashProposalTarget(ctx, target) });
+  }
+
+  // Rebase: the earlier revision must be the actor's own (or the actor an
+  // admin), still open to the proposer, and about at least one of the same
+  // rows; it is superseded in the same write so the queue never shows both
+  // revisions as live.
+  const prior = args.revisionOf ? await ctx.db.get(args.revisionOf) : null;
+  if (args.revisionOf) {
+    if (!prior) {
+      throw new ConvexError({ code: "PROPOSAL_NOT_FOUND", message: "The proposal being revised no longer exists." });
+    }
+    if (prior.proposedBy !== actor.email && actor.role !== "admin") {
+      throw new ConvexError({
+        code: "PROPOSAL_NOT_OWNED",
+        message: "Only the proposer or an admin can submit a revision of a proposal.",
+      });
+    }
+    if (!REVISABLE_STATUSES.includes(prior.status) || !canTransition(prior.status, "superseded")) {
+      throw new ConvexError({
+        code: "PROPOSAL_STATUS_INVALID",
+        message: `A ${prior.status.replace("_", " ")} proposal cannot be revised.`,
+      });
+    }
+    if (!prior.targets.some((target) => keys.has(`${target.kind}:${target.key}`))) {
+      throw new ConvexError({
+        code: "PROPOSAL_REVISION_MISMATCH",
+        message: "A revision must change at least one of the rows the earlier proposal changed.",
+      });
+    }
   }
 
   const now = new Date().toISOString();
@@ -132,14 +157,18 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     summary,
     diff: args.diff,
     comments: [],
+    ...(args.revisionOf ? { revisionOf: args.revisionOf } : {}),
   });
+  if (prior) {
+    await ctx.db.patch(prior._id, { status: "superseded", updatedAt: now });
+  }
   return { proposalId };
 }
 
 /**
- * Submit one commit-panel save as a proposal. Editor floor. `targets` carries
- * kind and key only; the base hash of each is read from production here so a
- * stale client can never pin a hash it did not observe.
+ * Submit one commit-panel save as a proposal. Editor floor. Targets are
+ * derived from the payload and the base hash of each is read from production
+ * here, so a stale client can never pin a hash it did not observe.
  */
 export const submit = mutation({
   args: {
@@ -148,7 +177,7 @@ export const submit = mutation({
     payload: changeProposalPayloadValidator,
     summary: v.string(),
     diff: v.string(),
-    targets: v.array(proposalTargetRefValidator),
+    revisionOf: v.optional(v.id("changeProposals")),
   },
   handler: submitHandler,
 });

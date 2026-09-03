@@ -1,5 +1,6 @@
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { AppRole } from "@/lib/auth/roles";
+import type { DevProposalSeed } from "../context/devModeTypes";
 import type { useDevModeChangeLog } from "./useDevModeChangeLog";
 import type { DevModePrimaryTab } from "./devModePageUtils";
 import type { DevModeTab } from "./devTabRegistry";
@@ -84,5 +85,7 @@ export type DevModePageControllerState = {
   };
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onTabChange: (tab: DevModeTab) => void;
+  /** Queue: seed the working set from a proposal, then open the substances editor. */
+  onLoadProposal: (seed: DevProposalSeed) => Promise<void>;
   onSignIn: () => void;
 };

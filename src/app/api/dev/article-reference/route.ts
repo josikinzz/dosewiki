@@ -1,5 +1,8 @@
 /**
- * Editor write endpoint for adding one source to one article.
+ * Admin write endpoint for adding one source to one article.
+ *
+ * Appending or removing a reference rewrites the published article with no
+ * review step, so both verbs are admin-only.
  *
  * The review workbench's citation palette lets a reviewer mint a source without
  * leaving the queue: paste a DOI, PMID, ISBN, URL, or title, and the reference
@@ -125,7 +128,7 @@ function parseAddReferenceBody(body: AddReferenceBody): ParsedAddReference {
 }
 
 export const POST = protectedRouteOperation<AddReferenceBody, ParsedAddReference>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 32 * 1024,
@@ -217,7 +220,7 @@ function parseRemoveReferenceBody(body: RemoveReferenceBody): ParsedRemoveRefere
 }
 
 export const DELETE = protectedRouteOperation<RemoveReferenceBody, ParsedRemoveReference>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 4 * 1024,

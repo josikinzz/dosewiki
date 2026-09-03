@@ -11,12 +11,14 @@
  * Passwords are never read from env, files, or argv. Nothing is printed
  * except the outcome per account.
  *
- * Usage:
+ * Usage (the shared production-write boundary: every flag is required):
  *   TARGET_CONVEX_URL=https://<deployment>.convex.cloud \
- *   node scripts/auth/seed-admin-accounts.mjs [--target-url=<url>]
+ *   node scripts/auth/seed-admin-accounts.mjs --write \
+ *     --confirm-write=seed-admin-accounts --expected-deployment=<fingerprint>
  *
- * `TARGET_CONVEX_URL` (or `--target-url`) and `CONVEX_ADMIN_KEY` come from the
- * environment or `.env.local`. The ambiguous `CONVEX_URL` fallbacks are refused
+ * Without `--write` the script only prints the target and exits. The
+ * fingerprint is printed by the dry run. `CONVEX_ADMIN_KEY` comes from the
+ * environment or `.env.local`; the ambiguous `CONVEX_URL` fallbacks are refused
  * on purpose: this writes admin credentials and must name its deployment.
  */
 
@@ -24,22 +26,16 @@ import { stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { ConvexHttpClient } from "convex/browser";
 import { makeFunctionReference } from "convex/server";
-import { getFlagValue, loadEnvFiles } from "../lib/data-ops-run-context.mjs";
+import {
+  assertProductionWriteAllowed,
+  createProductionWriteCommand,
+  printProductionWriteCommand,
+  requireProductionWriteCredential,
+} from "../lib/production-write-command.mjs";
 import { hashPassword, validateNewPassword } from "./password-hash.mjs";
 
+const OPERATION = "seed-admin-accounts";
 const setAdminAccount = makeFunctionReference("memberships:setAdminAccount");
-
-function resolveTargetUrl(argv, env) {
-  const fromFlag = getFlagValue(argv, "--target-url");
-  if (fromFlag?.trim()) {
-    return fromFlag.trim();
-  }
-  const fromEnv = env.TARGET_CONVEX_URL?.trim();
-  if (fromEnv) {
-    return fromEnv;
-  }
-  throw new Error("Set TARGET_CONVEX_URL or pass --target-url=<deployment url>.");
-}
 
 async function ask(rl, question) {
   return (await rl.question(question)).trim();
@@ -99,17 +95,19 @@ async function main() {
     throw new Error("Run this from an interactive terminal; it prompts for passwords.");
   }
 
-  loadEnvFiles({ env: process.env });
-  const targetUrl = resolveTargetUrl(process.argv.slice(2), process.env);
-  const apiKey = process.env.CONVEX_ADMIN_KEY?.trim();
-  if (!apiKey) {
-    throw new Error("CONVEX_ADMIN_KEY is not set.");
+  const command = createProductionWriteCommand({ operation: OPERATION });
+  printProductionWriteCommand(command);
+  if (command.dryRun) {
+    console.log("Dry run: pass --write to seed accounts.");
+    return;
   }
+  assertProductionWriteAllowed(command);
+  const { token: apiKey } = requireProductionWriteCredential("legacyAdmin");
 
-  const client = new ConvexHttpClient(targetUrl);
+  const client = new ConvexHttpClient(command.targetUrl);
   const rl = createInterface({ input: stdin, output: stdout });
 
-  console.log(`Seeding admin accounts on ${targetUrl}`);
+  console.log(`Seeding admin accounts on ${command.targetUrl}`);
   console.log("Leave the username blank to finish.\n");
 
   try {

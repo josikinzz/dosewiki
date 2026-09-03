@@ -1,7 +1,8 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
-import { requireRole, type AuthorizedActor } from "./lib/auth";
+import { auditStampFor } from "./lib/auditStamp";
+import { requireRole, roleMeetsFloor, type AuthorizedActor } from "./lib/auth";
 import { isShowcaseEligible } from "../src/data/substanceReplicationGallery";
 
 /**
@@ -136,17 +137,25 @@ export const listOwned = query({
   handler: listOwnedHandler,
 });
 
+export async function getHandler(ctx: QueryCtx, args: ActorArgs & { key: string }) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+    "contributor",
+  );
+  const row = await findPlaylist(ctx, args.key);
+  if (!row) return null;
+  // A contributor sees only the playlists they own; a playlist they do not
+  // own is indistinguishable from one that does not exist. Editors and admins
+  // read every playlist, matching `list`.
+  if (!roleMeetsFloor(actor.role, "editor") && !canEditPlaylist(actor, row)) return null;
+  return projectPlaylist(row, actor);
+}
+
+/** One playlist by key. Contributor floor with ownership; editors and admins read any. */
 export const get = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), key: v.string() },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-      "editor",
-    );
-    const row = await findPlaylist(ctx, args.key);
-    return row ? projectPlaylist(row, actor) : null;
-  },
+  handler: getHandler,
 });
 
 type UpsertArgs = ActorArgs & {
@@ -234,7 +243,7 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
   }
 
   const updated_at = new Date().toISOString();
-  const updated_by = args.updatedBy ?? actor.email;
+  const updated_by = auditStampFor(actor, args.updatedBy);
 
   if (existing) {
     const patch: Partial<PlaylistRow> = { title, replication_slugs: slugs, updated_at, updated_by };

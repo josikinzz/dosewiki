@@ -1,8 +1,11 @@
 import { ConvexError } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
+import { removeCopyBlockHandler, upsertCopyBlockHandler, type CopyBlockDocument } from "../copyBlocks";
 import { saveIndexLayoutHandler } from "../indexLayouts";
-import type { ProposalTargetRef } from "./changeProposalTargets";
+import { ABOUT_KEY, saveAboutHandler, type AboutDocument } from "../siteConfig";
+import { writeCategoryLayout } from "./categoryLayoutMirror";
+import { readProposalTarget, type ProposalTargetRef } from "./changeProposalTargets";
 import { saveRevalidationPaths, type IndexLayoutType } from "./saveRevalidationPaths";
 import { resolveSubstanceSlug } from "./substanceProjectionCore";
 import { saveSubstancesHandler } from "./substanceWriteHandlers";
@@ -11,10 +14,11 @@ import { saveSubstancesHandler } from "./substanceWriteHandlers";
  * Writing a change proposal to production, and writing production back.
  *
  * Every write goes through the handler the admin's direct save already uses
- * (`saveSubstancesHandler`, `saveIndexLayoutHandler`), so an applied proposal
- * is indistinguishable from a save-to-convex call: same validation, same
- * reference merge, same `categoryLayout` mirror. `applyTarget` is the one
- * switch on target kind; wave 3 adds `about` and `copyBlock` there.
+ * (`saveSubstancesHandler`, `saveIndexLayoutHandler`, `upsertCopyBlockHandler`,
+ * `saveAboutHandler`), so an applied proposal is indistinguishable from a
+ * direct save: same validation, same reference merge, same `categoryLayout`
+ * mirror, same `updatedBy` attribution to the approver. `applyTarget` is the
+ * one switch on target kind.
  */
 
 /** The write credentials the apply inherits from the approving mutation. */
@@ -28,27 +32,61 @@ export type ProposalLayoutDocument = {
   categories: Doc<"indexLayouts">["categories"];
 };
 
-/** The save-to-convex body a proposal wraps, as apply reads it. */
+/** The body a proposal wraps, as apply reads it. */
 export type ProposalPayload = {
   articles?: ProposalArticleDocument[];
   indexLayouts?: ProposalLayoutDocument[];
+  copyBlocks?: CopyBlockDocument[];
+  about?: AboutDocument;
   changelog?: { markdown: string; articles: Array<{ id: number; title: string; slug: string }> };
 };
 
-/** One target's live document as `readProposalTarget` returned it before apply; `null` when absent. */
-export type ProposalSnapshotEntry = ProposalTargetRef & { document: unknown };
+/** Public paths whose cached copy the About row feeds. */
+const ABOUT_REVALIDATION_PATHS = ["/about"];
+
+type CategoryLayoutData = Omit<Doc<"categoryLayout">, "_id" | "_creationTime">;
 
 /**
- * Write one target's document to production, or remove the target when
+ * One target's live document as `readProposalTarget` returned it before
+ * apply; `null` when absent. The psychoactive layout also keeps the
+ * `categoryLayout` mirror row (`null` when absent), because reverting a layout
+ * that did not exist before has no earlier layout to project the mirror from.
+ * Entries applied before the mirror was captured leave it `undefined`, and a
+ * revert then leaves the mirror alone.
+ */
+export type ProposalSnapshotEntry = ProposalTargetRef & {
+  document: unknown;
+  categoryLayout?: CategoryLayoutData | null;
+};
+
+/** The entry `snapshotBefore` keeps for one target: what approve hashes and what revert writes back. */
+export async function snapshotProposalTarget(
+  ctx: MutationCtx,
+  target: ProposalTargetRef,
+): Promise<ProposalSnapshotEntry> {
+  const document = await readProposalTarget(ctx, target);
+  if (target.kind !== "indexLayout" || target.key !== "psychoactive") {
+    return { kind: target.kind, key: target.key, document };
+  }
+  const mirror = await ctx.db.query("categoryLayout").first();
+  if (!mirror) {
+    return { kind: target.kind, key: target.key, document, categoryLayout: null };
+  }
+  const { _id: _rowId, _creationTime: _createdAt, ...categoryLayout } = mirror;
+  return { kind: target.kind, key: target.key, document, categoryLayout };
+}
+
+/**
+ * Write one entry's document to production, or remove the target when
  * `document` is `null` (a revert of a proposal that created the row). Returns
  * the public paths the write invalidates.
  */
 export async function applyTarget(
   ctx: MutationCtx,
   auth: ApplyAuth,
-  target: ProposalTargetRef,
-  document: unknown,
+  target: ProposalSnapshotEntry,
 ): Promise<{ revalidatePaths: string[] }> {
+  const document = target.document;
   switch (target.kind) {
     case "article": {
       if (document === null) {
@@ -77,15 +115,23 @@ export async function applyTarget(
     case "indexLayout": {
       const type = target.key as IndexLayoutType;
       if (document === null) {
-        // The layout row did not exist when the proposal was drafted. The
-        // `categoryLayout` mirror keeps whatever the apply projected into it:
-        // there is no earlier layout to project back.
+        // The layout row did not exist when the proposal was drafted, so the
+        // public grid's mirror is put back from its own snapshot rather than
+        // projected from a layout.
         const row = await ctx.db
           .query("indexLayouts")
           .withIndex("by_type", (q) => q.eq("type", type))
           .first();
         if (row) {
           await ctx.db.delete(row._id);
+        }
+        if (target.categoryLayout) {
+          await writeCategoryLayout(ctx, target.categoryLayout);
+        } else if (target.categoryLayout === null) {
+          const mirror = await ctx.db.query("categoryLayout").first();
+          if (mirror) {
+            await ctx.db.delete(mirror._id);
+          }
         }
       } else {
         const layout = document as ProposalLayoutDocument;
@@ -99,12 +145,54 @@ export async function applyTarget(
       }
       return { revalidatePaths: saveRevalidationPaths([], [type]) };
     }
-    case "about":
-    case "copyBlock":
-      throw new ConvexError({
-        code: "PROPOSAL_KIND_UNSUPPORTED",
-        message: `Applying ${target.kind} proposals is not supported yet.`,
-      });
+    case "about": {
+      if (document === null) {
+        const row = await ctx.db
+          .query("siteConfig")
+          .withIndex("by_key", (q) => q.eq("key", ABOUT_KEY))
+          .first();
+        if (row) {
+          await ctx.db.delete(row._id);
+        }
+      } else {
+        // Both a payload document and a `snapshotBefore` row land here; the
+        // handler reads only the three editable fields, so a stored row's
+        // `key`, `updatedAt`, and `updatedBy` fall away and the approver is
+        // recorded as the writer.
+        const about = document as AboutDocument;
+        await saveAboutHandler(ctx, {
+          apiKey: auth.apiKey,
+          actorEmail: auth.actorEmail,
+          aboutMarkdown: about.aboutMarkdown,
+          aboutSubtitle: about.aboutSubtitle,
+          founderProfileKeys: about.founderProfileKeys,
+          updatedBy: auth.actorEmail,
+        });
+      }
+      return { revalidatePaths: ABOUT_REVALIDATION_PATHS };
+    }
+    case "copyBlock": {
+      if (document === null) {
+        await removeCopyBlockHandler(ctx, { apiKey: auth.apiKey, actorEmail: auth.actorEmail, key: target.key });
+      } else {
+        const block = document as CopyBlockDocument;
+        await upsertCopyBlockHandler(ctx, {
+          apiKey: auth.apiKey,
+          actorEmail: auth.actorEmail,
+          key: target.key,
+          flavor: block.flavor,
+          kind: block.kind,
+          body: block.body,
+          items: block.items,
+          label: block.label,
+          group: block.group,
+          updatedBy: auth.actorEmail,
+        });
+      }
+      // Copy renders on many pages; the approve route's `convex-public` tag
+      // sweep is what makes it visible, so there is no single path to name.
+      return { revalidatePaths: [] };
+    }
   }
 }
 
@@ -117,6 +205,12 @@ export function payloadDocuments(payload: ProposalPayload): ProposalSnapshotEntr
   for (const layout of payload.indexLayouts ?? []) {
     documents.push({ kind: "indexLayout", key: layout.type, document: layout });
   }
+  for (const block of payload.copyBlocks ?? []) {
+    documents.push({ kind: "copyBlock", key: block.key.trim(), document: block });
+  }
+  if (payload.about) {
+    documents.push({ kind: "about", key: ABOUT_KEY, document: payload.about });
+  }
   return documents;
 }
 
@@ -128,7 +222,7 @@ export async function applyDocuments(
 ): Promise<string[]> {
   const paths: string[] = [];
   for (const entry of documents) {
-    const { revalidatePaths } = await applyTarget(ctx, auth, entry, entry.document);
+    const { revalidatePaths } = await applyTarget(ctx, auth, entry);
     paths.push(...revalidatePaths);
   }
   return saveRevalidationPaths(paths, []);

@@ -1,5 +1,7 @@
 /**
- * Editor write endpoint for one Writing/Blog row (the /dev Writing and Blog tabs).
+ * Write endpoint for one Writing/Blog row (the /dev Writing and Blog tabs).
+ * The GET reads are editor floor; the POST publishes to the live site with no
+ * review step and is admin-only.
  *
  *   POST /api/dev/writing-article  { slug, originalSlug?, kind, status, title?, teaser?, … }
  *
@@ -208,7 +210,7 @@ export const GET = protectedRouteOperation<undefined, undefined>({
 });
 
 export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArticle>({
-  auth: "editor",
+  auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 1024 * 1024,

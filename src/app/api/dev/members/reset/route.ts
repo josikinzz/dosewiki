@@ -14,7 +14,7 @@ import { MEMBER_BODY_MAX_BYTES, parseMemberEmail, type MemberActionBody } from "
 
 export const runtime = "nodejs";
 
-export const RESET_PASSWORD_PATH = "/reset-password";
+export const RESET_PAGE_PATH = "/reset-password";
 
 export const POST = protectedRouteOperation<MemberActionBody, { email: string }>({
   auth: "admin",
@@ -41,7 +41,7 @@ export const POST = protectedRouteOperation<MemberActionBody, { email: string }>
     return NextResponse.json({
       ok: true,
       email: body.email,
-      resetPath: `${RESET_PASSWORD_PATH}?token=${token}`,
+      resetPath: `${RESET_PAGE_PATH}?token=${token}`,
     });
   },
 });

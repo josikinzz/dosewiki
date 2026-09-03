@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type MutationCtx } from "./_generated/server";
+import { auditStampFor } from "./lib/auditStamp";
 import { requireRole } from "./lib/auth";
 
 /**
@@ -12,8 +13,9 @@ import { requireRole } from "./lib/auth";
  * renders exactly what the hardcoded strings rendered.
  *
  * Reads are public on purpose: this is the copy a reader already sees. Writes
- * are editor-gated through `requireRole`, the same delegated
- * server-token path the other editor tools use.
+ * are admin-gated through `requireRole`: an editor's copy edits arrive as
+ * change proposals and `approveAndApply` runs this same upsert with the
+ * approving admin as the actor.
  */
 
 export const COPY_BLOCK_KINDS = ["markdown", "plain", "list"] as const;
@@ -23,6 +25,33 @@ const copyBlockKindValidator = v.union(
   v.literal("plain"),
   v.literal("list"),
 );
+
+/**
+ * The editable fields of one block, as `upsert` takes them and as a change
+ * proposal carries them. Shared so a proposal can never smuggle a shape the
+ * direct save would refuse.
+ */
+export const copyBlockDocumentFields = {
+  key: v.string(),
+  flavor: v.optional(v.string()),
+  kind: copyBlockKindValidator,
+  body: v.optional(v.string()),
+  items: v.optional(v.array(v.string())),
+  label: v.string(),
+  group: v.string(),
+} as const;
+
+export const copyBlockDocumentValidator = v.object(copyBlockDocumentFields);
+
+export type CopyBlockDocument = {
+  key: string;
+  flavor?: string;
+  kind: CopyBlockKind;
+  body?: string;
+  items?: string[];
+  label: string;
+  group: string;
+};
 
 const copyBlockDocValidator = v.object({
   _id: v.id("copyBlocks"),
@@ -95,6 +124,63 @@ export const getAll = query({
   },
 });
 
+type UpsertCopyBlockArgs = CopyBlockDocument & {
+  apiKey?: string;
+  actorEmail?: string;
+  updatedBy?: string;
+};
+
+export async function upsertCopyBlockHandler(ctx: MutationCtx, args: UpsertCopyBlockArgs) {
+  const actor = await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "admin");
+
+  const key = args.key.trim();
+  if (!KEY_PATTERN.test(key)) {
+    reject("A copy block key must be lower-case kebab-case.");
+  }
+
+  const label = args.label.trim();
+  const group = args.group.trim();
+  if (!label || !group) {
+    reject("A copy block needs both a label and a group.");
+  }
+
+  const flavor = args.flavor?.trim();
+  const payload = normalizeCopyBlockPayload({
+    kind: args.kind,
+    body: args.body,
+    items: args.items,
+  });
+
+  const existing = await ctx.db
+    .query("copyBlocks")
+    .withIndex("by_key", (q) => q.eq("key", key))
+    .first();
+
+  const document = {
+    key,
+    flavor: flavor && flavor.length > 0 ? flavor : undefined,
+    kind: args.kind,
+    body: payload.body,
+    items: payload.items,
+    label,
+    group,
+    updatedAt: new Date().toISOString(),
+    updatedBy: auditStampFor(actor, args.updatedBy),
+  };
+
+  if (existing) {
+    await ctx.db.patch(existing._id, document);
+    return { updated: true, id: existing._id, key };
+  }
+
+  const id = await ctx.db.insert("copyBlocks", document);
+  return { updated: false, id, key };
+}
+
 /**
  * Create or replace one copy block, addressed by `key`.
  *
@@ -106,13 +192,7 @@ export const upsert = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
-    key: v.string(),
-    flavor: v.optional(v.string()),
-    kind: copyBlockKindValidator,
-    body: v.optional(v.string()),
-    items: v.optional(v.array(v.string())),
-    label: v.string(),
-    group: v.string(),
+    ...copyBlockDocumentFields,
     updatedBy: v.optional(v.string()),
   },
   returns: v.object({
@@ -120,57 +200,32 @@ export const upsert = mutation({
     id: v.id("copyBlocks"),
     key: v.string(),
   }),
-  handler: async (ctx, args) => {
-    const actor = await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    }, "editor");
-
-    const key = args.key.trim();
-    if (!KEY_PATTERN.test(key)) {
-      reject("A copy block key must be lower-case kebab-case.");
-    }
-
-    const label = args.label.trim();
-    const group = args.group.trim();
-    if (!label || !group) {
-      reject("A copy block needs both a label and a group.");
-    }
-
-    const flavor = args.flavor?.trim();
-    const payload = normalizeCopyBlockPayload({
-      kind: args.kind,
-      body: args.body,
-      items: args.items,
-    });
-
-    const existing = await ctx.db
-      .query("copyBlocks")
-      .withIndex("by_key", (q) => q.eq("key", key))
-      .first();
-
-    const document = {
-      key,
-      flavor: flavor && flavor.length > 0 ? flavor : undefined,
-      kind: args.kind,
-      body: payload.body,
-      items: payload.items,
-      label,
-      group,
-      updatedAt: new Date().toISOString(),
-      updatedBy: args.updatedBy ?? actor.email,
-    };
-
-    if (existing) {
-      await ctx.db.patch(existing._id, document);
-      return { updated: true, id: existing._id, key };
-    }
-
-    const id = await ctx.db.insert("copyBlocks", document);
-    return { updated: false, id, key };
-  },
+  handler: upsertCopyBlockHandler,
 });
+
+export async function removeCopyBlockHandler(
+  ctx: MutationCtx,
+  args: { apiKey?: string; actorEmail?: string; key: string },
+) {
+  await requireRole(ctx, {
+    apiKey: args.apiKey,
+    actorEmail: args.actorEmail,
+    adminIntent: "editorArticleWrite",
+  }, "admin");
+
+  const key = args.key.trim();
+  const existing = await ctx.db
+    .query("copyBlocks")
+    .withIndex("by_key", (q) => q.eq("key", key))
+    .first();
+
+  if (!existing) {
+    return { removed: false, key };
+  }
+
+  await ctx.db.delete(existing._id);
+  return { removed: true, key };
+}
 
 /**
  * Delete one copy block. Removing a row is not destructive to a reader: the
@@ -183,24 +238,5 @@ export const remove = mutation({
     key: v.string(),
   },
   returns: v.object({ removed: v.boolean(), key: v.string() }),
-  handler: async (ctx, args) => {
-    await requireRole(ctx, {
-      apiKey: args.apiKey,
-      actorEmail: args.actorEmail,
-      adminIntent: "editorArticleWrite",
-    }, "admin");
-
-    const key = args.key.trim();
-    const existing = await ctx.db
-      .query("copyBlocks")
-      .withIndex("by_key", (q) => q.eq("key", key))
-      .first();
-
-    if (!existing) {
-      return { removed: false, key };
-    }
-
-    await ctx.db.delete(existing._id);
-    return { removed: true, key };
-  },
+  handler: removeCopyBlockHandler,
 });

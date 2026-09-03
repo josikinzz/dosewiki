@@ -10,15 +10,19 @@
  * actor's email for the audit trail.
  *
  * Three roles share the route. An admin may read and patch any record and any
- * field. An editor may read and patch any record, but `saveProfileAsEditor`
+ * field. An editor may read any record but patch only their own: the record
+ * whose membership email is theirs, or the still-unclaimed record their
+ * sign-in derives to. The route refuses the obvious case (a record another
+ * sign-in holds) with 403 before writing, and Convex's `saveProfileAsEditor`
+ * applies the same rule with the actor's real membership role, so a
+ * misconfigured route still cannot escalate. `saveProfileAsEditor` also
  * refuses the trust fields (role, membership email, approved replicator,
  * gallery exclusion, archival, staff note) for anyone below admin, whatever
  * the payload carries. A signed-in contributor may read and save only their
- * own record (the one whose membership email is theirs, or the still-unclaimed
- * record their sign-in derives to) and only its self-serve fields; that write
- * goes through `saveProfile`, whose ownership rule Convex enforces with the
- * actor's real membership role, and the read withholds the staff-only fields.
- * A missing own record comes back blank so the first save creates it.
+ * own record and only its self-serve fields; that write goes through
+ * `saveProfile`, whose ownership rule Convex enforces the same way, and the
+ * read withholds the staff-only fields. A missing own record comes back blank
+ * so the first save creates it.
  *
  * The GET exists because the public profile projection deliberately drops
  * `membershipEmail` and `avatarStorageId`, and because the two item lists the
@@ -366,6 +370,7 @@ function blankOwnProfile(key: string) {
 }
 
 const OWN_RECORD_ONLY = { error: "You can only view your own contributor profile." };
+const OWN_RECORD_WRITE_ONLY = { error: "You can only edit your own contributor profile." };
 
 export const GET = protectedRouteOperation({
   auth: "contributor",
@@ -483,10 +488,7 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     // Convex wraps thrown mutation errors, so match by substring.
     const message = error instanceof Error ? error.message : "";
     if (message.includes("You can only edit your own contributor profile")) {
-      return NextResponse.json(
-        { error: "You can only edit your own contributor profile." },
-        { status: 403 },
-      );
+      return NextResponse.json(OWN_RECORD_WRITE_ONLY, { status: 403 });
     }
     return null;
   },
@@ -497,15 +499,12 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
 
     const apiKey = adminIntentToken(convexWrite);
     const isEditor = roleMeetsFloor(auth.role, "editor");
-    const avatarStorageId = body.avatarUpload
-      ? await uploadAvatarToConvex(body.avatarUpload, convexWrite, actorEmail)
-      : undefined;
 
-    // An editor patches a stored record. A non-editor, or an editor whose own
-    // record does not exist yet, writes the self-serve field set through
-    // `saveProfile`, which enforces ownership with the actor's real role and
-    // creates the record on first save. Admin-only fields in a self-serve body
-    // are never written.
+    // An editor patches a stored record they own. A non-editor, or an editor
+    // whose own record does not exist yet, writes the self-serve field set
+    // through `saveProfile`, which enforces ownership with the actor's real
+    // role and creates the record on first save. Admin-only fields in a
+    // self-serve body are never written.
     const stored = isEditor
       ? await convexWrite.client.query(api.contributorProfiles.getEditorProfile, {
           apiKey,
@@ -513,6 +512,13 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
           key: body.key,
         })
       : null;
+    if (
+      stored?.membershipEmail &&
+      auth.role !== "admin" &&
+      stored.membershipEmail.trim().toLowerCase() !== actorEmail.trim().toLowerCase()
+    ) {
+      return NextResponse.json(OWN_RECORD_WRITE_ONLY, { status: 403 });
+    }
     const selfServe = !isEditor || !stored;
     if (selfServe && isEditor) {
       const ownKey = await resolveOwnProfileKey(convexWrite, actorEmail);
@@ -523,6 +529,10 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
         );
       }
     }
+
+    const avatarStorageId = body.avatarUpload
+      ? await uploadAvatarToConvex(body.avatarUpload, convexWrite, actorEmail)
+      : undefined;
 
     const result = selfServe
       ? await convexWrite.client.mutation(api.contributorProfiles.saveProfile, {

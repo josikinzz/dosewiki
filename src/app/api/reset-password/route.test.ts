@@ -19,7 +19,7 @@ const memberships = vi.hoisted(() => ({ consumePasswordReset: vi.fn() }));
 vi.mock("@server/auth/convexMemberships", () => memberships);
 
 const TOKEN = "a".repeat(64);
-const PASSWORD = "correct horse battery";
+const PASSPHRASE = "correct horse battery";
 
 const post = (body: Record<string, unknown>) =>
   new Request("https://dev.dose.wiki/api/reset-password", {
@@ -38,7 +38,7 @@ describe("POST /api/reset-password", () => {
     const limited = Response.json({ error: "Too many attempts." }, { status: 429 });
     rateLimit.enforceRateLimit.mockResolvedValue(limited);
 
-    const response = await POST(post({ token: TOKEN, password: PASSWORD }));
+    const response = await POST(post({ token: TOKEN, password: PASSPHRASE }));
 
     expect(response).toBe(limited);
     expect(rateLimit.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "authCredentialAttempt");
@@ -46,7 +46,7 @@ describe("POST /api/reset-password", () => {
   });
 
   it("hashes the token and the password, then consumes the reset", async () => {
-    const response = await POST(post({ token: TOKEN.toUpperCase(), password: PASSWORD }));
+    const response = await POST(post({ token: TOKEN.toUpperCase(), password: PASSPHRASE }));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true });
@@ -55,15 +55,15 @@ describe("POST /api/reset-password", () => {
     const [tokenHash, passwordHash] = memberships.consumePasswordReset.mock.calls[0] as [string, string];
     expect(tokenHash).toBe(createHash("sha256").update(TOKEN).digest("hex"));
     expect(passwordHash.startsWith("scrypt$")).toBe(true);
-    await expect(verifyPassword(PASSWORD, passwordHash)).resolves.toBe(true);
+    await expect(verifyPassword(PASSPHRASE, passwordHash)).resolves.toBe(true);
   });
 
   it("refuses a malformed token and a weak password before touching Convex", async () => {
     for (const body of [
-      { password: PASSWORD },
-      { token: "not-a-token", password: PASSWORD },
+      { password: PASSPHRASE },
+      { token: "not-a-token", password: PASSPHRASE },
       { token: TOKEN, password: "short" },
-      { token: TOKEN, password: ` ${PASSWORD}` },
+      { token: TOKEN, password: ` ${PASSPHRASE}` },
     ]) {
       const response = await POST(post(body));
       expect(response.status, JSON.stringify(body)).toBe(400);
@@ -79,7 +79,7 @@ describe("POST /api/reset-password", () => {
       }),
     );
 
-    const response = await POST(post({ token: TOKEN, password: PASSWORD }));
+    const response = await POST(post({ token: TOKEN, password: PASSPHRASE }));
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
@@ -92,7 +92,7 @@ describe("POST /api/reset-password", () => {
     memberships.consumePasswordReset.mockRejectedValue(new Error("connect ECONNREFUSED"));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const response = await POST(post({ token: TOKEN, password: PASSWORD }));
+    const response = await POST(post({ token: TOKEN, password: PASSPHRASE }));
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({ error: "Unable to reset your password right now." });

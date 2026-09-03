@@ -6,7 +6,7 @@ import {
   getMembershipByEmail,
   touchSignIn,
 } from "./lib/auth/convexMemberships";
-import { verifyPassword } from "./lib/auth/passwords";
+import { UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./lib/auth/passwords";
 import { authSecret } from "./lib/auth/runtimePolicy";
 
 type AuthorizedMember = {
@@ -20,6 +20,10 @@ type AuthorizedMember = {
  * member for the session, or null for every failure: unknown username,
  * banned member, no password set, wrong password. Auth.js maps null to a
  * generic CredentialsSignin error, so the reason never reaches the browser.
+ *
+ * Every non-blank attempt pays for one scrypt derivation, against the stored
+ * hash when there is one and against `UNMATCHABLE_PASSWORD_HASH` otherwise,
+ * so response time does not say whether the username exists.
  */
 export async function authorizeCredentials(
   credentials: Partial<Record<"username" | "password", unknown>> | undefined,
@@ -32,11 +36,8 @@ export async function authorizeCredentials(
   }
 
   const member = await getCredentialsByUsername(username);
-  if (!member || member.bannedAt || !member.passwordHash) {
-    return null;
-  }
-
-  if (!(await verifyPassword(password, member.passwordHash))) {
+  const matched = await verifyPassword(password, member?.passwordHash ?? UNMATCHABLE_PASSWORD_HASH);
+  if (!member || member.bannedAt || !member.passwordHash || !matched) {
     return null;
   }
 
@@ -74,14 +75,17 @@ export const authOptions: NextAuthOptions = {
 
       // Re-read the stored role on every JWT refresh so a role change or a
       // ban takes effect on the next request instead of at the next sign-in.
+      // A failed read fails closed: the token keeps its identity but carries
+      // no privilege until Convex answers again, so a just-banned or demoted
+      // member cannot ride out an outage on their old role.
       try {
         const membership = await getMembershipByEmail(email);
         token.role = membership?.bannedAt
           ? "viewer"
           : (resolveSessionRole({ role: membership?.role }) ?? "viewer");
       } catch (error) {
-        console.error("[Auth] Failed to read membership role", error);
-        token.role = resolveSessionRole({ role: token.role }) ?? "viewer";
+        console.error("[Auth] Failed to read membership role; session degraded to viewer", error);
+        token.role = "viewer";
       }
 
       return token;

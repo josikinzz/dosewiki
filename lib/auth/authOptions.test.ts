@@ -8,10 +8,21 @@ const memberships = vi.hoisted(() => ({
 
 vi.mock("./convexMemberships", () => memberships);
 
-import { hashPassword } from "./passwords";
+const passwords = vi.hoisted(() => ({ verifyPassword: vi.fn() }));
+
+// The real module, with `verifyPassword` observable: the unknown-username
+// case is a timing contract (one derivation happens), not a return value.
+vi.mock("./passwords", async (importOriginal) => {
+  const original = await importOriginal<typeof PasswordsModule>();
+  passwords.verifyPassword.mockImplementation(original.verifyPassword);
+  return { ...original, verifyPassword: passwords.verifyPassword };
+});
+
+import type * as PasswordsModule from "./passwords";
+import { hashPassword, UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./passwords";
 import { authOptions, authorizeCredentials } from "../../auth";
 
-const PASSWORD = "a passphrase of twelve+";
+const PASSPHRASE = "a passphrase of twelve+";
 
 describe("authOptions", () => {
   it("registers exactly one credentials provider with username and password", () => {
@@ -34,23 +45,38 @@ describe("authorizeCredentials", () => {
   let passwordHash: string;
 
   beforeEach(async () => {
-    passwordHash = await hashPassword(PASSWORD);
+    passwordHash = await hashPassword(PASSPHRASE);
     memberships.getCredentialsByUsername.mockReset();
     memberships.touchSignIn.mockClear();
+    passwords.verifyPassword.mockClear();
   });
 
-  it("returns null without a lookup when either field is blank", async () => {
-    await expect(authorizeCredentials({ username: "", password: PASSWORD })).resolves.toBeNull();
+  it("returns null without a lookup or a derivation when either field is blank", async () => {
+    await expect(authorizeCredentials({ username: "", password: PASSPHRASE })).resolves.toBeNull();
     await expect(authorizeCredentials({ username: "josie", password: "" })).resolves.toBeNull();
     await expect(authorizeCredentials(undefined)).resolves.toBeNull();
     expect(memberships.getCredentialsByUsername).not.toHaveBeenCalled();
+    expect(passwords.verifyPassword).not.toHaveBeenCalled();
   });
 
-  it("returns null for an unknown username", async () => {
+  it("returns null for an unknown username, still paying for one derivation against the dummy hash", async () => {
     memberships.getCredentialsByUsername.mockResolvedValue(null);
 
-    await expect(authorizeCredentials({ username: "nobody", password: PASSWORD })).resolves.toBeNull();
+    await expect(authorizeCredentials({ username: "nobody", password: PASSPHRASE })).resolves.toBeNull();
+    expect(passwords.verifyPassword).toHaveBeenCalledTimes(1);
+    expect(passwords.verifyPassword).toHaveBeenCalledWith(PASSPHRASE, UNMATCHABLE_PASSWORD_HASH);
     expect(memberships.touchSignIn).not.toHaveBeenCalled();
+  });
+
+  it("never matches the dummy hash", async () => {
+    // The unknown-username path must be indistinguishable in cost and can
+    // never accidentally succeed: the dummy is well formed (so scrypt runs)
+    // but its digest is all zero bytes.
+    const [, N, r, p, salt, digest] = UNMATCHABLE_PASSWORD_HASH.split("$");
+    expect([N, r, p]).toEqual(["16384", "8", "1"]);
+    expect(Buffer.from(salt, "base64")).toHaveLength(16);
+    expect(Buffer.from(digest, "base64")).toEqual(Buffer.alloc(64));
+    await expect(verifyPassword(PASSPHRASE, UNMATCHABLE_PASSWORD_HASH)).resolves.toBe(false);
   });
 
   it("returns null for the wrong password", async () => {
@@ -60,7 +86,7 @@ describe("authorizeCredentials", () => {
       passwordHash,
     });
 
-    await expect(authorizeCredentials({ username: "josie", password: `${PASSWORD}x` })).resolves.toBeNull();
+    await expect(authorizeCredentials({ username: "josie", password: `${PASSPHRASE}x` })).resolves.toBeNull();
     expect(memberships.touchSignIn).not.toHaveBeenCalled();
   });
 
@@ -72,14 +98,15 @@ describe("authorizeCredentials", () => {
       bannedAt: "2026-09-01T00:00:00.000Z",
     });
 
-    await expect(authorizeCredentials({ username: "josie", password: PASSWORD })).resolves.toBeNull();
+    await expect(authorizeCredentials({ username: "josie", password: PASSPHRASE })).resolves.toBeNull();
     expect(memberships.touchSignIn).not.toHaveBeenCalled();
   });
 
-  it("returns null for a member with no password set", async () => {
+  it("returns null for a member with no password set, still paying for one derivation", async () => {
     memberships.getCredentialsByUsername.mockResolvedValue({ email: "josie@example.com", role: "editor" });
 
-    await expect(authorizeCredentials({ username: "josie", password: PASSWORD })).resolves.toBeNull();
+    await expect(authorizeCredentials({ username: "josie", password: PASSPHRASE })).resolves.toBeNull();
+    expect(passwords.verifyPassword).toHaveBeenCalledWith(PASSPHRASE, UNMATCHABLE_PASSWORD_HASH);
   });
 
   it("returns the member and records the sign-in on the happy path", async () => {
@@ -90,7 +117,7 @@ describe("authorizeCredentials", () => {
       passwordHash,
     });
 
-    await expect(authorizeCredentials({ username: "  josie ", password: PASSWORD })).resolves.toEqual({
+    await expect(authorizeCredentials({ username: "  josie ", password: PASSPHRASE })).resolves.toEqual({
       id: "josie@example.com",
       email: "josie@example.com",
       name: "Josie",
@@ -125,10 +152,20 @@ describe("jwt callback", () => {
     await expect(call({ email: "josie@example.com", role: "admin" })).resolves.toMatchObject({ role: "viewer" });
   });
 
-  it("keeps the previous role when the membership read fails", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
+  it("fails closed to viewer, and logs, when the membership read fails", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     memberships.getMembershipByEmail.mockRejectedValue(new Error("offline"));
 
-    await expect(call({ email: "josie@example.com", role: "editor" })).resolves.toMatchObject({ role: "editor" });
+    await expect(call({ email: "josie@example.com", role: "admin" })).resolves.toMatchObject({
+      email: "josie@example.com",
+      role: "viewer",
+    });
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining("degraded to viewer"), expect.any(Error));
+  });
+
+  it("treats an email with no membership row as viewer", async () => {
+    memberships.getMembershipByEmail.mockResolvedValue(null);
+
+    await expect(call({ email: "gone@example.com", role: "editor" })).resolves.toMatchObject({ role: "viewer" });
   });
 });

@@ -3,6 +3,7 @@ import {
   DevCommitCard,
   type DevCommitDestination,
   type DevCommitNotice,
+  type DevCommitRebase,
 } from "../components/DevCommitCard";
 
 type DevModeCommitPanelProps = {
@@ -12,15 +13,18 @@ type DevModeCommitPanelProps = {
   actionSlot?: ReactNode;
   /** Tab-specific panel copy; falls back to the neutral DevCommitCard default. */
   description?: ReactNode;
+  /** The returned proposal the draft rebases, when the working set was seeded from one. */
+  rebase?: DevCommitRebase | null;
 };
 
-export function DevModeCommitPanel({ notice, destination, actionSlot, description }: DevModeCommitPanelProps) {
+export function DevModeCommitPanel({ notice, destination, actionSlot, description, rebase }: DevModeCommitPanelProps) {
   return (
     <DevCommitCard
       notice={notice}
       destination={destination}
       actionSlot={actionSlot}
       description={description}
+      rebase={rebase}
     />
   );
 }
