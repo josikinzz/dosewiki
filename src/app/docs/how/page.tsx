@@ -808,7 +808,7 @@ export default async function DocsHowPage() {
           The working copies were captured in December 2025, and the pipeline reads the
           copy. A source site can change after our capture, so this list is a dated
           snapshot. Improvement after that date comes from editors, the citation
-          workflows, and reader reports (<SectionRef s="status" />).
+          workflows, and reader feedback (<SectionRef s="status" />).
         </p>
 
         <ContentCard padding="none" className={`${TABLE_WRAP_CLASS} mt-6`}>
@@ -1755,7 +1755,7 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              Editor corrections, reports sent through the article feedback form,
+              Editor corrections, messages sent through the article feedback form,
               replication evidence, and curated additions continue to build on the
               baseline indefinitely. Any
               regenerated or edited content returns through the audit and review stages
