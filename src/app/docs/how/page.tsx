@@ -472,34 +472,48 @@ export default async function DocsHowPage() {
             {copy.text("docs-how-title")}
           </h1>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
-            The source material for a substance article is already published across ten
-            reference sites in ten formats. Compiling those sources was always the expensive part.{" "}
-            <a href="/contributors/josie" className={proseLinkClassName}>Josie Kins</a>, who
-            co-founded dose.wiki, wrote hundreds of substance articles by hand for earlier
-            reference sites, so we know the cost: each article is days of work, each writer
-            sets a different standard, and when a writer leaves, the method leaves with them.
+            The facts a substance article needs have already been gathered and published:
+            decades of documentation by scientists, psychonauts, and the harm-reduction
+            community. They are spread primarily across ten psychopharmacology reference
+            sites in ten formats, with no shared standard and no one site covering
+            everything. We know what compiling them by hand costs, because we have done
+            it:{" "}
+            <a
+              href="https://en.wikipedia.org/wiki/Josie_Kins"
+              className={proseLinkClassName}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Josie Kins
+            </a>
+            , who co-founded dose.wiki, founded PsychonautWiki. Its first draft took her
+            and a team of contributors from 2011 to 2016 to write by hand. This time we
+            let software do the initial compilation. Building the pipeline took about a
+            year, and its output then went through months of human review before we were
+            comfortable publishing it. Editors have been working on top of that baseline
+            since. The dataset is open, so anyone building an encyclopedia of their own
+            can start from it instead of from zero.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            Software now handles that compilation, so substance articles begin as
-            pipeline drafts. Code copies the dose and duration tables. An LLM reads the
-            sources and drafts the narrative sections from word-for-word excerpts, citing
-            the source of each one. The same steps and prompts run for every substance,
-            regardless of who starts the pipeline or when. Human editors take over from there. They verify
-            the pharmacology, check the doses and interactions where a wrong figure can hurt
-            someone, and add what the sources left out. Each article&apos;s status subsection
-            shows how much human review it has had.
+            Substance articles therefore begin as pipeline drafts. Code scrapes and
+            copies the dose and duration tables from the source sites. An LLM reads the
+            same sources and drafts the narrative sections from word-for-word excerpts,
+            citing the source of each one. Human editors take over from there: they
+            verify the pharmacology, check the doses and interactions where a wrong
+            figure can hurt someone, and add what the sources left out.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            The pipeline builds the baseline once, with the models available today.
-            Human editors work on top of that baseline. Newer models will be able to do research
-            and add to it as well. Articles change after publication, and{" "}
-            <SectionRef s="status" cap /> records what is done and what is planned.
-          </p>
-          <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            This page shows each step of the pipeline and each prompt it runs. It
-            follows the order of the work: the source sites, the parsers, the excerpts,
-            the AI writing, the citations, and the human review. After that, it lists
-            what can still go wrong, the roadmap, and the open dataset.
+            Every article&apos;s status subsection shows how much human review it has
+            had, and this page shows every step and every prompt the pipeline runs.
+            Coverage is still incomplete, and any given article can contain an error.
+            Improvement is continuous, and reader feedback drives most of it: the
+            report-an-issue box at the bottom of each article and the{" "}
+            <a href="/about/feedback" className={proseLinkClassName}>feedback form</a>{" "}
+            both go directly to the review queue, where an editor reads each message and
+            makes the change in a Wikipedia-style editor built into the site. Every
+            correction fixes the article and the next export of the dataset, which anyone
+            can{" "}
+            <a href="#dataset" className={proseLinkClassName}>download</a>.
           </p>
         </header>
 
@@ -1508,8 +1522,8 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           Readers take part in this stage. The report-an-issue form at the bottom of
           each article sends a note to the review queue. An editor reads each note and
-          decides whether the article changes. Reader reports are the main way that
-          errors reach a reviewer before a scheduled review.
+          decides whether the article changes. Reader feedback is the main way that
+          errors reach a reviewer.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           Editorial review is a recorded human workflow with four steps.
