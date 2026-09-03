@@ -53,6 +53,11 @@ interface ReviewArticleViewProps
   current: ReviewQueueEntry | null;
   /** The working-set article with this session's direct writes overlaid. */
   articleForView: SubstanceArticle | null;
+  /** The current article's body is still being fetched; the article area waits inline. */
+  articleHydrating: boolean;
+  /** The current article's most recent fetch landed nothing; the area offers a retry. */
+  articleFailed: boolean;
+  retryArticle: () => void;
   moleculeOverrideUrl: string | null;
   moleculePanelOpen: boolean;
   closeMoleculePanel: () => void;
@@ -77,6 +82,9 @@ export function ReviewArticleView({
   current,
   articleForView,
   moleculeOverrideUrl,
+  articleHydrating,
+  articleFailed,
+  retryArticle,
   moleculePanelOpen,
   closeMoleculePanel,
   citationPanelOpen,
@@ -141,6 +149,34 @@ export function ReviewArticleView({
           viewMode === "webpage" && !articleLinks ? blockArticleLinks : undefined
         }
       >
+        {/* Shown in both views: the form has nothing to seed from either, and
+            the retry is the only way forward short of navigating away and
+            back. The chrome above stays live, so that route stays open too. */}
+        {articleFailed && current ? (
+          <div className="mb-4" data-testid="review-article-failed">
+            <EditorNotice
+              notice={{
+                tone: "danger",
+                title: `Could not load ${current.name}`,
+                message:
+                  "The article body did not arrive. Retry, or move on and come back to it.",
+                live: true,
+                actions: (
+                  <Button
+                    variant="glass"
+                    size="pill"
+                    className="rounded-full"
+                    onClick={retryArticle}
+                  >
+                    <Icon icon="lucide:refresh-cw" size={16} />
+                    Retry
+                  </Button>
+                ),
+              }}
+            />
+          </div>
+        ) : null}
+
         {/* The working set stops taking live updates while it holds unapplied
             changes, so the page can be rendering — and sending as the write's
             `expected` baseline — a copy the database has already moved past.
@@ -175,7 +211,18 @@ export function ReviewArticleView({
                 warningBannerNotice={BANNERS_HIDDEN_NOTICE}
               />
             </ArticleEditProvider>
-          ) : current ? (
+          ) : articleHydrating ? (
+            /* Per-slug hydration in flight: the bar, queue position, and
+               picker stay live; only the article area waits. */
+            <div aria-busy="true" data-testid="review-article-loading">
+              <EditorNotice
+                notice={{
+                  tone: "info",
+                  message: `Loading ${current?.name ?? "the article"}…`,
+                }}
+              />
+            </div>
+          ) : current && !articleFailed ? (
             <EditorNotice
               notice={{
                 tone: "warning",
@@ -205,7 +252,7 @@ export function ReviewArticleView({
                 notice={{ tone: "danger", message: draft.saveError, live: true }}
               />
             ) : null}
-            {draft.formArticleOverride ? (
+            {!articleHydrating && draft.formArticleOverride ? (
               <ArticleDraftFormFieldsRHF
                 key={current?.slug ?? "review-form"}
                 idPrefix="review-form"
@@ -213,7 +260,7 @@ export function ReviewArticleView({
                 onMutate={draft.handleFormMutate}
                 formRef={draft.formRef}
               />
-            ) : current ? (
+            ) : current && !articleFailed ? (
               <EditorNotice
                 notice={{
                   tone: "info",

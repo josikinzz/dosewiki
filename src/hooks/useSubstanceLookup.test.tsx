@@ -71,19 +71,19 @@ describe("useSubstanceLookup", () => {
       expect(source).not.toContain("api.substanceIndex.getLookup");
     }
 
-    // The `/dev` shell dropped its lookup drain entirely: the editor projection
-    // it already loads carries the same slug/name/priority. Clients that still
-    // need a standalone lookup must go through the draining hook.
-    for (const file of editorClients.slice(1)) {
+    // The `/dev` shell and the review route dropped their lookup drains: the
+    // slim editor projection they already load carries the same
+    // slug/name/priority. Clients that still need a standalone lookup must go
+    // through the draining hook.
+    const libraryClients = editorClients.slice(0, 2);
+    for (const file of libraryClients) {
+      const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
+      expect(source).not.toContain("useSubstanceLookup");
+    }
+    for (const file of editorClients.slice(2)) {
       const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
       expect(source).toContain("useSubstanceLookup");
     }
-
-    const devShell = readFileSync(
-      `${process.cwd()}/src/app/dev/_components/NextDevRouteClient.tsx`,
-      "utf8",
-    );
-    expect(devShell).not.toContain("useSubstanceLookup");
   });
 
   it("skips the query and reports no loading work when disabled", () => {

@@ -8,6 +8,22 @@ import {
 
 type ArticleRecord = SubstanceArticle;
 
+/**
+ * The minimum a row must carry for `buildTagRegistry` to index it: identity
+ * for slug derivation and article refs, plus the four tag fields (the
+ * mechanism tag list is read out of `binding_sites`). Whole
+ * `SubstanceArticle` rows satisfy it, and so does the bounded tag-registry
+ * projection the tag editor drains instead of the corpus.
+ */
+export type TagRegistryInput = {
+  id?: SubstanceArticle["id"];
+  title: SubstanceArticle["title"];
+  identification: SubstanceArticle["identification"];
+  index_categories: SubstanceArticle["index_categories"];
+  classification: SubstanceArticle["classification"];
+  pharmacology: Pick<SubstanceArticle["pharmacology"], "binding_sites">;
+};
+
 export type TagField =
   | "index_categories"
   | "chemical_class"
@@ -91,7 +107,7 @@ export const TAG_FIELD_LABELS: Record<TagField, string> = {
 };
 
 type FieldConfig = {
-  getter: (article: ArticleRecord) => string[];
+  getter: (article: TagRegistryInput) => string[];
   setter: (article: ArticleRecord, values: string[]) => ArticleRecord;
 };
 
@@ -127,7 +143,7 @@ export const parseTitle = (value: unknown): string | undefined => {
   return undefined;
 };
 
-export const deriveArticleSlug = (article: ArticleRecord): string | undefined => {
+export const deriveArticleSlug = (article: TagRegistryInput): string | undefined => {
   const identification = article.identification;
 
   const commonName = parseTitle(identification?.common_name);
@@ -218,7 +234,7 @@ export const fieldConfigs: Record<TagField, FieldConfig> = {
   },
 };
 
-export const readFieldValues = (article: ArticleRecord, field: TagField): string[] => {
+export const readFieldValues = (article: TagRegistryInput, field: TagField): string[] => {
   const config = fieldConfigs[field];
   return config.getter(article);
 };

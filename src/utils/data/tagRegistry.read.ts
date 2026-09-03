@@ -1,4 +1,3 @@
-import type { SubstanceArticle } from "../../schema";
 import {
   TAG_FIELDS,
   deriveArticleSlug,
@@ -9,12 +8,11 @@ import {
   toTagKey,
   type TagField,
   type TagRegistry,
+  type TagRegistryInput,
   type TagUsage,
 } from "./tagRegistry.shared";
 
-type ArticleRecord = SubstanceArticle;
-
-export const buildTagRegistry = (articles: ArticleRecord[]): TagRegistry => {
+export const buildTagRegistry = (articles: TagRegistryInput[]): TagRegistry => {
   const byField: Record<TagField, TagUsage[]> = {
     index_categories: [],
     chemical_class: [],

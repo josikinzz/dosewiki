@@ -31,6 +31,11 @@ export type SubstanceEditorLibraryEntryProjection = {
   };
   subjective_effects: SubstanceArticle["subjective_effects"];
   editorial_review: SubstanceArticle["editorial_review"];
+  /**
+   * Bibliography size, projected so list consumers (the review queue) never
+   * need the reference arrays themselves.
+   */
+  reference_count: number;
 };
 
 const SENSE_CATEGORY_KEYS = [
@@ -119,5 +124,9 @@ export function projectEditorLibraryEntry(
     },
     subjective_effects: projectLibraryListSubjectiveEffects(article.subjective_effects),
     editorial_review: article.editorial_review ?? getDefaultEditorialReview(),
+    reference_count:
+      (article.references?.length ?? 0) +
+      (article.source_citations?.length ?? 0) +
+      (Array.isArray(article.citations) ? article.citations.length : 0),
   };
 }

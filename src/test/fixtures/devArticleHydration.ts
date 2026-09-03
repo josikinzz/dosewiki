@@ -14,12 +14,10 @@ export function createHydratedArticleHydration(
 ): DevArticleHydration {
   return {
     hydratedSlugs: new Set<string>(),
-    isFullCorpusHydrated: true,
-    isHydratingFullCorpus: false,
-    fullCorpusFailed: false,
+    failedSlugs: new Set<string>(),
     isArticleHydrated: () => true,
+    hydrateArticlesNow: vi.fn(async () => ({ ok: true, articles: [] })),
     requestArticle: vi.fn(),
-    requestFullCorpus: vi.fn(),
     ...overrides,
   };
 }

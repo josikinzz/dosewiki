@@ -103,7 +103,6 @@ export function useDevModePageController({
     chemicalIndexManual,
     mechanismIndexManual,
     getOriginalArticles,
-    articlesAreComplete: articleHydration.isFullCorpusHydrated,
     markChangesSaved,
     isSignedIn: routeAccess.isSignedIn,
     canEdit: routeAccess.canEdit,

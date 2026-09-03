@@ -39,8 +39,8 @@ export type DevModeContextValue = {
    * `articles` is built from the slim library list, so a row carries identity,
    * taxonomy, and review state but an empty body. Any surface that renders or
    * edits article content must ask for that content first and wait for it —
-   * `requestArticle` for the one it has selected, `requestFullCorpus` for the
-   * tools that sweep every body.
+   * `requestArticle` for the one it has selected, `hydrateArticlesNow` for the
+   * rows a mutation is about to rewrite.
    */
   articleHydration: DevArticleHydration;
   replacePsychoactiveIndexManual: (nextConfig: ManualPsychoactiveIndexConfig) => void;

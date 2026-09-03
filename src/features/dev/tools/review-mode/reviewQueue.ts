@@ -73,7 +73,8 @@ export interface ReviewStatusOverride {
    * The `editorial_review` record Convex returned for the tick. The queue only
    * needs `status`, but the rendered article, the citation panel, and the
    * editor form all read the whole object, and the working set will not carry
-   * it until the next corpus drain — so the write is kept here and overlaid.
+   * it until the slug re-hydrates or the library list refreshes, so the write
+   * is kept here and overlaid.
    */
   review?: SubstanceArticle["editorial_review"];
 }
@@ -110,6 +111,28 @@ function resolveEntryStatus(
 ): ReviewStatus {
   if (!override) return articleStatus;
   return articleStatus === override.baseStatus ? override.status : articleStatus;
+}
+
+/**
+ * A row carrying the library projection's precomputed bibliography size.
+ * Slim editor-library rows have it; hydrated rows (and test fixtures) do not.
+ */
+export interface ReferenceCounted {
+  reference_count?: number;
+}
+
+/**
+ * How many bibliography entries back the article. The projected count wins
+ * when the row carries it, so slim library rows and hydrated rows read
+ * identically; otherwise sum the three arrays the whole article holds.
+ */
+export function resolveReferenceCount(article: SubstanceArticle & ReferenceCounted): number {
+  if (typeof article.reference_count === "number") return article.reference_count;
+  return (
+    (article.references?.length ?? 0) +
+    (article.source_citations?.length ?? 0) +
+    (Array.isArray(article.citations) ? article.citations.length : 0)
+  );
 }
 
 /**
@@ -154,10 +177,7 @@ export function buildReviewQueue(
             resolveStatus(article.editorial_review?.status),
             overrides[slug],
           ),
-          referenceCount:
-            (article.references?.length ?? 0) +
-            (article.source_citations?.length ?? 0) +
-            (Array.isArray(article.citations) ? article.citations.length : 0),
+          referenceCount: resolveReferenceCount(article),
           flagSummary: deriveReviewFlagSummary(article.editorial_review?.flags),
           flags: (article.editorial_review?.flags ?? []).map(({ label, severity }) => ({ label, severity })),
         },

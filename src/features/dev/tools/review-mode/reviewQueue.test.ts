@@ -121,6 +121,37 @@ describe("buildReviewQueue", () => {
     ]);
     expect(queue[0]?.referenceCount).toBe(3);
   });
+
+  it("prefers the projected reference_count a slim library row carries", () => {
+    const queue = buildReviewQueue([
+      makeArticle({
+        title: "Slim",
+        slug: "slim",
+        // The slim row ships the count, not the arrays.
+        reference_count: 7,
+      } as unknown as Partial<SubstanceArticle & { slug?: string }>),
+    ]);
+    expect(queue[0]?.referenceCount).toBe(7);
+  });
+
+  it("reads slim and hydrated rows of the same article to the same count", () => {
+    const slim = makeArticle({
+      title: "Slim",
+      slug: "same-article",
+      reference_count: 3,
+    } as unknown as Partial<SubstanceArticle & { slug?: string }>);
+    const hydrated = makeArticle({
+      title: "Slim",
+      slug: "same-article",
+      references: [{ id: "r1" }],
+      source_citations: [{ note: "legacy" }, { note: "older" }],
+    } as unknown as Partial<SubstanceArticle & { slug?: string }>);
+    const [slimEntry] = buildReviewQueue([slim]);
+    const [hydratedEntry] = buildReviewQueue([hydrated]);
+    expect(slimEntry?.referenceCount).toBe(3);
+    expect(hydratedEntry?.referenceCount).toBe(3);
+  });
+
 });
 
 describe("filterToPlacedSlugs", () => {

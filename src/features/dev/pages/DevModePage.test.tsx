@@ -43,11 +43,8 @@ const {
     // hoisted mock factory, which runs before module imports resolve.
     articleHydration: {
       hydratedSlugs: new Set<string>(),
-      isFullCorpusHydrated: true,
-      isHydratingFullCorpus: false,
       isArticleHydrated: () => true,
       requestArticle: vi.fn(),
-      requestFullCorpus: vi.fn(),
     },
     psychoactiveIndexManual: {},
     chemicalIndexManual: {},

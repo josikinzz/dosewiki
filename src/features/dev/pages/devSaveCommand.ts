@@ -38,13 +38,6 @@ export type ManualLayoutDocument = {
 export type DevSaveDraft = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
-  /**
-   * Whether every row in `articles` holds a whole article rather than a slim
-   * library-list row. The Convex save only ships rows that differ from their
-   * own baseline, so an un-hydrated row can never reach it; the GitHub archive
-   * writes the corpus wholesale and therefore has to refuse.
-   */
-  articlesAreComplete: boolean;
   layouts: ManualLayoutDocument[];
   convexEnabled: boolean;
   hasPendingChanges: boolean;
@@ -56,7 +49,6 @@ export type DevSaveDraft = {
 export type DevSaveDraftInput = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
-  articlesAreComplete: boolean;
   layouts: ManualLayoutDocument[];
   convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
@@ -114,7 +106,6 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
   return {
     articles: input.articles,
     originalArticles: input.originalArticles,
-    articlesAreComplete: input.articlesAreComplete,
     layouts: input.layouts,
     convexEnabled: input.convexEnabled,
     hasPendingChanges: input.hasPendingChanges,
@@ -239,16 +230,16 @@ export function createGitHubSaveAdapter({
     noChangesMessage: "No changes detected to archive.",
     verifiedMessage: (key) => `Credentials verified for ${key}. Archiving to GitHub...`,
     // The GitHub archive rewrites the whole articles file from `draft.articles`,
-    // so it must never run against the slim library list. Convex saves are
-    // diff-scoped and unaffected, so the guard applies only when articles are
-    // actually being written.
+    // and the browser only ever holds the slim library list plus the rows an
+    // editor hydrated, so that path can never be fed a whole corpus again.
+    // Convex saves are diff-scoped and unaffected; the archive refuses.
     validateAvailability: (draft) =>
-      draft.convexEnabled || draft.articlesAreComplete
+      draft.convexEnabled
         ? { ok: true }
         : {
             ok: false,
             message:
-              "The full article corpus has not loaded yet, so archiving to GitHub would overwrite it with an empty dataset. Open the Tag editor to load it, then try again.",
+              "Archiving articles to GitHub needs the whole corpus, which the editor no longer loads. Export it from a workstation with scripts/citations/archive-production-dataset.mjs instead.",
           },
     execute: async (draft, credentials) => {
       const payload = buildGitHubSavePayload(draft, credentials, now());

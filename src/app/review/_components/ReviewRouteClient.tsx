@@ -10,7 +10,8 @@ import { StateCard } from "@/components/common/StateCard";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
-import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
+import type { SubstanceArticle } from "@/schema";
+import { slugify } from "@/utils/slug";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { useDevModePageController } from "@/features/dev/pages/useDevModePageController";
 import { ReviewExperience } from "@/features/dev/tools/review-mode/ReviewExperience";
@@ -72,22 +73,30 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
 
 function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   const categoryLayout = useQuery(api.categoryLayout.get);
-  const { lookup: slugNameMap } = useSubstanceLookup();
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
   const router = useRouter();
   const pathname = usePathname();
 
+  // The slim library rows already carry everything the lightweight lookup
+  // needs (slug, name, priority), so the separate getLookupPage drain is gone.
   const substances = useMemo<SubstanceLookupEntry[]>(() => {
-    if (!slugNameMap) {
+    if (!library) {
       return [];
     }
 
-    return slugNameMap.map((item) => ({
-      slug: item.slug,
-      name: item.name,
-      priority: item.priority,
-    }));
-  }, [slugNameMap]);
+    return library.articles.map((article) => {
+      const record = article as SubstanceArticle & { slug?: unknown };
+      const slug =
+        typeof record.slug === "string" && record.slug
+          ? record.slug
+          : slugify(article.title || article.identification?.common_name || "");
+      return {
+        slug,
+        name: article.title || article.identification?.common_name || slug,
+        priority: article.priority,
+      };
+    });
+  }, [library]);
 
   const layout = useMemo<CategoryLayout | null>(() => {
     if (!categoryLayout) {
@@ -113,8 +122,7 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
 
   const navigate = useCallback((path: string) => router.push(path), [router]);
   const getCurrentPath = useCallback(() => pathname ?? "/review", [pathname]);
-
-  if (categoryLayout === undefined || slugNameMap === undefined || isLoadingLibrary || !library) {
+  if (categoryLayout === undefined || isLoadingLibrary || !library) {
     // Content-shaped skeleton instead of a full-screen splash: the shell stays
     // up and the load reads as the page assembling rather than the app
     // rebooting. The branded LoadingScreen stays cataloged in /dev/kit for

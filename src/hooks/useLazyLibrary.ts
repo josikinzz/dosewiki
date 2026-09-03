@@ -9,9 +9,10 @@
  * is ~16.7 MB of prose and references, and none of it is read across every row.
  * Rows arrive carrying identity, taxonomy, mechanism tags, effect names, and
  * review state, and are expanded here into structurally whole articles with
- * empty bodies. Filling those bodies in is `useDevArticleHydration`'s job —
- * per article on selection, or the whole corpus for the two tools that sweep
- * article bodies.
+ * empty bodies. Filling those bodies in is `useDevArticleHydration`'s job: one
+ * slug at a time on selection, or a bounded batch of exactly the rows a tag
+ * rewrite is about to touch. The tag editor lists and plans from its own
+ * registry projection, so nothing ever drains the whole corpus.
  */
 
 import { useEffect, useMemo, useState } from "react";

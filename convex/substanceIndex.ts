@@ -4,7 +4,6 @@ import { query, mutation, internalMutation, type MutationCtx } from "./_generate
 import { requireEditorWrite } from "./lib/auth";
 import { substanceArticleLightValidator } from "./lib/validators";
 import {
-  projectEditorArticle,
   projectEditorLibraryEntry,
   projectEditorLookup,
   projectLibraryInput,
@@ -15,6 +14,7 @@ import {
   projectSearchInput,
 } from "./lib/substanceReadProjections";
 import { resolveSubstanceSlug } from "./lib/substanceProjectionCore";
+import { projectTagRegistryEntry } from "./lib/substanceTagRegistryProjection";
 import {
   getEditorSubstanceBySlugHandler,
   getPublicAboutPreviewCandidatesHandler,
@@ -166,7 +166,7 @@ export const getBySlug = query({
 
 /**
  * @deprecated Retained temporarily for function-name compatibility. Editor
- * callers must drain `getEditorPage`.
+ * callers drain `getEditorLibraryPage` and hydrate rows with `getEditorBySlug`.
  */
 export const getEditorAll = query({
   args: {},
@@ -199,18 +199,12 @@ export const getEditorLibraryPage = query({
   },
 });
 
-/** Authenticated whole-article hydration for the editor library. */
-export const getEditorBySlug = query({
-  args: {
-    slug: v.string(),
-    id: v.optional(v.number()),
-    apiKey: v.optional(v.string()),
-    actorEmail: v.optional(v.string()),
-  },
-  handler: getEditorSubstanceBySlugHandler,
-});
-
-export const getEditorPage = query({
+/**
+ * Tag-registry projection for the dev tag editor. Same auth and page shape as
+ * the editor library list, but each row carries only what `buildTagRegistry`
+ * reads, so the tag editor never has to drain whole articles.
+ */
+export const getTagRegistryPage = query({
   args: {
     paginationOpts: paginationOptsValidator,
     apiKey: v.optional(v.string()),
@@ -227,8 +221,19 @@ export const getEditorPage = query({
       ...args.paginationOpts,
       numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),
     });
-    return { ...result, page: result.page.map(projectEditorArticle) };
+    return { ...result, page: result.page.map(projectTagRegistryEntry) };
   },
+});
+
+/** Authenticated whole-article hydration for the editor library. */
+export const getEditorBySlug = query({
+  args: {
+    slug: v.string(),
+    id: v.optional(v.number()),
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  handler: getEditorSubstanceBySlugHandler,
 });
 
 /**

@@ -29,7 +29,6 @@ function createDraft() {
       { id: 2, title: "MDMA" },
     ] as never[],
     originalArticles: [{ id: 1, title: "LSD" }] as never[],
-    articlesAreComplete: true,
     layouts: [
       {
         type: "psychoactive",

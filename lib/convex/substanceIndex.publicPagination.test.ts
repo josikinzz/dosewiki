@@ -53,7 +53,7 @@ describe("public substance corpus pagination", () => {
       expect(block).not.toContain(".collect()");
     }
 
-    const editorBlock = exportedQueryBlock("getEditorPage");
+    const editorBlock = exportedQueryBlock("getTagRegistryPage");
     expect(editorBlock).toContain("paginationOptsValidator");
     expect(editorBlock).toContain('.query("substanceIndex").paginate({');
     expect(editorBlock).toContain(

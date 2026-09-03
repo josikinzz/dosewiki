@@ -6,7 +6,6 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui/button";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
 import { EditorNotice } from "@/features/dev/components";
@@ -71,16 +70,10 @@ export const ReviewExperience = memo(function ReviewExperience({
     articlesRefreshConflict,
   } = useDevMode();
 
-  // The review workbench walks the whole public corpus linearly, rendering each
-  // article's body and editing fields inline against the live baseline, and its
-  // queue counts every article's references and citations. That is a genuine
-  // whole-corpus read, so this surface asks for the full drain rather than
-  // hydrating one article at a time.
-  const { isFullCorpusHydrated, requestFullCorpus, fullCorpusFailed, hydratedSlugs } =
-    articleHydration;
-  useEffect(() => {
-    requestFullCorpus();
-  }, [requestFullCorpus]);
+  // The queue, picker, and chrome read only slim library rows (reference
+  // counts arrive projected as `reference_count`), so the workbench renders as
+  // soon as the list lands. Article bodies hydrate one slug at a time below.
+  const { hydratedSlugs, failedSlugs, isArticleHydrated, requestArticle } = articleHydration;
   const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
 
@@ -111,6 +104,33 @@ export const ReviewExperience = memo(function ReviewExperience({
     allReviewed,
     substances,
   } = queueState;
+
+  // Hydrate the selected article's body; its slim library row has none.
+  // `requestArticle` no-ops on slugs already requested or hydrated and
+  // unlatches on failure, so navigating away and back re-attempts a miss.
+  useEffect(() => {
+    requestArticle(currentSlug);
+  }, [currentSlug, requestArticle]);
+
+  // Once the current body has landed, warm the flip-through's next two and
+  // previous one so arrowing through the queue rarely waits on the network.
+  useEffect(() => {
+    if (!current || !isArticleHydrated(current.slug)) return;
+    for (const index of [position - 1, position + 1, position + 2]) {
+      requestArticle(visibleQueue[index]?.slug);
+    }
+  }, [current, hydratedSlugs, isArticleHydrated, position, requestArticle, visibleQueue]);
+
+  // Until the body lands, only the article area waits: the command bar, queue
+  // position, and picker all read slim rows and stay interactive. A failed
+  // request is its own state so the area offers a retry instead of a spinner
+  // that never resolves.
+  const currentArticleHydrated = current ? isArticleHydrated(current.slug) : false;
+  const currentArticleFailed =
+    current !== null && !currentArticleHydrated && failedSlugs.has(current.slug);
+  const retryCurrentArticle = useCallback(() => {
+    requestArticle(currentSlugRef.current);
+  }, [currentSlugRef, requestArticle]);
 
   // Deliberately not persisted: the panel is a per-article detour, and a stored
   // "open" would make every fresh session boot the WASM editor unasked.
@@ -170,10 +190,15 @@ export const ReviewExperience = memo(function ReviewExperience({
     },
     [applyArticlesTransform],
   );
+  // The slim row is a SubstanceArticle-shaped shell, so handing the controller
+  // the slug before the body lands would seed the form from it and mount a
+  // blank editor for the render in which hydration flips. Held at null until
+  // then: the controller resets on the slug change and seeds once, from the
+  // whole article.
   const draft = useSubstanceEditorDraftController({
     articles: articlesForDraft,
     applyArticlesTransform: applyDraftArticlesTransform,
-    selectedSubstanceSlug: current?.slug ?? null,
+    selectedSubstanceSlug: currentArticleHydrated ? (current?.slug ?? null) : null,
     substances,
   });
 
@@ -299,35 +324,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     undoLastTick,
   ]);
 
-  if (!isFullCorpusHydrated) {
-    // A blank shell here reads as a dead page over the ~15-page drain, and a
-    // failed drain used to strand it blank forever — say what is happening and
-    // leave a way back.
-    return (
-      <main className="theme-page-shell min-h-screen p-8" aria-busy={!fullCorpusFailed}>
-        <div className="mx-auto max-w-xl pt-16 text-center">
-          {fullCorpusFailed ? (
-            <div className="space-y-4">
-              <EditorNotice
-                notice={{
-                  tone: "danger",
-                  message: "Loading the review corpus failed.",
-                }}
-              />
-              <Button type="button" variant="outline" size="sm" onClick={requestFullCorpus}>
-                Try again
-              </Button>
-            </div>
-          ) : (
-            <p className="theme-text-muted text-sm">
-              Loading articles for review… {hydratedSlugs.size} of {typedArticles.length}
-            </p>
-          )}
-        </div>
-      </main>
-    );
-  }
-
   if (queue.length === 0) {
     return (
       <main className="theme-page-shell min-h-screen p-8">
@@ -386,7 +382,10 @@ export const ReviewExperience = memo(function ReviewExperience({
         total={queue.length}
         showAll={() => updateSettings({ unreviewedOnly: false })}
         current={current}
-        articleForView={articleForView}
+        articleForView={currentArticleHydrated ? articleForView : null}
+        articleHydrating={current !== null && !currentArticleHydrated && !currentArticleFailed}
+        articleFailed={currentArticleFailed}
+        retryArticle={retryCurrentArticle}
         moleculeOverrideUrl={moleculeOverrideUrl}
         moleculePanelOpen={moleculePanelOpen}
         closeMoleculePanel={() => setMoleculePanelOpen(false)}

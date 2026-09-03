@@ -1,12 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createElement } from "react";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import { buildTagRegistry } from "@/utils/data/tagRegistry";
 
-const { replaceArticlesMock, mockDevArticles } = vi.hoisted(() => ({
-  replaceArticlesMock: vi.fn(),
-  mockDevArticles: [
+const { applyArticlesTransformMock, hydrateArticlesNowMock, mockDevArticles, devContext } = vi.hoisted(() => {
+  const mockDevArticles = [
     {
       title: "LSD",
       identification: { common_name: "LSD" },
@@ -21,14 +20,29 @@ const { replaceArticlesMock, mockDevArticles } = vi.hoisted(() => ({
       classification: { chemical_class: [], psychoactive_class: [] },
       pharmacology: { binding_sites: [] },
     },
-  ],
-}));
+  ];
+  // The working set behind the mocked context. Tests mutate `articles`
+  // directly to stand in for an edit made through another tool while the tag
+  // editor's hydration is in flight.
+  const devContext = { articles: mockDevArticles as unknown[], original: mockDevArticles as unknown[] };
+  return {
+    mockDevArticles,
+    devContext,
+    hydrateArticlesNowMock: vi.fn(),
+    applyArticlesTransformMock: vi.fn((transform: (previous: unknown[]) => unknown[]) => {
+      devContext.articles = transform(devContext.articles);
+    }),
+  };
+});
 
 vi.mock("../context/DevModeContext", () => ({
   useDevMode: () => ({
-    articles: mockDevArticles,
-    replaceArticles: replaceArticlesMock,
-    articleHydration: createHydratedArticleHydration(),
+    articles: devContext.articles,
+    getOriginalArticles: () => devContext.original,
+    applyArticlesTransform: applyArticlesTransformMock,
+    articleHydration: createHydratedArticleHydration({
+      hydrateArticlesNow: hydrateArticlesNowMock,
+    }),
   }),
 }));
 
@@ -283,9 +297,7 @@ describe("tagEditorStateMachine", () => {
 });
 
 describe("TagEditorTab state-machine integration", () => {
-  it("renders state-machine selection and dispatches mutation events", async () => {
-    replaceArticlesMock.mockClear();
-
+  const renderTab = () =>
     render(
       createElement(TagEditorTab, {
         datasetMarkdown: "+ changed",
@@ -295,7 +307,42 @@ describe("TagEditorTab state-machine integration", () => {
       }),
     );
 
-    expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic");
+  const stubRegistryFetch = (responder?: (url: string) => Promise<unknown>) => {
+    const urls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        urls.push(url);
+        if (responder) {
+          return responder(url);
+        }
+        return {
+          ok: true,
+          json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles }),
+        };
+      }),
+    );
+    return urls;
+  };
+
+  beforeEach(() => {
+    devContext.articles = mockDevArticles;
+    devContext.original = mockDevArticles;
+    applyArticlesTransformMock.mockClear();
+    hydrateArticlesNowMock.mockReset().mockResolvedValue({ ok: true, articles: [] });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("renders state-machine selection and dispatches mutation events", async () => {
+    stubRegistryFetch();
+
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
 
     fireEvent.click(screen.getByRole("button", { name: /Empathogen/i }));
     expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Empathogen");
@@ -306,11 +353,165 @@ describe("TagEditorTab state-machine integration", () => {
     fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
 
     await waitFor(() => {
-      expect(replaceArticlesMock).toHaveBeenCalledWith([
-        expect.objectContaining({ index_categories: ["Classic", "Psychedelic"] }),
-        expect.objectContaining({ index_categories: ["Entactogen"] }),
-      ]);
+      expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1);
+    });
+    expect(devContext.articles).toEqual([
+      expect.objectContaining({ index_categories: ["Classic", "Psychedelic"] }),
+      expect.objectContaining({ index_categories: ["Entactogen"] }),
+    ]);
+    expect(await screen.findByText("Tag renamed. 1 article updated.")).toBeInTheDocument();
+  });
+
+  it("renders from the tag-registry scope and nothing else", async () => {
+    const urls = stubRegistryFetch();
+
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    expect(urls).toEqual([
+      expect.stringContaining("/api/dev/editor-library?scope=tag-registry"),
+    ]);
+  });
+
+  const hydrateFromRegistry = async (slugs: readonly string[]) => ({
+    ok: true,
+    articles: slugs.map((slug) => {
+      const match = mockDevArticles.find((article) => article.title.toLowerCase() === slug);
+      return { ...match, slug, summary: `Full body for ${slug}.` };
+    }),
+  });
+
+  // Hydration that stays pending until the test releases it, so an edit can
+  // land in the working set between the plan and the rewrite. Executor form:
+  // the project lib target predates Promise.withResolvers.
+  const gateHydration = () => {
+    let release: () => void = () => undefined;
+    hydrateArticlesNowMock.mockImplementation(
+      (slugs: readonly string[]) =>
+        new Promise((resolve) => {
+          release = () => {
+            void hydrateFromRegistry(slugs).then(resolve);
+          };
+        }),
+    );
+    return () => release();
+  };
+
+  it("hydrates exactly the slugs a rename touches and rewrites only those rows", async () => {
+    stubRegistryFetch();
+    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
+
+    renderTab();
+
+    // "Classic" is only on the LSD row, so the rename must hydrate that row
+    // alone and leave the MDMA row the slim object it already was.
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
+      target: { value: "Classic Rock" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+
+    await waitFor(() => {
+      expect(applyArticlesTransformMock).toHaveBeenCalled();
+    });
+
+    expect(hydrateArticlesNowMock).toHaveBeenCalledTimes(1);
+    expect(hydrateArticlesNowMock).toHaveBeenCalledWith(["lsd"]);
+
+    const nextArticles = devContext.articles;
+    expect(nextArticles[1]).toBe(mockDevArticles[1]);
+    expect(nextArticles[0]).toMatchObject({
+      index_categories: ["Classic Rock", "Psychedelic"],
+      summary: "Full body for lsd.",
     });
     expect(await screen.findByText("Tag renamed. 1 article updated.")).toBeInTheDocument();
+  });
+
+  it("keeps an edit made to another row while the rewrite's hydration was in flight", async () => {
+    stubRegistryFetch();
+    const releaseHydration = gateHydration();
+
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
+      target: { value: "Classic Rock" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+    await waitFor(() => expect(hydrateArticlesNowMock).toHaveBeenCalledWith(["lsd"]));
+
+    // Another tool edits the MDMA row while the LSD hydration is pending.
+    const editedMdma = { ...mockDevArticles[1], title: "MDMA (edited meanwhile)" };
+    devContext.articles = [mockDevArticles[0], editedMdma];
+
+    releaseHydration();
+    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1));
+
+    // The transform was handed the latest draft, not the array the plan was
+    // made from, so the concurrent edit survives next to the rename.
+    const nextArticles = devContext.articles;
+    expect(nextArticles[1]).toBe(editedMdma);
+    expect(nextArticles[0]).toMatchObject({
+      index_categories: ["Classic Rock", "Psychedelic"],
+      summary: "Full body for lsd.",
+    });
+    expect(await screen.findByText("Tag renamed. 1 article updated.")).toBeInTheDocument();
+  });
+
+  it("rewrites on top of an edit to the very row being hydrated", async () => {
+    stubRegistryFetch();
+    const releaseHydration = gateHydration();
+
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
+      target: { value: "Classic Rock" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+    await waitFor(() => expect(hydrateArticlesNowMock).toHaveBeenCalledWith(["lsd"]));
+
+    // The LSD row itself is edited while its hydration is pending: the draft
+    // no longer equals its baseline, so the landed body must not replace it.
+    // (These fixture rows carry no explicit slug, so the edit stays off the
+    // title the slug is derived from.)
+    devContext.articles = [
+      { ...mockDevArticles[0], identification: { common_name: "LSD", iupac_name: "edited meanwhile" } },
+      mockDevArticles[1],
+    ];
+
+    releaseHydration();
+    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1));
+
+    expect(devContext.articles[0]).toMatchObject({
+      identification: { iupac_name: "edited meanwhile" },
+      index_categories: ["Classic Rock", "Psychedelic"],
+    });
+    expect(devContext.articles[0]).not.toHaveProperty("summary");
+    expect(devContext.articles[1]).toBe(mockDevArticles[1]);
+  });
+
+  it("shows a retry state when the registry fetch fails", async () => {
+    let fail = true;
+    stubRegistryFetch(async () => {
+      if (fail) {
+        return { ok: false, status: 500, json: async () => ({}) };
+      }
+      return {
+        ok: true,
+        json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles }),
+      };
+    });
+
+    renderTab();
+
+    expect(
+      await screen.findByText(/tag registry could not be loaded/i),
+    ).toBeInTheDocument();
+
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: /retry/i }));
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
   });
 });

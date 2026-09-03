@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getEditorBySlug, getEditorLibraryPage, getEditorPage } from "../convex/substanceIndex";
+import { getEditorBySlug, getEditorLibraryPage, getTagRegistryPage } from "../convex/substanceIndex";
 
 type Role = "admin" | "editor" | "viewer";
 
@@ -58,13 +58,13 @@ function createCtx({
 
 // Convex registered functions keep the original handler on `_handler`; there is
 // no in-repo Convex runtime harness, so the handler is exercised directly.
-const handler = (getEditorPage as unknown as {
+const handler = (getTagRegistryPage as unknown as {
   _handler: (ctx: never, args: unknown) => Promise<unknown>;
 })._handler;
 
 const paginationOpts = { numItems: 10, cursor: null };
 
-describe("substanceIndex.getEditorPage authorization", () => {
+describe("substanceIndex.getTagRegistryPage authorization", () => {
   afterEach(() => {
     delete process.env.CONVEX_ADMIN_KEY;
     delete process.env.CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE;

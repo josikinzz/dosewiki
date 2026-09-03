@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
+import { flushSync } from "react-dom";
 import { Icon } from "@/components/common/Icon";
 
-import { buildTagRegistry } from "@/utils/data/tagRegistry";
+import { buildTagRegistry, type TagMutation, type TagMutationResult } from "@/utils/data/tagRegistry";
+import type { SubstanceArticle } from "@/schema";
+import type { TagRegistryEntry } from "../../../../convex/lib/substanceTagRegistryProjection";
+import { resolveEditorArticleSlug } from "../context/devModeUtils";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { useDevMode } from "../context/DevModeContext";
 import { Button } from "@/components/ui/button";
@@ -25,6 +29,77 @@ import {
   tagEditorReducer,
 } from "./tagEditorStateMachine";
 
+// Read-wide, write-narrow: the registry arrives as a dedicated projection
+// carrying exactly the tag fields `buildTagRegistry` reads, so listing and
+// planning never touch an article body. A mutation hydrates only the slugs it
+// rewrites (hydration fills draft and baseline together), then rewrites the
+// now-full rows, so the save path sees the mutation as the only diff and
+// unhydrated rows never reach it.
+type RegistryFetchState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; entries: TagRegistryEntry[] };
+
+const TAG_REGISTRY_ENDPOINT = "/api/dev/editor-library?scope=tag-registry";
+
+/**
+ * Re-run a planned mutation against the draft as it stands *now*, after the
+ * awaited hydration. Editing carried on while the batch was in flight, so the
+ * render-time array the plan was made from is not the array to rewrite.
+ *
+ * Hydrated bodies are merged into a row only while its draft is still the
+ * pre-mutation placeholder it was planned from (`hydrateArticles` applies the
+ * same rule); a row edited meanwhile keeps its edit and the rewrite lands on
+ * top of it. The rewrite is then confined to the slugs the plan hydrated, so
+ * a row the plan never saw is never rewritten unhydrated.
+ */
+function rebaseTagMutation({
+  previous,
+  baseline,
+  landedBySlug,
+  hydratedSlugs,
+  mutation,
+}: {
+  previous: SubstanceArticle[];
+  baseline: SubstanceArticle[];
+  landedBySlug: ReadonlyMap<string, SubstanceArticle>;
+  hydratedSlugs: ReadonlySet<string>;
+  mutation: TagMutation;
+}): TagMutationResult {
+  const rebased = previous.map((draft, index) => {
+    const landed = landedBySlug.get(resolveEditorArticleSlug(draft));
+    return landed && draft === baseline[index] ? landed : draft;
+  });
+
+  const rewrite = runTagEditorMutation(rebased, mutation);
+  const changes = rewrite.changes.filter((change) =>
+    hydratedSlugs.has(resolveEditorArticleSlug(rebased[change.index])),
+  );
+  if (changes.length === 0) {
+    return { articles: previous, changes };
+  }
+  if (changes.length === rewrite.changes.length) {
+    return rewrite;
+  }
+
+  const kept = new Set(changes.map((change) => change.index));
+  return {
+    articles: rebased.map((row, index) => (kept.has(index) ? rewrite.articles[index] : row)),
+    changes,
+  };
+}
+
+async function fetchTagRegistryEntries(): Promise<TagRegistryEntry[]> {
+  const response = await fetch(TAG_REGISTRY_ENDPOINT);
+  const payload = response.ok
+    ? ((await response.json()) as { ok?: boolean; entries?: TagRegistryEntry[] })
+    : null;
+  if (!payload?.ok || !Array.isArray(payload.entries)) {
+    throw new Error(`Tag registry request failed with status ${response.status}.`);
+  }
+  return payload.entries;
+}
+
 export function TagEditorTab({
   commitPanel,
   datasetMarkdown,
@@ -32,26 +107,49 @@ export function TagEditorTab({
   onCopyDatasetMarkdown,
   onDownloadDatasetMarkdown,
 }: TagEditorTabProps) {
-  const { articles, replaceArticles, articleHydration } = useDevMode();
+  const { articles, applyArticlesTransform, getOriginalArticles, articleHydration } = useDevMode();
 
-  // The one tool that genuinely needs every whole article: `buildTagRegistry`
-  // reads binding-site affinities the library list does not carry, and a
-  // mutation rewrites tag fields on matched articles and writes the whole
-  // corpus back through `replaceArticles`. Running that over un-hydrated rows
-  // would turn an edited row into a diff against its own empty body and save
-  // that emptiness to Convex, so the tool stays inert until the drain lands.
-  const { isFullCorpusHydrated, isHydratingFullCorpus, requestFullCorpus } = articleHydration;
+  const [registryFetch, setRegistryFetch] = useState<RegistryFetchState>({ status: "loading" });
+  const [registryRetry, setRegistryRetry] = useState(0);
+
   useEffect(() => {
-    requestFullCorpus();
-  }, [requestFullCorpus]);
+    let cancelled = false;
+    fetchTagRegistryEntries()
+      .then((entries) => {
+        if (!cancelled) {
+          setRegistryFetch({ status: "ready", entries });
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to load the tag registry.", error);
+        if (!cancelled) {
+          setRegistryFetch({ status: "error" });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [registryRetry]);
+
+  const registryEntries = registryFetch.status === "ready" ? registryFetch.entries : null;
+  const registry = useMemo(() => buildTagRegistry(registryEntries ?? []), [registryEntries]);
+
+  // A silent refetch for the header's refresh action: the panels stay mounted
+  // and the rebuilt registry flows in through the articlesChanged dispatch.
+  const handleRefreshSnapshot = useCallback(() => {
+    void fetchTagRegistryEntries()
+      .then((entries) => setRegistryFetch({ status: "ready", entries }))
+      .catch((error: unknown) => console.error("Unable to refresh the tag registry.", error));
+  }, []);
 
   const [state, dispatch] = useReducer(tagEditorReducer, articles, createTagEditorState);
   const handledEffectIds = useRef(new Set<number>());
-  const registry = useMemo(() => buildTagRegistry(articles), [articles]);
 
   useEffect(() => {
-    dispatch({ type: "articlesChanged", registry });
-  }, [registry]);
+    if (registryEntries) {
+      dispatch({ type: "articlesChanged", registry });
+    }
+  }, [registry, registryEntries]);
 
   const filteredTags = useMemo(() => getFilteredTags(state), [state]);
   const selectedUsage = useMemo(() => getSelectedUsage(state), [state]);
@@ -68,20 +166,72 @@ export function TagEditorTab({
     handledEffectIds.current.add(effect.id);
 
     if (effect.kind === "tagMutation") {
-      try {
-        const result = runTagEditorMutation(articles, effect.mutation);
-        if (result.changes.length > 0) {
-          replaceArticles(result.articles);
+      void (async () => {
+        try {
+          // Plan the rewrite over the current working set: slim rows carry
+          // every tag field, so the planned change set is exact. Then hydrate
+          // only the rows the rewrite touches and run the rewrite over the
+          // now-full rows; untouched rows stay slim and never enter the diff.
+          const plan = runTagEditorMutation(articles, effect.mutation);
+          const hydratedSlugs = new Set(
+            plan.changes
+              .map((change) => resolveEditorArticleSlug(articles[change.index]))
+              .filter((slug) => slug.length > 0),
+          );
+          if (hydratedSlugs.size === 0) {
+            dispatch({ type: "mutationSucceeded", effectId: effect.id, result: plan });
+            return;
+          }
+
+          const hydration = await articleHydration.hydrateArticlesNow([...hydratedSlugs]);
+          if (!hydration.ok) {
+            dispatch({
+              type: "mutationFailed",
+              effectId: effect.id,
+              message: "Some articles could not be loaded for the rewrite. Try again.",
+            });
+            return;
+          }
+
+          const landedBySlug = new Map(
+            hydration.articles.map((article) => [resolveEditorArticleSlug(article), article]),
+          );
+          // The baseline from before the await is the right comparison: a
+          // row still identical to it is the untouched placeholder the plan
+          // saw, which is exactly the row a landed body should fill.
+          const baseline = getOriginalArticles();
+
+          // The rewrite is computed inside the draft transform so it sees
+          // every edit made while hydration was in flight. flushSync makes
+          // React run that transform before this continues, so the result the
+          // notice and registry are built from is the one the draft holds.
+          const outcome: { result: TagMutationResult | null } = { result: null };
+          flushSync(() => {
+            applyArticlesTransform((previous) => {
+              const result = rebaseTagMutation({
+                previous,
+                baseline,
+                landedBySlug,
+                hydratedSlugs,
+                mutation: effect.mutation,
+              });
+              outcome.result = result;
+              return result.articles;
+            });
+          });
+          if (!outcome.result) {
+            throw new Error("The working set did not accept the tag rewrite.");
+          }
+          dispatch({ type: "mutationSucceeded", effectId: effect.id, result: outcome.result });
+        } catch (error) {
+          console.error("Tag mutation failed", error);
+          dispatch({
+            type: "mutationFailed",
+            effectId: effect.id,
+            message: error instanceof Error ? error.message : "Tag mutation failed. Check console for details.",
+          });
         }
-        dispatch({ type: "mutationSucceeded", effectId: effect.id, result });
-      } catch (error) {
-        console.error("Tag mutation failed", error);
-        dispatch({
-          type: "mutationFailed",
-          effectId: effect.id,
-          message: error instanceof Error ? error.message : "Tag mutation failed. Check console for details.",
-        });
-      }
+      })();
       return;
     }
 
@@ -98,8 +248,7 @@ export function TagEditorTab({
     } catch {
       dispatch({ type: "effectFailed", effectId: effect.id, message: "Diff download failed. Try again." });
     }
-  }, [articles, onCopyDatasetMarkdown, onDownloadDatasetMarkdown, replaceArticles, state.pendingEffect]);
-
+  }, [applyArticlesTransform, articleHydration, articles, getOriginalArticles, onCopyDatasetMarkdown, onDownloadDatasetMarkdown, state.pendingEffect]);
   const handleRename = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -128,13 +277,34 @@ export function TagEditorTab({
     dispatch({ type: "downloadDiffRequested", hasDatasetChanges });
   }, [hasDatasetChanges]);
 
-  if (!isFullCorpusHydrated) {
+  if (registryFetch.status === "error") {
+    return (
+      <div className="mt-10">
+        <EmptyStateSurface className="flex flex-col items-center justify-center gap-4">
+          <p className="text-sm theme-text-faint">
+            The tag registry could not be loaded, so tags cannot be listed or rewritten right now.
+          </p>
+          <Button
+            variant="pill"
+            size="pill"
+            onClick={() => {
+              setRegistryFetch({ status: "loading" });
+              setRegistryRetry((attempt) => attempt + 1);
+            }}
+          >
+            <Icon icon="lucide:refresh-cw" size={16} />
+            Retry
+          </Button>
+        </EmptyStateSurface>
+      </div>
+    );
+  }
+
+  if (registryFetch.status !== "ready") {
     return (
       <div className="mt-10">
         <EmptyStateSurface>
-          {isHydratingFullCorpus || articles.length > 0
-            ? "Loading the full article corpus. The tag editor rewrites tags across every article, so it waits for all of them."
-            : "The article corpus is not available yet."}
+          Loading the tag registry. Only the tag fields are fetched, so this stays a small bounded read.
         </EmptyStateSurface>
       </div>
     );
@@ -151,7 +321,7 @@ export function TagEditorTab({
           <Button
             variant="pill"
             size="pill"
-            onClick={() => dispatch({ type: "snapshotRefreshed", registry: buildTagRegistry(articles) })}
+            onClick={handleRefreshSnapshot}
           >
             <Icon icon="lucide:refresh-cw" size={16} />
             Refresh snapshot

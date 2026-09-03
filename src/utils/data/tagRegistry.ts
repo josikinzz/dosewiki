@@ -12,6 +12,7 @@ export {
   type TagMutation,
   type TagMutationResult,
   type TagRegistry,
+  type TagRegistryInput,
   type TagRenameMutation,
   type TagUsage,
 } from "./tagRegistry.shared";
