@@ -178,7 +178,16 @@ runs the guards that a bare CLI call skips:
   git show HEAD:convex/replications.ts | grep -c mergeUnknownTwin
   ```
 
-  A `0` means the function is not in HEAD.
+  A `0` means the function is not in HEAD. When the removal is deliberate,
+  acknowledge it by name so the gate passes for exactly that function:
+
+  ```bash
+  npm run convex:deploy -- --prod --from-head-worktree --confirm \
+    --accept-deletion=memberships:upsertFromAuth
+  ```
+
+  Naming a function that is not at risk fails the gate, so a stale
+  acknowledgement cannot linger in a command.
 - **MISSING from the deployment** — the app calls something no deployment has.
   That is the outage this whole section exists to prevent, and deploying is the
   fix.

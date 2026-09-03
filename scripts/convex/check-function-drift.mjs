@@ -65,6 +65,7 @@ function parseArgs(argv) {
     specFile: null,
     json: false,
     strict: false,
+    acceptedDeletions: [],
     skipWithoutCredentials: false,
     checkoutOnly: false,
   };
@@ -77,6 +78,8 @@ function parseArgs(argv) {
     else if (arg === "--json") args.json = true;
     else if (arg === "--strict") args.strict = true;
     else if (arg === "--about-to-deploy") args.aboutToDeploy = true;
+    else if (arg.startsWith("--accept-deletion="))
+      args.acceptedDeletions.push(arg.slice("--accept-deletion=".length).trim());
     else if (arg === "--skip-without-credentials") args.skipWithoutCredentials = true;
     else if (arg === "--help" || arg === "-h") args.help = true;
     else {
@@ -99,6 +102,8 @@ function printHelp() {
       "  --spec-file=<path>           diff against a saved `convex function-spec` JSON",
       "  --json                       machine-readable report on stdout",
       "  --strict                     treat warnings (silent-deletion risk) as failures",
+      "  --accept-deletion=<mod:fn>   acknowledge one live function this checkout deliberately",
+      "                               removed, so --strict does not fail on it (repeatable)",
       "  --about-to-deploy            a deploy of this checkout follows: functions missing",
       "                               from the deployment are the deploy's purpose, not a",
       "                               failure. Deletion-risk severity is unchanged.",
@@ -243,7 +248,27 @@ function main() {
     // the gate that precedes its first deploy. `--about-to-deploy` excuses the
     // checkout→deployment direction only; deletion risk and visibility
     // mismatches keep their severity either way.
-    const excused = args.aboutToDeploy ? report.undeployedButUncalled : [];
+    const excused = args.aboutToDeploy ? [...report.undeployedButUncalled] : [];
+    // A deliberate removal is acknowledged by name; anything not named stays fatal.
+    // Deployment identifiers read `module.js:fn`; accept the source form too.
+    const normalize = (identifier) => identifier.replace(/\.js:/, ":");
+    const accepted = new Set(args.acceptedDeletions.map(normalize));
+    const unusedAcknowledgements = args.acceptedDeletions.filter(
+      (identifier) =>
+        !report.missingFromCheckout.some((entry) => normalize(entry.identifier) === normalize(identifier)),
+    );
+    if (unusedAcknowledgements.length > 0) {
+      console.error(
+        `FAIL: --accept-deletion names function(s) not at risk of deletion: ${unusedAcknowledgements.join(", ")}`,
+      );
+      process.exit(1);
+    }
+    for (const entry of report.missingFromCheckout) {
+      if (accepted.has(normalize(entry.identifier))) {
+        console.log(`NOTE: accepting the deliberate removal of ${entry.identifier}.`);
+        excused.push(entry);
+      }
+    }
     const fatalWarnings = warnings.filter((warning) => !excused.includes(warning));
     if (excused.length > 0 && fatalWarnings.length < warnings.length) {
       console.log(

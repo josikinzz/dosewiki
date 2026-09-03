@@ -57,12 +57,20 @@ const PUBLISH_SURFACE = ["convex/", "convex.json", "lib/", "src/data/config/", "
 const DEPLOY_KEY_VARS = { dev: "CONVEX_DEPLOY_KEY", prod: "CONVEX_DEPLOY_KEY_PROD" };
 
 function parseArgs(argv) {
-  const args = { deployment: null, confirm: false, fromHeadWorktree: false, help: false };
+  const args = {
+    deployment: null,
+    confirm: false,
+    fromHeadWorktree: false,
+    acceptedDeletions: [],
+    help: false,
+  };
   for (const arg of argv.slice(2)) {
     if (arg === "--prod") args.deployment = "prod";
     else if (arg === "--dev") args.deployment = "dev";
     else if (arg === "--confirm") args.confirm = true;
     else if (arg === "--from-head-worktree") args.fromHeadWorktree = true;
+    else if (arg.startsWith("--accept-deletion="))
+      args.acceptedDeletions.push(arg.slice("--accept-deletion=".length).trim());
     else if (arg === "--help" || arg === "-h") args.help = true;
     else {
       console.error(`Unknown argument: ${arg}`);
@@ -81,6 +89,9 @@ function printHelp() {
       "  --from-head-worktree    publish exactly HEAD from a detached git worktree;",
       "                          uncommitted work is NOT published",
       "  --confirm               actually deploy (without it, gates run and stop)",
+      "  --accept-deletion=<module:function>",
+      "                          acknowledge a function this commit deliberately removed",
+      "                          that is still live on the target (repeatable)",
       "",
       "Always runs `convex:check-functions --strict` against the target first.",
     ].join("\n"),
@@ -122,7 +133,7 @@ function resolveDeployKey(deployment) {
   return { variable, value };
 }
 
-function runStrictDriftCheck(deployment, deployKey) {
+function runStrictDriftCheck(deployment, deployKey, acceptedDeletions = []) {
   console.log(`\n[convex-deploy] Pre-deploy drift check against ${deployment} (--strict)...`);
   const result = spawnSync(
     "node",
@@ -133,6 +144,7 @@ function runStrictDriftCheck(deployment, deployKey) {
       // MISSING functions are what this deploy publishes; without this the
       // gate deadlocks on any commit that introduces a new function.
       "--about-to-deploy",
+      ...acceptedDeletions.map((identifier) => `--accept-deletion=${identifier}`),
     ],
     {
       cwd: REPO_ROOT,
@@ -216,7 +228,7 @@ function main() {
     );
   }
 
-  const driftStatus = runStrictDriftCheck(args.deployment, deployKey.value);
+  const driftStatus = runStrictDriftCheck(args.deployment, deployKey.value, args.acceptedDeletions);
   if (driftStatus !== 0) {
     console.error(
       "\nREFUSING: the strict drift check failed.\n" +
