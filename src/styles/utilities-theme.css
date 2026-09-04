@@ -4368,7 +4368,7 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
 }
 
 @media (hover: hover) {
-  .theme-dev-rail-tab:not([data-state="active"]):hover,
+  .theme-dev-rail-tab:not([data-state="active"]):not([data-active]):hover,
   .theme-dev-rail-button:hover {
     background: var(--theme-frosted-control-on-panel-hover-bg);
     color: var(--theme-text-primary);
@@ -4379,7 +4379,8 @@ html:not([data-theme="light"]) .theme-toggle-thumb {
   background-image: var(--theme-selected-control-glow);
 }
 
-.theme-dev-rail-tab[data-state="active"] {
+.theme-dev-rail-tab[data-state="active"],
+.theme-dev-rail-tab[data-active] {
   background: var(--theme-selected-control-bg);
   color: var(--theme-selected-control-text);
   box-shadow: 0 0 0 1px var(--theme-selected-control-border);

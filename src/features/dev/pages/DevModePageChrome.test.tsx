@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/aria-role -- `role` here is the component prop for the member role, not an ARIA role */
 import { fireEvent, render, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 const { badgeState } = vi.hoisted(() => ({
   badgeState: { counts: {} as Record<string, number | undefined> },
@@ -23,6 +23,13 @@ import { DevModePageChrome } from "./DevModePageChrome";
 import { DEV_TAB_REGISTRY, type DevModeTab } from "./devTabRegistry";
 
 const TOOL_TABS = DEV_TAB_REGISTRY.filter((tab) => tab.group !== "chrome");
+const SHELL_TABS = TOOL_TABS.filter((tab) => tab.destination.kind === "shell");
+const CONTENT_TABS = TOOL_TABS.filter((tab) => tab.group === "content");
+
+beforeAll(() => {
+  // jsdom has no layout; the sheet's open-focus reveal calls scrollIntoView.
+  Element.prototype.scrollIntoView = vi.fn();
+});
 
 function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
   const utils = render(
@@ -32,8 +39,8 @@ function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
       isSignedIn
       role={role}
       sessionStatus="authenticated"
-      userEmail="editor@example.test"
-      userName="Editor"
+      userEmail="member@example.test"
+      userName="Member"
       onPrimaryTabChange={vi.fn()}
       onTabChange={vi.fn()}
       onSignIn={vi.fn()}
@@ -44,43 +51,89 @@ function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
   return { ...utils, nav };
 }
 
+/** Radix menu triggers toggle on left-button pointerdown. */
+function openMenu(trigger: HTMLElement) {
+  fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
+  return document.body.querySelector('[role="menu"]') as HTMLElement;
+}
+
 describe("DevModePageChrome rail", () => {
-  it("renders the tool groups as Content, Intake, Site in that order", () => {
-    const { nav } = renderChrome("articles");
+  it("keeps Content inline and collapses Intake and Site into menus for an admin", () => {
+    const { nav } = renderChrome("articles", "admin");
 
     const groups = within(nav).getAllByRole("group");
     expect(groups.map((group) => group.getAttribute("aria-label"))).toEqual(["Content", "Intake", "Site"]);
-    for (const group of groups) {
-      const label = group.getAttribute("aria-label") ?? "";
-      expect(within(group).getByText(label)).toBeTruthy();
+
+    const content = groups[0];
+    const pills = Array.from(content.querySelectorAll("button, a")).map((el) => el.textContent?.trim());
+    expect(pills).toEqual(CONTENT_TABS.map((tab) => tab.label));
+
+    for (const label of ["Intake", "Site"]) {
+      const trigger = within(nav).getByRole("button", { name: label });
+      expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
+    }
+    expect(within(nav).queryByRole("button", { name: /Locked/ })).toBeNull();
+  });
+
+  it("lists the group's tools in its menu and routes clicks through onTabChange", () => {
+    const onTabChange = vi.fn();
+    const { getByRole } = render(
+      <DevModePageChrome
+        activePrimaryTab="tools"
+        activeTab="articles"
+        isSignedIn
+        role="admin"
+        sessionStatus="authenticated"
+        onPrimaryTabChange={vi.fn()}
+        onTabChange={onTabChange}
+        onSignIn={vi.fn()}
+        onLeave={vi.fn()}
+      />,
+    );
+
+    const siteTrigger = getByRole("button", { name: "Site" });
+    const menu = openMenu(siteTrigger);
+    const items = within(menu).getAllByRole("menuitem").map((item) => item.textContent);
+    expect(items).toEqual(
+      TOOL_TABS.filter((tab) => tab.group === "site").map((tab) => tab.label),
+    );
+
+    fireEvent.click(within(menu).getByRole("menuitem", { name: "Queue" }));
+    expect(onTabChange).toHaveBeenCalledWith("queue");
+  });
+
+  it("rolls group badges up onto the menu trigger and keeps full accessible names", () => {
+    badgeState.counts = { "trip-reports": 3, feedback: 12 };
+    try {
+      const { nav } = renderChrome("articles", "admin");
+
+      const trigger = within(nav).getByRole("button", { name: "Intake, 15 awaiting review" });
+      expect(within(trigger).getByTitle("15 awaiting review").textContent).toBe("15");
+
+      const menu = openMenu(trigger);
+      const feedback = within(menu).getByRole("menuitem", { name: "Feedback, 12 awaiting review" });
+      expect(within(feedback).getByTitle("12 awaiting review")).toBeTruthy();
+    } finally {
+      badgeState.counts = {};
     }
   });
 
-  it("places every non-chrome descriptor in its group exactly once, in registry order", () => {
-    const { nav } = renderChrome("articles");
-
-    for (const group of within(nav).getAllByRole("group")) {
-      const groupId = group.getAttribute("aria-label")?.toLowerCase();
-      const expected = TOOL_TABS.filter((tab) => tab.group === groupId).map((tab) => tab.label);
-      const items = Array.from(group.querySelectorAll("button, a")).map((el) => el.textContent?.trim());
-      expect(items).toEqual(expected);
-    }
-
-    for (const tab of TOOL_TABS) {
-      expect(within(nav).getAllByText(tab.label)).toHaveLength(1);
-    }
-    expect(within(nav).queryByText("Change log")).toBeNull();
-    expect(within(nav).queryByText("Profile")).toBeNull();
-  });
-
-  it("marks the active shell tab and only that tab", () => {
+  it("marks the active inline tab and only that tab", () => {
     const { nav } = renderChrome("tag-editor");
 
     const active = nav.querySelectorAll('[aria-current="page"]');
     expect(active).toHaveLength(1);
-    expect(active[0].textContent).toBe("Tags");
+    expect(active[0].textContent).toContain("Tags");
     expect(active[0].getAttribute("data-state")).toBe("active");
     expect(nav.querySelectorAll('[data-state="active"]')).toHaveLength(1);
+  });
+
+  it("marks the menu trigger active when the current tool lives inside it", () => {
+    const { nav } = renderChrome("queue", "admin");
+
+    const siteTrigger = within(nav).getByRole("button", { name: "Site" });
+    expect(siteTrigger.hasAttribute("data-active")).toBe(true);
+    expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
   });
 
   it.each(["articles", "review", "writing", "change-log"] as const)(
@@ -97,21 +150,7 @@ describe("DevModePageChrome rail", () => {
     },
   );
 
-  it("renders each descriptor's badge count on its own tab only", () => {
-    badgeState.counts = { "trip-reports": 3, feedback: 12 };
-    try {
-      const { nav } = renderChrome("articles");
-      const tripReports = within(nav).getByRole("button", { name: /Trip reports/ });
-      expect(within(tripReports).getByText("3")).toBeTruthy();
-      const feedback = within(nav).getByRole("button", { name: /Feedback/ });
-      expect(within(feedback).getByText("12")).toBeTruthy();
-      expect(within(nav).getByRole("button", { name: "Substances" }).textContent).toBe("Substances");
-    } finally {
-      badgeState.counts = {};
-    }
-  });
-
-  it("routes shell tab clicks through onTabChange", () => {
+  it("routes inline tab clicks through onTabChange", () => {
     const onTabChange = vi.fn();
     const { getByRole } = render(
       <DevModePageChrome
@@ -131,87 +170,66 @@ describe("DevModePageChrome rail", () => {
     expect(onTabChange).toHaveBeenCalledWith("molecule-editor");
   });
 
-  it("leaves every tab enabled for an admin session and labels the role", () => {
+  it("leaves every tab reachable for an admin session and labels the role", () => {
     const { nav, getByText } = renderChrome("articles", "admin");
 
-    for (const button of Array.from(nav.querySelectorAll("button"))) {
-      expect(button.hasAttribute("disabled")).toBe(false);
-      expect(button.getAttribute("aria-disabled")).toBeNull();
+    for (const pill of Array.from(nav.querySelectorAll("button"))) {
+      expect(pill.hasAttribute("disabled")).toBe(false);
     }
+    expect(within(nav).queryByRole("button", { name: /Locked/ })).toBeNull();
     expect(getByText("Admin")).toBeInTheDocument();
   });
 
-  /**
-   * Every shell tab is clicked; only the open ones may reach `onTabChange`, and
-   * every closed one carries the reason as its title.
-   */
-  function expectRailForRole(role: AppRole, roleLabel: string) {
-    const onTabChange = vi.fn();
-    const { getByRole, getByText } = render(
-      <DevModePageChrome
-        activePrimaryTab="tools"
-        activeTab="contributors"
-        isSignedIn
-        role={role}
-        sessionStatus="authenticated"
-        userEmail="member@example.test"
-        userName="Member"
-        onPrimaryTabChange={vi.fn()}
-        onTabChange={onTabChange}
-        onSignIn={vi.fn()}
-        onLeave={vi.fn()}
-      />,
-    );
-    const nav = getByRole("navigation", { name: "Dev mode tools" });
+  it("moves admin tools into the Locked menu with reasons for an editor", () => {
+    const { nav, getByText } = renderChrome("articles", "editor");
 
-    const shellTabs = TOOL_TABS.filter((tab) => tab.destination.kind === "shell");
-    for (const tab of shellTabs) {
-      const button = within(nav).getByRole("button", { name: tab.label });
-      if (roleMeetsFloor(role, tab.role)) {
-        expect(button).toBeEnabled();
-        expect(button.getAttribute("aria-disabled")).toBeNull();
-        expect(button.hasAttribute("title")).toBe(false);
-      } else {
-        expect(button).toBeDisabled();
-        expect(button.getAttribute("aria-disabled")).toBe("true");
-        expect(button.getAttribute("title")).toBe(`${tab.role === "admin" ? "Admin" : "Editor"} role required`);
-      }
-      button.click();
+    // Content keeps only the editor-floor tools inline; Intake is entirely locked.
+    const content = within(nav).getByRole("group", { name: "Content" });
+    const contentItems = Array.from(content.querySelectorAll("button, a")).map((el) => el.textContent?.trim());
+    expect(contentItems).toEqual(["Substances", "Review", "Tags", "Index layout"]);
+    expect(within(nav).queryByRole("button", { name: "Intake" })).toBeNull();
+    expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
+
+    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 7 locked" });
+    const menu = openMenu(lockedTrigger);
+    const items = within(menu).getAllByRole("menuitem");
+    expect(items).toHaveLength(7);
+    for (const item of items) {
+      expect(item.getAttribute("aria-disabled")).toBe("true");
+      expect(within(item).getByText("Admin role required")).toBeTruthy();
     }
-    const openTabs = shellTabs.filter((tab) => roleMeetsFloor(role, tab.role)).map((tab) => tab.id);
-    expect(openTabs.length).toBeGreaterThan(0);
-    expect(openTabs.length).toBeLessThan(shellTabs.length);
-    expect(onTabChange.mock.calls.map(([tab]) => tab)).toEqual(openTabs);
-
-    // The external launcher stays a plain link: the review route enforces its own role.
-    const review = within(nav).getByRole("link", { name: /Review/ });
-    expect(review.getAttribute("href")).toBe("/review");
-
-    expect(within(nav).getByRole("button", { name: "Banners" }).getAttribute("title")).toBe("Admin role required");
-    expect(getByText(roleLabel)).toBeInTheDocument();
-    expect(getByRole("button", { name: "Sign out" })).toBeEnabled();
-    return { getByRole };
-  }
-
-  it("disables admin tabs with a reason for an editor and keeps editor tabs live", () => {
-    const { getByRole } = expectRailForRole("editor", "Editor");
-    expect(within(getByRole("navigation", { name: "Dev mode tools" })).getByRole("button", { name: "Substances" })).toBeEnabled();
-    expect(getByRole("button", { name: "Change log" })).toBeEnabled();
+    expect(within(menu).getByText("Members")).toBeTruthy();
+    expect(getByText("Editor")).toBeInTheDocument();
   });
 
-  it("disables editor and admin tabs with reasons for a contributor and keeps Contributors live", () => {
-    const { getByRole } = expectRailForRole("contributor", "Contributor");
-    const nav = getByRole("navigation", { name: "Dev mode tools" });
-    expect(within(nav).getByRole("button", { name: "Substances" }).getAttribute("title")).toBe("Editor role required");
-    expect(within(nav).getByRole("button", { name: "Contributors" })).toBeEnabled();
+  it("shows a contributor only their own tools flat, with everything else in Locked", () => {
+    const { nav, getByRole } = renderChrome("contributors", "contributor");
+
+    // The whole rail fits flat: no group menus, the contributor's own tools are pills.
+    expect(within(nav).queryByRole("button", { name: "Site" })).toBeNull();
+    expect(within(nav).queryByRole("button", { name: "Intake" })).toBeNull();
+    expect(within(nav).queryByRole("button", { name: "Substances" })).toBeNull();
+
+    const content = within(nav).getByRole("group", { name: "Content" });
+    expect(within(content).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
+
+    const site = within(nav).getByRole("group", { name: "Site" });
+    const ownTools = Array.from(site.querySelectorAll("button")).map((el) => el.textContent?.trim());
+    expect(ownTools).toEqual(["Contributors", "Playlists", "My reports"]);
+
+    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 13 locked" });
+    const menu = openMenu(lockedTrigger);
+    const items = within(menu).getAllByRole("menuitem");
+    expect(items).toHaveLength(13);
+    expect(within(menu).getByText("Substances").parentElement?.textContent).toContain("Editor role required");
+    expect(within(menu).getByText("Members").parentElement?.textContent).toContain("Admin role required");
 
     const changeLog = getByRole("button", { name: "Change log" });
     expect(changeLog).toBeDisabled();
-    expect(changeLog.getAttribute("aria-disabled")).toBe("true");
     expect(changeLog.getAttribute("title")).toBe("Editor role required");
   });
 
-  it("asks a signed-out session to sign in on every tab", () => {
+  it("asks a signed-out session to sign in behind the Locked menu", () => {
     const { getByRole } = render(
       <DevModePageChrome
         activePrimaryTab="tools"
@@ -226,23 +244,58 @@ describe("DevModePageChrome rail", () => {
       />,
     );
     const nav = getByRole("navigation", { name: "Dev mode tools" });
-    for (const button of Array.from(nav.querySelectorAll("button"))) {
-      expect(button).toBeDisabled();
-      expect(button.getAttribute("title")).toBe("Sign in required");
+
+    // The Review launcher stays a plain link; every shell tool sits in Locked.
+    expect(within(nav).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
+    const menu = openMenu(within(nav).getByRole("button", { name: `Locked, ${SHELL_TABS.length} locked` }));
+    for (const item of within(menu).getAllByRole("menuitem")) {
+      expect(item.getAttribute("aria-disabled")).toBe("true");
+      expect(within(item).getByText("Sign in required")).toBeTruthy();
     }
     expect(getByRole("button", { name: "Sign in" })).toBeEnabled();
+  });
+
+  it("holds its shape while the session resolves instead of filing every tool under Locked", () => {
+    const { getByRole } = render(
+      <DevModePageChrome
+        activePrimaryTab="tools"
+        activeTab="articles"
+        isSignedIn={false}
+        role={null}
+        sessionStatus="loading"
+        onPrimaryTabChange={vi.fn()}
+        onTabChange={vi.fn()}
+        onSignIn={vi.fn()}
+        onLeave={vi.fn()}
+      />,
+    );
+    const nav = getByRole("navigation", { name: "Dev mode tools" });
+
+    // Same groups as a full-access rail, no Locked overflow, nothing clickable yet.
+    expect(within(nav).getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual([
+      "Content",
+      "Intake",
+      "Site",
+    ]);
+    expect(within(nav).queryByRole("button", { name: /Locked/ })).toBeNull();
+    for (const label of ["Substances", "Intake", "Site"]) {
+      const control = within(nav).getByRole("button", { name: label });
+      expect(control).toBeDisabled();
+      expect(control.getAttribute("title")).toBe("Checking your account");
+    }
+    expect(getByRole("button", { name: "Change log" })).toBeDisabled();
   });
 });
 
 describe("DevModePageChrome phone sheet", () => {
-  function renderPhone(role: AppRole = "editor") {
+  function renderPhone(role: AppRole = "editor", activeTab: DevModeTab = "tag-editor") {
     const onTabChange = vi.fn();
     const onPrimaryTabChange = vi.fn();
     const onLeave = vi.fn();
     const utils = render(
       <DevModePageChrome
         activePrimaryTab="tools"
-        activeTab="tag-editor"
+        activeTab={activeTab}
         isSignedIn
         role={role}
         sessionStatus="authenticated"
@@ -257,32 +310,52 @@ describe("DevModePageChrome phone sheet", () => {
     return { ...utils, onTabChange, onPrimaryTabChange, onLeave };
   }
 
-  it("names the current tool on the bar and lists every group in the sheet", () => {
+  it("names the current tool on the bar and uses the shared disclosure cue", () => {
     const { getByRole, queryByRole } = renderPhone();
     expect(queryByRole("dialog")).toBeNull();
 
     const trigger = getByRole("button", { name: "Tools menu, current tool Tags" });
-    fireEvent.click(trigger);
+    expect(trigger.querySelector("[data-expand-indicator]")).not.toBeNull();
+  });
+
+  it("opens with a header, scrolling groups, and a sticky footer with the way out", () => {
+    const { getByRole } = renderPhone();
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
 
     const sheet = getByRole("dialog");
+    expect(within(sheet).getByText("Tools")).toBeTruthy();
+    expect(within(sheet).getByRole("button", { name: "Close tools menu" })).toBeTruthy();
+
     const menu = within(sheet).getByRole("navigation", { name: "Dev mode tools menu" });
     const groups = within(menu).getAllByRole("group").map((group) => group.getAttribute("aria-label"));
-    expect(groups).toEqual(["Content", "Intake", "Site", "Site sections", "Session"]);
+    expect(groups).toEqual(["Content", "Intake", "Site"]);
 
-    const shellTabs = TOOL_TABS.filter((tab) => tab.destination.kind === "shell");
-    for (const tab of shellTabs) {
-      const button = within(menu).getByRole("button", { name: new RegExp(`^${tab.label}`) });
-      expect(button.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
+    // Every tool is listed; locked ones carry their reason inline.
+    for (const tab of SHELL_TABS) {
+      const row = within(menu).getByRole("button", { name: new RegExp(`^${tab.label}`) });
+      expect(row.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
       if (!roleMeetsFloor("editor", tab.role)) {
-        expect(button).toBeDisabled();
-        expect(within(button).getByText("Admin role required")).toBeInTheDocument();
+        expect(row).toBeDisabled();
+        expect(within(row).getByText("Admin role required")).toBeInTheDocument();
       }
     }
     expect(within(menu).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
-    expect(within(menu).getByRole("link", { name: "UI kit" }).getAttribute("href")).toBe("/dev/kit");
-    expect(within(menu).getByRole("link", { name: "Theme lab" }).getAttribute("href")).toBe("/dev/themes");
-    expect(within(menu).getByRole("button", { name: "Change log" })).toBeEnabled();
-    expect(within(menu).getByRole("button", { name: "Sign out" })).toBeEnabled();
+
+    const footer = within(sheet).getByRole("group", { name: "Site sections" });
+    expect(within(footer).getByRole("link", { name: "UI kit" }).getAttribute("href")).toBe("/dev/kit");
+    expect(within(footer).getByRole("link", { name: "Theme lab" }).getAttribute("href")).toBe("/dev/themes");
+    expect(within(footer).getByRole("button", { name: "Change log" })).toBeEnabled();
+    expect(within(sheet).getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("focuses and reveals the active row on open instead of the first row", () => {
+    const { getByRole } = renderPhone("editor", "queue");
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Queue" }));
+
+    const sheet = getByRole("dialog");
+    const active = within(sheet).getByRole("button", { name: "Queue" });
+    expect(document.activeElement).toBe(active);
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
   });
 
   it("switches tool and closes on selection", () => {
@@ -294,12 +367,25 @@ describe("DevModePageChrome phone sheet", () => {
     expect(queryByRole("dialog")).toBeNull();
   });
 
-  it("carries badges into the sheet", () => {
-    badgeState.counts = { "trip-reports": 4 };
-    const { getByRole } = renderPhone("admin");
+  it("closes from the header close button", () => {
+    const { getByRole, queryByRole } = renderPhone();
     fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
-    expect(within(getByRole("dialog")).getByTitle("4 awaiting review").textContent).toBe("4");
-    badgeState.counts = {};
+    expect(getByRole("dialog")).toBeTruthy();
+
+    fireEvent.click(getByRole("button", { name: "Close tools menu" }));
+    expect(queryByRole("dialog")).toBeNull();
+  });
+
+  it("carries badges into the sheet with a full accessible name", () => {
+    badgeState.counts = { "trip-reports": 4 };
+    try {
+      const { getByRole } = renderPhone("admin");
+      fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
+      const sheet = getByRole("dialog");
+      expect(within(sheet).getByRole("button", { name: "Trip reports, 4 awaiting review" })).toBeTruthy();
+    } finally {
+      badgeState.counts = {};
+    }
   });
 
   it("leaves the editor from the sheet and from the rail through the same handler", () => {
