@@ -10,6 +10,7 @@ import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
+import { buildCitationNumbering } from "@/lib/citations/referenceModel";
 import { RecentChangesList } from "./RecentChangesList";
 import {
   EXPERT_REVIEW_CREDIT_FALLBACK,
@@ -189,11 +190,18 @@ function StatusStep({
   );
 }
 
-// Same fixed locale and zone as the rows inside, so the summary and the list
-// never disagree about a date across the server/client boundary.
-const summaryDateFormat = new Intl.DateTimeFormat("en-GB", {
+// Same fixed zone as the rows inside, so the summary and the list never
+// disagree about a date across the server/client boundary. The year appears
+// only once the latest edit is no longer this year's.
+const summaryDayFormat = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
+  timeZone: "UTC",
+});
+const summaryDateWithYearFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
   timeZone: "UTC",
 });
 
@@ -204,9 +212,23 @@ const summaryDateFormat = new Intl.DateTimeFormat("en-GB", {
  * any specific change is visible until the reader opens it. The rows inside
  * are the client leaf.
  */
-function RecentChangesDisclosure({ changes }: { changes: ArticleRecentChange[] }) {
+function RecentChangesDisclosure({
+  changes,
+  article,
+}: {
+  changes: ArticleRecentChange[];
+  article: SubstanceArticle;
+}) {
   const latest = changes[0];
   const count = changes.length;
+  const latestDate = new Date(latest.createdAt);
+  const summaryDateFormat =
+    latestDate.getUTCFullYear() === new Date().getUTCFullYear() ? summaryDayFormat : summaryDateWithYearFormat;
+  // Diffs render `[cite:id]` tokens as the article's citation numbers, so a
+  // reader can follow one to the reference it points at today.
+  const citationNumbers = Object.fromEntries(
+    buildCitationNumbering(article.references ?? [], article).numbersById,
+  );
   return (
     <details className="group/changes mt-6 border-t border-dose-border pt-3">
       <summary
@@ -223,25 +245,25 @@ function RecentChangesDisclosure({ changes }: { changes: ArticleRecentChange[] }
           />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="theme-text-faint flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.15em]">
+          <span className="theme-text-faint flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.15em]">
             Recent changes
           </span>
           <span className="theme-text-secondary mt-0.5 block text-sm leading-snug">
             {count === 1 ? "1 human edit" : `${count} human edits`}
             <span className="theme-text-faint">
               {" · latest "}
-              <time dateTime={latest.createdAt}>{summaryDateFormat.format(new Date(latest.createdAt))}</time>
+              <time dateTime={latest.createdAt}>{summaryDateFormat.format(latestDate)}</time>
             </span>
           </span>
         </span>
         <Icon
           icon="lucide:chevron-down"
           size={16}
-          className="theme-icon-muted shrink-0 transition-transform duration-200 group-open/changes:rotate-180"
+          className="theme-icon-muted shrink-0 transition-transform duration-200 motion-reduce:transition-none group-open/changes:rotate-180"
         />
       </summary>
       <div className="sm:pl-[3.25rem]">
-        <RecentChangesList changes={changes} />
+        <RecentChangesList changes={changes} citationNumbers={citationNumbers} />
       </div>
     </details>
   );
@@ -341,7 +363,7 @@ export const ContributorsSection = memo(function ContributorsSection({
       </ul>
 
       {recentChanges.length > 0 ? (
-        <RecentChangesDisclosure changes={recentChanges} />
+        <RecentChangesDisclosure changes={recentChanges} article={article} />
       ) : null}
     </ArticleSection>
   );

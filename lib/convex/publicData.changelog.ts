@@ -11,12 +11,15 @@ import {
   type ChangeLogEntry,
 } from "../../src/data/changelog/changeLog";
 import {
+  describeChange,
+  mergeSourceChurn,
   sliceArticleDiff,
   type ArticleRecentChange,
 } from "../../src/data/changelog/articleRecentChanges";
-import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { ContributorDirectory } from "../contributorDirectory";
+import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import {
+  expandLegacyContributorHandles,
   findContributorProfileByKeyOrAlias,
   toContributorDisplayName,
 } from "../contributorProfileIdentity";
@@ -224,16 +227,17 @@ const readChangelogByArticleSlug = cache(
         const article = articles.find((candidate) => candidate.slug === slug);
         if (!article) continue;
         const markdown = typeof row.markdown === "string" ? row.markdown : "";
+        const diff = truncateDiffMarkdown(sliceArticleDiff(markdown, article));
         changes.push({
           id: row.entryId,
           createdAt: row.createdAt,
-          message: typeof row.message === "string" ? row.message : "",
-          diff: truncateDiffMarkdown(sliceArticleDiff(markdown, article)),
+          ...describeChange(typeof row.message === "string" ? row.message : "", diff),
+          diff,
           articleCount: articles.length,
           submittedBy: typeof row.submittedBy === "string" ? row.submittedBy : null,
         });
       }
-      return changes;
+      return mergeSourceChurn(changes);
     },
     ["convex-public-changelog-by-article-slug"],
     {
@@ -268,7 +272,13 @@ export const getPublicArticleHistory = cache(
       if (!submittedBy) {
         return { ...change, contributor: null };
       }
-      const profile = findContributorProfileByKeyOrAlias(directory, submittedBy);
+      // Legacy stamps (WITCHY) attribute to their current profile (LYREA), the
+      // same grouping the profile page uses in the other direction.
+      let profile = null;
+      for (const handle of expandLegacyContributorHandles([submittedBy])) {
+        profile = findContributorProfileByKeyOrAlias(directory, handle);
+        if (profile) break;
+      }
       return {
         ...change,
         contributor: profile

@@ -73,15 +73,35 @@ describe("ContributorsSection", () => {
           {
             id: "direct-1",
             createdAt: "2026-08-12T10:00:00.000Z",
-            message: "Inline edit — Dosage / Threshold",
+            kind: "prose",
+            message: "Changed a word",
+            detail: null,
+            section: { id: "dosage-duration", label: "Dosage & Duration" },
+            field: "Threshold",
             contributor: { name: "Josie Kins", href: "/contributors/josie", avatarUrl: null },
-            diff: "@@ Dosage / Threshold @@\n- 5 mg\n+ 4 mg",
+            diff: "@@ dosage.threshold @@\n- 5 mg\n+ 4 mg",
+            articleCount: 1,
+          },
+          {
+            id: "source-1",
+            createdAt: "2026-08-12T09:00:00.000Z",
+            kind: "source",
+            message: "Added a source",
+            detail: "Some paper",
+            section: { id: "sources", label: "Sources" },
+            field: null,
+            contributor: null,
+            diff: "@@ references @@\n+ Some paper",
             articleCount: 1,
           },
           {
             id: "bulk-1",
             createdAt: "2026-07-02T10:00:00.000Z",
-            message: "Dev editor update - 2026-07-02",
+            kind: "bulk",
+            message: "Updated the article",
+            detail: "2026-07-02",
+            section: null,
+            field: null,
             contributor: null,
             diff: "",
             articleCount: 14,
@@ -93,18 +113,26 @@ describe("ContributorsSection", () => {
     const details = screen.getByText("Recent changes").closest("details");
     expect(details).not.toBeNull();
     expect(details).not.toHaveAttribute("open");
-    expect(screen.getByText(/2 human edits/)).toBeInTheDocument();
+    expect(screen.getByText(/3 human edits/)).toBeInTheDocument();
     expect(screen.getByText("12 Aug").closest("time")).toHaveAttribute("dateTime", "2026-08-12T10:00:00.000Z");
-    expect(screen.queryByText("+ 4 mg")).not.toBeInTheDocument();
+    expect(document.querySelector("ins")).toBeNull();
 
     // Rows exist in the DOM (native details keeps them for search and a11y)
-    // but a row's diff mounts only when its own expander is pressed.
-    expect(screen.getByText("Inline edit — Dosage / Threshold")).toBeInTheDocument();
-    expect(screen.getByText(/one of 14 articles in this save/)).toBeInTheDocument();
+    // but a row's diff mounts only when its own expander is pressed. Rows
+    // group by day with a time each; the section name links to its anchor.
+    expect(screen.getByRole("heading", { name: "12 August 2026" })).toBeInTheDocument();
+    expect(screen.getAllByText("10:00")[0].closest("time")).toHaveAttribute("dateTime", "2026-08-12T10:00:00.000Z");
+    expect(screen.getByText("Changed a word")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dosage & Duration" })).toHaveAttribute("href", "#dosage-duration");
+    expect(screen.getByText(/› Threshold/)).toBeInTheDocument();
+    expect(screen.getByText("Some paper")).toBeInTheDocument();
+    expect(screen.getByText(/part of a save across 14 articles/)).toBeInTheDocument();
+    // Only the prose row has something to open: source rows say it all inline.
     expect(screen.getAllByRole("button", { name: "Show what changed" })).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Show what changed" }));
-    expect(screen.getByText("+ 4 mg")).toBeInTheDocument();
+    expect(document.querySelector("ins")).toHaveTextContent("4");
+    expect(document.querySelector("del")).toHaveTextContent("5");
     expect(screen.getByRole("button", { name: "Hide what changed" })).toBeInTheDocument();
   });
 });

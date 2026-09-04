@@ -7,11 +7,6 @@ interface ChangelogDiffProps {
   id: string;
   /** Row key prefix; keeps line keys unique when several diffs mount at once. */
   keyPrefix: string;
-  /**
-   * Wrap long lines instead of scrolling them. Prose diffs (article copy)
-   * read better wrapped; structural JSON diffs keep their columns.
-   */
-  wrap?: boolean;
   className?: string;
 }
 
@@ -20,13 +15,10 @@ interface ChangelogDiffProps {
  * contributor profile history and the article page's recent-changes rows so
  * the same edit reads identically on both surfaces.
  */
-export function ChangelogDiff({ markdown, id, keyPrefix, wrap = false, className }: ChangelogDiffProps) {
+export function ChangelogDiff({ markdown, id, keyPrefix, className }: ChangelogDiffProps) {
   return (
     <div id={id} className={cn("theme-code-surface overflow-x-auto border-t border-dose-border p-4", className)}>
-      <pre
-        className={cn("font-mono text-xs leading-relaxed", wrap && "whitespace-pre-wrap [overflow-wrap:anywhere]")}
-        aria-label="Diff of changed lines"
-      >
+      <pre className="font-mono text-xs leading-relaxed" aria-label="Diff of changed lines">
         <code>
           {markdown.split("\n").map((line, index) => {
             const isAdded = line.startsWith("+");

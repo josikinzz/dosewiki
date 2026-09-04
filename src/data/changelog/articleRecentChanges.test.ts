@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { humanizeChangeMessage, sliceArticleDiff } from "./articleRecentChanges";
+import { describeChange, mergeSourceChurn, sliceArticleDiff } from "./articleRecentChanges";
 
 const article = { id: 12, title: "2C-B", slug: "2c-b" };
 
@@ -52,17 +52,100 @@ describe("sliceArticleDiff", () => {
   });
 });
 
+describe("describeChange", () => {
+  it("names a sourced claim when a citation-needed flag becomes a citation", () => {
+    const diff = "@@ harm_potential.psychosis.description @@\n- Occurs in users[citation-needed] and more.\n+ Occurs in users[cite:doi-1] and more.";
 
-describe("humanizeChangeMessage", () => {
-  it("turns an inline-edit field path into words", () => {
-    expect(humanizeChangeMessage("Inline edit — harm_potential.psychosis.description")).toBe(
-      "Edited Harm potential › Psychosis › Description",
-    );
-    expect(humanizeChangeMessage("Inline edit — summary")).toBe("Edited Summary");
+    expect(describeChange("Inline edit — harm_potential.psychosis.description", diff)).toEqual({
+      kind: "prose",
+      message: "Sourced a claim",
+      detail: null,
+      section: { id: "harm-potential", label: "Harm Potential" },
+      field: "Psychosis › Description",
+    });
   });
 
-  it("passes prose messages through untouched", () => {
-    expect(humanizeChangeMessage("Added a source — Some paper title")).toBe("Added a source — Some paper title");
-    expect(humanizeChangeMessage("Dev editor update - 2026-07-02")).toBe("Dev editor update - 2026-07-02");
+  it("counts citations and reworded words separately, with no link for an unanchored section", () => {
+    const diff = "- The dose is 5 mg and safe.\n+ The dose is 4 mg and risky.[cite:a][cite:b]";
+
+    expect(describeChange("Inline edit — summary", diff)).toMatchObject({
+      message: "Added 2 citations and reworded 2 words",
+      section: null,
+      field: "Summary",
+    });
+  });
+
+  it("keeps an unmapped field path as words without a section link", () => {
+    expect(describeChange("Inline edit — mystery.thing", "- a\n+ b")).toMatchObject({
+      message: "Changed a word",
+      section: null,
+      field: "Mystery › Thing",
+    });
+  });
+
+  it("splits a source message into verb and title", () => {
+    expect(describeChange("Added a source — Some paper title", "")).toEqual({
+      kind: "source",
+      message: "Added a source",
+      detail: "Some paper title",
+      section: { id: "sources", label: "Sources" },
+      field: null,
+    });
+  });
+
+  it("treats a Dev editor save as a bulk update with its note", () => {
+    expect(describeChange("Dev editor update - 2026-07-02", "")).toEqual({
+      kind: "bulk",
+      message: "Updated the article",
+      detail: "2026-07-02",
+      section: null,
+      field: null,
+    });
+  });
+});
+
+describe("mergeSourceChurn", () => {
+  const row = (id: string, message: string, createdAt: string, submittedBy = "LYREA") => ({
+    id,
+    kind: "source" as const,
+    message,
+    detail: "Same paper",
+    createdAt,
+    submittedBy,
+  });
+
+  it("collapses a remove-then-add of one source by one contributor into a re-add", () => {
+    const merged = mergeSourceChurn([
+      row("b", "Added a source", "2026-09-03T10:05:00Z"),
+      row("a", "Removed a source", "2026-09-03T10:00:00Z"),
+    ]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({ id: "b", message: "Re-added a source" });
+  });
+
+  it("collapses an add-then-remove into one row that says so", () => {
+    const merged = mergeSourceChurn([
+      row("b", "Removed a source", "2026-09-03T10:05:00Z"),
+      row("a", "Added a source", "2026-09-03T10:00:00Z"),
+    ]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({ id: "b", message: "Added, then removed a source" });
+  });
+
+  it("leaves a pair by different contributors or far apart in time alone", () => {
+    expect(
+      mergeSourceChurn([
+        row("b", "Added a source", "2026-09-03T10:05:00Z", "JOSIE"),
+        row("a", "Removed a source", "2026-09-03T10:00:00Z"),
+      ]),
+    ).toHaveLength(2);
+    expect(
+      mergeSourceChurn([
+        row("b", "Added a source", "2026-09-04T10:05:00Z"),
+        row("a", "Removed a source", "2026-09-03T10:00:00Z"),
+      ]),
+    ).toHaveLength(2);
   });
 });
