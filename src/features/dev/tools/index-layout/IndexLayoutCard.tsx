@@ -188,9 +188,9 @@ function SectionBlock({
   return (
     <div>
       {showHeader && section.label !== undefined ? (
-        <div className="group/section mb-1.5 flex items-center gap-2">
-          <p className="theme-index-card-section-label flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
-            <span className="truncate">{section.label}</span>
+        <div className="group/section mb-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="theme-index-card-section-label flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
+            <span className="min-w-0 break-words">{section.label}</span>
             <IndexCardCountBadge count={section.items.length} size="sm" />
             {section.hiddenOnSite ? (
               <span className="theme-text-faint normal-case tracking-normal" title="Empty sections do not render on the site">
