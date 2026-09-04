@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { EditorStatusPillTone } from "@/features/dev/components";
 export const STORAGE_KEYS = {
   API_KEY: "substanceEditor_apiKey",
   SELECTED_MODEL: "substanceEditor_model",
@@ -13,6 +14,8 @@ export const DXM_SECTION_END = "For non-DXM substances, set `plateau_dosing` to 
 export interface SubstanceEditorTabProps {
   /** Render function for commit panel - receives optional action slot for buttons and tab-specific description copy */
   renderCommitPanel?: (actionSlot?: ReactNode, description?: ReactNode) => ReactNode;
+  /** The `/dev/articles/<slug>` deep link: the substance the tab opens on. */
+  initialSlug?: string;
 }
 
 export interface ApiConfigSectionProps {
@@ -52,6 +55,12 @@ export interface OutputSectionProps {
 
 export type SortOrder = "alpha-asc" | "alpha-desc";
 export type ReviewStatus = "needed" | "in_progress" | "completed";
+
+export const REVIEW_STATUS_META: Record<ReviewStatus, { label: string; tone: EditorStatusPillTone }> = {
+  needed: { label: "Review Needed", tone: "danger" },
+  in_progress: { label: "In Progress", tone: "warning" },
+  completed: { label: "Completed", tone: "success" },
+};
 
 export interface SubstanceInfo {
   slug: string;

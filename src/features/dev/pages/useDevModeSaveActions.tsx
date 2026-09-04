@@ -66,7 +66,12 @@ type UseDevModeSaveActionsResult = {
 
 const NOTICE_CLEAR_MS = { success: 5000, error: 10000 } as const;
 
-function ConvexSaveButton({
+/**
+ * The commit control. The server-health pill only appears when it has
+ * something to say (checking, blocked, unreachable): a healthy server is
+ * the button being enabled, not a second label beside it.
+ */
+function CommitButton({
   convexEnabled,
   canDraft,
   canApprove,
@@ -74,8 +79,8 @@ function ConvexSaveButton({
   refreshConvexServerHealth,
   isSaving,
   hasPendingChanges,
-  isConvexSaveBlocked,
-  onSaveToConvex,
+  isCommitBlocked,
+  onCommit,
 }: {
   convexEnabled: boolean;
   canDraft: boolean;
@@ -84,8 +89,8 @@ function ConvexSaveButton({
   refreshConvexServerHealth: () => Promise<void>;
   isSaving: boolean;
   hasPendingChanges: boolean;
-  isConvexSaveBlocked: boolean;
-  onSaveToConvex: () => void;
+  isCommitBlocked: boolean;
+  onCommit: () => void;
 }) {
   if (!convexEnabled) {
     return null;
@@ -93,7 +98,7 @@ function ConvexSaveButton({
 
   return (
     <div className="flex items-center gap-2">
-      {canApprove ? (
+      {canApprove && convexServerHealth.status !== "healthy" ? (
         <EditorServerHealthIndicator
           health={convexServerHealth}
           onRefresh={() => {
@@ -105,15 +110,15 @@ function ConvexSaveButton({
         variant="outline"
         size="pill"
         className="rounded-full px-4 py-2 text-sm font-medium"
-        onClick={onSaveToConvex}
-        disabled={!canDraft || isSaving || !hasPendingChanges || (canApprove && isConvexSaveBlocked)}
+        onClick={onCommit}
+        disabled={!canDraft || isSaving || !hasPendingChanges || (canApprove && isCommitBlocked)}
         title={canDraft ? undefined : "Editor role required"}
       >
-        <Icon icon={canApprove ? "lucide:cloud" : "lucide:send"} size={16} />
+        <Icon icon={canApprove ? "lucide:upload" : "lucide:send"} size={16} />
         {canApprove
           ? isSaving
-            ? "Saving..."
-            : "Save to Convex"
+            ? "Committing..."
+            : "Commit to production"
           : isSaving
             ? "Submitting..."
             : "Submit for review"}
@@ -360,7 +365,7 @@ export function useDevModeSaveActions({
     ],
   );
 
-  const handleSaveToConvex = useCallback(async () => {
+  const handleCommit = useCallback(async () => {
     const effect = orchestrator.dispatch({ type: "saveRequested" });
     if (effect) {
       await handleEffect(effect);
@@ -389,12 +394,12 @@ export function useDevModeSaveActions({
   const isSaving = selectIsSaving(orchestratorState);
   const notice: ChangeNotice | null = orchestratorState.notice;
 
-  const isConvexSaveBlocked =
+  const isCommitBlocked =
     canApprove && convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
 
-  const convexSaveButton = useMemo(
+  const commitButton = useMemo(
     () => (
-      <ConvexSaveButton
+      <CommitButton
         convexEnabled={convexEnabled}
         canDraft={canDraft}
         canApprove={canApprove}
@@ -402,26 +407,26 @@ export function useDevModeSaveActions({
         refreshConvexServerHealth={refreshConvexServerHealth}
         isSaving={isSaving}
         hasPendingChanges={hasPendingChanges}
-        isConvexSaveBlocked={isConvexSaveBlocked}
-        onSaveToConvex={() => {
-          void handleSaveToConvex();
+        isCommitBlocked={isCommitBlocked}
+        onCommit={() => {
+          void handleCommit();
         }}
       />
     ),
     [
       convexEnabled,
       convexServerHealth,
-      handleSaveToConvex,
+      handleCommit,
       canDraft,
       canApprove,
       hasPendingChanges,
-      isConvexSaveBlocked,
+      isCommitBlocked,
       isSaving,
       refreshConvexServerHealth,
     ],
   );
 
-  const destination = canApprove ? "convex" : "proposal";
+  const destination = canApprove ? "production" : "proposal";
   const rebase = useMemo<DevCommitRebase | null>(
     () =>
       activeProposal
@@ -430,7 +435,7 @@ export function useDevModeSaveActions({
     [activeProposal, onDiscardActiveProposal],
   );
   const commitPanel = (
-    <DevModeCommitPanel notice={notice} destination={destination} actionSlot={convexSaveButton} rebase={rebase} />
+    <DevModeCommitPanel notice={notice} destination={destination} actionSlot={commitButton} rebase={rebase} />
   );
 
   const renderCommitPanel = useCallback(
@@ -443,16 +448,16 @@ export function useDevModeSaveActions({
         actionSlot={
           extraActionSlot ? (
             <div className="flex flex-wrap items-center gap-2">
-              {convexSaveButton}
+              {commitButton}
               {extraActionSlot}
             </div>
           ) : (
-            convexSaveButton
+            commitButton
           )
         }
       />
     ),
-    [convexSaveButton, destination, notice, rebase],
+    [commitButton, destination, notice, rebase],
   );
 
   return {

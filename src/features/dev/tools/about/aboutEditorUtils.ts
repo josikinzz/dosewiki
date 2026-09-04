@@ -19,7 +19,7 @@ export const ABOUT_COPY_BLOCKS: readonly { key: string; label: string }[] = [
 ];
 
 /**
- * Drops the leading `# Heading` line that `buildTextChangelog` prepends —
+ * Drops the leading `# Heading` line that `buildTextChangelog` prepends;
  * the editor renders its own labels above each diff well.
  */
 export function stripDiffHeading(diffText: string): string {

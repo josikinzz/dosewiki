@@ -66,7 +66,7 @@ export class WarningBannersBoundary extends Component<
           <p className="max-w-[72ch] text-sm leading-relaxed text-dose-text-secondary">
             The preset list comes from Convex. The usual cause is that
             <code className="mx-1 text-dose-text-faint">warningBanners</code>
-            has not been deployed to the target deployment yet — run
+            has not been deployed to the target deployment yet. Run
             <code className="mx-1 text-dose-text-faint">npm run convex:deploy</code>
             and reload. Until then the public site is unaffected: with no presets
             stored, no article shows a banner.

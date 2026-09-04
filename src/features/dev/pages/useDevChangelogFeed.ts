@@ -1,5 +1,5 @@
 import { useQuery as useConvexQuery } from "convex/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "../../../../convex/_generated/api";
 import {
@@ -10,7 +10,26 @@ import {
 } from "@/data/changelog/changeLog";
 import { isConvexEnabled } from "@/lib/convex";
 
-const CHANGELOG_FEED_LIMIT = 100;
+/** Server rows fetched per page; each "Load older saves" adds one more page. */
+export const CHANGELOG_FEED_PAGE_SIZE = 100;
+/** The most rows `changelog.getRecent` will return; older saves are unreachable here. */
+export const CHANGELOG_FEED_MAX_ROWS = 500;
+
+/**
+ * What the change log knows about the slice of server history it holds, so
+ * the tab can say so instead of presenting a capped feed as the whole record.
+ */
+export type ChangelogFeedWindow = {
+  /** Server rows currently held; 0 until the first page arrives or when Convex is off. */
+  loadedCount: number;
+  /** The last page came back full and the server cap is not reached: older saves can be loaded. */
+  hasMore: boolean;
+  /** The window is as large as the server allows; anything older cannot be loaded from this page. */
+  atServerCap: boolean;
+  /** A page is in flight (the first one, or an older one after `loadMore`). */
+  loading: boolean;
+  loadMore: () => void;
+};
 
 function normalizeConvexChangelogEntries(
   convexEntries: readonly {
@@ -56,11 +75,13 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
   );
+  const [limit, setLimit] = useState(CHANGELOG_FEED_PAGE_SIZE);
+  const [loadedCount, setLoadedCount] = useState(0);
   const convexEnabled = isConvexEnabled();
 
   const convexChangelogEntries = useConvexQuery(
     api.changelog.getRecent,
-    convexEnabled && active ? { limit: CHANGELOG_FEED_LIMIT } : "skip",
+    convexEnabled && active ? { limit } : "skip",
   );
 
   useEffect(() => {
@@ -68,6 +89,7 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
       return;
     }
 
+    setLoadedCount(convexChangelogEntries.length);
     setChangeLogEntries((previous) => {
       const merged = mergeStaticAndConvexChangelogEntries(
         initialChangeLogEntries,
@@ -90,10 +112,29 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
     setChangeLogEntries((previous) => appendChangeLogEntry(previous, entry));
   }, []);
 
+  // A page is loading whenever the subscription is live but has no answer:
+  // Convex reports the changed `limit` as undefined until the wider page lands.
+  const loading = convexEnabled && active && convexChangelogEntries === undefined;
+  const atServerCap = convexEnabled && loadedCount >= CHANGELOG_FEED_MAX_ROWS;
+  const hasMore = convexEnabled && !atServerCap && loadedCount >= limit && limit < CHANGELOG_FEED_MAX_ROWS;
+
+  const loadMore = useCallback(() => {
+    if (loading) {
+      return;
+    }
+    setLimit((previous) => Math.min(previous + CHANGELOG_FEED_PAGE_SIZE, CHANGELOG_FEED_MAX_ROWS));
+  }, [loading]);
+
+  const feedWindow = useMemo<ChangelogFeedWindow>(
+    () => ({ loadedCount, hasMore, atServerCap, loading, loadMore }),
+    [atServerCap, hasMore, loadMore, loadedCount, loading],
+  );
+
   return {
     changeLogEntries,
     convexEnabled,
     appendChangeLogEntryToState,
+    feedWindow,
   };
 }
 

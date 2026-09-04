@@ -48,6 +48,7 @@ import {
   type EditorStatusPillTone,
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
+import type { EnablementChange } from "./enablement";
 import { PresetDrawer } from "./PresetDrawer";
 
 /**
@@ -103,11 +104,8 @@ export type PresetsViewProps = {
   onCreate: () => void;
   onSave: () => void;
   onDiscard: () => void;
-  onCommitEnabledSlugs: (
-    preset: WarningBannerPreset,
-    nextSlugs: string[],
-    summary: string,
-  ) => void;
+  /** Asks the controller to confirm and write one enablement change. */
+  onRequestEnablement: (preset: WarningBannerPreset, change: EnablementChange) => void;
   onRequestDelete: (preset: WarningBannerPreset) => void;
   onInspectCoverage: (slug: string) => void;
 };
@@ -128,7 +126,7 @@ export function PresetsView({
   onCreate,
   onSave,
   onDiscard,
-  onCommitEnabledSlugs,
+  onRequestEnablement,
   onRequestDelete,
   onInspectCoverage,
 }: PresetsViewProps) {
@@ -142,7 +140,7 @@ export function PresetsView({
     onDraftChange,
     onSave,
     onDiscard,
-    onCommitEnabledSlugs,
+    onRequestEnablement,
     onRequestDelete,
     onInspectCoverage,
   };
@@ -290,13 +288,13 @@ export function PresetsView({
                       <EditorStatusPill tone={STATE_PILL_TONE[state]}>
                         {state === "live"
                           ? preset.allSubstances
-                            ? "live · all"
+                            ? "live · sitewide"
                             : `live · ${preset.enabledSlugs.length}`
                           : STATE_LABEL[state]}
                       </EditorStatusPill>
                     </EditorTableCell>
                     <EditorTableCell label="Enabled on" className="theme-text-secondary text-sm tabular-nums">
-                      {preset.allSubstances ? "All" : preset.enabledSlugs.length}
+                      {preset.allSubstances ? "Sitewide" : preset.enabledSlugs.length}
                     </EditorTableCell>
                   </EditorTableRow>
                   {open && draft ? (

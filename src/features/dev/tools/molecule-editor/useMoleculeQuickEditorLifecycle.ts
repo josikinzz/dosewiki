@@ -226,7 +226,7 @@ export function useMoleculeQuickEditorLifecycle({
       setVariant("saved");
       setSaveResult({
         tone: "success",
-        message: "Saved — this is now the live depiction. The substance page refreshes momentarily.",
+        message: "Saved. This is now the live depiction. The substance page refreshes momentarily.",
       });
       setRefreshToken((token) => token + 1);
     } catch (error) {

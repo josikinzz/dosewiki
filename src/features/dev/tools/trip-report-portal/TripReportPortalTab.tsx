@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
 import {
   EditorNotice,
@@ -27,6 +30,9 @@ const SORTS: { value: PortalSort; label: string }[] = [
 ];
 
 export function TripReportPortalTab() {
+  // Below xl the list folds into a strip above the open record; this is that
+  // strip's disclosure. At xl the list has its own column and ignores it.
+  const [stripOpen, setStripOpen] = useState(true);
   const {
     bucket,
     busy,
@@ -46,6 +52,7 @@ export function TripReportPortalTab() {
     loadReportBody,
     promotionPayload,
     query,
+    queuePosition,
     rows,
     runPromotion,
     saveReport,
@@ -53,6 +60,7 @@ export function TripReportPortalTab() {
     selected,
     selectedId,
     selectedSubmission,
+    selectAdjacent,
     selectRow,
     setBucket,
     setDraft,
@@ -124,37 +132,50 @@ export function TripReportPortalTab() {
             }
           />
 
-          <main className={`min-w-0 ${editorOpen ? "hidden xl:block" : ""}`}>
-            <div className="theme-portal-rule flex flex-wrap items-center gap-2.5 border-b px-1 pb-2.5">
-              <p className="theme-text-faint text-xs tabular-nums">
-                <span className="theme-text-secondary font-semibold">{visible.length}</span> of {rows.length}
-              </p>
+          {/*
+            One grid cell below xl (list strip stacked over the open record),
+            dissolved into separate cells at xl where the list has a column.
+          */}
+          <div className="min-w-0 space-y-4 xl:contents">
+            <main className="min-w-0">
+              <div className="theme-portal-rule flex flex-wrap items-center gap-2.5 border-b px-1 pb-2.5">
+                <p className="theme-text-faint text-xs tabular-nums">
+                  <span className="theme-text-secondary font-semibold">{visible.length}</span> of {rows.length}
+                </p>
 
-              {(["substance", "author", "tag"] as const).flatMap((kind) =>
-                facets[kind].map((value) => (
-                  <TagToken
-                    key={`${kind}:${value}`}
-                    label={value}
-                    variant="compact"
-                    removeLabel={`Remove filter ${value}`}
-                    onRemove={() => setFacets((current) => toggleFacetValue(current, kind, value))}
+                {(["substance", "author", "tag"] as const).flatMap((kind) =>
+                  facets[kind].map((value) => (
+                    <TagToken
+                      key={`${kind}:${value}`}
+                      label={value}
+                      variant="compact"
+                      removeLabel={`Remove filter ${value}`}
+                      onRemove={() => setFacets((current) => toggleFacetValue(current, kind, value))}
+                    />
+                  )),
+                )}
+                {activeFacetCount(facets) > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setFacets(EMPTY_PORTAL_FACETS)}
+                    className="theme-text-faint hover:text-dose-text text-xs"
+                  >
+                    Clear all
+                  </button>
+                ) : null}
+
+                <span className="flex-1" />
+                {editorOpen ? (
+                  <ExpandButton
+                    className="xl:hidden"
+                    isExpanded={stripOpen}
+                    label={stripOpen ? "Hide list" : "Show list"}
+                    ariaLabel={stripOpen ? "Hide the report list" : "Show the report list"}
+                    ariaControls="trip-report-portal-list"
+                    onToggle={() => setStripOpen((current) => !current)}
                   />
-                )),
-              )}
-              {activeFacetCount(facets) > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setFacets(EMPTY_PORTAL_FACETS)}
-                  className="theme-text-faint hover:text-dose-text text-xs"
-                >
-                  Clear all
-                </button>
-              ) : null}
-
-              <span className="flex-1" />
-              {editorOpen
-                ? null
-                : SORTS.map((entry) => (
+                ) : (
+                  SORTS.map((entry) => (
                     <button
                       key={entry.value}
                       type="button"
@@ -164,73 +185,87 @@ export function TripReportPortalTab() {
                     >
                       {entry.label}
                     </button>
-                  ))}
-            </div>
+                  ))
+                )}
+              </div>
 
-            <PortalReportList
-              compact={editorOpen}
-              groups={groups}
-              selectedId={selectedId}
-              onSelect={selectRow}
-            />
-          </main>
+              <div
+                id="trip-report-portal-list"
+                className={
+                  editorOpen
+                    ? `max-h-56 overflow-y-auto xl:max-h-none xl:overflow-visible ${stripOpen ? "" : "hidden xl:block"}`
+                    : undefined
+                }
+              >
+                <PortalReportList
+                  compact={editorOpen}
+                  groups={groups}
+                  selectedId={selectedId}
+                  onSelect={selectRow}
+                />
+              </div>
+            </main>
 
-          {selected?.origin === "published" && !selected.fields ? (
-            detailState.status === "error" ? (
-              <EditorNotice
-                notice={{
-                  tone: "danger",
-                  title: "Unable to open that report",
-                  message: detailState.message,
-                  actions: (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void loadReportBody(selected.id)}
-                    >
-                      Try again
-                    </Button>
-                  ),
-                }}
+            {selected?.origin === "published" && !selected.fields ? (
+              detailState.status === "error" ? (
+                <EditorNotice
+                  notice={{
+                    tone: "danger",
+                    title: "Unable to open that report",
+                    message: detailState.message,
+                    actions: (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void loadReportBody(selected.id)}
+                      >
+                        Try again
+                      </Button>
+                    ),
+                  }}
+                />
+              ) : (
+                <EditorPanel variant="empty" className="p-8 text-center text-sm">
+                  Loading “{selected.title}”…
+                </EditorPanel>
+              )
+            ) : null}
+
+            {selected && draft && selected.fields ? (
+              <PortalReportEditor
+                // Keyed so a draft never carries over to another report.
+                key={selected.id}
+                busy={busy}
+                contributors={corpus.contributors}
+                draft={draft}
+                feedback={feedback}
+                row={selected}
+                onChange={setDraft}
+                onClose={closeEditor}
+                onDelete={() => void deleteReport()}
+                onDismissFeedback={() => setFeedback(null)}
+                onRevert={() => setDraft(structuredClone(selected.fields as TripReportEditableFields))}
+                onSave={(request) => void saveReport(request)}
               />
-            ) : (
-              <EditorPanel variant="empty" className="p-8 text-center text-sm">
-                Loading “{selected.title}”…
-              </EditorPanel>
-            )
-          ) : null}
+            ) : null}
 
-          {selected && draft && selected.fields ? (
-            <PortalReportEditor
-              // Keyed so a draft never carries over to another report.
-              key={selected.id}
-              busy={busy}
-              contributors={corpus.contributors}
-              draft={draft}
-              feedback={feedback}
-              row={selected}
-              onChange={setDraft}
-              onClose={closeEditor}
-              onDelete={() => void deleteReport()}
-              onDismissFeedback={() => setFeedback(null)}
-              onRevert={() => setDraft(structuredClone(selected.fields as TripReportEditableFields))}
-              onSave={(request) => void saveReport(request)}
-            />
-          ) : null}
-
-          {selectedSubmission ? (
-            <PortalSubmissionReview
-              key={selectedSubmission.id}
-              feedback={feedback}
-              promotionPayload={promotionPayload}
-              submission={selectedSubmission}
-              onClose={closeEditor}
-              onDismissFeedback={() => setFeedback(null)}
-              onPromotion={(publish, attribution) => void runPromotion(publish, attribution)}
-              onStatusChange={(status, notes) => void changeSubmissionStatus(status, notes)}
-            />
-          ) : null}
+            {selectedSubmission ? (
+              <PortalSubmissionReview
+                key={selectedSubmission.id}
+                busy={busy}
+                feedback={feedback}
+                promotionPayload={promotionPayload}
+                queuePosition={queuePosition}
+                submission={selectedSubmission}
+                onClose={closeEditor}
+                onDismissFeedback={() => setFeedback(null)}
+                onNavigate={selectAdjacent}
+                onPromotion={(publish, attribution) => void runPromotion(publish, attribution)}
+                onStatusChange={(status, notes) => void changeSubmissionStatus(status, notes)}
+              />
+            ) : null}
+          </div>
         </div>
       )}
     </div>

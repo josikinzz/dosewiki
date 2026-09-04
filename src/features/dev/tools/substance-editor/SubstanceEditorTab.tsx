@@ -1,6 +1,7 @@
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
+import { EditorNotice, EditorStatusPill, useDirtyGuard } from "@/features/dev/components";
+import { viewToPath } from "@/utils/routing";
 import type { SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
 import { SubstanceEditorOutputSection } from "./SubstanceEditorOutputSection";
@@ -11,10 +12,24 @@ import type { SubstanceEditorTabProps } from "./types";
 
 export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   renderCommitPanel,
+  initialSlug,
 }: SubstanceEditorTabProps) {
   const { articles, applyArticlesTransform, articleHydration } = useDevMode();
-  const articleData = useSubstanceEditorArticleData(articles as SubstanceArticle[]);
+  const articleData = useSubstanceEditorArticleData(articles as SubstanceArticle[], initialSlug);
   const { selectedSubstanceSlug, setSelectedSubstanceSlug } = articleData;
+
+  // The address names the open article so a reload or a shared link lands on
+  // it. Only a change writes: the slug the user arrived on is left alone.
+  const urlSlugRef = useRef(initialSlug ?? null);
+  useEffect(() => {
+    if (selectedSubstanceSlug === urlSlugRef.current) return;
+    urlSlugRef.current = selectedSubstanceSlug;
+    window.history.replaceState(
+      null,
+      "",
+      viewToPath({ type: "dev", tab: "articles", slug: selectedSubstanceSlug ?? undefined }),
+    );
+  }, [selectedSubstanceSlug]);
 
   const applyDraftArticlesTransform = useCallback(
     (transform: (previous: SubstanceArticle[]) => SubstanceArticle[]) => {
@@ -24,7 +39,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   );
 
   // The library list carries no article bodies, so the form must not be built
-  // from the selected row until the whole article has landed — a form seeded
+  // from the selected row until the whole article has landed: a form seeded
   // from an empty body would write that emptiness back on the next apply.
   const { isArticleHydrated, requestArticle } = articleHydration;
   const isSelectedArticleReady = isArticleHydrated(selectedSubstanceSlug);
@@ -44,28 +59,26 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   });
 
   // Selecting another substance rebuilds the draft from scratch, so unapplied
-  // form edits would go with it. Same guard, same wording as the review queue.
+  // form edits would go with it.
+  const dirtyGuard = useDirtyGuard(draft.formDirty, {
+    title: "Discard unapplied form edits?",
+    description:
+      "This article has form edits that were not applied to the draft. Switching substances discards them.",
+  });
+  const { guard } = dirtyGuard;
   const handleSelectSubstance = useCallback(
     (slug: string) => {
       if (slug === selectedSubstanceSlug) {
         return;
       }
-      if (
-        draft.formDirty
-        && typeof window !== "undefined"
-        && !window.confirm(
-          "This article has unapplied form edits that will be discarded. Switch substances anyway?",
-        )
-      ) {
-        return;
-      }
-      setSelectedSubstanceSlug(slug);
+      guard(() => setSelectedSubstanceSlug(slug));
     },
-    [draft.formDirty, selectedSubstanceSlug, setSelectedSubstanceSlug],
+    [guard, selectedSubstanceSlug, setSelectedSubstanceSlug],
   );
 
   return (
     <div className="mt-6 space-y-8">
+      {dirtyGuard.dialog}
       <SubstanceEditorSelectionSection
         filteredSubstances={articleData.filteredSubstances}
         onSearchQueryChange={articleData.setSearchQuery}
@@ -84,7 +97,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
           notice={{
             tone: "info",
             title: "Loading article",
-            message: "Fetching the full article from Convex.",
+            message: "Fetching the full article.",
             live: true,
           }}
         />
@@ -96,6 +109,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         formParseError={draft.formParseError}
         formArticleOverride={draft.formArticleOverride}
         selectedSubstanceSlug={selectedSubstanceSlug}
+        selectedSubstance={articleData.selectedSubstance}
         onOutputViewModeChange={draft.handleOutputViewModeChange}
         onCopy={draft.handleCopy}
         onDownload={draft.handleDownload}
@@ -116,7 +130,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                 tone: "warning",
                 title: "Unapplied form edits",
                 message:
-                  "Saving to Convex publishes the last applied draft. Apply to draft first to include the edits currently in the form.",
+                  "Commit to production publishes the last applied draft. Apply to draft first to include the edits currently in the form.",
                 live: true,
               }}
             />
@@ -142,7 +156,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                 ) : null}
               </span>
             ) : undefined,
-            "Apply form edits to the working set first, then save that draft to Convex.",
           )}
         </div>
       ) : null}

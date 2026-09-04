@@ -21,10 +21,11 @@ const categories: ManualCategoryDefinition[] = [
   { key: "stimulants", label: "Stimulants", iconKey: "sparkle", notes: "", drugs: ["caffeine"], sections: [] },
 ];
 
-function renderBoard() {
+function renderBoard(fitCount = 2) {
   return render(
     <IndexLayoutColumns
       columnCount={2}
+      fitCount={fitCount}
       columnGroups={[
         { index: 0, items: [{ category: categories[0], originalIndex: 0 }] },
         { index: 1, items: [{ category: categories[1], originalIndex: 1 }] },
@@ -34,6 +35,7 @@ function renderBoard() {
       handleDragEnd={vi.fn()}
       updateCategory={vi.fn()}
       removeCategory={vi.fn()}
+      removeSection={vi.fn()}
       moveCategory={vi.fn()}
       setColumn={vi.fn()}
       addSection={vi.fn()}
@@ -61,5 +63,18 @@ describe("IndexLayoutColumns", () => {
     expect(columns).toHaveLength(2);
     expect(within(columns[0]).getByRole("button", { name: "Move category down" })).toBeEnabled();
     expect(within(columns[1]).getByRole("button", { name: "Move category up" })).toBeEnabled();
+  });
+
+  it("shares the width across columns that fit and scrolls sideways only past the fit", () => {
+    const { unmount } = renderBoard(2);
+    const fitted = screen.getAllByRole("group", { name: /^Column \d$/ })[0].parentElement as HTMLElement;
+    expect(fitted.style.gridTemplateColumns).toBe("repeat(2, minmax(0, 1fr))");
+    expect(fitted.parentElement?.className ?? "").not.toContain("overflow-x-auto");
+    unmount();
+
+    renderBoard(1);
+    const overflowing = screen.getAllByRole("group", { name: /^Column \d$/ })[0].parentElement as HTMLElement;
+    expect(overflowing.style.gridTemplateColumns).toBe("");
+    expect(overflowing.parentElement?.className).toContain("overflow-x-auto");
   });
 });

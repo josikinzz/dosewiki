@@ -8,7 +8,7 @@ import type {
   ManualIndexConfig,
   SubstanceOption,
 } from "./types";
-import { resolveCategoryColumn } from "./categoryEditorUtils";
+import { removeCategorySection, resolveCategoryColumn } from "./categoryEditorUtils";
 import { generateUniqueKey } from "./utils";
 
 export type ColumnGroupItem = {
@@ -242,6 +242,13 @@ export function useIndexLayoutCategoryController({
     });
   }, [updateCategory]);
 
+  const removeSection = useCallback(
+    (index: number, sectionIndex: number) => {
+      updateCategory(index, (category) => removeCategorySection(category, sectionIndex));
+    },
+    [updateCategory],
+  );
+
   const setColumn = useCallback(
     (index: number, column: number) => {
       updateDraftManualForActive((previous) => {
@@ -280,6 +287,7 @@ export function useIndexLayoutCategoryController({
     moveCategory,
     addCategory,
     addSection,
+    removeSection,
     setColumn,
   };
 }

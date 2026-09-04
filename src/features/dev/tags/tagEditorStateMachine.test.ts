@@ -104,6 +104,7 @@ const completeMutation = (state: TagEditorState): TagEditorState => {
     type: "mutationSucceeded",
     effectId: effect.id,
     result,
+    before: articles,
   });
 };
 
@@ -122,7 +123,7 @@ describe("tagEditorStateMachine", () => {
       articleWithTags("Blank", { index: ["Only Index"] }),
     ]);
     state = tagEditorReducer(state, {
-      type: "snapshotRefreshed",
+      type: "articlesChanged",
       registry: emptyMechanismRegistry,
     });
 
@@ -194,7 +195,7 @@ describe("tagEditorStateMachine", () => {
 
     state = completeMutation(state);
 
-    expect(state.notice).toEqual({ type: "success", message: "Tag renamed. 1 article updated.", source: "rename" });
+    expect(state.notice).toEqual({ type: "success", message: 'Renamed "Classic" to "Canonical" in 1 article.', source: "rename" });
     expect(state.selected).toEqual({ field: "index_categories", key: "canonical" });
     expect(state.renameValue).toBe("Canonical");
     expect(getSelectedUsage(state)?.tag).toBe("Canonical");
@@ -228,7 +229,11 @@ describe("tagEditorStateMachine", () => {
     expect(state.activeField).toBe("chemical_class");
     expect(state.keepSourceCopy).toBe(false);
     expect(getSelectedUsage(state)?.tag).toBe("Classic family");
-    expect(state.notice).toEqual({ type: "success", message: "Tag copied. 2 articles updated.", source: "move" });
+    expect(state.notice).toEqual({
+      type: "success",
+      message: 'Copied "Classic" to Chemical Class as "Classic family" in 2 articles.',
+      source: "move",
+    });
   });
 
   it("requires delete confirmation and repairs selection after delete", () => {
@@ -242,7 +247,7 @@ describe("tagEditorStateMachine", () => {
     state = tagEditorReducer(state, { type: "deleteSubmitted" });
     state = completeMutation(state);
 
-    expect(state.notice).toEqual({ type: "success", message: "Tag deleted. 1 article updated.", source: "delete" });
+    expect(state.notice).toEqual({ type: "success", message: 'Deleted "Classic" from 1 article.', source: "delete" });
     expect(getSelectedUsage(state)?.tag).toBe("Empathogen");
     expect(state.deleteConfirmed).toBe(false);
   });
@@ -269,11 +274,81 @@ describe("tagEditorStateMachine", () => {
       type: "mutationSucceeded",
       effectId: effect.id,
       result,
+      before: articles,
     });
 
     expect(result.changes).toHaveLength(0);
     expect(state.isApplying).toBe(false);
     expect(state.notice).toEqual({ type: "error", message: "No articles were updated. The tag may not be in use.", source: "rename" });
+  });
+
+  it("keeps the undo record and its notice across selection moves until the change is put back", () => {
+    let state = createTagEditorState(articles);
+    state = tagEditorReducer(state, { type: "renameDraftChanged", value: "Canonical" });
+    state = tagEditorReducer(state, { type: "renameSubmitted" });
+    state = completeMutation(state);
+
+    expect(state.undo).toMatchObject({
+      source: "rename",
+      action: "Rename",
+      changedIndexes: [0],
+      selection: { activeField: "index_categories", selected: { field: "index_categories", key: "classic" } },
+    });
+    expect(state.undo?.before).toBe(articles);
+
+    // Looking at another tag or field does not take the way back away.
+    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
+    expect(state.notice?.message).toBe('Renamed "Classic" to "Canonical" in 1 article.');
+    state = tagEditorReducer(state, { type: "tagSelected", usage: getFilteredTags(state)[0] });
+    expect(state.notice?.source).toBe("rename");
+    expect(state.undo?.source).toBe("rename");
+
+    state = tagEditorReducer(state, { type: "undoRequested" });
+    expect(state.pendingEffect).toMatchObject({ kind: "undoMutation" });
+    expect(state.isApplying).toBe(true);
+
+    state = tagEditorReducer(state, {
+      type: "undoSucceeded",
+      effectId: state.pendingEffect?.id ?? -1,
+      articles,
+      restoredCount: 1,
+    });
+
+    expect(state.undo).toBeNull();
+    expect(state.isApplying).toBe(false);
+    expect(state.notice).toEqual({ type: "success", message: "Rename undone. 1 article put back.", source: "rename" });
+    expect(state.activeField).toBe("index_categories");
+    expect(getSelectedUsage(state)?.tag).toBe("Classic");
+    expect(state.renameValue).toBe("Classic");
+
+    // An error notice is not carried: the next selection clears it.
+    state = tagEditorReducer(state, { type: "renameSubmitted" });
+    expect(state.notice?.type).toBe("error");
+    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
+    expect(state.notice).toBeNull();
+  });
+
+  it("reports when nothing could be put back and drops the stale undo record", () => {
+    let state = createTagEditorState(articles);
+    state = tagEditorReducer(state, { type: "deleteConfirmationChanged", confirmed: true });
+    state = tagEditorReducer(state, { type: "deleteSubmitted" });
+    state = completeMutation(state);
+    expect(state.undo?.action).toBe("Delete");
+
+    state = tagEditorReducer(state, { type: "undoRequested" });
+    state = tagEditorReducer(state, {
+      type: "undoSucceeded",
+      effectId: state.pendingEffect?.id ?? -1,
+      articles,
+      restoredCount: 0,
+    });
+
+    expect(state.undo).toBeNull();
+    expect(state.notice).toEqual({
+      type: "error",
+      message: "Nothing to put back: those articles have changed since.",
+      source: "delete",
+    });
   });
 
   it("handles article refresh and diff adapter notices", () => {
@@ -350,7 +425,7 @@ describe("TagEditorTab state-machine integration", () => {
     fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
       target: { value: "Entactogen" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
 
     await waitFor(() => {
       expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1);
@@ -359,7 +434,40 @@ describe("TagEditorTab state-machine integration", () => {
       expect.objectContaining({ index_categories: ["Classic", "Psychedelic"] }),
       expect.objectContaining({ index_categories: ["Entactogen"] }),
     ]);
-    expect(await screen.findByText("Tag renamed. 1 article updated.")).toBeInTheDocument();
+    expect(await screen.findByText('Renamed "Empathogen" to "Entactogen" in 1 article.')).toBeInTheDocument();
+  });
+
+  it("puts a rename back from the notice and leaves rows edited since alone", async () => {
+    stubRegistryFetch();
+    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
+
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
+      target: { value: "Classic Rock" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
+    expect(await screen.findByText('Renamed "Classic" to "Classic Rock" in 1 article.')).toBeInTheDocument();
+    const rewrittenLsd = devContext.articles[0];
+    expect(rewrittenLsd).toMatchObject({ index_categories: ["Classic Rock", "Psychedelic"] });
+
+    // The MDMA row is edited by another tool after the rename; it is not
+    // part of the rewrite and must come through the restore untouched.
+    const editedMdma = { ...mockDevArticles[1], title: "MDMA (edited meanwhile)" };
+    devContext.articles = [rewrittenLsd, editedMdma];
+
+    fireEvent.click(screen.getByRole("button", { name: "Undo rename" }));
+    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(2));
+
+    expect(devContext.articles[0]).toMatchObject({
+      index_categories: ["Classic", "Psychedelic"],
+      summary: "Full body for lsd.",
+    });
+    expect(devContext.articles[1]).toBe(editedMdma);
+    expect(await screen.findByText("Rename undone. 1 article put back.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Undo/ })).toBeNull();
+    expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic");
   });
 
   it("renders from the tag-registry scope and nothing else", async () => {
@@ -409,7 +517,7 @@ describe("TagEditorTab state-machine integration", () => {
     fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
       target: { value: "Classic Rock" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
 
     await waitFor(() => {
       expect(applyArticlesTransformMock).toHaveBeenCalled();
@@ -424,7 +532,7 @@ describe("TagEditorTab state-machine integration", () => {
       index_categories: ["Classic Rock", "Psychedelic"],
       summary: "Full body for lsd.",
     });
-    expect(await screen.findByText("Tag renamed. 1 article updated.")).toBeInTheDocument();
+    expect(await screen.findByText('Renamed "Classic" to "Classic Rock" in 1 article.')).toBeInTheDocument();
   });
 
   it("keeps an edit made to another row while the rewrite's hydration was in flight", async () => {
@@ -437,7 +545,7 @@ describe("TagEditorTab state-machine integration", () => {
     fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
       target: { value: "Classic Rock" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
     await waitFor(() => expect(hydrateArticlesNowMock).toHaveBeenCalledWith(["lsd"]));
 
     // Another tool edits the MDMA row while the LSD hydration is pending.
@@ -455,7 +563,7 @@ describe("TagEditorTab state-machine integration", () => {
       index_categories: ["Classic Rock", "Psychedelic"],
       summary: "Full body for lsd.",
     });
-    expect(await screen.findByText("Tag renamed. 1 article updated.")).toBeInTheDocument();
+    expect(await screen.findByText('Renamed "Classic" to "Classic Rock" in 1 article.')).toBeInTheDocument();
   });
 
   it("rewrites on top of an edit to the very row being hydrated", async () => {
@@ -468,7 +576,7 @@ describe("TagEditorTab state-machine integration", () => {
     fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
       target: { value: "Classic Rock" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Rename tag" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
     await waitFor(() => expect(hydrateArticlesNowMock).toHaveBeenCalledWith(["lsd"]));
 
     // The LSD row itself is edited while its hydration is pending: the draft
@@ -506,11 +614,11 @@ describe("TagEditorTab state-machine integration", () => {
     renderTab();
 
     expect(
-      await screen.findByText(/tag registry could not be loaded/i),
+      await screen.findByText(/tags could not be loaded/i),
     ).toBeInTheDocument();
 
     fail = false;
-    fireEvent.click(screen.getByRole("button", { name: /retry/i }));
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
 
     expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
   });

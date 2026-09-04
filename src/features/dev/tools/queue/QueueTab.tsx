@@ -5,7 +5,8 @@
  * by status, with one proposal open for review: its diff, the targets it pins
  * (flagged when production has drifted from them), the discussion, and, for
  * admins, the approve, reject and revert actions that post to the review
- * routes. Editors read and comment; the admin buttons never render for them.
+ * routes, each behind the shared confirm dialog naming the targets it touches.
+ * Editors read and comment; the admin buttons never render for them.
  * A proposal still open to its proposer offers "Load into editor", which
  * seeds the substances working set from it so the next submit supersedes it.
  */
@@ -27,11 +28,13 @@ import {
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
+  useConfirm,
   useScrollToDetail,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
+import { viewToPath } from "@/utils/routing";
 import {
   STATUS_LABELS,
   STATUS_PILL_TONE,
@@ -44,6 +47,7 @@ import {
   type ProposalDetail,
   type ProposalStatus,
   type ProposalSummary,
+  type TargetDrift,
 } from "./queueModel";
 import {
   approveProposal,
@@ -77,6 +81,12 @@ const TARGET_KIND_LABELS: Record<ProposalDetail["targets"][number]["kind"], stri
   about: "About",
   copyBlock: "Copy block",
 };
+
+const targetCount = (count: number) => `${count} ${count === 1 ? "target" : "targets"}`;
+
+/** The dialog's affected rows: kind, key and whether production moved under it. */
+const affectedRows = (targets: readonly TargetDrift[]) =>
+  targets.map((target) => `${TARGET_KIND_LABELS[target.kind]} ${target.key}${target.drifted ? " (drifted)" : ""}`);
 
 export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEditor }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
@@ -180,6 +190,63 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
       return { tone: "success", message: "Reverted: production is back to the snapshot taken before apply." };
     });
 
+  /**
+   * Every decision is a production write with no undo toast, so each one
+   * opens the shared confirm dialog naming the targets it touches. Approve
+   * also states how many targets drifted, the fact that decides whether it
+   * applies at all.
+   */
+  const { confirm, dialog: confirmDialog } = useConfirm();
+
+  const confirmApprove = () => {
+    if (detail.status !== "ready") {
+      return;
+    }
+    const targets = targetDrift(detail.proposal);
+    const drifted = targets.filter((target) => target.drifted).length;
+    const count = targets.length;
+    const driftedShare = drifted === count ? (count === 1 ? "It" : "All of them") : `${drifted} of them`;
+    confirm({
+      title: "Apply to production?",
+      description:
+        drifted > 0
+          ? `${targetCount(count)} ${count === 1 ? "changes" : "change"} on the public site. ${driftedShare} drifted since the proposal was pinned: if production still differs when you confirm, nothing is applied and the proposal goes back to the proposer as Changes requested.`
+          : `${targetCount(count)} ${count === 1 ? "changes" : "change"} on the public site the moment you confirm. Every target still matches production. Revert stays available afterwards.`,
+      confirmLabel: "Apply to production",
+      affected: affectedRows(targets),
+      onConfirm: approve,
+    });
+  };
+
+  const confirmReject = () => {
+    if (detail.status !== "ready") {
+      return;
+    }
+    confirm({
+      title: "Reject this proposal?",
+      description: `The proposal closes and cannot be reopened; the proposer can only submit a new one. They will see your note: "${rejectNote.trim()}"`,
+      confirmLabel: "Reject proposal",
+      destructive: true,
+      onConfirm: reject,
+    });
+  };
+
+  const confirmRevert = () => {
+    if (detail.status !== "ready") {
+      return;
+    }
+    const targets = targetDrift(detail.proposal);
+    const count = targets.length;
+    confirm({
+      title: "Revert production?",
+      description: `${targetCount(count)} ${count === 1 ? "goes" : "go"} back to the snapshot taken before this proposal was applied. Anything saved to ${count === 1 ? "that target" : "those targets"} since then is lost.`,
+      confirmLabel: "Revert production",
+      destructive: true,
+      affected: affectedRows(targets),
+      onConfirm: revert,
+    });
+  };
+
   const comment = () =>
     run("comment", async (id) => {
       await postComment(id, commentText.trim());
@@ -218,7 +285,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
       <EditorSection
         icon="lucide:git-pull-request"
         title="Queue"
-        description="Staged saves waiting on an admin. Approve applies the proposal to production in one step; production that moved since the proposal was pinned is flagged on each target."
+        description="Staged saves waiting on an admin. Approve applies the proposal to production once you confirm; production that moved since the proposal was pinned is flagged on each target."
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={() => void loadList()} disabled={proposals === null && !listError}>
             <Icon icon="lucide:refresh-cw" size={14} />
@@ -255,8 +322,12 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
             </EditorStatusPill>
           ) : null}
           {proposals && proposals.length === 0 ? (
-            <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted text-sm">
-              Nothing has been proposed yet.
+            <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted space-y-3 text-sm">
+              <p className="theme-text-primary font-medium">Nothing has been proposed yet.</p>
+              <p>Proposals are created when a staged change is submitted for review, most often from the Substances editor.</p>
+              <Button asChild variant="outline" size="sm" className="rounded-full">
+                <a href={viewToPath({ type: "dev", tab: "articles" })}>Open the Substances editor</a>
+              </Button>
             </EmptyStateSurface>
           ) : null}
           {proposals && proposals.length > 0 ? groups.map((group) => (
@@ -313,15 +384,16 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
               onCommentTextChange={setCommentText}
               onRejectNoteChange={setRejectNote}
               onComment={comment}
-              onApprove={approve}
-              onReject={reject}
-              onRevert={revert}
+              onApprove={confirmApprove}
+              onReject={confirmReject}
+              onRevert={confirmRevert}
               onLoadIntoEditor={() => void loadIntoEditor()}
             />
           )}
         </EditorSection>
         </div>
       </div>
+      {confirmDialog}
     </div>
   );
 }

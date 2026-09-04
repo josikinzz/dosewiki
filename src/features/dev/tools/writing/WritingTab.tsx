@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -12,6 +12,7 @@ import {
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
+  useDirtyGuard,
   useScrollToDetail,
 } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
@@ -19,9 +20,14 @@ import { viewToPath } from "@/utils/routing";
 import { AboutEditorTab } from "../about/AboutEditorTab";
 import { WritingEditor } from "./WritingEditor";
 import type { WritingKind } from "./writingEditorModel";
-import { useWritingWorkbenchController } from "./useWritingWorkbenchController";
+import {
+  useWritingWorkbenchController,
+  type WritingSelection,
+} from "./useWritingWorkbenchController";
 
 const ABOUT_ENTRY_ID = "about";
+/** The rail sits beside the editor from `xl:` up; below that it stacks above it. */
+const STACKED_BELOW_XL_QUERY = "(max-width: 1279px)";
 
 const KIND_OPTIONS: { value: WritingKind; label: string }[] = [
   { value: "article", label: "Article" },
@@ -32,6 +38,21 @@ const KIND_DESCRIPTION: Record<WritingKind, string> = {
   article: "Articles published to /articles, written in Markdown. Drafts stay off the public site entirely.",
   blog: "Posts published to /blog on dose.wiki. Cover image and teaser lead the index card.",
 };
+
+/** The address of what is open: the pinned entry, a row, or a fresh draft under the kind filter. */
+function writingPath(selection: WritingSelection, kind: WritingKind): string {
+  return viewToPath({
+    type: "dev",
+    tab: "writing",
+    slug:
+      selection.type === "pinned"
+        ? ABOUT_ENTRY_ID
+        : selection.type === "row"
+          ? selection.slug
+          : undefined,
+    filter: kind === "article" ? undefined : kind,
+  });
+}
 
 interface WritingTabProps {
   contributorProfiles: NormalizedUserProfile[];
@@ -49,10 +70,12 @@ interface WritingTabProps {
  * (articles under `/articles`, blog posts under `/blog`), About pinned first,
  * and a Markdown editor with the same preview renderer the public page uses.
  *
- * The filter lives in the URL (`/dev/writing?kind=blog`) so a reload keeps it.
- * Its writes go through native history, as the replications gallery's do: Next
- * syncs `useSearchParams` from its patched `replaceState` (the `null` state
- * matters; see `writeBrowseUrl` there), and no RSC round trip happens.
+ * The kind filter and the open record live in the URL (`/dev/writing?kind=blog`,
+ * `/dev/writing/<slug>`, `/dev/writing/about`) so a reload keeps them and a
+ * record can be linked. Its writes go through native history, as the
+ * replications gallery's do: Next syncs `useSearchParams` from its patched
+ * `replaceState` (the `null` state matters; see `writeBrowseUrl` there), and no
+ * RSC round trip happens.
  *
  * About is here rather than in a tab of its own because it is one page of
  * writing among the others; it belongs to neither kind, so it stays pinned
@@ -80,6 +103,7 @@ export function WritingTab({
     kindEntries,
     selectedSlug,
     draft,
+    isDirty,
     isLoadingRow,
     listError,
     startNew,
@@ -88,29 +112,39 @@ export function WritingTab({
     selectRow,
   } = controller;
 
-  // The kind the URL currently says. Only a change writes: the address the
-  // editor arrived on (`/dev/about`, `/dev/blog/<slug>`) is left alone.
-  const urlKindRef = useRef(routeKind);
+  // The address the URL currently says. Only a change writes: the address the
+  // editor arrived on (`/dev/about`, `/dev/blog/<slug>`) is left alone, so the
+  // first run records what that address opened without rewriting it.
+  const path = writingPath(selection, kind);
+  const urlPathRef = useRef<string | null>(null);
   useEffect(() => {
-    if (kind === urlKindRef.current) return;
-    urlKindRef.current = kind;
-    window.history.replaceState(
-      null,
-      "",
-      viewToPath({
-        type: "dev",
-        tab: "writing",
-        slug: selectedSlug ?? undefined,
-        filter: kind === "article" ? undefined : kind,
-      }),
-    );
-  }, [kind, selectedSlug]);
+    if (urlPathRef.current === null) {
+      urlPathRef.current = path;
+      return;
+    }
+    if (path === urlPathRef.current) return;
+    urlPathRef.current = path;
+    window.history.replaceState(null, "", path);
+  }, [path]);
 
-  // Below the lg split the entries rail stacks above the editor. Pinned and
-  // new selections count too: About and a fresh draft both open an editor.
+  // About keeps its own draft; leaving it drops that draft the way leaving a
+  // row drops the writing draft, so both feed the one discard guard.
+  const [aboutDirty, setAboutDirty] = useState(false);
+  const pinned = selection.type === "pinned";
+  const unsaved = pinned ? aboutDirty : isDirty;
+  const openTitle = pinned ? "About" : draft.title.trim() || "Untitled";
+  const { guard, dialog } = useDirtyGuard(unsaved, {
+    title: `Discard changes to ${openTitle}?`,
+    description: "Nothing here is saved until you save it. Leaving now loses what you changed.",
+  });
+  const unsavedPill = <EditorStatusPill tone="warning">Unsaved</EditorStatusPill>;
+
+  // Below the xl split the entries rail stacks above the editor so the editor
+  // keeps its full width at 1024. Pinned and new selections count too: About
+  // and a fresh draft both open an editor.
   const detailRef = useRef<HTMLDivElement | null>(null);
   const selectionKey = selection.type === "row" ? `row:${selection.slug}` : selection.type;
-  useScrollToDetail(detailRef, selectionKey);
+  useScrollToDetail(detailRef, selectionKey, STACKED_BELOW_XL_QUERY);
 
   if (entries === null) {
     return (
@@ -138,31 +172,41 @@ export function WritingTab({
             <EditorSegmentedControl
               label="Kind"
               value={kind}
-              onChange={(value) => selectKind(value as WritingKind)}
+              onChange={(value) => {
+                const next = value as WritingKind;
+                if (next === kind) return;
+                // Only an open row is dropped by the filter; a new draft and
+                // About both stay put, so neither needs to ask.
+                if (selection.type === "row") guard(() => selectKind(next));
+                else selectKind(next);
+              }}
               options={KIND_OPTIONS}
             />
             <EditorStatusPill tone="neutral">
               {`${kindEntries.length} ${kindEntries.length === 1 ? "entry" : "entries"}`}
             </EditorStatusPill>
-            <Button type="button" variant="accent" size="sm" onClick={startNew}>
+            <Button type="button" variant="accent" size="sm" onClick={() => guard(startNew)}>
               <Icon icon="lucide:plus" size={15} />
               New
             </Button>
           </div>
         }
       >
+        {dialog}
         {listError ? (
           <EditorNotice notice={{ tone: "danger", title: "List unavailable", message: listError }} />
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
           <div role="group" aria-label="Entries" className="space-y-2">
             <EditorListItem
-              active={selection.type === "pinned"}
+              active={pinned}
               title="About"
               subtitle="The /about page"
-              badge={<EditorStatusPill tone="info">Pinned</EditorStatusPill>}
-              onSelect={selectPinned}
+              badge={pinned && aboutDirty ? unsavedPill : <EditorStatusPill tone="info">Pinned</EditorStatusPill>}
+              onSelect={() => {
+                if (!pinned) guard(selectPinned);
+              }}
             />
 
             {selection.type === "new" ? (
@@ -170,7 +214,7 @@ export function WritingTab({
                 active
                 title={draft.title.trim() || "Untitled"}
                 subtitle="New, unsaved"
-                badge={<EditorStatusPill tone="warning">New</EditorStatusPill>}
+                badge={isDirty ? unsavedPill : <EditorStatusPill tone="warning">New</EditorStatusPill>}
                 onSelect={() => undefined}
               />
             ) : null}
@@ -182,11 +226,17 @@ export function WritingTab({
                 title={entry.title}
                 subtitle={entry.slug}
                 badge={
-                  <EditorStatusPill tone={entry.status === "draft" ? "warning" : "success"}>
-                    {entry.status === "draft" ? "Draft" : "Live"}
-                  </EditorStatusPill>
+                  selectedSlug === entry.slug && isDirty ? (
+                    unsavedPill
+                  ) : (
+                    <EditorStatusPill tone={entry.status === "draft" ? "warning" : "success"}>
+                      {entry.status === "draft" ? "Draft" : "Live"}
+                    </EditorStatusPill>
+                  )
                 }
-                onSelect={() => selectRow(entry.slug)}
+                onSelect={() => {
+                  if (selectedSlug !== entry.slug) guard(() => selectRow(entry.slug));
+                }}
               />
             ))}
 
@@ -196,11 +246,12 @@ export function WritingTab({
           </div>
 
           <div ref={detailRef} className="scroll-mt-6 space-y-6">
-            {selection.type === "pinned" ? (
+            {pinned ? (
               <AboutEditorTab
                 availableProfiles={contributorProfiles}
                 profilesLoading={profilesLoading}
                 canApprove={canApprove}
+                onDirtyChange={setAboutDirty}
               />
             ) : isLoadingRow ? (
               <p className="theme-text-faint text-sm">Loading…</p>

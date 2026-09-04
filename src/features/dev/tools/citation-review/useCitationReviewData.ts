@@ -1,29 +1,68 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type {
-  CitationEvidenceRow,
-  CitationReviewQueueFilter,
-  CitationReviewQueueSummary,
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  groupPriorRowsForRestore,
+  type CitationEvidenceRow,
+  type CitationEvidenceStatus,
+  type CitationReviewDecisionRecord,
+  type CitationReviewDecisionStatus,
+  type CitationReviewQueueFilter,
+  type CitationReviewQueueLoadFailure,
+  type CitationReviewQueueSummary,
 } from "./citationReviewModels";
+
+/** How long the Undo stays offered after a decision lands. */
+export const CITATION_UNDO_WINDOW_MS = 8000;
+
+class QueueLoadError extends Error {
+  readonly failure: CitationReviewQueueLoadFailure;
+
+  constructor(failure: CitationReviewQueueLoadFailure) {
+    super(failure.error);
+    this.name = "QueueLoadError";
+    this.failure = failure;
+  }
+}
 
 async function readJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const response = await fetch(input, init);
   const result = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const error =
-      typeof (result as { error?: unknown }).error === "string"
-        ? (result as { error: string }).error
-        : "Request failed.";
-    throw new Error(error);
+    const failure = result as Partial<CitationReviewQueueLoadFailure>;
+    throw new QueueLoadError({
+      error: typeof failure.error === "string" ? failure.error : "Request failed.",
+      cause: failure.cause === "query" || failure.cause === "capacity" ? failure.cause : undefined,
+      requestId: typeof failure.requestId === "string" ? failure.requestId : undefined,
+    });
   }
 
   return result as T;
 }
 
+function loadFailure(error: unknown, fallback: string): CitationReviewQueueLoadFailure {
+  if (error instanceof QueueLoadError) {
+    return error.failure;
+  }
+  return { error: error instanceof Error ? error.message : fallback };
+}
+
+async function postStatus(body: {
+  slug: string;
+  claimKeys: string[];
+  status: CitationEvidenceStatus;
+  statusReason?: string;
+}) {
+  await readJson("/api/citation-evidence/status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export function useCitationReviewData(initialSlug?: string) {
   const [queue, setQueue] = useState<CitationReviewQueueSummary[]>([]);
   const [queueFilter, setQueueFilter] = useState<CitationReviewQueueFilter>("open");
-  const [queueError, setQueueError] = useState<string | null>(null);
+  const [queueError, setQueueError] = useState<CitationReviewQueueLoadFailure | null>(null);
   const [isQueueLoading, setIsQueueLoading] = useState(true);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialSlug ?? null);
   const [rows, setRows] = useState<CitationEvidenceRow[]>([]);
@@ -32,6 +71,32 @@ export function useCitationReviewData(initialSlug?: string) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingClaimKeys, setPendingClaimKeys] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  // The last write that landed, offered for undo until the window closes or
+  // the next decision replaces it.
+  const [undoableDecision, setUndoableDecision] = useState<CitationReviewDecisionRecord | null>(null);
+  const undoTimerRef = useRef<number | null>(null);
+
+  const clearUndo = useCallback(() => {
+    if (undoTimerRef.current !== null) {
+      window.clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    setUndoableDecision(null);
+  }, []);
+
+  useEffect(() => clearUndo, [clearUndo]);
+
+  const offerUndo = useCallback(
+    (decision: CitationReviewDecisionRecord) => {
+      clearUndo();
+      setUndoableDecision(decision);
+      undoTimerRef.current = window.setTimeout(() => {
+        undoTimerRef.current = null;
+        setUndoableDecision(null);
+      }, CITATION_UNDO_WINDOW_MS);
+    },
+    [clearUndo],
+  );
 
   const refreshQueue = useCallback(async () => {
     setIsQueueLoading(true);
@@ -55,7 +120,7 @@ export function useCitationReviewData(initialSlug?: string) {
         return nextQueue[0]?.slug ?? null;
       });
     } catch (error) {
-      setQueueError(error instanceof Error ? error.message : "Unable to load citation review queue.");
+      setQueueError(loadFailure(error, "Unable to load citation review queue."));
       setQueue([]);
     } finally {
       setIsQueueLoading(false);
@@ -74,7 +139,7 @@ export function useCitationReviewData(initialSlug?: string) {
       setRows(Array.isArray(result.rows) ? result.rows : []);
     } catch (error) {
       setRows([]);
-      setDetailError(error instanceof Error ? error.message : "Unable to load citation evidence.");
+      setDetailError(loadFailure(error, "Unable to load citation evidence.").error);
     } finally {
       setIsDetailLoading(false);
     }
@@ -94,26 +159,26 @@ export function useCitationReviewData(initialSlug?: string) {
   }, [refreshDetail, selectedSlug]);
 
   const updateStatuses = useCallback(
-    async (claimKeys: string[], status: "approved" | "rejected") => {
+    async (claimKeys: string[], status: CitationReviewDecisionStatus, statusReason?: string) => {
       if (!selectedSlug || claimKeys.length === 0) {
         return;
       }
 
+      const slug = selectedSlug;
+      const wanted = new Set(claimKeys);
+      const prior = rows
+        .filter((row) => wanted.has(row.claimKey))
+        .map((row) => ({ claimKey: row.claimKey, status: row.status, statusReason: row.statusReason }));
+
+      clearUndo();
       setActionError(null);
       setPendingClaimKeys(claimKeys);
       setIsBulkUpdating(claimKeys.length > 1);
 
       try {
-        await readJson("/api/citation-evidence/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug: selectedSlug,
-            claimKeys,
-            status,
-          }),
-        });
-        await Promise.all([refreshQueue(), refreshDetail(selectedSlug)]);
+        await postStatus({ slug, claimKeys, status, statusReason });
+        await Promise.all([refreshQueue(), refreshDetail(slug)]);
+        offerUndo({ status, slug, prior });
       } catch (error) {
         setActionError(error instanceof Error ? error.message : "Unable to update citation review status.");
       } finally {
@@ -121,8 +186,40 @@ export function useCitationReviewData(initialSlug?: string) {
         setIsBulkUpdating(false);
       }
     },
-    [refreshDetail, refreshQueue, selectedSlug],
+    [clearUndo, offerUndo, refreshDetail, refreshQueue, rows, selectedSlug],
   );
+
+  const undoLastDecision = useCallback(async () => {
+    const decision = undoableDecision;
+    if (!decision) {
+      return;
+    }
+
+    clearUndo();
+    setActionError(null);
+    const claimKeys = decision.prior.map((row) => row.claimKey);
+    setPendingClaimKeys(claimKeys);
+    setIsBulkUpdating(claimKeys.length > 1);
+
+    try {
+      for (const group of groupPriorRowsForRestore(decision.prior)) {
+        await postStatus({ slug: decision.slug, ...group });
+      }
+      await refreshQueue();
+      // A decision can drain its article out of the queue and move the
+      // selection on; undo brings the restored article back into view.
+      if (selectedSlug === decision.slug) {
+        await refreshDetail(decision.slug);
+      } else {
+        setSelectedSlug(decision.slug);
+      }
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Unable to undo the last decision.");
+    } finally {
+      setPendingClaimKeys([]);
+      setIsBulkUpdating(false);
+    }
+  }, [clearUndo, refreshDetail, refreshQueue, selectedSlug, undoableDecision]);
 
   const selectedSummary = useMemo(
     () => queue.find((entry) => entry.slug === selectedSlug) ?? null,
@@ -144,6 +241,9 @@ export function useCitationReviewData(initialSlug?: string) {
     actionError,
     pendingClaimKeys,
     isBulkUpdating,
+    undoableDecision,
+    undoLastDecision,
+    dismissUndo: clearUndo,
     refreshQueue,
     refreshDetail,
     updateStatuses,

@@ -32,16 +32,24 @@ import {
   type EditorActionStatusState,
 } from "@/features/dev/components";
 import { BannerIconField } from "./BannerIconField";
+import type { EnablementChange } from "./enablement";
 
 /**
- * Says where a preset renders, in words. The preview itself is never faded —
+ * Says where a preset renders, in words. The preview itself is never faded:
  * the state belongs in a sentence and a status pill, not in the legibility of
  * the thing being previewed.
  */
 const WHERE_IT_RENDERS: Record<Exclude<WarningBannerPresetState, "live">, string> = {
-  dormant: "Enabled, but no substances selected — this renders nowhere yet.",
-  off: "Switched off — this renders nowhere.",
+  dormant: "Enabled, but no substances selected. This renders nowhere yet.",
+  off: "Switched off. This renders nowhere.",
 };
+
+/**
+ * Half the per-preset cap. A list this long is usually a sitewide banner being
+ * built by hand, and the cap will force it to be split into copies that then
+ * drift apart; the drawer points at the checkbox before that happens.
+ */
+const SITEWIDE_HINT_THRESHOLD = Math.ceil(WARNING_BANNER_LIMITS.maxEnabledSlugs / 2);
 
 type PresetDrawerProps = {
   draft: WarningBannerPreset;
@@ -56,11 +64,7 @@ type PresetDrawerProps = {
   onDraftChange: (draft: WarningBannerPreset) => void;
   onSave: () => void;
   onDiscard: () => void;
-  onCommitEnabledSlugs: (
-    preset: WarningBannerPreset,
-    nextSlugs: string[],
-    summary: string,
-  ) => void;
+  onRequestEnablement: (preset: WarningBannerPreset, change: EnablementChange) => void;
   onRequestDelete: (preset: WarningBannerPreset) => void;
   onInspectCoverage: (slug: string) => void;
 };
@@ -77,7 +81,7 @@ export function PresetDrawer({
   onDraftChange,
   onSave,
   onDiscard,
-  onCommitEnabledSlugs,
+  onRequestEnablement,
   onRequestDelete,
   onInspectCoverage,
 }: PresetDrawerProps) {
@@ -86,8 +90,13 @@ export function PresetDrawer({
 
   // Staging is per preset: carrying ticks from one drawer into the next would
   // be a way to enable a class of substances on a preset nobody was looking at.
+  // It also clears once a write lands, which is the only way `enabledSlugs`
+  // changes identity, so a cancelled dialog keeps the ticks and a confirmed one
+  // does not leave them behind as ghosts.
   useEffect(() => {
     setStaged(new Set());
+  }, [draft.key, draft.enabledSlugs]);
+  useEffect(() => {
     setQuery("");
   }, [draft.key]);
 
@@ -101,19 +110,19 @@ export function PresetDrawer({
 
   const keyValid = WARNING_BANNER_KEY_PATTERN.test(draft.key.trim());
   const overSlugBudget = draft.enabledSlugs.length > WARNING_BANNER_LIMITS.maxEnabledSlugs;
+  const longList =
+    !draft.allSubstances && draft.enabledSlugs.length >= SITEWIDE_HINT_THRESHOLD;
   const canWrite = keyValid && iconValid && !overSlugBudget && saveState !== "saving";
 
   /**
    * Every enablement button writes the whole draft, unsaved copy edits included:
-   * one POST is the only write this tool has, and the alternative — persisting
-   * the new slug list while quietly discarding the headline beside it — would
+   * one POST is the only write this tool has, and the alternative, persisting
+   * the new slug list while quietly discarding the headline beside it, would
    * leave the drawer showing words the server never received. `canWrite` gates
-   * these buttons on the same key and icon checks as Save for that reason.
+   * these buttons on the same key and icon checks as Save for that reason. The
+   * controller confirms before it writes.
    */
-  const commit = (nextSlugs: string[], summary: string) => {
-    setStaged(new Set());
-    onCommitEnabledSlugs(draft, nextSlugs, summary);
-  };
+  const request = (change: EnablementChange) => onRequestEnablement(draft, change);
 
   return (
     <div className="space-y-7">
@@ -148,7 +157,7 @@ export function PresetDrawer({
             description="Lower-case, hyphens only. The stored identity and the name in the table; it cannot be changed later."
             error={
               draft.key.trim() && !keyValid
-                ? "Keys look like opioid-respiratory — lower-case letters, digits and hyphens."
+                ? "Keys look like opioid-respiratory: lower-case letters, digits and hyphens."
                 : null
             }
           >
@@ -300,7 +309,7 @@ export function PresetDrawer({
 
         {!iconValid ? (
           <p className="theme-text-faint text-xs">
-            Saving is blocked until the icon resolves — an unknown id renders no glyph, silently.
+            Saving is blocked until the icon resolves. An unknown id renders no glyph, silently.
           </p>
         ) : null}
       </EditorSection>
@@ -422,12 +431,7 @@ export function PresetDrawer({
             variant="accent"
             size="sm"
             disabled={draft.allSubstances || stagedSlugs.length === 0 || !canWrite}
-            onClick={() =>
-              commit(
-                [...draft.enabledSlugs, ...stagedSlugs],
-                `Enabled ${draft.key} on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}.`,
-              )
-            }
+            onClick={() => request({ action: "enable", slugs: stagedSlugs })}
           >
             {`Enable on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}`}
           </Button>
@@ -440,10 +444,7 @@ export function PresetDrawer({
             size="sm"
             disabled={draft.allSubstances || pending.length === 0 || !canWrite}
             onClick={() =>
-              commit(
-                [...draft.enabledSlugs, ...pending.map((result) => result.slug)],
-                `Enabled ${draft.key} on ${pending.length} substance${pending.length === 1 ? "" : "s"}.`,
-              )
+              request({ action: "enable", slugs: pending.map((result) => result.slug) })
             }
           >
             {pending.length === 1
@@ -461,30 +462,33 @@ export function PresetDrawer({
           {draft.enabledSlugs.length === 0 ? (
             <p className="theme-text-secondary text-sm">
               {draft.enabled
-                ? "Enabled, but no substances selected — this renders nowhere."
+                ? "Enabled, but no substances selected. This renders nowhere."
                 : "No substances selected."}
             </p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
+              {/* Each X is a production write, so it is inked like one and
+                  asks before it lands; Discard changes above never touches
+                  this list. */}
               {draft.enabledSlugs.map((slug) => (
                 <TagToken
                   key={slug}
                   variant="compact"
+                  removeTone="danger"
                   label={<span className="font-mono">{slug}</span>}
                   removeLabel={`Disable on ${slug}`}
-                  onRemove={() =>
-                    commit(
-                      draft.enabledSlugs.filter((entry) => entry !== slug),
-                      `Disabled ${draft.key} on ${slug}.`,
-                    )
-                  }
+                  onRemove={() => request({ action: "disable", slugs: [slug] })}
                 />
               ))}
             </div>
           )}
           {overSlugBudget ? (
             <p className="text-dose-warning text-xs">
-              {`${draft.enabledSlugs.length} substances is over the ${WARNING_BANNER_LIMITS.maxEnabledSlugs} limit. Remove some before saving.`}
+              {`${draft.enabledSlugs.length} substances is over the ${WARNING_BANNER_LIMITS.maxEnabledSlugs} limit. Remove some before saving, or tick All substance articles if this banner belongs everywhere.`}
+            </p>
+          ) : longList ? (
+            <p className="theme-text-secondary text-xs">
+              {`${draft.enabledSlugs.length} substances is a long list. If this banner belongs on every article, tick All substance articles instead of splitting the list across presets; it also covers articles published later.`}
             </p>
           ) : null}
           {draft.enabledSlugs.length > 0 ? (

@@ -2,12 +2,7 @@ import { citationEvidenceGateErrors } from "../lib/citations/citationSafety.mjs"
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { requireRole, type AuthorizedActor } from "./lib/auth";
-import {
-  compareQueueSummaries,
-  matchesQueueSummaryStatus,
-  queueSummaryStatus,
-  type CitationQueueSummary,
-} from "./lib/citationQueueFilter";
+import { accumulateQueueSummary, type CitationQueueSummary } from "./lib/citationQueueFilter";
 import {
   mergeArticleReferenceMetadataForReplacement,
   remapReferenceIds,
@@ -428,17 +423,17 @@ export const getBySlug = query({
   },
 });
 
-// getQueueSummary reads the table in pages rather than one unbounded collect()
-// and fails loudly past the page cap.
+// A Convex query may run only one paginated read, so getQueueSummary summarizes
+// a single page and hands back the cursor; the queue route walks the pages and
+// merges them with `mergeQueueSummary`. The evidence table is far larger than
+// one transaction may read, which is why it cannot be collected here at all.
 const QUEUE_SUMMARY_PAGE_SIZE = 1000;
-const QUEUE_SUMMARY_MAX_PAGES = 200;
 
 export const getQueueSummary = query({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
-    // See `matchesQueueSummaryStatus` for the semantics of each value.
-    status: v.optional(queueSummaryStatus),
+    cursor: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     await requireRole(ctx, {
@@ -447,107 +442,19 @@ export const getQueueSummary = query({
       adminIntent: "citationEvidenceReview",
     }, "editor");
 
-    const status = args.status ?? "open";
+    const result = await ctx.db
+      .query("citationEvidence")
+      .paginate({ numItems: QUEUE_SUMMARY_PAGE_SIZE, cursor: args.cursor ?? null });
+
     const summaries = new Map<string, CitationQueueSummary>();
-
-    let cursor: string | null = null;
-    for (let pagesRead = 0; ; pagesRead += 1) {
-      if (pagesRead >= QUEUE_SUMMARY_MAX_PAGES) {
-        throw new Error(
-          `getQueueSummary exceeded the ${QUEUE_SUMMARY_MAX_PAGES}-page cap while draining citationEvidence.`,
-        );
-      }
-      const result = await ctx.db
-        .query("citationEvidence")
-        .paginate({ numItems: QUEUE_SUMMARY_PAGE_SIZE, cursor });
-
-      for (const row of result.page) {
-        const summary = summaries.get(row.slug) ?? {
-          slug: row.slug,
-          articleId: row.articleId ?? null,
-          totalRows: 0,
-          supportedCount: 0,
-          needsSourceCount: 0,
-          needsReviewCount: 0,
-          approvedCount: 0,
-          rejectedCount: 0,
-          blockingCount: 0,
-          blockingNeedsSourceCount: 0,
-          blockingNeedsReviewCount: 0,
-          blockingSupportedCount: 0,
-          blockingRejectedCount: 0,
-          diagnosticErrorCount: 0,
-          diagnosticWarningCount: 0,
-          sectionIds: [],
-          updatedAt: null,
-        };
-
-        summary.totalRows += 1;
-
-        if (!summary.sectionIds.includes(row.section)) {
-          summary.sectionIds.push(row.section);
-        }
-
-        if (!summary.updatedAt || row.updatedAt > summary.updatedAt) {
-          summary.updatedAt = row.updatedAt;
-        }
-
-        if (row.severity === "blocking") {
-          summary.blockingCount += 1;
-        }
-
-        switch (row.status) {
-          case "supported":
-            summary.supportedCount += 1;
-            if (row.severity === "blocking") {
-              summary.blockingSupportedCount += 1;
-            }
-            break;
-          case "needs_source":
-            summary.needsSourceCount += 1;
-            if (row.severity === "blocking") {
-              summary.blockingNeedsSourceCount += 1;
-            }
-            break;
-          case "needs_review":
-            summary.needsReviewCount += 1;
-            if (row.severity === "blocking") {
-              summary.blockingNeedsReviewCount += 1;
-            }
-            break;
-          case "approved":
-            summary.approvedCount += 1;
-            break;
-          case "rejected":
-            summary.rejectedCount += 1;
-            if (row.severity === "blocking") {
-              summary.blockingRejectedCount += 1;
-            }
-            break;
-        }
-
-        for (const diagnostic of row.diagnostics ?? []) {
-          if (diagnostic.severity === "error") {
-            summary.diagnosticErrorCount += 1;
-          } else {
-            summary.diagnosticWarningCount += 1;
-          }
-        }
-
-        summaries.set(row.slug, summary);
-      }
-
-      if (result.isDone) break;
-      cursor = result.continueCursor;
+    for (const row of result.page) {
+      accumulateQueueSummary(summaries, row);
     }
 
-    return [...summaries.values()]
-      .filter((summary) => matchesQueueSummaryStatus(status, summary))
-      .map((summary) => ({
-        ...summary,
-        sectionIds: [...summary.sectionIds].sort((left, right) => left.localeCompare(right)),
-      }))
-      .sort(compareQueueSummaries);
+    return {
+      summaries: [...summaries.values()],
+      continueCursor: result.isDone ? null : result.continueCursor,
+    };
   },
 });
 
@@ -854,6 +761,8 @@ export const setManyStatus = mutation({
     slug: v.string(),
     claimKeys: v.array(v.string()),
     status: evidenceStatus,
+    // Reviewer's note for the next editor; replaces whatever the row carried.
+    statusReason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const actor = await requireRole(ctx, {
@@ -878,10 +787,12 @@ export const setManyStatus = mutation({
       const normalized = normalizeExistingEvidenceRow({
         ...existing,
         status: args.status,
+        statusReason: args.statusReason?.trim() || undefined,
       });
 
       await ctx.db.patch(existing._id, {
         status: normalized.status,
+        statusReason: normalized.statusReason,
         referenceIds: normalized.referenceIds,
         sourceName: normalized.sourceName,
         sourceType: normalized.sourceType,

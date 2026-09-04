@@ -15,8 +15,8 @@ import {
 import { applyPlaylistToCuration } from "./replicationPlaylistModel";
 import type { StudioRow } from "./replicationStudioModel";
 import {
+  fetchGalleryCandidates,
   fetchGalleryDetail,
-  galleryCandidatesUrl,
   galleryDetailUrl,
   readGalleryApiError,
 } from "./substanceGalleryApi";
@@ -60,6 +60,11 @@ export type GalleryDetailState =
   | { status: "error"; message: string }
   | { status: "ready"; detail: GalleryDetail };
 
+export type GalleryCandidatesState =
+  | { status: "loading" }
+  | { status: "ready" }
+  | { status: "error"; message: string };
+
 
 type GalleryControllerProps = {
   substanceSlug: string | null;
@@ -76,7 +81,9 @@ export function useSubstanceGalleryController({
   onDirtyChange,
 }: GalleryControllerProps) {
   const [candidates, setCandidates] = useState<GalleryCandidate[]>(() => cachedCandidates ?? []);
-  const [candidatesLoaded, setCandidatesLoaded] = useState(cachedCandidates !== null);
+  const [candidatesState, setCandidatesState] = useState<GalleryCandidatesState>(
+    cachedCandidates ? { status: "ready" } : { status: "loading" },
+  );
   const [candidatesToken, setCandidatesToken] = useState(0);
   const [detailState, setDetailState] = useState<GalleryDetailState>({ status: "idle" });
   const [detailToken, setDetailToken] = useState(0);
@@ -109,32 +116,19 @@ export function useSubstanceGalleryController({
   useEffect(() => {
     if (cachedCandidates) return;
     let cancelled = false;
-    void (async () => {
-      try {
-        const response = await fetch(galleryCandidatesUrl());
-        if (!response.ok) {
-          cachedCandidates = null;
-          if (!cancelled) {
-            setFeedback({
-              tone: "danger",
-              message: await readGalleryApiError(response, "Failed to load the substance list."),
-            });
-          }
-          return;
-        }
-        const payload = (await response.json()) as { substances: GalleryCandidate[] };
-        cachedCandidates = payload.substances;
-        if (!cancelled) {
-          setCandidates(payload.substances);
-          setCandidatesLoaded(true);
-        }
-      } catch {
+    setCandidatesState({ status: "loading" });
+    void fetchGalleryCandidates().then((result) => {
+      if (result.status === "error") {
         cachedCandidates = null;
-        if (!cancelled) {
-          setFeedback({ tone: "danger", message: "Failed to reach the substance list endpoint." });
-        }
+        if (!cancelled) setCandidatesState({ status: "error", message: result.message });
+        return;
       }
-    })();
+      cachedCandidates = result.candidates;
+      if (!cancelled) {
+        setCandidates(result.candidates);
+        setCandidatesState({ status: "ready" });
+      }
+    });
     return () => {
       cancelled = true;
     };
@@ -328,7 +322,7 @@ export function useSubstanceGalleryController({
         null;
       if (neighbour) setFocusSlug(neighbour);
       else setShelfFocusToken((token) => token + 1);
-      applyCuration(next, `${titleOf(slug)} excluded — ${next.removed.length} on the excluded shelf.`);
+      applyCuration(next, `${titleOf(slug)} excluded. ${next.removed.length} on the excluded shelf.`);
     },
     [applyCuration, board.rows, curation, titleOf],
   );
@@ -336,8 +330,8 @@ export function useSubstanceGalleryController({
   /**
    * The corpus-wide verb. Junk is junk on every article, so this retires the
    * work from every candidate pool at once instead of spending one of this
-   * gallery's exclusion slots on it. It writes immediately — there is no draft
-   * to hold a corpus fact in — and reloads the detail so the row leaves the
+   * gallery's exclusion slots on it. It writes immediately, since there is no
+   * draft to hold a corpus fact in, and reloads the detail so the row leaves the
    * pool it was just judged in.
    */
   const handleExcludeEverywhere = useCallback(
@@ -594,6 +588,11 @@ export function useSubstanceGalleryController({
     setDetailToken((token) => token + 1);
   }, []);
 
+  const retryCandidates = useCallback(() => {
+    cachedCandidates = null;
+    setCandidatesToken((token) => token + 1);
+  }, []);
+
   const discardAndSwitch = useCallback(() => {
     const target = pendingSlug;
     setPendingSlug(null);
@@ -604,7 +603,8 @@ export function useSubstanceGalleryController({
 
   return {
     candidates,
-    candidatesLoaded,
+    candidatesState,
+    retryCandidates,
     detailState,
     detail,
     history,

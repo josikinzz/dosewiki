@@ -131,7 +131,7 @@ export function MoleculeEditorModePanel({
             <span className="theme-text-muted font-mono">{selected}</span>
             {" · "}
             {variant === "imported"
-              ? "imported structure — unsaved"
+              ? "imported structure, unsaved"
               : loadedFromOverride
                 ? mode === "templates"
                   ? "saved template"
@@ -171,10 +171,10 @@ export function MoleculeEditorModePanel({
           </Button>
           <span className="theme-text-faint text-xs">
             {mode === "substances"
-              ? "Replaces the canvas — good for drawing an analogue of an existing molecule."
+              ? "Replaces the canvas. Good for drawing an analogue of an existing molecule."
               : mode === "templates"
                 ? "Replaces the canvas; R-group placeholders are stripped so the template stays a plain scaffold."
-                : "Replaces the canvas — start the class drawing from any saved structure."}
+                : "Replaces the canvas. Start the class drawing from any saved structure."}
           </span>
         </div>
       ) : null}
@@ -199,7 +199,7 @@ export function MoleculeEditorModePanel({
             <Icon icon={importing ? "lucide:loader-2" : "lucide:sparkles"} size={15} className={importing ? "animate-spin" : undefined} />
             Load SMILES
           </Button>
-          <span className="theme-text-faint text-xs">Automatic layout — a starting point to tidy, not a finished drawing.</span>
+          <span className="theme-text-faint text-xs">Automatic layout: a starting point to tidy, not a finished drawing.</span>
         </div>
       ) : null}
 

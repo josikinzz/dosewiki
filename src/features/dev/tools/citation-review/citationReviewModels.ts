@@ -10,6 +10,18 @@ export type CitationEvidenceStatus =
   | "approved"
   | "rejected";
 
+export const CITATION_EVIDENCE_STATUSES: readonly CitationEvidenceStatus[] = [
+  "supported",
+  "needs_source",
+  "needs_review",
+  "approved",
+  "rejected",
+];
+
+export function isCitationEvidenceStatus(value: string): value is CitationEvidenceStatus {
+  return (CITATION_EVIDENCE_STATUSES as readonly string[]).includes(value);
+}
+
 export type CitationEvidenceSeverity = "blocking" | "non_blocking";
 
 /**
@@ -37,6 +49,93 @@ export const CITATION_QUEUE_FILTER_LABEL: Record<CitationReviewQueueFilter, stri
 
 export function isCitationReviewQueueFilter(value: string): value is CitationReviewQueueFilter {
   return (CITATION_QUEUE_FILTERS as readonly string[]).includes(value);
+}
+
+/**
+ * What the queue route could tell about a failed load. `query` means the data
+ * server refused or could not finish the summary query and carries the request
+ * id to report; `capacity` means the evidence table outgrew the page cap.
+ */
+export type CitationReviewQueueLoadCause = "query" | "capacity";
+
+export type CitationReviewQueueLoadFailure = {
+  error: string;
+  cause?: CitationReviewQueueLoadCause;
+  requestId?: string;
+};
+
+export const CITATION_QUEUE_LOAD_CAUSE_LABEL: Record<CitationReviewQueueLoadCause, string> = {
+  query: "The data server failed the queue query",
+  capacity: "The evidence table is too large to summarize",
+};
+
+/** Reviewer decision written to a row; `statusReason` is the note the next editor reads. */
+export type CitationReviewDecisionStatus = "approved" | "rejected";
+
+export type CitationRejectReason =
+  | "wrong_source"
+  | "quote_does_not_support_claim"
+  | "source_unreliable"
+  | "other";
+
+export const CITATION_REJECT_REASONS: readonly CitationRejectReason[] = [
+  "wrong_source",
+  "quote_does_not_support_claim",
+  "source_unreliable",
+  "other",
+];
+
+export const CITATION_REJECT_REASON_LABEL: Record<CitationRejectReason, string> = {
+  wrong_source: "Wrong source",
+  quote_does_not_support_claim: "Quote does not support the claim",
+  source_unreliable: "Source unreliable",
+  other: "Other",
+};
+
+/**
+ * The text stored on the row for a rejection. Fixed reasons store their label;
+ * `other` stores the reviewer's own words, or nothing when they left it blank.
+ */
+export function formatCitationRejectReason(
+  reason: CitationRejectReason,
+  detail: string,
+): string | undefined {
+  const note = detail.trim();
+  if (reason === "other") {
+    return note || undefined;
+  }
+  return note ? `${CITATION_REJECT_REASON_LABEL[reason]}: ${note}` : CITATION_REJECT_REASON_LABEL[reason];
+}
+
+/** A write the reviewer can undo: the rows as they were before the decision. */
+export type CitationReviewPriorRow = {
+  claimKey: string;
+  status: CitationEvidenceStatus;
+  statusReason?: string;
+};
+
+export type CitationReviewDecisionRecord = {
+  status: CitationReviewDecisionStatus;
+  slug: string;
+  prior: CitationReviewPriorRow[];
+};
+
+/**
+ * Groups prior rows into the fewest status writes that restore them. The
+ * status route writes one status and one note per call, so rows that shared a
+ * status and note before the decision travel together.
+ */
+export function groupPriorRowsForRestore(
+  prior: readonly CitationReviewPriorRow[],
+): Array<{ status: CitationEvidenceStatus; statusReason?: string; claimKeys: string[] }> {
+  const groups = new Map<string, { status: CitationEvidenceStatus; statusReason?: string; claimKeys: string[] }>();
+  for (const row of prior) {
+    const key = `${row.status}\u0000${row.statusReason ?? ""}`;
+    const group = groups.get(key) ?? { status: row.status, statusReason: row.statusReason, claimKeys: [] };
+    group.claimKeys.push(row.claimKey);
+    groups.set(key, group);
+  }
+  return [...groups.values()];
 }
 
 export type CitationEvidenceSupport = {

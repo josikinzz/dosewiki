@@ -9,24 +9,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  EditorList,
   EditorListItem,
   EditorSection,
   EditorStatusPill,
-  type EditorStatusPillTone,
 } from "@/features/dev/components";
-import type { ReviewStatus, SortOrder, SubstanceInfo } from "./types";
+import { REVIEW_STATUS_META, type SortOrder, type SubstanceInfo } from "./types";
 
-const REVIEW_STATUS_META: Record<
-  ReviewStatus,
-  {
-    label: string;
-    tone: EditorStatusPillTone;
-  }
-> = {
-  needed: { label: "Review Needed", tone: "danger" },
-  in_progress: { label: "In Progress", tone: "warning" },
-  completed: { label: "Completed", tone: "success" },
-};
+const getSubstanceKey = (substance: SubstanceInfo) => substance.slug;
+
+function renderSubstanceRow(substance: SubstanceInfo, { selected }: { selected: boolean }) {
+  const statusMeta = REVIEW_STATUS_META[substance.reviewStatus];
+  return (
+    <EditorListItem
+      active={selected}
+      tabIndex={-1}
+      badge={<EditorStatusPill tone={statusMeta.tone}>{statusMeta.label}</EditorStatusPill>}
+    >
+      <span className="theme-text-primary truncate font-medium">{substance.name}</span>
+    </EditorListItem>
+  );
+}
 
 const SORT_OPTIONS: Array<{ value: SortOrder; label: string; description: string }> = [
   {
@@ -126,30 +129,18 @@ export function SubstanceEditorSelectionSection({
           />
         </div>
       </div>
-      <div className="max-h-[24rem] space-y-1.5 overflow-y-auto rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-deep)] p-1.5">
-        {filteredSubstances.length === 0 ? (
-          <div className="theme-text-faint px-4 py-8 text-center text-sm">
-            No substances found
-          </div>
-        ) : (
-          filteredSubstances.map((substance) => {
-            const statusMeta = REVIEW_STATUS_META[substance.reviewStatus];
-            return (
-              <EditorListItem
-                key={substance.slug}
-                active={selectedSubstanceSlug === substance.slug}
-                onSelect={() => onSelectSubstance(substance.slug)}
-                badge={
-                  <EditorStatusPill tone={statusMeta.tone}>
-                    {statusMeta.label}
-                  </EditorStatusPill>
-                }
-              >
-                <span className="theme-text-primary truncate font-medium">{substance.name}</span>
-              </EditorListItem>
-            );
-          })
-        )}
+      <div className="rounded-xl border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-deep)] p-1.5">
+        <EditorList
+          items={filteredSubstances}
+          getKey={getSubstanceKey}
+          renderItem={renderSubstanceRow}
+          selectedKey={selectedSubstanceSlug}
+          onSelect={onSelectSubstance}
+          maxHeight="24rem"
+          estimateRowHeight={46}
+          emptyText="No substances found"
+          label="Substances"
+        />
       </div>
       <p className="theme-text-faint text-xs">
         {totalSubstances} substances available

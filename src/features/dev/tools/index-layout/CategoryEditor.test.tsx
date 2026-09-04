@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const { triggerSectionDragEnd } = vi.hoisted(() => ({
   triggerSectionDragEnd: { current: null as null | ((payload: unknown) => void) },
@@ -84,13 +84,10 @@ const baseCategory = {
 };
 
 describe("CategoryEditor", () => {
-  beforeEach(() => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-  });
-
-  it("wires add and remove category actions", () => {
+  it("wires add and remove actions; the tab confirms removes before they land", () => {
     const onAddSection = vi.fn();
     const onRemoveCategory = vi.fn();
+    const onRemoveSection = vi.fn();
 
     render(
       <CategoryEditor
@@ -102,6 +99,7 @@ describe("CategoryEditor", () => {
         expansionSignal={null}
         onUpdateCategory={vi.fn()}
         onRemoveCategory={onRemoveCategory}
+        onRemoveSection={onRemoveSection}
         onMoveCategory={vi.fn()}
         onSetColumn={vi.fn()}
         onAddSection={onAddSection}
@@ -117,6 +115,7 @@ describe("CategoryEditor", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Remove category" }));
     expect(onRemoveCategory).toHaveBeenCalledWith(1);
+    expect(onRemoveSection).not.toHaveBeenCalled();
   });
 
   it("reorders sections through the drag-end handler", () => {
@@ -132,6 +131,7 @@ describe("CategoryEditor", () => {
         expansionSignal={null}
         onUpdateCategory={onUpdateCategory}
         onRemoveCategory={vi.fn()}
+        onRemoveSection={vi.fn()}
         onMoveCategory={vi.fn()}
         onSetColumn={vi.fn()}
         onAddSection={vi.fn()}

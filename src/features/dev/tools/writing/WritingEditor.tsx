@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +16,7 @@ import {
   EditorSegmentedControl,
   EditorStatusPill,
   EditorToolbar,
+  SearchableMultiPicker,
 } from "@/features/dev/components";
 
 import type { WritingDraft } from "./writingEditorModel";
@@ -46,13 +49,22 @@ export function WritingEditor({
     updateTitle,
     updateSlug,
     updateDraft,
-    toggleByline,
+    setByline,
     save,
   } = controller;
   // Blog posts lead with a cover image and a teaser; articles do not.
   const emphasiseCover = kind === "blog";
   // Writing rows publish with no review step, so the save is an admin action.
   const saveEnabled = canSave && canApprove;
+  const bylineOptions = useMemo(
+    () =>
+      contributorProfiles.map((profile) => ({
+        value: profile.key,
+        label: profile.displayName,
+        hint: `@${profile.key.toLowerCase()}`,
+      })),
+    [contributorProfiles],
+  );
 
   return (
     <>
@@ -138,28 +150,23 @@ export function WritingEditor({
         )}
       </EditorField>
 
-      <EditorField label="Byline" description="Contributor profiles credited on the page.">
-        {profilesLoading ? (
-          <p className="theme-text-faint text-sm">Loading contributors…</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {contributorProfiles.map((profile) => {
-              const active = draft.authorProfileKeys.includes(profile.key);
-              return (
-                <Button
-                  key={profile.key}
-                  type="button"
-                  size="sm"
-                  variant={active ? "accent" : "secondary"}
-                  disabled={readOnly}
-                  onClick={() => toggleByline(profile.key)}
-                >
-                  {profile.displayName}
-                </Button>
-              );
-            })}
-          </div>
-        )}
+      <EditorField label="Byline" description="Contributor profiles credited on the page. Search by name or profile key.">
+        {(control) =>
+          profilesLoading ? (
+            <p className="theme-text-faint text-sm">Loading contributors…</p>
+          ) : (
+            <SearchableMultiPicker
+              id={control.id}
+              options={bylineOptions}
+              value={draft.authorProfileKeys}
+              onChange={setByline}
+              disabled={readOnly}
+              placeholder="Add a contributor"
+              emptyText="No contributor matches that."
+              ariaLabel="Byline"
+            />
+          )
+        }
       </EditorField>
 
       <EditorField label="Tags" description="Comma separated.">

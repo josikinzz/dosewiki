@@ -89,7 +89,7 @@ describe("MyReportsTab", () => {
     await screen.findByText("No reports yet");
   });
 
-  it("opens a report, edits the title and saves it through the record route with the opened snapshot", async () => {
+  it("opens a report, edits the title and saves it through the record route after the publish confirm", async () => {
     const { calls } = stubReportsApi(ROWS);
     const user = userEvent.setup();
     render(<MyReportsTab />);
@@ -97,11 +97,17 @@ describe("MyReportsTab", () => {
     await user.click((await screen.findAllByRole("button", { name: "Edit" }))[1]);
     const title = await screen.findByLabelText("Title");
     expect(title).toHaveValue("Alpine clarity");
-    expect(screen.getByRole("button", { name: "Save report" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: /View live/ })).toHaveAttribute("href", "/reports/alpine-clarity");
 
     await user.clear(title);
     await user.type(title, "Alpine clarity, revisited");
-    await user.click(screen.getByRole("button", { name: "Save report" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    // Nothing is written until the publish confirm is accepted.
+    await screen.findByRole("dialog", { name: "Publish to /reports/alpine-clarity?" });
+    expect(calls).toHaveLength(0);
+    await user.click(screen.getByRole("button", { name: "Save and publish" }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0].path).toBe("/api/dev/trip-reports/record");
@@ -112,6 +118,23 @@ describe("MyReportsTab", () => {
       updates: { title: "Alpine clarity, revisited", tags: ["outdoors"] },
     });
     await screen.findByText("Saved /reports/alpine-clarity.");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  it("cancelling the publish confirm writes nothing and keeps the draft", async () => {
+    const { calls } = stubReportsApi(ROWS);
+    const user = userEvent.setup();
+    render(<MyReportsTab />);
+
+    await user.click((await screen.findAllByRole("button", { name: "Edit" }))[1]);
+    await user.type(await screen.findByLabelText("Title"), "!");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(calls).toHaveLength(0);
+    expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity!");
   });
 
   it("surfaces a refused save without closing the editor", async () => {
@@ -122,10 +145,38 @@ describe("MyReportsTab", () => {
     await user.click((await screen.findAllByRole("button", { name: "Edit" }))[1]);
     const title = await screen.findByLabelText("Title");
     await user.type(title, "!");
-    await user.click(screen.getByRole("button", { name: "Save report" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(await screen.findByRole("button", { name: "Save and publish" }));
 
     await screen.findByText("You do not own trip report alpine-clarity.");
     expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity!");
+  });
+
+  it("guards Close and other rows' Edit while the draft is dirty", async () => {
+    stubReportsApi(ROWS);
+    const user = userEvent.setup();
+    render(<MyReportsTab />);
+
+    await user.click((await screen.findAllByRole("button", { name: "Edit" }))[1]);
+    await user.type(await screen.findByLabelText("Title"), "!");
+
+    // Close asks first; keeping the draft leaves the editor and its text alone.
+    await user.click(screen.getByRole("button", { name: "Close editor" }));
+    await screen.findByRole("dialog", { name: "Discard your edits?" });
+    await user.click(screen.getByRole("button", { name: "Keep editing" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity!");
+
+    // Opening another row asks the same question; discarding proceeds to it.
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await screen.findByRole("dialog", { name: "Discard your edits?" });
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity"));
+
+    // A clean editor closes without a prompt.
+    await user.click(screen.getByRole("button", { name: "Close editor" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByLabelText("Title")).toBeNull();
   });
 
   it("offers the assign-owner form to admins only and posts to the owner route", async () => {

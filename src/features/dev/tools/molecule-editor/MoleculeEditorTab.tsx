@@ -8,11 +8,14 @@
  *   • picker — searchable substance combobox, publicly listed articles first and
  *     grouped by category (a "saved" pill marks molecules that already have a
  *     Convex depiction; "published" marks a publicly listed article)
- *   • canvas — OpenChemLib editor: reposition atoms (lasso tool), set per-bond
- *     wedge/hash stereo
- *   • control strip — live brand-styled preview rendered by the same OpenChemLib
- *     engine as the canvas + RDKit-backed stereo guard + Save / Revert; a side
- *     rail at xl widths, a sticky bottom toolbar below that
+ *   • canvas: OpenChemLib editor behind a labeled dose.wiki tool strip: reposition
+ *     atoms (Select), set per-bond wedge/hash stereo; an "Adjust" row above it holds
+ *     the whole-depiction transforms
+ *   • preview and settings: live brand-styled preview rendered by the same OpenChemLib
+ *     engine as the canvas, plus fine rotation and tracing; a side column at xl widths,
+ *     a collapsed disclosure below that
+ *   • save bar: RDKit-backed stereo guard + Revert / Save in one slim row that stays
+ *     in reach while the canvas scrolls
  *
  * Data is live Convex, so this works on the deployed admin host (not just locally):
  *   • the picker + per-substance SMILES come from the `substanceIndex` queries
@@ -25,15 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePaginatedQuery, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
-import { Button } from "@/components/ui";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
@@ -68,7 +63,6 @@ import { useTemplateApplication } from "./useTemplateApplication";
 import { MoleculeEditorModePanel } from "./MoleculeEditorModePanel";
 import { MoleculeEditorWorkbench } from "./MoleculeEditorWorkbench";
 import type {
-  ConfirmRequest,
   EditorMode,
   MoleculeClassTemplate,
   MoleculeOverride,
@@ -909,7 +903,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         tone: "success",
         title: "Structure loaded from SMILES",
         message:
-          "Automatic layout only — expect to tidy the drawing before saving.",
+          "Automatic layout only. Expect to tidy the drawing before saving.",
       });
       setImporting(false);
     };
@@ -999,7 +993,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
           title: "Aligned",
           message:
             outcome.kind === "bond-vertical"
-              ? `Rotated ${amount} — the bond is now vertical. Save to publish.`
+              ? `Rotated ${amount}. The bond is now vertical. Save to publish.`
               : `Rotated ${amount} onto the standard 30° drawing grid. Save to publish.`,
         });
         return;
@@ -1110,7 +1104,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         setBoldBaseline(boldBonds);
         setSaveResult({
           tone: "success",
-          message: "Saved — the class template is ready for later preview/apply work.",
+          message: "Saved. The class template is ready for later preview and apply work.",
         });
       } catch (err) {
         setSaveResult({
@@ -1152,8 +1146,8 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
         tone: "success",
         message:
           mode === "classes"
-            ? "Saved — the override is live. The class page refreshes momentarily."
-            : "Saved — this is now the live depiction. The substance page refreshes momentarily.",
+            ? "Saved. The override is live. The class page refreshes momentarily."
+            : "Saved. This is now the live depiction. The substance page refreshes momentarily.",
       });
     } catch (err) {
       setSaveResult({
@@ -1196,7 +1190,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       setVariant("auto");
       setSaveResult({
         tone: "success",
-        message: "Override removed — reverted to the automatic layout.",
+        message: "Override removed. Reverted to the automatic layout.",
       });
     } catch (err) {
       setSaveResult({
@@ -1333,55 +1327,5 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       />
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
     </div>
-  );
-}
-
-
-/**
- * Shared-kit confirmation dialog for destructive / discard actions. Rendering is
- * driven by a {@link ConfirmRequest}; closing (overlay click, Escape, Cancel, or a
- * completed confirm) clears the request via `onClose`.
- */
-function ConfirmDialog({
-  request,
-  onClose,
-}: {
-  request: ConfirmRequest | null;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog
-      open={!!request}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent className="max-w-md" showClose={false}>
-        {request ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>{request.title}</DialogTitle>
-              <DialogDescription className="theme-text-muted">
-                {request.description}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button
-                variant={request.destructive ? "destructive" : "accent"}
-                onClick={() => {
-                  request.onConfirm();
-                  onClose();
-                }}
-              >
-                {request.confirmLabel}
-              </Button>
-            </DialogFooter>
-          </>
-        ) : null}
-      </DialogContent>
-    </Dialog>
   );
 }

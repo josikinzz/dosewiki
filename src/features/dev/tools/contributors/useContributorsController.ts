@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import type { NormalizedUserProfile } from "@/data/userProfiles";
-import type {
-  EditorActionStatusState,
-  EditorNoticeMessage,
-} from "@/features/dev/components";
+import type { EditorActionStatusState, EditorNoticeMessage } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 import {
   findContributorProfileByKeyOrAlias,
@@ -25,6 +22,7 @@ import {
   buildOwnContributorPatch,
   filterContributors,
   isContributorFormDirty,
+  ordersEqual,
   sortReports,
   sortWorks,
   toContributorForm,
@@ -136,7 +134,11 @@ export function useContributorsController({
     window.history.replaceState(
       null,
       "",
-      viewToPath({ type: "dev", tab: "contributors", filter: scope === "all" ? undefined : scope }),
+      viewToPath({
+        type: "dev",
+        tab: "contributors",
+        filter: scope === "all" ? undefined : scope,
+      }),
     );
   }, [canEdit, scope]);
 
@@ -216,11 +218,18 @@ export function useContributorsController({
     if (!file) return;
     const validation = validateAvatarFile(file);
     if (validation.ok === false) {
-      setNotice({ tone: "danger", title: "Avatar rejected", message: validation.message });
+      setNotice({
+        tone: "danger",
+        title: "Avatar rejected",
+        message: validation.message,
+      });
       return;
     }
     setAvatarFile(file);
-    setNotice({ tone: "info", message: "Avatar ready. Save the profile to publish it." });
+    setNotice({
+      tone: "info",
+      message: "Avatar ready. Save the profile to publish it.",
+    });
   }, []);
 
   const saveProfile = useCallback(async () => {
@@ -239,7 +248,9 @@ export function useContributorsController({
           // A body carries only the fields its role may set: Convex refuses
           // an editor's save that names a trust field, and the route drops
           // everything but the self-serve fields for a contributor.
-          ...(canEdit ? buildContributorPatch(form, { canApprove }) : buildOwnContributorPatch(form)),
+          ...(canEdit
+            ? buildContributorPatch(form, { canApprove })
+            : buildOwnContributorPatch(form)),
           ...(avatarUpload ? { avatarUpload } : {}),
         }),
       });
@@ -283,7 +294,9 @@ export function useContributorsController({
         };
         if (!response.ok) throw new Error(payload.error ?? "The order could not be saved.");
         const pruned =
-          which === "works" ? payload.prunedReplicationSlugs ?? [] : payload.prunedReportSlugs ?? [];
+          which === "works"
+            ? (payload.prunedReplicationSlugs ?? [])
+            : (payload.prunedReportSlugs ?? []);
         setState("saved");
         setNotice({
           tone: pruned.length > 0 ? "warning" : "success",
@@ -324,15 +337,28 @@ export function useContributorsController({
     [detail?.reports],
   );
   const knownAuthorNames = useMemo(
-    () => Array.from(new Set((detail?.reports ?? []).map((report) => report.authorName).filter(Boolean))),
+    () =>
+      Array.from(
+        new Set((detail?.reports ?? []).map((report) => report.authorName).filter(Boolean)),
+      ),
     [detail?.reports],
   );
   const isProfileDirty =
     detail && form ? isContributorFormDirty(detail.profile, form, avatarFile !== null) : false;
+  // Anything a row change or scope flip would throw away: the profile draft
+  // and either unsaved order.
+  const hasUnsavedChanges =
+    isProfileDirty ||
+    (detail !== null &&
+      (!ordersEqual(workOrder, detail.profile.replicationOrder) ||
+        !ordersEqual(reportOrder, detail.profile.reportOrder)));
 
   const selectProfile = useCallback((key: string) => {
     setSelectedKey(key);
     setNotice(null);
+  }, []);
+  const retryDetail = useCallback(() => {
+    setReloadToken((token) => token + 1);
   }, []);
   const discardProfile = useCallback(() => {
     if (!detail) return;
@@ -384,6 +410,7 @@ export function useContributorsController({
     detail,
     detailError,
     isDetailLoading,
+    retryDetail,
     form,
     updateForm,
     aliasDraft,
@@ -410,6 +437,7 @@ export function useContributorsController({
     saveOrdering,
     knownAuthorNames,
     isProfileDirty,
+    hasUnsavedChanges,
     completeDangerOperation,
     removeSelectedProfile,
   };

@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 
 /** A minimal stand-in for OCL's Molecule with two atoms joined by one selected bond. */
 function makeMoleculeStub({ findBondResult = 0 } = {}) {
@@ -30,10 +30,12 @@ const openChemLibMock = vi.hoisted(() => ({
   instances: [] as Array<{
     options: { initialMode?: string; fineRotation?: boolean };
     molecule: unknown;
-    setFineRotationEnabled: ReturnType<typeof vi.fn>;
-    setOnChangeListener: ReturnType<typeof vi.fn>;
-    setMolecule: ReturnType<typeof vi.fn>;
-    destroy: ReturnType<typeof vi.fn>;
+    toolbarCanvas: HTMLCanvasElement;
+    editorCanvas: HTMLCanvasElement;
+    setFineRotationEnabled: Mock;
+    setOnChangeListener: Mock;
+    setMolecule: Mock;
+    destroy: Mock;
   }>,
 }));
 
@@ -41,6 +43,8 @@ vi.mock("openchemlib", () => {
   class CanvasEditor {
     options: { initialMode?: string; fineRotation?: boolean };
     molecule: unknown = null;
+    toolbarCanvas: HTMLCanvasElement;
+    editorCanvas: HTMLCanvasElement;
     setFineRotationEnabled = vi.fn();
     setOnChangeListener = vi.fn();
     removeOnChangeListener = vi.fn();
@@ -52,10 +56,27 @@ vi.mock("openchemlib", () => {
     destroy = vi.fn();
 
     constructor(
-      _host: HTMLElement,
+      host: HTMLElement,
       options: { initialMode?: string; fineRotation?: boolean } = {},
     ) {
       this.options = options;
+      // The DOM OpenChemLib's `createEditor` builds: a root with an open shadow
+      // root holding the toolbar canvas, then a container with the focusable
+      // drawing canvas. CSS sizes are what a 2x17 toolbar of 21px buttons behind
+      // a 2px border measures, so button geometry is exercised for real.
+      const root = document.createElement("div");
+      root.dataset.openchemlibCanvasEditor = "true";
+      const shadow = root.attachShadow({ mode: "open" });
+      this.toolbarCanvas = document.createElement("canvas");
+      Object.defineProperty(this.toolbarCanvas, "offsetWidth", { value: 46 });
+      Object.defineProperty(this.toolbarCanvas, "offsetHeight", { value: 361 });
+      shadow.append(this.toolbarCanvas);
+      const container = document.createElement("div");
+      this.editorCanvas = document.createElement("canvas");
+      this.editorCanvas.tabIndex = 0;
+      container.append(this.editorCanvas);
+      shadow.append(container);
+      host.append(root);
       openChemLibMock.instances.push(this);
     }
   }
@@ -242,5 +263,100 @@ describe("OclEditor bond pick mode", () => {
     await waitFor(() => expect(openChemLibMock.instances).toHaveLength(1));
 
     expect(screen.queryByTestId("bond-pick-overlay")).toBeNull();
+  });
+});
+
+describe("OclEditor tool strip", () => {
+  afterEach(() => {
+    cleanup();
+    openChemLibMock.instances.length = 0;
+  });
+
+  async function renderStrip() {
+    render(<OclEditor source={null} onChange={vi.fn()} />);
+    await waitFor(() => expect(openChemLibMock.instances).toHaveLength(1));
+    const editor = openChemLibMock.instances[0]!;
+    // The strip enables once the editor's canvases are found.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Wedge" })).toBeEnabled());
+    return editor;
+  }
+
+  it("presses OpenChemLib's toolbar at the chosen button and highlights that tool", async () => {
+    const editor = await renderStrip();
+    // OpenChemLib listens for the press on its toolbar canvas and for the
+    // release on the document, so the release must compose out of the shadow root.
+    const pointerEvents: Array<{ type: string; x: number; y: number }> = [];
+    const record = (event: Event) => {
+      const pointer = event as PointerEvent;
+      pointerEvents.push({ type: pointer.type, x: pointer.clientX, y: pointer.clientY });
+    };
+    editor.toolbarCanvas.addEventListener("pointerdown", record);
+    document.addEventListener("pointerup", record);
+
+    // OpenChemLib starts on its bond tool, which the strip reflects.
+    expect(screen.getByRole("button", { name: "Bond" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Wedge" }));
+    document.removeEventListener("pointerup", record);
+
+    // Wedge is `cToolUpBond` (6): column 0, row 6 of 21px buttons behind a 2px
+    // border, so its centre is (12.5, 138.5) on a canvas whose rect sits at 0,0.
+    expect(pointerEvents).toEqual([
+      { type: "pointerdown", x: 12.5, y: 138.5 },
+      { type: "pointerup", x: 12.5, y: 138.5 },
+    ]);
+    expect(screen.getByRole("button", { name: "Wedge" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Bond" })).toHaveAttribute("aria-pressed", "false");
+    // Focus lands inside the shadow root, where the document only sees the host.
+    expect((editor.editorCanvas.getRootNode() as ShadowRoot).activeElement).toBe(
+      editor.editorCanvas,
+    );
+  });
+
+  it("keeps OpenChemLib's own toolbar hidden until All tools opens it", async () => {
+    const editor = await renderStrip();
+    expect(editor.toolbarCanvas.style.visibility).toBe("hidden");
+    expect(editor.toolbarCanvas.style.position).toBe("absolute");
+
+    fireEvent.click(screen.getByRole("button", { name: /Show OpenChemLib's full toolbar/ }));
+    expect(editor.toolbarCanvas.style.visibility).toBe("");
+    expect(editor.toolbarCanvas.style.position).toBe("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide OpenChemLib's full toolbar" }));
+    expect(editor.toolbarCanvas.style.visibility).toBe("hidden");
+  });
+
+  it("follows definitive shortcut keys and drops the highlight for ambiguous ones", async () => {
+    const editor = await renderStrip();
+
+    fireEvent.keyDown(editor.editorCanvas, { key: " " });
+    expect(screen.getByRole("button", { name: "Select" })).toHaveAttribute("aria-pressed", "true");
+
+    // A letter may have gone to a hovered atom's label instead of the toolbar.
+    fireEvent.keyDown(editor.editorCanvas, { key: "u" });
+    for (const name of ["Select", "Bond", "Wedge", "Hash", "Atom", "Erase"]) {
+      expect(screen.getByRole("button", { name })).toHaveAttribute("aria-pressed", "false");
+    }
+
+    // Menu shortcuts (undo, copy, paste) never change tools.
+    fireEvent.keyDown(editor.editorCanvas, { key: "1", metaKey: true });
+    expect(screen.getByRole("button", { name: "Bond" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("reads a click on OpenChemLib's own toolbar back into the strip", async () => {
+    const editor = await renderStrip();
+    // Hash is `cToolDownBond` (23): column 1, row 6.
+    const hash = new PointerEvent("pointerup", { bubbles: true });
+    Object.defineProperty(hash, "offsetX", { value: 2 + 21 * 1.5 });
+    Object.defineProperty(hash, "offsetY", { value: 2 + 21 * 6.5 });
+    fireEvent(editor.toolbarCanvas, hash);
+    expect(screen.getByRole("button", { name: "Hash" })).toHaveAttribute("aria-pressed", "true");
+
+    // A ring tool is outside the strip: nothing stays highlighted.
+    const ring = new PointerEvent("pointerup", { bubbles: true });
+    Object.defineProperty(ring, "offsetX", { value: 2 + 21 * 0.5 });
+    Object.defineProperty(ring, "offsetY", { value: 2 + 21 * 7.5 });
+    fireEvent(editor.toolbarCanvas, ring);
+    expect(screen.getByRole("button", { name: "Hash" })).toHaveAttribute("aria-pressed", "false");
   });
 });

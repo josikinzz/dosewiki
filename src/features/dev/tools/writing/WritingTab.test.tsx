@@ -104,12 +104,63 @@ describe("WritingTab", () => {
 
     expect(railTitles()).toEqual(["About", "Launch post"]);
     expect(screen.getByTestId("about-editor")).toBeInTheDocument();
-    expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing?kind=blog");
+    expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/about?kind=blog");
 
     await user.click(kindFilter().getByRole("button", { name: "Article" }));
 
     expect(railTitles()).toEqual(["About", "Archive page", "Field notes"]);
+    expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/about");
+  });
+
+  it("writes the open record's slug to the URL, and drops it for a new draft", async () => {
+    const user = userEvent.setup();
+    const replaceState = vi.spyOn(window.history, "replaceState");
+    renderTab();
+    await screen.findByText("Field notes");
+
+    await user.click(screen.getByRole("button", { name: /Field notes/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
+    expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/field-notes");
+
+    await user.click(screen.getByRole("button", { name: "New" }));
     expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing");
+
+    await user.click(screen.getByRole("button", { name: /About/ }));
+    expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/about");
+  });
+
+  it("asks before a rail row, About or the kind filter drops an unsaved draft", async () => {
+    const user = userEvent.setup();
+    renderTab();
+    await screen.findByText("Field notes");
+
+    await user.click(screen.getByRole("button", { name: /Field notes/ }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
+    const rail = within(screen.getByRole("group", { name: "Entries" }));
+    expect(rail.queryByText("Unsaved")).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Title"), " extra");
+    expect(rail.getByText("Unsaved")).toBeInTheDocument();
+
+    // Keep editing: nothing moves.
+    await user.click(screen.getByRole("button", { name: /Archive page/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Discard changes to Field notes extra?" });
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Title")).toHaveValue("Field notes extra");
+
+    // The kind filter would drop the row too, so it asks as well.
+    await user.click(kindFilter().getByRole("button", { name: "Blog" }));
+    await screen.findByRole("dialog", { name: "Discard changes to Field notes extra?" });
+    await user.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(kindFilter().getByRole("button", { name: "Article" })).toHaveAttribute("aria-pressed", "true");
+
+    // Discard: the other row opens and the pill goes.
+    await user.click(screen.getByRole("button", { name: /About/ }));
+    await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(await screen.findByTestId("about-editor")).toBeInTheDocument();
+    expect(rail.queryByText("Unsaved")).not.toBeInTheDocument();
   });
 
   it("opens on the kind the route names without rewriting the URL", async () => {
@@ -162,8 +213,9 @@ describe("WritingTab", () => {
     expect(publicationState().getByRole("button", { name: "Published" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Save draft" })).toBeEnabled();
 
-    // A legacy VCode row is read-only here.
+    // A legacy VCode row is read-only here. The typed draft is discarded on the way.
     await user.click(screen.getByRole("button", { name: /Archive page/ }));
+    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Archive page"));
     expect(screen.getByRole("button", { name: "Save & publish" })).toBeDisabled();
     expect(publicationState().getByRole("button", { name: "Draft" })).toBeDisabled();

@@ -73,18 +73,31 @@ const openSummary: CitationReviewQueueSummary = {
   updatedAt: "2026-05-01T00:00:00.000Z",
 };
 
-function stubQueue(queueByFilter: Record<string, CitationReviewQueueSummary[]>) {
+type StatusPost = { slug: string; claimKeys: string[]; status: string; statusReason?: string };
+
+function stubQueue(
+  queueByFilter: Record<string, CitationReviewQueueSummary[]>,
+  options: { posts?: StatusPost[]; queueFailure?: { status: number; body: unknown } } = {},
+) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (input: RequestInfo | URL) => {
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), "https://dose.wiki");
       if (url.pathname === "/api/citation-evidence/queue") {
+        if (options.queueFailure) {
+          return Response.json(options.queueFailure.body, { status: options.queueFailure.status });
+        }
         const status = url.searchParams.get("status") ?? "";
         return Response.json({ ok: true, queue: queueByFilter[status] ?? [] });
       }
 
       if (url.pathname === "/api/citation-evidence") {
         return Response.json({ ok: true, rows });
+      }
+
+      if (url.pathname === "/api/citation-evidence/status" && init?.method === "POST") {
+        options.posts?.push(JSON.parse(String(init.body)) as StatusPost);
+        return Response.json({ ok: true, updated: 1 });
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -163,5 +176,81 @@ describe("CitationReviewTab", () => {
     await expectDecisions("Ready claim", { approveDisabled: false, rejectDisabled: false });
     await expectDecisions("Approved claim", { approveDisabled: true, rejectDisabled: false });
     await expectDecisions("Rejected claim", { approveDisabled: false, rejectDisabled: true });
+  });
+
+  it("keeps the article-wide approval locked until a row is opened, then confirms with the sections touched", async () => {
+    const user = userEvent.setup();
+    const posts: StatusPost[] = [];
+    stubQueue({ open: [openSummary] }, { posts });
+    render(<CitationReviewTab />);
+
+    const approveAll = await screen.findByRole("button", { name: "Approve 1 ready row" });
+    expect(approveAll).toBeDisabled();
+    expect(screen.getByText(/Open at least one row above before approving the set/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Ready claim/ }));
+    expect(approveAll).toBeEnabled();
+
+    await user.click(approveAll);
+    const dialog = await screen.findByRole("dialog", { name: "Approve 1 ready row for LSD?" });
+    expect(within(dialog).getByText("Summary: 1 row")).toBeInTheDocument();
+    expect(posts).toHaveLength(0);
+
+    await user.click(within(dialog).getByRole("button", { name: "Approve 1 row" }));
+    await waitFor(() => expect(posts).toEqual([{ slug: "lsd", claimKeys: ["summary:ready"], status: "approved" }]));
+
+    // The landed decision offers an undo that restores the row's prior status.
+    await user.click(await screen.findByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(posts).toHaveLength(2));
+    expect(posts[1]).toEqual({ slug: "lsd", claimKeys: ["summary:ready"], status: "supported" });
+  });
+
+  it("asks for a reason before rejecting and saves it with the row", async () => {
+    const user = userEvent.setup();
+    const posts: StatusPost[] = [];
+    stubQueue({ open: [openSummary] }, { posts });
+    render(<CitationReviewTab />);
+
+    await user.click(await screen.findByRole("button", { name: /Ready claim/ }));
+    const group = screen.getByRole("group", { name: "Evidence row decision actions" });
+    await user.click(within(group).getByRole("button", { name: "Reject" }));
+    expect(posts).toHaveLength(0);
+
+    await user.selectOptions(screen.getByLabelText("Why is this row rejected?"), "wrong_source");
+    await user.type(screen.getByLabelText("Detail (optional)"), "Cites the 2012 review, not the trial");
+    await user.click(screen.getByRole("button", { name: "Reject row" }));
+
+    await waitFor(() => expect(posts).toEqual([
+      {
+        slug: "lsd",
+        claimKeys: ["summary:ready"],
+        status: "rejected",
+        statusReason: "Wrong source: Cites the 2012 review, not the trial",
+      },
+    ]));
+    expect(await screen.findByText("Rejected 1 row")).toBeInTheDocument();
+  });
+
+  it("names the failure class, offers retry, and keeps a path to the Review portal when the queue is down", async () => {
+    const user = userEvent.setup();
+    stubQueue(
+      {},
+      {
+        queueFailure: {
+          status: 502,
+          body: { error: "The data server could not run the queue query.", cause: "query", requestId: "abc123" },
+        },
+      },
+    );
+    render(<CitationReviewTab />);
+
+    expect(await screen.findByText("Could not load this data")).toBeInTheDocument();
+    expect(
+      screen.getByText(/The data server failed the queue query\. Request abc123\./),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Review portal" })).toHaveAttribute("href", "/review");
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
   });
 });

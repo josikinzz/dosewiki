@@ -17,6 +17,7 @@ import type {
 import type { OrderablePanelItem } from "@/features/dev/tools/contributors/OrderingPanel";
 
 import type { BulkEdit, SingleEditDraft } from "./ReplicationEditorDrawer";
+import type { ReplicationGridHandle } from "./ReplicationGrid";
 import { readReplicationApiError as readError } from "./replicationStudioApi";
 import {
   EMPTY_STUDIO_FACETS,
@@ -32,12 +33,12 @@ import {
   type StudioRow,
 } from "./replicationStudioModel";
 import { useReplicationIncoming } from "./useReplicationIncoming";
-import { columnsIn } from "./gridColumns";
 
 const CORPUS_API = "/api/dev/replications";
 const EDITORIAL_API = "/api/dev/replications/editorial";
 const FEATURED_API = "/api/dev/replications/featured";
 const RAIL_COLUMN_MEDIA = "(min-width: 1024px)";
+const DRAWER_COLUMN_MEDIA = "(min-width: 1280px)";
 
 type CorpusPayload = { rows: StudioRow[]; effects: StudioEffectOption[] };
 type LoadState =
@@ -48,17 +49,21 @@ type Feedback = { tone: ActionNoticeTone; message: string };
 
 let cachedCorpus: CorpusPayload | null = null;
 
-function useRailColumn() {
-  const [wide, setWide] = useState(true);
+/**
+ * Whether `media` matches. Starts true so the server render and jsdom take
+ * the wide layout; the listener corrects it before first paint in a browser.
+ */
+function useMediaMatch(media: string) {
+  const [matches, setMatches] = useState(true);
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(RAIL_COLUMN_MEDIA);
-    const update = () => setWide(query.matches);
+    const query = window.matchMedia(media);
+    const update = () => setMatches(query.matches);
     update();
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
-  }, []);
-  return wide;
+  }, [media]);
+  return matches;
 }
 
 
@@ -91,9 +96,11 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     next: "featured" | "playlists" | null;
   } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const railInColumn = useRailColumn();
+  const railInColumn = useMediaMatch(RAIL_COLUMN_MEDIA);
+  const drawerInColumn = useMediaMatch(DRAWER_COLUMN_MEDIA);
   const searchRef = useRef<HTMLInputElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<ReplicationGridHandle>(null);
 
   useEffect(() => {
     if (initialSubstanceSlug) {
@@ -265,7 +272,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       }
       setSelection(new Set([row.id]));
       setAnchor(row.id);
-      drawerRef.current?.scrollIntoView?.({ block: "nearest" });
     },
     [rows],
   );
@@ -319,12 +325,9 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       }
       if (visibleIds.length === 0) return;
       event.preventDefault();
-      // The grid is 2/3/4 columns responsively, so a fixed step moves
-      // diagonally at some widths. Measure the row the anchor actually sits in.
-      const anchorNode = anchor
-        ? document.querySelector<HTMLElement>(`[data-id="${anchor}"]`)
-        : null;
-      const perRow = columnsIn(anchorNode?.parentElement ?? null, "[data-id]");
+      // The grid is 2 to 4 columns depending on its width, so a fixed step
+      // would move diagonally at some widths; the grid reports its own count.
+      const perRow = gridRef.current?.columns ?? 1;
       const step =
         event.key === "ArrowRight"
           ? 1
@@ -339,7 +342,6 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
       const id = visibleIds[nextIndex];
       setSelection((existing) => (event.shiftKey ? new Set([...existing, id]) : new Set([id])));
       setAnchor(id);
-      document.querySelector(`[data-id="${id}"]`)?.scrollIntoView({ block: "nearest" });
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -478,6 +480,7 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     group,
     facets,
     selection,
+    anchor,
     busy,
     feedback,
     activePanel,
@@ -489,8 +492,10 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     pendingLeave,
     filtersOpen,
     railInColumn,
+    drawerInColumn,
     searchRef,
     drawerRef,
+    gridRef,
     effectNames,
     artists,
     visibleRows,

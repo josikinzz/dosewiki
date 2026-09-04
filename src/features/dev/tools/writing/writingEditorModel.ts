@@ -74,6 +74,22 @@ export function draftFromRow(row: WritingArticleRow): WritingDraft {
   };
 }
 
+/** Whether two drafts would post the same row; the dirty check behind the discard guard. */
+export function isSameDraft(a: WritingDraft, b: WritingDraft): boolean {
+  return (
+    a.slug === b.slug &&
+    a.title === b.title &&
+    a.teaser === b.teaser &&
+    a.coverImageUrl === b.coverImageUrl &&
+    a.body === b.body &&
+    a.tags === b.tags &&
+    a.status === b.status &&
+    a.publicationDate === b.publicationDate &&
+    a.authorProfileKeys.length === b.authorProfileKeys.length &&
+    a.authorProfileKeys.every((key, index) => key === b.authorProfileKeys[index])
+  );
+}
+
 export function parseTagList(value: string): string[] {
   return value
     .split(",")

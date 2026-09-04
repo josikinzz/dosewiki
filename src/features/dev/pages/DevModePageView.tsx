@@ -94,16 +94,27 @@ type DevModePageViewProps = {
   controller: DevModePageControllerState;
 };
 
+/**
+ * The save model, said once per tool. Staged tools hold edits in a draft
+ * until the editor commits; immediate tools write on Save. The commit card
+ * at the foot of a staged tool repeats the verb, never the explanation.
+ */
 const SAVE_FAMILY_PILL: Record<
   DevTabDescriptor["saveFamily"],
-  { label: string; icon: string; tone: EditorStatusPillTone }
+  { label: string; detail: string; icon: string; tone: EditorStatusPillTone }
 > = {
   staged: {
-    label: "Staged: commit to publish",
-    icon: "lucide:git-commit-horizontal",
+    label: "Apply to draft, then commit to production",
+    detail: "Edits stay in your draft until you press Commit to production.",
+    icon: "lucide:file-pen-line",
     tone: "info",
   },
-  immediate: { label: "Saves immediately", icon: "lucide:zap", tone: "success" },
+  immediate: {
+    label: "Save writes to production",
+    detail: "Each Save goes to the live site right away.",
+    icon: "lucide:zap",
+    tone: "success",
+  },
 };
 
 /**
@@ -119,7 +130,7 @@ function DevToolSaveFamily({ tab }: { tab: DevTabDescriptor }) {
   const pill = SAVE_FAMILY_PILL[tab.saveFamily];
   return (
     <div className="mt-4 flex justify-end">
-      <EditorStatusPill tone={pill.tone} icon={pill.icon} title={`${tab.label}: ${pill.label}`}>
+      <EditorStatusPill tone={pill.tone} icon={pill.icon} title={pill.detail}>
         {pill.label}
       </EditorStatusPill>
     </div>
@@ -184,7 +195,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             enableStickyPanels={controller.enableStickyPanels}
             commitPanel={controller.renderCommitPanel(
               undefined,
-              "Save index layout changes to Convex. Requires login to save.",
+              "Index layout edits stay in your draft until you commit them. Committed changes appear on the live site right away.",
             )}
           />
         ) : controller.activeTab === "writing" ? (
@@ -214,7 +225,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             initialScope={controller.initialFilter}
           />
         ) : controller.activeTab === "playlists" ? (
-          <PlaylistsTab isAdmin={controller.canApprove} />
+          <PlaylistsTab isAdmin={controller.canApprove} initialKey={controller.playlistsInitialKey} />
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
@@ -235,6 +246,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <MyReportsTab canApprove={controller.canApprove} />
         ) : controller.activeTab === "articles" ? (
           <SubstanceEditorTab
+            initialSlug={controller.articlesInitialSlug}
             renderCommitPanel={controller.renderCommitPanel}
           />
         ) : null}

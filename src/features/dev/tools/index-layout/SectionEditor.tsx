@@ -19,6 +19,7 @@ interface SectionEditorProps {
   section: ManualCategorySection;
   sortableId: string;
   onUpdate: (next: ManualCategorySection) => void;
+  /** Confirmed upstream: the tab owns the remove dialog. */
   onRemove: () => void;
   onMove: (direction: "up" | "down") => void;
   isFirst: boolean;
@@ -97,16 +98,6 @@ export const SectionEditor = memo(
       },
       [onUpdate, section],
     );
-
-    const handleRemove = useCallback(() => {
-      if (typeof window !== "undefined") {
-        const confirmed = window.confirm(`Remove "${section.label}" section? This cannot be undone.`);
-        if (!confirmed) {
-          return;
-        }
-      }
-      onRemove();
-    }, [onRemove, section.label]);
 
     const handleLinkTypeChange = useCallback(
       (type: ManualSectionLinkType | "") => {
@@ -218,7 +209,7 @@ export const SectionEditor = memo(
               <Button
                 variant="ghostDestructive"
                 size="icon"
-                onClick={handleRemove}
+                onClick={onRemove}
                 aria-label="Remove section"
                 className={`${iconButtonClass} ml-2`}
               >

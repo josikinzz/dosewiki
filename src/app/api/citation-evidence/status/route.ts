@@ -2,17 +2,29 @@ import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import {
+  isCitationEvidenceStatus,
+  type CitationEvidenceStatus,
+} from "@/features/dev/tools/citation-review/citationReviewModels";
 
 export const runtime = "nodejs";
 
 const MAX_STATUS_PAYLOAD_BYTES = 128 * 1024;
-const REVIEW_STATUSES = new Set(["approved", "rejected"]);
+const MAX_STATUS_REASON_LENGTH = 500;
 
 type CitationEvidenceStatusBody = {
   slug?: unknown;
   claimKey?: unknown;
   claimKeys?: unknown;
   status?: unknown;
+  statusReason?: unknown;
+};
+
+type CitationEvidenceStatusInput = {
+  slug: string;
+  claimKeys: string[];
+  status: CitationEvidenceStatus;
+  statusReason?: string;
 };
 
 function normalizeClaimKeys(body: CitationEvidenceStatusBody): string[] {
@@ -30,7 +42,7 @@ function normalizeClaimKeys(body: CitationEvidenceStatusBody): string[] {
   )];
 }
 
-function parseBody(body: CitationEvidenceStatusBody) {
+function parseBody(body: CitationEvidenceStatusBody): CitationEvidenceStatusInput {
   const slug = typeof body.slug === "string" ? body.slug.trim() : "";
   if (!slug) {
     throw new JsonBodyError(400, "Slug is required.");
@@ -42,21 +54,30 @@ function parseBody(body: CitationEvidenceStatusBody) {
   }
 
   const status = typeof body.status === "string" ? body.status.trim() : "";
-  if (!REVIEW_STATUSES.has(status)) {
-    throw new JsonBodyError(400, "Review status must be approved or rejected.");
+  // Decisions write approved or rejected; undo writes whatever the row held
+  // before, which can be any evidence status.
+  if (!isCitationEvidenceStatus(status)) {
+    throw new JsonBodyError(400, "Review status must be an evidence status.");
+  }
+
+  const rawReason = body.statusReason;
+  if (rawReason !== undefined && typeof rawReason !== "string") {
+    throw new JsonBodyError(400, "Status reason must be text.");
+  }
+  const statusReason = typeof rawReason === "string" ? rawReason.trim() || undefined : undefined;
+  if (statusReason && statusReason.length > MAX_STATUS_REASON_LENGTH) {
+    throw new JsonBodyError(400, `Status reason must be ${MAX_STATUS_REASON_LENGTH} characters or fewer.`);
   }
 
   return {
     slug,
     claimKeys,
-    status: status as "approved" | "rejected",
+    status,
+    statusReason,
   };
 }
 
-export const POST = protectedRouteOperation<
-  CitationEvidenceStatusBody,
-  { slug: string; claimKeys: string[]; status: "approved" | "rejected" }
->({
+export const POST = protectedRouteOperation<CitationEvidenceStatusBody, CitationEvidenceStatusInput>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
@@ -87,6 +108,7 @@ export const POST = protectedRouteOperation<
       slug: body.slug,
       claimKeys: body.claimKeys,
       status: body.status,
+      statusReason: body.statusReason,
     });
 
     return NextResponse.json({

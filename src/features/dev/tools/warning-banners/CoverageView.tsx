@@ -42,6 +42,7 @@ import {
   type EditorActionStatusState,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
+import type { EnablementChange } from "./enablement";
 
 /** Enablement state only — severity colour never reaches a status position. */
 const STATE_PILL_TONE: Record<WarningBannerPresetState, EditorStatusPillTone> = {
@@ -67,11 +68,7 @@ export type CoverageViewProps = {
   activeSlug: string;
   onActiveSlugChange: (slug: string) => void;
   saveState: EditorActionStatusState | "idle";
-  onCommitEnabledSlugs: (
-    preset: WarningBannerPreset,
-    nextSlugs: string[],
-    summary: string,
-  ) => void;
+  onRequestEnablement: (preset: WarningBannerPreset, change: EnablementChange) => void;
   onEditPreset: (preset: WarningBannerPreset) => void;
 };
 
@@ -82,7 +79,7 @@ export function CoverageView({
   activeSlug,
   onActiveSlugChange,
   saveState,
-  onCommitEnabledSlugs,
+  onRequestEnablement,
   onEditPreset,
 }: CoverageViewProps) {
   const [filter, setFilter] = useState("");
@@ -130,7 +127,7 @@ export function CoverageView({
           placeholder="Pick a substance"
           options={filtered.map((entry) => ({
             value: entry.slug,
-            label: entry.title ? `${entry.title} — ${entry.slug}` : entry.slug,
+            label: entry.title ? `${entry.title} (${entry.slug})` : entry.slug,
           }))}
           onChange={(event) => onActiveSlugChange(event.target.value)}
         />
@@ -145,8 +142,10 @@ export function CoverageView({
             <p className="theme-text-faint p-2 text-sm">No substance matches that search.</p>
           ) : (
             filtered.map((entry) => {
-              const count = presets.filter((preset) =>
-                presetAppliesToSlug(preset, entry.slug),
+              // Listed presets only. A sitewide preset reaches every row, so
+              // counting it would put the same pill on all 577 and say nothing.
+              const count = presets.filter(
+                (preset) => !preset.allSubstances && presetAppliesToSlug(preset, entry.slug),
               ).length;
               return (
                 <EditorListItem
@@ -156,7 +155,7 @@ export function CoverageView({
                   subtitle={entry.slug}
                   badge={
                     count > 0 ? (
-                      <EditorStatusPill tone="success">{`live · ${count}`}</EditorStatusPill>
+                      <EditorStatusPill tone="success">{`listed · ${count}`}</EditorStatusPill>
                     ) : null
                   }
                   onSelect={() => onActiveSlugChange(entry.slug)}
@@ -239,7 +238,7 @@ export function CoverageView({
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="theme-text-faint font-mono text-xs">
                           {preset.allSubstances
-                            ? `${preset.key} · all substance articles`
+                            ? `${preset.key} · sitewide`
                             : `${preset.key} · enabled on ${preset.enabledSlugs.length} substances`}
                         </span>
                         {!preset.allSubstances ? (
@@ -249,11 +248,7 @@ export function CoverageView({
                             size="sm"
                             disabled={saveState === "saving"}
                             onClick={() =>
-                              onCommitEnabledSlugs(
-                                preset,
-                                preset.enabledSlugs.filter((slug) => slug !== activeSlug),
-                                `Disabled ${preset.key} on ${activeSlug}.`,
-                              )
+                              onRequestEnablement(preset, { action: "disable", slugs: [activeSlug] })
                             }
                           >
                             {`Disable on ${activeSlug}`}
@@ -295,7 +290,7 @@ export function CoverageView({
             <EditorSection
               headingLevel="h3"
               icon="lucide:list-plus"
-              title="not applied"
+              title="Not applied"
               description="Nothing here reaches the public site until you enable it."
             >
               {notApplied.length === 0 ? (
@@ -322,15 +317,11 @@ export function CoverageView({
                       </EditorStatusPill>
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant="accent"
                         size="sm"
                         disabled={saveState === "saving"}
                         onClick={() =>
-                          onCommitEnabledSlugs(
-                            preset,
-                            [...preset.enabledSlugs, activeSlug],
-                            `Enabled ${preset.key} on ${activeSlug}.`,
-                          )
+                          onRequestEnablement(preset, { action: "enable", slugs: [activeSlug] })
                         }
                       >
                         Enable here
@@ -365,7 +356,7 @@ export function CoverageView({
                     </span>
                     <span className="theme-text-secondary text-sm tabular-nums">
                       {preset.allSubstances
-                        ? "all articles"
+                        ? "sitewide"
                         : `${preset.enabledSlugs.length} enabled`}
                     </span>
                     <EditorStatusPill tone={STATE_PILL_TONE[state]}>

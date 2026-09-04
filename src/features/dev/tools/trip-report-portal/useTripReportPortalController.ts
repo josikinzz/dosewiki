@@ -226,6 +226,16 @@ export function useTripReportPortalController() {
   const stats = useMemo(() => portalStats(rows), [rows]);
   const editorOpen = selected !== null;
 
+  /** The rows in the order the list paints them: grouped, then sorted. */
+  const orderedRows = useMemo(() => groups.flatMap((group) => group.rows), [groups]);
+  const queuePosition = useMemo(
+    () => ({
+      index: orderedRows.findIndex((row) => row.id === selectedId),
+      total: orderedRows.length,
+    }),
+    [orderedRows, selectedId],
+  );
+
   const selectRow = useCallback(
     (row: PortalRow) => {
       setSelectedId(row.id);
@@ -243,6 +253,27 @@ export function useTripReportPortalController() {
       setDetailState({ status: "idle" });
     },
     [loadReportBody],
+  );
+
+  /**
+   * Step to the neighbouring row in list order. A row that has just left the
+   * list (accepted out of the Needs review bucket) has no neighbours, so Next
+   * opens the head of the list and Previous its tail.
+   */
+  const selectAdjacent = useCallback(
+    (direction: -1 | 1) => {
+      const { index } = queuePosition;
+      const next =
+        index === -1
+          ? direction === 1
+            ? orderedRows[0]
+            : orderedRows[orderedRows.length - 1]
+          : orderedRows[index + direction];
+      if (next) {
+        selectRow(next);
+      }
+    },
+    [orderedRows, queuePosition, selectRow],
   );
 
   const closeEditor = useCallback(() => {
@@ -357,6 +388,7 @@ export function useTripReportPortalController() {
       return;
     }
 
+    setBusy(true);
     setFeedback(null);
     try {
       const response = await fetch(`/api/trip-report-submissions/${selectedSubmission.id}/status`, {
@@ -374,12 +406,14 @@ export function useTripReportPortalController() {
         return;
       }
 
-      setFeedback({ tone: "success", message: `Moved "${selectedSubmission.title}" to ${status}.` });
+      setFeedback({ tone: "success", message: STATUS_FEEDBACK[status](selectedSubmission.title) });
       setPromotionPayload(null);
       invalidateDevRailBadge("trip-reports");
       await loadCorpus(selectedSubmission.id);
     } catch {
       setFeedback({ tone: "danger", message: "Network error while updating the submission." });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -388,6 +422,7 @@ export function useTripReportPortalController() {
       return;
     }
 
+    setBusy(true);
     setFeedback(null);
     try {
       const response = await fetch(`/api/trip-report-submissions/${selectedSubmission.id}/promote`, {
@@ -412,7 +447,9 @@ export function useTripReportPortalController() {
       setPromotionPayload(payload.payload ?? null);
       setFeedback({
         tone: "success",
-        message: publish ? "Submission published to public trip reports." : "Promotion preview built.",
+        message: publish
+          ? `Published "${selectedSubmission.title}" to the public trip reports.`
+          : "Preview ready below. Nothing has been published yet.",
       });
 
       if (publish) {
@@ -421,6 +458,8 @@ export function useTripReportPortalController() {
       }
     } catch {
       setFeedback({ tone: "danger", message: "Network error while promoting the submission." });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -443,6 +482,7 @@ export function useTripReportPortalController() {
     loadReportBody,
     promotionPayload,
     query,
+    queuePosition,
     rows,
     runPromotion,
     saveReport,
@@ -450,6 +490,7 @@ export function useTripReportPortalController() {
     selected,
     selectedId,
     selectedSubmission,
+    selectAdjacent,
     selectRow,
     setBucket,
     setDraft,
@@ -463,6 +504,15 @@ export function useTripReportPortalController() {
     visible,
   };
 }
+
+const STATUS_FEEDBACK: Record<TripReportSubmissionStatus, (title: string) => string> = {
+  submitted: (title) => `Returned "${title}" to the queue.`,
+  reviewing: (title) => `Review started on "${title}".`,
+  accepted: (title) => `Accepted "${title}". Publish it below when ready.`,
+  rejected: (title) => `Rejected "${title}".`,
+  spam: (title) => `Marked "${title}" as spam.`,
+  exported: (title) => `Published "${title}".`,
+};
 
 async function readError(response: Response, fallback: string): Promise<string> {
   const payload = await response.json().catch(() => ({}));

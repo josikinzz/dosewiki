@@ -15,14 +15,14 @@ describe("devNoticeReducer", () => {
       notice: {
         channel: "save.convex",
         status: "pending",
-        message: "Saving to Convex...",
+        message: "Committing to production...",
         operationId: "save-1",
       },
     });
 
     expect(pending["save.convex"]).toMatchObject({
       status: "pending",
-      message: "Saving to Convex...",
+      message: "Committing to production...",
       operationId: "save-1",
       sticky: false,
     });

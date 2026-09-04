@@ -33,7 +33,6 @@ import {
   collectNormalizedSlugs,
   getCategorySectionId,
   moveCategorySection,
-  removeCategorySection,
   removeTopLevelCategoryDrug,
   reorderCategorySections,
   replaceCategorySection,
@@ -58,7 +57,9 @@ interface CategoryEditorProps {
     index: number,
     updater: (current: ManualCategoryDefinition) => ManualCategoryDefinition,
   ) => void;
+  /** Confirmed upstream: the tab owns the remove dialogs. */
   onRemoveCategory: (index: number) => void;
+  onRemoveSection: (index: number, sectionIndex: number) => void;
   onMoveCategory: (index: number, direction: "up" | "down") => void;
   onSetColumn: (index: number, column: number) => void;
   onAddSection: (index: number) => void;
@@ -80,6 +81,7 @@ export const CategoryEditor = memo(
     expansionSignal,
     onUpdateCategory,
     onRemoveCategory,
+    onRemoveSection,
     onMoveCategory,
     onSetColumn,
     onAddSection,
@@ -172,20 +174,14 @@ export const CategoryEditor = memo(
 
     const handleSectionRemove = useCallback(
       (sectionIndex: number) => {
-        onUpdateCategory(index, (current) => removeCategorySection(current, sectionIndex));
+        onRemoveSection(index, sectionIndex);
       },
-      [index, onUpdateCategory],
+      [index, onRemoveSection],
     );
 
     const handleRemoveCategory = useCallback(() => {
-      if (typeof window !== "undefined") {
-        const confirmed = window.confirm(`Remove "${category.label}"? This cannot be undone.`);
-        if (!confirmed) {
-          return;
-        }
-      }
       onRemoveCategory(index);
-    }, [category.label, index, onRemoveCategory]);
+    }, [index, onRemoveCategory]);
 
     const handleMoveCategory = useCallback(
       (direction: "up" | "down") => {
@@ -472,5 +468,6 @@ export const CategoryEditor = memo(
     && previous.onMoveCategory === next.onMoveCategory
     && previous.onSetColumn === next.onSetColumn
     && previous.onRemoveCategory === next.onRemoveCategory
+    && previous.onRemoveSection === next.onRemoveSection
     && previous.onUpdateCategory === next.onUpdateCategory,
 );

@@ -363,6 +363,34 @@ describe("ReplicationStudioTab", () => {
     expect(pushMock).toHaveBeenCalledWith("/dev/replications");
   });
 
+  it("puts the editor under the grid box inside the main column between lg and xl", async () => {
+    // The rail breakpoint matches, the drawer column does not: a laptop width.
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(min-width: 1024px)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    // Nothing selected: no empty coach under the grid at this width.
+    expect(screen.queryByText("Nothing selected")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("option", { name: /Kaleidoscopic highway/ }));
+
+    const heading = await screen.findByText("Editing 1 replication");
+    expect(screen.getByRole("main")).toContainElement(heading);
+    expect(screen.getByRole("listbox", { name: "Replications" }).compareDocumentPosition(heading))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it("folds the rail into a filter sheet below lg, and `/` opens it", async () => {
     // No breakpoint matches: the tab reads itself as narrower than `lg`.
     vi.stubGlobal("matchMedia", (query: string) => ({

@@ -149,6 +149,34 @@ describe("useWritingWorkbenchController", () => {
     expect(result.current.kind).toBe("article");
   });
 
+  it("tracks dirtiness against the loaded row and clears it on save or on leaving for About", async () => {
+    stubWritingApi(() => Response.json({ ok: true, slug: "launch-post" }));
+
+    const { result } = renderHook(() =>
+      useWritingWorkbenchController({ pinnedEntryId: "about", initialSelection: "launch-post" }),
+    );
+    await waitFor(() => expect(result.current.draft.title).toBe("Launch post"));
+    expect(result.current.isDirty).toBe(false);
+
+    act(() => result.current.updateDraft({ body: "Edited" }));
+    expect(result.current.isDirty).toBe(true);
+
+    act(() => result.current.setByline(["JOSIE"]));
+    await act(async () => {
+      await result.current.save("published");
+    });
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.draft.authorProfileKeys).toEqual(["JOSIE"]);
+
+    act(() => result.current.updateTitle("Renamed"));
+    expect(result.current.isDirty).toBe(true);
+
+    // About edits its own document; the writing draft behind it is dropped, not kept dirty.
+    act(() => result.current.selectPinned());
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.draft.title).toBe("");
+  });
+
   it("shows a rename collision as a save failure and keeps the row where it was", async () => {
     stubWritingApi(() =>
       Response.json(

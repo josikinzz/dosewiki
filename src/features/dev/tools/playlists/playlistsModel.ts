@@ -30,7 +30,11 @@ export type PlaylistDraft = {
   slugs: string[];
   /** The `updated_at` this draft was loaded from; `null` for a playlist that does not exist yet. */
   expectedUpdatedAt: string | null;
-  /** Admin only: the member the playlist belongs to; empty for unowned. */
+  /**
+   * Admin only, and only while creating: the member the new playlist belongs
+   * to. An existing playlist's owner is changed through `assignPlaylistOwner`,
+   * not through this draft.
+   */
   ownerEmail: string;
 };
 
@@ -65,7 +69,7 @@ export function moveSlug(slugs: readonly string[], index: number, direction: -1 
 
 export function isDraftDirty(draft: PlaylistDraft, saved: OwnedPlaylist | null): boolean {
   if (!saved) {
-    return draft.title.trim().length > 0 || draft.slugs.length > 0;
+    return draft.title.trim().length > 0 || draft.slugs.length > 0 || draft.ownerEmail.trim().length > 0;
   }
   return (
     draft.title !== saved.title ||

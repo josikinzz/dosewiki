@@ -109,18 +109,20 @@ describe("useDevModeSaveActions", () => {
     submitProposalMutateAsyncMock.mockResolvedValue({ proposalId: "k57abc123" });
   });
 
-  it("labels the admin action Save to Convex and never offers Submit for review", () => {
+  it("labels the admin action Commit to production, never offers Submit for review, and keeps a healthy server silent", () => {
     render(<TestHarness args={createArgs()} />);
 
-    expect(screen.getByRole("button", { name: /save to convex/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /commit to production/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /submit for review/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/server ready/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/convex/i)).not.toBeInTheDocument();
   });
 
   it("submits an editor's draft as a proposal and never calls the save route", async () => {
     const args = { ...createArgs(), canApprove: false };
     render(<TestHarness args={args} />);
 
-    expect(screen.queryByRole("button", { name: /save to convex/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /commit to production/i })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /submit for review/i }));
 
     await waitFor(() => {
@@ -144,10 +146,10 @@ describe("useDevModeSaveActions", () => {
     expect(args.onAppendChangeLogEntry).not.toHaveBeenCalled();
   });
 
-  it("executes the Convex save once the session is verified", async () => {
+  it("executes the production commit once the session is verified", async () => {
     render(<TestHarness args={createArgs()} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
+    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
 
     await waitFor(() => {
       expect(saveToConvexMutateAsyncMock).toHaveBeenCalledTimes(1);
@@ -161,7 +163,7 @@ describe("useDevModeSaveActions", () => {
         },
       }),
     );
-    expect(screen.getByText("Saved 1 article(s) to Convex as JOSIE.")).toBeInTheDocument();
+    expect(screen.getByText("Committed 1 article(s) to production as JOSIE.")).toBeInTheDocument();
   });
 
   it("attributes the save to the session profile key and reports it", async () => {
@@ -174,17 +176,17 @@ describe("useDevModeSaveActions", () => {
     });
     render(<TestHarness args={createArgs()} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
+    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Saved 1 article(s) to Convex as JOSIE.")).toBeInTheDocument();
+      expect(screen.getByText("Committed 1 article(s) to production as JOSIE.")).toBeInTheDocument();
     });
   });
 
   it("refuses to save without a session and never calls the route", async () => {
     render(<TestHarness args={{ ...createArgs(), isSignedIn: false }} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /save to convex/i }));
+    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Sign in before continuing.")).toBeInTheDocument();

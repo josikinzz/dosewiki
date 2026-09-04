@@ -54,7 +54,7 @@ function CopyResultNotice({
 
   return (
     <ActionNotice tone={copyNotice.ok ? "success" : "danger"}>
-      {copyNotice.ok ? "Copied to clipboard" : "Copy failed — check clipboard permissions"}
+      {copyNotice.ok ? "Copied to clipboard" : "Copy failed. Check clipboard permissions."}
     </ActionNotice>
   );
 }
@@ -134,7 +134,7 @@ export function AboutCopyEditors({
       <EditorSection
         icon="lucide:type"
         title="Meta description"
-        description="Used as the About page's search and meta description — it is not displayed on the page itself. Supports the same placeholder tokens listed above."
+        description="Used as the About page's search and meta description; it is not displayed on the page itself. Supports the same placeholder tokens listed above."
         actions={(
           <>
             <EditorStatusPill tone={isSubtitleDirty ? "warning" : "success"}>

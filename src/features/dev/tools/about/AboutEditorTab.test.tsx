@@ -1,6 +1,11 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+// cmdk scrolls the active picker row into view; jsdom has no scrollIntoView.
+beforeAll(() => {
+  Element.prototype.scrollIntoView ??= () => {};
+});
 
 import { COPY_BLOCK_DEFAULTS } from "@/data/content/copyBlocks";
 
@@ -107,6 +112,41 @@ describe("AboutEditorTab", () => {
     expect(await screen.findByText("Saved. The public About page is rebuilding with it now.")).toBeTruthy();
     expect(screen.getByText("No pending changes.")).toBeTruthy();
     expect(saveButton).toBeDisabled();
+  });
+
+  it("shows the chosen founders as cards and adds another through the picker", async () => {
+    const profile = (key: string, displayName: string) => ({
+      key,
+      displayName,
+      aliases: [],
+      avatarUrl: null,
+      bio: "",
+      links: [],
+      hasCustomBio: false,
+    });
+    render(
+      <AboutEditorTab
+        availableProfiles={[profile("JOSIE", "Josie Kins"), profile("AVA", "Ava Lane"), profile("BEN", "Ben Ray")]}
+        canApprove
+      />,
+    );
+
+    const founders = () => within(screen.getByRole("list", { name: "Founders" }));
+    expect(founders().getAllByRole("listitem")).toHaveLength(1);
+    expect(founders().getByText("Josie Kins")).toBeInTheDocument();
+    // The directory is searched, never listed: nobody unselected is on the page.
+    expect(screen.queryByText("Ava Lane")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Add founder" }));
+    fireEvent.change(await screen.findByPlaceholderText("Find a contributor"), { target: { value: "ava" } });
+    fireEvent.click(await screen.findByRole("option", { name: /Ava Lane/ }));
+
+    expect(founders().getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByText("1 section changed")).toBeTruthy();
+
+    fireEvent.click(founders().getByRole("button", { name: "Remove Josie Kins" }));
+    expect(founders().getAllByRole("listitem")).toHaveLength(1);
+    expect(founders().queryByText("Josie Kins")).not.toBeInTheDocument();
   });
 
   it("keeps edits typed while a save is in flight and shows them as pending", async () => {

@@ -91,6 +91,8 @@ type OrderingPanelProps = {
   savedOrder: readonly string[];
   emptyLabel: string;
   saveState: EditorActionStatusState | "idle";
+  /** The save button's label; name the list when several panels share one page. */
+  saveLabel?: string;
   /** Defaults to the curation verbs; a reusable list overrides them with add/remove. */
   verbs?: OrderingPanelVerbs;
   onOrderChange: (next: string[]) => void;
@@ -211,6 +213,7 @@ export function OrderingPanel({
   savedOrder,
   emptyLabel,
   saveState,
+  saveLabel = "Save order",
   verbs = CURATION_VERBS,
   onOrderChange,
   onSave,
@@ -223,11 +226,15 @@ export function OrderingPanel({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 8 },
+    }),
     useSensor(KeyboardSensor),
   );
 
-  const { setNodeRef: setAutoZoneRef, isOver: isOverAutoZone } = useDroppable({ id: AUTO_ZONE_ID });
+  const { setNodeRef: setAutoZoneRef, isOver: isOverAutoZone } = useDroppable({
+    id: AUTO_ZONE_ID,
+  });
 
   const handleDragEnd = useCallback(
     ({ active, over }: DragEndEvent) => {
@@ -256,7 +263,9 @@ export function OrderingPanel({
 
   const handleToggleCurate = useCallback(
     (slug: string) => {
-      onOrderChange(curatedSlugs.includes(slug) ? uncurateSlug(order, slug) : curateSlug(order, slug));
+      onOrderChange(
+        curatedSlugs.includes(slug) ? uncurateSlug(order, slug) : curateSlug(order, slug),
+      );
     },
     [curatedSlugs, onOrderChange, order],
   );
@@ -298,9 +307,7 @@ export function OrderingPanel({
             </SortableContext>
 
             {split.curated.length === 0 ? (
-              <p className="theme-text-faint text-xs">
-                {verbs.headEmpty}
-              </p>
+              <p className="theme-text-faint text-xs">{verbs.headEmpty}</p>
             ) : null}
 
             <div
@@ -352,7 +359,7 @@ export function OrderingPanel({
             onClick={onSave}
           >
             <Icon icon="lucide:save" size={15} />
-            Save order
+            {saveLabel}
           </Button>
           <Button
             type="button"

@@ -45,6 +45,12 @@ export type ReplicationEditorDrawerProps = {
   effects: readonly StudioEffectOption[];
   artists: readonly string[];
   busy: boolean;
+  /**
+   * `aside`: the xl third column, pinned beside the grid and scrolling on its
+   * own. `below`: a full-width panel under the grid box at narrower widths,
+   * flowing with the page.
+   */
+  placement: "aside" | "below";
   onSaveSingle: (row: StudioRow, draft: SingleEditDraft) => void;
   onApplyBulk: (rows: readonly StudioRow[], edit: BulkEdit) => void;
   onDeselect: () => void;
@@ -113,7 +119,7 @@ function SingleEditor({
 
   const effectOptions = useMemo(
     () => [
-      { value: NO_EFFECT_KEY, label: "— no owning effect —" },
+      { value: NO_EFFECT_KEY, label: "No owning effect" },
       ...effects.map((effect) => ({ value: effect.slug, label: effect.name })),
     ],
     [effects],
@@ -132,7 +138,7 @@ function SingleEditor({
         />
       </EditorField>
 
-      <EditorField label="Slug (read-only)" description="Rename slugs with the replication maintenance scripts — the slug is the public URL and the gallery-order key.">
+      <EditorField label="Slug (read-only)" description="Rename slugs with the replication maintenance scripts: the slug is the public URL and the gallery-order key.">
         <div className="flex items-center gap-2 rounded-xl border border-[color:var(--editor-panel-border)] theme-replication-field px-3 py-2">
           <span className="theme-text-secondary min-w-0 flex-1 truncate font-mono text-xs">{row.slug}</span>
           <Badge variant="secondary">{row.format}</Badge>
@@ -228,7 +234,7 @@ function BulkEditor({
 
   const effectOptions = useMemo(
     () => [
-      { value: "", label: "— leave unchanged —" },
+      { value: "", label: "Leave unchanged" },
       ...effects.map((effect) => ({ value: effect.slug, label: effect.name })),
     ],
     [effects],
@@ -263,7 +269,7 @@ function BulkEditor({
           id="studio-bulk-artist"
           inputSize="sm"
           list="studio-artist-list"
-          placeholder="— leave unchanged —"
+          placeholder="Leave unchanged"
           value={artist}
           onChange={(event) => setArtist(event.target.value)}
         />
@@ -280,7 +286,7 @@ function BulkEditor({
 
       <EditorField
         label="Add tags to all"
-        description="Tags are added, never replaced — a selection's rows rarely depict the same things."
+        description="Tags are added, never replaced: a selection's rows rarely depict the same things."
       >
         <EffectTagInput id="studio-bulk-tags" value={addTags} options={effects} onChange={setAddTags} />
       </EditorField>
@@ -323,6 +329,7 @@ export function ReplicationEditorDrawer({
   effects,
   artists,
   busy,
+  placement,
   onSaveSingle,
   onApplyBulk,
   onDeselect,
@@ -339,7 +346,11 @@ export function ReplicationEditorDrawer({
       : `${selected.length} replications selected`;
 
   return (
-    <EditorPanel className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <EditorPanel
+      className={
+        placement === "aside" ? "sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto" : undefined
+      }
+    >
       <EditorPanelHeader eyebrow={eyebrow} title={title} />
       <EditorPanelBody>
         {selected.length === 0 ? (
@@ -369,7 +380,7 @@ export function ReplicationEditorDrawer({
               onSave={onSaveSingle}
             />
             {/* Associations are derived per replication, so this belongs to
-                single-edit mode only — a bulk selection has no one answer. */}
+                single-edit mode only: a bulk selection has no one answer. */}
             <div className="border-t border-[color:var(--editor-panel-border)] pt-5">
               <ReplicationAssociationsPanel row={selected[0]} />
             </div>

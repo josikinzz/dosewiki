@@ -37,6 +37,7 @@ import {
   type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
+  useConfirm,
   type EditorActionStatusState,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
@@ -46,6 +47,8 @@ import {
   WarningBannersStudioView,
   type WarningBannersStudioViewMode,
 } from "./WarningBannersStudioView";
+import { summarizeBannerCoverage } from "./bannerCoverage";
+import { planEnablementChange, type EnablementChange } from "./enablement";
 import {
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
@@ -156,7 +159,11 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   const [iconValid, setIconValid] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<WarningBannerPreset | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
+
+  const isDirty = editor
+    ? editor.origin === null || JSON.stringify(editor.origin) !== JSON.stringify(editor.draft)
+    : false;
 
   /**
    * The site-wide glyph size. Its own query, draft, save state and notice, none
@@ -210,28 +217,11 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   }, [initialSubstanceSlug]);
 
   /**
-   * The blast radius, and the loudest thing on the page (design brief §2). A
-   * substance counts once however many presets reach it, because the question
-   * being answered is "does a reader see a banner here", not "how many".
+   * The blast radius, and the loudest thing on the page (design brief §2),
+   * split by tone so a death warning on 31 substances is not hidden behind a
+   * sitewide caution notice.
    */
-  const liveSlugs = useMemo(() => {
-    const slugs = new Set<string>();
-    for (const preset of presets) {
-      if (!preset.enabled) {
-        continue;
-      }
-      if (preset.allSubstances) {
-        for (const target of targets) {
-          slugs.add(target.slug);
-        }
-        continue;
-      }
-      for (const slug of preset.enabledSlugs) {
-        slugs.add(slug);
-      }
-    }
-    return slugs;
-  }, [presets, targets]);
+  const coverage = useMemo(() => summarizeBannerCoverage(presets), [presets]);
 
   /**
    * One POST is every write in this tool: authoring copy, enabling a class of
@@ -303,11 +293,11 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   );
 
   /**
-   * Every enablement change, from Coverage's single `Disable on <slug>` to the
-   * search block's `Enable on all N results`, funnels through here so all of them
-   * write straight through and all of them offer Undo. Reversible and
-   * high-frequency actions get no confirm dialog — one there would be clicked
-   * through blindly (design brief §7); only deleting authored prose confirms.
+   * Every enablement write, from Coverage's single `Disable on <slug>` to the
+   * search block's `Enable on all N results`, funnels through here so all of
+   * them are confirmed the same way, write the same way and offer Undo. Undo is
+   * the one caller that re-enters without a dialog: it is the escape hatch, and
+   * a confirm on it would be clicked through blindly.
    *
    * A plain function rather than a `useCallback` so Undo can re-enter it with
    * the previous list, which is the whole of the undo mechanism.
@@ -353,6 +343,22 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     });
   }
 
+  /**
+   * The only door to `commitEnabledSlugs` from a view. Disabling a slug removes
+   * a warning from a public article the moment the write lands, so it confirms
+   * as destructive; enabling confirms too, because the write lands the whole
+   * draft and the dialog is where an editor learns that.
+   */
+  function requestEnablement(preset: WarningBannerPreset, change: EnablementChange) {
+    const dirty =
+      isDirty && editor !== null && (editor.origin === null || editor.origin.key === preset.key);
+    const plan = planEnablementChange(preset, change, targets, { dirty });
+    confirm({
+      ...plan.request,
+      onConfirm: () => commitEnabledSlugs(preset, plan.nextSlugs, plan.summary),
+    });
+  }
+
   const openPreset = useCallback((preset: WarningBannerPreset | null) => {
     setEditor(preset ? { origin: preset, draft: preset } : null);
     setSaveState("idle");
@@ -374,12 +380,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     setEditor({ origin: adopted, draft: adopted });
   }, [editor, submitPreset]);
 
-  const handleDelete = useCallback(async () => {
-    const preset = pendingDelete;
-    if (!preset) {
-      return;
-    }
-    setPendingDelete(null);
+  const deletePreset = useCallback(async (preset: WarningBannerPreset) => {
     setSaveState("saving");
     setNotice(null);
 
@@ -407,7 +408,23 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         message: error instanceof Error ? error.message : "The preset could not be deleted.",
       });
     }
-  }, [pendingDelete]);
+  }, []);
+
+  const requestDelete = useCallback(
+    (preset: WarningBannerPreset) => {
+      const reach = preset.allSubstances
+        ? "every substance article"
+        : `${preset.enabledSlugs.length} substance${preset.enabledSlugs.length === 1 ? "" : "s"}`;
+      confirm({
+        title: `Delete ${preset.key}?`,
+        description: `${preset.key} is enabled on ${reach}. Deleting destroys its headline and mechanism text, and it stops rendering everywhere.`,
+        confirmLabel: "Delete preset",
+        destructive: true,
+        onConfirm: () => deletePreset(preset),
+      });
+    },
+    [confirm, deletePreset],
+  );
 
   // What the field shows, and what everything else renders at. They differ only
   // while a number is half typed; the clamp is the one that reaches the server.
@@ -466,19 +483,17 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     );
   }
 
-  const isDirty = editor
-    ? editor.origin === null || JSON.stringify(editor.origin) !== JSON.stringify(editor.draft)
-    : false;
   // A new preset has no row to expand, so nothing in the table is marked open.
   const openKey = editor?.origin?.key ?? null;
 
   return (
     <WarningBannersStudioView
+      confirmDialog={confirmDialog}
       initialSubstanceSlug={initialSubstanceSlug}
       presets={presets}
       targets={targets}
       targetsError={targetsError}
-      liveSlugs={liveSlugs}
+      coverage={coverage}
       view={view}
       coverageSlug={coverageSlug}
       openKey={openKey}
@@ -505,7 +520,6 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         },
       }}
       iconValid={iconValid}
-      pendingDelete={pendingDelete}
       onRetryTargets={() => setTargetsToken((token) => token + 1)}
       onViewChange={setView}
       onIconValidityChange={setIconValid}
@@ -525,8 +539,8 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
           current?.origin ? { origin: current.origin, draft: current.origin } : null,
         )
       }
-      onCommitEnabledSlugs={commitEnabledSlugs}
-      onRequestDelete={setPendingDelete}
+      onRequestEnablement={requestEnablement}
+      onRequestDelete={requestDelete}
       onInspectCoverage={(slug) => {
         setCoverageSlug(slug);
         setView("coverage");
@@ -536,7 +550,6 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         openPreset(preset);
         setView("presets");
       }}
-      onConfirmDelete={() => void handleDelete()}
     />
   );
 }

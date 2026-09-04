@@ -112,7 +112,7 @@ describe("useLayoutEditor", () => {
     const { state } = result.current;
     expect(areManualsEqual(state.normalizedCurrentManuals.psychoactive, draft)).toBe(true);
     expect(state.rawJsonDrafts.psychoactive).toBe(JSON.stringify(draft, null, 2));
-    expect(state.saveNotice).toBe("Psychoactive class layout staged for Convex save");
+    expect(state.saveNotice).toBe("Psychoactive class layout applied to draft");
     // The other datasets are untouched by a single-dataset stage.
     expect(keysOf(state.normalizedCurrentManuals.chemical)).toEqual(["psychedelics", "stimulants"]);
   });

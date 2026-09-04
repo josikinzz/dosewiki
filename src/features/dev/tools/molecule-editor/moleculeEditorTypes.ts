@@ -19,14 +19,6 @@ export interface MoleculeOverride {
   updatedBy?: string;
 }
 
-export interface ConfirmRequest {
-  title: string;
-  description: string;
-  confirmLabel: string;
-  destructive?: boolean;
-  onConfirm: () => void;
-}
-
 export interface SaveResult {
   tone: "success" | "danger";
   title?: string;

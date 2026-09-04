@@ -22,6 +22,7 @@ import {
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
+  LoadErrorState,
 } from "@/features/dev/components";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 
@@ -141,7 +142,7 @@ export function SubstanceGalleryPanel({
   });
   const {
     candidates,
-    candidatesLoaded,
+    candidatesState,
     detailState,
     detail,
     curation,
@@ -197,7 +198,7 @@ export function SubstanceGalleryPanel({
           candidates={candidates}
           currentSlug={substanceSlug}
           onSelect={controller.handleSelectSubstance}
-          loading={!candidatesLoaded}
+          status={candidatesState.status}
         />
         {detail ? (
           <>
@@ -213,6 +214,10 @@ export function SubstanceGalleryPanel({
           </>
         ) : null}
       </div>
+
+      {candidatesState.status === "error" ? (
+        <LoadErrorState message={candidatesState.message} onRetry={controller.retryCandidates} />
+      ) : null}
 
       {detail ? (
         <EditorToolbar variant="split">

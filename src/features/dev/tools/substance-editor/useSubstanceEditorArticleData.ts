@@ -14,11 +14,15 @@ function resolveArticleSlug(article: SubstanceArticle): string {
   return explicitSlug || slugify(article.title || article.identification.common_name || "");
 }
 
-export function useSubstanceEditorArticleData(articles: SubstanceArticle[]) {
+export function useSubstanceEditorArticleData(articles: SubstanceArticle[], initialSlug?: string) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("alpha-asc");
-  const [showDirectUrlOnly, setShowDirectUrlOnly] = useState(false);
-  const [selectedSubstanceSlug, setSelectedSubstanceSlug] = useState<string | null>(null);
+  // A deep link to a URL-only substance would otherwise land on a list that
+  // hides it, so the toggle opens in whichever state shows the linked article.
+  const [showDirectUrlOnly, setShowDirectUrlOnly] = useState(() =>
+    articles.some((article) =>
+      resolveArticleSlug(article) === initialSlug && isDirectUrlOnlySubstance(article.priority)));
+  const [selectedSubstanceSlug, setSelectedSubstanceSlug] = useState<string | null>(initialSlug ?? null);
 
   const substances = useMemo<SubstanceInfo[]>(() => articles
     .filter((article) => showDirectUrlOnly || !isDirectUrlOnlySubstance(article.priority))
@@ -47,6 +51,11 @@ export function useSubstanceEditorArticleData(articles: SubstanceArticle[]) {
     return filtered;
   }, [searchQuery, sortOrder, substances]);
 
+  const selectedSubstance = useMemo(
+    () => substances.find((entry) => entry.slug === selectedSubstanceSlug) ?? null,
+    [selectedSubstanceSlug, substances],
+  );
+
   return {
     searchQuery,
     setSearchQuery,
@@ -56,6 +65,7 @@ export function useSubstanceEditorArticleData(articles: SubstanceArticle[]) {
     setShowDirectUrlOnly,
     selectedSubstanceSlug,
     setSelectedSubstanceSlug,
+    selectedSubstance,
     substances,
     filteredSubstances,
     totalSubstances: substances.length,

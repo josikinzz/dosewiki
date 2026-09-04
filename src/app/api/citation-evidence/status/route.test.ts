@@ -75,6 +75,7 @@ describe("citation evidence status route", () => {
       slug: "lsd",
       claimKeys: ["summary:0"],
       status: "approved",
+      statusReason: undefined,
     });
   });
 
@@ -94,23 +95,75 @@ describe("citation evidence status route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("rejects unsupported review statuses", async () => {
+  it("forwards a trimmed rejection reason and lets undo restore any evidence status", async () => {
     const { POST } = await import("./route");
 
-    const response = await POST(
+    const rejected = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
         body: JSON.stringify({
           slug: "lsd",
           claimKey: "summary:0",
-          status: "supported",
+          status: "rejected",
+          statusReason: "  Wrong source  ",
         }),
       }),
     );
+    expect(rejected.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenLastCalledWith("citationEvidence.setManyStatus", {
+      apiKey: "review-token",
+      actorEmail: "editor@example.com",
+      slug: "lsd",
+      claimKeys: ["summary:0"],
+      status: "rejected",
+      statusReason: "Wrong source",
+    });
 
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      error: "Review status must be approved or rejected.",
+    const restored = await POST(
+      new Request("https://dose.wiki/api/citation-evidence/status", {
+        method: "POST",
+        body: JSON.stringify({ slug: "lsd", claimKeys: ["summary:0"], status: "supported" }),
+      }),
+    );
+    expect(restored.status).toBe(200);
+    expect(mocks.mutation).toHaveBeenLastCalledWith("citationEvidence.setManyStatus", {
+      apiKey: "review-token",
+      actorEmail: "editor@example.com",
+      slug: "lsd",
+      claimKeys: ["summary:0"],
+      status: "supported",
+      statusReason: undefined,
+    });
+  });
+
+  it("rejects unknown statuses and oversized reasons without touching Convex", async () => {
+    const { POST } = await import("./route");
+
+    const unknown = await POST(
+      new Request("https://dose.wiki/api/citation-evidence/status", {
+        method: "POST",
+        body: JSON.stringify({ slug: "lsd", claimKey: "summary:0", status: "archived" }),
+      }),
+    );
+    expect(unknown.status).toBe(400);
+    expect(await unknown.json()).toEqual({
+      error: "Review status must be an evidence status.",
+    });
+
+    const oversized = await POST(
+      new Request("https://dose.wiki/api/citation-evidence/status", {
+        method: "POST",
+        body: JSON.stringify({
+          slug: "lsd",
+          claimKey: "summary:0",
+          status: "rejected",
+          statusReason: "x".repeat(501),
+        }),
+      }),
+    );
+    expect(oversized.status).toBe(400);
+    expect(await oversized.json()).toEqual({
+      error: "Status reason must be 500 characters or fewer.",
     });
     expect(mocks.mutation).not.toHaveBeenCalled();
   });

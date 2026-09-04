@@ -156,15 +156,15 @@ export function createConvexSaveAdapter({
   saveToConvex: (payload: SaveToConvexPayload) => Promise<SaveToConvexResult>;
 }): DevSaveCommandAdapter {
   return {
-    noChangesMessage: "No changes to save.",
-    verifiedMessage: (key) => `Credentials verified for ${key}. Saving to Convex...`,
+    noChangesMessage: "No changes to commit.",
+    verifiedMessage: (key) => `Committing to production as ${key}...`,
     validateAvailability: () => {
       if (serverHealth.status === "unhealthy" && !serverHealth.canSaveToConvex) {
         return {
           ok: false,
           message:
             serverHealth.issues[0] ??
-            "Convex save is unavailable until the server configuration is fixed.",
+            "Commits are paused until the server configuration is fixed.",
         };
       }
 
@@ -176,7 +176,7 @@ export function createConvexSaveAdapter({
       const resolvedSubmitterKey = result.submittedBy?.trim() || credentials.key;
 
       return {
-        destination: "convex",
+        destination: "production",
         savedItems: result.savedItems,
         warnings: result.warnings ?? [],
         resolvedSubmitterKey,
@@ -227,7 +227,7 @@ export function createProposalSaveAdapter({
 }): DevSaveCommandAdapter {
   return {
     noChangesMessage: "No changes to submit.",
-    verifiedMessage: (key) => `Credentials verified for ${key}. Submitting for review...`,
+    verifiedMessage: (key) => `Submitting for review as ${key}...`,
     validateAvailability: () => ({ ok: true }),
     execute: async (draft, credentials) => {
       const { payload } = buildConvexCommandPayload(draft);

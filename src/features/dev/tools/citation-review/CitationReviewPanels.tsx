@@ -1,23 +1,30 @@
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { EditorStatusPillTone } from "@/features/dev/components";
 import {
   EditorActionGroup,
+  EditorField,
   EditorPanel,
   EditorPanelBody,
   EditorSection,
+  EditorSelect,
   EditorStatusPill,
 } from "@/features/dev/components";
 import {
+  CITATION_REJECT_REASONS,
+  CITATION_REJECT_REASON_LABEL,
   CITATION_SEVERITY_LABEL,
   CITATION_STATUS_LABEL,
   citationTone,
   formatCitationCount,
+  formatCitationRejectReason,
   formatCitationSectionLabel,
   type CitationEvidenceRow,
   type CitationEvidenceStatus,
+  type CitationRejectReason,
   type CitationReviewApproveCommand,
   type CitationReviewChecklistItem,
   type CitationReviewCommands,
@@ -65,33 +72,27 @@ function toneIconClass(tone: EditorStatusPillTone): string {
   return TONE_TILE_SURFACE[tone].icon;
 }
 
+/** Row-level decisions raised from an evidence row or a section. */
+export type CitationEvidenceDecisionHandlers = {
+  /** Approve rows that already carry a verified quote. */
+  onApprove: (claimKeys: string[]) => void;
+  /** Reject one row with the reviewer's note for the next editor. */
+  onReject: (claimKey: string, statusReason: string | undefined) => void;
+  /** A row was opened, so its quote has been on screen. */
+  onRowExpanded: (claimKey: string) => void;
+};
+
 export function CitationSelectedSummary({
   selectedSummary,
   articleTitle,
-  command,
-  onUpdateStatuses,
 }: {
   selectedSummary: CitationReviewQueueSummary;
   articleTitle: string | null;
-  command: CitationReviewApproveCommand;
-  onUpdateStatuses: (claimKeys: string[], status: "approved" | "rejected") => void;
 }) {
   return (
     <EditorSection
       title={articleTitle}
-      description="Review-only evidence rows, snippets, and reviewer decisions for this article."
-      actions={(
-        <Button
-          variant="success"
-          size="pill"
-          className="rounded-full"
-          disabled={command.disabled}
-          onClick={() => onUpdateStatuses(command.claimKeys, "approved")}
-        >
-          <Icon icon="lucide:badge-check" size={16} />
-          Approve ready rows
-        </Button>
-      )}
+      description="Evidence rows, their quotes, and reviewer decisions for this article."
     >
       <div className="flex flex-wrap gap-x-10 gap-y-4">
         <SummaryMetric
@@ -173,14 +174,62 @@ export function CitationChecklistPanel({ checklist }: { checklist: CitationRevie
   );
 }
 
+/**
+ * The article-wide approval, placed after every evidence section so it is the
+ * last thing the reviewer reaches. It stays locked until a row has been opened
+ * in this session; the confirmation lives in the tab.
+ */
+export function CitationBulkApprovePanel({
+  command,
+  hasReadRow,
+  onApproveAll,
+}: {
+  command: CitationReviewApproveCommand;
+  hasReadRow: boolean;
+  onApproveAll: (claimKeys: string[]) => void;
+}) {
+  const readyCount = command.claimKeys.length;
+  const locked = readyCount > 0 && !hasReadRow;
+
+  return (
+    <EditorSection
+      icon="lucide:badge-check"
+      title="Approve the ready rows"
+      description="Approves every row above that has a verified quote and is still waiting. Rejected rows are left alone."
+      actions={(
+        <Button
+          variant="outline"
+          size="pill"
+          className="rounded-full"
+          disabled={command.disabled || locked}
+          onClick={() => onApproveAll(command.claimKeys)}
+        >
+          <Icon icon="lucide:badge-check" size={16} />
+          {readyCount > 0 ? `Approve ${formatCitationCount(readyCount, "ready row")}` : "No ready rows"}
+        </Button>
+      )}
+    >
+      <p className="text-sm theme-text-muted">
+        {locked
+          ? "Open at least one row above before approving the set. Each approval publishes that quote as the article's evidence."
+          : readyCount > 0
+            ? "You will be asked to confirm, with the sections this touches listed."
+            : "Every row with a verified quote has already been decided."}
+      </p>
+    </EditorSection>
+  );
+}
+
 export function CitationEvidenceSection({
   group,
   commands,
-  onUpdateStatuses,
+  handlers,
+  onApproveSection,
 }: {
   group: { section: string; label: string; rows: CitationEvidenceRow[] };
   commands: CitationReviewCommands;
-  onUpdateStatuses: (claimKeys: string[], status: "approved" | "rejected") => void;
+  handlers: CitationEvidenceDecisionHandlers;
+  onApproveSection: (section: string, claimKeys: string[]) => void;
 }) {
   const sectionCommand = commands.sections[group.section]?.approve ?? { claimKeys: [], disabled: true };
 
@@ -194,7 +243,7 @@ export function CitationEvidenceSection({
           size="pill"
           className="rounded-full"
           disabled={sectionCommand.disabled}
-          onClick={() => onUpdateStatuses(sectionCommand.claimKeys, "approved")}
+          onClick={() => onApproveSection(group.section, sectionCommand.claimKeys)}
         >
           <Icon icon="lucide:badge-check" size={16} />
           Approve section-ready rows
@@ -212,7 +261,7 @@ export function CitationEvidenceSection({
               approveDisabled: true,
               rejectDisabled: true,
             }}
-            onUpdateStatuses={onUpdateStatuses}
+            handlers={handlers}
           />
         ))}
       </div>
@@ -233,6 +282,13 @@ function formatCitationConfidence(value: number): string {
 
 const REFERENCE_ID_BADGE_CLASS = "max-w-full break-all font-mono normal-case tracking-normal";
 
+const REJECT_REASON_OPTIONS = CITATION_REJECT_REASONS.map((value) => ({
+  value,
+  label: CITATION_REJECT_REASON_LABEL[value],
+}));
+
+const MAX_REJECT_DETAIL_LENGTH = 500;
+
 function CitationSupportQuote({ children }: { children: ReactNode }) {
   return (
     <blockquote className="theme-quote-accent-border border-l-2 pl-3 text-sm leading-6 theme-text-secondary">
@@ -241,19 +297,96 @@ function CitationSupportQuote({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Inline reason capture that sits between the Reject button and the write.
+ * The note is saved on the row so the next editor does not redo the research.
+ */
+function CitationRejectForm({
+  pending,
+  onCancel,
+  onConfirm,
+}: {
+  pending: boolean;
+  onCancel: () => void;
+  onConfirm: (statusReason: string | undefined) => void;
+}) {
+  const [reason, setReason] = useState<CitationRejectReason>("quote_does_not_support_claim");
+  const [detail, setDetail] = useState("");
+  const reasonId = useId();
+  const detailId = useId();
+  const detailRequired = reason === "other";
+  const detailMissing = detailRequired && detail.trim().length === 0;
+
+  return (
+    <div className={`mt-4 space-y-3 ${toneTileClass("danger")}`}>
+      <EditorField
+        id={reasonId}
+        label="Why is this row rejected?"
+        description="Saved with the row so the next editor sees it."
+      >
+        {(fieldProps) => (
+          <EditorSelect
+            {...fieldProps}
+            selectSize="sm"
+            options={REJECT_REASON_OPTIONS}
+            value={reason}
+            onChange={(event) => setReason(event.target.value as CitationRejectReason)}
+          />
+        )}
+      </EditorField>
+      <EditorField
+        id={detailId}
+        label={detailRequired ? "Reason" : "Detail (optional)"}
+        required={detailRequired}
+        counter={`${detail.length}/${MAX_REJECT_DETAIL_LENGTH}`}
+        error={detailMissing ? "Write the reason before rejecting." : undefined}
+      >
+        {(fieldProps) => (
+          <Textarea
+            {...fieldProps}
+            textareaSize="sm"
+            className="min-h-[72px] resize-y"
+            value={detail}
+            maxLength={MAX_REJECT_DETAIL_LENGTH}
+            placeholder="What the next editor should check."
+            onChange={(event) => setDetail(event.target.value)}
+          />
+        )}
+      </EditorField>
+      <EditorActionGroup label="Reject confirmation actions">
+        <Button
+          variant="destructivePill"
+          size="pill"
+          className="rounded-full"
+          disabled={detailMissing || pending}
+          onClick={() => onConfirm(formatCitationRejectReason(reason, detail))}
+        >
+          <Icon icon="lucide:x-circle" size={16} />
+          Reject row
+        </Button>
+        <Button variant="quiet" size="quiet" onClick={onCancel} disabled={pending}>
+          Keep reviewing
+        </Button>
+      </EditorActionGroup>
+    </div>
+  );
+}
+
 export function CitationEvidenceRow({
   row,
   command,
-  onUpdateStatuses,
+  handlers,
 }: {
   row: CitationEvidenceRow;
   command: CitationReviewCommands["rows"][string];
-  onUpdateStatuses: (claimKeys: string[], status: "approved" | "rejected") => void;
+  handlers: CitationEvidenceDecisionHandlers;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const isUnresolved = UNRESOLVED_CITATION_STATUSES.includes(row.status);
   const referenceIds = [...new Set(row.referenceIds)];
   const supports = row.supports ?? [];
+  const reviewerNote = row.statusReason?.trim() ?? "";
   // Legacy flat snippet/rationale fields usually duplicate the structured
   // supports[] verbatim; only render them when they carry unique text.
   const legacySnippet = row.supportingSnippet?.trim() ?? "";
@@ -270,7 +403,12 @@ export function CitationEvidenceRow({
       <button
         type="button"
         aria-expanded={expanded}
-        onClick={() => setExpanded((value) => !value)}
+        onClick={() => {
+          if (!expanded) {
+            handlers.onRowExpanded(row.claimKey);
+          }
+          setExpanded(!expanded);
+        }}
         className="theme-focus-ring-inset flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5"
       >
         <Icon
@@ -312,6 +450,13 @@ export function CitationEvidenceRow({
           {row.fieldPath ? ` · ${row.fieldPath}` : ""}
         </p>
       </div>
+
+      {reviewerNote ? (
+        <div className={`mt-3 ${toneTileClass(citationTone({ kind: "status", value: row.status }))}`}>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] theme-text-faint">Reviewer note</p>
+          <p className="mt-1 text-sm theme-text-secondary">{reviewerNote}</p>
+        </div>
+      ) : null}
 
       {referenceIds.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
@@ -386,36 +531,47 @@ export function CitationEvidenceRow({
         </div>
       ) : null}
 
-      <EditorActionGroup label="Evidence row decision actions" className="mt-4">
-        <Button
-          variant="success"
-          size="pill"
-          className="rounded-full"
-          disabled={command.approveDisabled}
-          onClick={() => onUpdateStatuses([row.claimKey], "approved")}
-        >
-          <Icon
-            icon={command.isPending ? "lucide:loader-2" : "lucide:badge-check"}
-            size={16}
-            className={command.isPending ? "animate-spin" : undefined}
-          />
-          Approve
-        </Button>
-        <Button
-          variant="destructivePill"
-          size="pill"
-          className="rounded-full"
-          disabled={command.rejectDisabled}
-          onClick={() => onUpdateStatuses([row.claimKey], "rejected")}
-        >
-          <Icon
-            icon={command.isPending ? "lucide:loader-2" : "lucide:x-circle"}
-            size={16}
-            className={command.isPending ? "animate-spin" : undefined}
-          />
-          Reject
-        </Button>
-      </EditorActionGroup>
+      {rejecting ? (
+        <CitationRejectForm
+          pending={command.isPending}
+          onCancel={() => setRejecting(false)}
+          onConfirm={(statusReason) => {
+            setRejecting(false);
+            handlers.onReject(row.claimKey, statusReason);
+          }}
+        />
+      ) : (
+        <EditorActionGroup label="Evidence row decision actions" className="mt-4">
+          <Button
+            variant="success"
+            size="pill"
+            className="rounded-full"
+            disabled={command.approveDisabled}
+            onClick={() => handlers.onApprove([row.claimKey])}
+          >
+            <Icon
+              icon={command.isPending ? "lucide:loader-2" : "lucide:badge-check"}
+              size={16}
+              className={command.isPending ? "animate-spin" : undefined}
+            />
+            Approve
+          </Button>
+          <Button
+            variant="destructivePill"
+            size="pill"
+            className="rounded-full"
+            disabled={command.rejectDisabled}
+            onClick={() => setRejecting(true)}
+          >
+            <Icon
+              icon={command.isPending ? "lucide:loader-2" : "lucide:x-circle"}
+              size={16}
+              className={command.isPending ? "animate-spin" : undefined}
+            />
+            Reject
+          </Button>
+        </EditorActionGroup>
+      )}
       </EditorPanelBody>
       ) : null}
     </EditorPanel>

@@ -12,23 +12,25 @@
  * admin applies it to a gallery in the studio.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { EditorNotice, EditorSection, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
+import {
+  EditorNotice,
+  EditorSection,
+  EditorStatusPill,
+  LoadErrorState,
+  useConfirm,
+  useDirtyGuard,
+  type EditorNoticeMessage,
+} from "@/features/dev/components";
+import { viewToPath } from "@/utils/routing";
 
 import { PlaylistEditor } from "./PlaylistEditor";
+import { PlaylistOwnership } from "./PlaylistOwnership";
 import {
   EMPTY_DRAFT,
   assignPlaylistOwner,
@@ -44,15 +46,17 @@ import {
 export type PlaylistsTabProps = {
   /** Admin: sees every playlist's owner and may reassign it. */
   isAdmin: boolean;
+  /** `/dev/playlists/<key>`: the playlist the editor opens on, if the member may edit it. */
+  initialKey?: string;
 };
 
-export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
+export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const [playlists, setPlaylists] = useState<OwnedPlaylist[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [draft, setDraft] = useState<PlaylistDraft | null>(null);
   const [busy, setBusy] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<OwnedPlaylist | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -67,10 +71,34 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
     void load();
   }, [load]);
 
+  // The deep link opens its playlist once the list is in; a key the member
+  // may not edit, or one that does not exist, just shows the list.
+  const pendingInitialKey = useRef(initialKey);
+  useEffect(() => {
+    const key = pendingInitialKey.current;
+    if (!key || playlists === null) return;
+    pendingInitialKey.current = undefined;
+    const target = playlists.find((entry) => entry.key === key);
+    if (target?.editable) setDraft(draftOf(target));
+  }, [playlists]);
+
   const saved = draft && draft.expectedUpdatedAt !== null
     ? (playlists?.find((entry) => entry.key === draft.key) ?? null)
     : null;
   const isDirty = draft ? isDraftDirty(draft, saved) : false;
+  const { guard, dialog: dirtyDialog } = useDirtyGuard(isDirty, {
+    description: "This playlist has changes that are not saved. Discarding drops them; the stored playlist is unchanged.",
+  });
+
+  // The address follows the open playlist so a reload or a shared link lands
+  // on it; a new, unsaved draft has no key to name.
+  const openKey = saved?.key ?? null;
+  const urlKeyRef = useRef(initialKey ?? null);
+  useEffect(() => {
+    if (openKey === urlKeyRef.current) return;
+    urlKeyRef.current = openKey;
+    window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "playlists", slug: openKey ?? undefined }));
+  }, [openKey]);
 
   /** Runs one write, reloads the list, and reports the outcome. */
   const run = useCallback(
@@ -107,23 +135,48 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
     });
   };
 
-  const assignOwner = () => {
-    if (!draft || draft.expectedUpdatedAt === null) return;
-    const ownerEmail = draft.ownerEmail.trim().toLowerCase();
-    void run(async () => {
-      await assignPlaylistOwner(draft.key, ownerEmail.length > 0 ? ownerEmail : null);
-      return ownerEmail.length > 0
-        ? `"${draft.title}" now belongs to ${ownerEmail}.`
-        : `"${draft.title}" is unowned and admin-only again.`;
-    });
+  const assignOwner = (target: OwnedPlaylist, ownerEmail: string | null) => {
+    confirm(
+      ownerEmail
+        ? {
+            title: `Hand "${target.title}" to ${ownerEmail}?`,
+            description:
+              "They can edit and remove it from their own Playlists tab. This takes effect at once and leaves any unsaved draft alone.",
+            confirmLabel: `Assign to ${ownerEmail}`,
+            onConfirm: () =>
+              run(async () => {
+                await assignPlaylistOwner(target.key, ownerEmail);
+                return `"${target.title}" now belongs to ${ownerEmail}.`;
+              }),
+          }
+        : {
+            title: `Make "${target.title}" unowned?`,
+            description:
+              `${target.owner_email ?? "Its owner"} loses access to it; only admins can edit it until someone is assigned. This takes effect at once.`,
+            confirmLabel: "Make unowned",
+            destructive: true,
+            onConfirm: () =>
+              run(async () => {
+                await assignPlaylistOwner(target.key, null);
+                return `"${target.title}" is unowned and admin-only again.`;
+              }),
+          },
+    );
   };
 
   const remove = (target: OwnedPlaylist) => {
-    setDeleteTarget(null);
-    void run(async () => {
-      await deletePlaylist(target.key);
-      setDraft((current) => (current?.key === target.key ? null : current));
-      return `Removed "${target.title}".`;
+    confirm({
+      title: `Remove ${target.title}?`,
+      description:
+        "It disappears from your lists and the pickers, but stays on the server; an admin can bring it back. Galleries it was applied to are unchanged, because applying is a one-time copy.",
+      confirmLabel: "Remove playlist",
+      destructive: true,
+      onConfirm: () =>
+        run(async () => {
+          await deletePlaylist(target.key);
+          setDraft((current) => (current?.key === target.key ? null : current));
+          return `Removed "${target.title}".`;
+        }),
     });
   };
 
@@ -148,7 +201,7 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
               variant="accent"
               size="sm"
               disabled={busy || (draft !== null && draft.expectedUpdatedAt === null)}
-              onClick={() => setDraft({ ...EMPTY_DRAFT })}
+              onClick={() => guard(() => setDraft({ ...EMPTY_DRAFT }))}
             >
               <Icon icon="lucide:plus" size={14} />
               New playlist
@@ -156,21 +209,10 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
           </>
         }
       >
-        {notice ? <EditorNotice notice={notice} /> : null}
+        {notice && !draft ? <EditorNotice notice={notice} /> : null}
 
         {loadError ? (
-          <StateCard
-            tone="danger"
-            icon="lucide:circle-alert"
-            title="Playlists did not load"
-            description={loadError}
-            compact
-            actions={
-              <Button type="button" variant="accent" size="sm" onClick={() => void load()}>
-                Try again
-              </Button>
-            }
-          />
+          <LoadErrorState message={loadError} onRetry={() => void load()} busy={busy} />
         ) : playlists === null ? (
           <StateCard tone="accent" loading title="Loading playlists" description="Fetching your playlists." compact />
         ) : playlists.length === 0 ? (
@@ -208,8 +250,8 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
                       type="button"
                       variant="secondary"
                       size="sm"
-                      disabled={busy || isDirty}
-                      onClick={() => setDraft(draftOf(playlist))}
+                      disabled={busy || draft?.key === playlist.key}
+                      onClick={() => guard(() => setDraft(draftOf(playlist)))}
                     >
                       <Icon icon="lucide:pencil" size={14} />
                       Edit
@@ -221,7 +263,7 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
                       className={`h-8 w-8 ${TOUCH_ICON}`}
                       disabled={busy}
                       aria-label={`Remove ${playlist.title}`}
-                      onClick={() => setDeleteTarget(playlist)}
+                      onClick={() => remove(playlist)}
                     >
                       <Icon icon="lucide:trash-2" size={14} />
                     </Button>
@@ -236,49 +278,31 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
       {draft ? (
         <EditorSection icon="lucide:pencil-line" title={draft.expectedUpdatedAt === null ? "New playlist" : "Editor"}>
           <PlaylistEditor
+            key={draft.expectedUpdatedAt === null ? "new" : draft.key}
             draft={draft}
             isNew={draft.expectedUpdatedAt === null}
             isDirty={isDirty}
             busy={busy}
-            showOwner={isAdmin}
+            showOwner={isAdmin && draft.expectedUpdatedAt === null}
+            notice={notice}
             onChange={setDraft}
             onSave={save}
-            onCancel={() => setDraft(null)}
-            onAssignOwner={assignOwner}
+            onCancel={() => guard(() => setDraft(null))}
           />
         </EditorSection>
       ) : null}
 
-      <Dialog
-        open={deleteTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Remove {deleteTarget?.title ?? "this playlist"}?</DialogTitle>
-            <DialogDescription>
-              It disappears from your lists and the pickers, but stays on the server; an admin can bring it back. Galleries it was applied to are unchanged, because applying is a one-time copy.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={busy}
-              onClick={() => {
-                if (deleteTarget) remove(deleteTarget);
-              }}
-            >
-              Remove playlist
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isAdmin && saved ? (
+        <PlaylistOwnership
+          key={`${saved.key}:${saved.owner_email ?? ""}`}
+          playlist={saved}
+          busy={busy}
+          onAssign={(ownerEmail) => assignOwner(saved, ownerEmail)}
+        />
+      ) : null}
+
+      {confirmDialog}
+      {dirtyDialog}
     </div>
   );
 }

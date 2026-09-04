@@ -12,7 +12,7 @@ import { parseGeneratedYaml } from "./yamlParser";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
-import type { CopyState, OutputViewMode } from "./types";
+import { REVIEW_STATUS_META, type CopyState, type OutputViewMode, type SubstanceInfo } from "./types";
 
 const COPY_STATE_LABEL: Record<CopyState, string> = {
   idle: "Copy",
@@ -39,6 +39,7 @@ type SubstanceEditorOutputSectionProps = {
   formParseError: string | null;
   formArticleOverride: SubstanceArticle | null;
   selectedSubstanceSlug: string | null;
+  selectedSubstance: SubstanceInfo | null;
   onOutputViewModeChange: (mode: OutputViewMode) => void;
   onCopy: () => void;
   onDownload: () => void;
@@ -57,6 +58,7 @@ export function SubstanceEditorOutputSection({
   formParseError,
   formArticleOverride,
   selectedSubstanceSlug,
+  selectedSubstance,
   onOutputViewModeChange,
   onCopy,
   onDownload,
@@ -86,12 +88,19 @@ export function SubstanceEditorOutputSection({
     );
   }
 
+  const statusMeta = selectedSubstance ? REVIEW_STATUS_META[selectedSubstance.reviewStatus] : null;
+
   return (
     <EditorSection
       delay={0.25}
       title={
-        <span className="flex items-center gap-3">
-          Substance Article
+        <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="min-w-0">
+            {selectedSubstance ? `Substance Article: ${selectedSubstance.name}` : "Substance Article"}
+          </span>
+          {statusMeta ? (
+            <EditorStatusPill tone={statusMeta.tone}>{statusMeta.label}</EditorStatusPill>
+          ) : null}
           {formDirty && outputViewMode === "form" && (
             <EditorStatusPill tone="warning" icon="lucide:circle-dot" live>
               Unsaved changes
@@ -141,11 +150,15 @@ export function SubstanceEditorOutputSection({
         />
       )}
       {outputViewMode === "yaml" && (
+        // Bounded and scrolling inside itself: a full article is thousands of
+        // lines, and an auto-growing textarea pushed the commit panel off the
+        // page by the height of the whole file.
         <JsonEditor
           id="generated-output"
           value={streamedOutput}
           onChange={onOutputChange}
           minHeight={400}
+          className="max-h-[70vh] overflow-y-auto"
         />
       )}
       {outputViewMode === "form" && (

@@ -8,6 +8,7 @@ import {
 
 import { viewToPath } from "@/utils/routing";
 import { TAG_FIELD_LABELS } from "@/utils/data/tagRegistry";
+import { articleCount } from "./tagEditorStateMachine";
 import type { TagDetailPanelProps } from "./types";
 
 export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
@@ -15,9 +16,9 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
     <EditorSection
       icon="lucide:tag"
       title="Selected tag"
-      description="Review the exact tag, field, and affected article set before applying a bulk edit."
+      description="The tag as written, its field, and every article that carries it."
       actions={(
-        <EditorStatusPill tone="neutral">{selectedUsage.count} use{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>
+        <EditorStatusPill tone="neutral">{articleCount(selectedUsage.count)}</EditorStatusPill>
       )}
       delay={0.1}
     >

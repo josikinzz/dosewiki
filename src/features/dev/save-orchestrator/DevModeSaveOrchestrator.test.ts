@@ -104,12 +104,12 @@ describe("saveOrchestratorReducer", () => {
       expect(state.saveOperation.phase).toBe("executing");
       expect(state.pendingEffect?.kind).toBe("save");
       expect(state.resolvedSubmitterKey).toBe("ADMIN");
-      expect(state.notice?.message).toContain("Saving to Convex");
+      expect(state.notice?.message).toContain("Committing to production");
 
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
-          destination: "convex",
+          destination: "production",
           savedItems: ["articles", "about"],
           warnings: [],
           resolvedSubmitterKey: "ADMIN",
@@ -186,7 +186,7 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
-          destination: "convex",
+          destination: "production",
           savedItems: ["articles"],
           warnings: ["Revalidation failed"],
           resolvedSubmitterKey: "ADMIN",
@@ -210,7 +210,7 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",
         result: {
-          destination: "convex",
+          destination: "production",
           savedItems: [],
           warnings: [],
           resolvedSubmitterKey: "ADMIN",
@@ -220,7 +220,7 @@ describe("saveOrchestratorReducer", () => {
       });
 
       expect(state.notice?.type).toBe("error");
-      expect(state.notice?.message).toBe("No Convex-compatible changes to save.");
+      expect(state.notice?.message).toBe("Nothing in the draft can be committed.");
     });
 
     it("phrases a proposal submission as held for review and carries the queue link", () => {
@@ -230,9 +230,9 @@ describe("saveOrchestratorReducer", () => {
       state = saveOrchestratorReducer(state, {
         type: "credentialsVerified",
         credentials: { key: "EDITOR" },
-        message: "Credentials verified for EDITOR. Submitting for review...",
+        message: "Submitting for review as EDITOR...",
       });
-      expect(state.notice?.message).toBe("Credentials verified for EDITOR. Submitting for review...");
+      expect(state.notice?.message).toBe("Submitting for review as EDITOR...");
 
       state = saveOrchestratorReducer(state, {
         type: "saveSucceeded",

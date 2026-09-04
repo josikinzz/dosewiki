@@ -1,13 +1,17 @@
+import { useId, useState } from "react";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   DesktopOnlyNotice,
+  EditorActionGroup,
   EditorActionStatus,
   EditorCheckbox,
   EditorNotice,
   EditorSection,
+  EditorToolbar,
 } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
 import type {
@@ -23,6 +27,12 @@ import {
 } from "./TracingLayer";
 import type { EditorMode, MoleculeClassTemplate, SaveResult } from "./moleculeEditorTypes";
 import { MoleculeGuardStatus, MoleculePreview } from "./MoleculeEditorWorkbenchStatus";
+
+/** One slim row that stays in reach while the canvas scrolls: guard, status, Save. */
+const SAVE_BAR_CLASS =
+  "flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg)]/95 p-3 backdrop-blur";
+
+const GROUP_LABEL_CLASS = "theme-text-faint text-xs font-medium uppercase tracking-wide";
 
 interface MoleculeEditorWorkbenchProps {
   mode: EditorMode;
@@ -136,6 +146,18 @@ export function MoleculeEditorWorkbench({
   // The canvas stays mounted (invisible) on coarse pointers: it is the engine
   // behind flip / straighten and every emitted MOL block, not just the drawing UI.
   const drawingEnabled = hasCanvas && !coarsePointer;
+  // Below xl the preview, settings and tracing controls fold away under the
+  // canvas so nothing covers the drawing; at xl they are the side column.
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const detailsId = useId();
+
+  const saveLabel = guardMismatch
+    ? "Save anyway"
+    : mode === "templates"
+      ? "Save template"
+      : mode === "classes"
+        ? "Save override"
+        : "Save depiction";
 
   return (
     <EditorSection
@@ -144,15 +166,12 @@ export function MoleculeEditorWorkbench({
       delay={0.05}
       description={
         drawingEnabled ? (
-          <span className="inline-flex items-center gap-1.5">
-            <Icon icon="lucide:lasso-select" size={13} className="shrink-0" />
-            <span>
-              Pick the lasso tool near the top of the toolbar to drag atoms. The default bond
-              tool draws new bonds. Wedge / hash stereo tools live in the same toolbar.
-              {mode === "classes"
-                ? " To place a labeled R position, pick the ?… atom tool and type R plus the class's map number (e.g. R8 → Rα on phenethylamine)."
-                : null}
-            </span>
+          <span>
+            Select drags atoms, Bond draws new bonds, and Wedge / Hash set stereo. Adjust
+            turns or flips the whole drawing; the preview shows it as the article will.
+            {mode === "classes"
+              ? " To place a labeled R position, pick Atom and type R plus the class's map number (e.g. R8 becomes Rα on phenethylamine)."
+              : null}
           </span>
         ) : undefined
       }
@@ -180,267 +199,285 @@ export function MoleculeEditorWorkbench({
       ) : null}
 
       <div className="space-y-4 xl:flex xl:items-start xl:gap-6 xl:space-y-0">
-        {/* Drag-and-drop duplicates the accessible tracing file picker. */}
-        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-        <div
-          className={cn(
-            "relative w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body xl:min-w-0 xl:flex-1",
-            coarsePointer ? "h-64" : "h-[60vh] min-h-[30rem]",
-          )}
-          onDragOver={(event) => {
-            if (drawingEnabled) event.preventDefault();
-          }}
-          onDrop={(event) => {
-            if (!drawingEnabled) return;
-            event.preventDefault();
-            const file = event.dataTransfer.files?.[0];
-            if (file) tracing.loadFile(file);
-          }}
-        >
+        <div className="min-w-0 space-y-3 xl:flex-1">
           {hasCanvas ? (
-            <OclEditor
-              source={source}
-              sourceEpoch={sourceEpoch}
-              atomLabels={atomLabels}
-              onChange={onEditorChange}
-              onError={onCanvasError}
-              fineRotation={fineRotation}
-              mirrorDirection={mirrorDirection}
-              onMirrorComplete={() => onMirrorDirectionChange(null)}
-              snapRequest={snapRequest}
-              onSnapComplete={onSnapComplete}
-              onSelectedBondCountChange={onSelectedBondCountChange}
-              bondPickActive={bondPickActive}
-              onBondPickComplete={onBondPickComplete}
-              boldBonds={boldBonds}
-              boldToggleActive={boldToggleActive}
-              onBoldBondsChange={onBoldBondsChange}
-              onBoldToggleExit={() => onBoldToggleActiveChange(false)}
-              className={cn(
-                "absolute inset-3 overflow-hidden rounded-lg",
-                coarsePointer && "invisible",
-              )}
-            />
+            <EditorToolbar label="Depiction adjustments" variant="compact">
+              <EditorActionGroup label="Adjust">
+                <span aria-hidden="true" className={GROUP_LABEL_CLASS}>
+                  Adjust
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onMirrorDirectionChange("left-right")}
+                  disabled={!canTransform}
+                  title="Reflect this depiction across its vertical centre line"
+                >
+                  <Icon icon="lucide:flip-horizontal-2" size={15} />
+                  Flip left/right
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onMirrorDirectionChange("up-down")}
+                  disabled={!canTransform}
+                  title="Reflect this depiction across its horizontal centre line"
+                >
+                  <Icon icon="lucide:flip-vertical-2" size={15} />
+                  Flip up/down
+                </Button>
+                {!coarsePointer ? (
+                  <Button
+                    variant={bondPickActive ? "accent" : "outline"}
+                    size="sm"
+                    aria-pressed={bondPickActive}
+                    onClick={() => {
+                      if (bondPickActive) {
+                        onBondPickActiveChange(false);
+                      } else if (selectedBondCount === 1) {
+                        onSnapRequestChange("bond-vertical");
+                      } else {
+                        onBoldToggleActiveChange(false);
+                        onBondPickActiveChange(true);
+                      }
+                    }}
+                    disabled={!canTransform || snapRequest !== null}
+                    title={
+                      bondPickActive
+                        ? "Click a bond on the canvas, or press Esc to cancel"
+                        : selectedBondCount === 1
+                          ? "Rotate the whole depiction so the selected bond is exactly vertical"
+                          : "Then click a bond on the canvas; the whole depiction rotates so that bond is exactly vertical"
+                    }
+                  >
+                    <Icon icon={bondPickActive ? "lucide:x" : "lucide:align-center-vertical"} size={15} />
+                    {bondPickActive ? "Cancel bond pick" : "Set bond vertical"}
+                  </Button>
+                ) : null}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onSnapRequestChange("straighten")}
+                  disabled={!canTransform || snapRequest !== null}
+                  title="Rotate the whole depiction the small amount needed to sit its bonds back on the standard 30° drawing grid"
+                >
+                  <Icon icon="lucide:ruler" size={15} />
+                  Straighten
+                </Button>
+                {!coarsePointer ? (
+                  <Button
+                    variant={boldToggleActive ? "accent" : "outline"}
+                    size="sm"
+                    aria-pressed={boldToggleActive}
+                    onClick={() => {
+                      if (boldToggleActive) {
+                        onBoldToggleActiveChange(false);
+                      } else {
+                        onBondPickActiveChange(false);
+                        onBoldToggleActiveChange(true);
+                      }
+                    }}
+                    disabled={!canTransform || snapRequest !== null}
+                    title={
+                      boldToggleActive
+                        ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
+                        : mode === "templates"
+                          ? "Then click bonds on the canvas to draw them thicker while editing; applies copy coordinates, never bold"
+                          : "Then click bonds on the canvas to draw them thicker, on the canvas, the preview, and the article alike"
+                    }
+                  >
+                    <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
+                    {boldToggleActive ? "Done with bold" : "Bold bonds"}
+                  </Button>
+                ) : null}
+              </EditorActionGroup>
+            </EditorToolbar>
           ) : null}
-          {coarsePointer ? (
-            <DesktopOnlyCanvas />
-          ) : !selected ? (
-            <EmptyCanvas />
-          ) : noStructure ? (
-            <NoStructureCanvas mode={mode} />
-          ) : (
-            <TracingOverlay layer={tracing} className="absolute inset-3 rounded-lg" />
-          )}
-          {hasCanvas && computing ? (
-            <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
-              <span className="inline-flex items-center gap-2">
-                <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
-                Loading molecule…
-              </span>
-            </div>
-          ) : null}
+
+          {/* Drag-and-drop duplicates the accessible tracing file picker. */}
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+          <div
+            className={cn(
+              "relative w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body",
+              coarsePointer ? "h-64" : "h-[60vh] min-h-[30rem]",
+            )}
+            onDragOver={(event) => {
+              if (drawingEnabled) event.preventDefault();
+            }}
+            onDrop={(event) => {
+              if (!drawingEnabled) return;
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) tracing.loadFile(file);
+            }}
+          >
+            {hasCanvas ? (
+              <OclEditor
+                source={source}
+                sourceEpoch={sourceEpoch}
+                atomLabels={atomLabels}
+                onChange={onEditorChange}
+                onError={onCanvasError}
+                fineRotation={fineRotation}
+                mirrorDirection={mirrorDirection}
+                onMirrorComplete={() => onMirrorDirectionChange(null)}
+                snapRequest={snapRequest}
+                onSnapComplete={onSnapComplete}
+                onSelectedBondCountChange={onSelectedBondCountChange}
+                bondPickActive={bondPickActive}
+                onBondPickComplete={onBondPickComplete}
+                boldBonds={boldBonds}
+                boldToggleActive={boldToggleActive}
+                onBoldBondsChange={onBoldBondsChange}
+                onBoldToggleExit={() => onBoldToggleActiveChange(false)}
+                className={cn("absolute inset-3", coarsePointer && "invisible")}
+              >
+                {drawingEnabled ? (
+                  <TracingOverlay layer={tracing} className="absolute inset-0 rounded-lg" />
+                ) : null}
+              </OclEditor>
+            ) : null}
+            {coarsePointer ? (
+              <DesktopOnlyCanvas />
+            ) : !selected ? (
+              <EmptyCanvas />
+            ) : noStructure ? (
+              <NoStructureCanvas mode={mode} />
+            ) : null}
+            {hasCanvas && computing ? (
+              <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
+                <span className="inline-flex items-center gap-2">
+                  <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
+                  Loading molecule…
+                </span>
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div
-          className={cn(
-            "flex flex-wrap items-start gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted p-4 xl:static xl:w-64 xl:shrink-0 xl:flex-col xl:items-stretch xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0",
-            !coarsePointer && "sticky bottom-0 z-10",
-          )}
-        >
-          <MoleculePreview
-            svg={previewSvg}
-            ready={oclReady}
-            hasSelection={!!selected}
-            error={!!oclError}
+        <div className="xl:w-64 xl:shrink-0">
+          <ExpandButton
+            className="xl:hidden"
+            variant="chip"
+            isExpanded={detailsOpen}
+            onToggle={() => setDetailsOpen((open) => !open)}
+            label={detailsOpen ? "Hide preview and settings" : "Preview and settings"}
+            ariaLabel={detailsOpen ? "Hide preview and settings" : "Show preview and settings"}
+            ariaControls={detailsId}
           />
+          <div
+            id={detailsId}
+            className={cn(
+              "mt-3 flex-wrap items-start gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted p-4 xl:mt-0 xl:flex-col xl:items-stretch xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0",
+              detailsOpen ? "flex" : "hidden xl:flex",
+            )}
+          >
+            <MoleculePreview
+              svg={previewSvg}
+              ready={oclReady}
+              hasSelection={!!selected}
+              error={!!oclError}
+            />
+            {!coarsePointer ? (
+              <>
+                <div className="min-w-52 space-y-2 xl:min-w-0">
+                  <p className={GROUP_LABEL_CLASS}>Editor settings</p>
+                  <EditorCheckbox
+                    checked={fineRotation}
+                    onChange={(event) => onFineRotationChange(event.target.checked)}
+                    disabled={!hasCanvas || renderBlocked}
+                    label="Fine rotation"
+                    description="Allow small free-angle adjustments below the editor's coarse rotation threshold."
+                  />
+                </div>
+                <div className="min-w-52 xl:min-w-0">
+                  <TracingControls layer={tracing} disabled={!hasCanvas} />
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      {selected ? (
+        <div className={cn(SAVE_BAR_CLASS, !coarsePointer && "sticky bottom-0 z-10")}>
           <MoleculeGuardStatus
             guard={guard}
             hasReference={mode === "templates" ? !!source : !!smiles}
-            active={!!selected && !noStructure}
+            active={hasCanvas}
             mode={mode}
           />
-          {!coarsePointer ? (
-            <>
-              <div className="min-w-52 space-y-2 xl:min-w-0">
-                <p className="theme-text-faint text-sm font-medium uppercase tracking-wide">Editor settings</p>
-                <EditorCheckbox
-                  checked={fineRotation}
-                  onChange={(event) => onFineRotationChange(event.target.checked)}
-                  disabled={!hasCanvas || renderBlocked}
-                  label="Fine rotation"
-                  description="Allow small free-angle adjustments below the editor's coarse rotation threshold."
-                />
-              </div>
-              <div className="min-w-52 xl:min-w-0">
-                <TracingControls layer={tracing} disabled={!hasCanvas} />
-              </div>
-            </>
-          ) : null}
-          <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end xl:ml-0 xl:items-stretch">
-            <div className="flex min-h-6 items-center sm:justify-end xl:justify-start">
-              {selected && !noStructure && (saving || dirty) ? (
-                <EditorActionStatus status={saving ? "saving" : "dirty"} />
-              ) : null}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 xl:flex-col xl:items-stretch">
-              {mode !== "templates" ? (
-                <Button
-                  variant="outline"
-                  onClick={onRevert}
-                  disabled={!selected || noStructure || saving}
-                  title="Regenerate from SMILES in the canvas; the public page changes only after Save"
-                >
-                  <Icon icon="lucide:rotate-ccw" size={15} />
-                  Revert to auto
-                </Button>
-              ) : null}
-              <Button
-                variant="outline"
-                onClick={() => onMirrorDirectionChange("left-right")}
-                disabled={!canTransform}
-                title="Reflect this depiction across its vertical centre line"
-              >
-                <Icon icon="lucide:flip-horizontal-2" size={15} />
-                Flip left/right
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onMirrorDirectionChange("up-down")}
-                disabled={!canTransform}
-                title="Reflect this depiction across its horizontal centre line"
-              >
-                <Icon icon="lucide:flip-vertical-2" size={15} />
-                Flip up/down
-              </Button>
-              {!coarsePointer ? (
-                <Button
-                  variant={bondPickActive ? "accent" : "outline"}
-                  aria-pressed={bondPickActive}
-                  onClick={() => {
-                    if (bondPickActive) {
-                      onBondPickActiveChange(false);
-                    } else if (selectedBondCount === 1) {
-                      onSnapRequestChange("bond-vertical");
-                    } else {
-                      onBoldToggleActiveChange(false);
-                      onBondPickActiveChange(true);
-                    }
-                  }}
-                  disabled={!canTransform || snapRequest !== null}
-                  title={
-                    bondPickActive
-                      ? "Click a bond on the canvas, or press Esc to cancel"
-                      : selectedBondCount === 1
-                        ? "Rotate the whole depiction so the selected bond is exactly vertical"
-                        : "Then click a bond on the canvas; the whole depiction rotates so that bond is exactly vertical"
-                  }
-                >
-                  <Icon icon={bondPickActive ? "lucide:x" : "lucide:align-center-vertical"} size={15} />
-                  {bondPickActive ? "Cancel bond pick" : "Set bond vertical"}
-                </Button>
-              ) : null}
-              <Button
-                variant="outline"
-                onClick={() => onSnapRequestChange("straighten")}
-                disabled={!canTransform || snapRequest !== null}
-                title="Rotate the whole depiction the small amount needed to sit its bonds back on the standard 30° drawing grid"
-              >
-                <Icon icon="lucide:ruler" size={15} />
-                Straighten
-              </Button>
-              {!coarsePointer ? (
-                <Button
-                  variant={boldToggleActive ? "accent" : "outline"}
-                  aria-pressed={boldToggleActive}
-                  onClick={() => {
-                    if (boldToggleActive) {
-                      onBoldToggleActiveChange(false);
-                    } else {
-                      onBondPickActiveChange(false);
-                      onBoldToggleActiveChange(true);
-                    }
-                  }}
-                  disabled={!canTransform || snapRequest !== null}
-                  title={
-                    boldToggleActive
-                      ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
-                      : mode === "templates"
-                        ? "Then click bonds on the canvas to draw them thicker while editing; applies copy coordinates, never bold"
-                        : "Then click bonds on the canvas to draw them thicker, on the canvas, the preview, and the article alike"
-                  }
-                >
-                  <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
-                  {boldToggleActive ? "Done with bold" : "Bold bonds"}
-                </Button>
-              ) : null}
-              {mode === "classes" ? (
-                <Button
-                  variant="ghostDestructive"
-                  onClick={onRequestRemove}
-                  disabled={!hasOverride || saving}
-                  title="Delete the saved class override and return to its static fallback"
-                >
-                  <Icon icon="lucide:trash-2" size={15} />
-                  Remove override
-                </Button>
-              ) : null}
-              {mode === "templates" && templateDoc ? (
-                <Button
-                  variant="outline"
-                  onClick={onPrepareTemplate}
-                  disabled={dirty || saving || !rdkitReady || !oclReady || templatePreparing}
-                  title={
-                    dirty
-                      ? "Save or discard template edits before building an apply preview"
-                      : "Preview this saved template against every rolled class member"
-                  }
-                >
-                  <Icon icon="lucide:panels-top-left" size={16} />
-                  Apply to class…
-                </Button>
-              ) : null}
-              <Button variant={guardMismatch ? "destructive" : "accent"} onClick={onSave} disabled={!canSave}>
-                <Icon
-                  icon={saving ? "lucide:loader-2" : "lucide:save"}
-                  size={16}
-                  className={saving ? "animate-spin" : undefined}
-                />
-                {guardMismatch
-                  ? "Save anyway"
-                  : mode === "templates"
-                    ? "Save template"
-                    : mode === "classes"
-                      ? "Save override"
-                      : "Save depiction"}
-              </Button>
-            </div>
-            {guardMismatch ? (
-              <p className="theme-danger-text max-w-xs text-sm sm:text-right xl:text-left">
-                Saving publishes a depiction whose chemistry differs from the source structure.
-              </p>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            {hasCanvas && (saving || dirty) ? (
+              <EditorActionStatus status={saving ? "saving" : "dirty"} />
             ) : null}
+            {mode !== "templates" ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRevert}
+                disabled={!hasCanvas || saving}
+                title="Regenerate the layout from SMILES on the canvas; the public page changes only after Save"
+              >
+                <Icon icon="lucide:rotate-ccw" size={15} />
+                Revert to auto
+              </Button>
+            ) : null}
+            {mode === "classes" ? (
+              <Button
+                variant="ghostDestructive"
+                size="sm"
+                onClick={onRequestRemove}
+                disabled={!hasOverride || saving}
+                title="Delete the saved class override and return to its static fallback"
+              >
+                <Icon icon="lucide:trash-2" size={15} />
+                Remove override
+              </Button>
+            ) : null}
+            {mode === "templates" && templateDoc ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPrepareTemplate}
+                disabled={dirty || saving || !rdkitReady || !oclReady || templatePreparing}
+                title={
+                  dirty
+                    ? "Save or discard template edits before building an apply preview"
+                    : "Preview this saved template against every rolled class member"
+                }
+              >
+                <Icon icon="lucide:panels-top-left" size={15} />
+                Apply to class…
+              </Button>
+            ) : null}
+            <Button variant={guardMismatch ? "destructive" : "accent"} onClick={onSave} disabled={!canSave}>
+              <Icon
+                icon={saving ? "lucide:loader-2" : "lucide:save"}
+                size={16}
+                className={saving ? "animate-spin" : undefined}
+              />
+              {saveLabel}
+            </Button>
           </div>
-
-          {saveResult ? (
-            <EditorNotice
-              className="w-full"
-              notice={{
-                tone: saveResult.tone,
-                title:
-                  saveResult.title ??
-                  (saveResult.tone === "success" ? "Saved" : "Couldn't save"),
-                message: saveResult.message,
-                live: true,
-                actions: (
-                  <Button variant="outline" size="sm" onClick={onDismissSaveResult}>
-                    Dismiss
-                  </Button>
-                ),
-              }}
-            />
-          ) : null}
         </div>
-      </div>
+      ) : null}
+
+      {saveResult ? (
+        <EditorNotice
+          notice={{
+            tone: saveResult.tone,
+            title: saveResult.title ?? (saveResult.tone === "success" ? "Saved" : "Couldn't save"),
+            message: saveResult.message,
+            live: true,
+            actions: (
+              <Button variant="outline" size="sm" onClick={onDismissSaveResult}>
+                Dismiss
+              </Button>
+            ),
+          }}
+        />
+      ) : null}
     </EditorSection>
   );
 }

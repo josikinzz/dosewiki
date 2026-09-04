@@ -4,13 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   EditorField,
+  EditorList,
+  EditorListItem,
   EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
-import { cn } from "@/lib/utils";
 
-import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
+import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField, type TagUsage } from "@/utils/data/tagRegistry";
+import { articleCount } from "./tagEditorStateMachine";
 import type { TagListPanelProps } from "./types";
+
+const usageKey = (usage: TagUsage) => `${usage.field}:${usage.key}`;
 
 export function TagListPanel({
   activeField,
@@ -24,9 +28,9 @@ export function TagListPanel({
   return (
     <EditorSection
       icon="lucide:list-filter"
-      title="Tag registry"
-      description="Filter one tag field at a time, then select a tag to inspect its article usage."
-      actions={<EditorStatusPill tone="neutral">{filteredTags.length} matches</EditorStatusPill>}
+      title="All tags"
+      description="Pick a field, then a tag, to see which articles carry it."
+      actions={<EditorStatusPill tone="neutral">{filteredTags.length} tag{filteredTags.length === 1 ? "" : "s"}</EditorStatusPill>}
       delay={0.05}
     >
       <EditorField label="Field" htmlFor="tag-field-filter">
@@ -58,52 +62,31 @@ export function TagListPanel({
         </div>
       </EditorField>
 
-      <div className="theme-deep-list-surface max-h-[28rem] overflow-y-auto rounded-xl border">
-        {filteredTags.length === 0 ? (
-          <p className="theme-text-faint px-4 py-8 text-center text-sm">
-            No tags match the current filters.
-          </p>
-        ) : (
-          <div className="theme-deep-list-divide divide-y">
-            {filteredTags.map((usage) => {
-              const isActive = selected?.field === usage.field && selected.key === usage.key;
-              return (
-                <button
-                  key={`${usage.field}-${usage.key}`}
-                  type="button"
-                  aria-pressed={isActive}
-                  data-active={isActive || undefined}
-                  onClick={() => onSelectUsage(usage)}
-                  className={cn(
-                    "theme-deep-list-row theme-focus-ring-inset",
-                    "flex w-full items-center gap-3 px-4 py-3 text-left transition",
-                  )}
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-3">
-                      <span
-                        className={
-                          isActive
-                            ? "truncate text-sm font-semibold theme-accent-heading"
-                            : "truncate text-sm font-semibold theme-text-secondary"
-                        }
-                      >
-                        {usage.tag}
-                      </span>
-                      <span className="shrink-0 text-xs uppercase tracking-wide theme-text-faint">
-                        {usage.count} use{usage.count === 1 ? "" : "s"}
-                      </span>
-                    </span>
-                    <span className="mt-1 block text-[11px] uppercase tracking-[0.25em] theme-text-faint">
-                      {TAG_FIELD_LABELS[usage.field]}
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+      <EditorList
+        items={filteredTags}
+        getKey={usageKey}
+        selectedKey={selected ? `${selected.field}:${selected.key}` : null}
+        onSelect={(key) => {
+          const usage = filteredTags.find((candidate) => usageKey(candidate) === key);
+          if (usage) {
+            onSelectUsage(usage);
+          }
+        }}
+        renderItem={(usage, { selected: isActive }) => (
+          <EditorListItem
+            active={isActive}
+            tabIndex={-1}
+            title={usage.tag}
+            badge={
+              <span className="text-xs tabular-nums theme-text-faint">{articleCount(usage.count)}</span>
+            }
+          />
         )}
-      </div>
+        estimateRowHeight={48}
+        maxHeight="min(50vh, 28rem)"
+        emptyText="No tags match the current filters."
+        label={`${TAG_FIELD_LABELS[activeField]} tags`}
+      />
     </EditorSection>
   );
 }

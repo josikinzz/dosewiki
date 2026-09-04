@@ -16,12 +16,15 @@ import {
   ActionNotice,
   EditorActionGroup,
   EditorField,
-  EditorNotice,
-  EditorPanel,
+  EditorList,
   EditorListItem,
+  EditorPanel,
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
+  LoadErrorState,
+  useConfirm,
+  useDirtyGuard,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
@@ -45,7 +48,8 @@ export type FeedbackQueueItem = {
 
 export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   source: "article" | "site";
-  fetchList: (filter: FeedbackQueueFilter) => Promise<Item[]>;
+  /** The newest rows of every status, at most `FEEDBACK_QUEUE_WINDOW` of them. */
+  fetchList: () => Promise<Item[]>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<void>;
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>;
   /** Source-specific header and metadata; the queue renders details, notes, and decisions. */
@@ -61,6 +65,13 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   };
 };
 
+/**
+ * How many rows one load brings down, the most the queue endpoint returns.
+ * The filter and its counts work over this window; the queue says so when
+ * the window is full.
+ */
+export const FEEDBACK_QUEUE_WINDOW = 250;
+
 type LoadState =
   | { status: "loading" }
   | { status: "ready" }
@@ -68,14 +79,9 @@ type LoadState =
 
 type ActionFeedback = { tone: "success" | "danger"; message: string };
 
-const QUEUE_STATUSES: FeedbackQueueFilter[] = [
-  "all",
-  "new",
-  "reviewing",
-  "resolved",
-  "rejected",
-  "spam",
-];
+const QUEUE_STATUSES: FeedbackQueueStatus[] = ["new", "reviewing", "resolved", "rejected", "spam"];
+
+const QUEUE_FILTERS: FeedbackQueueFilter[] = ["all", ...QUEUE_STATUSES];
 
 const STATUS_LABELS: Record<FeedbackQueueFilter, string> = {
   all: "All",
@@ -94,45 +100,95 @@ const STATUS_PILL_TONE: Record<FeedbackQueueStatus, EditorStatusPillTone> = {
   spam: "danger",
 };
 
+/** Decisions that take the row off the queue and are asked about before they write. */
+const CONFIRMED_DECISIONS: Record<
+  Extract<FeedbackQueueStatus, "rejected" | "spam">,
+  { title: string; verb: string; confirmLabel: string; destructive: boolean }
+> = {
+  rejected: { title: "Reject this feedback?", verb: "Rejecting", confirmLabel: "Reject", destructive: true },
+  spam: { title: "Mark as spam?", verb: "Marking", confirmLabel: "Mark as spam", destructive: false },
+};
+
+export function isFeedbackQueueFilter(value: unknown): value is FeedbackQueueFilter {
+  return typeof value === "string" && (QUEUE_FILTERS as string[]).includes(value);
+}
+
+type StatusCounts = Record<FeedbackQueueFilter, number>;
+
+function countByStatus(rows: readonly FeedbackQueueItem[]): StatusCounts {
+  const counts: StatusCounts = { all: rows.length, new: 0, reviewing: 0, resolved: 0, rejected: 0, spam: 0 };
+  for (const row of rows) {
+    counts[row.status] += 1;
+  }
+  return counts;
+}
+
+/** "3 new · 4 resolved": the statuses that have rows, in queue order. */
+function describeCounts(counts: StatusCounts): string {
+  const parts = QUEUE_STATUSES.filter((status) => counts[status] > 0).map(
+    (status) => `${counts[status]} ${STATUS_LABELS[status].toLowerCase()}`,
+  );
+  if (parts.length === 0) {
+    return "Empty";
+  }
+  const summary = parts.join(" · ");
+  return counts.all >= FEEDBACK_QUEUE_WINDOW ? `${summary} · latest ${FEEDBACK_QUEUE_WINDOW} only` : summary;
+}
+
+export type FeedbackDraftGuard = (proceed: () => void) => void;
+
 export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   adapter,
   headerActions,
+  statusFilter,
+  onStatusFilterChange,
 }: {
   adapter: FeedbackSourceAdapter<Item>;
-  /** Trailing controls on the tool heading, such as the tab's source filter. */
-  headerActions?: ReactNode;
+  /**
+   * Trailing controls on the tool heading, such as the tab's source filter.
+   * They receive the queue's draft guard: a control that replaces the queue
+   * runs its change through `guard` so a typed note is never dropped silently.
+   */
+  headerActions?: (guard: FeedbackDraftGuard) => ReactNode;
+  /**
+   * Which statuses the list shows. `null` leaves the choice to the queue: the
+   * New rows when there are any, since clearing them is the job, else all.
+   */
+  statusFilter: FeedbackQueueFilter | null;
+  onStatusFilterChange: (filter: FeedbackQueueFilter) => void;
 }) {
   const { labels } = adapter;
   const reviewSectionId = `${adapter.source}-feedback-review-section`;
   const [feedback, setFeedback] = useState<Item[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<FeedbackQueueFilter>("all");
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [note, setNote] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
   /**
    * Which list request is allowed to write state. Every load takes the next
-   * number, so a response for an earlier filter (or one arriving after
-   * unmount) is dropped instead of overwriting the newer list.
+   * number, so a response arriving after a newer load (or after unmount) is
+   * dropped instead of overwriting the newer list.
    */
   const loadVersion = useRef(0);
+
+  const { guard, dialog: draftDialog } = useDirtyGuard(note.trim().length > 0, {
+    title: "Discard the review note?",
+    description: "The note you typed is only saved with a decision. Leaving this item now drops it.",
+  });
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const loadQueue = useCallback(
     async (preferredId?: string) => {
       const version = ++loadVersion.current;
       setLoadState({ status: "loading" });
       try {
-        const rows = await adapter.fetchList(statusFilter);
+        const rows = await adapter.fetchList();
         if (version !== loadVersion.current) {
           return;
         }
         setFeedback(rows);
-        setSelectedId(
-          preferredId && rows.some((row) => row.id === preferredId)
-            ? preferredId
-            : rows[0]?.id ?? null,
-        );
+        setSelectedId(preferredId && rows.some((row) => row.id === preferredId) ? preferredId : null);
         setLoadState({ status: "ready" });
       } catch (error) {
         if (version !== loadVersion.current) {
@@ -144,7 +200,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         });
       }
     },
-    [adapter, statusFilter],
+    [adapter],
   );
 
   useEffect(() => {
@@ -154,10 +210,43 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     };
   }, [loadQueue]);
 
-  const selected = useMemo(
-    () => feedback.find((row) => row.id === selectedId) ?? feedback[0] ?? null,
-    [selectedId, feedback],
+  const counts = useMemo(() => countByStatus(feedback), [feedback]);
+  const activeFilter: FeedbackQueueFilter = statusFilter ?? (counts.new > 0 ? "new" : "all");
+  const visible = useMemo(
+    () => (activeFilter === "all" ? feedback : feedback.filter((row) => row.status === activeFilter)),
+    [feedback, activeFilter],
   );
+
+  // A row that left the current filter (after a decision, or a filter change)
+  // hands the review over to the first row still showing.
+  const selected = useMemo(
+    () => visible.find((row) => row.id === selectedId) ?? visible[0] ?? null,
+    [selectedId, visible],
+  );
+
+  function selectRow(id: string) {
+    if (id === selected?.id) {
+      return;
+    }
+    guard(() => {
+      setSelectedId(id);
+      setActionFeedback(null);
+      setNote("");
+      scrollReviewIntoViewOnSmallScreens(reviewSectionId);
+    });
+  }
+
+  function changeFilter(next: FeedbackQueueFilter) {
+    if (!selected || next === "all" || selected.status === next) {
+      onStatusFilterChange(next);
+      return;
+    }
+    guard(() => {
+      onStatusFilterChange(next);
+      setActionFeedback(null);
+      setNote("");
+    });
+  }
 
   async function updateStatus(status: FeedbackQueueStatus) {
     if (!selected || pendingId) {
@@ -190,33 +279,67 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
   }
 
+  function decide(status: FeedbackQueueStatus) {
+    if (!selected) {
+      return;
+    }
+    if (status !== "rejected" && status !== "spam") {
+      void updateStatus(status);
+      return;
+    }
+    const decision = CONFIRMED_DECISIONS[status];
+    confirm({
+      title: decision.title,
+      description: (
+        <>
+          {decision.verb} the feedback for &ldquo;{labels.itemTitle(selected)}&rdquo; writes to production right away
+          and takes it off the queue. It stays in the {STATUS_LABELS[status]} list, where it can go back to Reviewing.
+          {note.trim().length > 0 ? " Your review note is saved with it." : null}
+        </>
+      ),
+      confirmLabel: decision.confirmLabel,
+      destructive: decision.destructive,
+      onConfirm: () => updateStatus(status),
+    });
+  }
+
   return (
     <div className="flex w-full flex-col gap-8">
-      <EditorSection icon={labels.icon} title={labels.title} description={labels.description} actions={headerActions}>
+      <EditorSection
+        icon={labels.icon}
+        title={labels.title}
+        description={labels.description}
+        actions={headerActions?.(guard)}
+      >
         {loadState.status === "error" ? (
-          <EditorNotice notice={{ tone: "danger", title: "Unable to load feedback", message: loadState.message }} />
+          <LoadErrorState message={loadState.message} onRetry={() => void loadQueue(selected?.id)} />
         ) : null}
       </EditorSection>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
         <EditorSection
           icon="lucide:list"
           title="Queue"
-          description={`${feedback.length} loaded`}
+          description={loadState.status === "ready" ? describeCounts(counts) : "Loading"}
           delay={0.05}
           actions={(
             <>
               <label htmlFor={`${adapter.source}-feedback-filter`} className="sr-only">
                 Queue filter
               </label>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FeedbackQueueFilter)}>
+              <Select value={activeFilter} onValueChange={(value) => changeFilter(value as FeedbackQueueFilter)}>
                 <SelectTrigger id={`${adapter.source}-feedback-filter`} selectSize="compact" className="w-36">
-                  <SelectValue />
+                  <SelectValue>
+                    {STATUS_LABELS[activeFilter]} ({counts[activeFilter]})
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {QUEUE_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {STATUS_LABELS[status]}
+                  {QUEUE_FILTERS.map((filter) => (
+                    <SelectItem key={filter} value={filter}>
+                      <span className="flex w-full items-center justify-between gap-3">
+                        {STATUS_LABELS[filter]}{" "}
+                        <span className="theme-text-faint tabular-nums">{counts[filter]}</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -229,31 +352,35 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               Loading feedback...
             </EditorStatusPill>
           ) : null}
-          {feedback.length === 0 && loadState.status === "ready" ? (
-            <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted text-sm">
-              {statusFilter === "all"
-                ? labels.emptyQueue
-                : `No ${STATUS_LABELS[statusFilter].toLowerCase()} feedback matches this filter.`}
-            </EmptyStateSurface>
-          ) : null}
-          {feedback.length > 0 ? (
-            <div className="space-y-2">
-              {feedback.map((row) => (
+          {loadState.status === "ready" || feedback.length > 0 ? (
+            <EditorList
+              label="Feedback queue"
+              items={visible}
+              getKey={(row) => row.id}
+              selectedKey={selected?.id ?? null}
+              onSelect={selectRow}
+              search={{
+                placeholder: "Search feedback",
+                matches: (row, query) =>
+                  [labels.itemTitle(row), labels.itemSubtitle(row) ?? "", row.details]
+                    .join(" ")
+                    .toLowerCase()
+                    .includes(query.toLowerCase()),
+              }}
+              emptyText={
+                activeFilter === "all"
+                  ? labels.emptyQueue
+                  : `No ${STATUS_LABELS[activeFilter].toLowerCase()} feedback right now.`
+              }
+              renderItem={(row, { selected: active }) => (
                 <QueueRow
-                  key={row.id}
                   title={labels.itemTitle(row)}
                   subtitle={labels.itemSubtitle(row)}
                   row={row}
-                  active={selected?.id === row.id}
-                  onSelect={() => {
-                    setSelectedId(row.id);
-                    setActionFeedback(null);
-                    setNote("");
-                    scrollReviewIntoViewOnSmallScreens(reviewSectionId);
-                  }}
+                  active={active}
                 />
-              ))}
-            </div>
+              )}
+            />
           ) : null}
         </EditorSection>
 
@@ -279,7 +406,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               onNoteChange={setNote}
               actionFeedback={actionFeedback}
               onDismissFeedback={() => setActionFeedback(null)}
-              onStatusChange={updateStatus}
+              onStatusChange={decide}
             />
           ) : (
             <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted text-sm">
@@ -288,12 +415,15 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           )}
         </EditorSection>
       </div>
+      {draftDialog}
+      {confirmDialog}
     </div>
   );
 }
 
+/** Below xl the queue sits above the review, so picking a row brings the review up. */
 function scrollReviewIntoViewOnSmallScreens(sectionId: string) {
-  if (typeof window === "undefined" || window.innerWidth >= 1024) {
+  if (typeof window === "undefined" || window.innerWidth >= 1280) {
     return;
   }
   document.getElementById(sectionId)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
@@ -310,30 +440,28 @@ export function formatFeedbackDate(value?: string): string | null {
   return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
+/**
+ * Two lines at a fixed pitch, so the windowed list can place rows: title and
+ * subtitle share the first line with the status pill, details take the second.
+ */
 function QueueRow({
   active,
-  onSelect,
   row,
   subtitle,
   title,
 }: {
   active: boolean;
-  onSelect: () => void;
   row: FeedbackQueueItem;
   subtitle: string | null;
   title: string;
 }) {
   return (
-    <EditorListItem active={active} onSelect={onSelect} className="items-start">
+    <EditorListItem active={active} tabIndex={-1} className="items-start">
       <span className="min-w-0 flex-1 space-y-1">
-        <span className="flex items-start justify-between gap-3">
-          <span className="min-w-0">
-            <span className={`block truncate text-sm font-semibold ${active ? "theme-accent-heading" : "theme-text-primary"}`}>
-              {title}
-            </span>
-            {subtitle ? (
-              <span className="theme-text-faint mt-1 block truncate text-xs">{subtitle}</span>
-            ) : null}
+        <span className="flex items-center justify-between gap-3">
+          <span className="min-w-0 truncate text-sm">
+            <span className={`font-semibold ${active ? "theme-accent-heading" : "theme-text-primary"}`}>{title}</span>
+            {subtitle ? <span className="theme-text-faint text-xs"> · {subtitle}</span> : null}
           </span>
           <FeedbackStatusPill status={row.status} />
         </span>
@@ -435,9 +563,11 @@ function FeedbackDetail({
               >
                 Reject
               </Button>
+            </EditorActionGroup>
+            <EditorActionGroup label="Classification" align="end">
               <Button
                 type="button"
-                variant="destructive"
+                variant="outline"
                 disabled={!canMoveTo("spam")}
                 onClick={() => onStatusChange("spam")}
               >

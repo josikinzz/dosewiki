@@ -15,17 +15,22 @@ import {
 import {
   EditorActionStatus,
   EditorField,
+  EditorList,
   EditorListItem,
   EditorNavTabs,
   EditorNotice,
   EditorSection,
+  EditorSegmentedControl,
   EditorStatusPill,
   EditorToolbar,
   type EditorActionStatusState,
   type EditorNoticeMessage,
+  useConfirm,
+  useDirtyGuard,
   useScrollToDetail,
 } from "@/features/dev/components";
 import { buildTextChangelog } from "@/utils/data/changelog";
+import { viewToPath } from "@/utils/routing";
 import { api } from "../../../../../convex/_generated/api";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
 import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
@@ -42,10 +47,16 @@ import {
   groupCopyStudioBlocks,
   isDraftDirty,
   resolveCopyPlaceholders,
+  sectionCopyStudioGroups,
   type CopyBlockRow,
   type CopyStudioBlock,
   type CopyStudioDraft,
 } from "./copyStudioUtils";
+
+const NO_BLOCKS: readonly CopyStudioBlock[] = [];
+
+/** Below the xl split the block list stacks above the editor. */
+const STACKED_BELOW_XL_QUERY = "(max-width: 1279px)";
 
 type SaveState = EditorActionStatusState | "idle";
 
@@ -66,14 +77,16 @@ type CopyStudioTabProps = {
  * falls back to the default again; an editor's save is submitted as a change
  * proposal for the Queue instead, and only an approval writes the row.
  *
- * The rail lists one group at a time; a search query replaces it with every
- * block whose key or label matches, across all groups.
+ * The rail lists one group at a time, under a section tier so the group chips
+ * fit one row; a search query replaces it with every block whose key or label
+ * matches, across all groups, while the editor stays on the selected block.
  */
 export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const rows = useQuery(api.copyBlocks.getAll) as CopyBlockRow[] | undefined;
 
   const blocks = useMemo(() => buildCopyStudioBlocks(rows ?? []), [rows]);
   const groups = useMemo(() => groupCopyStudioBlocks(blocks), [blocks]);
+  const sections = useMemo(() => sectionCopyStudioGroups(groups), [groups]);
 
   const [activeGroup, setActiveGroup] = useState<string>("");
   const [activeKey, setActiveKey] = useState<string>(initialKey ?? "");
@@ -89,19 +102,22 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     : groups.find((entry) => entry.blocks.some((block) => block.key === activeKey))?.group ??
       groups[0]?.group ??
       "";
+  const resolvedSection =
+    sections.find((entry) => entry.groups.some((member) => member.group === resolvedGroup)) ?? null;
+  const groupBlocks = groups.find((entry) => entry.group === resolvedGroup)?.blocks ?? NO_BLOCKS;
 
   const isSearching = searchQuery.trim().length > 0;
   const visibleBlocks = useMemo(
-    () =>
-      isSearching
-        ? filterCopyStudioBlocks(blocks, searchQuery)
-        : groups.find((entry) => entry.group === resolvedGroup)?.blocks ?? [],
-    [blocks, groups, isSearching, resolvedGroup, searchQuery],
+    () => (isSearching ? filterCopyStudioBlocks(blocks, searchQuery) : groupBlocks),
+    [blocks, groupBlocks, isSearching, searchQuery],
   );
 
-  const activeBlock: CopyStudioBlock | null = useMemo(() => {
-    return visibleBlocks.find((block) => block.key === activeKey) ?? visibleBlocks[0] ?? null;
-  }, [visibleBlocks, activeKey]);
+  // The editor stays on the selected block while a search narrows the rail, so
+  // typing a query never swaps the draft out from under the editor.
+  const activeBlock: CopyStudioBlock | null = useMemo(
+    () => blocks.find((block) => block.key === activeKey) ?? groupBlocks[0] ?? null,
+    [blocks, groupBlocks, activeKey],
+  );
 
   // The draft follows the selected block, and re-seeds whenever that block's
   // published value changes underneath it (a save landing, another editor's
@@ -114,19 +130,60 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     setSaveState("idle");
   }, [activeBlock?.key, activeBlock?.current.body, activeBlock?.current.items.join("\u0000")]);
 
-  const selectBlock = useCallback((key: string) => {
-    setActiveKey(key);
-    setNotice(null);
-  }, []);
-
-  // Below the lg split the block list stacks above the editor. Keyed on the
-  // tapped block, not `activeBlock`, so the first-block fallback on load and
-  // on a group change does not move the page.
-  const detailRef = useRef<HTMLDivElement | null>(null);
-  useScrollToDetail(detailRef, activeKey || null);
+  // The address names the open block so a reload or a shared link lands on it.
+  // Only a change writes: the address the editor arrived on is left alone.
+  const urlKeyRef = useRef(initialKey ?? "");
+  useEffect(() => {
+    const key = activeBlock?.key ?? "";
+    if (!key || key === urlKeyRef.current) return;
+    urlKeyRef.current = key;
+    window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "copy-studio", slug: key }));
+  }, [activeBlock?.key]);
 
   const isDirty = activeBlock ? isDraftDirty(activeBlock, draft) : false;
   const canReset = activeBlock ? canResetToDefault(activeBlock, draft) : false;
+
+  const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, {
+    title: activeBlock ? `Discard changes to “${activeBlock.label}”?` : undefined,
+    description: `This block has edits that are not ${canApprove ? "saved" : "submitted"} yet. Discarding them cannot be undone.`,
+  });
+  const { confirm, dialog: confirmDialog } = useConfirm();
+
+  const selectBlock = useCallback(
+    (key: string) => {
+      if (key === activeBlock?.key) {
+        return;
+      }
+      guard(() => {
+        setActiveKey(key);
+        setActiveGroup("");
+        setNotice(null);
+      });
+    },
+    [activeBlock?.key, guard],
+  );
+
+  /** Picking a group clears the search; picking the current one only clears the search. */
+  const selectGroup = useCallback(
+    (group: string) => {
+      if (group === resolvedGroup && !isSearching) {
+        return;
+      }
+      guard(() => {
+        setActiveGroup(group);
+        setActiveKey("");
+        setSearchQuery("");
+        setNotice(null);
+      });
+    },
+    [guard, isSearching, resolvedGroup],
+  );
+
+  // Below the xl split the block list stacks above the editor. Keyed on the
+  // tapped block, not `activeBlock`, so the first-block fallback on load and
+  // on a group change does not move the page.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  useScrollToDetail(detailRef, activeKey || null, STACKED_BELOW_XL_QUERY);
 
   const draftText = activeBlock ? draftToText(activeBlock.kind, draft) : "";
   const currentText = activeBlock ? blockCurrentText(activeBlock) : "";
@@ -215,9 +272,11 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     setSaveState("idle");
     setNotice({
       tone: "info",
-      message: "Draft reset to the checked-in default. Save to publish it.",
+      message: canApprove
+        ? "Draft reset to the checked-in default. Save to publish it."
+        : "Draft reset to the checked-in default. Submit it for review to propose it.",
     });
-  }, [activeBlock]);
+  }, [activeBlock, canApprove]);
 
   /** Revert deletes the stored row, so the public read serves the default. */
   const handleRevertToDefault = useCallback(async () => {
@@ -282,24 +341,33 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
           </EditorStatusPill>
         }
       >
-        <EditorNavTabs
-          label="Copy groups"
-          value={isSearching ? "" : resolvedGroup}
-          onChange={(group) => {
-            setActiveGroup(group);
-            setActiveKey("");
-            setSearchQuery("");
-            setNotice(null);
-          }}
-          options={groups.map((entry) => ({
-            value: entry.group,
-            label: entry.group,
-            badge: entry.blocks.length,
-          }))}
-        />
+        <div className="space-y-2">
+          <EditorSegmentedControl
+            label="Copy sections"
+            value={resolvedSection?.section ?? ""}
+            onChange={(section) => {
+              const first = sections.find((entry) => entry.section === section)?.groups[0];
+              if (first) {
+                selectGroup(first.group);
+              }
+            }}
+            options={sections.map((entry) => ({ value: entry.section, label: entry.section }))}
+          />
+          <EditorNavTabs
+            label="Copy groups"
+            value={resolvedGroup}
+            onChange={selectGroup}
+            className="flex-nowrap overflow-x-auto"
+            options={(resolvedSection?.groups ?? []).map((entry) => ({
+              value: entry.group,
+              label: entry.group,
+              badge: entry.blocks.length,
+            }))}
+          />
+        </div>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-          <div className="space-y-3">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+          <div className="space-y-3 xl:sticky xl:top-6 xl:self-start">
             <EditorField
               label="Search"
               description="Matches a block key or label across every group."
@@ -316,32 +384,36 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
               )}
             </EditorField>
 
-            <div role="group" aria-label="Copy blocks" className="space-y-2">
-              {visibleBlocks.map((block) => (
+            <EditorList
+              label="Copy blocks"
+              items={visibleBlocks}
+              getKey={(block) => block.key}
+              selectedKey={activeBlock?.key ?? null}
+              onSelect={selectBlock}
+              emptyText={
+                isSearching ? "No block key or label matches that." : "No copy blocks in this group."
+              }
+              renderItem={(block, { selected }) => (
                 <EditorListItem
-                  key={block.key}
-                  active={block.key === activeBlock?.key}
+                  active={selected}
+                  tabIndex={-1}
                   title={block.label}
                   subtitle={isSearching ? `${block.group} / ${block.key}` : block.key}
                   badge={
-                    <span className="flex flex-wrap items-center justify-end gap-1">
+                    <span className="flex items-center justify-end gap-1">
                       {copyBlockFlavorLabel(block.flavor) ? (
                         <EditorStatusPill tone="caution">
                           {copyBlockFlavorLabel(block.flavor)}
                         </EditorStatusPill>
                       ) : null}
-                      <EditorStatusPill tone={block.source === "convex" ? "info" : "neutral"}>
-                        {block.source === "convex" ? "Edited" : "Default"}
-                      </EditorStatusPill>
+                      {block.source === "convex" ? (
+                        <EditorStatusPill tone="info">Edited</EditorStatusPill>
+                      ) : null}
                     </span>
                   }
-                  onSelect={() => selectBlock(block.key)}
                 />
-              ))}
-              {isSearching && visibleBlocks.length === 0 ? (
-                <p className="theme-text-faint px-1 text-sm">No block key or label matches that.</p>
-              ) : null}
-            </div>
+              )}
+            />
           </div>
 
           <div ref={detailRef} className="scroll-mt-6 space-y-6">
@@ -436,7 +508,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                       onClick={() => void handleSave()}
                     >
                       <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
-                      {canApprove ? "Save copy" : "Submit for review"}
+                      {canApprove ? "Save" : "Submit for review"}
                     </Button>
                     <Button
                       type="button"
@@ -454,7 +526,15 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                         variant="ghost"
                         size="sm"
                         disabled={activeBlock.source !== "convex" || saveState === "saving"}
-                        onClick={() => void handleRevertToDefault()}
+                        onClick={() =>
+                          confirm({
+                            title: "Remove stored copy?",
+                            description: `“${activeBlock.label}” goes back to its checked-in default on the public pages right away. The stored wording is deleted and cannot be recovered.`,
+                            confirmLabel: "Remove stored copy",
+                            destructive: true,
+                            onConfirm: handleRevertToDefault,
+                          })
+                        }
                       >
                         <Icon icon="lucide:undo-2" size={15} />
                         Remove stored copy
@@ -513,12 +593,12 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                   )}
                 </EditorSection>
               </>
-            ) : (
-              <p className="theme-text-faint text-sm">No copy blocks in this group.</p>
-            )}
+            ) : null}
           </div>
         </div>
       </EditorSection>
+      {dirtyGuardDialog}
+      {confirmDialog}
     </div>
   );
 }

@@ -9,6 +9,8 @@ export interface TagTokenProps extends HTMLAttributes<HTMLSpanElement> {
   disabled?: boolean;
   onRemove?: () => void;
   removeLabel?: string;
+  /** "danger" inks the remove control when removing is a production write, not a decorative untag. */
+  removeTone?: "default" | "danger";
 }
 
 const tagTokenVariantClasses: Record<NonNullable<TagTokenProps["variant"]>, string> = {
@@ -17,7 +19,7 @@ const tagTokenVariantClasses: Record<NonNullable<TagTokenProps["variant"]>, stri
   compact:
     "gap-1 rounded-md px-1.5 py-0.5 text-xs",
   interactive:
-    "gap-1.5 rounded-lg px-2.5 py-1 text-sm hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg-subtle)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-accent-strong)]",
+    "gap-1.5 rounded-lg px-2.5 py-1 text-sm hover:border-[color:var(--editor-panel-border-strong)] hover:bg-[var(--editor-panel-bg-subtle)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-dose-accent-strong",
   readonly:
     "gap-1.5 rounded-lg px-2.5 py-1 text-sm opacity-80",
   danger:
@@ -30,6 +32,7 @@ export function TagToken({
   disabled = false,
   onRemove,
   removeLabel,
+  removeTone = "default",
   className,
   ...props
 }: TagTokenProps) {
@@ -52,6 +55,11 @@ export function TagToken({
           type="button"
           variant="tagRemove"
           size="auto"
+          className={
+            removeTone === "danger"
+              ? "text-dose-danger hover:bg-[rgb(var(--c-rose)/0.16)] hover:text-dose-danger"
+              : undefined
+          }
           aria-label={removeLabel ?? `Remove ${String(label)}`}
           onClick={(event) => {
             event.stopPropagation();

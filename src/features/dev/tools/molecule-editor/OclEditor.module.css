@@ -1,0 +1,16 @@
+/*
+ * OpenChemLib paints an opaque white sheet with black ink, and its toolbar the
+ * same way, with no colour hook on either. The host blends that sheet onto the
+ * frame beneath it: in the light scheme white multiplies into the surface and
+ * the ink stays black; in the dark scheme the sheet is inverted first (white to
+ * black, ink to light, hues turned back by half a circle so N stays blue and O
+ * red) and then screened, so black becomes the surface and the ink stays light.
+ */
+.host {
+  mix-blend-mode: multiply;
+}
+
+:global(html[data-theme="dark"]) .host {
+  filter: invert(1) hue-rotate(180deg);
+  mix-blend-mode: screen;
+}

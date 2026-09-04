@@ -1,17 +1,20 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 import { StateCard } from "@/components/common/StateCard";
 import { Input } from "@/components/ui/input";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   EditorField,
+  EditorList,
   EditorListItem,
   EditorNotice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
+  LoadErrorState,
+  useDirtyGuard,
   useScrollToDetail,
   type EditorNavOption,
 } from "@/features/dev/components";
@@ -42,6 +45,18 @@ const SCOPE_DESCRIPTION: Record<ContributorScope, string> = {
   all: "Every contributor profile the site credits: identity, bio, links, aliases, and the order their work appears in on their public page.",
   me: "Your own contributor profile: identity, bio, links, and the order your work appears in on your public page.",
 };
+
+const DIRTY_GUARD_COPY = {
+  title: "Leave this profile?",
+  description:
+    "This profile has changes that are not saved. Leaving drops them; the stored profile stays as it was.",
+};
+
+/** `12 profiles`, or `1 of 12 profiles` while a search or the scope narrows the rail. */
+function railCount(visible: number, total: number): string {
+  const noun = `profile${total === 1 ? "" : "s"}`;
+  return visible === total ? `${total} ${noun}` : `${visible} of ${total} ${noun}`;
+}
 
 /**
  * Contributors: the one people editor.
@@ -79,6 +94,8 @@ export function ContributorsTab({
     detail,
     detailError,
     isDetailLoading,
+    retryDetail,
+    hasUnsavedChanges,
     notice,
   } = controller;
 
@@ -87,6 +104,24 @@ export function ContributorsTab({
   // on scope change does not move the page.
   const detailRef = useRef<HTMLDivElement | null>(null);
   useScrollToDetail(detailRef, selectedKey || null);
+
+  // Picking another row or flipping the scope replaces the loaded record, and
+  // with it every unsaved field and order. Both go through the guard.
+  const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(hasUnsavedChanges, DIRTY_GUARD_COPY);
+  const guardedSelect = useCallback(
+    (key: string) => {
+      if (key === resolvedKey) return;
+      guard(() => selectProfile(key));
+    },
+    [guard, resolvedKey, selectProfile],
+  );
+  const guardedSetScope = useCallback(
+    (next: ContributorScope) => {
+      if (next === scope) return;
+      guard(() => setScope(next));
+    },
+    [guard, scope, setScope],
+  );
 
   if (isDirectoryLoading && directory.length === 0) {
     return (
@@ -107,13 +142,7 @@ export function ContributorsTab({
     <div ref={detailRef} className="scroll-mt-6 space-y-6">
       {notice ? <EditorNotice notice={notice} /> : null}
       {detailError ? (
-        <StateCard
-          icon="lucide:triangle-alert"
-          tone="danger"
-          align="center"
-          title="Could not load that contributor"
-          description={detailError}
-        />
+        <LoadErrorState message={detailError} onRetry={retryDetail} busy={isDetailLoading} />
       ) : null}
       {isDetailLoading && !detail ? (
         <StateCard
@@ -134,6 +163,7 @@ export function ContributorsTab({
 
   return (
     <div className="mt-6 space-y-8 md:mt-8">
+      {dirtyGuardDialog}
       <EditorSection
         icon="lucide:users"
         title={canEdit ? "Contributors" : "Your profile"}
@@ -144,11 +174,11 @@ export function ContributorsTab({
               <EditorSegmentedControl
                 label="Scope"
                 value={scope}
-                onChange={(value) => setScope(value as ContributorScope)}
+                onChange={(value) => guardedSetScope(value as ContributorScope)}
                 options={SCOPE_OPTIONS}
               />
               <EditorStatusPill tone="neutral">
-                {`${directory.length} profile${directory.length === 1 ? "" : "s"}`}
+                {railCount(visibleProfiles.length, directory.length)}
               </EditorStatusPill>
             </div>
           ) : undefined
@@ -174,28 +204,30 @@ export function ContributorsTab({
                 </EditorField>
               ) : null}
 
-              <div role="group" aria-label="Contributors" className="space-y-2">
-                {visibleProfiles.map((profile) => (
+              <EditorList
+                label="Contributors"
+                items={visibleProfiles}
+                getKey={(profile) => profile.key}
+                selectedKey={resolvedKey || null}
+                onSelect={guardedSelect}
+                emptyText={
+                  scope === "me"
+                    ? "No stored profile yet. Saving below creates it."
+                    : "No contributor matches that search."
+                }
+                renderItem={(profile, { selected }) => (
                   <EditorListItem
-                    key={profile.key}
-                    active={profile.key === resolvedKey}
+                    active={selected}
+                    tabIndex={-1}
                     title={profile.displayName}
                     subtitle={
                       profile.aliases.length > 0
                         ? `${profile.key} · ${profile.aliases.slice(0, 3).join(", ")}`
                         : profile.key
                     }
-                    onSelect={() => selectProfile(profile.key)}
                   />
-                ))}
-                {visibleProfiles.length === 0 ? (
-                  <p className="theme-text-faint text-sm">
-                    {scope === "me"
-                      ? "No stored profile yet. Saving below creates it."
-                      : "No contributor matches that search."}
-                  </p>
-                ) : null}
-              </div>
+                )}
+              />
             </div>
 
             {editorPane}

@@ -104,7 +104,17 @@ async function openDrawer(user: UserEvent) {
 }
 
 async function waitForTargets() {
-  await screen.findByText(/of 2 substances show a banner/);
+  await screen.findByText(/of 2 substances are on a banner list/);
+}
+
+/**
+ * Every enablement write and every delete asks first. Returns the dialog so a
+ * test can read its copy before confirming.
+ */
+async function confirmWrite(user: UserEvent, label: string | RegExp) {
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("button", { name: label }));
+  return dialog;
 }
 
 beforeEach(() => {
@@ -171,10 +181,10 @@ describe("WarningBannersTab presets", () => {
     expect(writes[0]).toEqual({ method: "DELETE", body: { key: "opioid-respiratory" } });
     await screen.findByText("Deleted opioid-respiratory. Nothing renders it now.");
     expect(screen.queryByLabelText("Headline")).not.toBeInTheDocument();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
-  it("keeps the dialog's Keep preset from writing anything", async () => {
+  it("keeps the dialog's Cancel from writing anything", async () => {
     const writes = stubApi();
     const user = userEvent.setup();
     render(<WarningBannersTab />);
@@ -182,11 +192,42 @@ describe("WarningBannersTab presets", () => {
     await openDrawer(user);
 
     await user.click(screen.getByRole("button", { name: /Delete preset/ }));
-    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Keep preset" }));
+    await confirmWrite(user, "Cancel");
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(writes).toHaveLength(0);
     expect(screen.getByLabelText("Headline")).toBeInTheDocument();
+  });
+
+  it("reads coverage by tone and names sitewide presets instead of counting them", async () => {
+    stubPresets([
+      PRESET,
+      {
+        ...PRESET,
+        key: "citation-system-overhaul-1",
+        tone: "caution",
+        enabledSlugs: [],
+        allSubstances: true,
+      },
+      { ...PRESET, key: "dormant-danger", enabled: false, enabledSlugs: ["alprazolam"] },
+    ]);
+    stubApi();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    // One danger substance, not "2 of 2": the sitewide caution notice is a
+    // preset, never every slug, and the switched-off preset counts for nothing.
+    const summary = screen.getByText(
+      "1 of 2 substances are on a banner list. 1 sitewide preset reaches every article, including ones published later.",
+    );
+    const tones = within(summary.previousElementSibling as HTMLElement);
+    expect(tones.getByText("danger").closest("div")).toHaveTextContent("1of 2 substances");
+    expect(tones.getByText("unsafe").closest("div")).toHaveTextContent("0of 2 substances");
+    expect(tones.getByText("caution").closest("div")).toHaveTextContent(
+      "Every article1 sitewide preset",
+    );
+    // The table names sitewide reach rather than pretending it is a count.
+    expect(screen.getByText("live · sitewide")).toBeInTheDocument();
   });
 
   it("adopts the echoed slug list and reports slugs the server pruned", async () => {
@@ -218,21 +259,31 @@ describe("WarningBannersTab presets", () => {
 });
 
 describe("WarningBannersTab coverage", () => {
-  it("enables a searched substance by writing the whole preset and offers Undo", async () => {
+  it("enables a searched substance only after the dialog confirms, writes the whole preset and offers Undo", async () => {
     const writes = stubApi();
     const user = userEvent.setup();
     render(<WarningBannersTab />);
     await waitForTargets();
-    await openDrawer(user);
+    const headline = await openDrawer(user);
+    await user.type(headline, "!");
 
     await user.type(screen.getByLabelText("Find substances"), "alpraz");
     await user.click(screen.getByRole("button", { name: "Enable on Alprazolam" }));
+
+    // Nothing is written until the dialog agrees, and the dialog says the
+    // unsaved headline rides along.
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Enable opioid-respiratory on Alprazolam?");
+    expect(dialog).toHaveTextContent("Readers of Alprazolam see this banner");
+    expect(dialog).toHaveTextContent("Unsaved edits to its words are saved with it.");
+    expect(writes).toHaveLength(0);
+    await user.click(within(dialog).getByRole("button", { name: "Enable on alprazolam" }));
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].method).toBe("POST");
     expect(writes[0].body).toMatchObject({
       key: "opioid-respiratory",
-      headline: PRESET.headline,
+      headline: `${PRESET.headline}!`,
       // `normalizeEnabledSlugs` sorts, so the new slug lands ahead of the stored one.
       enabledSlugs: ["alprazolam", "diazepam"],
     });
@@ -243,12 +294,32 @@ describe("WarningBannersTab coverage", () => {
     // The write came from inside the drawer, so the drawer must not call it dirty.
     expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
 
+    // Undo is the escape hatch and never asks.
     await user.click(screen.getByRole("button", { name: /Undo/ }));
 
     await waitFor(() => expect(writes).toHaveLength(2));
     expect(writes[1].body.enabledSlugs).toEqual(["diazepam"]);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await screen.findByText("Restored the previous list for opioid-respiratory.");
     expect(screen.queryByRole("button", { name: "Disable on alprazolam" })).not.toBeInTheDocument();
+  });
+
+  it("keeps staged ticks when the enable dialog is cancelled", async () => {
+    const writes = stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+    await openDrawer(user);
+
+    await user.type(screen.getByLabelText("Find substances"), "alpraz");
+    await user.click(screen.getByLabelText("Stage alprazolam"));
+    await user.click(screen.getByRole("button", { name: "Enable on 1 substance" }));
+    await confirmWrite(user, "Cancel");
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(writes).toHaveLength(0);
+    expect(screen.getByLabelText("Stage alprazolam")).toBeChecked();
+    expect(screen.getByRole("button", { name: "Enable on 1 substance" })).toBeEnabled();
   });
 
   it("disables one slug from the Coverage view opened by deep link", async () => {
@@ -260,9 +331,16 @@ describe("WarningBannersTab coverage", () => {
     // Loose on the verb: the live copy reads "1 banner render here" (the plural
     // suffix is applied backwards), and grammar is not the contract under test.
     expect(screen.getByText(/^1 banner renders? here, in this order\.$/)).toBeInTheDocument();
-    expect(screen.getByText(/^Opened from/)).toBeInTheDocument();
+    expect(screen.getByText(/^Coverage started on/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Disable on diazepam" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Disable opioid-respiratory on Diazepam?");
+    expect(dialog).toHaveTextContent(
+      "Readers of Diazepam stop seeing this banner as soon as you confirm. It will render nowhere afterwards.",
+    );
+    expect(writes).toHaveLength(0);
+    await user.click(within(dialog).getByRole("button", { name: "Disable on diazepam" }));
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].method).toBe("POST");
@@ -298,6 +376,7 @@ describe("WarningBannersTab coverage", () => {
     await waitForTargets();
 
     await user.click(screen.getByRole("button", { name: "Disable on diazepam" }));
+    await confirmWrite(user, "Disable on diazepam");
 
     // `SafetyBanner` previews carry `role="alert"` too, so locate the notice by its title.
     const title = await screen.findByText("Couldn't save that preset");

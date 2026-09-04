@@ -11,7 +11,7 @@
  * regardless of what this form sends. Nothing here deletes.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -27,7 +27,10 @@ import {
   EditorTableHead,
   EditorTableHeading,
   EditorTableRow,
+  LoadErrorState,
   TagToken,
+  useConfirm,
+  useDirtyGuard,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
@@ -45,6 +48,11 @@ import {
 
 type OpenReport = { record: OwnedReportRecord; draft: TripReportEditableFields };
 
+const DISCARD_COPY = {
+  title: "Discard your edits?",
+  description: "This report has changes that were not saved. Discarding them leaves the live page as it is now.",
+};
+
 export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   const [rows, setRows] = useState<OwnedReportRow[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -52,6 +60,9 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const dirty = open !== null && JSON.stringify(open.draft) !== JSON.stringify(open.record.fields);
+  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, DISCARD_COPY);
+  const { confirm, dialog: publishDialog } = useConfirm();
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -105,6 +116,19 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     }
   };
 
+  const confirmSave = () => {
+    if (!open) {
+      return;
+    }
+    confirm({
+      title: `Publish to /reports/${open.record.slug}?`,
+      description:
+        "Saving replaces the live page right away. Readers see the new title, tags and body as soon as it saves.",
+      confirmLabel: "Save and publish",
+      onConfirm: save,
+    });
+  };
+
   return (
     <div className="space-y-10">
       <EditorSection
@@ -121,18 +145,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
         {notice ? <EditorNotice notice={notice} /> : null}
 
         {loadError ? (
-          <StateCard
-            tone="danger"
-            icon="lucide:circle-alert"
-            title="Your reports did not load"
-            description={loadError}
-            compact
-            actions={
-              <Button type="button" variant="accent" size="sm" onClick={() => void load()}>
-                Try again
-              </Button>
-            }
-          />
+          <LoadErrorState message={loadError} onRetry={() => void load()} />
         ) : rows === null ? (
           <StateCard tone="accent" loading title="Loading your reports" description="Fetching the list." compact />
         ) : rows.length === 0 ? (
@@ -148,7 +161,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
             rows={rows}
             openId={open?.record.id ?? null}
             openingId={openingId}
-            onOpen={(row) => void openReport(row)}
+            onOpen={(row) => guard(() => void openReport(row))}
           />
         )}
       </EditorSection>
@@ -156,16 +169,22 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
       {open ? (
         <OwnedReportEditor
           open={open}
+          dirty={dirty}
           saving={saving}
           onChange={(draft) => setOpen({ ...open, draft })}
           onRevert={() => setOpen({ ...open, draft: open.record.fields })}
-          onSave={() => void save()}
-          onClose={() => {
-            setOpen(null);
-            setNotice(null);
-          }}
+          onSave={confirmSave}
+          onClose={() =>
+            guard(() => {
+              setOpen(null);
+              setNotice(null);
+            })
+          }
         />
       ) : null}
+
+      {discardDialog}
+      {publishDialog}
 
       {canApprove ? <AssignOwnerSection onAssigned={() => void load()} /> : null}
     </div>
@@ -301,6 +320,7 @@ function OwnedReportTable({
 
 function OwnedReportEditor({
   open,
+  dirty,
   saving,
   onChange,
   onClose,
@@ -308,6 +328,7 @@ function OwnedReportEditor({
   onSave,
 }: {
   open: OpenReport;
+  dirty: boolean;
   saving: boolean;
   onChange: (draft: TripReportEditableFields) => void;
   onClose: () => void;
@@ -316,10 +337,6 @@ function OwnedReportEditor({
 }) {
   const { record, draft } = open;
   const [tagDraft, setTagDraft] = useState("");
-  const dirty = useMemo(
-    () => JSON.stringify(draft) !== JSON.stringify(record.fields),
-    [draft, record.fields],
-  );
 
   function patch(next: Partial<TripReportEditableFields>) {
     onChange({ ...draft, ...next });
@@ -329,12 +346,20 @@ function OwnedReportEditor({
     <EditorSection
       icon="lucide:pencil-line"
       title="Edit report"
-      description={`Editing /reports/${record.slug}. Byline, attribution, subject details and substances are changed by an editor from the trip report portal.`}
+      description={`Editing the live page at /reports/${record.slug}. Byline, attribution, subject details and substances are changed by an editor from the trip report portal.`}
       headingLevel="h3"
       actions={
-        <Button type="button" variant="ghost" size="sm" onClick={onClose} aria-label="Close editor">
-          Close
-        </Button>
+        <>
+          <Button asChild variant="ghost" size="sm">
+            <a href={`/reports/${record.slug}`} target="_blank" rel="noreferrer">
+              <Icon icon="lucide:external-link" size={14} />
+              View live
+            </a>
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} aria-label="Close editor">
+            Close
+          </Button>
+        </>
       }
     >
       <EditorPanel variant="default" className="flex min-h-0 flex-col" data-testid="my-report-editor">
@@ -390,12 +415,12 @@ function OwnedReportEditor({
 
         <footer className="theme-portal-rule sticky bottom-0 flex flex-wrap items-center gap-2 border-t px-5 py-3 backdrop-blur">
           <Button type="button" variant="accent" disabled={saving || !dirty} onClick={onSave}>
-            {saving ? "Saving" : "Save report"}
+            {saving ? "Saving" : "Save"}
           </Button>
           <Button type="button" variant="ghost" disabled={saving || !dirty} onClick={onRevert}>
             Revert
           </Button>
-          {dirty ? <span className="text-dose-accent-soft text-xs">Unsaved changes</span> : null}
+          {dirty ? <span className="text-dose-accent-soft text-xs">Unsaved changes; Save republishes the page</span> : null}
         </footer>
       </EditorPanel>
     </EditorSection>

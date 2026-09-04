@@ -69,7 +69,7 @@ function renderPresets(control: BannerIconSizeControl) {
       onCreate={vi.fn()}
       onSave={vi.fn()}
       onDiscard={vi.fn()}
-      onCommitEnabledSlugs={vi.fn()}
+      onRequestEnablement={vi.fn()}
       onRequestDelete={vi.fn()}
       onInspectCoverage={vi.fn()}
     />,
@@ -126,7 +126,7 @@ describe("global safety-banner icon size", () => {
         onCreate={vi.fn()}
         onSave={vi.fn()}
         onDiscard={vi.fn()}
-        onCommitEnabledSlugs={vi.fn()}
+        onRequestEnablement={vi.fn()}
         onRequestDelete={vi.fn()}
         onInspectCoverage={vi.fn()}
       />,
@@ -161,7 +161,7 @@ describe("global safety-banner icon size", () => {
         activeSlug="diazepam"
         onActiveSlugChange={vi.fn()}
         saveState="idle"
-        onCommitEnabledSlugs={vi.fn()}
+        onRequestEnablement={vi.fn()}
         onEditPreset={vi.fn()}
       />,
     );

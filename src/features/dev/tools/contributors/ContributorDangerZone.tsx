@@ -10,12 +10,17 @@ import { NestedContentCard } from "@/components/ui/surface";
 import {
   EditorNotice,
   EditorSection,
-  EditorSelect,
   EditorStatusPill,
+  SearchablePicker,
+  TagToken,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 
-type DirectoryOption = { key: string; displayName: string };
+type DirectoryOption = {
+  key: string;
+  displayName: string;
+  aliases: readonly string[];
+};
 
 type ContributorDangerZoneProps = {
   profileKey: string;
@@ -38,7 +43,7 @@ const DANGER_CARD_CLASS = "theme-danger-surface";
  * reason to expose them is the same reason to fence them: they are the only
  * repair for a duplicated or misattributed identity, and each of them is
  * irreversible from the UI. Every one is gated on typing the key of the profile
- * that is about to change — not a generic "yes", because the mistake these
+ * that is about to change, not a generic "yes", because the mistake these
  * guard against is acting on the wrong profile, and only re-typing its key
  * catches that.
  */
@@ -62,12 +67,23 @@ export function ContributorDangerZone({
   const [retargetAuthor, setRetargetAuthor] = useState("");
   const [retargetConfirm, setRetargetConfirm] = useState("");
 
+  // Label, key and aliases all feed the picker's match, so the destination is
+  // found the same three ways the directory search finds a row.
   const mergeOptions = useMemo(
     () =>
       directory
         .filter((option) => option.key !== profileKey)
-        .map((option) => ({ value: option.key, label: `${option.displayName} (${option.key})` })),
+        .map((option) => ({
+          value: option.key,
+          label: option.displayName,
+          hint:
+            option.aliases.length > 0 ? `${option.key} · ${option.aliases.join(", ")}` : option.key,
+        })),
     [directory, profileKey],
+  );
+  const mergeDestination = useMemo(
+    () => (mergeTarget ? (directory.find((option) => option.key === mergeTarget) ?? null) : null),
+    [directory, mergeTarget],
   );
 
   const run = useCallback(
@@ -120,7 +136,15 @@ export function ContributorDangerZone({
         message: error instanceof Error ? error.message : "The merge could not be completed.",
       });
     }
-  }, [discardSourceContent, mergeConfirm, mergeTarget, onCompleted, onProfileRemoved, profileKey, run]);
+  }, [
+    discardSourceContent,
+    mergeConfirm,
+    mergeTarget,
+    onCompleted,
+    onProfileRemoved,
+    profileKey,
+    run,
+  ]);
 
   const handleDelete = useCallback(async () => {
     try {
@@ -185,15 +209,44 @@ export function ContributorDangerZone({
 
           <div className="space-y-2">
             <Label htmlFor="contributor-merge-target">Destination profile</Label>
-            <EditorSelect
+            <SearchablePicker
               id="contributor-merge-target"
-              selectSize="sm"
-              placeholder="Choose a destination…"
+              ariaLabel="Destination profile"
               options={mergeOptions}
-              value={mergeTarget}
-              onChange={(event) => setMergeTarget(event.target.value)}
+              value={mergeTarget || null}
+              onChange={(value) => {
+                setMergeTarget(value ?? "");
+                setMergeConfirm("");
+              }}
+              placeholder="Search by name, key, or alias"
+              emptyText="No other profile matches that."
             />
           </div>
+
+          {mergeDestination ? (
+            <div
+              data-testid="contributor-merge-destination"
+              className="theme-text-primary space-y-1.5 rounded-lg border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg)] px-3 py-2.5 text-sm"
+            >
+              <p>
+                <span className="theme-text-faint text-xs uppercase tracking-wide">
+                  Merging into{" "}
+                </span>
+                <span className="font-semibold">{mergeDestination.displayName}</span>
+                <span className="theme-text-muted">{` (${mergeDestination.key})`}</span>
+              </p>
+              {mergeDestination.aliases.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="theme-text-faint text-xs">Already answers to</span>
+                  {mergeDestination.aliases.map((alias) => (
+                    <TagToken key={alias} label={alias} variant="compact" />
+                  ))}
+                </div>
+              ) : (
+                <p className="theme-text-faint text-xs">No aliases yet.</p>
+              )}
+            </div>
+          ) : null}
 
           <label className="theme-text-muted flex items-center gap-2 text-sm">
             <input
@@ -212,8 +265,13 @@ export function ContributorDangerZone({
               onChange={(event) => setMergeConfirm(event.target.value)}
               placeholder={profileKey}
               autoComplete="off"
+              disabled={!mergeDestination}
             />
-            {confirmationHint(profileKey)}
+            {mergeDestination ? (
+              confirmationHint(profileKey)
+            ) : (
+              <p className="theme-text-faint text-xs">Choose a destination first.</p>
+            )}
           </div>
 
           <Button
@@ -295,7 +353,7 @@ export function ContributorDangerZone({
             <h4 className="theme-text-primary text-sm font-semibold">Delete this profile</h4>
             <p className="theme-text-muted text-sm">
               Destroys the bio, avatar and links outright. Refused while any report still credits
-              this key — reassign or merge first, or the report would link to a page that is gone.
+              this key: reassign or merge first, or the report would link to a page that is gone.
             </p>
           </div>
 

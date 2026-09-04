@@ -1,11 +1,16 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 
 import { ContributorsTab } from "./ContributorsTab";
 import type { EditorContributorProfile } from "./contributorsModel";
+
+// cmdk scrolls the active item into view; jsdom has no scrollIntoView.
+beforeAll(() => {
+  Element.prototype.scrollIntoView ??= () => {};
+});
 
 const directoryEntry = (key: string, displayName: string, aliases: string[] = []): NormalizedUserProfile => ({
   key,
@@ -73,8 +78,8 @@ function renderTab(props: Partial<Parameters<typeof ContributorsTab>[0]> = {}) {
 
 /** Display names in the rail, in render order. */
 function railNames(): string[] {
-  return within(screen.getByRole("group", { name: "Contributors" }))
-    .getAllByRole("button")
+  return within(screen.getByRole("listbox", { name: "Contributors" }))
+    .getAllByRole("option")
     .map((item) => item.querySelector("span > span")?.textContent ?? "");
 }
 
@@ -165,7 +170,7 @@ describe("ContributorsTab", () => {
     // No way to reach anyone else: no scope switch, no search, no rail.
     expect(screen.queryByRole("group", { name: "Scope" })).toBeNull();
     expect(screen.queryByLabelText("Search")).toBeNull();
-    expect(screen.queryByRole("group", { name: "Contributors" })).toBeNull();
+    expect(screen.queryByRole("listbox", { name: "Contributors" })).toBeNull();
     expect(screen.queryByText("Ada Lovelace")).toBeNull();
 
     // The self-serve field set, and nothing an editor curates.
@@ -282,5 +287,89 @@ describe("ContributorsTab", () => {
       membershipEmail: null,
       staffNote: null,
     });
+  });
+
+  it("renders the rail as a bounded listbox and counts the rows a search leaves", async () => {
+    const user = userEvent.setup();
+    stubProfileApi({
+      ADA: storedProfile("ADA", "Ada Lovelace"),
+      JOSIE: storedProfile("JOSIE", "Josie Kins"),
+    });
+    renderTab();
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+
+    const rail = screen.getByRole("listbox", { name: "Contributors" });
+    expect(rail.style.maxHeight).not.toBe("");
+    expect(within(rail).getAllByRole("option")).toHaveLength(2);
+    expect(screen.getByText("2 profiles")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Search"), "countess");
+
+    expect(railNames()).toEqual(["Ada Lovelace"]);
+    expect(screen.getByText("1 of 2 profiles")).toBeInTheDocument();
+  });
+
+  it("asks before a rail click drops unsaved profile changes", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubProfileApi({
+      ADA: storedProfile("ADA", "Ada Lovelace"),
+      JOSIE: storedProfile("JOSIE", "Josie Kins"),
+    });
+    renderTab();
+    const displayName = await screen.findByLabelText("Display name");
+    await waitFor(() => expect(displayName).toHaveValue("Ada Lovelace"));
+
+    await user.type(displayName, " Byron");
+    const josieRow = within(screen.getByRole("listbox", { name: "Contributors" })).getByRole(
+      "option",
+      { name: /Josie Kins/ },
+    );
+
+    await user.click(josieRow);
+    const dialog = await screen.findByRole("dialog", { name: "Leave this profile?" });
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace Byron");
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/dev/contributor-profile?key=JOSIE");
+
+    await user.click(josieRow);
+    await user.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Discard changes" }),
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
+    expect(fetchMock).toHaveBeenCalledWith("/api/dev/contributor-profile?key=JOSIE");
+  });
+
+  it("keeps the merge confirm locked until a searched destination is shown with its key and aliases", async () => {
+    const user = userEvent.setup();
+    stubProfileApi({
+      ADA: storedProfile("ADA", "Ada Lovelace"),
+      JOSIE: storedProfile("JOSIE", "Josie Kins"),
+    });
+    renderTab({ initialScope: "me" });
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
+
+    const confirm = screen.getByLabelText("Confirm by typing JOSIE", { selector: "#contributor-merge-confirm" });
+    expect(confirm).toBeDisabled();
+    expect(screen.queryByRole("combobox", { name: "Destination profile" })).not.toBeNull();
+    expect(screen.queryByRole("option", { name: /Ada Lovelace/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("combobox", { name: "Destination profile" }));
+    fireEvent.change(await screen.findByPlaceholderText("Search by name, key, or alias"), {
+      target: { value: "countess" },
+    });
+    fireEvent.click(await screen.findByRole("option", { name: /Ada Lovelace/ }));
+
+    const card = screen.getByTestId("contributor-merge-destination");
+    expect(card).toHaveTextContent("Ada Lovelace");
+    expect(card).toHaveTextContent("(ADA)");
+    expect(card).toHaveTextContent("countess");
+    expect(confirm).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Merge and delete this profile" })).toBeDisabled();
+
+    await user.type(confirm, "JOSIE");
+    expect(screen.getByRole("button", { name: "Merge and delete this profile" })).toBeEnabled();
   });
 });

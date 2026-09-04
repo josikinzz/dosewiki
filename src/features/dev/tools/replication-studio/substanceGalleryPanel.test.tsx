@@ -459,6 +459,49 @@ describe("SubstanceGalleryPanel", () => {
     expect(await screen.findByText("Work 2")).toBeInTheDocument();
   });
 
+  it("replaces the loading picker with a disabled one and a retry when the substance list fails", async () => {
+    const user = userEvent.setup();
+    let failing = true;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/substances")) {
+        if (failing) {
+          failing = false;
+          return new Response(JSON.stringify({ error: "Substance read exploded." }), { status: 500 });
+        }
+        return new Response(JSON.stringify({ substances: SUBSTANCES }), { status: 200 });
+      }
+      return new Response(JSON.stringify(DETAIL), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    // The substance list is cached at module level across renders, so this
+    // test needs a fresh module graph to observe the first, failing read.
+    vi.resetModules();
+    const { SubstanceGalleryPanel: FreshPanel } = await import("./SubstanceGalleryPanel");
+    render(
+      <FreshPanel
+        substanceSlug="lsd"
+        onNavigateToSubstance={vi.fn()}
+        visibleRows={[]}
+        corpusRows={CORPUS}
+        railNarrowed={false}
+        onInspectRow={vi.fn()}
+        onOpenLibrary={vi.fn()}
+        onDirtyChange={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByText("Substance read exploded.")).toBeInTheDocument();
+    const trigger = screen.getByRole("combobox", { name: /could not be loaded/i });
+    expect(trigger).toBeDisabled();
+    expect(trigger).toHaveTextContent("Substance list unavailable");
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByRole("combobox", { name: /Current substance: LSD/ })).toBeEnabled();
+    expect(screen.queryByText("Substance read exploded.")).not.toBeInTheDocument();
+  });
+
   it("feeds the stage preview the full effective article order", async () => {
     const user = userEvent.setup();
     stubFetch();

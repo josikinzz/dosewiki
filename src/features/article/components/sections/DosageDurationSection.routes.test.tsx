@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
+import type { DurationRoute } from "@/schema";
 import { DosageDurationSection } from "./DosageDurationSection";
 import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
 import {

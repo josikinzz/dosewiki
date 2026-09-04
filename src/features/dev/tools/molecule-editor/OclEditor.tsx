@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Thin React wrapper around OpenChemLib's `CanvasEditor` — the neutral 2D structure
+ * Thin React wrapper around OpenChemLib's `CanvasEditor`, the neutral 2D structure
  * editor where the developer drags atoms and sets per-bond wedge/hash stereo bonds.
  *
  * OpenChemLib (~1 MB) is dynamically imported on mount so it stays out of every public
@@ -14,13 +14,22 @@
  * mark the editor "dirty". Filtering to user `molecule` events keeps `edited === source`
  * until the developer actually changes the structure.
  *
+ * The drawing surface carries a labeled dose.wiki tool strip above it. OpenChemLib's own
+ * toolbar (thirty unlabeled glyphs on a canvas inside a shadow root) is tucked away behind
+ * "All tools"; the strip drives it through synthesised pointer events at the right button
+ * (see `oclToolbar.ts`) and mirrors OpenChemLib's own shortcut keys, so the highlighted
+ * tool is what the strip or a definitive key last chose.
+ *
  * If OpenChemLib fails to load or the canvas cannot be constructed, the editor renders a
  * canvas-level error state and reports it via `onError`, instead of leaving a blank canvas
  * behind an unhandled promise rejection.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
+import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { EditorActionGroup, EditorToolbar } from "@/features/dev/components";
 import { parseOclCustomLabelSgroups, stripOclCustomLabelSgroups } from "./applyRLabelsToMolblock";
 import {
   applyBoldBonds,
@@ -33,6 +42,16 @@ import {
   type MoleculeSnapKind,
   type MoleculeSnapOutcome,
 } from "./moleculeTransforms";
+import {
+  OCL_TOOLS,
+  OCL_UNDO_BUTTON,
+  oclToolbarButtonAt,
+  oclToolbarButtonCentre,
+  oclToolForButton,
+  oclToolForShortcutKey,
+  type OclToolId,
+} from "./oclToolbar";
+import styles from "./OclEditor.module.css";
 
 type OclModule = typeof import("openchemlib");
 type CanvasEditorInstance = InstanceType<OclModule["CanvasEditor"]>;
@@ -88,6 +107,14 @@ interface OclEditorProps {
   /** Asks the parent to leave bold mode (Escape pressed over the overlay). */
   onBoldToggleExit?: () => void;
   className?: string;
+  /** Overlays drawn over the drawing surface itself (below the pick overlay), not the tool strip. */
+  children?: ReactNode;
+}
+
+/** The two canvases OpenChemLib mounts inside its shadow root. */
+interface OclCanvases {
+  toolbar: HTMLCanvasElement;
+  editor: HTMLCanvasElement;
 }
 
 /** The hovered pick candidate, in overlay-local CSS pixels for highlight drawing. */
@@ -118,6 +145,7 @@ export function OclEditor({
   onBoldBondsChange,
   onBoldToggleExit,
   className,
+  children,
 }: OclEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<CanvasEditorInstance | null>(null);
@@ -147,6 +175,12 @@ export function OclEditor({
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickHover, setPickHover] = useState<PickHover | null>(null);
+  // OpenChemLib's canvases, found once the editor exists; null under a mocked editor.
+  const [canvases, setCanvases] = useState<OclCanvases | null>(null);
+  // OpenChemLib starts on its standard bond tool. Null means the highlight can
+  // no longer be trusted (a tool outside the strip, or a letter shortcut).
+  const [activeTool, setActiveTool] = useState<OclToolId | null>("bond");
+  const [nativeToolbarOpen, setNativeToolbarOpen] = useState(false);
 
   // Recomputed rather than tracked incrementally: selection can change from lasso
   // edits, structural edits that remove selected atoms, and programmatic loads.
@@ -210,6 +244,15 @@ export function OclEditor({
           // A structural edit can delete lasso-selected atoms without a selection event.
           reportSelectedBonds(ed);
         });
+        // Both canvases live in an open shadow root on the element OpenChemLib
+        // appends: the toolbar canvas (never focusable) and, inside a container,
+        // the focusable drawing canvas.
+        const shadow = hostRef.current
+          .querySelector("[data-openchemlib-canvas-editor]")
+          ?.shadowRoot;
+        const toolbar = shadow?.querySelector<HTMLCanvasElement>("canvas:not([tabindex])") ?? null;
+        const drawing = shadow?.querySelector<HTMLCanvasElement>('canvas[tabindex="0"]') ?? null;
+        setCanvases(toolbar && drawing ? { toolbar, editor: drawing } : null);
         setReady(true);
       } catch (err) {
         if (destroyed) return;
@@ -226,8 +269,98 @@ export function OclEditor({
         /* already destroyed */
       }
       editorRef.current = null;
+      setCanvases(null);
     };
   }, [reportSelectedBonds, emitMolfile]);
+
+  // OpenChemLib's own toolbar stays mounted but out of the way until "All
+  // tools" opens it: hidden in place (not display:none) so it keeps a layout box
+  // for the synthesised clicks below, and absolutely positioned so the drawing
+  // canvas takes the whole width meanwhile.
+  useEffect(() => {
+    if (!canvases) return;
+    const { style } = canvases.toolbar;
+    if (nativeToolbarOpen) {
+      style.position = "";
+      style.left = "";
+      style.top = "";
+      style.visibility = "";
+    } else {
+      style.position = "absolute";
+      style.left = "0";
+      style.top = "0";
+      style.visibility = "hidden";
+    }
+  }, [canvases, nativeToolbarOpen]);
+
+  // Read native toolbar clicks back so the strip's highlight follows them.
+  useEffect(() => {
+    if (!canvases) return;
+    const { toolbar } = canvases;
+    const onPointerUp = (event: PointerEvent) => {
+      const button = oclToolbarButtonAt(
+        toolbar.offsetWidth,
+        toolbar.offsetHeight,
+        event.offsetX,
+        event.offsetY,
+      );
+      if (button < 0 || button === OCL_UNDO_BUTTON || button === 0 || button === 1) return;
+      setActiveTool(oclToolForButton(button));
+    };
+    toolbar.addEventListener("pointerup", onPointerUp);
+    return () => toolbar.removeEventListener("pointerup", onPointerUp);
+  }, [canvases]);
+
+  // Mirror OpenChemLib's own shortcut keys (typed with the drawing canvas
+  // focused) into the strip; keydown composes out of the shadow root to the host.
+  const handleHostKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const tool = oclToolForShortcutKey(event.key);
+    if (tool !== undefined) setActiveTool(tool);
+  }, []);
+
+  /**
+   * Press and release OpenChemLib's toolbar at a button's centre, exactly the
+   * pointer sequence its own listeners expect: `pointerdown` on the canvas, then
+   * `pointerup` observed on the document, which a synthetic event only reaches
+   * from inside the shadow root when it is `composed`. Clicking the active tool
+   * is a no-op in OpenChemLib, which is also what the strip wants.
+   */
+  const pressToolbarButton = useCallback(
+    (button: number) => {
+      if (!canvases) return;
+      const { toolbar } = canvases;
+      const centre = oclToolbarButtonCentre(toolbar.offsetWidth, toolbar.offsetHeight, button);
+      const rect = toolbar.getBoundingClientRect();
+      const init: PointerEventInit = {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        clientX: rect.left + centre.x,
+        clientY: rect.top + centre.y,
+        button: 0,
+        pointerId: 0,
+        pointerType: "mouse",
+        isPrimary: true,
+      };
+      toolbar.dispatchEvent(new PointerEvent("pointerdown", init));
+      toolbar.dispatchEvent(new PointerEvent("pointerup", init));
+    },
+    [canvases],
+  );
+
+  const chooseTool = useCallback(
+    (tool: OclToolId) => {
+      const definition = OCL_TOOLS.find((candidate) => candidate.id === tool);
+      if (!definition) return;
+      pressToolbarButton(definition.button);
+      setActiveTool(tool);
+      // Hand focus back to the drawing so atom typing and Escape keep working;
+      // the atom tool opens OpenChemLib's label dialog instead, which owns focus.
+      if (tool !== "atom") canvases?.editor.focus({ preventScroll: true });
+    },
+    [canvases, pressToolbarButton],
+  );
 
   // Synchronize the session-only interaction preference without touching the
   // molecule or emitting a structural change.
@@ -470,44 +603,142 @@ export function OclEditor({
   }
 
   return (
-    <div className={className}>
-      <div ref={hostRef} className="absolute inset-0" />
-      {(bondPickActive || boldToggleActive) && ready ? (
-        /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions --
-           pointer-only like the OCL canvas beneath it (an accepted limitation of this
-           editor-only tool); Escape is handled globally and the toolbar button cancels. */
-        <div
-          data-testid="bond-pick-overlay"
-          className="absolute inset-0 z-10 cursor-crosshair"
-          onPointerMove={handlePickPointerMove}
-          onPointerLeave={() => setPickHover(null)}
-          onClick={handlePickClick}
-        >
-          <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
-            {pickHover ? (
-              <g className="text-dose-accent-strong">
-                <line
-                  x1={pickHover.x1}
-                  y1={pickHover.y1}
-                  x2={pickHover.x2}
-                  y2={pickHover.y2}
-                  stroke="currentColor"
-                  strokeWidth={8}
-                  strokeLinecap="round"
-                  opacity={0.45}
-                />
-                <circle cx={pickHover.x1} cy={pickHover.y1} r={4} fill="currentColor" />
-                <circle cx={pickHover.x2} cy={pickHover.y2} r={4} fill="currentColor" />
-              </g>
-            ) : null}
-          </svg>
-          <span className="theme-text-primary pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap rounded-full border border-dose-border bg-dose-surface-muted px-3 py-1 text-sm font-medium shadow-[var(--theme-elevation-lg)]">
-            {boldToggleActive
-              ? "Click bonds to toggle bold · Esc to finish"
-              : "Click the bond to set vertical · Esc to cancel"}
+    <div className={cn("flex flex-col gap-2", className)}>
+      <EditorToolbar label="Drawing tools" variant="compact" className="shrink-0">
+        <EditorActionGroup label="Draw">
+          <span aria-hidden="true" className={GROUP_LABEL_CLASS}>
+            Draw
           </span>
-        </div>
-      ) : null}
+          {OCL_TOOLS.map((tool) => {
+            const active = activeTool === tool.id;
+            return (
+              <Button
+                key={tool.id}
+                variant={active ? "accent" : "outline"}
+                size="sm"
+                aria-pressed={active}
+                disabled={!canvases}
+                title={`${tool.hint} (${tool.key})`}
+                onClick={() => chooseTool(tool.id)}
+              >
+                <ToolGlyph tool={tool.id} />
+                {tool.label}
+              </Button>
+            );
+          })}
+        </EditorActionGroup>
+        <EditorActionGroup label="History" separatorBefore>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!canvases}
+            title="Undo the last drawing step (Cmd or Ctrl+Z on the canvas)"
+            onClick={() => pressToolbarButton(OCL_UNDO_BUTTON)}
+          >
+            <Icon icon="lucide:undo-2" size={15} />
+            Undo
+          </Button>
+        </EditorActionGroup>
+        <ExpandButton
+          className="ml-auto"
+          variant="inline"
+          isExpanded={nativeToolbarOpen}
+          onToggle={() => setNativeToolbarOpen((open) => !open)}
+          label={nativeToolbarOpen ? "Fewer tools" : "All tools"}
+          ariaLabel={
+            nativeToolbarOpen
+              ? "Hide OpenChemLib's full toolbar"
+              : "Show OpenChemLib's full toolbar (rings, chains, charges, more atoms)"
+          }
+        />
+      </EditorToolbar>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions --
+          keydown is only observed here to mirror OpenChemLib's own shortcuts; the
+          focusable target is its drawing canvas inside the shadow root. */}
+      <div
+        className="relative isolate min-h-0 flex-1 overflow-hidden rounded-lg bg-dose-body"
+        onKeyDown={handleHostKeyDown}
+      >
+        <div ref={hostRef} className={cn("absolute inset-0", styles.host)} />
+        {children}
+        {(bondPickActive || boldToggleActive) && ready ? (
+          /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions --
+             pointer-only like the OCL canvas beneath it (an accepted limitation of this
+             editor-only tool); Escape is handled globally and the toolbar button cancels. */
+          <div
+            data-testid="bond-pick-overlay"
+            className="absolute inset-0 z-10 cursor-crosshair"
+            onPointerMove={handlePickPointerMove}
+            onPointerLeave={() => setPickHover(null)}
+            onClick={handlePickClick}
+          >
+            <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
+              {pickHover ? (
+                <g className="text-dose-accent-strong">
+                  <line
+                    x1={pickHover.x1}
+                    y1={pickHover.y1}
+                    x2={pickHover.x2}
+                    y2={pickHover.y2}
+                    stroke="currentColor"
+                    strokeWidth={8}
+                    strokeLinecap="round"
+                    opacity={0.45}
+                  />
+                  <circle cx={pickHover.x1} cy={pickHover.y1} r={4} fill="currentColor" />
+                  <circle cx={pickHover.x2} cy={pickHover.y2} r={4} fill="currentColor" />
+                </g>
+              ) : null}
+            </svg>
+            <span className="theme-text-primary pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap rounded-full border border-dose-border bg-dose-surface-muted px-3 py-1 text-sm font-medium shadow-[var(--theme-elevation-lg)]">
+              {boldToggleActive
+                ? "Click bonds to toggle bold · Esc to finish"
+                : "Click the bond to set vertical · Esc to cancel"}
+            </span>
+          </div>
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+const GROUP_LABEL_CLASS = "theme-text-faint text-xs font-medium uppercase tracking-wide";
+
+/** Lucide-style glyphs for the strip; wedge, hash and bond have no library icon. */
+function ToolGlyph({ tool }: { tool: OclToolId }) {
+  if (tool === "select") return <Icon icon="lucide:lasso-select" size={15} />;
+  if (tool === "atom") return <Icon icon="lucide:atom" size={15} />;
+  return (
+    <svg
+      width={15}
+      height={15}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {tool === "bond" ? (
+        <path d="M5 19 19 5" />
+      ) : tool === "wedge" ? (
+        <path d="M4 20 17 3l4 4Z" fill="currentColor" />
+      ) : tool === "hash" ? (
+        <>
+          <path d="M5.3 16.5 7.5 18.7" />
+          <path d="M7.9 12.7 11.3 16.1" />
+          <path d="M10.5 8.9 15.1 13.5" />
+          <path d="M13.2 5.2 18.8 10.8" />
+          <path d="M15.8 1.4 22.6 8.2" />
+        </>
+      ) : (
+        <>
+          <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+          <path d="M22 21H7" />
+          <path d="m5 11 9 9" />
+        </>
+      )}
+    </svg>
   );
 }

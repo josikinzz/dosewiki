@@ -186,7 +186,7 @@ export function TracingControls({
             Trace an image…
           </Button>
           <p className="theme-text-faint text-xs">
-            Or drag an image onto the canvas. It stays on this screen only — never saved.
+            Or drag an image onto the canvas. It stays on this screen only and is never saved.
           </p>
         </>
       ) : (

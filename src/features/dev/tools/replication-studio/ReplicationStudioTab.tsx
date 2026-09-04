@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,7 @@ export function ReplicationStudioTab({
     group,
     facets,
     selection,
+    anchor,
     busy,
     feedback,
     activePanel,
@@ -64,8 +65,10 @@ export function ReplicationStudioTab({
     pendingLeave,
     filtersOpen,
     railInColumn,
+    drawerInColumn,
     searchRef,
     drawerRef,
+    gridRef,
     effectNames,
     artists,
     visibleRows,
@@ -101,6 +104,15 @@ export function ReplicationStudioTab({
     }
     controller.navigateToSubstance(substanceSlug);
   };
+
+  // Under xl the editor sits below the grid box rather than beside it, so
+  // opening a selection brings it into view; beside the grid it is already
+  // on screen.
+  const hasSelection = selection.size > 0;
+  useEffect(() => {
+    if (drawerInColumn || !hasSelection || activePanel !== null) return;
+    drawerRef.current?.scrollIntoView?.({ block: "nearest" });
+  }, [activePanel, drawerInColumn, drawerRef, hasSelection]);
 
   if (load.status === "loading") {
     return (
@@ -418,17 +430,35 @@ export function ReplicationStudioTab({
               </div>
 
               <ReplicationGrid
+                ref={gridRef}
                 groups={groups}
                 selection={selection}
+                anchorId={anchor}
                 onCardActivate={controller.onCardActivate}
               />
+
+              {!drawerInColumn && hasSelection ? (
+                <div ref={drawerRef} className="min-w-0">
+                  <ReplicationEditorDrawer
+                    placement="below"
+                    selected={selectedRows}
+                    effects={effects}
+                    artists={artists}
+                    busy={busy}
+                    onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
+                    onApplyBulk={(targets, edit) => void controller.applyBulk(targets, edit)}
+                    onDeselect={controller.clearSelection}
+                  />
+                </div>
+              ) : null}
             </>
           ) : null}
         </main>
 
-        {activePanel === null ? (
+        {activePanel === null && drawerInColumn ? (
           <div ref={drawerRef} className="min-w-0">
             <ReplicationEditorDrawer
+              placement="aside"
               selected={selectedRows}
               effects={effects}
               artists={artists}
@@ -488,7 +518,7 @@ export function ReplicationStudioTab({
           <DialogHeader>
             <DialogTitle>Leave the showcase with unsaved changes?</DialogTitle>
             <DialogDescription>
-              This board has curation that was never saved. Leaving now throws it away — the article
+              This board has curation that was never saved. Leaving now throws it away; the article
               keeps whatever is already stored.
             </DialogDescription>
           </DialogHeader>

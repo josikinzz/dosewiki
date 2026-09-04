@@ -55,10 +55,10 @@ export function LayoutToolbar({
           size="sm"
           onClick={onSave}
           disabled={!hasUnsavedChanges}
-          aria-label="Stage layout for the Convex save panel"
+          aria-label="Apply layout to draft"
         >
           <Icon icon="lucide:save" size={16} />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Stage</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Apply to draft</span>
         </Button>
         <Button
           variant="glass"

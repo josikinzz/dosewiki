@@ -13,6 +13,7 @@ export function citationEvidenceRouteOperation(options: {
   rateLimit?: RateLimitPolicyName;
   unexpectedErrorLabel: string;
   unexpectedErrorMessage: string;
+  mapError?: (error: unknown) => NextResponse | null;
   operation: (input: CitationEvidenceOperationInput) => Promise<NextResponse> | NextResponse;
 }) {
   return protectedRouteOperation({
@@ -21,6 +22,7 @@ export function citationEvidenceRouteOperation(options: {
     capabilities: [{ type: "convexWrite" }],
     unexpectedErrorLabel: options.unexpectedErrorLabel,
     unexpectedErrorMessage: options.unexpectedErrorMessage,
+    mapError: options.mapError,
     operation: ({ request, actorEmail, convexWrite }) => {
       if (!convexWrite) {
         throw new Error("Convex write capability is required.");

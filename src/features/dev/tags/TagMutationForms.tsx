@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  ActionNotice,
   EditorCheckbox,
   EditorField,
   EditorFieldRow,
@@ -15,11 +14,15 @@ import {
 } from "@/features/dev/components";
 
 import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField } from "@/utils/data/tagRegistry";
+import { articleCount } from "./tagEditorStateMachine";
+import { TagNotice } from "./TagNotice";
 import type { NoticeSource, TagMutationFormsProps } from "./types";
 
 export function TagMutationForms({
   selectedUsage,
   notice,
+  undo,
+  onUndo,
   renameValue,
   onRenameValueChange,
   onRename,
@@ -35,19 +38,23 @@ export function TagMutationForms({
   onDelete,
   isApplying,
 }: TagMutationFormsProps) {
+  const affected = articleCount(selectedUsage.count);
   const noticeFor = (source: NoticeSource) =>
     notice?.source === source ? (
-      <ActionNotice tone={notice.type === "error" ? "danger" : "success"}>
-        {notice.message}
-      </ActionNotice>
+      <TagNotice
+        notice={notice}
+        undo={undo?.source === source ? undo : null}
+        onUndo={onUndo}
+        busy={isApplying}
+      />
     ) : null;
 
   return (
     <EditorSection
       icon="lucide:workflow"
       title="Bulk changes"
-      description={`Actions below affect every "${selectedUsage.tag}" tag in ${TAG_FIELD_LABELS[selectedUsage.field]}.`}
-      actions={<EditorStatusPill tone="warning">{selectedUsage.count} article{selectedUsage.count === 1 ? "" : "s"}</EditorStatusPill>}
+      description={`Each action below changes every article that carries "${selectedUsage.tag}" in ${TAG_FIELD_LABELS[selectedUsage.field]}. You can undo the last one until you make another change here.`}
+      actions={<EditorStatusPill tone="warning">{affected}</EditorStatusPill>}
       delay={0.15}
     >
       <div className="space-y-5">
@@ -68,7 +75,7 @@ export function TagMutationForms({
         </EditorField>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs theme-text-faint">
-            Updates every occurrence of this tag across the dataset.
+            Changes the label everywhere this tag appears.
           </p>
           <Button
             type="submit"
@@ -77,7 +84,7 @@ export function TagMutationForms({
             className="rounded-full"
             disabled={isApplying}
           >
-            Rename tag
+            Rename in {affected}
           </Button>
         </div>
         {noticeFor("rename")}
@@ -124,10 +131,12 @@ export function TagMutationForms({
         />
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs theme-text-faint">
-            Moves or copies the tag to the chosen field and merges duplicates automatically.
+            {keepSourceCopy
+              ? "Adds the tag to the chosen field and keeps it here. Articles that already carry it there are left as they are."
+              : "Moves the tag to the chosen field. Articles that already carry it there are left as they are."}
           </p>
           <Button type="submit" variant="default" size="pill" className="rounded-full" disabled={isApplying}>
-            {keepSourceCopy ? "Copy tag" : "Move tag"}
+            {keepSourceCopy ? "Copy to" : "Move in"} {affected}
           </Button>
         </div>
         {noticeFor("move")}
@@ -143,19 +152,19 @@ export function TagMutationForms({
           Danger zone
         </div>
         <p className="text-sm text-[color:var(--theme-danger-text)]">
-          Removing this tag will delete it from every article where it appears. This cannot be undone unless you reset the
-          dataset.
+          Removes this tag from all {affected} that carry it. You can undo from the notice that follows, until your next
+          change here.
         </p>
         <EditorCheckbox
           tone="danger"
           checked={deleteConfirmed}
           onChange={(event) => onDeleteConfirmedChange(event.target.checked)}
-          label="I understand this will permanently remove the tag."
+          label={`I understand this removes the tag from ${affected}.`}
           containerClassName="items-center"
         />
         <Button variant="destructivePill" size="pill" onClick={onDelete} disabled={isApplying || !deleteConfirmed}>
           <Icon icon="lucide:trash-2" size={16} />
-          Delete tag everywhere
+          Delete from {affected}
         </Button>
         {noticeFor("delete")}
         </EditorPanelBody>

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { convexState } = vi.hoisted(() => ({
   convexState: {
     enabled: false,
+    lastArgs: undefined as undefined | "skip" | { limit: number },
     entries: undefined as
       | undefined
       | Array<{
@@ -18,7 +19,10 @@ const { convexState } = vi.hoisted(() => ({
 }));
 
 vi.mock("convex/react", () => ({
-  useQuery: () => convexState.entries,
+  useQuery: (_reference: unknown, args: "skip" | { limit: number }) => {
+    convexState.lastArgs = args;
+    return convexState.entries;
+  },
 }));
 
 vi.mock("../../../../convex/_generated/api", () => ({
@@ -63,12 +67,26 @@ vi.mock("@/data/changelog/changeLog", async (importOriginal) => {
   };
 });
 
-import { useDevChangelogFeed } from "./useDevChangelogFeed";
+import { CHANGELOG_FEED_MAX_ROWS, CHANGELOG_FEED_PAGE_SIZE, useDevChangelogFeed } from "./useDevChangelogFeed";
+
+const makeConvexEntries = (count: number, startIndex = 0) =>
+  Array.from({ length: count }, (_, offset) => {
+    const index = startIndex + offset;
+    return {
+      entryId: `convex-${index}`,
+      createdAt: new Date(Date.UTC(2026, 0, 1) + index * 60_000).toISOString(),
+      message: `Convex ${index}`,
+      articles: [{ id: index, title: `Article ${index}`, slug: `article-${index}` }],
+      markdown: `convex ${index}`,
+      submittedBy: "ABC",
+    };
+  });
 
 describe("useDevChangelogFeed", () => {
   beforeEach(() => {
     convexState.enabled = false;
     convexState.entries = undefined;
+    convexState.lastArgs = undefined;
   });
 
   it("starts with sorted static entries", () => {
@@ -130,5 +148,71 @@ describe("useDevChangelogFeed", () => {
     });
 
     expect(result.current.changeLogEntries[0].id).toBe("appended");
+  });
+
+  it("reports a closed window when Convex returns fewer rows than the page", async () => {
+    convexState.enabled = true;
+    convexState.entries = makeConvexEntries(3);
+
+    const { result } = renderHook(() => useDevChangelogFeed({}));
+
+    await waitFor(() => {
+      expect(result.current.feedWindow.loadedCount).toBe(3);
+    });
+    expect(convexState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE });
+    expect(result.current.feedWindow).toMatchObject({
+      hasMore: false,
+      atServerCap: false,
+      loading: false,
+    });
+  });
+
+  it("offers older saves when a page comes back full and widens the query on loadMore", async () => {
+    convexState.enabled = true;
+    convexState.entries = makeConvexEntries(CHANGELOG_FEED_PAGE_SIZE);
+
+    const { result, rerender } = renderHook(() => useDevChangelogFeed({}));
+
+    await waitFor(() => {
+      expect(result.current.feedWindow.hasMore).toBe(true);
+    });
+    expect(result.current.feedWindow.loadedCount).toBe(CHANGELOG_FEED_PAGE_SIZE);
+
+    // The wider subscription answers undefined until the next page lands:
+    // the rows already held must stay on screen and the window must read
+    // as loading rather than empty.
+    convexState.entries = undefined;
+    act(() => {
+      result.current.feedWindow.loadMore();
+    });
+    expect(convexState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE * 2 });
+    expect(result.current.feedWindow.loading).toBe(true);
+    expect(result.current.feedWindow.hasMore).toBe(false);
+    expect(result.current.changeLogEntries.length).toBeGreaterThanOrEqual(CHANGELOG_FEED_PAGE_SIZE);
+
+    // A second click while loading must not skip a page.
+    act(() => {
+      result.current.feedWindow.loadMore();
+    });
+    expect(convexState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE * 2 });
+
+    convexState.entries = makeConvexEntries(CHANGELOG_FEED_PAGE_SIZE + 40);
+    rerender();
+    await waitFor(() => {
+      expect(result.current.feedWindow.loadedCount).toBe(CHANGELOG_FEED_PAGE_SIZE + 40);
+    });
+    expect(result.current.feedWindow).toMatchObject({ hasMore: false, loading: false, atServerCap: false });
+  });
+
+  it("stops paging at the server cap and says so", async () => {
+    convexState.enabled = true;
+    convexState.entries = makeConvexEntries(CHANGELOG_FEED_MAX_ROWS);
+
+    const { result } = renderHook(() => useDevChangelogFeed({}));
+
+    await waitFor(() => {
+      expect(result.current.feedWindow.loadedCount).toBe(CHANGELOG_FEED_MAX_ROWS);
+    });
+    expect(result.current.feedWindow).toMatchObject({ hasMore: false, atServerCap: true });
   });
 });

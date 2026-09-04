@@ -11,6 +11,7 @@ import {
   type ChangeEvent,
 } from "react";
 import { useDevNoticeChannel } from "@/features/dev/notices/devNoticeLifecycle";
+import type { ChangelogFeedWindow } from "./useDevChangelogFeed";
 
 export type ChangeNotice = {
   type: "success" | "error" | "pending";
@@ -39,6 +40,8 @@ type ChangeLogArticleOption = {
 
 export type ChangeLogController = {
   notice: ChangeNotice | null;
+  /** Server paging of the feed, passed through untouched from `useDevChangelogFeed`. */
+  feedWindow: ChangelogFeedWindow;
   totalEntriesCount: number;
   filters: ChangeLogFilters;
   articleOptions: ChangeLogArticleOption[];
@@ -110,9 +113,11 @@ const toLocalDateInputValue = (date: Date) => {
 export function useDevModeChangeLog({
   changeLogEntries,
   enableStickyPanels,
+  feedWindow,
 }: {
   changeLogEntries: ChangeLogEntry[];
   enableStickyPanels: boolean;
+  feedWindow: ChangelogFeedWindow;
 }): ChangeLogController {
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
   const [filters, setFilters] = useState<ChangeLogFilters>(INITIAL_CHANGELOG_FILTERS);
@@ -401,6 +406,7 @@ export function useDevModeChangeLog({
 
   return {
     notice,
+    feedWindow,
     totalEntriesCount: changeLogEntries.length,
     filters,
     articleOptions,

@@ -9,6 +9,7 @@ import {
   draftToText,
   filterCopyStudioBlocks,
   groupCopyStudioBlocks,
+  sectionCopyStudioGroups,
   isDraftDirty,
   resolveCopyPlaceholders,
   type CopyBlockRow,
@@ -88,6 +89,32 @@ describe("copy studio block reconciliation", () => {
 
     expect(groups[0]?.group).toBe(COPY_BLOCK_DEFAULTS[0].group);
     expect(new Set(groups.map((entry) => entry.group)).size).toBe(groups.length);
+  });
+
+  it("tiers every group under a section, and parks a group no section claims under Other", () => {
+    const groups = groupCopyStudioBlocks(
+      buildCopyStudioBlocks([
+        { key: "zeta-new", kind: "plain", body: "a", label: "New thing", group: "Brand new group" },
+      ]),
+    );
+    const sections = sectionCopyStudioGroups(groups);
+
+    expect(sections.map((entry) => entry.section)).toEqual([
+      "Site",
+      "Substances",
+      "Effects",
+      "Docs",
+      "SEO",
+      "Other",
+    ]);
+    expect(sections.flatMap((entry) => entry.groups).length).toBe(groups.length);
+    expect(sections.find((entry) => entry.section === "Docs")?.groups.map((entry) => entry.group)).toEqual([
+      "Docs · Code",
+      "Docs · How",
+      "Docs · License",
+    ]);
+    expect(sections[sections.length - 1]?.groups.map((entry) => entry.group)).toEqual(["Brand new group"]);
+    expect(sectionCopyStudioGroups([]).length).toBe(0);
   });
 
   it("finds blocks by key or label substring across every group, and none for a blank query", () => {

@@ -50,7 +50,7 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     );
     expect(screen.getByText("Aligned")).toBeInTheDocument();
     expect(
-      screen.getByText("Rotated 12° — the bond is now vertical. Save to publish."),
+      screen.getByText("Rotated 12°. The bond is now vertical. Save to publish."),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Set bond vertical" })).toBeEnabled();
 
@@ -146,7 +146,7 @@ describe("MoleculeEditorTab substance canvas flows", () => {
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "donor molblock"),
     );
-    expect(screen.getByText(/imported structure — unsaved/)).toBeInTheDocument();
+    expect(screen.getByText(/imported structure, unsaved/)).toBeInTheDocument();
     expect(screen.getByText("Structure imported")).toBeInTheDocument();
     // Nothing publishes until the user edits: the save gate stays closed.
     expect(screen.getByRole("button", { name: /Save/ })).toBeDisabled();

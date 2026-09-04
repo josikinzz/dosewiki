@@ -27,16 +27,16 @@ export function MoleculeGuardStatus({
     );
   }
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
         {mode === "substances" ? "Stereo guard" : "Structure guard"}
       </span>
-      <div>{pill}</div>
+      {pill}
       {mismatch ? (
-        <p className="theme-danger-text text-xs">
+        <p className="theme-danger-text basis-full text-xs sm:basis-auto">
           {mode === "classes" || mode === "templates"
-            ? "Warning: this changed the canonical class structure, not just the drawing."
-            : "Warning: this changed the actual molecule, not just the drawing."}
+            ? "This changed the canonical class structure, not just the drawing. Saving keeps that change."
+            : "This changed the actual molecule, not just the drawing. Saving publishes the changed chemistry."}
         </p>
       ) : null}
     </div>

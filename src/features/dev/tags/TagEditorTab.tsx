@@ -11,16 +11,17 @@ import { useDevMode } from "../context/DevModeContext";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import {
-  ActionNotice,
   EditorActionGroup,
   EditorSection,
+  LoadErrorState,
   useScrollToDetail,
 } from "@/features/dev/components";
 
 import { TagListPanel } from "./TagListPanel";
 import { TagDetailPanel } from "./TagDetailPanel";
 import { TagMutationForms } from "./TagMutationForms";
-import type { TagEditorTabProps } from "./types";
+import { TagNotice } from "./TagNotice";
+import type { TagEditorTabProps, TagUndo } from "./types";
 import {
   createTagEditorState,
   getFilteredTags,
@@ -42,6 +43,12 @@ type RegistryFetchState =
   | { status: "ready"; entries: TagRegistryEntry[] };
 
 const TAG_REGISTRY_ENDPOINT = "/api/dev/editor-library?scope=tag-registry";
+
+type RebasedTagMutation = {
+  /** The working set the rewrite ran over: hydrated where the plan asked, otherwise as found. */
+  before: SubstanceArticle[];
+  result: TagMutationResult;
+};
 
 /**
  * Re-run a planned mutation against the draft as it stands *now*, after the
@@ -66,7 +73,7 @@ function rebaseTagMutation({
   landedBySlug: ReadonlyMap<string, SubstanceArticle>;
   hydratedSlugs: ReadonlySet<string>;
   mutation: TagMutation;
-}): TagMutationResult {
+}): RebasedTagMutation {
   const rebased = previous.map((draft, index) => {
     const landed = landedBySlug.get(resolveEditorArticleSlug(draft));
     return landed && draft === baseline[index] ? landed : draft;
@@ -77,17 +84,50 @@ function rebaseTagMutation({
     hydratedSlugs.has(resolveEditorArticleSlug(rebased[change.index])),
   );
   if (changes.length === 0) {
-    return { articles: previous, changes };
+    return { before: rebased, result: { articles: previous, changes } };
   }
   if (changes.length === rewrite.changes.length) {
-    return rewrite;
+    return { before: rebased, result: rewrite };
   }
 
   const kept = new Set(changes.map((change) => change.index));
   return {
-    articles: rebased.map((row, index) => (kept.has(index) ? rewrite.articles[index] : row)),
-    changes,
+    before: rebased,
+    result: {
+      articles: rebased.map((row, index) => (kept.has(index) ? rewrite.articles[index] : row)),
+      changes,
+    },
   };
+}
+
+type RevertedTagMutation = { articles: SubstanceArticle[]; restoredCount: number };
+
+/**
+ * Put a rewrite back. A row is restored only while it is still exactly the
+ * row the rewrite produced; one edited since keeps its edit. Rows are matched
+ * by slug, so an article added or removed elsewhere since cannot shift the
+ * restore onto a neighbour.
+ */
+function revertTagMutation(previous: SubstanceArticle[], undo: TagUndo): RevertedTagMutation {
+  const bySlug = new Map<string, { before: SubstanceArticle; after: SubstanceArticle }>();
+  for (const index of undo.changedIndexes) {
+    const after = undo.after[index];
+    const before = undo.before[index];
+    if (after && before) {
+      bySlug.set(resolveEditorArticleSlug(after), { before, after });
+    }
+  }
+
+  let restoredCount = 0;
+  const articles = previous.map((row) => {
+    const entry = bySlug.get(resolveEditorArticleSlug(row));
+    if (!entry || row !== entry.after) {
+      return row;
+    }
+    restoredCount += 1;
+    return entry.before;
+  });
+  return { articles: restoredCount === 0 ? previous : articles, restoredCount };
 }
 
 async function fetchTagRegistryEntries(): Promise<TagRegistryEntry[]> {
@@ -135,12 +175,21 @@ export function TagEditorTab({
   const registryEntries = registryFetch.status === "ready" ? registryFetch.entries : null;
   const registry = useMemo(() => buildTagRegistry(registryEntries ?? []), [registryEntries]);
 
-  // A silent refetch for the header's refresh action: the panels stay mounted
-  // and the rebuilt registry flows in through the articlesChanged dispatch.
-  const handleRefreshSnapshot = useCallback(() => {
+  // The header's reload keeps the panels mounted: the rebuilt registry flows
+  // in through the articlesChanged dispatch, and the button reports the
+  // round trip instead of leaving the editor guessing whether it ran.
+  const [reload, setReload] = useState<"idle" | "busy" | "failed">("idle");
+  const handleReload = useCallback(() => {
+    setReload("busy");
     void fetchTagRegistryEntries()
-      .then((entries) => setRegistryFetch({ status: "ready", entries }))
-      .catch((error: unknown) => console.error("Unable to refresh the tag registry.", error));
+      .then((entries) => {
+        setRegistryFetch({ status: "ready", entries });
+        setReload("idle");
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to refresh the tag registry.", error);
+        setReload("failed");
+      });
   }, []);
 
   const [state, dispatch] = useReducer(tagEditorReducer, articles, createTagEditorState);
@@ -156,7 +205,7 @@ export function TagEditorTab({
   const selectedUsage = useMemo(() => getSelectedUsage(state), [state]);
   const totalTags = useMemo(() => getTotalTags(state), [state]);
 
-  // Below the lg split the tag list stacks above the detail and mutation
+  // Below the xl split the tag list stacks above the detail and mutation
   // panels. Keyed on the tapped tag, not `state.selected`, so the first-tag
   // fallback on registry load, field change, or search does not move the page.
   const detailRef = useRef<HTMLDivElement | null>(null);
@@ -187,7 +236,7 @@ export function TagEditorTab({
               .filter((slug) => slug.length > 0),
           );
           if (hydratedSlugs.size === 0) {
-            dispatch({ type: "mutationSucceeded", effectId: effect.id, result: plan });
+            dispatch({ type: "mutationSucceeded", effectId: effect.id, result: plan, before: articles });
             return;
           }
 
@@ -213,24 +262,29 @@ export function TagEditorTab({
           // every edit made while hydration was in flight. flushSync makes
           // React run that transform before this continues, so the result the
           // notice and registry are built from is the one the draft holds.
-          const outcome: { result: TagMutationResult | null } = { result: null };
+          const outcome: { rebased: RebasedTagMutation | null } = { rebased: null };
           flushSync(() => {
             applyArticlesTransform((previous) => {
-              const result = rebaseTagMutation({
+              const rebased = rebaseTagMutation({
                 previous,
                 baseline,
                 landedBySlug,
                 hydratedSlugs,
                 mutation: effect.mutation,
               });
-              outcome.result = result;
-              return result.articles;
+              outcome.rebased = rebased;
+              return rebased.result.articles;
             });
           });
-          if (!outcome.result) {
+          if (!outcome.rebased) {
             throw new Error("The working set did not accept the tag rewrite.");
           }
-          dispatch({ type: "mutationSucceeded", effectId: effect.id, result: outcome.result });
+          dispatch({
+            type: "mutationSucceeded",
+            effectId: effect.id,
+            result: outcome.rebased.result,
+            before: outcome.rebased.before,
+          });
         } catch (error) {
           console.error("Tag mutation failed", error);
           dispatch({
@@ -240,6 +294,36 @@ export function TagEditorTab({
           });
         }
       })();
+      return;
+    }
+
+    if (effect.kind === "undoMutation") {
+      try {
+        const outcome: { reverted: RevertedTagMutation | null } = { reverted: null };
+        flushSync(() => {
+          applyArticlesTransform((previous) => {
+            const reverted = revertTagMutation(previous, effect.undo);
+            outcome.reverted = reverted;
+            return reverted.articles;
+          });
+        });
+        if (!outcome.reverted) {
+          throw new Error("The working set did not accept the restore.");
+        }
+        dispatch({
+          type: "undoSucceeded",
+          effectId: effect.id,
+          articles: outcome.reverted.articles,
+          restoredCount: outcome.reverted.restoredCount,
+        });
+      } catch (error) {
+        console.error("Tag undo failed", error);
+        dispatch({
+          type: "undoFailed",
+          effectId: effect.id,
+          message: error instanceof Error ? error.message : "The change could not be put back. Try again.",
+        });
+      }
       return;
     }
 
@@ -277,6 +361,10 @@ export function TagEditorTab({
     dispatch({ type: "deleteSubmitted" });
   }, []);
 
+  const handleUndo = useCallback(() => {
+    dispatch({ type: "undoRequested" });
+  }, []);
+
   const handleCopyDatasetMarkdown = useCallback(async () => {
     dispatch({ type: "copyDiffRequested", hasDatasetChanges });
   }, [hasDatasetChanges]);
@@ -288,22 +376,13 @@ export function TagEditorTab({
   if (registryFetch.status === "error") {
     return (
       <div className="mt-10">
-        <EmptyStateSurface className="flex flex-col items-center justify-center gap-4">
-          <p className="text-sm theme-text-faint">
-            The tag registry could not be loaded, so tags cannot be listed or rewritten right now.
-          </p>
-          <Button
-            variant="pill"
-            size="pill"
-            onClick={() => {
-              setRegistryFetch({ status: "loading" });
-              setRegistryRetry((attempt) => attempt + 1);
-            }}
-          >
-            <Icon icon="lucide:refresh-cw" size={16} />
-            Retry
-          </Button>
-        </EmptyStateSurface>
+        <LoadErrorState
+          message="Tags could not be loaded, so nothing can be listed or changed here yet."
+          onRetry={() => {
+            setRegistryFetch({ status: "loading" });
+            setRegistryRetry((attempt) => attempt + 1);
+          }}
+        />
       </div>
     );
   }
@@ -311,9 +390,7 @@ export function TagEditorTab({
   if (registryFetch.status !== "ready") {
     return (
       <div className="mt-10">
-        <EmptyStateSurface>
-          Loading the tag registry. Only the tag fields are fetched, so this stays a small bounded read.
-        </EmptyStateSurface>
+        <EmptyStateSurface>Loading tags.</EmptyStateSurface>
       </div>
     );
   }
@@ -324,25 +401,35 @@ export function TagEditorTab({
       <EditorSection
         icon="lucide:tags"
         title="Tag Editor"
-        description="Rename, reclassify, or delete existing tags across the draft dataset. Changes apply instantly to the in-memory articles and downstream Dev tools."
+        description="Rename, move, or delete a tag across every article that carries it."
         actions={(
           <Button
             variant="pill"
             size="pill"
-            onClick={handleRefreshSnapshot}
+            onClick={handleReload}
+            disabled={reload === "busy"}
+            aria-busy={reload === "busy" || undefined}
           >
-            <Icon icon="lucide:refresh-cw" size={16} />
-            Refresh snapshot
+            <Icon icon="lucide:refresh-cw" size={16} className={reload === "busy" ? "animate-spin" : undefined} />
+            {reload === "busy" ? "Reloading tags" : "Reload tags"}
           </Button>
         )}
       >
-        <div className="text-xs theme-text-faint">
-          <span className="font-semibold theme-text-muted">{totalTags}</span> unique tags detected across the dataset.
+        <div className="flex flex-wrap items-center gap-3 text-xs theme-text-faint">
+          <span>
+            <span className="font-semibold theme-text-muted">{totalTags}</span> tags in use across the four tag fields.
+          </span>
+          {reload === "failed" ? (
+            <TagNotice
+              notice={{ type: "error", message: "Tags could not be reloaded. Try again.", source: "diff" }}
+              onDismiss={() => setReload("idle")}
+            />
+          ) : null}
         </div>
       </EditorSection>
 
       {/* Main Content Grid */}
-      <div className="grid gap-8 lg:grid-cols-[21rem_1fr]">
+      <div className="grid gap-8 xl:grid-cols-[21rem_1fr]">
         <TagListPanel
           activeField={state.activeField}
           onFieldChange={(field) => dispatch({ type: "fieldSelected", field })}
@@ -363,6 +450,8 @@ export function TagEditorTab({
               <TagMutationForms
                 selectedUsage={selectedUsage}
                 notice={state.notice}
+                undo={state.undo}
+                onUndo={handleUndo}
                 renameValue={state.renameValue}
                 onRenameValueChange={(value) => dispatch({ type: "renameDraftChanged", value })}
                 onRename={handleRename}
@@ -382,13 +471,16 @@ export function TagEditorTab({
           ) : (
             <>
               {state.notice && state.notice.source !== "diff" ? (
-                <ActionNotice tone={state.notice.type === "error" ? "danger" : "success"}>
-                  {state.notice.message}
-                </ActionNotice>
+                <TagNotice
+                  notice={state.notice}
+                  undo={state.undo?.source === state.notice.source ? state.undo : null}
+                  onUndo={handleUndo}
+                  busy={state.isApplying}
+                />
               ) : null}
               <EmptyStateSurface className="flex h-full min-h-[24rem] flex-col items-center justify-center">
                 <p className="max-w-sm text-sm theme-text-faint">
-                  No tags found for this field. Choose another field or refresh the snapshot to rebuild the registry.
+                  No tags in this field. Choose another field, or reload tags if you expected some here.
                 </p>
               </EmptyStateSurface>
             </>
@@ -400,17 +492,14 @@ export function TagEditorTab({
       <EditorSection
         icon="lucide:file-diff"
         title="Pending changelog"
-        description="Review the diff output generated from all in-memory edits before committing your changes."
+        description="Every change in your draft so far, across all tools, as it will be committed."
         delay={0.2}
       >
-        <DiffPreview
-          diffText={
-            hasDatasetChanges && datasetMarkdown.trim().length > 0
-              ? datasetMarkdown
-              : "# Dataset\n\nNo differences detected."
-          }
-          maxHeight={288}
-        />
+        {hasDatasetChanges && datasetMarkdown.trim().length > 0 ? (
+          <DiffPreview diffText={datasetMarkdown} maxHeight={288} />
+        ) : (
+          <EmptyStateSurface className="py-6 text-sm theme-text-faint">No changes in your draft yet.</EmptyStateSurface>
+        )}
         <EditorActionGroup label="Tag changelog actions" className="text-xs">
           <Button
             variant="glass"
@@ -432,11 +521,7 @@ export function TagEditorTab({
             <Icon icon="lucide:download" size={14} />
             Download .diff
           </Button>
-          {state.notice?.source === "diff" ? (
-            <ActionNotice tone={state.notice.type === "error" ? "danger" : "success"}>
-              {state.notice.message}
-            </ActionNotice>
-          ) : null}
+          {state.notice?.source === "diff" ? <TagNotice notice={state.notice} /> : null}
         </EditorActionGroup>
       </EditorSection>
 

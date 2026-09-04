@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -70,11 +70,7 @@ function stubFeedback(pendingTotals: number[] = [0]) {
       }
 
       if (url.pathname === "/api/site-feedback/queue") {
-        const status = url.searchParams.get("status");
-        return Response.json({
-          ok: true,
-          feedback: status ? siteRows.filter((row) => row.status === status) : siteRows,
-        });
+        return Response.json({ ok: true, feedback: siteRows });
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -124,7 +120,7 @@ describe("FeedbackTab", () => {
 
     expect((await screen.findAllByText("Website technical issue")).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Site" })).toHaveAttribute("aria-pressed", "true");
-    expect(fetch).not.toHaveBeenCalledWith("/api/article-feedback/queue");
+    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("/api/article-feedback/queue"));
   });
 
   it("falls back to article feedback for a filter value the tab does not know", async () => {
@@ -137,8 +133,11 @@ describe("FeedbackTab", () => {
     const user = userEvent.setup();
     render(<FeedbackTab initialSource="site" />);
 
-    // Select the spam row: from `spam` only `reviewing` is reachable.
-    await user.click(await screen.findByText("Miscellaneous"));
+    // The queue opens on New; the spam row lives under Spam, from where only `reviewing` is reachable.
+    await screen.findAllByText("Website technical issue");
+    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
+    await user.click(await screen.findByRole("option", { name: "Spam 1" }));
+    expect((await screen.findAllByText("Miscellaneous")).length).toBeGreaterThan(0);
 
     expect(screen.getByRole("button", { name: "Reviewing" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Resolve" })).toBeDisabled();
@@ -146,17 +145,33 @@ describe("FeedbackTab", () => {
     expect(screen.getByRole("button", { name: "Spam" })).toBeDisabled();
   });
 
-  it("refetches the queue with the spam filter", async () => {
+  it("keeps the chosen status across sources and in the URL, and applies it to the site queue without a refetch", async () => {
     const user = userEvent.setup();
+    render(<FeedbackTab />);
+
+    await screen.findAllByText("Mescaline");
+    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
+    await user.click(await screen.findByRole("option", { name: "Spam 0" }));
+
+    expect(window.location.search).toBe("?source=article&status=spam");
+    expect(screen.getByText("No spam feedback right now.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Site" }));
+
+    expect(await screen.findAllByText("Miscellaneous")).not.toHaveLength(0);
+    expect(screen.queryByText("Website technical issue")).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Spam (1)");
+    expect(window.location.search).toBe("?source=site&status=spam");
+    expect(fetch).toHaveBeenCalledWith("/api/site-feedback/queue?limit=250");
+    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("status=spam"));
+  });
+
+  it("reads the status filter from the address on load", async () => {
+    window.history.replaceState(null, "", "/dev/article-feedback?source=site&status=spam");
     render(<FeedbackTab initialSource="site" />);
 
-    await screen.findAllByText("Website technical issue");
-    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
-    await user.click(await screen.findByRole("option", { name: "Spam" }));
-
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/site-feedback/queue?status=spam"));
     expect(await screen.findAllByText("Miscellaneous")).not.toHaveLength(0);
-    await waitFor(() => expect(screen.queryByText("Website technical issue")).not.toBeInTheDocument());
+    expect(screen.queryByText("Website technical issue")).not.toBeInTheDocument();
   });
 
   it("invalidates the rail badge after a transition", async () => {
@@ -182,7 +197,7 @@ describe("FeedbackTab", () => {
     await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("none"));
   });
 
-  it("starts the site queue fresh: a note typed on the article queue does not carry over", async () => {
+  it("asks before a source switch drops a typed note, and starts the site queue fresh after Discard", async () => {
     const user = userEvent.setup();
     render(<FeedbackTab />);
 
@@ -191,6 +206,19 @@ describe("FeedbackTab", () => {
     expect(screen.getByLabelText("Review note")).toHaveValue("Checked the pharmacology table.");
 
     await user.click(screen.getByRole("button", { name: "Site" }));
+    const dialog = await screen.findByRole("dialog", { name: "Discard the review note?" });
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Article" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Review note")).toHaveValue("Checked the pharmacology table.");
+
+    await user.click(screen.getByRole("button", { name: "Site" }));
+    await user.click(
+      within(await screen.findByRole("dialog", { name: "Discard the review note?" })).getByRole("button", {
+        name: "Discard changes",
+      }),
+    );
 
     await screen.findAllByText("Website technical issue");
     expect(screen.getByLabelText("Review note")).toHaveValue("");
@@ -218,7 +246,7 @@ describe("FeedbackTab", () => {
     });
 
     render(<FeedbackTab />);
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/article-feedback/queue"));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/article-feedback/queue?limit=250"));
 
     await user.click(screen.getByRole("button", { name: "Site" }));
     await screen.findAllByText("Website technical issue");
@@ -229,6 +257,6 @@ describe("FeedbackTab", () => {
 
     expect(screen.queryByText("Mescaline")).not.toBeInTheDocument();
     expect(screen.getAllByText("Website technical issue").length).toBeGreaterThan(0);
-    expect(screen.getByText("2 loaded")).toBeInTheDocument();
+    expect(screen.getByText("1 new · 1 spam")).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -155,7 +155,7 @@ describe("TripReportPortalTab", () => {
     expect(screen.getByRole("button", { name: /^Published/ })).toHaveTextContent("1");
   });
 
-  it("keeps the submission review transitions reachable from a needs-review row", async () => {
+  it("stores the decision note typed before Accept, or a plain outcome when empty", async () => {
     const user = userEvent.setup();
     render(<TripReportPortalTab />);
 
@@ -163,10 +163,11 @@ describe("TripReportPortalTab", () => {
 
     expect(
       await screen.findByText(
-        (_, element) => element?.tagName === "LI" && element.textContent === "LSD — 75 ug, oral",
+        (_, element) => element?.tagName === "LI" && element.textContent === "LSD · 75 ug, oral",
       ),
     ).toBeInTheDocument();
 
+    await user.type(screen.getByLabelText("Decision note"), "Sober sitter present.");
     await user.click(screen.getByRole("button", { name: "Accept" }));
 
     await waitFor(() =>
@@ -174,10 +175,62 @@ describe("TripReportPortalTab", () => {
         "/api/trip-report-submissions/submission-1/status",
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ status: "accepted", notes: "Accepted for Convex promotion." }),
+          body: JSON.stringify({ status: "accepted", notes: "Sober sitter present." }),
         }),
       ),
     );
+  });
+
+  it("asks before Reject or Mark as spam writes, and records the plain outcome", async () => {
+    const user = userEvent.setup();
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(await screen.findByRole("button", { name: "Mark as spam" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(fetch).not.toHaveBeenCalledWith(
+      "/api/trip-report-submissions/submission-1/status",
+      expect.anything(),
+    );
+
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(fetch).not.toHaveBeenCalledWith(
+      "/api/trip-report-submissions/submission-1/status",
+      expect.anything(),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Reject" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/trip-report-submissions/submission-1/status",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ status: "rejected", notes: "Rejected" }),
+        }),
+      ),
+    );
+  });
+
+  it("steps between queued rows from the review header without closing", async () => {
+    const user = userEvent.setup();
+    stubCorpus([
+      submission,
+      { ...submission, id: "submission-2", title: "Second museum walk", created_at: "2026-06-10T12:00:00.000Z" },
+    ]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    expect(await screen.findByText("1 of 2 in list")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous in list" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Next in list" }));
+    expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
+    expect(screen.getByText("2 of 2 in list")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next in list" })).toBeDisabled();
   });
 
   it("previews and publishes an accepted submission through the promotion endpoint", async () => {
@@ -219,6 +272,8 @@ describe("TripReportPortalTab", () => {
     expect(await screen.findByText("Promotion payload")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Publish" }));
+    // The terminal, public-facing write sits behind the confirm dialog.
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Publish" }));
 
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(

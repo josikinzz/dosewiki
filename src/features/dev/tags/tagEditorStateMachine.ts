@@ -1,4 +1,5 @@
 import {
+  TAG_FIELD_LABELS,
   TAG_FIELDS,
   applyTagMutation,
   buildTagRegistry,
@@ -13,15 +14,17 @@ import {
   type TagUsage,
 } from "@/utils/data/tagRegistry";
 import type { SubstanceArticle } from "@/schema";
-import type { Notice, NoticeSource, SelectedTag } from "./types";
+import type { Notice, NoticeSource, SelectedTag, TagUndo } from "./types";
 
 export type TagEditorEffect =
-  | { kind: "tagMutation"; id: number; mutation: TagMutation; successPrefix: string }
+  | { kind: "tagMutation"; id: number; mutation: TagMutation }
+  | { kind: "undoMutation"; id: number; undo: TagUndo }
   | { kind: "copyDiff"; id: number }
   | { kind: "downloadDiff"; id: number };
 
 type TagEditorEffectRequest =
-  | { kind: "tagMutation"; mutation: TagMutation; successPrefix: string }
+  | { kind: "tagMutation"; mutation: TagMutation }
+  | { kind: "undoMutation"; undo: TagUndo }
   | { kind: "copyDiff" }
   | { kind: "downloadDiff" };
 
@@ -37,6 +40,8 @@ export type TagEditorState = {
   notice: Notice | null;
   isApplying: boolean;
   registry: TagRegistry;
+  /** The last rewrite that can still be put back, until the next one lands. */
+  undo: TagUndo | null;
   pendingEffect: TagEditorEffect | null;
   effectSequence: number;
 };
@@ -57,10 +62,18 @@ export type TagEditorEvent =
   | { type: "downloadDiffRequested"; hasDatasetChanges: boolean }
   | { type: "effectCompleted"; effectId: number }
   | { type: "effectFailed"; effectId: number; message: string }
-  | { type: "mutationSucceeded"; effectId: number; result: TagMutationResult }
+  | {
+      type: "mutationSucceeded";
+      effectId: number;
+      result: TagMutationResult;
+      /** The working set the rewrite ran over, so the rewrite can be put back. */
+      before: readonly SubstanceArticle[];
+    }
   | { type: "mutationFailed"; effectId: number; message: string }
-  | { type: "articlesChanged"; registry: TagRegistry }
-  | { type: "snapshotRefreshed"; registry: TagRegistry };
+  | { type: "undoRequested" }
+  | { type: "undoSucceeded"; effectId: number; articles: SubstanceArticle[]; restoredCount: number }
+  | { type: "undoFailed"; effectId: number; message: string }
+  | { type: "articlesChanged"; registry: TagRegistry };
 
 export const getDefaultTargetField = (source: TagField): TagField => {
   for (const candidate of TAG_FIELDS) {
@@ -85,6 +98,7 @@ export const createTagEditorState = (articles: SubstanceArticle[]): TagEditorSta
     notice: null,
     isApplying: false,
     registry,
+    undo: null,
     pendingEffect: null,
     effectSequence: 0,
   });
@@ -127,6 +141,15 @@ const nextEffect = (
   };
 };
 
+/**
+ * A success notice that still offers Undo stays put while the editor looks at
+ * other tags; everything else is stale the moment the selection moves.
+ */
+const carriedNotice = (state: TagEditorState): Notice | null =>
+  state.undo && state.notice?.type === "success" && state.notice.source === state.undo.source
+    ? state.notice
+    : null;
+
 const selectUsage = (state: TagEditorState, usage: TagUsage): TagEditorState => ({
   ...state,
   activeField: usage.field,
@@ -136,7 +159,7 @@ const selectUsage = (state: TagEditorState, usage: TagUsage): TagEditorState => 
   moveTargetField: getDefaultTargetField(usage.field),
   keepSourceCopy: false,
   deleteConfirmed: false,
-  notice: null,
+  notice: carriedNotice(state),
 });
 
 const clearDrafts = (state: TagEditorState): TagEditorState => ({
@@ -188,6 +211,9 @@ const effectNoticeSource = (effect: TagEditorEffect | null): NoticeSource => {
   if (effect?.kind === "tagMutation") {
     return effect.mutation.type;
   }
+  if (effect?.kind === "undoMutation") {
+    return effect.undo.source;
+  }
   return "diff";
 };
 
@@ -210,15 +236,47 @@ const completeMatchingEffect = (
 const submitMutation = (
   state: TagEditorState,
   mutation: TagMutation,
-  successPrefix: string,
 ): TagEditorState => nextEffect(
   {
     ...state,
     notice: null,
     isApplying: true,
   },
-  { kind: "tagMutation", mutation, successPrefix },
+  { kind: "tagMutation", mutation },
 );
+
+/** "1 article" / "58 articles": the one way this tool counts a blast radius. */
+export const articleCount = (count: number): string => `${count} article${count === 1 ? "" : "s"}`;
+
+/** The verb the notice and the Undo record share, e.g. "Rename". */
+export const mutationActionName = (mutation: TagMutation): string => {
+  switch (mutation.type) {
+    case "rename":
+      return "Rename";
+    case "move":
+      return mutation.keepSourceCopy ? "Copy" : "Move";
+    case "delete":
+      return "Delete";
+  }
+};
+
+/** Names exactly what changed, so the notice is a record and not a toast. */
+export const describeMutation = (mutation: TagMutation, affectedCount: number): string => {
+  const count = articleCount(affectedCount);
+  switch (mutation.type) {
+    case "rename":
+      return `Renamed "${mutation.fromTag}" to "${mutation.toTag}" in ${count}.`;
+    case "move": {
+      const verb = mutation.keepSourceCopy ? "Copied" : "Moved";
+      const renamed = mutation.renamedTag && normalizeTagLabel(mutation.renamedTag) !== normalizeTagLabel(mutation.tag)
+        ? ` as "${mutation.renamedTag}"`
+        : "";
+      return `${verb} "${mutation.tag}" to ${TAG_FIELD_LABELS[mutation.targetField]}${renamed} in ${count}.`;
+    }
+    case "delete":
+      return `Deleted "${mutation.tag}" from ${count}.`;
+  }
+};
 
 export const tagEditorReducer = (
   state: TagEditorState,
@@ -229,7 +287,7 @@ export const tagEditorReducer = (
       return repairSelection({
         ...state,
         activeField: event.field,
-        notice: null,
+        notice: carriedNotice(state),
       });
     case "tagSelected":
       return selectUsage(state, event.usage);
@@ -265,7 +323,7 @@ export const tagEditorReducer = (
         field: selectedUsage.field,
         fromTag: selectedUsage.tag,
         toTag: normalized,
-      }, "Tag renamed.");
+      });
     }
     case "moveSubmitted": {
       const selectedUsage = getSelectedUsage(state);
@@ -285,7 +343,7 @@ export const tagEditorReducer = (
         tag: selectedUsage.tag,
         renamedTag: normalizedMove || undefined,
         keepSourceCopy: state.keepSourceCopy,
-      }, state.keepSourceCopy ? "Tag copied." : "Tag moved.");
+      });
     }
     case "deleteSubmitted": {
       const selectedUsage = getSelectedUsage(state);
@@ -300,7 +358,62 @@ export const tagEditorReducer = (
         type: "delete",
         field: selectedUsage.field,
         tag: selectedUsage.tag,
-      }, "Tag deleted.");
+      });
+    }
+    case "undoRequested": {
+      if (!state.undo || state.isApplying) {
+        return state;
+      }
+      return nextEffect(
+        { ...state, notice: null, isApplying: true },
+        { kind: "undoMutation", undo: state.undo },
+      );
+    }
+    case "undoSucceeded": {
+      const effect = state.pendingEffect;
+      if (effect?.id !== event.effectId || effect.kind !== "undoMutation") {
+        return state;
+      }
+      const { undo } = effect;
+      if (event.restoredCount === 0) {
+        return {
+          ...state,
+          undo: null,
+          pendingEffect: null,
+          isApplying: false,
+          notice: {
+            type: "error",
+            message: "Nothing to put back: those articles have changed since.",
+            source: undo.source,
+          },
+        };
+      }
+      return repairSelection({
+        ...state,
+        registry: buildTagRegistry(event.articles),
+        undo: null,
+        pendingEffect: null,
+        isApplying: false,
+        activeField: undo.selection.activeField,
+        selected: undo.selection.selected,
+        renameValue: "",
+        moveLabel: "",
+        keepSourceCopy: false,
+        deleteConfirmed: false,
+        notice: {
+          type: "success",
+          message: `${undo.action} undone. ${articleCount(event.restoredCount)} put back.`,
+          source: undo.source,
+        },
+      });
+    }
+    case "undoFailed": {
+      // The record stays: a failed restore is retryable.
+      return completeMatchingEffect(state, event.effectId, {
+        type: "error",
+        message: event.message,
+        source: effectNoticeSource(state.pendingEffect),
+      });
     }
     case "copyDiffRequested":
       if (!event.hasDatasetChanges) {
@@ -347,16 +460,23 @@ export const tagEditorReducer = (
       }
 
       const summary = summarizeMutation(event.result);
-      const suffix = summary.affectedCount === 1 ? "article" : "articles";
       const registry = buildTagRegistry(event.result.articles);
       const successState = {
         ...state,
         registry,
         pendingEffect: null,
         isApplying: false,
+        undo: {
+          source: effect.mutation.type,
+          action: mutationActionName(effect.mutation),
+          before: event.before,
+          after: event.result.articles,
+          changedIndexes: event.result.changes.map((change) => change.index),
+          selection: { activeField: state.activeField, selected: state.selected },
+        },
         notice: {
           type: "success" as const,
-          message: `${effect.successPrefix} ${summary.affectedCount} ${suffix} updated.`,
+          message: describeMutation(effect.mutation, summary.affectedCount),
           source: effect.mutation.type,
         },
       };
@@ -396,7 +516,6 @@ export const tagEditorReducer = (
       });
     }
     case "articlesChanged":
-    case "snapshotRefreshed":
       return repairSelection({
         ...state,
         registry: event.registry,

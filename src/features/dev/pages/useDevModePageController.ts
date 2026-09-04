@@ -80,6 +80,7 @@ export function useDevModePageController({
     changeLogEntries,
     convexEnabled,
     appendChangeLogEntryToState,
+    feedWindow,
   } = useDevChangelogFeed({ active: tabNeedsChangelogFeed(activeTab) });
   const chromeEnvironment = useDevChromeEnvironment({
     activeTab,
@@ -90,6 +91,7 @@ export function useDevModePageController({
   const changeLog = useDevModeChangeLog({
     changeLogEntries,
     enableStickyPanels: chromeEnvironment.enableStickyPanels,
+    feedWindow,
   });
   const { clearNotice: clearChangeLogNotice } = changeLog;
 
@@ -178,12 +180,14 @@ export function useDevModePageController({
     changeLog,
     commitPanel,
     renderCommitPanel,
+    articlesInitialSlug: initialArticleSlug,
     citationReviewInitialSlug: initialArticleSlug,
     moleculeEditorInitialSlug: initialArticleSlug,
     replicationsInitialSlug: initialArticleSlug,
     bannersInitialSlug: initialArticleSlug,
     writingInitialSlug: initialArticleSlug,
     copyStudioInitialKey: initialArticleSlug,
+    playlistsInitialKey: initialArticleSlug,
     initialFilter,
     tagEditorTabProps,
     contributorDirectory,

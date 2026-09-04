@@ -288,7 +288,7 @@ export function ReviewArticleView({
                   >
                     Apply to draft
                   </Button>,
-                  "Apply form edits to the working set, then commit them to Convex. The review tick saves separately and needs no commit.",
+                  "Form edits stay in your draft until you commit them. The review tick saves on its own and needs no commit.",
                 )}
               </div>
             ) : null}

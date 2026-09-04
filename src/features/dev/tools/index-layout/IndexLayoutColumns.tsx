@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -22,6 +22,19 @@ import type {
 } from "./types";
 import type { ColumnGroup } from "./useIndexLayoutCategoryController";
 
+/**
+ * Edge fades on the horizontal scroller, shown only while columns are hidden
+ * beyond that edge. Applied as a mask (not an overlay) so the page's gradient
+ * canvas shows through; the scrollbar stays visible underneath.
+ */
+const SCROLL_EDGE_CLASS =
+  "data-scroll-start:[mask-image:linear-gradient(to_right,transparent,#000_2.25rem)]"
+  + " data-scroll-end:[mask-image:linear-gradient(to_left,transparent,#000_2.25rem)]"
+  + " data-scroll-start:data-scroll-end:[mask-image:linear-gradient(to_right,transparent,#000_2.25rem,#000_calc(100%-2.25rem),transparent)]";
+
+/** Fixed column width once the chosen count no longer fits the board. */
+const OVERFLOW_COLUMN_WIDTH_CLASS = "w-[320px]";
+
 function ColumnDroppable({
   id,
   label,
@@ -43,6 +56,8 @@ function ColumnDroppable({
 
 type IndexLayoutColumnsProps = {
   columnCount: number;
+  /** How many columns the board's container can hold at its current width. */
+  fitCount: number;
   columnGroups: ColumnGroup[];
   draftCategoryTotal: number;
   expansionSignal: CategoryExpansionSignal | null;
@@ -52,6 +67,7 @@ type IndexLayoutColumnsProps = {
     updater: (category: ManualCategoryDefinition) => ManualCategoryDefinition,
   ) => void;
   removeCategory: (index: number) => void;
+  removeSection: (index: number, sectionIndex: number) => void;
   moveCategory: (index: number, direction: "up" | "down") => void;
   setColumn: (index: number, column: number) => void;
   addSection: (index: number) => void;
@@ -64,12 +80,14 @@ type IndexLayoutColumnsProps = {
 
 export function IndexLayoutColumns({
   columnCount,
+  fitCount,
   columnGroups,
   draftCategoryTotal,
   expansionSignal,
   handleDragEnd,
   updateCategory,
   removeCategory,
+  removeSection,
   moveCategory,
   setColumn,
   addSection,
@@ -85,6 +103,37 @@ export function IndexLayoutColumns({
     useSensor(KeyboardSensor),
   );
 
+  // When the editor asks for more columns than fit, the board keeps each
+  // column at a readable width and scrolls sideways inside its own box.
+  // Otherwise the columns share the width, so the last one is never clipped.
+  const overflows = columnCount > fitCount;
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ start: false, end: false });
+  const syncEdges = useCallback(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      return;
+    }
+    const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+    const next = { start: scroller.scrollLeft > 4, end: scroller.scrollLeft < maxScroll - 4 };
+    setEdges((previous) =>
+      previous.start === next.start && previous.end === next.end ? previous : next);
+  }, []);
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      return;
+    }
+    syncEdges();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", syncEdges);
+      return () => window.removeEventListener("resize", syncEdges);
+    }
+    const observer = new ResizeObserver(syncEdges);
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, [overflows, columnCount, syncEdges]);
+
   return (
     <div className="space-y-6">
       <DndContext
@@ -92,10 +141,17 @@ export function IndexLayoutColumns({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        {/* Below the tablet step the columns stack full width; from md up they sit
-            side by side at a fixed width inside a horizontal scroller. */}
-        <div className="md:overflow-x-auto md:pb-2">
-          <div className="grid grid-cols-1 gap-5 md:flex md:w-max">
+        <div
+          ref={overflows ? scrollerRef : undefined}
+          onScroll={overflows ? syncEdges : undefined}
+          data-scroll-start={overflows && edges.start ? "" : undefined}
+          data-scroll-end={overflows && edges.end ? "" : undefined}
+          className={overflows ? `overflow-x-auto pb-2 ${SCROLL_EDGE_CLASS}` : undefined}
+        >
+          <div
+            className={overflows ? "flex w-max gap-5" : "grid gap-5"}
+            style={overflows ? undefined : { gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}
+          >
             {columnGroups.map(({ index: colIndex, items }) => (
               <SortableContext
                 key={colIndex}
@@ -105,7 +161,7 @@ export function IndexLayoutColumns({
                 <ColumnDroppable
                   id={`column-${colIndex}`}
                   label={`Column ${colIndex + 1}`}
-                  className="flex w-full flex-col gap-4 md:w-[320px]"
+                  className={`flex min-w-0 flex-col gap-4 ${overflows ? OVERFLOW_COLUMN_WIDTH_CLASS : "w-full"}`}
                 >
                   {items.length === 0 && (
                     <EmptyStateSurface
@@ -126,6 +182,7 @@ export function IndexLayoutColumns({
                       expansionSignal={expansionSignal}
                       onUpdateCategory={updateCategory}
                       onRemoveCategory={removeCategory}
+                      onRemoveSection={removeSection}
                       onMoveCategory={moveCategory}
                       onSetColumn={setColumn}
                       onAddSection={addSection}

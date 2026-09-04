@@ -10,7 +10,16 @@ vi.mock("@/features/dev/notices/devNoticeLifecycle", () => ({
 }));
 
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { ChangelogFeedWindow } from "./useDevChangelogFeed";
 import { useDevModeChangeLog } from "./useDevModeChangeLog";
+
+const feedWindow: ChangelogFeedWindow = {
+  loadedCount: 45,
+  hasMore: false,
+  atServerCap: false,
+  loading: false,
+  loadMore: vi.fn(),
+};
 
 function buildEntry(index: number): ChangeLogEntry {
   const padded = String(index).padStart(2, "0");
@@ -33,7 +42,7 @@ describe("useDevModeChangeLog", () => {
   it("limits initially rendered entries and expands in batches", () => {
     const entries = Array.from({ length: 45 }, (_, index) => buildEntry(index + 1));
     const { result } = renderHook(() =>
-      useDevModeChangeLog({ changeLogEntries: entries, enableStickyPanels: false }),
+      useDevModeChangeLog({ changeLogEntries: entries, enableStickyPanels: false, feedWindow }),
     );
 
     expect(result.current.filteredEntries).toHaveLength(45);
@@ -58,7 +67,7 @@ describe("useDevModeChangeLog", () => {
   it("resets the visible batch after filters change", () => {
     const entries = Array.from({ length: 45 }, (_, index) => buildEntry(index + 1));
     const { result } = renderHook(() =>
-      useDevModeChangeLog({ changeLogEntries: entries, enableStickyPanels: false }),
+      useDevModeChangeLog({ changeLogEntries: entries, enableStickyPanels: false, feedWindow }),
     );
 
     act(() => {

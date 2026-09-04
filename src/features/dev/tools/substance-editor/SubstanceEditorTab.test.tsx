@@ -45,7 +45,7 @@ import { SubstanceEditorTab } from "./SubstanceEditorTab";
 
 async function selectLsdAndDirtyTheForm() {
   fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
-  expect(await screen.findByText("Substance Article")).toBeInTheDocument();
+  expect(await screen.findByText("Substance Article: LSD")).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: /Overview/ }));
   const titleInput = await screen.findByLabelText("Display Name / Title");
@@ -80,7 +80,7 @@ describe("SubstanceEditorTab", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
 
-    expect(await screen.findByText("Substance Article")).toBeInTheDocument();
+    expect(await screen.findByText("Substance Article: LSD")).toBeInTheDocument();
     expect(screen.getByText("Commit panel")).toBeInTheDocument();
   });
 
@@ -88,6 +88,29 @@ describe("SubstanceEditorTab", () => {
     render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
 
     expect(screen.getByText("Select a substance to begin editing")).toBeInTheDocument();
+  });
+
+  it("records the open substance in the URL and opens on a deep link without rewriting it", async () => {
+    const replaceState = vi.spyOn(window.history, "replaceState");
+    const { unmount } = render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
+    expect(await screen.findByText("Substance Article: LSD")).toBeInTheDocument();
+    expect(screen.getByText("Review Needed", { selector: "h2 *" })).toBeInTheDocument();
+    expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/articles/lsd");
+    unmount();
+    replaceState.mockClear();
+
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} initialSlug="mdma" />);
+    expect(await screen.findByText("Substance Article: MDMA")).toBeInTheDocument();
+    expect(replaceState).not.toHaveBeenCalled();
+  });
+
+  it("opens a URL-only deep link with the URL-only toggle already on", async () => {
+    render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} initialSlug="quiet" />);
+
+    expect(await screen.findByText("Substance Article: Quiet")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /quiet/i })).toBeInTheDocument();
   });
 
   it("reveals low and hide-for-now articles through the URL-only toggle", () => {
@@ -102,41 +125,42 @@ describe("SubstanceEditorTab", () => {
     expect(screen.getByText("Hidden for now")).toBeInTheDocument();
   });
 
-  it("keeps the current substance when the unsaved-edits confirm is declined", async () => {
+  it("keeps the current substance when the discard dialog is dismissed", async () => {
     render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     await selectLsdAndDirtyTheForm();
 
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     fireEvent.click(screen.getByRole("button", { name: /mdma/i }));
 
-    expect(confirmSpy).toHaveBeenCalledWith(
-      "This article has unapplied form edits that will be discarded. Switch substances anyway?",
-    );
+    expect(await screen.findByText("Discard unapplied form edits?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Discard unapplied form edits?")).not.toBeInTheDocument();
+    });
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
     expect(screen.getByLabelText("Display Name / Title")).toHaveValue("LSD edited");
   });
 
-  it("switches substances once the confirm is accepted", async () => {
+  it("switches substances once the edits are discarded", async () => {
     render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     await selectLsdAndDirtyTheForm();
 
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     fireEvent.click(screen.getByRole("button", { name: /mdma/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Discard changes" }));
 
-    await waitFor(() => {
-      expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
-    });
+    expect(await screen.findByText("Substance Article: MDMA")).toBeInTheDocument();
+    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
   });
 
-  it("does not confirm when the form has no unapplied edits", async () => {
+  it("switches without asking when the form has no unapplied edits", async () => {
     render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
-    expect(await screen.findByText("Substance Article")).toBeInTheDocument();
+    expect(await screen.findByText("Substance Article: LSD")).toBeInTheDocument();
 
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     fireEvent.click(screen.getByRole("button", { name: /mdma/i }));
 
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(await screen.findByText("Substance Article: MDMA")).toBeInTheDocument();
+    expect(screen.queryByText("Discard unapplied form edits?")).not.toBeInTheDocument();
   });
 
   it("names the two-step save and warns while form edits are unapplied", async () => {
@@ -166,7 +190,7 @@ describe("SubstanceEditorTab", () => {
 
     render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
-    expect(await screen.findByText("Substance Article")).toBeInTheDocument();
+    expect(await screen.findByText("Substance Article: LSD")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Copy" }));
 
@@ -182,7 +206,7 @@ describe("SubstanceEditorTab", () => {
 
     render(<SubstanceEditorTab renderCommitPanel={renderCommitPanel} />);
     fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
-    expect(await screen.findByText("Substance Article")).toBeInTheDocument();
+    expect(await screen.findByText("Substance Article: LSD")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Copy" }));
 

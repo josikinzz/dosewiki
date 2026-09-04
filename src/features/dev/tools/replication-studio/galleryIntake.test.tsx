@@ -53,13 +53,23 @@ const ROWS: StudioRow[] = [
 
 describe("GalleryPicker", () => {
   it("disables the trigger while loading instead of rendering nothing", () => {
-    render(<GalleryPicker candidates={[]} currentSlug={null} onSelect={() => {}} loading />);
+    render(<GalleryPicker candidates={[]} currentSlug={null} onSelect={() => {}} status="loading" />);
     expect(screen.getByRole("combobox")).toBeDisabled();
+  });
+
+  it("stays disabled and says so when the list failed, with no spinner", () => {
+    const { container } = render(
+      <GalleryPicker candidates={[]} currentSlug={null} onSelect={() => {}} status="error" />,
+    );
+    const trigger = screen.getByRole("combobox");
+    expect(trigger).toBeDisabled();
+    expect(trigger).toHaveTextContent("Substance list unavailable");
+    expect(container.querySelector(".animate-spin")).toBeNull();
   });
 
   it("filters to never-curated substances, most matches first, in worklist mode", async () => {
     const user = userEvent.setup();
-    render(<GalleryPicker candidates={CANDIDATES} currentSlug="lsd" onSelect={() => {}} loading={false} />);
+    render(<GalleryPicker candidates={CANDIDATES} currentSlug="lsd" onSelect={() => {}} status="ready" />);
 
     await user.click(screen.getByRole("combobox"));
     expect(await screen.findAllByRole("option")).toHaveLength(3);

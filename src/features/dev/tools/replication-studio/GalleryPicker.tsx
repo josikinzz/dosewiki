@@ -9,12 +9,14 @@
  * The addition over the old inline combobox is the **needs-curation worklist**:
  * a toggle that drops every substance with stored curation and orders the rest
  * by match count, so the picker stops being a directory and becomes the queue
- * an editor actually works down. In that mode the dot — uniformly "never
- * curated" — is replaced by the row's 1-based queue position.
+ * an editor actually works down. In that mode the dot (uniformly "never
+ * curated") is replaced by the row's 1-based queue position.
  *
- * `loading` renders the trigger disabled rather than rendering nothing: the
- * batched substance read walks the whole article table, and a toolbar that
- * appears late shifts everything beside it.
+ * `status` drives the trigger: while the batched substance read walks the
+ * whole article table the trigger renders disabled rather than not at all,
+ * because a toolbar that appears late shifts everything beside it. When that
+ * read fails the trigger stays disabled and says so; the retry lives in the
+ * notice beside it, never a spinner next to a failure.
  */
 
 import { useMemo, useState } from "react";
@@ -31,7 +33,7 @@ export type GalleryPickerProps = {
   candidates: readonly GalleryCandidate[];
   currentSlug: string | null;
   onSelect: (slug: string) => void;
-  loading: boolean;
+  status: "loading" | "ready" | "error";
 };
 
 function matchLabel(candidate: GalleryCandidate): string {
@@ -42,7 +44,7 @@ function matchLabel(candidate: GalleryCandidate): string {
   return candidate.curated ? `${matches} · ${candidate.curated_count} curated` : matches;
 }
 
-export function GalleryPicker({ candidates, currentSlug, onSelect, loading }: GalleryPickerProps) {
+export function GalleryPicker({ candidates, currentSlug, onSelect, status }: GalleryPickerProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   /** Session-only: a queue you are working down should not survive a reload. */
@@ -71,9 +73,12 @@ export function GalleryPicker({ candidates, currentSlug, onSelect, loading }: Ga
     return rows;
   }, [candidates, query, worklistOnly]);
 
-  const triggerLabel = loading
-    ? "Loading substances…"
-    : (current?.title ?? "Choose a substance");
+  const triggerLabel =
+    status === "loading"
+      ? "Loading substances…"
+      : status === "error"
+        ? "Substance list unavailable"
+        : (current?.title ?? "Choose a substance");
 
   return (
     <Popover
@@ -90,19 +95,23 @@ export function GalleryPicker({ candidates, currentSlug, onSelect, loading }: Ga
           variant="glass"
           size="auto"
           role="combobox"
-          disabled={loading}
+          disabled={status !== "ready"}
           aria-expanded={open}
           aria-label={
-            loading
+            status === "loading"
               ? "Loading the substance list"
-              : current
-                ? `Current substance: ${current.title}. Open the substance list`
-                : "Open the substance list"
+              : status === "error"
+                ? "The substance list could not be loaded"
+                : current
+                  ? `Current substance: ${current.title}. Open the substance list`
+                  : "Open the substance list"
           }
           className="min-w-[10rem] max-w-[18rem] gap-2 px-2.5 py-1.5"
         >
-          {loading ? (
+          {status === "loading" ? (
             <Icon icon="lucide:loader-circle" size={13} className="theme-text-faint shrink-0 animate-spin" />
+          ) : status === "error" ? (
+            <Icon icon="lucide:circle-alert" size={13} className="theme-text-faint shrink-0" />
           ) : current ? (
             <span
               aria-hidden
@@ -144,7 +153,7 @@ export function GalleryPicker({ candidates, currentSlug, onSelect, loading }: Ga
             {visible.length === 0 ? (
               <div className="theme-text-muted py-6 text-center text-sm">
                 {worklistOnly
-                  ? "Nothing left in the worklist — every substance here has stored curation."
+                  ? "Nothing left in the worklist: every substance here has stored curation."
                   : "No substances found"}
               </div>
             ) : (

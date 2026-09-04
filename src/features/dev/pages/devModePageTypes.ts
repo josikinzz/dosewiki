@@ -52,6 +52,8 @@ export type DevModePageControllerState = {
   renderCommitPanel: ReturnType<
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["renderCommitPanel"];
+  /** `/dev/articles/<slug>`: the substance the editor opens on. */
+  articlesInitialSlug?: string;
   citationReviewInitialSlug?: string;
   moleculeEditorInitialSlug?: string;
   replicationsInitialSlug?: string;
@@ -63,6 +65,8 @@ export type DevModePageControllerState = {
   writingInitialSlug?: string;
   /** `/dev/copy-studio/<block key>`: the block Copy Studio opens on. */
   copyStudioInitialKey?: string;
+  /** `/dev/playlists/<key>`: the playlist the tab opens on. */
+  playlistsInitialKey?: string;
   /**
    * The active tab's URL filter value (`/dev/writing?kind=blog`), already
    * validated against the registry descriptor's `filter.values`. Each tab

@@ -22,7 +22,7 @@ export type DevCommitNotice = {
 };
 
 /** Where the primary action sends the draft: written to production or held for review. */
-export type DevCommitDestination = "convex" | "proposal";
+export type DevCommitDestination = "production" | "proposal";
 
 /** The returned proposal the draft rebases; the card names it above the save controls. */
 export type DevCommitRebase = {
@@ -31,36 +31,43 @@ export type DevCommitRebase = {
   onDiscard: () => void;
 };
 
-/** Short id shown in the banner: the tail of a Convex id is what differs between rows. */
+/** Short id shown in the banner: the tail of a proposal id is what differs between rows. */
 const PROPOSAL_ID_DISPLAY_LENGTH = 6;
 
+/**
+ * The one place the save model is spelled out. `eyebrow` names where the
+ * draft goes, `title` is the verb on the button, `description` says what the
+ * editor sees next. Tabs never add a second explanation.
+ */
 const DESTINATION_COPY: Record<
   DevCommitDestination,
-  { title: string; description: string; idle: string }
+  { eyebrow: string; title: string; description: string; idle: string }
 > = {
-  convex: {
-    title: "Save to Convex",
-    description: "Save changes to Convex. Requires login to save.",
-    idle: "Changes are saved to Convex and appear live instantly.",
+  production: {
+    eyebrow: "Live site",
+    title: "Commit to production",
+    description: "Edits stay in your draft until you commit them. Committed changes appear on the live site right away.",
+    idle: "Nothing is published until you commit.",
   },
   proposal: {
+    eyebrow: "Review queue",
     title: "Submit for review",
-    description: "Submit changes for admin review. Requires login to submit.",
-    idle: "Proposals wait in the review queue until an admin applies them.",
+    description: "Edits stay in your draft until you submit them. An admin reviews the proposal before anything goes live.",
+    idle: "Nothing is published until an admin applies your proposal.",
   },
 };
 
 type DevCommitCardProps = {
   notice: DevCommitNotice | null;
-  /** Defaults to a direct Convex save; editors without approval rights propose instead. */
+  /** Defaults to a production commit; editors without approval rights propose instead. */
   destination?: DevCommitDestination;
   footerSlot?: ReactNode;
-  /** The save controls (server health, save button). */
+  /** The save controls (server health, commit button). */
   actionSlot?: ReactNode;
   /**
-   * Panel description. Override per tab so the copy names what is actually
-   * being saved (e.g. "Save index layout changes to Convex. Requires login
-   * to save."). Defaults to copy for the destination.
+   * Panel description. Override per tab only to name what is being
+   * committed (e.g. "Index layout edits stay in your draft until you commit
+   * them."). Defaults to copy for the destination.
    */
   description?: ReactNode;
   /** Set while the draft was seeded from a returned proposal; the next save supersedes it. */
@@ -69,7 +76,7 @@ type DevCommitCardProps = {
 
 export function DevCommitCard({
   notice,
-  destination = "convex",
+  destination = "production",
   footerSlot,
   actionSlot,
   description,
@@ -106,7 +113,7 @@ export function DevCommitCard({
       icon="lucide:shield-check"
       title={
         <span className="flex flex-col gap-0.5">
-          <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">Convex</span>
+          <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">{copy.eyebrow}</span>
           {copy.title}
         </span>
       }

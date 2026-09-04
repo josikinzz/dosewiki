@@ -34,12 +34,15 @@ interface AboutEditorTabProps {
   profilesLoading?: boolean;
   /** Admin: Save writes About; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
+  /** Whether the About draft holds unsaved edits; the Writing rail guards leaving it. */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export const AboutEditorTab = memo(function AboutEditorTab({
   availableProfiles,
   profilesLoading,
   canApprove,
+  onDirtyChange,
 }: AboutEditorTabProps) {
   const controller = useAboutEditorController({ canApprove });
   const {
@@ -69,6 +72,11 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   const aboutFounderKeys = draft.founderKeys;
   const originalFounderKeys = original.founderKeys;
 
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const subtitleTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const normalizedDraft = normalizeWhitespace(aboutMarkdown);
@@ -94,20 +102,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
 
   const isFounderSelectionDirty = addedFounders.length > 0 || removedFounders.length > 0;
   const dirtySectionCount = Number(isMarkdownDirty) + Number(isSubtitleDirty) + Number(isFounderSelectionDirty);
-
-  const sortedProfiles = useMemo(
-    () =>
-      [...availableProfiles].sort((a, b) => {
-        if (currentFounderSet.has(a.key) && !currentFounderSet.has(b.key)) {
-          return -1;
-        }
-        if (!currentFounderSet.has(a.key) && currentFounderSet.has(b.key)) {
-          return 1;
-        }
-        return a.displayName.localeCompare(b.displayName);
-      }),
-    [availableProfiles, currentFounderSet],
-  );
 
   const profileLabelByKey = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -208,8 +202,8 @@ export const AboutEditorTab = memo(function AboutEditorTab({
       />
 
       <AboutFounderSelectionSection
-        sortedProfiles={sortedProfiles}
-        currentFounderSet={currentFounderSet}
+        availableProfiles={availableProfiles}
+        selectedFounders={selectedFounders}
         initialsByKey={initialsByKey}
         onToggleFounderKey={toggleFounderKey}
         onResetFounderKeys={resetFounderKeys}

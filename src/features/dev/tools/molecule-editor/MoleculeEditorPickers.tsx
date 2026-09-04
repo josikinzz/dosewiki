@@ -18,7 +18,7 @@ import {
 } from "./moleculePickerOrdering";
 import type { EditorMode } from "./moleculeEditorTypes";
 
-const SAVED_PILL_TITLE = "Saved molecule depiction in Convex";
+const SAVED_PILL_TITLE = "Has a saved depiction";
 const PUBLISHED_PILL_TITLE = "Article is publicly listed on the site";
 
 export function TemplateInitialization({

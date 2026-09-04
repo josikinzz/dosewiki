@@ -261,8 +261,7 @@ export function saveOrchestratorReducer(
         },
         notice: {
           type: "pending",
-          message:
-            event.message ?? `Credentials verified for ${event.credentials.key}. Saving to Convex...`,
+          message: event.message ?? `Committing to production as ${event.credentials.key}...`,
         },
       };
     }
@@ -280,7 +279,7 @@ export function saveOrchestratorReducer(
       if (result.savedItems.length === 0) {
         notice = {
           type: "error",
-          message: "No Convex-compatible changes to save.",
+          message: "Nothing in the draft can be committed.",
         };
       } else if (result.destination === "proposal") {
         notice = {
@@ -291,12 +290,12 @@ export function saveOrchestratorReducer(
       } else if (result.warnings.length > 0) {
         notice = {
           type: "error",
-          message: `Saved ${items} to Convex as ${result.resolvedSubmitterKey}, but ${result.warnings.length} issue(s) occurred.`,
+          message: `Committed ${items} to production as ${result.resolvedSubmitterKey}, but ${result.warnings.length} issue(s) occurred.`,
         };
       } else {
         notice = {
           type: "success",
-          message: `Saved ${items} to Convex as ${result.resolvedSubmitterKey}.`,
+          message: `Committed ${items} to production as ${result.resolvedSubmitterKey}.`,
           ...link,
         };
       }

@@ -1,30 +1,118 @@
 "use client";
 
-import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
+
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { WarningBannerPreset, WarningBannerTarget } from "@/data/substanceWarningBanners";
+  WARNING_BANNER_TONES,
+  type WarningBannerPreset,
+  type WarningBannerTarget,
+  type WarningBannerTone,
+} from "@/data/substanceWarningBanners";
 import {
   EditorNavTabs,
   EditorNotice,
   EditorSection,
   EditorStatusPill,
+  LoadErrorState,
   type EditorActionStatusState,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
+import { cn } from "@/lib/utils";
+import type { BannerCoverage } from "./bannerCoverage";
 import { CoverageView } from "./CoverageView";
 import {
   PresetsView,
   type BannerIconSizeControl,
   type PresetsViewProps,
 } from "./PresetsView";
+
+/**
+ * The same tone tokens the banner itself renders with, so the readout and the
+ * preview cannot disagree about what "danger" looks like.
+ */
+const TONE_CHIP_CLASS: Record<WarningBannerTone, string> = {
+  danger: "theme-semantic-danger-badge",
+  unsafe: "theme-semantic-unsafe-badge",
+  caution: "theme-semantic-caution-badge",
+};
+
+const TONE_INK_CLASS: Record<WarningBannerTone, string> = {
+  danger: "text-dose-danger-badge",
+  unsafe: "text-dose-unsafe-badge",
+  caution: "text-dose-caution-badge",
+};
+
+/**
+ * The rollout readout. Deliberately the largest type in the tool: no other
+ * /dev surface leads with the blast radius of its own data, and it stays at
+ * zero until an editor acts (design brief §2). One figure per tone, because
+ * "577 of 577 show a banner" was true and useless once a sitewide caution
+ * notice existed; sitewide presets are named as such rather than counted as
+ * every slug in the corpus.
+ */
+function CoverageReadout({
+  coverage,
+  targetCount,
+}: {
+  coverage: BannerCoverage;
+  targetCount: number;
+}) {
+  const nothingLive = coverage.listed.size === 0 && coverage.sitewide === 0;
+  const corpus = targetCount > 0 ? `of ${targetCount} substances` : "substances";
+
+  return (
+    <div className="space-y-3">
+      <dl className="grid gap-2 sm:grid-cols-3">
+        {WARNING_BANNER_TONES.map((tone) => {
+          const reach = coverage.byTone[tone];
+          const sitewide = reach.sitewide > 0;
+          const count = reach.listed.size;
+          return (
+            <div
+              key={tone}
+              className="space-y-1.5 rounded-xl border border-dose-border px-3 py-2.5"
+            >
+              <dt>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.14em]",
+                    TONE_CHIP_CLASS[tone],
+                  )}
+                >
+                  {tone}
+                </span>
+              </dt>
+              <dd className="flex flex-wrap items-baseline gap-x-2">
+                <span
+                  className={cn(
+                    "font-display text-[22px] font-semibold tabular-nums",
+                    sitewide || count > 0 ? TONE_INK_CLASS[tone] : "theme-text-faint",
+                  )}
+                >
+                  {sitewide ? "Every article" : count}
+                </span>
+                <span className="theme-text-secondary text-sm">
+                  {sitewide
+                    ? `${reach.sitewide} sitewide preset${reach.sitewide === 1 ? "" : "s"}`
+                    : corpus}
+                </span>
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+      <p className="theme-text-secondary text-sm">
+        {nothingLive
+          ? "No preset is live. Nothing on the public site shows a banner."
+          : `${coverage.listed.size} ${corpus} are on a banner list.${
+              coverage.sitewide > 0
+                ? ` ${coverage.sitewide} sitewide preset${coverage.sitewide === 1 ? " reaches" : "s reach"} every article, including ones published later.`
+                : ""
+            }`}
+      </p>
+    </div>
+  );
+}
 
 export type WarningBannersStudioViewMode = "presets" | "coverage";
 
@@ -33,7 +121,7 @@ type WarningBannersStudioViewProps = {
   presets: WarningBannerPreset[];
   targets: WarningBannerTarget[];
   targetsError: string | null;
-  liveSlugs: ReadonlySet<string>;
+  coverage: BannerCoverage;
   view: WarningBannersStudioViewMode;
   coverageSlug: string;
   openKey: string | null;
@@ -45,7 +133,8 @@ type WarningBannersStudioViewProps = {
   iconSizeNotice: EditorNoticeMessage | null;
   iconSizeControl: BannerIconSizeControl;
   iconValid: boolean;
-  pendingDelete: WarningBannerPreset | null;
+  /** The `useConfirm` dialog, rendered once here for every guarded write. */
+  confirmDialog: ReactNode;
   onRetryTargets: () => void;
   onViewChange: (view: WarningBannersStudioViewMode) => void;
   onIconValidityChange: (valid: boolean) => void;
@@ -54,12 +143,11 @@ type WarningBannersStudioViewProps = {
   onCreate: () => void;
   onSave: () => void;
   onDiscard: () => void;
-  onCommitEnabledSlugs: PresetsViewProps["onCommitEnabledSlugs"];
-  onRequestDelete: (preset: WarningBannerPreset | null) => void;
+  onRequestEnablement: PresetsViewProps["onRequestEnablement"];
+  onRequestDelete: (preset: WarningBannerPreset) => void;
   onInspectCoverage: (slug: string) => void;
   onCoverageSlugChange: (slug: string) => void;
   onEditCoveragePreset: (preset: WarningBannerPreset) => void;
-  onConfirmDelete: () => void;
 };
 
 /**
@@ -71,7 +159,7 @@ export function WarningBannersStudioView({
   presets,
   targets,
   targetsError,
-  liveSlugs,
+  coverage,
   view,
   coverageSlug,
   openKey,
@@ -83,7 +171,6 @@ export function WarningBannersStudioView({
   iconSizeNotice,
   iconSizeControl,
   iconValid,
-  pendingDelete,
   onRetryTargets,
   onViewChange,
   onIconValidityChange,
@@ -92,67 +179,31 @@ export function WarningBannersStudioView({
   onCreate,
   onSave,
   onDiscard,
-  onCommitEnabledSlugs,
+  onRequestEnablement,
   onRequestDelete,
   onInspectCoverage,
   onCoverageSlugChange,
   onEditCoveragePreset,
-  onConfirmDelete,
+  confirmDialog,
 }: WarningBannersStudioViewProps) {
-  const nothingLive = liveSlugs.size === 0;
-
   return (
     <div className="mt-6 space-y-8 md:mt-8">
       <EditorSection
         icon="lucide:triangle-alert"
         title="Banner Studio"
-        description="Warnings at the top of substance articles. Each enabled preset targets an explicit substance list or, by deliberate choice, every substance article — never a classification rule."
+        description="Warnings at the top of substance articles. Each enabled preset targets an explicit substance list or, by deliberate choice, every substance article, never a classification rule."
         actions={
           <EditorStatusPill tone="neutral">
             {`${presets.length} preset${presets.length === 1 ? "" : "s"}`}
           </EditorStatusPill>
         }
       >
-        {/* The rollout readout. Deliberately the largest type in the tool: no
-            other /dev surface leads with the blast radius of its own data, and
-            it stays at zero until an editor acts (design brief §2). */}
-        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <p
-            className={
-              nothingLive
-                ? "theme-text-primary font-display text-[22px] font-semibold tabular-nums"
-                : "font-display text-[22px] font-semibold tabular-nums text-dose-success"
-            }
-          >
-            {targets.length > 0
-              ? `${liveSlugs.size} of ${targets.length} substances show a banner`
-              : `${liveSlugs.size} substances show a banner`}
-          </p>
-          {nothingLive ? (
-            <p className="theme-text-secondary text-sm">
-              No preset is live. Nothing on the public site shows a banner.
-            </p>
-          ) : null}
-        </div>
+        <CoverageReadout coverage={coverage} targetCount={targets.length} />
 
         {targetsError ? (
-          <EditorNotice
-            notice={{
-              tone: "danger",
-              title: "Couldn't load the substance list",
-              message: (
-                <>
-                  {targetsError}
-                  {" Substance search and the Coverage rail stay empty until it loads."}
-                </>
-              ),
-              actions: (
-                <Button type="button" variant="secondary" size="sm" onClick={onRetryTargets}>
-                  <Icon icon="lucide:refresh-cw" size={15} />
-                  Retry
-                </Button>
-              ),
-            }}
+          <LoadErrorState
+            message={`${targetsError} Substance search and the Coverage rail stay empty until it loads.`}
+            onRetry={onRetryTargets}
           />
         ) : null}
 
@@ -171,16 +222,16 @@ export function WarningBannersStudioView({
               value: "coverage",
               label: "Coverage",
               icon: "lucide:list-checks",
-              badge: liveSlugs.size,
+              badge: coverage.listed.size,
             },
           ]}
         />
 
         {initialSubstanceSlug ? (
           <p className="theme-text-faint text-xs">
-            {"Opened from "}
+            {"Coverage started on "}
             <span className="font-mono">{`/dev/banners/${initialSubstanceSlug}`}</span>
-            {" — Coverage started on that substance."}
+            {", the substance this link opened."}
           </p>
         ) : null}
 
@@ -201,7 +252,7 @@ export function WarningBannersStudioView({
             onCreate={onCreate}
             onSave={onSave}
             onDiscard={onDiscard}
-            onCommitEnabledSlugs={onCommitEnabledSlugs}
+            onRequestEnablement={onRequestEnablement}
             onRequestDelete={onRequestDelete}
             onInspectCoverage={onInspectCoverage}
           />
@@ -213,41 +264,13 @@ export function WarningBannersStudioView({
             activeSlug={coverageSlug}
             onActiveSlugChange={onCoverageSlugChange}
             saveState={saveState}
-            onCommitEnabledSlugs={onCommitEnabledSlugs}
+            onRequestEnablement={onRequestEnablement}
             onEditPreset={onEditCoveragePreset}
           />
         )}
       </EditorSection>
 
-      <Dialog
-        open={pendingDelete !== null}
-        onOpenChange={(open) => !open && onRequestDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete preset</DialogTitle>
-            <DialogDescription>
-              {pendingDelete
-                ? `${pendingDelete.key} is enabled on ${pendingDelete.enabledSlugs.length} substance${pendingDelete.enabledSlugs.length === 1 ? "" : "s"}. Deleting destroys its headline and mechanism text, and it stops rendering everywhere.`
-                : null}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => onRequestDelete(null)}
-            >
-              Keep preset
-            </Button>
-            <Button type="button" variant="destructive" size="sm" onClick={onConfirmDelete}>
-              <Icon icon="lucide:trash-2" size={15} />
-              Delete preset
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {confirmDialog}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   draftFromRow,
   emptyWritingDraft,
   isEditableHere,
+  isSameDraft,
   parseTagList,
   sortWritingEntries,
   suggestSlug,
@@ -54,6 +55,8 @@ export function useWritingWorkbenchController({
         : { type: "new" },
   );
   const [draft, setDraft] = useState<WritingDraft>(emptyWritingDraft);
+  // The draft as it was loaded or last saved; `isDirty` is the distance from it.
+  const [baseline, setBaseline] = useState<WritingDraft>(() => draft);
   const [loadedRow, setLoadedRow] = useState<WritingArticleRow | null>(null);
   const [isLoadingRow, setIsLoadingRow] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -116,9 +119,11 @@ export function useWritingWorkbenchController({
           return;
         }
         slugTouchedRef.current = true;
+        const loaded = draftFromRow(payload.article);
         setKind(payload.article.kind ?? "article");
         setLoadedRow(payload.article);
-        setDraft(draftFromRow(payload.article));
+        setDraft(loaded);
+        setBaseline(loaded);
         setSaveState("idle");
       } catch (error) {
         if (!cancelled) {
@@ -139,20 +144,27 @@ export function useWritingWorkbenchController({
 
   const slugAvailability = checkSlugAvailability(draft.slug, entries ?? [], selectedSlug);
   const readOnly = loadedRow !== null && !isEditableHere(loadedRow);
+  const isDirty = !isSameDraft(draft, baseline);
   const canSave =
     !readOnly &&
     draft.title.trim().length > 0 &&
     (slugAvailability.state === "free" || slugAvailability.state === "current") &&
     saveState !== "saving";
 
-  const startNew = useCallback(() => {
+  const resetDraft = useCallback(() => {
+    const empty = emptyWritingDraft();
     slugTouchedRef.current = false;
-    setSelection({ type: "new" });
     setLoadedRow(null);
-    setDraft(emptyWritingDraft());
+    setDraft(empty);
+    setBaseline(empty);
     setSaveState("idle");
     setNotice(null);
   }, []);
+
+  const startNew = useCallback(() => {
+    setSelection({ type: "new" });
+    resetDraft();
+  }, [resetDraft]);
 
   // The kind filter. A loaded row of the other kind cannot stay open under a
   // rail that no longer lists it, so the editor drops to a fresh draft of the
@@ -168,10 +180,12 @@ export function useWritingWorkbenchController({
     [loadedRow, selection.type, startNew],
   );
 
+  // The pinned entry edits its own document, so the writing draft it replaces
+  // is dropped rather than kept dirty behind it.
   const selectPinned = useCallback(() => {
     setSelection({ type: "pinned" });
-    setNotice(null);
-  }, []);
+    resetDraft();
+  }, [resetDraft]);
 
   const selectRow = useCallback((slug: string) => {
     setSelection({ type: "row", slug });
@@ -195,13 +209,8 @@ export function useWritingWorkbenchController({
     setDraft((current) => ({ ...current, ...patch }));
   }, []);
 
-  const toggleByline = useCallback((key: string) => {
-    setDraft((current) => ({
-      ...current,
-      authorProfileKeys: current.authorProfileKeys.includes(key)
-        ? current.authorProfileKeys.filter((entry) => entry !== key)
-        : [...current.authorProfileKeys, key],
-    }));
+  const setByline = useCallback((authorProfileKeys: string[]) => {
+    setDraft((current) => ({ ...current, authorProfileKeys }));
   }, []);
 
   const save = useCallback(
@@ -232,6 +241,8 @@ export function useWritingWorkbenchController({
         if (!response.ok) {
           throw new Error(payload.error ?? "The article could not be saved.");
         }
+        // What was posted is the new baseline; anything typed meanwhile stays dirty.
+        setBaseline({ ...draft, status });
         setDraft((current) => ({ ...current, status }));
         setSaveState("saved");
         setSelection({ type: "row", slug: draft.slug.trim() });
@@ -268,6 +279,7 @@ export function useWritingWorkbenchController({
     listError,
     slugAvailability,
     readOnly,
+    isDirty,
     canSave,
     startNew,
     selectKind,
@@ -276,7 +288,7 @@ export function useWritingWorkbenchController({
     updateTitle,
     updateSlug,
     updateDraft,
-    toggleByline,
+    setByline,
     save,
   };
 }

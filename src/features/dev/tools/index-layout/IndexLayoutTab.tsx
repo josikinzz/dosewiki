@@ -5,18 +5,19 @@ import {
   EditorNotice,
   EditorSection,
   EditorStatusPill,
+  useConfirm,
 } from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import type { CategoryExpansionSignal } from "./CategoryEditor";
 import { DatasetTabs } from "./DatasetTabs";
 import { IndexLayoutColumns } from "./IndexLayoutColumns";
 import { IndexLayoutJsonEditor } from "./IndexLayoutJsonEditor";
 import { LayoutToolbar } from "./LayoutToolbar";
 import { createLayoutDataHelpers } from "./layoutDataUtils";
+import { useBoardColumnCount, MAX_BOARD_COLUMNS } from "./useBoardColumnCount";
 import { useIndexLayoutCategoryController } from "./useIndexLayoutCategoryController";
+import { useLayoutConfirms } from "./useLayoutConfirms";
 import { useLayoutEditor } from "./useLayoutEditor";
 
 import {
@@ -30,7 +31,6 @@ import {
   areManualsEqual,
 } from "./utils";
 
-const MAX_COLUMNS = 6;
 
 const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
 
@@ -40,12 +40,10 @@ export function IndexLayoutTab({
   enableStickyPanels,
 }: IndexLayoutTabProps) {
   const [columnMode, setColumnMode] = useState<"auto" | 1 | 2 | 3 | 4 | 5 | 6>("auto");
-  const { count: autoColumnCount } = useResponsiveColumnCount();
-  // The shared index math still fits two columns between 480px and the tablet
-  // step; the board stacks there, so "auto" means one column until `md`
-  // (Tailwind `md` starts at 768px).
-  const belowTablet = useMediaQuery("(max-width: 767px)");
-  const columnCount = columnMode === "auto" ? (belowTablet ? 1 : autoColumnCount) : columnMode;
+  // "Auto" follows the board's own width, so the last column never runs past
+  // the content box; a manual count above that scrolls the board sideways.
+  const { ref: boardContainerRef, fitCount } = useBoardColumnCount();
+  const columnCount = columnMode === "auto" ? fitCount : columnMode;
 
   const {
     psychoactiveIndexManual,
@@ -192,6 +190,7 @@ export function IndexLayoutTab({
     moveCategory,
     addCategory,
     addSection,
+    removeSection,
     setColumn,
   } = useIndexLayoutCategoryController({
     allSubstanceRecords,
@@ -214,29 +213,29 @@ export function IndexLayoutTab({
   }, [activeDataset, saveDataset]);
 
   const handleResetDraft = useCallback(() => {
-    if (!hasUnsavedChanges) {
-      return;
-    }
-    if (
-      typeof window !== "undefined"
-      && !window.confirm(`Discard unsaved changes to the ${activeDefinition.label} draft?`)
-    ) {
-      return;
-    }
     resetDraft(activeDataset);
-  }, [activeDataset, activeDefinition.label, hasUnsavedChanges, resetDraft]);
+  }, [activeDataset, resetDraft]);
 
   const handleResetToOriginal = useCallback(() => {
-    if (
-      typeof window !== "undefined"
-      && !window.confirm(
-        `Replace the ${activeDefinition.label} draft with the original source dataset? All edits to this dataset will be lost.`,
-      )
-    ) {
-      return;
-    }
     resetToOriginal(activeDataset);
-  }, [activeDataset, activeDefinition.label, resetToOriginal]);
+  }, [activeDataset, resetToOriginal]);
+
+  const { confirm, dialog: confirmDialog } = useConfirm();
+  const {
+    requestRemoveCategory,
+    requestRemoveSection,
+    requestResetDraft,
+    requestRestoreSource,
+  } = useLayoutConfirms({
+    confirm,
+    datasetLabel: activeDefinition.label,
+    categories: draftManual.categories,
+    substanceOptions,
+    removeCategory,
+    removeSection,
+    resetDraft: handleResetDraft,
+    restoreSource: handleResetToOriginal,
+  });
 
   const handleOrganizeEntries = useCallback(() => {
     organizeEntries(activeDataset);
@@ -251,8 +250,9 @@ export function IndexLayoutTab({
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div ref={boardContainerRef} className="space-y-8">
       {commitPanel ? <div>{commitPanel}</div> : null}
+      {confirmDialog}
       <DatasetTabs
         datasets={datasetOrder.map((datasetKey) => ({
           key: datasetKey,
@@ -293,7 +293,7 @@ export function IndexLayoutTab({
                   return;
                 }
                 const next = Number(value);
-                if (next >= 1 && next <= MAX_COLUMNS) {
+                if (next >= 1 && next <= MAX_BOARD_COLUMNS) {
                   setColumnMode(next as 1 | 2 | 3 | 4 | 5 | 6);
                 }
               }}
@@ -321,8 +321,8 @@ export function IndexLayoutTab({
         showJsonEditor={showJsonEditor}
         onSave={handleSave}
         onOrganize={handleOrganizeEntries}
-        onReset={handleResetDraft}
-        onRestore={handleResetToOriginal}
+        onReset={requestResetDraft}
+        onRestore={requestRestoreSource}
         onToggleJson={() => setShowJsonEditor((previous) => !previous)}
         onAddCategory={addCategory}
         onExpandAll={handleExpandAll}
@@ -346,12 +346,14 @@ export function IndexLayoutTab({
       ) : (
         <IndexLayoutColumns
           columnCount={columnCount}
+          fitCount={fitCount}
           columnGroups={columnGroups}
           draftCategoryTotal={draftManual.categories.length}
           expansionSignal={expansionSignal}
           handleDragEnd={handleDragEnd}
           updateCategory={updateCategory}
-          removeCategory={removeCategory}
+          removeCategory={requestRemoveCategory}
+          removeSection={requestRemoveSection}
           moveCategory={moveCategory}
           setColumn={setColumn}
           addSection={addSection}

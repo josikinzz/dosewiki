@@ -77,6 +77,7 @@ describe("playlistsModel", () => {
     expect(isDraftDirty(draft, mine)).toBe(false);
     expect(isDraftDirty({ ...draft, slugs: ["beta", "alpha"] }, mine)).toBe(true);
     expect(isDraftDirty({ ...draft, expectedUpdatedAt: null, title: "", slugs: [] }, null)).toBe(false);
+    expect(isDraftDirty({ ...draft, expectedUpdatedAt: null, title: "", slugs: [], ownerEmail: "bob@example.com" }, null)).toBe(true);
   });
 });
 
@@ -144,7 +145,7 @@ describe("PlaylistsTab", () => {
     await screen.findByText('Removed "Ada\'s list".');
   });
 
-  it("shows owners to an admin and assigns one through the owner route", async () => {
+  it("shows owners to an admin and reassigns one through the owner route after confirming", async () => {
     const user = userEvent.setup();
     const { calls } = stubPlaylistsApi([mine, { ...theirs, editable: true }]);
     render(<PlaylistsTab isAdmin />);
@@ -154,8 +155,16 @@ describe("PlaylistsTab", () => {
     expect(rowFor("house-opener").getByText(/unowned/)).toBeTruthy();
 
     await user.click(rowFor("house-opener").getByRole("button", { name: "Edit" }));
-    await user.type(screen.getByLabelText("Owner"), "Bob@Example.com");
-    await user.click(screen.getByRole("button", { name: "Assign owner" }));
+    const ownership = within(screen.getByRole("region", { name: "Ownership" }));
+    const assign = ownership.getByRole("button", { name: "Assign owner" });
+    expect(assign).toBeDisabled();
+    await user.type(ownership.getByLabelText("Owner"), "Bob@Example.com");
+    await user.click(assign);
+
+    // Nothing is written until the dialog naming the member is confirmed.
+    expect(calls).toHaveLength(0);
+    await screen.findByText('Hand "House opener" to bob@example.com?');
+    await user.click(screen.getByRole("button", { name: "Assign to bob@example.com" }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({
@@ -164,6 +173,52 @@ describe("PlaylistsTab", () => {
       body: { ownerEmail: "bob@example.com" },
     });
     await screen.findByText('"House opener" now belongs to bob@example.com.');
+  });
+
+  it("asks before dropping unsaved changes and keeps the draft on Keep editing", async () => {
+    const user = userEvent.setup();
+    stubPlaylistsApi([mine]);
+    render(<PlaylistsTab isAdmin={false} />);
+
+    await screen.findByText("Ada's list");
+    await user.click(rowFor("adas-list").getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText(/Name/), " extended");
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Discard" }));
+    await user.click(await screen.findByRole("button", { name: "Keep editing" }));
+    expect(screen.getByLabelText(/Name/)).toHaveValue("Ada's list extended");
+
+    await user.click(screen.getByRole("button", { name: "Discard" }));
+    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(screen.queryByLabelText(/Name/)).toBeNull());
+    expect(window.location.pathname).toBe("/dev/playlists");
+  });
+
+  it("folds a long list behind Show all and unfolds it when a work lands in the hidden tail", async () => {
+    const user = userEvent.setup();
+    const slugs = Array.from({ length: 25 }, (_, index) => `work-${String(index + 1).padStart(2, "0")}`);
+    stubPlaylistsApi([{ ...mine, replication_slugs: slugs }]);
+    render(<PlaylistsTab isAdmin={false} />);
+
+    await screen.findByText("Ada's list");
+    await user.click(rowFor("adas-list").getByRole("button", { name: "Edit" }));
+    expect(window.location.pathname).toBe("/dev/playlists/adas-list");
+
+    const order = () => within(screen.getByRole("list", { name: "Playlist order" })).getAllByRole("listitem");
+    expect(order()).toHaveLength(20);
+    expect(screen.getByText("Works, in order (25)")).toBeTruthy();
+
+    const toggle = screen.getByRole("button", { name: "Show all 25 works" });
+    expect(toggle).toHaveTextContent("+5");
+    await user.click(toggle);
+    expect(order()).toHaveLength(25);
+    await user.click(screen.getByRole("button", { name: "Show only the first 20 works" }));
+    expect(order()).toHaveLength(20);
+
+    await user.type(screen.getByLabelText("Add a work"), "work-26{Enter}");
+    expect(order()).toHaveLength(26);
+    expect(order()[25]).toHaveTextContent("work-26");
   });
 
   it("surfaces a refusal from the route", async () => {

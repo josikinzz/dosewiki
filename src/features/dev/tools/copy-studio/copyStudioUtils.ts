@@ -9,8 +9,8 @@ import {
  * Pure state for the Copy Studio: how a stored row, a local default, and the
  * editor's draft are reconciled into one editable block.
  *
- * Kept free of React so the reconciliation — which decides what "changed",
- * what "reset" means, and which placeholders a draft carries — is testable
+ * Kept free of React so the reconciliation (which decides what "changed",
+ * what "reset" means, and which placeholders a draft carries) is testable
  * without rendering the tab.
  */
 
@@ -37,7 +37,7 @@ export type CopyStudioBlock = {
   kind: CopyBlockKind;
   label: string;
   group: string;
-  /** The published value — the stored row when there is one, else the default. */
+  /** The published value: the stored row when there is one, else the default. */
   current: { body: string; items: string[] };
   /** The checked-in fallback, and the target of "reset to default". */
   fallback: { body: string; items: string[] } | null;
@@ -79,8 +79,8 @@ function fromDefinition(definition: CopyBlockDefinition): CopyStudioBlock {
  * Layers the stored rows over the checked-in defaults.
  *
  * A key present in both is one block whose `current` is the stored value and
- * whose `fallback` is the default. A stored key with no default still appears —
- * a block added straight in Convex is editable — but has no reset target.
+ * whose `fallback` is the default. A stored key with no default still appears,
+ * since a block added straight in Convex is editable, but has no reset target.
  */
 export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudioBlock[] {
   const byKey = new Map<string, CopyStudioBlock>(
@@ -109,11 +109,13 @@ export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudio
   return [...byKey.values()];
 }
 
+export type CopyStudioGroup = { group: string; blocks: CopyStudioBlock[] };
+
+export type CopyStudioSection = { section: string; groups: CopyStudioGroup[] };
+
 /** Rail groups in default order, with the blocks belonging to each. */
-export function groupCopyStudioBlocks(
-  blocks: readonly CopyStudioBlock[],
-): { group: string; blocks: CopyStudioBlock[] }[] {
-  const groups: { group: string; blocks: CopyStudioBlock[] }[] = [];
+export function groupCopyStudioBlocks(blocks: readonly CopyStudioBlock[]): CopyStudioGroup[] {
+  const groups: CopyStudioGroup[] = [];
 
   blocks.forEach((block) => {
     const existing = groups.find((entry) => entry.group === block.group);
@@ -125,6 +127,55 @@ export function groupCopyStudioBlocks(
   });
 
   return groups;
+}
+
+/**
+ * The tier above the rail groups, so the group chips never wrap: an editor
+ * picks the part of the site first and then one of that part's few groups.
+ * A group no section claims is listed under "Other" rather than dropped.
+ */
+const COPY_STUDIO_SECTIONS: readonly { section: string; groups: readonly string[] }[] = [
+  {
+    section: "Site",
+    groups: [
+      "Home",
+      "Footer",
+      "About",
+      "Effect Index",
+      "Submissions",
+      "Status pages",
+      "Support pages",
+      "Empty states",
+      "Replications",
+    ],
+  },
+  { section: "Substances", groups: ["Substance categories", "Substance articles"] },
+  { section: "Effects", groups: ["Index pages", "Subjective Effect Index", "Effect categories"] },
+  { section: "Docs", groups: ["Docs · Code", "Docs · How", "Docs · License"] },
+  { section: "SEO", groups: ["SEO"] },
+];
+
+/** Sections in display order, each holding only the groups that have blocks. */
+export function sectionCopyStudioGroups(groups: readonly CopyStudioGroup[]): CopyStudioSection[] {
+  const claimed = new Set<string>();
+  const sections: CopyStudioSection[] = [];
+
+  COPY_STUDIO_SECTIONS.forEach((definition) => {
+    const members = definition.groups
+      .map((name) => groups.find((entry) => entry.group === name))
+      .filter((entry): entry is CopyStudioGroup => entry !== undefined);
+    members.forEach((entry) => claimed.add(entry.group));
+    if (members.length > 0) {
+      sections.push({ section: definition.section, groups: members });
+    }
+  });
+
+  const unclaimed = groups.filter((entry) => !claimed.has(entry.group));
+  if (unclaimed.length > 0) {
+    sections.push({ section: "Other", groups: unclaimed });
+  }
+
+  return sections;
 }
 
 /**
@@ -149,9 +200,9 @@ export function filterCopyStudioBlocks(
 /**
  * Publication label for a flavored block.
  *
- * A flavor row is just a key — `footer-tagline-effect-index` sits in the same
+ * A flavor row is just a key: `footer-tagline-effect-index` sits in the same
  * "Footer" group as dose.wiki's `footer-tagline`, which is what makes the pair
- * comparable — so the studio has to say out loud which publication a row is
+ * comparable, so the studio has to say out loud which publication a row is
  * rendered on. Only the flavored rows carry a label; an unflavored row is the
  * default publication's and needs no badge.
  *
@@ -253,8 +304,8 @@ export function resolveCopyPlaceholders(
 }
 
 /**
- * Stand-in values for the preview. These are illustrative only — the real
- * numbers are supplied by whichever page reads the block — but a preview that
+ * Stand-in values for the preview. These are illustrative only (the real
+ * numbers are supplied by whichever page reads the block), but a preview that
  * renders "{{effectCount}} effect descriptions" reads as broken prose, so the
  * studio shows a plausible figure instead.
  */

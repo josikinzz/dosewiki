@@ -1,19 +1,20 @@
-import type { FeedbackQueueFilter, FeedbackTransitionInput } from "./FeedbackReviewQueue";
+import { FEEDBACK_QUEUE_WINDOW, type FeedbackTransitionInput } from "./FeedbackReviewQueue";
 
 type FeedbackRequests<Item> = {
-  fetchList: (filter: FeedbackQueueFilter) => Promise<Item[]>;
+  fetchList: () => Promise<Item[]>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<void>;
 };
 
 /**
  * HTTP client for one feedback source. Both sources expose the same
- * `GET {basePath}/queue?status=` and `POST {basePath}/{id}/status` routes.
+ * `GET {basePath}/queue?limit=` and `POST {basePath}/{id}/status` routes.
+ * The list is one request for the newest rows of every status; the queue
+ * filters and counts them itself.
  */
 export function createFeedbackRequests<Item>(basePath: string): FeedbackRequests<Item> {
   return {
-    async fetchList(filter) {
-      const suffix = filter === "all" ? "" : `?status=${encodeURIComponent(filter)}`;
-      const payload = await requestJson(`${basePath}/queue${suffix}`, undefined, {
+    async fetchList() {
+      const payload = await requestJson(`${basePath}/queue?limit=${FEEDBACK_QUEUE_WINDOW}`, undefined, {
         network: "Network error while loading feedback.",
         failure: "Unable to load feedback.",
       });
