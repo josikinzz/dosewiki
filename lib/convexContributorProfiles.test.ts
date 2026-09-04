@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { bulkImport, renameKey } from "../convex/contributorProfiles";
 import {
   buildImportedStoredProfile,
   buildStoredProfile,
@@ -10,6 +9,18 @@ import {
   resolveOwnedProfileKey,
   type StoredProfile,
 } from "../convex/lib/contributorProfiles";
+import { admin, createCtx } from "./changeProposalReviewFixture";
+
+// Convex registered functions keep the original handler on `_handler`; there is
+// no in-repo Convex runtime harness, so the handler is exercised directly.
+const handlerOf = (fn: unknown) =>
+  (fn as { _handler: (ctx: never, args: unknown) => Promise<unknown> })._handler;
+
+/** The shared fake db plus the `storage.getUrl` the profile materializer reads. */
+function createAdminCtx(seed: Parameters<typeof createCtx>[0]) {
+  const { ctx, rowsOf } = createCtx({ memberships: [admin], ...seed });
+  return { ctx: { ...ctx, storage: { getUrl: async () => null } } as never, rowsOf };
+}
 
 const baseProfile: StoredProfile = {
   key: "EDITOR",
@@ -185,6 +196,10 @@ describe("contributorReviewerEmails", () => {
 describe("Convex contributor profile role field", () => {
   const storage = { storage: { getUrl: async () => null } };
 
+  afterEach(() => {
+    delete process.env.CONVEX_ADMIN_KEY;
+  });
+
   it("round-trips a role from bulk import through the public read", async () => {
     const imported = buildImportedStoredProfile(
       {
@@ -279,40 +294,59 @@ describe("Convex contributor profile role field", () => {
     ).toBeUndefined();
   });
 
-  it("patches the role in bulkImport so merged rows control the stored title", () => {
-    const source = readFileSync(join(process.cwd(), "convex/contributorProfiles.ts"), "utf8");
-    expect(source).toContain("role: data.role,");
-  });
+  it("bulkImport replaces role and clears a prior R2 avatar on an existing profile", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const { ctx, rowsOf } = createAdminCtx({
+      contributorProfiles: [{
+        _id: "p1",
+        key: "JOSIE",
+        displayName: "Josie",
+        aliases: [],
+        role: "Old title",
+        avatarR2Key: "r2/old.webp",
+        bio: "",
+        links: [],
+      }],
+    });
 
-  it("clears a prior R2 avatar when bulkImport replaces profile media", () => {
-    const source = readFileSync(join(process.cwd(), "convex/contributorProfiles.ts"), "utf8");
-    expect(source).toContain("avatarR2Key: undefined,");
+    await handlerOf(bulkImport)(ctx, {
+      apiKey: "secret",
+      actorEmail: "admin@example.com",
+      profiles: [{ key: "JOSIE", displayName: "Josie Kins", role: "Project Lead", bio: "", links: [] }],
+    });
+
+    const stored = rowsOf("contributorProfiles").get("p1")!;
+    expect(stored.displayName).toBe("Josie Kins");
+    expect(stored.role).toBe("Project Lead");
+    expect(stored.avatarR2Key).toBeUndefined();
   });
 });
 
-describe("Convex contributor profile ownership boundary", () => {
-  const readSource = (relativePath: string) => readFileSync(join(process.cwd(), relativePath), "utf8");
-  const exportedPublicMutations = (relativePath: string) => {
-    const source = readSource(relativePath);
-    return Array.from(source.matchAll(/export const (\w+) = mutation/g), (match) => match[1]);
-  };
-
-  it("keeps profile save, rename, and report retargeting under contributorProfiles", () => {
-    expect(exportedPublicMutations("convex/contributorProfiles.ts")).toEqual(
-      expect.arrayContaining(["saveProfile", "renameKey", "retargetTripReportsToContributor"]),
-    );
+describe("Convex contributor profile rename", () => {
+  afterEach(() => {
+    delete process.env.CONVEX_ADMIN_KEY;
   });
 
-  it("does not expose duplicate profile save or rename mutations from authorAttribution", () => {
-    expect(exportedPublicMutations("convex/authorAttribution.ts")).not.toEqual(
-      expect.arrayContaining(["saveContributorProfile", "renamePublicProfileKey"]),
-    );
-  });
+  it("renameKey retargets stored trip reports to the new key", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+    const { ctx, rowsOf } = createAdminCtx({
+      contributorProfiles: [{ _id: "p1", key: "OLD", displayName: "Old", aliases: [], bio: "", links: [] }],
+      tripReports: [
+        { _id: "r1", slug: "a", subject: { name: "Old", profile_key: "OLD" }, substances: [], onset: [], peak: [], offset: [], tags: [] },
+        { _id: "r2", slug: "b", subject: { name: "Someone else" }, substances: [], onset: [], peak: [], offset: [], tags: [] },
+      ],
+    });
 
-  it("keeps profile rename wired to trip report retargeting", () => {
-    const source = readSource("convex/contributorProfiles.ts");
+    const result = (await handlerOf(renameKey)(ctx, {
+      apiKey: "secret",
+      actorEmail: "admin@example.com",
+      fromKey: "OLD",
+      toKey: "NEW",
+    })) as { reportsUpdated: number };
 
-    expect(source).toContain("const reportsUpdated = await patchReportsForContributorKey");
-    expect(source).toContain("profile_key: normalizedContributorKey");
+    expect(result.reportsUpdated).toBe(1);
+    expect(rowsOf("contributorProfiles").get("p1")?.key).toBe("NEW");
+    expect(rowsOf("tripReports").get("r1")?.subject).toMatchObject({ profile_key: "NEW" });
+    expect(rowsOf("tripReports").get("r2")?.subject).not.toHaveProperty("profile_key");
   });
 });

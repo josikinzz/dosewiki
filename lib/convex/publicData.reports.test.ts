@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 
@@ -6,9 +5,23 @@ vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
-vi.mock("next/cache", () => ({
-  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
-}));
+const cacheTrace = vi.hoisted(() => ({ entered: [] as string[] }));
+vi.mock("next/cache", async () => {
+  const { AsyncLocalStorage } = await import("node:async_hooks");
+  const inside = new AsyncLocalStorage<string>();
+  return {
+    unstable_cache: <T extends (...args: never[]) => Promise<unknown>>(fn: T, keyParts: string[] = []) =>
+      ((...args: Parameters<T>) => {
+        const key = keyParts[0] ?? "<unkeyed>";
+        const outer = inside.getStore();
+        if (outer) {
+          throw new Error(`unstable_cache "${key}" entered from inside unstable_cache "${outer}"; Next bypasses the inner one`);
+        }
+        cacheTrace.entered.push(key);
+        return inside.run(key, () => fn(...args));
+      }) as unknown as T,
+  };
+});
 
 const mocks = vi.hoisted(() => ({
   queryConvex: vi.fn(),
@@ -33,6 +46,7 @@ describe("public report contributor attribution", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.queryConvex.mockReset();
+    cacheTrace.entered.length = 0;
   });
 
   it("filters contributor reports by contributor key, display name, and aliases", async () => {
@@ -214,30 +228,20 @@ describe("public report contributor attribution", () => {
 });
 
 describe("public report cache layering", () => {
-  it("persists only leaf Convex reads and composes the profile join under React cache", () => {
-    // Next bypasses an `unstable_cache` reached from inside another one. The
-    // exported reads each join `getPublicContributorProfiles` (a top-level
-    // `unstable_cache` of its own), so they must be request-scoped, with the
-    // raw trip-report reads as the persisted leaves.
-    const source = readFileSync("lib/convex/publicData.reports.ts", "utf8");
-    for (const exported of [
-      "getPublicReports",
-      "getPublicReportDetails",
-      "getPublicReportBySlug",
-      "getReportsByAuthor",
-      "getReportsByContributor",
-      "getPublicReportsBySubstanceNames",
-    ]) {
-      expect(source).toMatch(new RegExp(`export const ${exported} = cache\\(async `, "u"));
-    }
-    for (const leaf of [
-      "getPublicTripReportRecords",
-      "getPublicTripReportRecordBySlug",
-      "getPublicTripReportRecordsByAuthor",
-      "getPublicTripReportRecordsBySubstanceNames",
-    ]) {
-      expect(source).toMatch(new RegExp(`const ${leaf} = cache\\(unstable_cache\\(async \\(`, "u"));
-    }
-    expect(source).not.toMatch(/export const \w+ = cache\(unstable_cache/u);
+  beforeEach(() => {
+    vi.resetModules();
+    mocks.queryConvex.mockReset();
+    cacheTrace.entered.length = 0;
+  });
+
+  it("persists the trip report leaf and the contributor profile leaf as sibling unstable_cache entries", async () => {
+    // Next bypasses an `unstable_cache` reached from inside another one, so the
+    // exported reads must be request-scoped compositions over persisted leaves.
+    // The next/cache mock above throws on any nested entry; this case pins the
+    // two leaves the report list joins.
+    mocks.queryConvex.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    const { getPublicReports } = await import("./publicData.reports");
+    await getPublicReports();
+    expect(cacheTrace.entered).toEqual(["convex-public-trip-report-records-v1", "convex-public-contributor-profiles"]);
   });
 });

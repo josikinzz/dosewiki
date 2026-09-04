@@ -192,9 +192,6 @@ describe("buildTemplateApplicationPlan", () => {
     expect(after!.get_smiles()).toBe(before!.get_smiles());
     before!.delete();
     after!.delete();
-
-    // And it still renders on the brand engine.
-    expect(renderMoleculeSvg(OCL, result.molblock)).not.toBeNull();
   });
 
   it("marks exact-bond matches as strictly aligned, not relaxed", () => {
@@ -208,23 +205,7 @@ describe("buildTemplateApplicationPlan", () => {
     expect(result.relaxedBonds).toBeUndefined();
   });
 
-  it("renders an aligned MOL block through the branded SVG renderer", () => {
-    const [result] = buildTemplateApplicationPlan(
-      rdkit as unknown as TemplateApplicationRdkitModule,
-      templateMolblock,
-      [morphinanMembers[0]],
-    );
-    expect(result.outcome).toBe("aligned");
-    if (result.outcome !== "aligned") return;
-
-    const svg = renderMoleculeSvg(OCL, result.molblock);
-    expect(svg).not.toBeNull();
-    expect(svg).toContain("<svg");
-    // every CPK color is mapped onto the brand palette
-    expect(svg).not.toContain("rgb(0,0,0)");
-  });
-
-  it("renders every aligned morphinan fixture before and after alignment", () => {
+  it("renders every aligned morphinan fixture on the brand engine before and after alignment", () => {
     const plan = buildTemplateApplicationPlan(
       rdkit as unknown as TemplateApplicationRdkitModule,
       templateMolblock,
@@ -235,10 +216,11 @@ describe("buildTemplateApplicationPlan", () => {
       const result = plan.find((item) => item.slug === member.slug);
       expect(result?.outcome).toBe("aligned");
       if (!result || result.outcome !== "aligned") continue;
-      const before = renderMoleculeSvg(OCL, member.molblock);
+      expect(renderMoleculeSvg(OCL, member.molblock)).not.toBeNull();
       const after = renderMoleculeSvg(OCL, result.molblock);
-      expect(before).not.toBeNull();
-      expect(after).not.toBeNull();
+      expect(after).toContain("<svg");
+      // every CPK color is mapped onto the brand palette
+      expect(after).not.toContain("rgb(0,0,0)");
     }
   });
 });

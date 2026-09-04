@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { selectReplicationsByArtistNames } from "../../convex/replications";
 import { contributorMatchNames } from "../contributorProfileIdentity";
@@ -8,9 +7,23 @@ vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
-vi.mock("next/cache", () => ({
-  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
-}));
+const cacheTrace = vi.hoisted(() => ({ entered: [] as string[] }));
+vi.mock("next/cache", async () => {
+  const { AsyncLocalStorage } = await import("node:async_hooks");
+  const inside = new AsyncLocalStorage<string>();
+  return {
+    unstable_cache: <T extends (...args: never[]) => Promise<unknown>>(fn: T, keyParts: string[] = []) =>
+      ((...args: Parameters<T>) => {
+        const key = keyParts[0] ?? "<unkeyed>";
+        const outer = inside.getStore();
+        if (outer) {
+          throw new Error(`unstable_cache "${key}" entered from inside unstable_cache "${outer}"; Next bypasses the inner one`);
+        }
+        cacheTrace.entered.push(key);
+        return inside.run(key, () => fn(...args));
+      }) as unknown as T,
+  };
+});
 
 const mocks = vi.hoisted(() => ({
   queryConvex: vi.fn(),
@@ -106,6 +119,7 @@ describe("getReplicationsByContributor", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.queryConvex.mockReset();
+    cacheTrace.entered.length = 0;
   });
 
   it("asks Convex for the contributor's own works by normalized match name", async () => {
@@ -201,6 +215,7 @@ describe("getPublicReplicationsForSubstance", () => {
     vi.resetModules();
     mocks.queryConvex.mockReset();
     substanceMocks.getPublicSubstanceBySlug.mockReset();
+    cacheTrace.entered.length = 0;
   });
 
   const substanceRecord = {
@@ -339,25 +354,39 @@ describe("getPublicReplicationsForSubstance", () => {
     warn.mockRestore();
   });
 
-  it("keeps every persisted showcase read at the top level, never nested in another unstable_cache", () => {
+  it("reads the corpus page, curation, and slug batch as sibling unstable_cache leaves under a request-scoped assembler", async () => {
     // Next bypasses an `unstable_cache` reached from inside another one, so
     // the per-substance function must be React `cache()` only and the corpus
     // page, curation, slug-batch, and one-shot reads must each be their own
-    // `unstable_cache` leaf. A regression here silently re-drains the corpus
-    // on every cold article.
-    const source = readFileSync("lib/convex/publicData.replications.ts", "utf8");
-    expect(source).toMatch(/export const getPublicReplicationsForSubstance = cache\(async \(/u);
-    expect(source).toMatch(/const getPublicMatchableReplicationCorpus = cache\(async \(/u);
-    expect(source).toMatch(/const assemblePublicSubstanceGalleryFromCorpus = cache\(async \(/u);
-    expect(source).toMatch(/export const getPublicReplicationsBySlugs = cache\(async \(/u);
-    for (const leaf of [
-      "getPublicMatchableReplicationCorpusPage",
-      "getPublicSubstanceGalleryCuration",
-      "readPublicSubstanceGalleryFastPath",
-      "getPublicReplicationsBySlugBatch",
-    ]) {
-      expect(source).toMatch(new RegExp(`const ${leaf} = cache\\(unstable_cache\\(async \\(`, "u"));
-    }
+    // `unstable_cache` leaf. The next/cache mock above throws on any nested
+    // entry; this case pins the four leaves the corpus fallback path enters.
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
+    respond({
+      [ONE_SHOT]: notDeployed,
+      "substanceGalleries:getPublicMatchableReplicationsPage": () => ({
+        items: [matchable("specific-image")],
+        cursor: "done",
+        isDone: true,
+      }),
+      "substanceGalleries:getBySubstance": () => ({
+        substance_slug: "lsd",
+        curated_slugs: [],
+        removed_slugs: [],
+        carousel_order: [],
+      }),
+      "replications:getBySlugs": (args) => (args.slugs as string[]).map((slug) => resolved(slug)),
+    });
+
+    const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
+    await getPublicReplicationsForSubstance("lsd");
+
+    expect(new Set(cacheTrace.entered)).toEqual(new Set([
+      "convex-public-substance-gallery-v1",
+      "convex-public-matchable-replication-corpus-page-v1",
+      "convex-public-substance-gallery-curation-v1",
+      "convex-public-replications-by-slug-batch-v1",
+    ]));
   });
 
   it("assembles the showcase from the shared corpus, curation, and one indexed resolution", async () => {
@@ -498,6 +527,7 @@ describe("getPublicGalleryReplications", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.queryConvex.mockReset();
+    cacheTrace.entered.length = 0;
   });
 
   const work = (slug: string, artist: string) => ({
@@ -659,6 +689,7 @@ describe("getPublicReplicationsBySlugs", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.queryConvex.mockReset();
+    cacheTrace.entered.length = 0;
   });
 
   it("partitions large curated selections into indexed batches of at most 100", async () => {

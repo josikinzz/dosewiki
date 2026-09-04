@@ -1,8 +1,11 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
-
-vi.mock("server-only", () => ({}));
+import {
+  describeRoleFloor,
+  grantWriteCapability,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+} from "@/test/routeHarness";
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
@@ -16,23 +19,7 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
-const mocks = vi.hoisted(() => ({
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 function createClient() {
   return {
@@ -60,22 +47,11 @@ function post(body: unknown) {
 
 describe("dev proposals route", () => {
   beforeEach(() => {
-    // Module registry reset so each case imports the route against fresh mocks.
-    vi.resetModules();
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
-    mocks.getServerConvexWriteCapability.mockReset();
+    resetRouteMocks("editor");
   });
 
   it("stores an editor's staged save as a proposal and never writes production", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client,
-        getAdminIntentToken: vi.fn(() => "article-token"),
-      },
-    });
+    const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { POST } = await import("./route");
 
     const response = await POST(
@@ -109,11 +85,7 @@ describe("dev proposals route", () => {
   });
 
   it("forwards a slugless article untouched so the mutation derives its slug from the title", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
+    const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
 
     await POST(post({ payload: { articles: [{ id: null, title: "Ketamine HCl" }] }, summary: "New", diff: "" }));
@@ -128,11 +100,7 @@ describe("dev proposals route", () => {
   });
 
   it("forwards revisionOf to Convex and omits it when the body carries none", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
+    const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
     const articles = [{ id: 1, title: "LSD", slug: "lsd" }];
 
@@ -154,11 +122,7 @@ describe("dev proposals route", () => {
   });
 
   it("rejects an empty payload and a missing summary before calling Convex", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
+    const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
 
     const empty = await POST(post({ payload: {}, summary: "x", diff: "" }));
@@ -171,11 +135,7 @@ describe("dev proposals route", () => {
   });
 
   it("accepts copy blocks and About and parses them like the direct saves", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
+    const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
 
     const response = await POST(
@@ -222,11 +182,7 @@ describe("dev proposals route", () => {
   });
 
   it("rejects a copy block or About that the direct save would refuse", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
+    const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
 
     const badKey = await POST(
@@ -250,32 +206,11 @@ describe("dev proposals route", () => {
     expect(client.mutation).not.toHaveBeenCalled();
   });
 
-  it("refuses a contributor", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      post({ payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }, summary: "Update", diff: "" }),
-    );
-
-    expect(response.status).toBe(403);
-    expect(client.mutation).not.toHaveBeenCalled();
-  });
-
   it("surfaces a Convex rejection of the proposal as an actionable error", async () => {
-    const client = createClient();
+    const client = grantWriteCapability(createClient());
     client.mutation.mockRejectedValue(
       new ConvexError({ code: "PROPOSAL_ARTICLE_INVALID", message: "LSD: summary: Invalid input" }),
     );
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const { POST } = await import("./route");
@@ -294,17 +229,11 @@ describe("dev proposals route", () => {
 
 describe("dev proposals list route", () => {
   beforeEach(() => {
-    vi.resetModules();
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
-    mocks.getServerConvexWriteCapability.mockReset();
+    resetRouteMocks("editor");
   });
 
   it("lists the queue for an editor, passing a valid status filter through", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client, getAdminIntentToken: vi.fn(() => "article-token") },
-    });
+    const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { GET } = await import("./route");
 
     const all = await GET(new Request("https://dose.wiki/api/dev/proposals"));
@@ -328,11 +257,7 @@ describe("dev proposals list route", () => {
   });
 
   it("rejects a status outside the enum before calling Convex", async () => {
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
+    const client = grantWriteCapability(createClient());
     const { GET } = await import("./route");
 
     const response = await GET(new Request("https://dose.wiki/api/dev/proposals?status=pending"));
@@ -340,19 +265,31 @@ describe("dev proposals list route", () => {
     expect(response.status).toBe(400);
     expect(client.query).not.toHaveBeenCalled();
   });
+});
 
-  it("refuses a contributor", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
-    const client = createClient();
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { adminKey: "admin-key", client },
-    });
-    const { GET } = await import("./route");
+describeRoleFloor({
+  floor: "editor",
+  rateLimit: "editorHeavyWrite",
+  refused: "contributor",
+  calls: [
+    {
+      name: "POST",
+      call: async () =>
+        (await import("./route")).POST(
+          post({ payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }, summary: "Update", diff: "" }),
+        ),
+    },
+  ],
+});
 
-    const response = await GET(new Request("https://dose.wiki/api/dev/proposals"));
-
-    expect(response.status).toBe(403);
-    expect(client.query).not.toHaveBeenCalled();
-  });
+describeRoleFloor({
+  floor: "editor",
+  rateLimit: "diagnosticRead",
+  refused: "contributor",
+  calls: [
+    {
+      name: "GET",
+      call: async () => (await import("./route")).GET(new Request("https://dose.wiki/api/dev/proposals")),
+    },
+  ],
 });

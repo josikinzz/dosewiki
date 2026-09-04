@@ -295,6 +295,7 @@ const requireRateLimit = {
       'enforceRateLimit',
       'protectedRouteOperation',
       'citationEvidenceRouteOperation',
+      'feedbackStatusRoute',
     ]);
 
     return {

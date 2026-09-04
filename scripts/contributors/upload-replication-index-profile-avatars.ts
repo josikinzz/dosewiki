@@ -345,11 +345,10 @@ export function validateInputs({
   planPath = DEFAULT_PLAN_PATH,
   projectionPath = DEFAULT_PROJECTION_PATH,
   deploymentReceiptPath = DEFAULT_DEPLOYMENT_RECEIPT_PATH,
-}: {
-  planPath?: string;
-  projectionPath?: string;
-  deploymentReceiptPath?: string;
-} = {}): ValidatedInputs {
+  // Digest pins for the plan payload and deployment receipt; production runs use the campaign pins.
+  expectedPlanPayloadSha256 = EXPECTED_PLAN_PAYLOAD_SHA256,
+  expectedDeploymentReceiptSha256 = EXPECTED_DEPLOYMENT_RECEIPT_SHA256,
+}: { planPath?: string; projectionPath?: string; deploymentReceiptPath?: string; expectedPlanPayloadSha256?: string; expectedDeploymentReceiptSha256?: string } = {}): ValidatedInputs {
   const planBytes = readFileSync(planPath);
   const projectionBytes = readFileSync(projectionPath);
   const receiptBytes = readFileSync(deploymentReceiptPath);
@@ -360,7 +359,7 @@ export function validateInputs({
   if (plan.artifactType !== "replication-index-reviewed-profile-avatar-storage-plan") {
     throw new Error("Unexpected reviewed avatar upload plan artifact type.");
   }
-  if (plan.payloadSha256 !== EXPECTED_PLAN_PAYLOAD_SHA256 || payloadDigest(plan as unknown as JsonObject) !== plan.payloadSha256) {
+  if (plan.payloadSha256 !== expectedPlanPayloadSha256 || payloadDigest(plan as unknown as JsonObject) !== plan.payloadSha256) {
     throw new Error("Reviewed avatar upload plan payload digest drifted.");
   }
   const projectionSha256 = sha256(projectionBytes);
@@ -423,7 +422,7 @@ export function validateInputs({
   const result = receipt.deploymentResult as JsonObject | undefined;
   const verifiedFunctions = result?.verifiedLiveFunctions;
   if (
-    sha256(receiptBytes) !== EXPECTED_DEPLOYMENT_RECEIPT_SHA256
+    sha256(receiptBytes) !== expectedDeploymentReceiptSha256
     || deployment?.name !== `prod:${DEPLOYMENT}`
     || deployment?.url !== TARGET_URL
     || deployment?.applicationCommit !== APPLICATION_CONTRACT.deployedCommit

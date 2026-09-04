@@ -67,95 +67,9 @@ describe("/docs/how publishes every prompt the pipeline runs", () => {
     }
   });
 
-  it("tells readers the prompts' own output-format sections are superseded", () => {
-    expect(PAGE).toMatch(/supersedes this prompt's "Output format" section/);
-  });
-
   it("holds no inlined copy of a prompt body", () => {
     // Every published prompt opens with a markdown H1. Finding one inside the page
     // means a prompt was pasted back in instead of being read from disk.
     expect(PAGE).not.toMatch(/`# [A-Z][^\n]*(Extraction|Section Generation)/);
-  });
-});
-
-describe("/docs/how trust and review methodology", () => {
-  it("does not present workflow controls as universal publication guarantees", () => {
-    expect(PAGE).not.toMatch(
-      /Every article passes|Every claim is source-bound|only route to publication|final gate|fully-referenced|every single article|no exceptions|checks each finished article|Only an article that passes|checks every claim/i,
-    );
-  });
-
-  it("distinguishes provenance, intended citation support, and human verification", () => {
-    expect(PAGE).toContain("Source links record influence only.");
-    expect(PAGE).toMatch(/intended\s+evidentiary relationships/);
-    expect(PAGE).toMatch(/does not prove source quality or current accuracy/);
-    expect(PAGE).toMatch(/need a human check against the cited source/);
-  });
-
-  it("states the current review statuses and revision-binding limitation", () => {
-    expect(PAGE).toContain("<strong>needed</strong>");
-    expect(PAGE).toContain("<strong>in progress</strong>");
-    expect(PAGE).toContain("<strong>completed</strong>");
-    expect(PAGE).toMatch(/does\s+not pin the exact article revision/);
-    expect(PAGE).toMatch(/does not certify every\s+sentence/);
-  });
-});
-
-describe("/docs/how status and roadmap", () => {
-  it("states beta status and ongoing public checks", () => {
-    expect(PAGE).toContain("in <strong>beta</strong>");
-    expect(PAGE).toMatch(
-      /Every article is generated, checked, and\s+corrected in public through workflows that are still running/,
-    );
-  });
-
-  it("lists every roadmap phase", () => {
-    for (const phase of [
-      "Foundation pipeline",
-      "Legality primary-source remediation",
-      "Citation entailment audit",
-      "Citation research and correction",
-      "Emergent Subjective Effect Index",
-      "More substances",
-      "Continuous improvement",
-    ]) {
-      expect(PAGE).toContain(phase);
-    }
-  });
-
-  it("marks the entailment audit complete and states its outcome", () => {
-    const phase3 = PAGE.slice(
-      PAGE.indexOf("Phase 3: Citation entailment audit"),
-      PAGE.indexOf("Phase 4: Citation research and correction"),
-    );
-    expect(phase3).toContain("Complete");
-    expect(phase3).toMatch(/were removed, and those sentences now show/);
-  });
-
-  it("labels citation research and correction as planned, not current practice", () => {
-    const phase4 = PAGE.slice(
-      PAGE.indexOf("Phase 4: Citation research and correction"),
-      PAGE.indexOf("Phase 5: Emergent Subjective Effect Index"),
-    );
-    expect(phase4).toContain("Planned");
-    expect(phase4).toMatch(/tracks this separately from editorial\s+review/);
-  });
-
-  it("separates editorial review from citation verification", () => {
-    expect(PAGE).toMatch(/separate from editorial review/);
-    expect(PAGE).toMatch(/does not certify every\s+sentence, dose, interaction, citation/);
-  });
-
-  it("declares the legality loop as the template for other sections", () => {
-    expect(PAGE).toMatch(/test case for a per-subsection research pipeline/);
-    expect(PAGE).toMatch(/legality loop[\s\S]{0,300}over the\s+other citable sections/);
-  });
-});
-
-describe("/docs/how typography", () => {
-  it("contains no em dashes anywhere in the page source", () => {
-    // House style: em dashes are banned on this page. Use a colon, semicolon,
-    // comma, parentheses, or a reworded sentence instead.
-    expect(PAGE).not.toMatch(/\u2014/);
   });
 });

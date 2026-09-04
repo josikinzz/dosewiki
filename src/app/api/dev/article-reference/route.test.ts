@@ -1,8 +1,11 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
-
-vi.mock("server-only", () => ({}));
+import {
+  describeRoleFloor,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+  routeMocks,
+} from "@/test/routeHarness";
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
@@ -20,31 +23,7 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
-/**
- * Typed loosely on purpose: these stand in for two different result shapes
- * apiece — an allowed session and a refusal that carries its own response.
- */
-const authMocks = vi.hoisted(() => ({
-  requireRoleSession: vi.fn(async (_floor: string): Promise<unknown> => null),
-  enforceRateLimit: vi.fn(async (): Promise<unknown> => null),
-}));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: authMocks.enforceRateLimit,
-}));
-
-const mocks = vi.hoisted(() => ({
-  mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 /** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
 function forwarded(data: unknown) {
@@ -75,22 +54,15 @@ function doiRequest() {
 
 describe("article reference route", () => {
   beforeEach(() => {
-    vi.resetModules();
+    // next/cache spies live outside the route harness and accumulate across cases.
     vi.clearAllMocks();
+    resetRouteMocks("admin", { email: "admin@example.com", name: "Admin" });
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    authMocks.requireRoleSession.mockImplementation(
-      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
-    );
-    authMocks.enforceRateLimit.mockResolvedValue(null);
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
-    });
   });
 
   it("derives the reference server-side and never takes the client's word for support status", async () => {
-    mocks.mutation.mockImplementation(async (_name: string, args: { reference: unknown }) => ({
+    routeMocks.mutation.mockImplementation(async (_name: string, args: { reference: unknown }) => ({
       slug: "2c-b",
       created: true,
       reference: args.reference,
@@ -128,32 +100,8 @@ describe("article reference route", () => {
     });
   });
 
-  it("enforces the admin session and the small-write rate limit", async () => {
-    mocks.mutation.mockResolvedValue({ slug: "2c-b", created: true, reference: { id: "x" } });
-    const { POST } = await import("./route");
-
-    await POST(doiRequest());
-
-    expect(authMocks.enforceRateLimit).toHaveBeenCalledWith(
-      expect.any(Request),
-      "editorSmallWrite",
-    );
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-  });
-
-  it("refuses an editor adding a source with 403 before reaching Convex", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-    const { POST } = await import("./route");
-
-    const response = await POST(doiRequest());
-
-    expect(response.status).toBe(403);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
   it("reports an idempotent re-add as an unchanged article", async () => {
-    mocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       slug: "2c-b",
       created: false,
       reference: { id: "doi-10-1000-example", title: "The stored title" },
@@ -169,7 +117,7 @@ describe("article reference route", () => {
   });
 
   it("stamps an added source onto the admin's contribution history", async () => {
-    mocks.mutation.mockImplementation(async (name: string, args: { reference?: unknown }) => {
+    routeMocks.mutation.mockImplementation(async (name: string, args: { reference?: unknown }) => {
       if (name === "substanceIndex.appendArticleReference") {
         return { slug: "2c-b", created: true, reference: args.reference, id: 42, title: "2C-B" };
       }
@@ -180,7 +128,7 @@ describe("article reference route", () => {
     const response = await POST(doiRequest());
 
     expect(response.status).toBe(200);
-    const entry = mocks.mutation.mock.calls.find(
+    const entry = routeMocks.mutation.mock.calls.find(
       ([name]) => name === "changelog.addEntry",
     )?.[1] as {
       message: string;
@@ -196,7 +144,7 @@ describe("article reference route", () => {
   });
 
   it("records nothing when an idempotent re-add changes no article", async () => {
-    mocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       slug: "2c-b",
       created: false,
       reference: { id: "doi-10-1000-example", title: "The stored title" },
@@ -208,12 +156,12 @@ describe("article reference route", () => {
     await POST(doiRequest());
 
     expect(
-      mocks.mutation.mock.calls.some(([name]) => name === "changelog.addEntry"),
+      routeMocks.mutation.mock.calls.some(([name]) => name === "changelog.addEntry"),
     ).toBe(false);
   });
 
   it("forwards a deliberate Convex refusal verbatim", async () => {
-    mocks.mutation.mockRejectedValue(
+    routeMocks.mutation.mockRejectedValue(
       forwarded({ code: "ARTICLE_NOT_FOUND", message: 'No substance found for slug "2c-b".' }),
     );
     const { POST } = await import("./route");
@@ -227,17 +175,14 @@ describe("article reference route", () => {
     });
   });
 
-  it("keeps a function missing from the deployment generic", async () => {
-    mocks.mutation.mockRejectedValue(
-      new Error('Could not find public function for "substanceIndex:appendArticleReference"'),
-    );
+  it("names its own generic failure message", async () => {
+    routeMocks.mutation.mockRejectedValue(new Error("ECONNREFUSED"));
     const { POST } = await import("./route");
 
     const response = await POST(doiRequest());
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: "Unable to add that source right now." });
-    expect(console.error).toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({ error: "Unable to add that source right now." });
   });
 
   it("rejects a malformed request before reaching Convex", async () => {
@@ -254,7 +199,7 @@ describe("article reference route", () => {
     );
     expect(badAuthors.status).toBe(400);
 
-    expect(mocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("requires a title when the pasted source cannot supply one", async () => {
@@ -270,7 +215,7 @@ describe("article reference route", () => {
     expect(await response.json()).toEqual({
       error: "A title is required for this source.",
     });
-    expect(mocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   describe("DELETE", () => {
@@ -288,21 +233,8 @@ describe("article reference route", () => {
       };
     }
 
-    it("refuses an editor removing a source with 403 before reaching Convex", async () => {
-      authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-      const { DELETE } = await import("./route");
-
-      const response = await DELETE(
-        removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }),
-      );
-
-      expect(response.status).toBe(403);
-      expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-      expect(mocks.mutation).not.toHaveBeenCalled();
-    });
-
     it("removes the reference and reports what was stripped", async () => {
-      mocks.mutation.mockResolvedValue(removedResult());
+      routeMocks.mutation.mockResolvedValue(removedResult());
       const { DELETE } = await import("./route");
 
       const response = await DELETE(
@@ -317,7 +249,7 @@ describe("article reference route", () => {
         markersStripped: 2,
         routeIdsStripped: 1,
       });
-      const call = mocks.mutation.mock.calls.find(
+      const call = routeMocks.mutation.mock.calls.find(
         ([name]) => name === "substanceIndex.removeArticleReference",
       );
       expect(call?.[1]).toMatchObject({
@@ -328,7 +260,7 @@ describe("article reference route", () => {
     });
 
     it("invalidates the public cache on every removal, unlike the created-only add", async () => {
-      mocks.mutation.mockResolvedValue(removedResult());
+      routeMocks.mutation.mockResolvedValue(removedResult());
       const { DELETE } = await import("./route");
       const { revalidatePath, revalidateTag } = await import("next/cache");
 
@@ -339,7 +271,7 @@ describe("article reference route", () => {
     });
 
     it("stamps the removal onto the admin's contribution history", async () => {
-      mocks.mutation.mockImplementation(async (name: string) => {
+      routeMocks.mutation.mockImplementation(async (name: string) => {
         if (name === "substanceIndex.removeArticleReference") {
           return removedResult();
         }
@@ -349,7 +281,7 @@ describe("article reference route", () => {
 
       await DELETE(removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }));
 
-      const entry = mocks.mutation.mock.calls.find(
+      const entry = routeMocks.mutation.mock.calls.find(
         ([name]) => name === "changelog.addEntry",
       )?.[1] as {
         message: string;
@@ -364,7 +296,7 @@ describe("article reference route", () => {
     });
 
     it("falls back to the reference id when the removed source had no title", async () => {
-      mocks.mutation.mockImplementation(async (name: string) => {
+      routeMocks.mutation.mockImplementation(async (name: string) => {
         if (name === "substanceIndex.removeArticleReference") {
           return removedResult({ referenceTitle: null });
         }
@@ -374,14 +306,14 @@ describe("article reference route", () => {
 
       await DELETE(removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }));
 
-      const entry = mocks.mutation.mock.calls.find(
+      const entry = routeMocks.mutation.mock.calls.find(
         ([name]) => name === "changelog.addEntry",
       )?.[1] as { message: string };
       expect(entry.message).toBe("Removed a source — doi-10-1000-example");
     });
 
     it("stays silent for an idempotent re-delete", async () => {
-      mocks.mutation.mockResolvedValue(
+      routeMocks.mutation.mockResolvedValue(
         removedResult({ removed: false, markersStripped: 0, routeIdsStripped: 0, referenceTitle: null }),
       );
       const { DELETE } = await import("./route");
@@ -394,7 +326,7 @@ describe("article reference route", () => {
       expect(await response.json()).toMatchObject({ removed: false });
       expect(revalidateTag).not.toHaveBeenCalled();
       expect(
-        mocks.mutation.mock.calls.some(([name]) => name === "changelog.addEntry"),
+        routeMocks.mutation.mock.calls.some(([name]) => name === "changelog.addEntry"),
       ).toBe(false);
     });
 
@@ -419,11 +351,11 @@ describe("article reference route", () => {
       );
       expect(oversizedId.status).toBe(400);
 
-      expect(mocks.mutation).not.toHaveBeenCalled();
+      expect(routeMocks.mutation).not.toHaveBeenCalled();
     });
 
     it("forwards a deliberate Convex refusal verbatim", async () => {
-      mocks.mutation.mockRejectedValue(
+      routeMocks.mutation.mockRejectedValue(
         forwarded({ code: "ARTICLE_NOT_FOUND", message: 'No substance found for slug "2c-b".' }),
       );
       const { DELETE } = await import("./route");
@@ -439,4 +371,20 @@ describe("article reference route", () => {
       });
     });
   });
+});
+
+describeRoleFloor({
+  floor: "admin",
+  rateLimit: "editorSmallWrite",
+  refused: "editor",
+  calls: [
+    { name: "POST", call: async () => (await import("./route")).POST(doiRequest()) },
+    {
+      name: "DELETE",
+      call: async () =>
+        (await import("./route")).DELETE(
+          removeRequest({ slug: "2c-b", referenceId: "doi-10-1000-example" }),
+        ),
+    },
+  ],
 });

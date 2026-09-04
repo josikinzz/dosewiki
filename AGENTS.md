@@ -36,6 +36,7 @@
 - After article-schema changes, run `npm run generate:schema` and include the generated helper updates.
 - After generated-data or lineage changes, run `npm run provenance:check`.
 - Verify host- and middleware-shaped work against `npm run build && npx next start` or a deployment: middleware never runs under `next dev`, so a dev-server check passes without executing it.
+- When adding a test, follow the [test ownership policy](docs/architecture/operations-and-direction.md#test-ownership-policy): one contract at its lowest stable layer, no source-text scans outside named architecture policies, no workstation-gated skips. Vendored OpenChemLib changes run `npm run openchemlib:test`.
 
 ## Style
 

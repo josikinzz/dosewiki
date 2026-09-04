@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
-
-vi.mock("server-only", () => ({}));
+import {
+  describeRoleFloor,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+  routeMocks,
+  signInAs,
+} from "@/test/routeHarness";
 
 vi.mock("../../../../../../../convex/_generated/api", () => ({
   api: {
@@ -28,27 +31,7 @@ vi.mock("@server/convex/publicData", () => ({
   PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications" },
 }));
 
-const authMocks = vi.hoisted(() => ({
-  requireRoleSession: vi.fn(),
-}));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
-const convexMocks = vi.hoisted(() => ({
-  query: vi.fn(),
-  mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 const DETAIL = {
   substance: { slug: "lsd", title: "LSD" },
@@ -67,42 +50,17 @@ function saveRequest(body: unknown, slug = "lsd") {
 }
 
 beforeEach(() => {
-  vi.resetModules();
+  // next/cache spies live outside the route harness and accumulate across cases.
   vi.clearAllMocks();
+  resetRouteMocks("admin", { email: "admin@example.com", name: "Admin" });
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
-  authMocks.requireRoleSession.mockImplementation(
-    roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
-  );
-  convexMocks.getServerConvexWriteCapability.mockReturnValue({
-    ok: true,
-    capability: {
-      client: { query: convexMocks.query, mutation: convexMocks.mutation },
-      adminKey: "admin-key",
-    },
-  });
 });
 
 describe("substance gallery route auth", () => {
-  it("refuses a non-editor before touching Convex, on both verbs", async () => {
-    authMocks.requireRoleSession.mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ error: "Editor session required." }, { status: 401 }),
-    });
-    const { GET, POST } = await import("./route");
-
-    const read = await GET(new Request("https://dose.wiki/api/dev/replications/substances/lsd"));
-    const write = await POST(saveRequest({ curatedSlugs: [], removedSlugs: [] }));
-
-    expect(read.status).toBe(401);
-    expect(write.status).toBe(401);
-    expect(convexMocks.query).not.toHaveBeenCalled();
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
-  });
-
   it("lets an editor read the detail but refuses the save with 403 before Convex", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-    convexMocks.query.mockResolvedValue(DETAIL);
+    signInAs("editor");
+    routeMocks.query.mockResolvedValue(DETAIL);
     const { GET, POST } = await import("./route");
 
     const read = await GET(new Request("https://dose.wiki/api/dev/replications/substances/lsd"));
@@ -110,29 +68,29 @@ describe("substance gallery route auth", () => {
 
     expect(read.status).toBe(200);
     expect(write.status).toBe(403);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.requireRoleSession).toHaveBeenCalledWith("admin");
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
     expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 });
 
 describe("substance gallery GET", () => {
   it("returns the detail payload for a known substance", async () => {
-    convexMocks.query.mockResolvedValue(DETAIL);
+    routeMocks.query.mockResolvedValue(DETAIL);
     const { GET } = await import("./route");
 
     const response = await GET(new Request("https://dose.wiki/api/dev/replications/substances/lsd"));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, ...DETAIL });
-    expect(convexMocks.query).toHaveBeenCalledWith("substanceGalleries.getCurationDetail", {
+    expect(routeMocks.query).toHaveBeenCalledWith("substanceGalleries.getCurationDetail", {
       apiKey: "admin-key",
       substance_slug: "lsd",
     });
   });
 
   it("maps a null detail to a 404", async () => {
-    convexMocks.query.mockResolvedValue(null);
+    routeMocks.query.mockResolvedValue(null);
     const { GET } = await import("./route");
 
     const response = await GET(
@@ -150,13 +108,13 @@ describe("substance gallery GET", () => {
     );
 
     expect(response.status).toBe(404);
-    expect(convexMocks.query).not.toHaveBeenCalled();
+    expect(routeMocks.query).not.toHaveBeenCalled();
   });
 });
 
 describe("substance gallery POST", () => {
   it("submits full arrays, revalidates, and returns the pruned echo verbatim", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       status: "ok",
       updated: true,
       substance_slug: "lsd",
@@ -187,7 +145,7 @@ describe("substance gallery POST", () => {
       updated_at: "2026-02-02T02:02:02.000Z",
       updated_by: "editor@example.com",
     });
-    expect(convexMocks.mutation).toHaveBeenCalledWith("substanceGalleries.upsert", {
+    expect(routeMocks.mutation).toHaveBeenCalledWith("substanceGalleries.upsert", {
       apiKey: "admin-key",
       actorEmail: "admin@example.com",
       substance_slug: "lsd",
@@ -208,11 +166,11 @@ describe("substance gallery POST", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("accepts the legacy underscore slugs the corpus actually holds", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       status: "ok",
       updated: false,
       substance_slug: "lsd",
@@ -230,7 +188,7 @@ describe("substance gallery POST", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledTimes(1);
+    expect(routeMocks.mutation).toHaveBeenCalledTimes(1);
   });
 
   it("rejects a body without both arrays", async () => {
@@ -239,7 +197,7 @@ describe("substance gallery POST", () => {
     const response = await POST(saveRequest({ curatedSlugs: ["tracers-hand"] }));
 
     expect(response.status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("rejects a non-slug entry", async () => {
@@ -250,11 +208,11 @@ describe("substance gallery POST", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("omits expectedUpdatedAt when the body does not carry it", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       status: "ok",
       updated: false,
       substance_slug: "lsd",
@@ -270,11 +228,11 @@ describe("substance gallery POST", () => {
     const response = await POST(saveRequest({ curatedSlugs: [], removedSlugs: [] }));
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: undefined });
+    expect(routeMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: undefined });
   });
 
   it("relays a null expectedUpdatedAt so Convex asserts no curation row exists", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       status: "ok",
       updated: false,
       substance_slug: "lsd",
@@ -296,7 +254,7 @@ describe("substance gallery POST", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: null });
+    expect(routeMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: null });
   });
 
   it("rejects a non-string, non-null expectedUpdatedAt before reaching Convex", async () => {
@@ -307,11 +265,11 @@ describe("substance gallery POST", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("reports a stale save as a 409 with the server state and revalidates nothing", async () => {
-    convexMocks.mutation.mockResolvedValue({
+    routeMocks.mutation.mockResolvedValue({
       status: "conflict",
       server: {
         curated_slugs: ["haze-room"],
@@ -343,4 +301,32 @@ describe("substance gallery POST", () => {
     expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
     expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
   });
+});
+
+describeRoleFloor({
+  floor: "editor",
+  rateLimit: "diagnosticRead",
+  refused: "contributor",
+  calls: [
+    {
+      name: "GET",
+      call: async () =>
+        (await import("./route")).GET(
+          new Request("https://dose.wiki/api/dev/replications/substances/lsd"),
+        ),
+    },
+  ],
+});
+
+describeRoleFloor({
+  floor: "admin",
+  rateLimit: "editorSmallWrite",
+  refused: "editor",
+  calls: [
+    {
+      name: "POST",
+      call: async () =>
+        (await import("./route")).POST(saveRequest({ curatedSlugs: [], removedSlugs: [] })),
+    },
+  ],
 });

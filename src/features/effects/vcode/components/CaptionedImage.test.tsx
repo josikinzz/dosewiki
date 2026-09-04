@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CaptionedImage } from "./CaptionedImage";
 
@@ -44,7 +44,7 @@ describe("CaptionedImage", () => {
     expect(figure).toHaveStyle({ maxWidth: "640px" });
   });
 
-  it("collapses floats into a centered block below sm and floats only from sm up", () => {
+  it("caps a floated figure through its width variable and leaves the base flow uncentered", () => {
     render(
       <CaptionedImage
         src="/img/gallery/example.jpg"
@@ -56,17 +56,25 @@ describe("CaptionedImage", () => {
 
     const figure = document.querySelector("figure") as HTMLElement | null;
     expect(figure).not.toBeNull();
-    // Base (mobile): normal flow, centered, capped to the column.
-    expect(figure?.className).toContain("mx-auto");
-    expect(figure?.className).toContain("max-w-full");
-    expect(figure?.className).not.toMatch(/(?:^|\s)float-(?:left|right)(?:\s|$)/);
-    // sm and up: the Wikipedia-style float returns, with its width cap.
-    expect(figure?.className).toContain("sm:float-right");
-    expect(figure?.className).toContain("sm:max-w-[var(--vcode-float-max)]");
-    expect(figure?.getAttribute("style")).toContain("--vcode-float-max: 500px");
+    // The float cap is published as a variable so it can bind only from `sm`
+    // up; the inline style must not force the centered-layout margins or cap,
+    // which would override the mobile fallback.
+    expect(figure?.style.getPropertyValue("--vcode-float-max")).toBe("500px");
+    expect(figure?.style.maxWidth).toBe("");
+    expect(figure?.style.marginLeft).toBe("");
+    expect(figure?.style.marginRight).toBe("");
   });
 
-  it("renders caption content in a dedicated card stack without paragraph tags", () => {
+  it("defaults a floated figure to a proportional cap when no width is given", () => {
+    render(
+      <CaptionedImage src="/img/gallery/example.jpg" caption="Example replication" align="left" />,
+    );
+
+    const figure = document.querySelector("figure") as HTMLElement | null;
+    expect(figure?.style.getPropertyValue("--vcode-float-max")).toBe("min(350px, 40%)");
+  });
+
+  it("renders caption and credit as plain caption text without paragraph tags", () => {
     render(
       <div className="prose prose-invert prose-fuchsia">
         <CaptionedImage
@@ -80,9 +88,43 @@ describe("CaptionedImage", () => {
 
     const figcaption = document.querySelector("figcaption") as HTMLElement | null;
     expect(figcaption).not.toBeNull();
-    expect(figcaption).toHaveClass("effect-vcode-caption");
     expect(figcaption?.querySelectorAll("p")).toHaveLength(0);
     expect(figcaption).toHaveTextContent("Example replication");
     expect(figcaption).toHaveTextContent("by Josie Kins");
+    expect(figcaption?.closest("figure")).toBe(document.querySelector("figure"));
+  });
+
+  it("omits the caption entirely when there is nothing to say", () => {
+    render(<CaptionedImage src="/img/gallery/example.jpg" />);
+
+    expect(document.querySelector("figcaption")).toBeNull();
+  });
+
+  it("rewrites gallery paths to the CDN and names the image from its title, caption, or a fallback", () => {
+    const { rerender } = render(
+      <CaptionedImage src="/img/gallery/my image.jpg" caption="Caption text" title="Title text" />,
+    );
+    expect(screen.getByRole("img", { name: "Title text" })).toHaveAttribute(
+      "src",
+      "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/my%20image.jpg",
+    );
+
+    rerender(<CaptionedImage src="/img/plain.jpg" caption="Caption text" />);
+    expect(screen.getByRole("img", { name: "Caption text" })).toHaveAttribute(
+      "src",
+      "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/plain.jpg",
+    );
+
+    rerender(<CaptionedImage src="https://cdn.example.com/kept.jpg" />);
+    expect(screen.getByRole("img", { name: "Effect replication" })).toHaveAttribute(
+      "src",
+      "https://cdn.example.com/kept.jpg",
+    );
+  });
+
+  it("renders nothing without a source", () => {
+    const { container } = render(<CaptionedImage caption="Orphan caption" />);
+
+    expect(container).toBeEmptyDOMElement();
   });
 });

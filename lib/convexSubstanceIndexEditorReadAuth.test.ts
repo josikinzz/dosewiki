@@ -71,20 +71,8 @@ describe("substanceIndex.getTagRegistryPage authorization", () => {
     paginate.mockClear();
   });
 
-  it("rejects an unauthenticated caller before reading any editor document", async () => {
-    await expect(
-      handler(createCtx({ identity: null }), { paginationOpts }),
-    ).rejects.toThrow("Authentication required");
-
-    expect(paginate).not.toHaveBeenCalled();
-  });
-
-  it("rejects an invalid API key and a non-editor membership", async () => {
+  it("refuses a non-editor membership before reading any editor document", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
-
-    await expect(
-      handler(createCtx({ identity: null }), { paginationOpts, apiKey: "wrong" }),
-    ).rejects.toThrow("Authentication failed: Invalid API key");
 
     await expect(
       handler(
@@ -125,11 +113,16 @@ describe("substanceIndex.getEditorLibraryPage authorization", () => {
   });
 
   it("is guarded exactly like the whole-article drain", async () => {
-    // The slim list still carries `editorial_review` — review status, notes,
-    // and flags — so trimming the projection must not have relaxed the gate.
+    // The slim list still carries `editorial_review` (review status, notes,
+    // and flags), so trimming the projection must not have relaxed the gate.
+    process.env.CONVEX_ADMIN_KEY = "secret";
+
     await expect(
-      libraryPageHandler(createCtx({ identity: null }), { paginationOpts }),
-    ).rejects.toThrow("Authentication required");
+      libraryPageHandler(
+        createCtx({ identity: null, memberships: { "viewer@example.com": "viewer" } }),
+        { paginationOpts, apiKey: "secret", actorEmail: "viewer@example.com" },
+      ),
+    ).rejects.toThrow("Editor access required");
 
     expect(paginate).not.toHaveBeenCalled();
   });
@@ -153,9 +146,14 @@ describe("substanceIndex.getEditorBySlug authorization", () => {
     delete process.env.CONVEX_ADMIN_KEY;
   });
 
-  it("rejects an unauthenticated caller before reading the article", async () => {
+  it("refuses a non-editor membership before reading the article", async () => {
+    process.env.CONVEX_ADMIN_KEY = "secret";
+
     await expect(
-      bySlugHandler(createCtx({ identity: null }), { slug: "lsd" }),
-    ).rejects.toThrow("Authentication required");
+      bySlugHandler(
+        createCtx({ identity: null, memberships: { "viewer@example.com": "viewer" } }),
+        { slug: "lsd", apiKey: "secret", actorEmail: "viewer@example.com" },
+      ),
+    ).rejects.toThrow("Editor access required");
   });
 });

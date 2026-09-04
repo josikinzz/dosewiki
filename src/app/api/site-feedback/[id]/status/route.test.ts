@@ -2,22 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
 
-vi.mock("server-only", () => ({}));
-
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
   requireRoleSession: authMocks.requireRoleSession,
 }));
-
-const ADMIN = { email: "admin@example.com", name: "Admin" };
-
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
 }));
 
 const mocks = vi.hoisted(() => ({
-  storeTransition: vi.fn(),
+  transition: vi.fn(),
   getSiteFeedbackStore: vi.fn(),
 }));
 
@@ -27,6 +22,7 @@ vi.mock("@/features/site-feedback/siteFeedbackStore.server", () => ({
   SiteFeedbackStorageConfigurationError: class SiteFeedbackStorageConfigurationError extends Error {},
 }));
 
+import { SiteFeedbackNotFoundError } from "@/features/site-feedback/siteFeedbackStore.server";
 import { POST } from "./route";
 
 function statusRequest(body: unknown): Request {
@@ -39,32 +35,26 @@ function statusRequest(body: unknown): Request {
 
 const context = { params: { id: "feedback-1" } };
 
+/** Shared rules live in src/lib/http/feedbackStatusRoute.test.ts; this file pins the site identity. */
 describe("site feedback status route", () => {
   beforeEach(() => {
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", ADMIN));
-    mocks.storeTransition.mockReset().mockResolvedValue({ id: "feedback-1", status: "resolved" });
-    mocks.getSiteFeedbackStore.mockReset().mockResolvedValue({ transition: mocks.storeTransition });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    authMocks.requireRoleSession
+      .mockReset()
+      .mockImplementation(roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }));
+    mocks.transition.mockReset().mockResolvedValue({ id: "feedback-1", status: "resolved" });
+    mocks.getSiteFeedbackStore.mockReset().mockResolvedValue({ transition: mocks.transition });
   });
 
-  it("refuses an editor before touching the store", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-
-    const response = await POST(statusRequest({ status: "resolved" }), context);
-
-    expect(response.status).toBe(403);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(mocks.getSiteFeedbackStore).not.toHaveBeenCalled();
-    expect(mocks.storeTransition).not.toHaveBeenCalled();
-  });
-
-  it("stores the admin's trimmed note with the transition, naming them as the actor", async () => {
+  it("transitions through the site feedback store as the admin", async () => {
     const response = await POST(
-      statusRequest({ status: "resolved", note: "  Search focus bug shipped in 1.4.  " }),
+      statusRequest({ status: "resolved", note: " Search focus bug shipped in 1.4. " }),
       context,
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.storeTransition).toHaveBeenCalledWith("feedback-1", {
+    expect(mocks.getSiteFeedbackStore).toHaveBeenCalledTimes(1);
+    expect(mocks.transition).toHaveBeenCalledWith("feedback-1", {
       status: "resolved",
       reviewer: "admin@example.com",
       actorEmail: "admin@example.com",
@@ -72,26 +62,22 @@ describe("site feedback status route", () => {
     });
   });
 
-  it("leaves the stored note untouched when the note is absent or blank", async () => {
-    await POST(statusRequest({ status: "reviewing" }), context);
-    await POST(statusRequest({ status: "reviewing", note: "   " }), context);
-
-    expect(mocks.storeTransition).toHaveBeenCalledTimes(2);
-    for (const call of mocks.storeTransition.mock.calls) {
-      expect(call[1]).toEqual({
-        status: "reviewing",
-        reviewer: "admin@example.com",
-        actorEmail: "admin@example.com",
-        note: undefined,
-      });
+  it("accepts every site feedback status and nothing else", async () => {
+    for (const status of ["new", "reviewing", "resolved", "rejected", "spam"]) {
+      expect((await POST(statusRequest({ status }), context)).status).toBe(200);
     }
+    expect((await POST(statusRequest({ status: "open" }), context)).status).toBe(400);
   });
 
-  it("rejects a non-string note before reaching the store", async () => {
-    const response = await POST(statusRequest({ status: "resolved", note: 42 }), context);
+  it("names site feedback in its 404 and its generic failure", async () => {
+    mocks.transition.mockRejectedValueOnce(new SiteFeedbackNotFoundError("x"));
+    const missing = await POST(statusRequest({ status: "resolved" }), context);
+    expect(missing.status).toBe(404);
+    await expect(missing.json()).resolves.toEqual({ error: "Site feedback not found." });
 
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "The review note must be text." });
-    expect(mocks.storeTransition).not.toHaveBeenCalled();
+    mocks.transition.mockRejectedValueOnce(new Error("boom"));
+    const failed = await POST(statusRequest({ status: "resolved" }), context);
+    expect(failed.status).toBe(500);
+    await expect(failed.json()).resolves.toEqual({ error: "Unable to update site feedback right now." });
   });
 });

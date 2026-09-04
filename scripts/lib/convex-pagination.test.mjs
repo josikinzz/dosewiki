@@ -1,11 +1,12 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 import {
   drainConvexPageQuery,
   getUniqueSubstanceDocumentBySlug,
 } from "./convex-pagination.mjs";
+import { listSourceFiles } from "@/test/sourceScan";
 
 const DEPRECATED_SUBSTANCE_QUERIES = new Set([
   "getAll",
@@ -21,23 +22,6 @@ const DEPRECATED_SUBSTANCE_QUERIES = new Set([
   "getRandomSample",
   "replaceAllSubstances",
 ]);
-
-function activeSourceFiles(root) {
-  const results = [];
-  for (const entry of readdirSync(root)) {
-    if (["runs", "node_modules"].includes(entry)) continue;
-    const path = join(root, entry);
-    if (statSync(path).isDirectory()) {
-      results.push(...activeSourceFiles(path));
-    } else if (
-      /\.(?:mjs|js|ts|tsx)$/.test(entry)
-      && !/\.(?:test|spec)\.(?:mjs|js|ts|tsx)$/.test(entry)
-    ) {
-      results.push(path);
-    }
-  }
-  return results;
-}
 
 function staticPropertyName(node) {
   if (ts.isPropertyAccessExpression(node)) return node.name.text;
@@ -225,13 +209,10 @@ describe("drainConvexPageQuery", () => {
     ].join(";\n"))).toEqual([]);
   });
 
-  it("keeps active app and script callers off every deprecated whole-corpus substance projection", () => {
-    const activeRoots = ["src", "lib", "scripts"]
-      .map((directory) => join(process.cwd(), directory));
-    const offenders = activeRoots
-      .flatMap(activeSourceFiles)
-      .flatMap((path) => collectDeprecatedSubstanceQueryAccesses(readFileSync(path, "utf8"), path)
-        .map((finding) => `${relative(process.cwd(), path)}:${finding.line}:${finding.column} (${finding.queryName})`));
+  it("policy: no active src, lib, or scripts caller reaches a retired whole-corpus substanceIndex query", () => {
+    const offenders = listSourceFiles(["src", "lib", "scripts"], { extensions: /\.(?:mjs|js|ts|tsx)$/ })
+      .flatMap((path) => collectDeprecatedSubstanceQueryAccesses(readFileSync(join(process.cwd(), path), "utf8"), path)
+        .map((finding) => `${path}:${finding.line}:${finding.column} (${finding.queryName})`));
     expect(offenders).toEqual([]);
   }, 15_000);
 });

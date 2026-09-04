@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { FORMAL_CITATION_SECTION_RESPONSE_SCHEMA_VERSION } from "./formal-citations-contract.mjs";
-import {
-  buildFormalCitationDraftFromAgent,
-} from "./formal-citations-core.mjs";
+import { buildFormalCitationDraftFromAgent } from "./formal-citations-core.mjs";
 import { collectFormalCitationReferences } from "./formal-citations-reference-catalog.mjs";
 import { resolveFormalCitationSections } from "./formal-citations-section-config.mjs";
 import { buildFormalCitationTargets } from "./formal-citations-targets.mjs";

@@ -17,6 +17,8 @@ vi.mock("@server/http/nextRateLimit", () => ({
 const replication = {
   _id: "private-id",
   _creationTime: 1,
+  storage_id: "kg2private",
+  removal_contact: "artist@example.com",
   slug: "drifting",
   title: "Drifting",
   artist: "Artist",
@@ -43,5 +45,38 @@ describe("public replication detail API", () => {
     expect(response.status).toBe(200);
     expect(mocks.getPublicReplicationBySlug).toHaveBeenCalledWith("drifting");
     expect(mocks.getPublicReplications).not.toHaveBeenCalled();
+  });
+
+  it("serves the public projection with CORS and without private storage fields", async () => {
+    const { GET } = await import("./route");
+    const response = await GET(new Request("https://dose.wiki/api/v1/replications/drifting"), {
+      params: Promise.resolve({ slug: "drifting" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const body = await response.json();
+    expect(body).toEqual({
+      data: expect.objectContaining({ slug: "drifting", url: "https://media.example/drifting.mp4" }),
+      meta: { api_version: "v1" },
+    });
+    for (const field of ["_id", "_creationTime", "storage_id", "removal_contact"]) {
+      expect(body.data).not.toHaveProperty(field);
+    }
+  });
+
+  it("returns the versioned not-found envelope with CORS", async () => {
+    mocks.getPublicReplicationBySlug.mockResolvedValueOnce(null);
+    const { GET } = await import("./route");
+    const response = await GET(new Request("https://dose.wiki/api/v1/replications/unknown"), {
+      params: Promise.resolve({ slug: "unknown" }),
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    await expect(response.json()).resolves.toEqual({
+      error: { code: "not_found", message: "Replication not found." },
+      meta: { api_version: "v1" },
+    });
   });
 });

@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 import {
@@ -8,6 +7,7 @@ import {
   projectPublicSubstancePreviews,
   projectPublicSubstanceRecord,
 } from "./publicData.reads";
+import { publicDataReadCatalog } from "./publicData.readCatalog";
 import type { SubstanceRecord } from "./publicData.shared";
 
 vi.mock("server-only", () => ({}));
@@ -475,10 +475,7 @@ describe("public data read adapter", () => {
   });
 
   it("contains no active calls to legacy whole-corpus public projections", () => {
-    const source = [
-      readFileSync("lib/convex/publicData.reads.ts", "utf8"),
-      readFileSync("lib/convex/publicData.readCatalog.ts", "utf8"),
-    ].join("\n");
+    const catalogFunctionNames = Object.values(publicDataReadCatalog).map((entry) => entry.functionName);
     const forbiddenFunctionNames = [
       "substanceIndex:getPublicLibraryInput",
       "substanceIndex:getPublicCoverageInput",
@@ -494,8 +491,6 @@ describe("public data read adapter", () => {
       "replications:getPublicReplications",
     ];
 
-    for (const functionName of forbiddenFunctionNames) {
-      expect(source).not.toContain(`"${functionName}"`);
-    }
+    expect(catalogFunctionNames.filter((name) => forbiddenFunctionNames.includes(name))).toEqual([]);
   });
 });

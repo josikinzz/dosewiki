@@ -188,6 +188,36 @@ describe("applyBoardDrag", () => {
 
     expect(drag(state, "c", "b").curated).toEqual(["a", "c", "b"]);
   });
+
+  it("cannot seed an empty priority list by dragging", () => {
+    const next = drag(EMPTY, "c", "a");
+
+    expect(next.curated).toEqual([]);
+    expect(buildGalleryBoard(MATCHES, next, CAP).curatedCount).toBe(0);
+  });
+
+  it("keeps the board numbering and effectiveGalleryOrder in agreement after every kind of drop", () => {
+    // A uniform tier, so stored priority alone decides the published order.
+    const works = manyMatches(4);
+    const dragWorks = (state: GalleryCurationState, activeSlug: string, overId: string) =>
+      applyBoardDrag(state, buildGalleryBoard(works, state, CAP), activeSlug, overId);
+    const publicOrder = (state: GalleryCurationState) => {
+      const numbered = [...buildGalleryBoard(works, state, CAP).rows]
+        .sort((left, right) => left.position - right.position)
+        .map((row) => row.match.replication.slug);
+      expect(effectiveGalleryOrder(works, state).map((entry) => entry.replication.slug)).toEqual(
+        numbered,
+      );
+      return numbered;
+    };
+    const curated: GalleryCurationState = { curated: ["r1", "r2"], removed: [] };
+
+    expect(publicOrder(EMPTY)).toEqual(["r1", "r2", "r3", "r4"]);
+    expect(publicOrder(dragWorks(curated, "r4", "r1"))).toEqual(["r4", "r1", "r2", "r3"]);
+    expect(publicOrder(dragWorks(curated, "r1", "r2"))).toEqual(["r2", "r1", "r3", "r4"]);
+    expect(publicOrder(dragWorks(curated, "r1", "r3"))).toEqual(["r2", "r1", "r3", "r4"]);
+    expect(publicOrder({ curated: ["r1", "r3"], removed: ["r3"] })).toEqual(["r1", "r2", "r4"]);
+  });
 });
 
 describe("buildGalleryBoard", () => {

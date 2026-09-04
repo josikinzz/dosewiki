@@ -22,76 +22,82 @@ import {
 } from "./surface";
 
 describe("Surface primitives", () => {
-  it("renders the default card surface recipe", () => {
-    render(<Surface data-testid="surface">Content</Surface>);
-
-    const surface = screen.getByTestId("surface");
-    expect(surface).toHaveClass("theme-card-surface");
-    expect(surface).toHaveClass("rounded-2xl");
-    expect(surface).toHaveClass("p-6");
-  });
-
-  it("renders semantic interactive and selected variants", () => {
+  it("renders content and forwards element attributes", () => {
     render(
-      <InteractiveSurface variant="result" selected data-testid="result">
-        Result
-      </InteractiveSurface>,
+      <Surface role="region" aria-label="Overview" id="overview">
+        Content
+      </Surface>,
     );
 
-    const result = screen.getByTestId("result");
-    expect(result).toHaveClass("theme-card-surface");
-    expect(result).toHaveClass("group");
-    expect(result.className).toContain("border-[color:var(--theme-card-border-strong)]");
+    const surface = screen.getByRole("region", { name: "Overview" });
+    expect(surface).toHaveAttribute("id", "overview");
+    expect(surface).toHaveTextContent("Content");
   });
 
-  it("renders danger and empty-state surfaces", () => {
+  it("composes onto its child element with asChild instead of wrapping it", () => {
+    const { container } = render(
+      <Surface asChild>
+        <a href="/reports">Reports</a>
+      </Surface>,
+    );
+
+    const link = screen.getByRole("link", { name: "Reports" });
+    expect(link).toHaveAttribute("href", "/reports");
+    expect(link.parentElement).toBe(container);
+  });
+
+  it("keeps a consumer className alongside the recipe", () => {
+    render(<Surface className="consumer-hook">Content</Surface>);
+
+    expect(screen.getByText("Content")).toHaveClass("consumer-hook");
+  });
+
+  it("renders every recipe wrapper with its content and semantics intact", () => {
     render(
       <>
-        <InteractiveSurface variant="danger" data-testid="danger">
-          Danger
+        <ContentCard>Content</ContentCard>
+        <InteractiveContentCard role="button" tabIndex={0} aria-label="Open interactive">
+          Interactive
+        </InteractiveContentCard>
+        <InteractiveSurface variant="result" selected role="option" aria-selected>
+          Result
         </InteractiveSurface>
-        <EmptyStateSurface data-testid="empty">Empty</EmptyStateSurface>
+        <NestedContentCard>Nested</NestedContentCard>
+        <StatusState role="status">Status</StatusState>
+        <EmptyStateSurface tone="danger" role="status">
+          Empty
+        </EmptyStateSurface>
+        <DangerCallout role="alert">Danger</DangerCallout>
       </>,
     );
 
-    expect(screen.getByTestId("danger").className).toContain("bg-[color:var(--theme-danger-bg)]");
-    expect(screen.getByTestId("empty")).toHaveClass("theme-state-card");
-    expect(screen.getByTestId("empty")).toHaveClass("text-center");
-  });
-
-  it("renders public recipe wrappers through Surface primitives", () => {
-    render(
-      <>
-        <ContentCard data-testid="content">Content</ContentCard>
-        <InteractiveContentCard data-testid="interactive">Interactive</InteractiveContentCard>
-        <NestedContentCard data-testid="nested">Nested</NestedContentCard>
-        <StatusState data-testid="status">Status</StatusState>
-        <DangerCallout data-testid="callout">Danger</DangerCallout>
-      </>,
-    );
-
-    expect(screen.getByTestId("content")).toHaveClass("theme-public-card");
-    expect(screen.getByTestId("interactive")).toHaveClass("theme-public-card-interactive");
-    expect(screen.getByTestId("nested")).toHaveClass("theme-public-card-subtle");
-    expect(screen.getByTestId("status")).toHaveClass("theme-state-card");
-    expect(screen.getByTestId("callout").className).toContain("bg-[color:var(--theme-danger-bg)]");
+    expect(screen.getByText("Content")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Open interactive" })).toHaveTextContent("Interactive");
+    expect(screen.getByRole("option", { name: "Result" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Nested")).toBeVisible();
+    expect(screen.getAllByRole("status").map((node) => node.textContent)).toEqual([
+      "Status",
+      "Empty",
+    ]);
+    expect(screen.getByRole("alert")).toHaveTextContent("Danger");
   });
 });
 
 describe("Surface primitive adapters", () => {
-  it("keeps SectionCard and StateCard smoke rendering through shared surfaces", () => {
-    render(
+  it("keeps SectionCard and StateCard rendering their content through shared surfaces", () => {
+    const { container } = render(
       <>
         <SectionCard id="overview">Overview</SectionCard>
         <StateCard title="No records" description="Nothing is available yet." />
       </>,
     );
 
-    expect(screen.getByText("Overview").closest("section")).toHaveClass("theme-public-card");
-    expect(screen.getByRole("heading", { name: "No records" }).closest(".theme-state-card")).toBeInTheDocument();
+    expect(container.querySelector("section#overview")).toHaveTextContent("Overview");
+    expect(screen.getByRole("heading", { name: "No records" })).toBeVisible();
+    expect(screen.getByText("Nothing is available yet.")).toBeVisible();
   });
 
-  it("keeps representative migrated list cards rendering", () => {
+  it("keeps representative migrated list cards rendering as links", () => {
     const results: SearchMatch[] = [
       {
         id: "substance:lsd",
@@ -119,8 +125,13 @@ describe("Surface primitive adapters", () => {
       </>,
     );
 
-    expect(screen.getByText("Lysergic acid diethylamide").closest("a")).toHaveClass("theme-search-suggestion");
-    expect(screen.getByRole("link", { name: /a careful evening/i })).toHaveClass("theme-public-card");
+    const resultLink = screen.getByText("Lysergic acid diethylamide").closest("a");
+    expect(resultLink).toHaveAttribute("href", "/lsd");
+    expect(resultLink).toHaveTextContent("LSD");
+    expect(screen.getByRole("link", { name: /a careful evening/i })).toHaveAttribute(
+      "href",
+      "/reports/sample-report",
+    );
   });
 });
 
@@ -133,10 +144,13 @@ describe("Public common recipes", () => {
       </>,
     );
 
-    expect(screen.getByText("Success").parentElement).toHaveAttribute("data-tone", "success");
-    expect(screen.getByText("Success").parentElement).toHaveAttribute("data-size", "sm");
-    expect(screen.getByText("Legacy size").parentElement).toHaveClass("custom-badge");
-    expect(screen.getByText("Legacy size").parentElement).toHaveAttribute("data-size", "md");
+    const success = screen.getByText("Success").parentElement;
+    expect(success).toHaveAttribute("data-tone", "success");
+    expect(success).toHaveAttribute("data-size", "sm");
+
+    const legacy = screen.getByText("Legacy size").parentElement;
+    expect(legacy).toHaveClass("custom-badge");
+    expect(legacy).toHaveAttribute("data-size", "md");
   });
 
   it("renders public overline, pill, name chip, and chip nav helpers with data-shaped APIs", () => {
@@ -156,13 +170,12 @@ describe("Public common recipes", () => {
       </>,
     );
 
-    expect(screen.getByText("Section label")).toHaveClass("theme-public-overline");
+    expect(screen.getByText("Section label")).toBeVisible();
     expect(screen.getByText("Risk").closest("[data-tone='danger']")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Visual drifting" })).toHaveAttribute(
       "data-token",
       "public-name-chip",
     );
-    expect(screen.getByRole("button", { name: "Visual drifting" })).toHaveClass("theme-name-chip");
     expect(screen.getByRole("button", { name: /all4/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("link", { name: /reports2/i })).toHaveAttribute("href", "/reports");
   });
@@ -178,15 +191,16 @@ describe("Public common recipes", () => {
     );
 
     expect(screen.queryByText("Original article")).not.toBeInTheDocument();
-    const attributionPill = screen
-      .getByText("Forked from Subjective Effect Documentation work")
-      .closest(".theme-external-source-pill");
+    // The pill's overlay link carries the accessible name; the credit text
+    // sits beside it inside the same pill.
+    const attribution = screen.getByLabelText(
+      "Open original subjective effects documentation by Josie Kins",
+    ).parentElement;
 
-    expect(attributionPill).toHaveTextContent("Forked from Subjective Effect Documentation work");
-    expect(attributionPill).toHaveTextContent("by");
-    expect(attributionPill).toHaveTextContent("Josie Kins");
-    expect(attributionPill).toHaveTextContent("September 2013.");
-    expect(attributionPill).toHaveClass("theme-external-source-pill");
+    expect(attribution).toHaveTextContent("Forked from Subjective Effect Documentation work");
+    expect(attribution).toHaveTextContent("by");
+    expect(attribution).toHaveTextContent("Josie Kins");
+    expect(attribution).toHaveTextContent("September 2013.");
     expect(screen.getByRole("link", { name: "Josie Kins" })).toHaveAttribute(
       "href",
       "/contributors/josie",

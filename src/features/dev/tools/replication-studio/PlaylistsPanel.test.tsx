@@ -3,17 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@dnd-kit/core", () => ({
-  DndContext: ({
-    children,
-    sensors,
-  }: {
-    children: React.ReactNode;
-    sensors?: unknown[];
-  }) => (
-    <div data-testid="playlist-dnd-context" data-sensors-enabled={sensors && sensors.length > 0}>
-      {children}
-    </div>
-  ),
+  DndContext: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   KeyboardSensor: function KeyboardSensor() {},
   PointerSensor: function PointerSensor() {},
   closestCenter: vi.fn(),
@@ -274,10 +264,6 @@ describe("PlaylistsPanel", () => {
     expect(screen.getByRole("button", { name: "Remove Work 0 from playlist" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Discard changes" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Clear playlist" })).toBeDisabled();
-    expect(screen.getByTestId("playlist-dnd-context")).toHaveAttribute(
-      "data-sensors-enabled",
-      "false",
-    );
 
     await user.type(title, " later");
     await user.click(screen.getByRole("button", { name: "Add Work 2 to playlist" }));

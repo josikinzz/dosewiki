@@ -122,9 +122,9 @@ export function ApplyPlaylistToDrugsAction({
               </p>
             </div>
           ) : (
-            <div className="space-y-2" aria-live="polite" aria-label="Application results">
+            <ul className="space-y-2" aria-live="polite" aria-label="Application results">
               {results.map((result) => (
-                <div
+                <li
                   key={result.substanceSlug}
                   className="rounded-lg border border-[color:var(--editor-chip-border)] p-3"
                 >
@@ -146,9 +146,9 @@ export function ApplyPlaylistToDrugsAction({
                     {result.added.length} added · {result.alreadyPresent.length} already present ·{" "}
                     {result.excluded.length} excluded · {result.ineligible.length} ineligible
                   </p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
 
           <DialogFooter>

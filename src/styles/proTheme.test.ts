@@ -10,31 +10,23 @@ import { buildSurfaceStylesheetCss } from "@/theme/surfaceStylesheet";
  * the ones that fail silently rather than loudly: a rule that forgets the style
  * scope leaks Pro onto Fun, a rule that keeps the publication scope leaves Pro
  * unreachable on dose.wiki, an escaped attribute selector matches nothing at
- * all, an import that is not last loses the cascade, a seed that only one
- * scheme defines leaves the other scheme resolving nothing, and an
- * <image>-typed token flattened to a bare colour is dropped by the CSS parser
- * with no error anywhere.
+ * all, a seed that only one scheme defines leaves the other scheme resolving
+ * nothing, and an <image>-typed token flattened to a bare colour is dropped by
+ * the CSS parser with no error anywhere. Typography values and entry import
+ * lists are deliberately not pinned here: appearanceSheets.test.ts owns the
+ * late-link order, and sizes are design, not structure.
  *
  * Paths are resolved from the repo root rather than from an env var so the
  * suite reads the same files the build does, on either flavor.
  */
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const SKIN_PATH = path.join(REPO_ROOT, "src", "styles", "pro-theme.css");
-const ENTRY_PATH = path.join(REPO_ROOT, "src", "styles.css");
-const CONFIG_PATH = path.join(REPO_ROOT, "next.config.ts");
 const DOSEWIKI_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "dosewiki.ts");
-const EFFECT_INDEX_ENTRY_PATH = path.join(REPO_ROOT, "src", "app", "_styles", "effectindex.ts");
 const SITE_COLORS_PATH = path.join(REPO_ROOT, "src", "styles", "site-colors.css");
 
 const STYLE_SCOPE = '[data-visual-style="pro"]';
 const LIGHT_SCHEME_SCOPE = `${STYLE_SCOPE}[data-theme="light"]`;
 const DARK_SCHEME_SCOPE = `${STYLE_SCOPE}[data-theme="dark"]`;
-
-/** The retired publication-scoped skin. Nothing may point at either name. */
-const RETIRED_PATHS = ["src/styles/effectindex-theme.css", "src/styles/effectindexTheme.test.ts"];
-
-/** This file names both retired paths in order to forbid them, and it scans itself. */
-const GUARD_FILE = "src/styles/proTheme.test.ts";
 
 function read(filePath: string): string {
   return fs.readFileSync(filePath, "utf8");
@@ -237,64 +229,9 @@ function selectorsOf(css: string): string[] {
     .filter((part) => part.length > 0);
 }
 
-/** Recursively collect source files that could reference a stylesheet path. */
-function collectSourceFiles(directory: string): string[] {
-  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const child = path.join(directory, entry.name);
-    // src/data is ~67 MB of article JSON and imports nothing.
-    if (entry.isDirectory()) return entry.name === "data" ? [] : collectSourceFiles(child);
-    return /\.(tsx?|css|mjs)$/.test(entry.name) ? [child] : [];
-  });
-}
-
 describe("pro visual style", () => {
   const skin = read(SKIN_PATH);
   const blocks = blocksOf(skin);
-
-  it("keeps the Pro visual style out of both bundled entries", () => {
-    const dosewikiImports = [
-      ...read(DOSEWIKI_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
-    ].map((match) => match[1]);
-
-    // pro-theme.css is attribute-gated and no longer travels in either bundle: it ships as
-    // a static copy in public/ (generate:appearance-sheets) attached as a late <link> for
-    // exactly the readers whose style is Pro — appearanceSheets.test.ts pins the copy to
-    // this authored file and the light → Pro → chroma link order. The bundled rungs that
-    // remain: the authored base layer, then the surface and accent sheets whose Pro
-    // selectors have sufficient specificity to re-seed the late-arriving palette, then the
-    // off-homepage bloom removal, which only re-seats tokens on `body`, and the dyslexic
-    // type re-seat, whose triple-attribute selector out-specifies the Pro palette's.
-    expect(dosewikiImports).toEqual([
-      "../../styles.css",
-      "../../styles/surface-tokens.generated.css",
-      "../../styles/accent-tokens.generated.css",
-      "../../styles/fun-flat-glow.css",
-      "../../styles/dyslexic-type.css",
-    ]);
-
-    const effectIndexImports = [
-      ...read(EFFECT_INDEX_ENTRY_PATH).matchAll(/import\s+"([^"]+)";/g),
-    ].map((match) => match[1]);
-
-    // No colourways and no accents: this publication locks both, so neither attribute is
-    // ever written here and both sheets would be dead bytes on every page. Its Pro and
-    // light sheets are server-rendered links (the flavor default needs both), not imports.
-    expect(effectIndexImports).toEqual(["../../styles.css"]);
-  });
-
-  it("preserves the shared cascade and resolves styles by flavor", () => {
-    const commonEntry = read(ENTRY_PATH);
-    const config = read(CONFIG_PATH);
-    const utilitiesIndex = commonEntry.indexOf("./styles/utilities.css");
-    const componentsIndex = commonEntry.indexOf("./styles/components.css");
-
-    expect(utilitiesIndex).toBeGreaterThan(-1);
-    expect(componentsIndex).toBeGreaterThan(utilitiesIndex);
-    expect(read(EFFECT_INDEX_ENTRY_PATH)).not.toContain("surface-tokens.generated.css");
-    expect(read(EFFECT_INDEX_ENTRY_PATH)).not.toContain("accent-tokens.generated.css");
-    expect(config).toContain('dosewiki: "./src/app/_styles/dosewiki.ts"');
-    expect(config).toContain('effectindex: "./src/app/_styles/effectindex.ts"');
-  });
 
   it("scopes every selector to the style attribute, so it is inert on Fun", () => {
     const unscoped = blocks
@@ -519,62 +456,6 @@ describe("pro visual style", () => {
     for (const token of safetyTokens) {
       expect(skin).not.toContain(`${token}:`);
     }
-  });
-
-  it("matches the Effect Index header typography without shrinking its targets", () => {
-    const navRule = blocks.find(
-      (block) =>
-        block.selector === `html${STYLE_SCOPE} .app-header .theme-header-nav-link` &&
-        block.body.includes("text-transform"),
-    );
-
-    expect(navRule).toBeDefined();
-    expect(navRule!.body).toMatch(/font-size:\s*0\.75rem/);
-    expect(navRule!.body).toMatch(/text-transform:\s*uppercase/);
-    expect(navRule!.body).toMatch(/letter-spacing:\s*0\.14em/);
-
-    const wordmark = blocks.find(
-      (block) =>
-        block.selector === `html${STYLE_SCOPE} .app-header .font-display.theme-text-primary`,
-    );
-
-    expect(wordmark?.body).toMatch(/font-size:\s*1\.25rem/);
-  });
-
-  it("gives the Pro homepage an academic hierarchy instead of Fun display sizing", () => {
-    const wordmark = blocks.find(
-      (block) => block.selector === `html${STYLE_SCOPE} .theme-home-wordmark`,
-    );
-    const intro = blocks.find(
-      (block) => block.selector === `html${STYLE_SCOPE} .theme-home-intro`,
-    );
-    const quickLinks = blocks.find(
-      (block) => block.selector === `html${STYLE_SCOPE} .theme-home-nav-link`,
-    );
-
-    expect(wordmark?.body).toMatch(/font-size:\s*clamp\(3rem,\s*5vw,\s*4rem\)/);
-    expect(intro?.body).toMatch(/font-size:\s*1\.0625rem/);
-    expect(intro?.body).toMatch(/line-height:\s*1\.65/);
-    expect(quickLinks?.body).toMatch(/font-size:\s*0\.75rem/);
-    expect(quickLinks?.body).toMatch(/font-family:\s*var\(--font-family-display\)/);
-    expect(quickLinks?.body).toMatch(/text-transform:\s*uppercase/);
-  });
-
-  it("leaves no path to the retired publication-scoped skin", () => {
-    for (const retired of RETIRED_PATHS) {
-      expect(fs.existsSync(path.join(REPO_ROOT, retired))).toBe(false);
-    }
-
-    const stale = collectSourceFiles(path.join(REPO_ROOT, "src"))
-      .concat(path.join(REPO_ROOT, "next.config.ts"))
-      .map((file) => path.relative(REPO_ROOT, file))
-      .filter(
-        (file) =>
-          file !== GUARD_FILE &&
-          /effectindex-theme|effectindexTheme/.test(read(path.join(REPO_ROOT, file))),
-      );
-
-    expect(stale).toEqual([]);
   });
 });
 

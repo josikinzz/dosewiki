@@ -14,7 +14,6 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/contributors/set-profile-bio.mjs",
     "scripts/contributors/generate-avatars-from-replications.ts",
     "scripts/contributors/import-avatars-from-the-wild.ts",
-    "scripts/contributors/repair-loka-attribution.mjs",
     "scripts/contributors/run-replication-index-profile-rollout.ts",
     "scripts/contributors/seed-marker-contributor-profiles.mjs",
     "scripts/contributors/seed-credited-identities.mjs",

@@ -1,10 +1,13 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
+import {
+  describeRoleFloor,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+  routeMocks,
+} from "@/test/routeHarness";
 
 import { EDITABLE_FIELD_CONFLICT_REASON } from "../../../../../convex/lib/articleFieldWrites";
-
-vi.mock("server-only", () => ({}));
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
@@ -19,24 +22,7 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: vi.fn(),
 }));
 
-const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
-const mocks = vi.hoisted(() => ({
-  mutation: vi.fn(),
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 /** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
 function forwarded(data: unknown) {
@@ -60,45 +46,24 @@ function editRequest() {
 
 const ADMIN = { email: "admin@example.com", name: "Admin" };
 
-describe("article field route authorization", () => {
-  beforeEach(() => {
-    vi.resetModules();
-    vi.clearAllMocks();
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
-    });
-  });
-
-  it("refuses an editor with 403 before touching Convex", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-    const { POST } = await import("./route");
-
-    const response = await POST(editRequest());
-
-    expect(response.status).toBe(403);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(mocks.mutation).not.toHaveBeenCalled();
-  });
+describeRoleFloor({
+  floor: "admin",
+  rateLimit: "editorSmallWrite",
+  refused: "editor",
+  calls: [{ name: "POST", call: async () => (await import("./route")).POST(editRequest()) }],
 });
 
 describe("article field route failure reporting", () => {
   beforeEach(() => {
-    vi.resetModules();
+    // next/cache spies live outside the route harness and accumulate across cases.
     vi.clearAllMocks();
+    resetRouteMocks("admin", ADMIN);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", ADMIN));
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
-    });
   });
 
   it("delivers the stale-value conflict copy verbatim, at a status the client can branch on", async () => {
-    mocks.mutation.mockRejectedValue(
+    routeMocks.mutation.mockRejectedValue(
       forwarded({ code: "FIELD_CONFLICT", message: EDITABLE_FIELD_CONFLICT_REASON }),
     );
     const { POST } = await import("./route");
@@ -113,7 +78,7 @@ describe("article field route failure reporting", () => {
   });
 
   it("reports a missing article as a missing article", async () => {
-    mocks.mutation.mockRejectedValue(
+    routeMocks.mutation.mockRejectedValue(
       forwarded({ code: "ARTICLE_NOT_FOUND", message: 'No substance found for slug "2c-b".' }),
     );
     const { POST } = await import("./route");
@@ -127,19 +92,14 @@ describe("article field route failure reporting", () => {
     });
   });
 
-  it("keeps a function missing from the deployment generic", async () => {
-    // The symptom that opened this up: a mutation absent from production threw
-    // a plain Error, which must never become client-visible text.
-    mocks.mutation.mockRejectedValue(
-      new Error('Could not find public function for "substanceIndex:setArticleField"'),
-    );
+  it("names its own generic failure message", async () => {
+    routeMocks.mutation.mockRejectedValue(new Error("ECONNREFUSED"));
     const { POST } = await import("./route");
 
     const response = await POST(editRequest());
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: "Unable to save that edit right now." });
-    expect(console.error).toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({ error: "Unable to save that edit right now." });
   });
 
   it("still rejects a malformed request before reaching Convex", async () => {
@@ -153,22 +113,17 @@ describe("article field route failure reporting", () => {
     );
 
     expect(response.status).toBe(400);
-    expect(mocks.mutation).not.toHaveBeenCalled();
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 });
 
 describe("article field route contribution history", () => {
   beforeEach(() => {
-    vi.resetModules();
     vi.clearAllMocks();
+    resetRouteMocks("admin", ADMIN);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", ADMIN));
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: true,
-      capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
-    });
-    mocks.mutation.mockImplementation(async (name: string) => {
+    routeMocks.mutation.mockImplementation(async (name: string) => {
       if (name === "substanceIndex.setArticleField") {
         return {
           slug: "2c-b",
@@ -189,7 +144,7 @@ describe("article field route contribution history", () => {
     const response = await POST(editRequest());
 
     expect(response.status).toBe(200);
-    const entry = mocks.mutation.mock.calls.find(
+    const entry = routeMocks.mutation.mock.calls.find(
       ([name]) => name === "changelog.addEntry",
     )?.[1] as {
       message: string;
@@ -215,7 +170,7 @@ describe("article field route contribution history", () => {
   });
 
   it("keeps a saved edit successful when the history row cannot be written", async () => {
-    mocks.mutation.mockImplementation(async (name: string) => {
+    routeMocks.mutation.mockImplementation(async (name: string) => {
       if (name === "substanceIndex.setArticleField") {
         return {
           slug: "2c-b",

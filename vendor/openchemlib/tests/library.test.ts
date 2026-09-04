@@ -39,6 +39,22 @@ describe('class prototypes', () => {
   }
 });
 
+describe('DoseWiki fork API', () => {
+  // The prototype snapshots above must keep listing the local additions; this
+  // names them explicitly so a regenerated snapshot cannot silently drop them.
+  it('exposes the bold-bond marker on Molecule', () => {
+    expect(Object.keys(OCL.Molecule.prototype)).toEqual(
+      expect.arrayContaining(['isBondBold', 'setBondBold']),
+    );
+  });
+
+  it('exposes the fine-rotation runtime toggle on CanvasEditor', () => {
+    expect(typeof OCL.CanvasEditor.prototype.setFineRotationEnabled).toBe(
+      'function',
+    );
+  });
+});
+
 function getFilteredKeys(obj: Record<string, unknown>) {
   return Object.keys(obj)
     .filter((key) => {

@@ -61,7 +61,7 @@ function fieldPathToSectionAndRelative(fieldPath) {
   return { sectionKey, relative };
 }
 
-function extractMarkedSentences(text) {
+export function extractMarkedSentences(text) {
   const sentences = [];
   for (const match of text.matchAll(SENTENCE_WITH_MARKERS)) {
     const host = match[1].trim();
@@ -71,7 +71,7 @@ function extractMarkedSentences(text) {
   return sentences;
 }
 
-function findRecoverableSentences({ originalText, currentText, fieldPath, evidence }) {
+export function findRecoverableSentences({ originalText, currentText, fieldPath, evidence }) {
   const candidates = [];
   for (const { host, ids, endsWithPunctuation } of extractMarkedSentences(originalText)) {
     if (!host || host.length < MIN_HOST_LENGTH || !endsWithPunctuation) {
@@ -311,7 +311,10 @@ async function main() {
   console.log(`Wrote ${totalRecoverable} recovered markers into ${rebasedPath}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").at(-1));
+if (isDirectRun) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

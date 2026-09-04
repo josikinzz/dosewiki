@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
-import { POST } from "./route";
-
-vi.mock("server-only", () => ({}));
+import {
+  describeRoleFloor,
+  grantWriteCapability,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+} from "@/test/routeHarness";
 
 vi.mock("../../../../../../../convex/_generated/api", () => ({
   api: {
@@ -12,23 +14,7 @@ vi.mock("../../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
-const mocks = vi.hoisted(() => ({
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 function post(body: unknown, id = "cp_123") {
   return new Request(`https://dose.wiki/api/dev/proposals/${id}/reject`, {
@@ -38,22 +24,17 @@ function post(body: unknown, id = "cp_123") {
 }
 
 function useClient(mutation: Mock) {
-  const client = { query: vi.fn(), mutation };
-  mocks.getServerConvexWriteCapability.mockReturnValue({
-    ok: true,
-    capability: { adminKey: "admin-key", client },
-  });
-  return client;
+  return grantWriteCapability({ query: vi.fn(), mutation });
 }
 
 describe("dev proposal reject route", () => {
   beforeEach(() => {
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", { email: "admin@example.com" }));
-    mocks.getServerConvexWriteCapability.mockReset();
+    resetRouteMocks("admin", { email: "admin@example.com" });
   });
 
   it("rejects with the trimmed note as the admin", async () => {
     const client = useClient(vi.fn(async () => ({ status: "rejected" })));
+    const { POST } = await import("./route");
 
     const response = await POST(post({ note: "  Needs a source for the dosage table. " }));
 
@@ -69,6 +50,7 @@ describe("dev proposal reject route", () => {
 
   it("returns 400 on an empty note without calling Convex", async () => {
     const client = useClient(vi.fn());
+    const { POST } = await import("./route");
 
     for (const body of [{ note: "" }, { note: "   " }, {}]) {
       const response = await POST(post(body));
@@ -79,14 +61,11 @@ describe("dev proposal reject route", () => {
     }
     expect(client.mutation).not.toHaveBeenCalled();
   });
+});
 
-  it("refuses an editor before calling Convex", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
-    const client = useClient(vi.fn());
-
-    const response = await POST(post({ note: "no" }));
-
-    expect(response.status).toBe(403);
-    expect(client.mutation).not.toHaveBeenCalled();
-  });
+describeRoleFloor({
+  floor: "admin",
+  rateLimit: "editorSmallWrite",
+  refused: "editor",
+  calls: [{ name: "POST", call: async () => (await import("./route")).POST(post({ note: "no" })) }],
 });

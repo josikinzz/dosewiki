@@ -3,7 +3,7 @@
  * slim library immediately, the current article hydrates per slug, and the
  * flip-through's immediate neighbours are prefetched behind it.
  */
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { SubstanceArticle } from "@/schema";
@@ -214,5 +214,20 @@ describe("review workbench per-slug hydration", () => {
     requestArticleMock.mockClear();
     fireEvent.click(view.getByRole("button", { name: "Retry" }));
     expect(requestArticleMock).toHaveBeenCalledWith("morphine");
+  });
+
+  it("keeps the command row and its view tabs on one line", async () => {
+    // The bar is sticky chrome: a wrapped row reads as broken. The tab list
+    // defaults to flex-wrap, so the bar instance must pin it too.
+    const view = render(<ReviewExperience initialSlug="heroin" />);
+
+    await waitFor(() => expect(view.getByTestId("article-layout")).toBeTruthy());
+    const bar = view.getByRole("banner", { name: "Review controls" });
+    const row = bar.firstElementChild as HTMLElement;
+    expect(row).toHaveClass("flex-nowrap");
+    expect(row).not.toHaveClass("flex-wrap");
+    const tabs = within(bar).getAllByRole("tablist", { name: "Review view" })[0];
+    expect(tabs).toHaveClass("flex-nowrap");
+    expect(tabs).not.toHaveClass("flex-wrap");
   });
 });

@@ -1,6 +1,6 @@
 # DoseWiki-owned OpenChemLib fork
 
-Last verified: 2026-07-18
+Last verified: 2026-09-03
 
 DoseWiki owns a self-contained OpenChemLib package for the protected molecule depiction editor. The application resolves `openchemlib` from `vendor/openchemlib`; it does not clone an upstream repository, follow a Git submodule, or compile Java/GWT during a normal install, Next.js build, or deployment.
 
@@ -45,7 +45,29 @@ npm run openchemlib:verify
 npm run verify:app
 ```
 
-`openchemlib:verify` checks local package resolution, rejects nested Git metadata, and compares the checked-in source and distributable fingerprints with the artifact manifest. It does not invoke Java or GWT and must leave a clean checkout unchanged.
+`openchemlib:verify` checks local package resolution, rejects nested Git metadata, and compares the checked-in source and distributable fingerprints with the artifact manifest. It does not invoke Java or GWT and must leave a clean checkout unchanged. It does not run the fork tests; that is the separate lane below.
+
+## Fork test lane
+
+`npm run openchemlib:test` runs the package's own Vitest suite (`vendor/openchemlib/tests`): the imported upstream tests plus the DoseWiki delta tests under `vendor/openchemlib/tests/dosewiki`. The artifact manifest records this lane under `verification.testLane`.
+
+Prerequisite: only the package-local dev dependencies. The repository ignores npm lockfiles, so install without one:
+
+```bash
+npm --prefix vendor/openchemlib install --ignore-scripts
+npm run openchemlib:test
+```
+
+The lane resolves `#lib` and `#lib_debug` to the committed `dist/openchemlib.js` and `dist/openchemlib.debug.js` (see `vendor/openchemlib/vitest.config.ts`), so it exercises exactly the bundles the application ships and needs neither a JDK, GWT, nor the ignored `lib/java` intermediate. After `npm run openchemlib:build` the same lane validates the rebuilt bundles.
+
+The delta tests fail if a local change is reverted:
+
+- `bold_bonds.test.ts`: `setBondBold`/`isBondBold` round trip, survival through copying and bond-table compaction, absence from molfiles and idcodes, and the 0.116 × AVBL stroke width of a marked bond against the 0.06 × AVBL standard width
+- `wedge_flare.test.ts`: solid wedge half-width of 0.7/9 × AVBL and hashed wedge growth of 0.7/128 × AVBL per side per step
+- `svg_stroke_width.test.ts`: `toSVG({ strokeWidth })` rewrites only the standard width and leaves bold strokes and hit targets alone
+- `fine_rotation.test.ts`: drives the real `CanvasEditor` under jsdom; a horizontal drag below the legacy 20-pixel dead zone rotates by 1/50 rad per pixel when fine rotation is on, the package default stays coarse, the runtime toggle works without recreating the editor, and the sensitivity and vertical zoom dead zone are preserved
+
+`library.test.ts` snapshots the public prototypes and asserts that `Molecule.isBondBold`, `Molecule.setBondBold`, and `CanvasEditor.setFineRotationEnabled` stay exported. Root `vitest` does not collect `vendor/`; the fork lane is the only runner for these files.
 
 ## Rebuilding the fork
 
@@ -63,11 +85,12 @@ The build resolves tools in this order:
 Prepare the package-local dependencies and tools, then run:
 
 ```bash
-npm --prefix vendor/openchemlib ci --ignore-scripts
+npm --prefix vendor/openchemlib install --ignore-scripts
 JAVA_HOME=/path/to/jdk-21 \
 GWT_HOME=/path/to/gwt-2.13.0 \
 npm run openchemlib:build
 npm run openchemlib:verify
+npm run openchemlib:test
 ```
 
 The root build command compiles minified and debug JavaScript, bundles the CanvasEditor wrapper, copies type declarations, rebuilds resources, and updates the deterministic artifact manifest. Review every source, distributable, type, resource, and manifest diff together. Do not hand-edit committed distribution files.
@@ -83,7 +106,7 @@ There is no automatic upstream merge workflow. To evaluate a later release:
 5. Reapply the smallest possible DoseWiki delta, including the fine-rotation Java field/setter, GWT export, CanvasEditor option/runtime method, and types.
 6. Update provenance, license material if required, and the modifications ledger.
 7. Rebuild through `npm run openchemlib:build`.
-8. Run fork tests, the complete molecule editor/integration tests, lint, type checking, artifact verification, and the production build.
+8. Run `npm run openchemlib:test`, the complete molecule editor/integration tests, lint, type checking, artifact verification, and the production build.
 9. Manually verify coarse and fine pointer rotation in the protected editor before shipping.
 
 Do not broadly reformat imported source. A narrow delta keeps later provenance review and security comparison tractable.

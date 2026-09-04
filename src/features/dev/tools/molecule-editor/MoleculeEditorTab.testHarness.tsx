@@ -1,5 +1,6 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
+import { getFunctionName } from "convex/server";
 import {
   parseOclCustomLabelSgroups,
   stripOclCustomLabelSgroups,
@@ -8,6 +9,7 @@ import {
   OCL_BENZENE,
   OCL_BENZENE_WITH_SURVIVOR_RAW,
   OCL_TYPED_R_EMISSION_RAW,
+  RDKIT_PHENETHYLAMINE,
 } from "./classMolblockFixture";
 
 const mocks = vi.hoisted(() => ({
@@ -198,4 +200,50 @@ export function installMoleculeEditorTestHarness() {
     compareInchiMock.mockReset();
     compareCanonicalSmilesMock.mockReset();
   });
+}
+
+/** Lookup with one substance, its saved-override listing, and a CCO article. */
+export function seedExampleSubstance() {
+  useSubstanceLookupMock.mockReturnValue({
+    lookup: [{ slug: "example", name: "Example" }],
+    isLoading: false,
+    status: "Exhausted",
+  });
+  useQueryMock.mockImplementation((query, args) => {
+    const functionName = getFunctionName(query);
+    if (functionName === "moleculeOverrides:listSlugs") return [{ slug: "example" }];
+    if (functionName === "substanceIndex:getBySlug") {
+      // A new-but-equal object every call, exactly like the real subscription.
+      return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
+    }
+    return undefined;
+  });
+}
+
+export const SAVED_EXAMPLE_OVERRIDE = {
+  slug: "example",
+  molblock: "saved molblock",
+  svg: "<svg />",
+  updatedAt: "2026-07-12T00:00:00.000Z",
+};
+
+/** GET /api/dev/molecule-override answers with `override` (null = no saved depiction). */
+export function stubOverrideFetch(override: Record<string, unknown> | null = SAVED_EXAMPLE_OVERRIDE) {
+  return vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(JSON.stringify({ ok: true, override }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+}
+
+/** Seeded-class flow: no saved override, RDKit generates the Markush molblock. */
+export function seedPhenethylamineClass() {
+  useRdkitMock.mockReturnValue({
+    rdkit: { get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }) },
+    error: null,
+  });
+  renderMoleculeSvgMock.mockReturnValue("<svg />");
+  useQueryMock.mockReturnValue(undefined);
+  stubOverrideFetch(null);
 }

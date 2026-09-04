@@ -7,6 +7,7 @@ import {
   compareInchi,
   type RdkitModuleLike,
 } from "@/features/dev/tools/molecule-editor/stereoGuard";
+import { mirrorMoleculeCoordinates } from "@/features/dev/tools/molecule-editor/moleculeTransforms";
 
 // LSD (two stereocenters) and an inverted-stereocenter diastereomer.
 const LSD_SMILES = "CCN(CC)C(=O)[C@H]1CN([C@@H]2Cc3c[nH]c4cccc(c34)C2=C1)C";
@@ -54,4 +55,18 @@ describe("compareInchi (stereo guard)", () => {
     expect(result.inchiEdited).toBe("");
     expect(result.inchiOriginal).toContain("InChI=1S");
   });
+});
+
+describe("mirrorMoleculeCoordinates keeps the chemistry", () => {
+  it.each(["left-right", "up-down"] as const)(
+    "keeps LSD stereochemistry intact when flipped %s",
+    (direction) => {
+      const molecule = Molecule.fromSmiles(LSD_SMILES);
+      molecule.inventCoordinates();
+      const editable = Molecule.fromMolfile(molecule.toMolfile());
+
+      expect(mirrorMoleculeCoordinates(editable, direction, Molecule)).toBe(true);
+      expect(compareInchi(rdkit, LSD_SMILES, editable.toMolfile()).match).toBe(true);
+    },
+  );
 });

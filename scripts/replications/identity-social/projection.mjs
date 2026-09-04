@@ -76,7 +76,7 @@ function makeOperation(kind, target, action, expectedBefore, after, evidence) {
   };
 }
 
-function creatorDecision(record) {
+export function creatorDecision(record) {
   const work = record.sourceFlag?.work;
   required(work?.id === record.workId, `Research record ${record.workId} does not contain its matching source work.`);
   const sourceHistory = {
@@ -201,7 +201,7 @@ function applyCreatorChronology(creatorOperations, chronology) {
   });
 }
 
-function verificationOperations(primary, secondary, third) {
+export function verificationOperations(primary, secondary, third) {
   const secondaryByArtist = new Map(secondary.finalizedArtists.map((record) => [record.artistId, record]));
   const thirdByArtist = new Map(
     third.records.filter((record) => record.kind === "artist-verdict").map((record) => [record.key, record]),

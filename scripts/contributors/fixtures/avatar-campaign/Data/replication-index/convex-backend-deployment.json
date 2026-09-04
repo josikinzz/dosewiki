@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "convex-backend-deployment-receipt",
+  "deployment": {
+    "name": "prod:glad-minnow-656",
+    "url": "https://glad-minnow-656.convex.cloud",
+    "applicationCommit": "6970b83c"
+  },
+  "deploymentResult": {
+    "verifiedLiveFunctions": [
+      "contributorProfiles.js:importReviewedProfilePlan",
+      "contributorProfiles.js:getForBulkImport"
+    ]
+  }
+}

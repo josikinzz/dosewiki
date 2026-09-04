@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 import {
   findProfileByAuthorName,
@@ -11,8 +8,6 @@ import {
   withEditorAssignedProfileKey,
 } from "../convex/lib/tripReportAttribution";
 import { profileMatchesName, toContributorDisplayName } from "./contributorProfileIdentity";
-
-const readSource = (relativePath: string) => readFileSync(join(process.cwd(), relativePath), "utf8");
 
 describe("trip report contributor attribution", () => {
   it("drops every submitter-claimed identity and link field while keeping the rest of the subject", () => {
@@ -97,53 +92,5 @@ describe("author name claim matching", () => {
         ]);
       }
     }
-  });
-});
-
-describe("Convex trip report submission attribution boundary", () => {
-  it("strips submitter attribution on intake and rebuilds it on promotion", () => {
-    const source = readSource("convex/tripReportSubmissions.ts");
-
-    expect(source).toContain("const submission = withoutSubmitterAttribution(args.submission);");
-    expect(source).toContain("subject: stripSubmitterSubjectFields(row.report.subject),");
-    expect(source).toContain('await ctx.db.insert("tripReportSubmissions", submission);');
-    expect(source).toContain("subject: withEditorAssignedProfileKey(row.report.subject, assignedProfileKey)");
-  });
-
-  it("only accepts a promotion key that resolves to an existing contributor profile", () => {
-    // The resolver is shared with the portal's byline reassignment; both paths
-    // must reject a key that names no contributor.
-    const source = readSource("convex/lib/tripReportAttribution.ts");
-
-    expect(source).toContain('throw new Error(`Contributor profile "${profileKey}" not found.`);');
-    expect(readSource("convex/tripReportSubmissions.ts")).toContain(
-      "await resolveEditorAssignedProfileKey(ctx, options.requestedProfileKey)",
-    );
-  });
-
-  it("refuses to promote a byline that matches a contributor without an editor decision", () => {
-    expect(readSource("convex/tripReportSubmissions.ts")).toContain(
-      "await assertAuthorNameClaimAdjudicated(ctx, {",
-    );
-
-    const guard = readSource("convex/lib/tripReportAttribution.ts");
-    expect(guard).toContain("if (options.confirmAuthorNameClaim) {");
-    expect(guard).toContain('`Author name "${authorName}" matches contributor profile "${matchedKey}". `');
-  });
-
-  it("runs the same guard when the portal reassigns a published report's byline", () => {
-    // A byline is a byline: editing one onto a contributor's name is the same
-    // impersonation path promotion already refuses to walk unadjudicated.
-    const source = readSource("convex/tripReports.ts");
-
-    expect(source).toContain("await assertAuthorNameClaimAdjudicated(ctx, {");
-    expect(source).toContain("confirmAuthorNameClaim: args.confirmAuthorNameClaim,");
-  });
-
-  it("stamps every promoted report with the editor's attribution decision", () => {
-    const source = readSource("convex/tripReportSubmissions.ts");
-
-    expect(source).toContain("attribution_review: {");
-    expect(source).toContain('decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),');
   });
 });

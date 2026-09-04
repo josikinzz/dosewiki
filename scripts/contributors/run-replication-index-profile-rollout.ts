@@ -29,6 +29,12 @@ export const DEFAULT_LEDGER_PATH =
   "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/profile-rollout-production-ledger-2026-08-31.json";
 export const EXPECTED_FILE_SHA256 = "f9077a939d562d86d69acaa8cc644841e4e9bac1b15c9dc2d4697ad398975a35";
 export const EXPECTED_CONTENT_SHA256 = "a10e5a6a39a2ba7b3734e87e7b8f715b8d337a5c380cc8bb73f07460921f4211";
+/** Digest pins the plan file must match. Production runs always use the campaign pins. */
+export type MaterializationPins = { fileSha256: string; contentSha256: string };
+export const PINNED_MATERIALIZATION: MaterializationPins = {
+  fileSha256: EXPECTED_FILE_SHA256,
+  contentSha256: EXPECTED_CONTENT_SHA256,
+};
 
 type ProfileState = {
   key: string;
@@ -64,6 +70,8 @@ export type Materialization = {
   batches: Batch[];
   contentSha256: string;
 };
+/** A materialization whose file bytes matched their pin; carries that proven file hash. */
+export type ValidatedMaterialization = Materialization & { fileSha256: string };
 type BatchLedger = {
   batchNumber: number;
   operationId: string;
@@ -122,12 +130,16 @@ function storedState(row: Record<string, unknown>): ProfileState {
   };
 }
 
-export function validateMaterialization(planPath = DEFAULT_PLAN_PATH): Materialization {
+export function validateMaterialization(
+  planPath = DEFAULT_PLAN_PATH,
+  pins: MaterializationPins = PINNED_MATERIALIZATION,
+): ValidatedMaterialization {
   const bytes = readFileSync(planPath);
-  required(sha256(bytes) === EXPECTED_FILE_SHA256, "Pinned profile materialization file hash mismatch.");
+  const fileSha256 = sha256(bytes);
+  required(fileSha256 === pins.fileSha256, "Pinned profile materialization file hash mismatch.");
   const parsed = JSON.parse(bytes.toString("utf8")) as Materialization;
   const { contentSha256, ...withoutSelfHash } = parsed;
-  required(contentSha256 === EXPECTED_CONTENT_SHA256, "Pinned profile materialization content hash mismatch.");
+  required(contentSha256 === pins.contentSha256, "Pinned profile materialization content hash mismatch.");
   required(sha256(canonical(withoutSelfHash)) === contentSha256, "Profile materialization self-hash mismatch.");
   required(parsed.schemaVersion === 1, "Unsupported profile materialization schema.");
   required(parsed.artifactType === "replication-index-attribution-profile-materialization", "Wrong artifact type.");
@@ -174,13 +186,13 @@ export function validateMaterialization(planPath = DEFAULT_PLAN_PATH): Materiali
       row.mode === "ui-initials-no-file" || row.mode === "preserve-existing-avatar-or-fallback"),
     "Unexpected avatar outcome.",
   );
-  return parsed;
+  return { ...parsed, fileSha256 };
 }
 
-export function createLedger(plan: Materialization): ProfileRolloutLedger {
+export function createLedger(plan: ValidatedMaterialization): ProfileRolloutLedger {
   return {
     schemaVersion: 1,
-    artifactFileSha256: EXPECTED_FILE_SHA256,
+    artifactFileSha256: plan.fileSha256,
     artifactContentSha256: plan.contentSha256,
     targetDeployment: EXPECTED_DEPLOYMENT,
     batches: plan.batches.map((batch) => ({
@@ -196,9 +208,9 @@ export function createLedger(plan: Materialization): ProfileRolloutLedger {
   };
 }
 
-export function validateLedger(ledger: ProfileRolloutLedger, plan: Materialization) {
+export function validateLedger(ledger: ProfileRolloutLedger, plan: ValidatedMaterialization) {
   required(ledger.schemaVersion === 1, "Unsupported profile rollout ledger schema.");
-  required(ledger.artifactFileSha256 === EXPECTED_FILE_SHA256, "Ledger artifact file hash mismatch.");
+  required(ledger.artifactFileSha256 === plan.fileSha256, "Ledger artifact file hash mismatch.");
   required(ledger.artifactContentSha256 === plan.contentSha256, "Ledger artifact content hash mismatch.");
   required(ledger.targetDeployment === EXPECTED_DEPLOYMENT, "Ledger target deployment mismatch.");
   required(ledger.batches.length === plan.batches.length, "Ledger batch count mismatch.");
@@ -290,7 +302,7 @@ function validateRollbackDryRunResult(batch: Batch, result: unknown) {
   required(Number(value.skipped) === 0, `Batch ${batch.batchNumber} rollback dry run skipped an entry.`);
 }
 
-export async function runRollbackLiveDryRun(plan: Materialization, token: string, dependencies: RolloutDependencies) {
+export async function runRollbackLiveDryRun(plan: ValidatedMaterialization, token: string, dependencies: RolloutDependencies) {
   for (const batch of [...plan.batches].reverse()) {
     const payload = rollbackPayloadFor(batch, true);
     validateRollbackDryRunResult(batch, await dependencies.rollbackBatch(payload, token));
@@ -298,7 +310,7 @@ export async function runRollbackLiveDryRun(plan: Materialization, token: string
   return { phase: "rollback", batches: plan.batches.length, rows: plan.counts.profileOperations, wrote: false };
 }
 
-export async function runLiveDryRun(plan: Materialization, token: string, dependencies: RolloutDependencies) {
+export async function runLiveDryRun(plan: ValidatedMaterialization, token: string, dependencies: RolloutDependencies) {
   for (const batch of plan.batches) {
     const payload = { ...batch.payload, dryRun: true };
     validateDryRunResult(batch, await dependencies.dryRunBatch(payload, token));
@@ -308,7 +320,7 @@ export async function runLiveDryRun(plan: Materialization, token: string, depend
 
 export async function runWritePhase(
   phase: "canary" | "remaining",
-  plan: Materialization,
+  plan: ValidatedMaterialization,
   ledger: ProfileRolloutLedger,
   token: string,
   dependencies: RolloutDependencies,
@@ -348,7 +360,7 @@ export async function runWritePhase(
 }
 
 export async function runRollbackPhase(
-  plan: Materialization,
+  plan: ValidatedMaterialization,
   ledger: ProfileRolloutLedger,
   token: string,
   dependencies: RolloutDependencies,
@@ -397,7 +409,7 @@ export async function runRollbackPhase(
   return ledger;
 }
 
-function loadLedger(filename: string, plan: Materialization) {
+function loadLedger(filename: string, plan: ValidatedMaterialization) {
   try {
     return validateLedger(JSON.parse(readFileSync(filename, "utf8")) as ProfileRolloutLedger, plan);
   } catch (error) {
@@ -410,14 +422,16 @@ export async function runProfileRollout({
   argv = process.argv.slice(2),
   env = process.env,
   dependencies,
+  pins = PINNED_MATERIALIZATION,
 }: {
   argv?: string[];
   env?: NodeJS.ProcessEnv;
   dependencies?: Partial<RolloutDependencies>;
+  pins?: MaterializationPins;
 } = {}) {
   const planPath = flagValue(argv, "--plan") ?? DEFAULT_PLAN_PATH;
   const ledgerPath = flagValue(argv, "--ledger") ?? DEFAULT_LEDGER_PATH;
-  const plan = validateMaterialization(planPath);
+  const plan = validateMaterialization(planPath, pins);
   const liveDryRun = argv.includes("--live-dry-run");
   const phase = flagValue(argv, "--phase") as "canary" | "remaining" | "rollback" | undefined;
   const writeRequested = argv.includes("--write");

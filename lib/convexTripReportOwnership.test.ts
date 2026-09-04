@@ -2,7 +2,16 @@ import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "../convex/_generated/server";
 import { assignOwnerHandler, listOwnedHandler, updateHandler } from "../convex/tripReports";
-import { promoteHandler } from "../convex/tripReportSubmissions";
+import { create, promoteHandler } from "../convex/tripReportSubmissions";
+
+// Convex registered functions keep the original handler on `_handler`; there is
+// no in-repo Convex runtime harness, so the handler is exercised directly.
+type RegisteredHandler = { _handler: (ctx: MutationCtx, args: unknown) => Promise<unknown> };
+const handlerOf = (fn: unknown) => {
+  // Convex's RegisteredMutation type hides `_handler`; the runtime object always carries it.
+  const registered = fn as RegisteredHandler;
+  return registered._handler;
+};
 
 const SERVER_KEY = "test-admin-key";
 
@@ -292,6 +301,113 @@ describe("tripReports.update ownership", () => {
       tripReports: [ownedReport],
     });
     await expect(save("viewer@example.com", { title: "x" })).rejects.toThrow(/Contributor access required/);
+  });
+});
+
+describe("trip report attribution boundary", () => {
+  const profile: Row = { _id: "p1", key: "NERVEWING", displayName: "nervewing", aliases: [] };
+  const submissionFacts = {
+    schema_version: 1,
+    title: fields.title,
+    substance_names: ["Psilocybin"],
+    may_contact: false,
+    publish_consent: true,
+    age_confirmed: true,
+    honeypot_triggered: false,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+
+  it("strips submitter-claimed profile_key, avatar_url, and pdf_url on intake", async () => {
+    const { ctx, rowsOf } = createCtx({ memberships: [admin] });
+    const submission = {
+      ...submissionFacts,
+      id: "sub-x",
+      status: "submitted",
+      author_name: "Impersonator",
+      report: {
+        ...structuredClone(fields),
+        subject: {
+          name: "Impersonator",
+          profile_key: "NERVEWING",
+          avatar_url: "https://x/face.png",
+          pdf_url: "https://x/t.pdf",
+        },
+      },
+    };
+
+    await handlerOf(create)(ctx, { apiKey: SERVER_KEY, submission });
+
+    const stored = [...rowsOf("tripReportSubmissions").values()][0]!.report as { subject: Record<string, unknown> };
+    expect(stored.subject).toEqual({ name: "Impersonator" });
+  });
+
+  it("refuses to promote a byline that matches a contributor unless the editor adjudicates it", async () => {
+    const submission: Row = {
+      ...submissionFacts,
+      _id: "s1",
+      id: "sub-1",
+      status: "accepted",
+      report: structuredClone(fields),
+      author_name: "nervewing",
+    };
+    const seed = () =>
+      createCtx({ memberships: [admin], contributorProfiles: [profile], tripReportSubmissions: [submission] });
+    const promote = (db: FakeDb, extra: Record<string, unknown> = {}) =>
+      promoteHandler(db.ctx, { ...as("admin@example.com"), id: "sub-1", reviewer: "Admin", ...extra });
+
+    await expect(promote(seed())).rejects.toThrow(/matches contributor profile "NERVEWING"/);
+    await expect(promote(seed(), { profileKey: "UNKNOWN" })).rejects.toThrow(/Contributor profile "UNKNOWN" not found/);
+
+    const assigned = seed();
+    const assignedResult = await promote(assigned, { profileKey: "nervewing" });
+    expect(assigned.rowsOf("tripReports").get(assignedResult.reportId)).toMatchObject({
+      subject: { name: "nervewing", profile_key: "NERVEWING" },
+      attribution_review: { decision: "assigned" },
+    });
+
+    const declined = seed();
+    const declinedResult = await promote(declined, { confirmAuthorNameClaim: true });
+    const declinedReport = declined.rowsOf("tripReports").get(declinedResult.reportId);
+    expect(declinedReport).toMatchObject({ attribution_review: { decision: "declined" } });
+    expect(declinedReport?.subject).not.toHaveProperty("profile_key");
+  });
+
+  it("refuses a stale save, keeps editor-set subject links, and re-adjudicates only a moved byline", async () => {
+    const reviewed: Row = {
+      ...ownedReport,
+      subject: { name: "nervewing", avatar_url: "https://cdn/face.png", pdf_url: "https://cdn/r.pdf" },
+      attribution_review: { reviewed_by: "Admin", reviewed_at: "2026-01-01T00:00:00.000Z", decision: "declined" },
+    };
+    const seed = () => createCtx({ memberships: [admin], contributorProfiles: [profile], tripReports: [reviewed] });
+    const expected = { ...fields, subject: { name: "nervewing" } };
+    const save = (db: FakeDb, args: Record<string, unknown>) =>
+      updateHandler(db.ctx, { ...as("admin@example.com"), id: "r1" as never, expected, updates: expected, ...args } as never);
+
+    await expect(save(seed(), { expected: { ...expected, title: "Something else" } })).rejects.toThrow(
+      /changed since it was opened; reload the portal before saving/,
+    );
+
+    const unchanged = seed();
+    await save(unchanged, { updates: { ...expected, title: "Retitled" } });
+    expect(unchanged.rowsOf("tripReports").get("r1")).toMatchObject({
+      title: "Retitled",
+      slug: "alpine-clarity",
+      subject: { name: "nervewing", avatar_url: "https://cdn/face.png", pdf_url: "https://cdn/r.pdf" },
+      attribution_review: { decision: "declined", reviewed_by: "Admin" },
+    });
+
+    // Case and whitespace are not a moved byline: `normalizeAuthorMatchName` equalizes them.
+    await expect(save(seed(), { updates: { ...expected, subject: { name: "NerveWing " } } })).resolves.toMatchObject({
+      updated: true,
+    });
+
+    const movedTo = seed();
+    await save(movedTo, { updates: { ...expected, subject: { name: "somebody" } }, profileKey: "NERVEWING" });
+    expect(movedTo.rowsOf("tripReports").get("r1")).toMatchObject({
+      subject: { name: "somebody", profile_key: "NERVEWING" },
+      attribution_review: { decision: "assigned", reviewed_by: expect.any(String) },
+    });
   });
 });
 

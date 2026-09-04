@@ -72,6 +72,23 @@ CI also includes:
 The rollout and promotion criteria for these controls live in
 [Security CI](../agents/security-ci.md).
 
+### Test ownership policy
+
+Every test needs a stable placement and an explicit reason to exist. Reviewers should be able to name the owning layer for any new test file.
+
+- One observable contract is tested once, at the lowest stable layer that fully expresses it (pure model or helper before hook, hook before component, component before page or route).
+- Higher layers test integration only: wiring, state transitions, and user-visible outcomes. They never recompute a calculation a lower layer already proves.
+- Source-text scans are reserved for named architecture policies (forbidden production write APIs, archive and deprecated boundaries, route reachability, generated-data lineage, command-surface classification). They live behind `src/test/sourceScan.ts`, name the prohibited outcome in the test title, and report the offending file. Imports, helper names, class strings, directives, and formatting are not policies.
+- Static catalogs and generated data are checked with structural invariants (uniqueness, referential integrity, required fields), not verbatim snapshots of editorial content.
+- Tests that need external artifacts ship a small committed or temp-generated synthetic fixture that preserves the real digest and precondition logic. A test may not silently skip because a workstation path, campaign directory, or private artifact is absent.
+- Completed one-time workflows are archived under `scripts/deprecated/` as fail-closed wrappers together with their tests, not kept live.
+- UI tests query by role, accessible name, state, focus, visibility, and rendered output. A class assertion is allowed only when that class is a documented public style contract in `docs/ui-kit.md`.
+- Runners stay as they are: root Vitest for `src/**` and `lib/**`, `npm run test:workflow` for `scripts/**` and `tools/**`, `npm run openchemlib:test` for the vendored fork. No new runner or convention is introduced for a single test.
+
+`npm run test:evidence` writes `.test-evidence/report.md` (and `report.json`) with per-file runtime for every lane, the skipped suites and cases, `setup:rdkit-or-wasm` tags for files that load RDKit, OpenChemLib, or wasm, and, with `--runs N`, a flake classification that separates files whose outcome differed across runs from files that failed every run. It exits 2 when a safety-listed fixture-backed test skips. Slow files are ranked so their setup cost can be shared or reduced; no test is deleted only because it is slow.
+
+The rationale and the file-level audit behind this policy are in [docs/audits/test-suite-rationalization-plan.html](../audits/test-suite-rationalization-plan.html).
+
 ## Known Design Debt
 
 ### 1. Runtime/doc drift

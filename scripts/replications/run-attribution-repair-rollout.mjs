@@ -22,6 +22,8 @@ export const DEDUPE_PLAN_FILE_SHA256 = "ad6c961c9532390cb28e072a866f99234d392e4a
 export const DEDUPE_CONTENT_SHA256 = "ca6ea19c7f09d961cccbf5df72ab69892cf53c354eedc1b72339182419f9202e";
 export const DEFAULT_PLAN = "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/attribution-repair-plan-2026-08-31.json";
 export const MAX_BATCH_SIZE = 50;
+/** Digest pins the plan must match; production runs always use the campaign pins. */
+export const PINNED_PLAN = Object.freeze({ fileSha256: PLAN_FILE_SHA256, planSha256: DECLARED_PLAN_SHA256 });
 const SHA = /^[0-9a-f]{64}$/;
 const required = (ok, message) => { if (!ok) throw new Error(message); };
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -81,10 +83,10 @@ function validateUpdate(update) {
   }
 }
 
-export function validatePinnedPlan(plan, fileBytes) {
-  required(digest(fileBytes) === PLAN_FILE_SHA256, "Pinned attribution plan file SHA-256 drifted.");
+export function validatePinnedPlan(plan, fileBytes, pins = PINNED_PLAN) {
+  required(digest(fileBytes) === pins.fileSha256, "Pinned attribution plan file SHA-256 drifted.");
   required(plan?.schemaVersion === 1 && plan.artifactType === "replication-index-attribution-repair-plan", "Unsupported attribution repair plan.");
-  required(plan.planSha256 === DECLARED_PLAN_SHA256, "Pinned attribution planSha256 drifted.");
+  required(plan.planSha256 === pins.planSha256, "Pinned attribution planSha256 drifted.");
   required(plan.target?.deployment === EXACT_DEPLOYMENT && plan.target?.writesPerformed === 0, "Plan must be the zero-write glad-minnow-656 plan.");
   required(plan.counts?.eligibleCreditUpdates === 5097 && plan.updates?.length === 5097, "Eligible update count drifted.");
   required(plan.counts?.productionRowsPinned === 7013 && plan.counts?.redditRowsPinned === 5895, "Pinned production population drifted.");
@@ -146,23 +148,23 @@ export function validateDedupeCompletion(evidence) {
   return true;
 }
 
-function newLedger(planPath, batches) {
+function newLedger(planPath, batches, pins) {
   return {
     schemaVersion: 1,
     artifactType: "replication-index-attribution-repair-ledger",
     operation: OPERATION,
     target: EXACT_TARGET,
     deployment: EXACT_DEPLOYMENT,
-    plan: { path: planPath, fileSha256: PLAN_FILE_SHA256, planSha256: DECLARED_PLAN_SHA256 },
+    plan: { path: planPath, fileSha256: pins.fileSha256, planSha256: pins.planSha256 },
     policy: { batchCap: 50, canaryFirst: true, retryUncertain: false, deletesAllowed: false },
     batches: Object.fromEntries(batches.map((batch) => [batch.operationId, { phase: batch.phase, status: "pending", attempts: 0, error: null }])),
   };
 }
 
-function loadLedger(filename, planPath, batches) {
-  const ledger = existsSync(filename) ? JSON.parse(readFileSync(filename, "utf8")) : newLedger(planPath, batches);
+function loadLedger(filename, planPath, batches, pins) {
+  const ledger = existsSync(filename) ? JSON.parse(readFileSync(filename, "utf8")) : newLedger(planPath, batches, pins);
   required(ledger.artifactType === "replication-index-attribution-repair-ledger" && ledger.target === EXACT_TARGET && ledger.deployment === EXACT_DEPLOYMENT, "Attribution ledger identity drifted.");
-  required(ledger.plan?.path === planPath && ledger.plan.fileSha256 === PLAN_FILE_SHA256 && ledger.plan.planSha256 === DECLARED_PLAN_SHA256, "Attribution ledger plan lineage drifted.");
+  required(ledger.plan?.path === planPath && ledger.plan.fileSha256 === pins.fileSha256 && ledger.plan.planSha256 === pins.planSha256, "Attribution ledger plan lineage drifted.");
   required(same(Object.keys(ledger.batches).sort(), batches.map((b) => b.operationId).sort()), "Attribution ledger batch coverage drifted.");
   for (const state of Object.values(ledger.batches)) required(!["dispatching", "verifying", "uncertain"].includes(state.status), "Ledger has an uncertain batch; manual reconciliation is required.");
   return ledger;
@@ -201,11 +203,11 @@ function readbackById(rows, batch, mode) {
   }
 }
 
-export async function runAttributionRollout({ argv = process.argv.slice(2), env = process.env, clientFactory = (url) => new ConvexHttpClient(url), logger = console } = {}) {
+export async function runAttributionRollout({ argv = process.argv.slice(2), env = process.env, clientFactory = (url) => new ConvexHttpClient(url), logger = console, pins = PINNED_PLAN } = {}) {
   const planPath = path.resolve(value(argv, "--plan", DEFAULT_PLAN));
   const ledgerPath = path.resolve(value(argv, "--ledger", `${planPath}.rollout-ledger.json`));
   const bytes = readFileSync(planPath);
-  const plan = validatePinnedPlan(JSON.parse(bytes), bytes);
+  const plan = validatePinnedPlan(JSON.parse(bytes), bytes, pins);
   const batches = deriveBatches(plan);
   const phase = value(argv, "--phase", "canary");
   required(["canary", "remaining", "rollback"].includes(phase), "--phase must be canary, remaining, or rollback.");
@@ -227,7 +229,7 @@ export async function runAttributionRollout({ argv = process.argv.slice(2), env 
     return { mode: "local-dry-run", networkCalls: 0, batches: selected.length };
   }
   required(value(argv, "--target-url") === EXACT_TARGET && value(argv, "--expected-deployment") === "glad-minnow-656", "Exact production target confirmation is required.");
-  required(value(argv, "--expected-plan-file-sha256") === PLAN_FILE_SHA256 && value(argv, "--expected-plan-sha256") === DECLARED_PLAN_SHA256, "Exact attribution plan confirmation is required.");
+  required(value(argv, "--expected-plan-file-sha256") === pins.fileSha256 && value(argv, "--expected-plan-sha256") === pins.planSha256, "Exact attribution plan confirmation is required.");
   const apiKey = env.CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
   required(typeof apiKey === "string" && apiKey.length > 0, "CONVEX_ADMIN_TOKEN_REPLICATION_MAINTENANCE is required.");
   const client = clientFactory(EXACT_TARGET);
@@ -239,7 +241,7 @@ export async function runAttributionRollout({ argv = process.argv.slice(2), env 
   const evidencePath = value(argv, "--dedupe-completion-evidence");
   required(evidencePath, "--dedupe-completion-evidence is required before attribution writes.");
   validateDedupeCompletion(JSON.parse(readFileSync(evidencePath, "utf8")));
-  const ledger = loadLedger(ledgerPath, planPath, batches);
+  const ledger = loadLedger(ledgerPath, planPath, batches, pins);
   if (phase === "remaining") required(ledger.batches[batches[0].operationId].status === "verified", "Remaining attribution writes are blocked until the canary is verified.");
   if (phase === "rollback") required(Object.values(ledger.batches).some((state) => state.status === "verified"), "Nothing verified is available to roll back.");
   for (const batch of selected) {

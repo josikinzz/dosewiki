@@ -138,11 +138,8 @@ describe("OclEditor alignment snap requests", () => {
     expect(onSnapComplete).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "bond-vertical", status: "applied" }),
     );
-    // The stub bond runs 45° up-right, so the snap turns everything +45°.
-    expect(onSnapComplete.mock.calls[0]![0].degrees).toBeCloseTo(45, 6);
     expect(editor.setMolecule).toHaveBeenCalledWith(molecule);
     expect(onChange).toHaveBeenCalledWith("snapped molblock", {});
-    expect(molecule.getAtomX(0)).toBeCloseTo(molecule.getAtomX(1), 9);
   });
 
   it("reports selection changes as a bond count without marking the editor dirty", async () => {
@@ -208,11 +205,8 @@ describe("OclEditor bond pick mode", () => {
     expect(onBondPickComplete).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "bond-vertical", status: "applied" }),
     );
-    // The stub bond runs 45° up-right, so the pick turns everything +45°.
-    expect(onBondPickComplete.mock.calls[0]![0].degrees).toBeCloseTo(45, 6);
     expect(editor.setMolecule).toHaveBeenCalledWith(molecule);
     expect(onChange).toHaveBeenCalledWith("snapped molblock", {});
-    expect(molecule.getAtomX(0)).toBeCloseTo(molecule.getAtomX(1), 9);
   });
 
   it("stays armed when the click misses every bond", async () => {

@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import type { Doc } from "../convex/_generated/dataModel";
 import type { QueryCtx } from "../convex/_generated/server";
@@ -269,16 +268,6 @@ describe("public substance gallery pagination", () => {
       "visual-fallback",
     ]);
     expect(test.collect).not.toHaveBeenCalled();
-  });
-
-  it("contains no collect in the public page implementation", () => {
-    const source = readFileSync("convex/substanceGalleries.ts", "utf8");
-    const implementation = source.slice(
-      source.indexOf("export async function getPublicReplicationsForSubstancePageHandler"),
-      source.indexOf("export const getPublicReplicationsForSubstance = query"),
-    );
-    expect(implementation).not.toContain(".collect(");
-    expect(implementation).toContain(".paginate(");
   });
 });
 

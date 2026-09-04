@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const workflowRoots = [
   path.join(repoRoot, "scripts"),
+  path.join(repoRoot, "tools", "local-public-fixture"),
   path.join(repoRoot, "tools", "pi-citation-workflow"),
 ];
 

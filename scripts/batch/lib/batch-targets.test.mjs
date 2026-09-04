@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -10,8 +8,6 @@ import {
   requireBatchArticleWriteToken,
   requireBatchProposalTargetUrl,
 } from "./batch-targets.mjs";
-
-const repoRoot = resolve(import.meta.dirname, "../../..");
 
 describe("batch Convex target policy", () => {
   it("uses shared source and target precedence with CLI overrides first", () => {
@@ -153,15 +149,5 @@ describe("batch Convex target policy", () => {
       "scripts/batch/batch-generate-dosage-duration.mjs",
       "scripts/batch/batch-generate-pharmacology.mjs",
     ]);
-
-    for (const scriptPath of BATCH_ARTICLE_WRITE_SCRIPTS) {
-      const content = readFileSync(resolve(repoRoot, scriptPath), "utf8");
-      expect(content, `${scriptPath} must use shared target policy`).toContain(
-        "createBatchTargetRunContext",
-      );
-      expect(content, `${scriptPath} must not use raw Convex env fallback`).not.toMatch(
-        /process\.env\.CONVEX_URL\s*\|\|\s*process\.env\.VITE_CONVEX_URL/,
-      );
-    }
   });
 });

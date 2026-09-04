@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -42,14 +42,5 @@ describe("substance index migration replacement policy", () => {
     expect(result.stderr).not.toContain("Convex project");
     expect(result.stderr).not.toContain("ENOENT");
     expect(result.stdout).not.toContain("Reading SubstanceIndex.json");
-  });
-
-  it("contains no active call to the retired replacement mutation", () => {
-    const source = readFileSync(migrationScript, "utf8");
-    expect(source).not.toContain("api.substanceIndex.replaceAllSubstances");
-    expect(source).not.toContain("client.mutation(api.substanceIndex.replaceAllSubstances");
-    expect(source.indexOf("assertSubstanceIndexReplaceModeRetired();")).toBeLessThan(
-      source.indexOf("new ConvexHttpClient"),
-    );
   });
 });

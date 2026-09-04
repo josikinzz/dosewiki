@@ -3807,30 +3807,30 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
       "match": "var(--theme-text-primary)",
-      "line": 136,
+      "line": 12,
       "column": 16
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
       "match": "var(--theme-frosted-panel-bg)",
-      "line": 140,
+      "line": 16,
       "column": 21
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
       "match": "var(--theme-text-primary)",
-      "line": 179,
+      "line": 55,
       "column": 16
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/theme-lab/ThemeLab.test.tsx",
+      "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
       "match": "var(--theme-frosted-panel-bg)",
-      "line": 183,
+      "line": 59,
       "column": 21
     },
     {

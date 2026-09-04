@@ -1,36 +1,46 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { getBySlug, getPublicBySlug } from "../../convex/substanceIndex";
+import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 
-const source = readFileSync(
-  `${process.cwd()}/convex/substanceIndex.ts`,
-  "utf8",
-);
+// Convex registered functions keep the original handler on `_handler`; there is
+// no in-repo Convex runtime harness, so the handler is exercised directly.
+const handlerOf = (fn: unknown) =>
+  (fn as { _handler: (ctx: never, args: unknown) => Promise<unknown> })._handler;
 
-function exportedQueryBlock(name: string): string {
-  const start = source.indexOf(`export const ${name} = query({`);
-  expect(start, `${name} should be exported`).toBeGreaterThanOrEqual(0);
-  const nextExport = source.indexOf("\nexport const ", start + 1);
-  return source.slice(start, nextExport === -1 ? source.length : nextExport);
+function createCtx(rows: unknown[]) {
+  const take = vi.fn(async (n: number) => rows.slice(0, n));
+  const first = vi.fn(async () => {
+    throw new Error(".first() hides duplicate slugs");
+  });
+  const withIndex = vi.fn(
+    (_name: string, selector: (q: { eq: (field: string, value: unknown) => unknown }) => unknown) => {
+      selector({ eq: () => ({}) });
+      return { take, first, collect: first };
+    },
+  );
+  return { ctx: { db: { query: () => ({ withIndex }) } } as never, take, withIndex };
 }
 
-describe("substanceIndex slug lookups", () => {
-  it("fails getBySlug closed for missing or duplicate slug matches", () => {
-    const block = exportedQueryBlock("getBySlug");
+const article = (slug: string) => ({ ...structuredClone(fullArticleWithDosage), slug });
 
-    expect(block).toContain('.withIndex("by_slug"');
-    expect(block).toContain(".take(2)");
-    expect(block).toContain("matches.length === 1 ? matches[0] : null");
-    expect(block).not.toContain(".first()");
+describe("substanceIndex slug lookups", () => {
+  it.each([
+    ["getBySlug", getBySlug],
+    ["getPublicBySlug", getPublicBySlug],
+  ])("%s reads by_slug with take(2) and returns null for zero or duplicate matches", async (_name, fn) => {
+    for (const rows of [[], [article("lsd"), article("lsd")]]) {
+      const { ctx, take, withIndex } = createCtx(rows);
+      await expect(handlerOf(fn)(ctx, { slug: "lsd" })).resolves.toBeNull();
+      expect(withIndex.mock.calls[0][0]).toBe("by_slug");
+      expect(take).toHaveBeenCalledWith(2);
+    }
+    const { ctx } = createCtx([article("lsd")]);
+    await expect(handlerOf(fn)(ctx, { slug: "lsd" })).resolves.toMatchObject({ slug: "lsd" });
   });
 
-  it("fails getPublicBySlug closed before projecting missing or duplicate matches", () => {
-    const block = exportedQueryBlock("getPublicBySlug");
-
-    expect(block).toContain('.withIndex("by_slug"');
-    expect(block).toContain(".take(2)");
-    expect(block).toContain(
-      "matches.length === 1 ? projectPublicArticle(matches[0]) : null",
-    );
-    expect(block).not.toContain(".first()");
+  it("getPublicBySlug projects the single match publicly", async () => {
+    const { ctx } = createCtx([{ ...article("lsd"), editorial_review: { status: "needed" } }]);
+    const result = (await handlerOf(getPublicBySlug)(ctx, { slug: "lsd" })) as Record<string, unknown>;
+    expect(result).not.toHaveProperty("editorial_review");
   });
 });

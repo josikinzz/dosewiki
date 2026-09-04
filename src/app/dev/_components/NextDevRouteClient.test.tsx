@@ -1,6 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
@@ -81,18 +79,6 @@ describe("NextDevRouteClient", () => {
         articles: [],
       },
     });
-  });
-
-  it("mounts the dev shell without the legacy direct Convex sync provider", () => {
-    render(<NextDevRouteClient convexUrl="https://convex.test" initialTab="articles" />);
-
-    expect(screen.getByText("Dev mode page")).toBeInTheDocument();
-    const source = readFileSync(
-      path.join(process.cwd(), "src/app/dev/_components/NextDevRouteClient.tsx"),
-      "utf8",
-    );
-    expect(source).not.toContain("ConvexSyncContext");
-    expect(source).not.toContain("ConvexSyncProvider");
   });
 
   it("mounts the dev shell without issuing any Convex query", () => {

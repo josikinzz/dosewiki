@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  dedupeAllowedReferences,
   enrichKnownReferenceCandidates,
   enrichKnownReferenceCandidatesWithDiagnostics,
   sanitizeAllowedReferenceForArticle,
@@ -244,6 +245,46 @@ describe("formal citation reference metadata enrichment", () => {
     expect(failure.diagnostics[0].issues.map((issue) => issue.code)).toEqual([
       "primary_provider_failed",
       "fallback_provider_failed",
+    ]);
+  });
+
+  it("dedupes allowed references behind the reference enrichment seam", () => {
+    const references = dedupeAllowedReferences([
+      {
+        id: "url-erowid",
+        title: "Erowid 2C-B Vault",
+        authors: ["First Author"],
+        siteName: "Erowid",
+        url: "https://www.erowid.org/chemicals/2cb/",
+        quality: "fallback",
+        sourceIds: ["erowid"],
+        provenance: [{ kind: "article_reference" }],
+      },
+      {
+        id: "url-erowid",
+        title: "Ignored fallback title",
+        authors: ["First Author", "Second Author"],
+        siteName: "Erowid",
+        quality: "medium",
+        sourceIds: ["wikipedia"],
+        provenance: [{ kind: "wikipedia_reference", sourceId: "wikipedia" }],
+      },
+    ]);
+
+    expect(references).toEqual([
+      expect.objectContaining({
+        id: "url-erowid",
+        title: "Erowid 2C-B Vault",
+        authors: ["First Author", "Second Author"],
+        siteName: "Erowid",
+        url: "https://www.erowid.org/chemicals/2cb/",
+        quality: "medium",
+        sourceIds: ["erowid", "wikipedia"],
+        provenance: [
+          { kind: "article_reference" },
+          { kind: "wikipedia_reference", sourceId: "wikipedia" },
+        ],
+      }),
     ]);
   });
 });

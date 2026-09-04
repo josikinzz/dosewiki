@@ -39,6 +39,12 @@ export const startPublicReadStub = async ({ corpus, host = "127.0.0.1", port = 0
   const server = createServer(async (request, response) => {
     const endpoint = new URL(request.url ?? "/", `http://${host}`);
 
+    const [requestHostname] = (request.headers.host ?? "").split(":");
+    if (requestHostname !== host) {
+      json(response, 421, { error: "The fixture answers loopback Host headers only." });
+      return;
+    }
+
     if (request.method !== "POST") {
       json(response, 405, { error: "The fixture accepts POST queries only." });
       return;

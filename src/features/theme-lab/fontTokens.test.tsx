@@ -1,10 +1,11 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
+import tailwindConfig from "../../../tailwind.config.mjs";
 import {
   THEME_LAB_OVERRIDE_STYLE_ID,
   THEME_LAB_STORAGE_KEY,
@@ -216,8 +217,7 @@ describe("font wiring outside the runtime", () => {
     // wordmark and every page h1 wear it). It used to name the raw next/font
     // variable, which no theme can reach; it now reads the same token this
     // control writes, so a display-face choice covers the whole site.
-    const config = readFileSync(resolve(process.cwd(), "tailwind.config.mjs"), "utf8");
-    expect(config).toMatch(/display:\s*\['var\(--font-family-display\)'\]/);
+    expect(tailwindConfig.theme.extend.fontFamily.display).toEqual(["var(--font-family-display)"]);
   });
 });
 

@@ -844,28 +844,15 @@ Correcting a display name here does not correct `replications.artist`. Run
 
 #### Loka attribution repair (DW-12)
 
-```bash
-# Dry run against whichever deployment CONVEX_PUBLIC_READ_URL points at
-node scripts/contributors/repair-loka-attribution.mjs
-
-# Dry run against production (read-only)
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  node scripts/contributors/repair-loka-attribution.mjs
-
-# Apply to production
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  node scripts/contributors/repair-loka-attribution.mjs --write \
-  --confirm-write=repair-loka-attribution \
-  --expected-deployment=glad-minnow-656
-```
-
-One-artist repair, idempotent, backed by the owner's 2026-08-14 confirmation
-that Loka = LokaVision (recorded in the corrections file above): puts
+Applied to production on 2026-08-14 and archived: the one-artist repair that put
 `https://lokavision.com/` on the LOKA profile's links and on every replication
-credited to her, and normalizes residual `rightsholder: "Wheressuede"` strings
-to "Loka". Rows write through `applyProvenanceCorrection`, so each patch is
-preconditioned on the full current credit snapshot; the profile write merges
-against the raw stored row and refuses a link list it did not plan.
+credited to her, and normalized residual `rightsholder: "Wheressuede"` strings
+to "Loka", is recorded in
+[`src/data/config/contributorIdentityCorrections.json`](../src/data/config/contributorIdentityCorrections.json)
+(the `Loka` linkCorrections entry and its ownerDecisions resolution). The script
+now lives as a fail-closed wrapper at
+[`scripts/deprecated/repair-loka-attribution.mjs`](deprecated/repair-loka-attribution.mjs);
+recover the planner from git history if a comparable repair is ever needed.
 
 #### Replacing one profile's bio
 

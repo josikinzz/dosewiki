@@ -95,21 +95,8 @@ describe("copyBlocks write authorization", () => {
     collect.mockClear();
   });
 
-  it("rejects an unauthenticated caller before writing any copy block", async () => {
-    await expect(upsertHandler(createCtx({ identity: null }), validBlock)).rejects.toThrow(
-      "Authentication required",
-    );
-
-    expect(insert).not.toHaveBeenCalled();
-    expect(patch).not.toHaveBeenCalled();
-  });
-
-  it("rejects an invalid API key and anyone below admin, an editor included", async () => {
+  it("rejects anyone below admin on the upsert, an editor included", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
-
-    await expect(
-      upsertHandler(createCtx({ identity: null }), { ...validBlock, apiKey: "wrong" }),
-    ).rejects.toThrow("Authentication failed: Invalid API key");
 
     // An editor's copy edits arrive as change proposals; the direct upsert is
     // refused at the handler seam so a misconfigured route cannot escalate.

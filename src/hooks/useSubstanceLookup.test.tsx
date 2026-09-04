@@ -1,5 +1,4 @@
 import { act, renderHook } from "@testing-library/react";
-import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const usePaginatedQueryMock = vi.hoisted(() => vi.fn());
@@ -58,32 +57,6 @@ describe("useSubstanceLookup", () => {
     ]);
     expect(result.current.isLoading).toBe(false);
     expect(loadMore).toHaveBeenCalledTimes(1);
-  });
-
-  it("keeps active editor clients off the legacy whole-table lookup", () => {
-    const editorClients = [
-      "src/app/dev/_components/NextDevRouteClient.tsx",
-      "src/app/review/_components/ReviewRouteClient.tsx",
-      "src/features/dev/tools/molecule-editor/MoleculeEditorTab.tsx",
-    ];
-    for (const file of editorClients) {
-      const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
-      expect(source).not.toContain("api.substanceIndex.getLookup");
-    }
-
-    // The `/dev` shell and the review route dropped their lookup drains: the
-    // slim editor projection they already load carries the same
-    // slug/name/priority. Clients that still need a standalone lookup must go
-    // through the draining hook.
-    const libraryClients = editorClients.slice(0, 2);
-    for (const file of libraryClients) {
-      const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
-      expect(source).not.toContain("useSubstanceLookup");
-    }
-    for (const file of editorClients.slice(2)) {
-      const source = readFileSync(`${process.cwd()}/${file}`, "utf8");
-      expect(source).toContain("useSubstanceLookup");
-    }
   });
 
   it("skips the query and reports no loading work when disabled", () => {

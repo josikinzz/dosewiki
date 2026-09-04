@@ -32,6 +32,16 @@ Keep this ledger small and update it whenever the fork diverges from the importe
   of flattening every stroke to one value, so deliberately different stroke
   widths survive a custom base width.
 
+## Verification
+
+- `tests/dosewiki/` holds the DoseWiki delta tests (bold-bond state and
+  width, wedge flare, SVG stroke-width re-basing, fine rotation). The root
+  `npm run openchemlib:test` lane runs them with the upstream tests against
+  the committed `dist/` bundles; `vitest.config.ts` aliases `#lib` and
+  `#lib_debug` to `dist/` so the lane needs no JDK, GWT, or `lib/java`.
+- `jsdom` is a package-local dev dependency for the editor-driven fine
+  rotation test.
+
 ## Not changed
 
 - No horizontal/vertical alignment command.

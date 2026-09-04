@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
-
-vi.mock("server-only", () => ({}));
+import {
+  describeRoleFloor,
+  grantWriteCapability,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+} from "@/test/routeHarness";
 
 vi.mock("../../../../../../convex/_generated/api", () => ({
   api: {
@@ -12,23 +15,7 @@ vi.mock("../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
-const mocks = vi.hoisted(() => ({
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 const PROPOSAL = {
   _id: "cp_1",
@@ -55,13 +42,6 @@ function createClient(proposal: unknown = PROPOSAL) {
   };
 }
 
-function grantCapability(client: ReturnType<typeof createClient>) {
-  mocks.getServerConvexWriteCapability.mockReturnValue({
-    ok: true,
-    capability: { adminKey: "admin-key", client, getAdminIntentToken: vi.fn(() => "article-token") },
-  });
-}
-
 function commentRequest(id: string, body: unknown) {
   return new Request(`https://dose.wiki/api/dev/proposals/${id}/comment`, {
     method: "POST",
@@ -71,15 +51,11 @@ function commentRequest(id: string, body: unknown) {
 
 describe("dev proposal detail and comment routes", () => {
   beforeEach(() => {
-    // Module registry reset so each case imports the routes against fresh mocks.
-    vi.resetModules();
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
-    mocks.getServerConvexWriteCapability.mockReset();
+    resetRouteMocks("editor");
   });
 
   it("returns the full proposal with live hashes to an editor", async () => {
-    const client = createClient();
-    grantCapability(client);
+    const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { GET } = await import("./route");
 
     const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
@@ -94,8 +70,7 @@ describe("dev proposal detail and comment routes", () => {
   });
 
   it("answers 404 when Convex knows no such proposal", async () => {
-    const client = createClient(null);
-    grantCapability(client);
+    grantWriteCapability(createClient(null), { intentToken: "article-token" });
     const { GET } = await import("./route");
 
     const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_missing"));
@@ -103,25 +78,8 @@ describe("dev proposal detail and comment routes", () => {
     expect(response.status).toBe(404);
   });
 
-  it("refuses a contributor on both routes", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
-    const client = createClient();
-    grantCapability(client);
-    const { GET } = await import("./route");
-    const { POST } = await import("./comment/route");
-
-    const detail = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
-    const comment = await POST(commentRequest("cp_1", { text: "Hi" }));
-
-    expect(detail.status).toBe(403);
-    expect(comment.status).toBe(403);
-    expect(client.query).not.toHaveBeenCalled();
-    expect(client.mutation).not.toHaveBeenCalled();
-  });
-
   it("stores a trimmed comment under the session email and refuses empty text", async () => {
-    const client = createClient();
-    grantCapability(client);
+    const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { POST } = await import("./comment/route");
 
     const response = await POST(commentRequest("cp_1", { text: "  Looks right.  " }));
@@ -142,4 +100,29 @@ describe("dev proposal detail and comment routes", () => {
     expect(empty.status).toBe(400);
     expect(client.mutation).toHaveBeenCalledTimes(1);
   });
+});
+
+describeRoleFloor({
+  floor: "editor",
+  rateLimit: "diagnosticRead",
+  refused: "contributor",
+  calls: [
+    {
+      name: "GET",
+      call: async () =>
+        (await import("./route")).GET(new Request("https://dose.wiki/api/dev/proposals/cp_1")),
+    },
+  ],
+});
+
+describeRoleFloor({
+  floor: "editor",
+  rateLimit: "editorSmallWrite",
+  refused: "contributor",
+  calls: [
+    {
+      name: "POST comment",
+      call: async () => (await import("./comment/route")).POST(commentRequest("cp_1", { text: "Hi" })),
+    },
+  ],
 });

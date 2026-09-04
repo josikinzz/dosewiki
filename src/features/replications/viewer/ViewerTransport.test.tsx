@@ -305,36 +305,6 @@ describe("ViewerTransport", () => {
     expect(complete.loop).toBe(true);
   });
 
-  it("presumes a cap-length preview of an uncatalogued work is truncated", () => {
-    // No stored duration: the generator's 10s cap is the only evidence.
-    const undated = item({
-      preview_url: "https://cdn.test/tracers-preview.mp4",
-      duration: undefined,
-    });
-    const video = createVideo("https://cdn.test/tracers-preview.mp4");
-    setDuration(video, 10);
-    setPaused(video, false);
-    const onQualityChange = vi.fn();
-    const { unmount } = render(
-      <ViewerTransport
-        {...baseProps(video, { item: undated, onQualityChange })}
-      />,
-    );
-    fireEvent(video, new Event("loadedmetadata"));
-    expect(video.loop).toBe(false);
-    fireEvent(video, new Event("ended"));
-    expect(video.src).toBe("https://cdn.test/tracers.mp4");
-    expect(onQualityChange).toHaveBeenCalledWith("full");
-    unmount();
-
-    // A short preview of an uncatalogued work carries no truncation signal.
-    const short = createVideo("https://cdn.test/tracers-preview.mp4");
-    setDuration(short, 6.2);
-    render(<ViewerTransport {...baseProps(short, { item: undated })} />);
-    fireEvent(short, new Event("loadedmetadata"));
-    expect(short.loop).toBe(true);
-  });
-
   it("sharpens a settled work to the full file after sustained playback", () => {
     vi.useFakeTimers();
     const preview = item({

@@ -143,16 +143,7 @@ describe("effectIndexArticles writing extensions", () => {
     );
   });
 
-  it("rejects unauthenticated, viewer, and editor callers on the upsert", async () => {
-    const unauth = createCtx({ rows: [publishedRow] });
-
-    await expect(handlerOf(listForEditor)(unauth.ctx, {})).rejects.toThrow(
-      "Authentication required",
-    );
-    await expect(
-      handlerOf(upsertArticle)(unauth.ctx, { slug: "published-post", title: "x" }),
-    ).rejects.toThrow("Authentication required");
-
+  it("refuses viewer and editor callers on the upsert while serving the editor listing", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const viewer = createCtx({
       rows: [publishedRow],
@@ -178,7 +169,6 @@ describe("effectIndexArticles writing extensions", () => {
       handlerOf(upsertArticle)(editor.ctx, { ...editorArgs, slug: "published-post", title: "x" }),
     ).rejects.toThrow("Admin access required");
 
-    expect(unauth.patched).toHaveLength(0);
     expect(viewer.patched).toHaveLength(0);
     expect(viewer.inserted).toHaveLength(0);
     expect(editor.patched).toHaveLength(0);

@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "artifactType": "replication-index-attribution-profile-materialization",
+  "campaignId": "replication-index-synthetic-fixture",
+  "target": {
+    "deployment": "prod:glad-minnow-656",
+    "writesPerformed": 0
+  },
+  "policy": {
+    "batchCap": 50
+  },
+  "counts": {
+    "profileOperations": 8,
+    "newProfiles": 5,
+    "existingProfiles": 3,
+    "batches": 3,
+    "maximumBatchSize": 3,
+    "initialsFallbacksForNewProfiles": 5,
+    "productionWrites": 0
+  },
+  "avatarOutcomes": [
+    {
+      "key": "ALPHAARTIST",
+      "mode": "ui-initials-no-file"
+    },
+    {
+      "key": "BETAEXISTING",
+      "mode": "preserve-existing-avatar-or-fallback"
+    },
+    {
+      "key": "GAMMAARTIST",
+      "mode": "ui-initials-no-file"
+    },
+    {
+      "key": "DELTAARTIST",
+      "mode": "ui-initials-no-file"
+    },
+    {
+      "key": "EPSILONARTIST",
+      "mode": "ui-initials-no-file"
+    },
+    {
+      "key": "ZETAEXISTING",
+      "mode": "preserve-existing-avatar-or-fallback"
+    },
+    {
+      "key": "ETAEXISTING",
+      "mode": "preserve-existing-avatar-or-fallback"
+    },
+    {
+      "key": "THETAARTIST",
+      "mode": "ui-initials-no-file"
+    }
+  ],
+  "batches": [
+    {
+      "batchNumber": 1,
+      "entryCount": 3,
+      "payloadSha256": "e1da051bd0656f1c605bd43ef55d1bff98f13d3fcaaa008b1910e033eb75f3f6",
+      "payload": {
+        "operationId": "replication-index-profile-rollout-batch-01",
+        "dryRun": true,
+        "entries": [
+          {
+            "outcome": "reviewed-new",
+            "creatorName": "Alpha Artist",
+            "creatorKind": "person",
+            "expectedAbsent": true,
+            "profile": {
+              "key": "ALPHAARTIST",
+              "displayName": "Alpha Artist",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": null,
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            }
+          },
+          {
+            "outcome": "existing-profile",
+            "creatorName": "Beta Existing",
+            "creatorKind": "person",
+            "profileId": "kx7beta000000000000000000000001",
+            "expected": {
+              "key": "BETAEXISTING",
+              "displayName": "Beta Existing",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": "/profile-avatars/betaexisting/avatar.webp",
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            },
+            "profile": {
+              "key": "BETAEXISTING",
+              "displayName": "Beta Existing",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": "/profile-avatars/betaexisting/avatar.webp",
+              "bio": "",
+              "role": "Replication Artist",
+              "links": [
+                {
+                  "label": "website",
+                  "url": "https://beta.example/"
+                }
+              ]
+            }
+          },
+          {
+            "outcome": "reviewed-new",
+            "creatorName": "Gamma Artist",
+            "creatorKind": "person",
+            "expectedAbsent": true,
+            "profile": {
+              "key": "GAMMAARTIST",
+              "displayName": "Gamma Artist",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": null,
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "batchNumber": 2,
+      "entryCount": 3,
+      "payloadSha256": "8267306c69ba9f7d07afa702e8ebc429c22bb0e54d68d38e85d4ad24b5f47c81",
+      "payload": {
+        "operationId": "replication-index-profile-rollout-batch-02",
+        "dryRun": true,
+        "entries": [
+          {
+            "outcome": "reviewed-new",
+            "creatorName": "Delta Artist",
+            "creatorKind": "person",
+            "expectedAbsent": true,
+            "profile": {
+              "key": "DELTAARTIST",
+              "displayName": "Delta Artist",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": null,
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            }
+          },
+          {
+            "outcome": "reviewed-new",
+            "creatorName": "Epsilon Artist",
+            "creatorKind": "person",
+            "expectedAbsent": true,
+            "profile": {
+              "key": "EPSILONARTIST",
+              "displayName": "Epsilon Artist",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": null,
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            }
+          },
+          {
+            "outcome": "existing-profile",
+            "creatorName": "Zeta Existing",
+            "creatorKind": "person",
+            "profileId": "kx7zeta000000000000000000000002",
+            "expected": {
+              "key": "ZETAEXISTING",
+              "displayName": "Zeta Existing",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": "/profile-avatars/zetaexisting/avatar.webp",
+              "bio": "",
+              "role": "Replication Artist",
+              "links": [
+                {
+                  "label": "instagram",
+                  "url": "https://instagram.com/zeta"
+                }
+              ]
+            },
+            "profile": {
+              "key": "ZETAEXISTING",
+              "displayName": "Zeta Existing",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": "/profile-avatars/zetaexisting/avatar.webp",
+              "bio": "",
+              "role": "Replication Artist",
+              "links": [
+                {
+                  "label": "instagram",
+                  "url": "https://instagram.com/zeta"
+                },
+                {
+                  "label": "website",
+                  "url": "https://zeta.example/"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "batchNumber": 3,
+      "entryCount": 2,
+      "payloadSha256": "d81598e42e0208695a2fdd891252d4fbfb3bab337ce7a101216c0c277997288d",
+      "payload": {
+        "operationId": "replication-index-profile-rollout-batch-03",
+        "dryRun": true,
+        "entries": [
+          {
+            "outcome": "existing-profile",
+            "creatorName": "Eta Existing",
+            "creatorKind": "person",
+            "profileId": "kx7eta0000000000000000000000003",
+            "expected": {
+              "key": "ETAEXISTING",
+              "displayName": "Eta Existing",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": "/profile-avatars/etaexisting/avatar.webp",
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            },
+            "profile": {
+              "key": "ETAEXISTING",
+              "displayName": "Eta Existing",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": "/profile-avatars/etaexisting/avatar.webp",
+              "bio": "",
+              "role": "Replication Artist",
+              "links": [
+                {
+                  "label": "website",
+                  "url": "https://eta.example/"
+                }
+              ]
+            }
+          },
+          {
+            "outcome": "reviewed-new",
+            "creatorName": "Theta Artist",
+            "creatorKind": "person",
+            "expectedAbsent": true,
+            "profile": {
+              "key": "THETAARTIST",
+              "displayName": "Theta Artist",
+              "aliases": [],
+              "avatarStorageId": null,
+              "avatarR2Key": null,
+              "avatarUrl": null,
+              "bio": "",
+              "role": "Replication Artist",
+              "links": []
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "contentSha256": "4b093442282defa16de20abd21d45f5869a5969dc929a765d2bfdf4f7eef5a52"
+}

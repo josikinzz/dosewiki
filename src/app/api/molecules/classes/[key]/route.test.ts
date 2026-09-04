@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { vi } from "vitest";
+import { describeMoleculeImageRoute } from "@/test/moleculeImageRoute";
 import { GET } from "./route";
 
 const mocks = vi.hoisted(() => ({
@@ -13,32 +14,22 @@ vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
 
-describe("class molecule image route colorways", () => {
-  beforeEach(() => {
-    mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
-    mocks.query.mockReset().mockResolvedValue({
-      svg: '<svg><path stroke="#F0ABFC"/><path stroke="#C084FC"/></svg>',
-    });
-  });
-
-  it("serves the dark Pro palette for Convex class overrides", async () => {
-    const response = await GET(
-      new Request("https://dose.wiki/api/molecules/classes/tryptamine?colorway=pro-dark"),
-      { params: Promise.resolve({ key: "tryptamine" }) },
-    );
-    const svg = await response.text();
-
-    expect(response.status).toBe(200);
-    expect(svg).toContain("#f2f2f0");
-    expect(svg).toContain("#6fc4bb");
-  });
-
-  it("leaves the canonical bytes unchanged for Fun", async () => {
-    const response = await GET(
-      new Request("https://dose.wiki/api/molecules/classes/tryptamine?colorway=brand"),
-      { params: Promise.resolve({ key: "tryptamine" }) },
-    );
-
-    expect(await response.text()).toContain("#F0ABFC");
-  });
-});
+// "class:tryptamine" is a deliberately invalid key: the colon fails CLASS_KEY_RE, so a
+// caller cannot smuggle the namespace prefix the route adds itself.
+describeMoleculeImageRoute(
+  "class molecule image route",
+  {
+    url: (key, query = "") => `https://dose.wiki/api/molecules/classes/${key}${query}`,
+    params: (key) => ({ key }),
+    convexSlugFor: (key) => `class:${key}`,
+    valid: "tryptamine",
+    invalid: "class:tryptamine",
+    errors: {
+      invalid: "Invalid class structure key.",
+      lookupFailed: "Class structure lookup failed.",
+      missing: "No override for this class structure.",
+    },
+  },
+  mocks,
+  () => GET,
+);

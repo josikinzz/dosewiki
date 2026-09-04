@@ -57,6 +57,8 @@ These files are kept for historical reference only. They are not part of the cur
   Archived wrapper only.
 - `preview-stimulant-card.cjs`
   Archived wrapper only.
+- `repair-loka-attribution.mjs`
+  Archived wrapper only; the DW-12 Loka attribution repair was applied to production on 2026-08-14 and its idempotent planner has no remaining target.
 - `splitDurationByRoute.mjs`
   Archived wrapper only; historical implementation should be recovered from git history if ever needed again.
 - `set-gallery-order.mjs`

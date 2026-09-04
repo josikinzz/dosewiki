@@ -130,16 +130,6 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     delete process.env.CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE;
   });
 
-  it("rejects an unauthenticated caller before touching the profile row", async () => {
-    const harness = createCtx();
-
-    await expect(
-      saveHandler(harness.ctx, { key: "JOSIE", patch: { bio: "rewritten" } }),
-    ).rejects.toThrow("Authentication required");
-
-    expect(harness.patch).not.toHaveBeenCalled();
-  });
-
   it("rejects a non-editor membership", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: { "viewer@example.com": "viewer" } });
@@ -266,68 +256,6 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
     expect(after?.replicationOrder).toEqual(["geometry"]);
   });
 
-  it("round-trips the gallery exclusion through a save and a save back", async () => {
-    process.env.CONVEX_ADMIN_KEY = "secret";
-    const harness = createCtx({ memberships: editorMemberships });
-
-    await saveHandler(harness.ctx, {
-      ...adminArgs,
-      key: "JOSIE",
-      patch: { exclude_from_gallery: true },
-    });
-    expect(harness.read()?.exclude_from_gallery).toBe(true);
-
-    await saveHandler(harness.ctx, {
-      ...adminArgs,
-      key: "JOSIE",
-      patch: { exclude_from_gallery: false },
-    });
-    // Cleared, not stored-false: absent is the "included" default.
-    expect(harness.read()?.exclude_from_gallery).toBeUndefined();
-  });
-
-  it("round-trips the archival flag and staff note through a save and a save back", async () => {
-    process.env.CONVEX_ADMIN_KEY = "secret";
-    const harness = createCtx({ memberships: editorMemberships });
-
-    await saveHandler(harness.ctx, {
-      ...adminArgs,
-      key: "JOSIE",
-      patch: { archival: true, staffNote: { markdown: "A note.", attribution: "Josie" } },
-    });
-    expect(harness.read()?.archival).toBe(true);
-    expect(harness.read()?.staffNote).toEqual({ markdown: "A note.", attribution: "Josie" });
-
-    await saveHandler(harness.ctx, {
-      ...adminArgs,
-      key: "JOSIE",
-      patch: { archival: false, staffNote: null },
-    });
-    // Cleared, not stored-false: absent is the "normal profile" default.
-    expect(harness.read()?.archival).toBeUndefined();
-    expect(harness.read()?.staffNote).toBeUndefined();
-  });
-
-  it("round-trips the approved replicator flag through a save and a save back", async () => {
-    process.env.CONVEX_ADMIN_KEY = "secret";
-    const harness = createCtx({ memberships: editorMemberships });
-
-    await saveHandler(harness.ctx, {
-      ...adminArgs,
-      key: "JOSIE",
-      patch: { approved_replicator: true },
-    });
-    expect(harness.read()?.approved_replicator).toBe(true);
-
-    await saveHandler(harness.ctx, {
-      ...adminArgs,
-      key: "JOSIE",
-      patch: { approved_replicator: false },
-    });
-    // Cleared, not stored-false: absent is the "ordinary artist" default.
-    expect(harness.read()?.approved_replicator).toBeUndefined();
-  });
-
   it("refuses a key that has no profile row", async () => {
     process.env.CONVEX_ADMIN_KEY = "secret";
     const harness = createCtx({ memberships: editorMemberships, profile: null });
@@ -342,16 +270,6 @@ describe("contributorProfiles.setContributorOrdering", () => {
   afterEach(() => {
     delete process.env.CONVEX_ADMIN_KEY;
     delete process.env.CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE;
-  });
-
-  it("rejects an unauthenticated caller before writing an ordering", async () => {
-    const harness = createCtx();
-
-    await expect(
-      orderingHandler(harness.ctx, { key: "JOSIE", replicationOrder: ["geometry"] }),
-    ).rejects.toThrow("Authentication required");
-
-    expect(harness.patch).not.toHaveBeenCalled();
   });
 
   it("rejects a non-editor membership", async () => {

@@ -95,6 +95,21 @@ describe("browser security response policy", () => {
     expect(THEME_BOOTSTRAP_CSP_HASH).toBe(scriptHash(buildThemeBootstrapScript()));
   });
 
+  it("hashes a zod bootstrap that merges into, rather than replaces, config another bundle installed", () => {
+    // The script addresses `globalThis.__zod_globalConfig` by name, so binding a
+    // sandbox as `globalThis` runs it without touching the test process global.
+    const runBootstrap = (sandbox: { __zod_globalConfig?: Record<string, unknown> }) => {
+      Function("globalThis", buildZodJitlessBootstrapScript())(sandbox);
+      return sandbox.__zod_globalConfig;
+    };
+
+    expect(runBootstrap({})).toEqual({ jitless: true });
+    expect(runBootstrap({ __zod_globalConfig: { customSetting: "keep" } })).toEqual({
+      customSetting: "keep",
+      jitless: true,
+    });
+  });
+
   it("keeps every flavor's theme bootstrap hash synchronized with that flavor's script", () => {
     for (const flavor of SITE_FLAVORS) {
       const script = buildThemeBootstrapScript(SITE_FLAVOR_CONFIGS[flavor]);

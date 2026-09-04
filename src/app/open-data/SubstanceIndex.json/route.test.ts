@@ -1,106 +1,25 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { readOpenDataPayload } from "../openDataTestUtils";
+import { describe, expect, it, vi } from "vitest";
 
-const documents = [
-  {
-    _id: "cx2",
-    _creationTime: 2,
-    id: 7,
-    title: "Zeta",
-    slug: "zeta",
-    editorial_review: { reviewed_by: "witchy@local.dose.wiki", status: "reviewed" },
-    section_gaps: { dosage: "missing" },
-  },
-  { _id: "cx1", _creationTime: 1, id: 3, title: "Alpha", slug: "alpha" },
-  { _id: "cx3", _creationTime: 3, id: null, title: "Legacy", slug: "legacy" },
-  { _id: "cx4", _creationTime: 4, id: 2, title: "Draft", slug: "draft", priority: "low" },
-  { _id: "cx5", _creationTime: 5, id: 5, title: "Unlisted", slug: "unlisted", priority: "hide_for_now" },
-];
+const mocks = vi.hoisted(() => ({ openDataResponse: vi.fn() }));
 
+vi.mock("../shared", () => ({ openDataResponse: mocks.openDataResponse }));
 vi.mock("@server/convex/publicData", () => ({
-  getPublicFullSubstanceDocuments: vi.fn(async () => documents),
+  getPublicFullSubstanceDocuments: vi.fn(),
+  getPublicEffectArticles: vi.fn(),
+  getPublicReportDetails: vi.fn(),
 }));
 
+import { OPEN_DATA_DATASETS } from "@server/open-data/datasets";
+import * as route from "./route";
+
+/** Dataset behaviour: lib/open-data/datasets.test.ts. Envelope headers: src/app/open-data/shared.test.ts. */
 describe("open-data SubstanceIndex route", () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
+  it("serves the SubstanceIndex dataset and revalidates daily", async () => {
+    const marker = new Response(null, { status: 200 });
+    mocks.openDataResponse.mockResolvedValue(marker);
 
-  it("serves the full substance corpus as a mixed-license attachment", async () => {
-    const { GET } = await import("./route");
-
-    const response = await GET();
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("Content-Type")).toContain("application/json");
-    expect(response.headers.get("Content-Disposition")).toBe(
-      'attachment; filename="SubstanceIndex.json"',
-    );
-    expect(response.headers.get("Cache-Control")).toBe(
-      "public, s-maxage=86400, stale-while-revalidate=86400",
-    );
-    expect(response.headers.get("Content-Encoding")).toBe("gzip");
-
-    const payload = await readOpenDataPayload(response);
-    expect(payload.dataset).toBe("SubstanceIndex");
-    expect(payload.license).toBe(
-      "Mixed — CC0 except the interactions field, which keeps TripSit's non-commercial attribution terms",
-    );
-    expect(payload.source).toBe("https://dose.wiki");
-    expect(payload.count).toBe(3);
-    expect(payload.count).toBe(payload.items.length);
-    expect(Date.parse(payload.generatedAt)).not.toBeNaN();
-  });
-
-  it("sorts by article id with null ids last, mirroring the committed export", async () => {
-    const { GET } = await import("./route");
-
-    const payload = await readOpenDataPayload(await GET());
-
-    expect(payload.items.map((item: { title: string }) => item.title)).toEqual([
-      "Alpha",
-      "Zeta",
-      "Legacy",
-    ]);
-  });
-
-  it("strips Convex internal fields from every item", async () => {
-    const { GET } = await import("./route");
-
-    const payload = await readOpenDataPayload(await GET());
-
-    for (const item of payload.items) {
-      expect(item).not.toHaveProperty("_id");
-      expect(item).not.toHaveProperty("_creationTime");
-    }
-  });
-
-  it("strips internal editorial metadata from every item", async () => {
-    const { GET } = await import("./route");
-
-    const payload = await readOpenDataPayload(await GET());
-
-    for (const item of payload.items) {
-      expect(item).not.toHaveProperty("editorial_review");
-      expect(item).not.toHaveProperty("section_gaps");
-    }
-    expect(JSON.stringify(payload)).not.toMatch(/editorial_review|section_gaps|reviewed_by|witchy/);
-  });
-
-  it("revalidates daily", async () => {
-    const route = await import("./route");
-
+    await expect(route.GET()).resolves.toBe(marker);
+    expect(mocks.openDataResponse).toHaveBeenCalledWith(OPEN_DATA_DATASETS.SubstanceIndex);
     expect(route.revalidate).toBe(86400);
-  });
-
-  it("excludes unfinished low-priority and hide_for_now substances", async () => {
-    const { GET } = await import("./route");
-
-    const payload = await readOpenDataPayload(await GET());
-
-    const titles = payload.items.map((item: { title: string }) => item.title);
-    expect(titles).toEqual(["Alpha", "Zeta", "Legacy"]);
-    expect(titles).not.toContain("Draft");
-    expect(titles).not.toContain("Unlisted");
   });
 });

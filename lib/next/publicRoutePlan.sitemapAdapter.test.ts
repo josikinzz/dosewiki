@@ -45,7 +45,7 @@ describe("public sitemap adapter", () => {
     // Pinned to dose.wiki — both the site identity and the flavor config — so the
     // assertions hold on an Effect Index build too. The flavor config is what decides
     // whether the flavor-gated branch (the blog) appends anything; the flavor branch
-    // itself is covered by `blogFlavorRoute.test.ts`.
+    // itself is covered by `sitemap.flavorBranch.test.ts`.
     const dosewikiSite = getPublicSite(SITE_FLAVOR_CONFIGS.dosewiki, {});
 
     expect(

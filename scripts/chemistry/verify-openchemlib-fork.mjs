@@ -122,11 +122,19 @@ const sourceRecords = await Promise.all(sourcePaths.map(fileRecord));
 const artifactRecords = await Promise.all(ARTIFACT_FILES.map(fileRecord));
 
 const currentManifest = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   upstream: {
     openchemlibJsVersion: "9.23.0",
     openchemlibJsCommit: "d0157013aef3bb3e0057804491d4acc2192fe283",
     openchemlibJavaCommit: "94f77815728907829087ef350bf069ce241b54c1",
+  },
+  verification: {
+    artifactCheck: "npm run openchemlib:verify",
+    // Runs the package's Vitest suite against the committed distributables
+    // (the local fork tests live under tests/dosewiki). Needs only the
+    // package-local dev dependencies, never a JDK or GWT.
+    testLane: "npm run openchemlib:test",
+    forkTests: "tests/dosewiki",
   },
   inputs: {
     fileCount: sourceRecords.length,

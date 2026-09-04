@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { PALETTE_GROUPS } from "./paletteTokens";
+import { readSourceFiles } from "@/test/sourceScan";
 
 /**
  * Elevation tokens are the shadow half of the theme's flatness axis: every
@@ -42,23 +43,9 @@ function hardcodedShadows(text: string) {
   return text.match(/(?<![-\w])shadow-(?!\[var\(--theme-)[^\s"'`]*/g) ?? [];
 }
 
-const SCAN_ROOTS = ["src/app", "src/components", "src/features", "src/hooks"];
-
-function collectSourceFiles(root: string): string[] {
-  const absolute = path.join(REPO_ROOT, root);
-  if (!fs.existsSync(absolute)) return [];
-
-  return fs.readdirSync(absolute, { withFileTypes: true }).flatMap((entry) => {
-    const child = path.join(root, entry.name);
-    if (entry.isDirectory()) return collectSourceFiles(child);
-    return /\.tsx?$/.test(entry.name) ? [child] : [];
-  });
-}
-
-const SOURCE_FILES = SCAN_ROOTS.flatMap(collectSourceFiles).map((relativePath) => ({
-  relativePath,
-  text: fs.readFileSync(path.join(REPO_ROOT, relativePath), "utf8"),
-}));
+const SOURCE_FILES = readSourceFiles(["src/app", "src/components", "src/features", "src/hooks"], {
+  includeTests: true,
+}).map(({ path: relativePath, text }) => ({ relativePath, text }));
 
 const registeredElevationIds = PALETTE_GROUPS.flatMap((group) => group.tokens)
   .map((token) => token.id)
@@ -102,7 +89,7 @@ describe("elevation tokens", () => {
     }
   });
 
-  it("leaves no hardcoded shadow of any spelling in component call sites", () => {
+  it("policy: no hardcoded shadow utility in src/app, src/components, src/features, src/hooks (only theme elevation token shadows)", () => {
     const offenders = SOURCE_FILES.filter(({ relativePath }) => !isExempt(relativePath))
       .map(({ relativePath, text }) => ({
         relativePath,

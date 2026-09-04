@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 import {
   editableSnapshotOf,
@@ -11,8 +8,6 @@ import {
   validateEditableFields,
   type TripReportEditableFields,
 } from "../convex/lib/tripReportEditing";
-
-const readSource = (relativePath: string) => readFileSync(join(process.cwd(), relativePath), "utf8");
 
 const storedRow = {
   slug: "went-as-predicted",
@@ -154,65 +149,5 @@ describe("trip report save validation", () => {
     });
 
     expect(validateEditableFields(conclusionOnly)).toEqual([]);
-  });
-});
-
-describe("Convex trip report update boundary", () => {
-  const source = readSource("convex/tripReports.ts");
-
-  it("gates the portal index on editor, the record read and write on contributor plus ownership, and the delete and owner grant on admin", () => {
-    const floors = [...source.matchAll(/await requireRole\([\s\S]*?"(admin|editor|contributor)",\n\s*\);/g)].map(
-      (match) => match[1],
-    );
-
-    // getPortalRows, getPortalRecord, update, listOwned, assignOwner, deleteById, renameAuthor.
-    expect(floors).toEqual(["editor", "contributor", "contributor", "contributor", "admin", "admin"]);
-    // Both contributor-floor report accessors decide per row.
-    expect(source.match(/refuseNotOwner\(row\)|refuseNotOwner\(report\)/g)).toHaveLength(2);
-    expect(source).toContain(
-      'await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");',
-    );
-  });
-
-  it("refuses a save whose snapshot no longer matches storage", () => {
-    expect(source).toContain(
-      "if (!editableSnapshotsAgree(editableSnapshotOf(row), normalizeEditableFields(args.expected))) {",
-    );
-    expect(source).toContain(
-      "changed since it was opened; reload the portal before saving.",
-    );
-  });
-
-  it("never lets a field edit rewrite the slug or the publication facts", () => {
-    // The patch is built field by field from the editable slice; anything not
-    // listed here keeps whatever the stored row had.
-    const patchBlock = source.slice(
-      source.indexOf("const patch: Parameters<typeof ctx.db.patch>[1] = {"),
-      source.indexOf("// The marker records an editor's attribution decision"),
-    );
-
-    expect(patchBlock).toContain("title: updates.title,");
-    expect(patchBlock).not.toContain("slug:");
-    expect(patchBlock).not.toContain("featured:");
-    expect(patchBlock).not.toContain("license:");
-  });
-
-  it("preserves editor-set subject links the portal does not surface", () => {
-    expect(source).toContain("if (row.subject.avatar_url !== undefined) {");
-    expect(source).toContain("if (row.subject.pdf_url !== undefined) {");
-  });
-
-  it("only adjudicates a byline that actually moved", () => {
-    expect(source).toContain("if (bylineMoved) {");
-    expect(source).toContain(
-      "normalizeAuthorMatchName(updates.subject.name) !== normalizeAuthorMatchName(row.subject.name)",
-    );
-  });
-
-  it("re-stamps the attribution decision only on a report that already carried one", () => {
-    expect(source).toContain("if (row.attribution_review && attributionDecided) {");
-    expect(source).toContain(
-      'decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),',
-    );
   });
 });

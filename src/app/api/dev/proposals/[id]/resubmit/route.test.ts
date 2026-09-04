@@ -1,9 +1,11 @@
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { roleSessionFor } from "@/test/routeSession";
-import { POST } from "./route";
-
-vi.mock("server-only", () => ({}));
+import {
+  describeRoleFloor,
+  grantWriteCapability,
+  installProtectedRouteMocks,
+  resetRouteMocks,
+} from "@/test/routeHarness";
 
 vi.mock("../../../../../../../convex/_generated/api", () => ({
   api: {
@@ -14,23 +16,7 @@ vi.mock("../../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
-
-vi.mock("@/lib/auth/requireEditorSession", () => ({
-  requireRoleSession: authMocks.requireRoleSession,
-}));
-
-vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
-const mocks = vi.hoisted(() => ({
-  getServerConvexWriteCapability: vi.fn(),
-}));
-
-vi.mock("@server/convex/serverWriteCapability", () => ({
-  getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
-}));
+installProtectedRouteMocks();
 
 function post(body: unknown, id = "cp_old") {
   return new Request(`https://dose.wiki/api/dev/proposals/${id}/resubmit`, {
@@ -41,12 +27,7 @@ function post(body: unknown, id = "cp_old") {
 }
 
 function useClient(mutation: Mock) {
-  const client = { query: vi.fn(), mutation };
-  mocks.getServerConvexWriteCapability.mockReturnValue({
-    ok: true,
-    capability: { adminKey: "admin-key", client, getAdminIntentToken: vi.fn(() => "article-token") },
-  });
-  return client;
+  return grantWriteCapability({ query: vi.fn(), mutation }, { intentToken: "article-token" });
 }
 
 const stagedSave = {
@@ -57,12 +38,12 @@ const stagedSave = {
 
 describe("dev proposal resubmit route", () => {
   beforeEach(() => {
-    authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("editor"));
-    mocks.getServerConvexWriteCapability.mockReset();
+    resetRouteMocks("editor");
   });
 
   it("submits the staged save as a revision of the proposal named in the path", async () => {
     const client = useClient(vi.fn(async () => ({ proposalId: "cp_new" })));
+    const { POST } = await import("./route");
 
     const response = await POST(post(stagedSave));
 
@@ -81,6 +62,7 @@ describe("dev proposal resubmit route", () => {
 
   it("uses the path id even when the body names a different revisionOf", async () => {
     const client = useClient(vi.fn(async () => ({ proposalId: "cp_new" })));
+    const { POST } = await import("./route");
 
     await POST(post({ ...stagedSave, revisionOf: "cp_other" }, "cp_path"));
 
@@ -90,18 +72,11 @@ describe("dev proposal resubmit route", () => {
     );
   });
 
-  it("refuses a contributor before calling Convex", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
-    const client = useClient(vi.fn());
-
-    const response = await POST(post(stagedSave));
-
-    expect(response.status).toBe(403);
-    expect(client.mutation).not.toHaveBeenCalled();
-  });
-
   it("rejects malformed JSON and an empty payload before calling Convex", async () => {
+    // Resubmit parses the body itself (to pin `revisionOf`) before delegating, so the
+    // malformed-JSON 400 is this route's own layer, not protectedRouteOperation's.
     const client = useClient(vi.fn());
+    const { POST } = await import("./route");
 
     const malformed = await POST(post("{not json"));
     expect(malformed.status).toBe(400);
@@ -120,10 +95,18 @@ describe("dev proposal resubmit route", () => {
       }),
     );
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { POST } = await import("./route");
 
     const response = await POST(post(stagedSave));
 
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({ code: "PROPOSAL_STATUS_INVALID" });
   });
+});
+
+describeRoleFloor({
+  floor: "editor",
+  rateLimit: "editorHeavyWrite",
+  refused: "contributor",
+  calls: [{ name: "POST", call: async () => (await import("./route")).POST(post(stagedSave)) }],
 });

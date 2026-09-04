@@ -1,39 +1,72 @@
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import {
+  clampScriptCorpusPageSize,
+  getFullDocumentPage,
+  getReferenceMetadataPage,
+} from "../../convex/substanceIndex";
+import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 
-const source = readFileSync(`${process.cwd()}/convex/substanceIndex.ts`, "utf8");
+// Convex registered functions keep the original handler on `_handler`; there is
+// no in-repo Convex runtime harness, so the handler is exercised directly.
+const handlerOf = (fn: unknown) =>
+  (fn as { _handler: (ctx: never, args: unknown) => Promise<unknown> })._handler;
 
-function exportedQueryBlock(name: string): string {
-  const start = source.indexOf(`export const ${name} = query({`);
-  expect(start).toBeGreaterThanOrEqual(0);
-  const nextExport = source.indexOf("\nexport const ", start + 1);
-  return source.slice(start, nextExport === -1 ? source.length : nextExport);
+function createCtx(page: unknown[]) {
+  const paginate = vi.fn(async (opts: { numItems: number }) => ({
+    page,
+    continueCursor: null,
+    isDone: true,
+    numItems: opts.numItems,
+  }));
+  const collect = vi.fn(async () => {
+    throw new Error("script pages must not collect");
+  });
+  return { ctx: { db: { query: () => ({ paginate, collect }) } } as never, paginate, collect };
 }
 
 describe("trusted script substance pagination", () => {
-  it("clamps full-document and reference-metadata pages to 32", () => {
-    expect(source).toContain("const SCRIPT_CORPUS_PAGE_SIZE = 32;");
-    expect(source).toContain("Math.min(Math.max(normalized, 1), SCRIPT_CORPUS_PAGE_SIZE)");
-    for (const name of ["getFullDocumentPage", "getReferenceMetadataPage"]) {
-      const block = exportedQueryBlock(name);
-      expect(block).toContain('.query("substanceIndex").paginate({');
-      expect(block).toContain("clampScriptCorpusPageSize(args.paginationOpts.numItems)");
-      expect(block).not.toContain(".collect()");
-    }
+  it("clamps every requested page size into [1, 32]", () => {
+    expect(clampScriptCorpusPageSize(0)).toBe(1);
+    expect(clampScriptCorpusPageSize(32)).toBe(32);
+    expect(clampScriptCorpusPageSize(33)).toBe(32);
+    expect(clampScriptCorpusPageSize(Number.NaN)).toBe(32);
   });
 
-  it("keeps the reference planning projection bounded to identity and provenance fields", () => {
-    const blockStart = source.indexOf("function pickDefinedReferenceMetadata");
-    const blockEnd = source.indexOf("export const getReferenceMetadataPage", blockStart);
-    const block = source.slice(blockStart, blockEnd);
-    for (const field of ["slug", "title", "references"]) {
-      expect(block).toContain(`${field}:`);
-    }
-    for (const field of ["id", "doi", "pmid", "isbn", "url", "authors", "metadataProvenance"]) {
-      expect(block).toContain(`"${field}"`);
-    }
-    for (const proseField of ["summary", "pharmacology", "harm_potential", "history_culture", "legality"]) {
-      expect(block).not.toContain(`${proseField}:`);
+  it.each([
+    ["getFullDocumentPage", getFullDocumentPage],
+    ["getReferenceMetadataPage", getReferenceMetadataPage],
+  ])("%s paginates at most 32 rows and never collects", async (_name, fn) => {
+    const { ctx, paginate, collect } = createCtx([]);
+    await handlerOf(fn)(ctx, { paginationOpts: { cursor: null, numItems: 5000 } });
+    expect(paginate.mock.calls[0][0].numItems).toBe(32);
+    expect(collect).not.toHaveBeenCalled();
+  });
+
+  it("getReferenceMetadataPage returns identity and provenance fields and no article prose", async () => {
+    const article = {
+      ...structuredClone(fullArticleWithDosage),
+      references: [{
+        ...structuredClone(fullArticleWithDosage.references[0]),
+        id: "ref-1",
+        doi: "10.1/x",
+        metadataProvenance: [{ kind: "fetched", source: "crossref", fields: ["authors"] }],
+      }],
+    };
+    const { ctx } = createCtx([article]);
+    const result = (await handlerOf(getReferenceMetadataPage)(ctx, {
+      paginationOpts: { cursor: null, numItems: 1 },
+    })) as { page: Record<string, unknown>[] };
+    const row = result.page[0];
+
+    expect(Object.keys(row).sort()).toEqual(["references", "slug", "title"]);
+    const references = row.references as Record<string, unknown>[];
+    expect(references[0]).toMatchObject({
+      id: "ref-1",
+      doi: "10.1/x",
+      metadataProvenance: expect.any(Array),
+    });
+    for (const prose of ["summary", "pharmacology", "harm_potential", "history_culture", "legality"]) {
+      expect(row).not.toHaveProperty(prose);
     }
   });
 });

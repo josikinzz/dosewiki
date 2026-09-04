@@ -69,7 +69,7 @@ const NORMALIZED_ORGAN_SYSTEM_ICONS = Object.fromEntries(
   Object.entries(ORGAN_SYSTEM_ICONS).map(([system, icon]) => [system.trim().toLowerCase(), icon]),
 );
 
-export function getOrganSystemIcon(system?: string | null) {
+function getOrganSystemIcon(system?: string | null) {
   if (!system) return DEFAULT_ORGAN_SYSTEM_ICON;
 
   return ORGAN_SYSTEM_ICONS[system]

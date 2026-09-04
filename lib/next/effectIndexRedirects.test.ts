@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import nextConfig from "../../next.config";
+import {
+  EFFECT_INDEX_DISCORD_INVITE_URL,
+  effectIndexLegacyRedirects,
+} from "./effectIndexLegacyRedirects";
 
 describe("Effect Index legacy redirects", () => {
   it("preserves every imported Effect Index redirect, including subarticle selectors", async () => {
@@ -168,5 +172,26 @@ describe("Effect Index legacy redirects", () => {
       .map((redirect) => `${redirect.source} -> ${redirect.destination}`);
 
     expect(chained).toEqual([]);
+  });
+});
+
+describe("Discord invite URL", () => {
+  it("is the destination of the legacy /discord-chat redirect, not a second copy", () => {
+    const entry = effectIndexLegacyRedirects.find(
+      (redirect) => redirect.source === "/discord-chat",
+    );
+
+    expect(entry).toBeDefined();
+    expect(EFFECT_INDEX_DISCORD_INVITE_URL).toBe(entry?.destination);
+  });
+
+  it("still reaches the Next config's redirect table after the extraction", async () => {
+    const redirects = await nextConfig.redirects?.();
+
+    expect(redirects).toContainEqual({
+      source: "/discord-chat",
+      destination: EFFECT_INDEX_DISCORD_INVITE_URL,
+      permanent: true,
+    });
   });
 });

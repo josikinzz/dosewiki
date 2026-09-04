@@ -1,32 +1,51 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { ExpandButton, ExpandIndicator } from "./ExpandButton";
 
 describe("ExpandButton", () => {
-  it("keeps inline icon controls free of nested pill container styling", () => {
-    render(<ExpandButton isExpanded={false} onToggle={vi.fn()} variant="inline" />);
+  it("names itself by its expanded state and toggles on click", async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+    const { rerender } = render(
+      <ExpandButton isExpanded={false} onToggle={onToggle} variant="inline" />,
+    );
 
-    const button = screen.getByRole("button", { name: /expand section/i });
-    expect(button).not.toHaveClass("theme-control-pill");
-    expect(button).not.toHaveClass("theme-control-pill-quiet");
-    expect(button).toHaveClass("before:inset-[-0.5rem]");
-    expect(button).toHaveAttribute("aria-expanded", "false");
+    const collapsed = screen.getByRole("button", { name: /expand section/i });
+    expect(collapsed).toHaveAttribute("aria-expanded", "false");
+    await user.click(collapsed);
+    expect(onToggle).toHaveBeenCalledTimes(1);
+
+    rerender(<ExpandButton isExpanded onToggle={onToggle} variant="inline" />);
+    expect(screen.getByRole("button", { name: /collapse section/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
   });
 
-  it("keeps floating controls on the primary semantic recipe", () => {
-    render(<ExpandButton isExpanded onToggle={vi.fn()} label="Details" />);
+  it("shows a descriptive label and wires aria-controls to the disclosed region", () => {
+    render(
+      <>
+        <ExpandButton isExpanded onToggle={vi.fn()} label="Details" ariaControls="details-panel" />
+        <div id="details-panel">Panel</div>
+      </>,
+    );
 
     const button = screen.getByRole("button", { name: /collapse section/i });
-    expect(button).toHaveClass("theme-control-pill");
-    expect(button).toHaveAttribute("aria-expanded", "true");
+    expect(button).toHaveTextContent("Details");
+    expect(button).toHaveAttribute("aria-controls", "details-panel");
   });
 
-  it("keeps card controls on the quiet contained recipe", () => {
-    render(<ExpandButton isExpanded={false} onToggle={vi.fn()} variant="card" />);
+  it("lets a caller override the accessible name", () => {
+    render(
+      <ExpandButton isExpanded={false} onToggle={vi.fn()} variant="card" ariaLabel="Show binding sites" />,
+    );
 
-    const button = screen.getByRole("button", { name: /expand section/i });
-    expect(button).toHaveClass("theme-control-pill-quiet");
+    expect(screen.getByRole("button", { name: "Show binding sites" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
   });
 
   it("renders count controls without an ellipsis icon", () => {

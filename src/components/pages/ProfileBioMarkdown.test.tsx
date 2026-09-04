@@ -9,29 +9,49 @@ const richProfileMarkdown = [
   "- First focus",
   "- Second focus",
   "",
+  "1. Step one",
+  "2. Step two",
+  "",
   "> A careful note from the contributor profile.",
 ].join("\n");
 
 describe("ProfileBioMarkdown", () => {
-  it("renders rich contributor markdown with theme-aware roles", () => {
-    const { container } = render(<ProfileBioMarkdown content={richProfileMarkdown} />);
+  it("renders contributor markdown as emphasis, links, lists and quotes", () => {
+    render(<ProfileBioMarkdown content={richProfileMarkdown} />);
 
-    expect(screen.getByText("strong context")).toHaveClass("theme-accent-emphasis");
-    expect(screen.getByRole("link", { name: "a source" })).toHaveClass(
-      "theme-profile-markdown-link",
+    const emphasis = screen.getByText("strong context");
+    expect(emphasis.tagName).toBe("STRONG");
+    // `.theme-accent-emphasis` is the documented prose-emphasis contract
+    // (docs/ui-kit.md, "Prose emphasis").
+    expect(emphasis).toHaveClass("theme-accent-emphasis");
+
+    const link = screen.getByRole("link", { name: "a source" });
+    expect(link).toHaveAttribute("href", "https://example.com");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+
+    const lists = screen.getAllByRole("list");
+    expect(lists.map((list) => list.tagName)).toEqual(["UL", "OL"]);
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      "First focus",
+      "Second focus",
+      "Step one",
+      "Step two",
+    ]);
+
+    expect(
+      screen.getByText("A careful note from the contributor profile.").closest("blockquote"),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps single newlines as visible line breaks", () => {
+    const { container } = render(
+      <ProfileBioMarkdown content={"First line\nSecond line"} />,
     );
-    expect(screen.getByText("First focus").closest("ul")).toHaveClass(
-      "theme-profile-markdown-marker",
-      "theme-text-secondary",
-    );
 
-    const quote = screen
-      .getByText("A careful note from the contributor profile.")
-      .closest("blockquote");
-
-    expect(quote).toHaveClass("theme-profile-markdown-quote");
-    expect(quote?.className).not.toContain("border-l-4");
-    expect(container.querySelector(".prose-invert")).toBeNull();
-    expect(container.innerHTML.includes(["text", "white"].join("-"))).toBe(false);
+    const paragraph = container.querySelector("p");
+    expect(paragraph?.querySelector("br")).toBeInTheDocument();
+    expect(paragraph).toHaveTextContent("First line");
+    expect(paragraph).toHaveTextContent("Second line");
   });
 });

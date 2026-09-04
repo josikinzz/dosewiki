@@ -7,52 +7,21 @@ import {
   compareInchiMock,
   installMoleculeEditorTestHarness,
   renderMoleculeSvgMock,
+  seedExampleSubstance,
   smilesToMolblockMock,
+  stubOverrideFetch,
   useOclMock,
   useQueryMock,
   useRdkitMock,
   useSubstanceLookupMock,
 } from "./MoleculeEditorTab.testHarness";
 import { MoleculeEditorTab } from "./MoleculeEditorTab";
-import { stripOclCustomLabelSgroups } from "./applyRLabelsToMolblock";
-import {
-  OCL_BENZENE,
-  OCL_BENZENE_WITH_SURVIVOR_RAW,
-  RDKIT_PHENETHYLAMINE,
-} from "./classMolblockFixture";
 
-describe("MoleculeEditorTab canvas and imports", () => {
+describe("MoleculeEditorTab substance canvas flows", () => {
   installMoleculeEditorTestHarness();
   it("arms the bond pick overlay from Set bond vertical and routes both alignment requests", async () => {
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: [{ slug: "example", name: "Example" }],
-      isLoading: false,
-      status: "Exhausted",
-    });
-    useQueryMock.mockImplementation((query, args) => {
-      const functionName = getFunctionName(query);
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return [{ slug: "example" }];
-      }
-      if (functionName === "substanceIndex:getBySlug") {
-        return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
-      }
-      return undefined;
-    });
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          override: {
-            slug: "example",
-            molblock: "saved molblock",
-            svg: "<svg />",
-            updatedAt: "2026-07-12T00:00:00.000Z",
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
+    seedExampleSubstance();
+    stubOverrideFetch();
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
@@ -116,81 +85,6 @@ describe("MoleculeEditorTab canvas and imports", () => {
 
     await user.click(straighten);
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-snap-request", "straighten");
-  });
-
-  it("routes a rotation edit through preview, guard, dirty state, and the existing save gate", async () => {
-    const rdkit = {};
-    const ocl = { Molecule: {} };
-    useRdkitMock.mockReturnValue({ rdkit, error: null });
-    useOclMock.mockReturnValue({ ocl, error: null });
-    renderMoleculeSvgMock.mockReturnValue("<svg />");
-    compareInchiMock.mockReturnValue({
-      match: true,
-      inchiOriginal: "InChI=1S/example",
-      inchiEdited: "InChI=1S/example",
-    });
-    const lookup = [{ slug: "example", name: "Example" }];
-    const overrideList = [{ slug: "example" }];
-    const article = { identification: { smiles: "CCO" } };
-    useSubstanceLookupMock.mockReturnValue({
-      lookup,
-      isLoading: false,
-      status: "Exhausted",
-    });
-    useQueryMock.mockImplementation((query, args) => {
-      const functionName = getFunctionName(query);
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return overrideList;
-      }
-      if (functionName === "substanceIndex:getBySlug") {
-        return args === "skip" ? undefined : article;
-      }
-      return undefined;
-    });
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          override: {
-            slug: "example",
-            molblock: "saved molblock",
-            svg: "<svg />",
-            updatedAt: "2026-07-12T00:00:00.000Z",
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
-
-    render(<MoleculeEditorTab />);
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
-    await user.click(await screen.findByText("Example"));
-    await waitFor(() =>
-      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
-        "data-source",
-        "saved molblock",
-      ),
-    );
-    await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(ocl, "saved molblock", undefined, []),
-    );
-    renderMoleculeSvgMock.mockClear();
-    compareInchiMock.mockClear();
-
-    await user.click(screen.getByRole("button", { name: "Emit rotation" }));
-
-    await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
-        ocl,
-        "rotated molblock",
-        {},
-        [],
-      ),
-    );
-    expect(compareInchiMock).toHaveBeenLastCalledWith(rdkit, "CCO", "rotated molblock");
-    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save depiction" })).toBeEnabled();
   });
 
   it("imports another substance's saved depiction as an analogue starting point", async () => {
@@ -265,35 +159,8 @@ describe("MoleculeEditorTab canvas and imports", () => {
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({ match: true });
     smilesToMolblockMock.mockResolvedValue("pasted molblock");
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: [{ slug: "example", name: "Example" }],
-      isLoading: false,
-      status: "Exhausted",
-    });
-    useQueryMock.mockImplementation((query, args) => {
-      const functionName = getFunctionName(query);
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return [{ slug: "example" }];
-      }
-      if (functionName === "substanceIndex:getBySlug") {
-        return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
-      }
-      return undefined;
-    });
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          override: {
-            slug: "example",
-            molblock: "saved molblock",
-            svg: "<svg />",
-            updatedAt: "2026-07-12T00:00:00.000Z",
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
+    seedExampleSubstance();
+    stubOverrideFetch();
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
@@ -330,36 +197,8 @@ describe("MoleculeEditorTab canvas and imports", () => {
     renderMoleculeSvgMock.mockReturnValue("<svg />");
     compareInchiMock.mockReturnValue({ match: true });
     compareCanonicalSmilesMock.mockReturnValue({ match: true });
-    useSubstanceLookupMock.mockReturnValue({
-      lookup: [{ slug: "example", name: "Example" }],
-      isLoading: false,
-      status: "Exhausted",
-    });
-    useQueryMock.mockImplementation((query, args) => {
-      const functionName = getFunctionName(query);
-      if (functionName === "moleculeOverrides:listSlugs") {
-        return [{ slug: "example" }];
-      }
-      if (functionName === "substanceIndex:getBySlug") {
-        // A new-but-equal object every call, exactly like the real subscription.
-        return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
-      }
-      return undefined;
-    });
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          override: {
-            slug: "example",
-            molblock: "saved molblock",
-            svg: "<svg />",
-            updatedAt: "2026-07-12T00:00:00.000Z",
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
+    seedExampleSubstance();
+    const fetchSpy = stubOverrideFetch();
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
@@ -378,6 +217,7 @@ describe("MoleculeEditorTab canvas and imports", () => {
         [],
       ),
     );
+    expect(compareInchiMock).toHaveBeenLastCalledWith(rdkit, "CCO", "rotated molblock");
     expect(screen.getByRole("button", { name: "Save depiction" })).toBeEnabled();
 
     // Force re-renders, each handing back a fresh `article` identity.
@@ -398,218 +238,5 @@ describe("MoleculeEditorTab canvas and imports", () => {
       slug: "example",
       molblock: "rotated molblock",
     });
-  });
-
-  it("hands the class R-group label map to the canvas and preview without dirtying the baseline", async () => {
-    // Seeded-class flow: no saved override, RDKit generates the Markush molblock.
-    const rdkit = {
-      get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }),
-    };
-    useRdkitMock.mockReturnValue({ rdkit, error: null });
-    renderMoleculeSvgMock.mockReturnValue("<svg />");
-    compareCanonicalSmilesMock.mockReturnValue({
-      match: true,
-      inchiOriginal: "smiles",
-      inchiEdited: "smiles",
-    });
-    useQueryMock.mockReturnValue(undefined);
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, override: null }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-
-    render(<MoleculeEditorTab />);
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
-    await user.click(await screen.findByText("Phenethylamine"));
-
-    await waitFor(() =>
-      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
-        "data-source",
-        RDKIT_PHENETHYLAMINE,
-      ),
-    );
-    // The canvas gets the same draw-time map the brand preview uses: all eight
-    // R positions, keyed by source atom index (atom 0 carries map 9 -> RN).
-    const raw = screen.getByTestId("ocl-editor").getAttribute("data-atom-labels");
-    const labels = JSON.parse(raw ?? "{}") as Record<string, string>;
-    expect(labels["0"]).toBe("RN");
-    expect(Object.values(labels).sort()).toEqual(
-      ["R2", "R3", "R4", "R5", "R6", "RN", "Rα", "Rβ"].sort(),
-    );
-    await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
-        expect.anything(),
-        RDKIT_PHENETHYLAMINE,
-        labels,
-        [],
-      ),
-    );
-    // Loading a seeded class row must not trip the unsaved-changes flag.
-    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
-  });
-
-  it("drops the preview label map after a destructive class redraw while the canvas keeps its load-time map", async () => {
-    const rdkit = {
-      get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }),
-    };
-    useRdkitMock.mockReturnValue({ rdkit, error: null });
-    renderMoleculeSvgMock.mockReturnValue("<svg />");
-    compareCanonicalSmilesMock.mockReturnValue({
-      match: false,
-      inchiOriginal: "class",
-      inchiEdited: "benzene",
-    });
-    useQueryMock.mockReturnValue(undefined);
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, override: null }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-
-    render(<MoleculeEditorTab />);
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
-    await user.click(await screen.findByText("Phenethylamine"));
-    await waitFor(() =>
-      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
-        "data-source",
-        RDKIT_PHENETHYLAMINE,
-      ),
-    );
-    const loadLabels = JSON.parse(
-      screen.getByTestId("ocl-editor").getAttribute("data-atom-labels") ?? "{}",
-    ) as Record<string, string>;
-    expect(Object.keys(loadLabels)).toHaveLength(8);
-
-    // The user erased the class structure and drew benzene: a different atom
-    // count, no dummies. The emission carries an empty display map, so the
-    // preview renders WITHOUT any R labels — the stale source-indexed map
-    // would put a phantom "R" on an arbitrary atom.
-    await user.click(screen.getByRole("button", { name: "Emit benzene redraw" }));
-    await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
-        expect.anything(),
-        OCL_BENZENE,
-        {},
-        [],
-      ),
-    );
-    // The canvas keeps its load-time source map — it labeled the source atoms
-    // at load and OclEditor load-time behavior is untouched.
-    expect(
-      JSON.parse(screen.getByTestId("ocl-editor").getAttribute("data-atom-labels") ?? "{}"),
-    ).toEqual(loadLabels);
-    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
-  });
-
-  it("mirrors surviving canvas labels into the preview after a partial redraw", async () => {
-    const rdkit = {
-      get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }),
-    };
-    useRdkitMock.mockReturnValue({ rdkit, error: null });
-    renderMoleculeSvgMock.mockReturnValue("<svg />");
-    compareCanonicalSmilesMock.mockReturnValue({
-      match: false,
-      inchiOriginal: "class",
-      inchiEdited: "benzene+R",
-    });
-    useQueryMock.mockReturnValue(undefined);
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, override: null }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-
-    render(<MoleculeEditorTab />);
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
-    await user.click(await screen.findByText("Phenethylamine"));
-    await waitFor(() =>
-      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
-        "data-source",
-        RDKIT_PHENETHYLAMINE,
-      ),
-    );
-
-    // Partial redraw: benzene plus ONE surviving labeled dummy. The raw
-    // emission's label S-group carries the atom's CURRENT index (7th atom),
-    // so the preview shows exactly the label the canvas still displays —
-    // "RN" on the survivor, nothing anywhere else.
-    await user.click(screen.getByRole("button", { name: "Emit partial redraw" }));
-    await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
-        expect.anything(),
-        stripOclCustomLabelSgroups(OCL_BENZENE_WITH_SURVIVOR_RAW),
-        { 6: "RN" },
-        [],
-      ),
-    );
-    // The stripped molblock (dirty comparison input) never carries S-groups.
-    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
-  });
-
-  it("converts a typed R8 into a canonical labeled dummy while an unknown R12 stays untouched", async () => {
-    const rdkit = {
-      get_mol: () => ({ get_molblock: () => RDKIT_PHENETHYLAMINE, delete: () => {} }),
-    };
-    useRdkitMock.mockReturnValue({ rdkit, error: null });
-    renderMoleculeSvgMock.mockReturnValue("<svg />");
-    compareCanonicalSmilesMock.mockReturnValue({
-      match: false,
-      inchiOriginal: "class",
-      inchiEdited: "class+R",
-    });
-    useQueryMock.mockReturnValue(undefined);
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, override: null }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-
-    render(<MoleculeEditorTab />);
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
-    await user.click(await screen.findByText("Phenethylamine"));
-    await waitFor(() =>
-      expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
-        "data-source",
-        RDKIT_PHENETHYLAMINE,
-      ),
-    );
-
-    // The user typed R8 (rLabels has "8" -> Rα) and R12 (no entry) in the ?…
-    // dialog. The seam converts the R8 atom to the canonical `*`+map spelling
-    // and stamps Rα into the preview map alongside the labels OCL displays;
-    // R12 stays a visible typed R group with its RGP entry.
-    await user.click(screen.getByRole("button", { name: "Emit typed R groups" }));
-    await waitFor(() =>
-      expect(renderMoleculeSvgMock).toHaveBeenLastCalledWith(
-        expect.anything(),
-        expect.stringContaining("M  RGP  1  19  12"),
-        { 0: "RN", 3: "Rα", 5: "Rβ", 8: "R2", 10: "R3", 12: "R4", 14: "R5", 16: "R6", 17: "Rα" },
-        [],
-      ),
-    );
-    const edited = renderMoleculeSvgMock.mock.lastCall?.[1] as string;
-    // typed R8 -> canonical dummy at the emission's own atom index (18th atom)
-    expect(edited).toContain(
-      "    5.2500   -2.5981    0.0000 *   0  0  0  0  0  0  0  0  0  8  0  0",
-    );
-    // unknown R12: untouched, never silently dropped
-    expect(edited).toContain(
-      "    6.7500   -1.2990    0.0000 R#  0  0  0  0  0  0  0  0  0  0  0  0",
-    );
-    expect(edited).not.toContain("NOSEARCH_OCL_CUSTOM_LABEL");
-    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
   });
 });

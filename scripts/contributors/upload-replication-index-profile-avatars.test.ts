@@ -1,49 +1,41 @@
-import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  FIXTURE_PLAN_PATH,
+  FIXTURE_PLAN_PAYLOAD_SHA256,
+  FIXTURE_RECEIPT_PATH,
+  FIXTURE_RECEIPT_SHA256,
+  fixtureInputs,
+  sha256,
+  temporaryCampaign,
+} from "./fixtures/avatar-campaign";
+import {
   buildEightProfilePayload,
   buildContributorProfileSnapshot,
   buildExistingProfilePayload,
   acquireLedgerLock,
   createLedger,
-  DEFAULT_DEPLOYMENT_RECEIPT_PATH,
-  DEFAULT_PLAN_PATH,
-  DEFAULT_PROJECTION_PATH,
   runExistingProfileDryRunPhase,
   runExistingProfileWritePhase,
   runProfileWritePhase,
   runUploadPhase,
-  validateInputs,
   validateLedger,
   type AvatarUploadLedger,
 } from "./upload-replication-index-profile-avatars";
 
-function realInputs() {
-  return validateInputs({
-    planPath: DEFAULT_PLAN_PATH,
-    projectionPath: DEFAULT_PROJECTION_PATH,
-    deploymentReceiptPath: DEFAULT_DEPLOYMENT_RECEIPT_PATH,
-  });
-}
+const CLEAN_EIGHT_CREATE_RESULT = { created: 8, updated: 0, unchanged: 0, skipped: 0, blocked: 0 };
 
 async function completedUploadLedger() {
-  const inputs = realInputs();
+  const inputs = fixtureInputs();
   const ledger = createLedger(inputs, "2026-08-31T08:00:00.000Z");
   let nextStorage = 0;
   const dependencies = {
     generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/opaque",
     upload: async () => ({ storageId: `storage-${++nextStorage}` }),
-    dryRunProfiles: async () => ({
-      created: 8,
-      updated: 0,
-      unchanged: 0,
-      skipped: 0,
-      blocked: 0,
-    }),
+    dryRunProfiles: async () => ({ ...CLEAN_EIGHT_CREATE_RESULT }),
     persist: vi.fn(),
     now: () => "2026-08-31T08:01:00.000Z",
   };
@@ -88,11 +80,7 @@ function createdResult(payload: ReturnType<typeof buildEightProfilePayload>) {
   return {
     operationId: payload.operationId,
     dryRun: false,
-    created: 8,
-    updated: 0,
-    unchanged: 0,
-    skipped: 0,
-    blocked: 0,
+    ...CLEAN_EIGHT_CREATE_RESULT,
     rows: payload.entries.map((entry) => ({
       creatorName: entry.creatorName,
       key: entry.outcome === "reviewed-new" ? entry.profile.key : null,
@@ -102,7 +90,7 @@ function createdResult(payload: ReturnType<typeof buildEightProfilePayload>) {
   };
 }
 
-function existingCurrentRows(inputs: ReturnType<typeof realInputs>) {
+function existingCurrentRows(inputs: ReturnType<typeof fixtureInputs>) {
   return inputs.projection.existingProfiles.map((profile) => ({
     _id: profile.profileId,
     key: profile.key,
@@ -160,28 +148,58 @@ function exactExistingReadback(payload: ReturnType<typeof buildExistingProfilePa
   });
 }
 
-// The exact campaign plan, projection, and authenticated deployment receipt are
-// evidence-library inputs and are deliberately not copied into the application
-// repository. Run this integration suite wherever those pinned inputs exist.
-const hasPinnedAvatarInputs = [
-  DEFAULT_PLAN_PATH,
-  DEFAULT_PROJECTION_PATH,
-  DEFAULT_DEPLOYMENT_RECEIPT_PATH,
-].every(existsSync);
-
-describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar uploader", () => {
+describe("Replication Index profile avatar uploader", () => {
   it("validates the exact four digest-bound uploads and eight-profile projection", () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     expect(inputs.uploads).toHaveLength(4);
+    expect(inputs.uploads.map((upload) => upload.key)).toContain("BRYANITCH");
     expect(inputs.projection.createProfiles).toHaveLength(8);
+    expect(inputs.planPayloadSha256).toBe(FIXTURE_PLAN_PAYLOAD_SHA256);
+    expect(inputs.deploymentReceiptSha256).toBe(FIXTURE_RECEIPT_SHA256);
     for (const upload of inputs.uploads) {
       expect(path.basename(upload.assetPath)).toMatch(new RegExp(`^${upload.sha256}\\.`));
       expect(readFileSync(upload.assetPath)).toHaveLength(upload.byteSize);
     }
   });
 
+  it("refuses a plan whose payload digest, projection binding, or receipt drifted", () => {
+    const campaign = temporaryCampaign();
+    const inputs = (overrides = {}) => fixtureInputs({ planPath: campaign.planPath, deploymentReceiptPath: campaign.receiptPath, ...overrides });
+    expect(() => inputs()).not.toThrow();
+
+    const edited = structuredClone(campaign.plan);
+    edited.records[0].displayName = "Tampered";
+    writeFileSync(campaign.planPath, `${JSON.stringify(edited, null, 2)}\n`);
+    expect(() => inputs()).toThrow(/plan payload digest drifted/);
+
+    writeFileSync(campaign.planPath, readFileSync(FIXTURE_PLAN_PATH));
+    expect(() => inputs({ expectedPlanPayloadSha256: "0".repeat(64) })).toThrow(/plan payload digest drifted/);
+
+    // A self-consistent plan that points at a different projection must still fail the projection binding.
+    const { payloadSha256: _ignored, ...unbound } = structuredClone(campaign.plan);
+    unbound.sources.contributorProfileImportProjection.sha256 = "0".repeat(64);
+    const unboundDigest = sha256(`${JSON.stringify(unbound)}\n`);
+    writeFileSync(campaign.planPath, `${JSON.stringify({ ...unbound, payloadSha256: unboundDigest }, null, 2)}\n`);
+    expect(() => inputs({ expectedPlanPayloadSha256: unboundDigest })).toThrow(/projection digest drifted/);
+
+    writeFileSync(campaign.planPath, readFileSync(FIXTURE_PLAN_PATH));
+    writeFileSync(campaign.receiptPath, `${readFileSync(FIXTURE_RECEIPT_PATH, "utf8")}\n`);
+    expect(() => inputs()).toThrow(/deployment receipt does not prove/);
+
+    const canary = campaign.plan.records.find((record) => record.key === "BRYANITCH")!;
+    writeFileSync(campaign.receiptPath, readFileSync(FIXTURE_RECEIPT_PATH));
+    writeFileSync(path.join(campaign.root, canary.localAsset!.path), Buffer.from("not the reviewed bytes"));
+    expect(() => inputs()).toThrow(/Digest-bound avatar validation failed for BRYANITCH/);
+  });
+
+  it("requires the plan to live beneath a Data directory so asset paths resolve to the media root", () => {
+    const planPath = path.join(mkdtempSync(path.join(tmpdir(), "dosewiki-avatar-no-data-")), "plan.json");
+    writeFileSync(planPath, readFileSync(FIXTURE_PLAN_PATH));
+    expect(() => fixtureInputs({ planPath })).toThrow(/must live beneath a Data directory/);
+  });
+
   it("builds exactly eight reviewed-new profiles with explicit initials fallback", () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const payload = buildEightProfilePayload(inputs);
     expect(payload.dryRun).toBe(true);
     expect(payload.entries).toHaveLength(8);
@@ -194,7 +212,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("binds only exact reviewed upload keys to returned Storage IDs", () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const payload = buildEightProfilePayload(inputs, new Map([["BRYANITCH", "storage-canary"]]));
     const bryan = payload.entries.find(
       (entry) => entry.outcome === "reviewed-new" && entry.profile.key === "BRYANITCH",
@@ -205,17 +223,11 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("uploads only the canary, persists no URL, and records an eight-profile dry run", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const ledger = createLedger(inputs, "2026-08-31T08:00:00.000Z");
     const snapshots: string[] = [];
     const upload = vi.fn(async () => ({ storageId: "storage-canary" }));
-    const dryRunProfiles = vi.fn(async () => ({
-      created: 8,
-      updated: 0,
-      unchanged: 0,
-      skipped: 0,
-      blocked: 0,
-    }));
+    const dryRunProfiles = vi.fn(async () => ({ ...CLEAN_EIGHT_CREATE_RESULT }));
 
     const result = await runUploadPhase("canary", inputs, ledger, {
       generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/one-time-secret",
@@ -234,7 +246,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("refuses remaining uploads until the canary and its profile dry run pass", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const ledger = createLedger(inputs);
     await expect(runUploadPhase("remaining", inputs, ledger, {
       generateUploadUrl: vi.fn(),
@@ -245,19 +257,13 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("uploads the other three only after canary verification and dry-runs all four bindings", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const ledger = createLedger(inputs);
     let nextStorage = 0;
     const dependencies = {
       generateUploadUrl: async () => "https://glad-minnow-656.convex.cloud/opaque",
       upload: async () => ({ storageId: `storage-${++nextStorage}` }),
-      dryRunProfiles: vi.fn(async () => ({
-        created: 8,
-        updated: 0,
-        unchanged: 0,
-        skipped: 0,
-        blocked: 0,
-      })),
+      dryRunProfiles: vi.fn(async () => ({ ...CLEAN_EIGHT_CREATE_RESULT })),
       persist: vi.fn(),
     };
     await runUploadPhase("canary", inputs, ledger, dependencies);
@@ -272,7 +278,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("marks an indeterminate upload uncertain and never auto-retries it", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const ledger = createLedger(inputs);
     const persist = vi.fn();
     await expect(runUploadPhase("canary", inputs, ledger, {
@@ -307,7 +313,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("rejects a stale ledger and changed avatar bytes before any network call", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const stale = createLedger(inputs) as AvatarUploadLedger;
     stale.planPayloadSha256 = "0".repeat(64);
     expect(() => validateLedger(stale, inputs)).toThrow(/stale or targets the wrong/);
@@ -337,7 +343,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("gates the profile write until all uploads and the exact expectedAbsent dry run pass", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const ledger = createLedger(inputs);
     const writeProfiles = vi.fn();
     const readProfiles = vi.fn();
@@ -469,7 +475,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("builds the exact four-profile CAS payload with five additions and the three-link cap", () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const payload = buildExistingProfilePayload(inputs, existingCurrentRows(inputs), true);
     expect(payload.dryRun).toBe(true);
     expect(payload.entries).toHaveLength(4);
@@ -491,7 +497,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
   });
 
   it("requires the verified eight-create ledger before recording the separate existing dry run", async () => {
-    const inputs = realInputs();
+    const inputs = fixtureInputs();
     const unverified = createLedger(inputs);
     const readProfiles = vi.fn();
     const dryRunProfiles = vi.fn();
@@ -604,9 +610,7 @@ describe.skipIf(!hasPinnedAvatarInputs)("Replication Index profile avatar upload
     );
     if (!angus || angus.outcome !== "existing-profile") throw new Error("missing Angus test entry");
     angus.profile.links[0] = { label: "redirected", url: "https://attacker.example/" };
-    dryRun.payloadSha256 = createHash("sha256")
-      .update(`${JSON.stringify(dryRun.payload)}\n`)
-      .digest("hex");
+    dryRun.payloadSha256 = sha256(`${JSON.stringify(dryRun.payload)}\n`);
     const writeProfiles = vi.fn();
     await expect(runExistingProfileWritePhase(completed.inputs, completed.ledger, {
       writeProfiles,
