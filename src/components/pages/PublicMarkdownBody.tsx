@@ -4,6 +4,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 import { proseLinkClassName } from "@/components/common/ProseLink";
+import { Icon } from "@/components/common/Icon";
 
 import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings";
 
@@ -47,14 +48,22 @@ export const publicMarkdownComponents = {
     // the About tabs' hashchange listener can switch panels, and internal
     // routes/mailto should navigate normally.
     const isExternal = typeof href === "string" && /^https?:\/\//i.test(href);
+    if (isExternal) {
+      return (
+        <a
+          className={`${proseLinkClassName} inline-flex items-center gap-0.5`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          {...rest}
+        >
+          {children}
+          <Icon icon="lucide:external-link" size={12} className="opacity-60" />
+        </a>
+      );
+    }
     return (
-      <a
-        className={proseLinkClassName}
-        href={href}
-        target={isExternal ? "_blank" : undefined}
-        rel={isExternal ? "noopener noreferrer" : undefined}
-        {...rest}
-      >
+      <a className={proseLinkClassName} href={href} {...rest}>
         {children}
       </a>
     );
