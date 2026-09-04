@@ -46,9 +46,6 @@ const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanis
 
 const SUBSTANCE_INDEX_ICON: IconName = "streamline-ultimate:science-molecule-strucutre-bold";
 
-/** The board keeps authored order; sorting is an action the editor takes, never something the load does. */
-const keepOrder = (_dataset: ManualDatasetKey, manual: ManualIndexConfig) => manual;
-
 function NewCategoryPopover({ onAdd }: { onAdd: (label: string) => void }) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
@@ -178,8 +175,6 @@ export function IndexLayoutTab({ commitPanel, enableStickyPanels }: IndexLayoutT
   } = useLayoutEditor({
     datasetOrder: DATASET_ORDER,
     datasetDefinitions,
-    normalizeManualOrdering: keepOrder,
-    organizeManualEntries: keepOrder,
     deepClone,
     areManualsEqual,
   });

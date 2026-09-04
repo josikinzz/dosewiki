@@ -4,25 +4,9 @@ import type {
   ManualIndexConfig,
   ManualSectionLink,
 } from "@/data/builders/manualIndexLoader";
-import type { SubstanceRecord } from "@/data/builders/contentBuilder";
-import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { slugify } from "@/utils/slug";
-import type { SlugStatus, SlugIssue, SubstanceOption } from "./types";
 
 export const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
-
-/**
- * Text-styled inline label input: reads as a heading until hovered/focused,
- * keeping the taxonomy names legible instead of rendering permanent filled
- * boxes inside every category/section card. Hover/focus border colors live in
- * the `theme-inline-label-input` utility (the focus accent matches the Input
- * default variant).
- */
-export const inlineLabelInputClass =
-  "theme-inline-label-input h-auto rounded-lg border-transparent bg-transparent px-1.5 py-1 shadow-[var(--theme-elevation-none)]";
-
-/** Compact icon control for the dense 320px card columns; the Button `icon` size is always 44px. */
-export const iconButtonClass = `h-7 w-7 ${TOUCH_ICON}`;
 
 export const areStringArraysEqual = (first: readonly string[], second: readonly string[]): boolean => {
   if (first === second) {
@@ -108,21 +92,6 @@ export const areCategoriesEqual = (
   return true;
 };
 
-export const collectAllSlugs = (categories: readonly ManualCategoryDefinition[]): Set<string> => {
-  const slugs = new Set<string>();
-  for (const category of categories) {
-    for (const slug of category.drugs) {
-      slugs.add(slug);
-    }
-    for (const section of category.sections) {
-      for (const slug of section.drugs) {
-        slugs.add(slug);
-      }
-    }
-  }
-  return slugs;
-};
-
 export const collectCategorySlugs = (category: ManualCategoryDefinition): Set<string> => {
   const slugs = new Set<string>();
   for (const slug of category.drugs) {
@@ -134,54 +103,6 @@ export const collectCategorySlugs = (category: ManualCategoryDefinition): Set<st
     }
   }
   return slugs;
-};
-
-export const collectSectionSlugs = (section: ManualCategorySection): Set<string> => {
-  return new Set(section.drugs);
-};
-
-export const sortCategoriesByLabel = (categories: ManualCategoryDefinition[]): ManualCategoryDefinition[] => {
-  return [...categories].sort((a, b) => a.label.localeCompare(b.label));
-};
-
-export const sortCategoriesInverseAlpha = (categories: ManualCategoryDefinition[]): ManualCategoryDefinition[] => {
-  return [...categories].sort((a, b) => b.label.localeCompare(a.label));
-};
-
-export const sortSectionsByLabel = (sections: ManualCategorySection[]): ManualCategorySection[] => {
-  return [...sections].sort((a, b) => a.label.localeCompare(b.label));
-};
-
-export const sortSectionsInverseAlpha = (sections: ManualCategorySection[]): ManualCategorySection[] => {
-  return [...sections].sort((a, b) => b.label.localeCompare(a.label));
-};
-
-export const buildSlugStatus = (
-  slug: string,
-  substancesBySlug: Map<string, SubstanceRecord>,
-  options: SubstanceOption[],
-  existingInContext: ReadonlySet<string>,
-): SlugStatus => {
-  const record = substancesBySlug.get(slug);
-  const option = options.find((opt) => opt.slug === slug);
-  const issues: SlugIssue[] = [];
-
-  if (!record) {
-    issues.push("missing");
-  } else if (option?.isHidden) {
-    issues.push("hidden");
-  }
-
-  if (existingInContext.has(slug)) {
-    issues.push("duplicate");
-  }
-
-  return {
-    slug,
-    name: record?.name,
-    alias: record?.aliases?.[0] ?? option?.alias,
-    issues,
-  };
 };
 
 export const generateUniqueKey = (base: string, existing: Set<string>): string => {

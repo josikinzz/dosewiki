@@ -1,27 +1,13 @@
 import type { SubstanceRecord } from "@/data/builders/contentBuilder";
-import { slugify } from "@/utils/slug";
-import type {
-  ManualCategorySection,
-  ManualDatasetKey,
-  ManualIndexConfig,
-  SlugIssue,
-  SlugStatus,
-} from "./types";
+import type { ManualDatasetKey } from "./types";
 
 const COMMON_TAG = "common";
 
 const normalizeTag = (value: string): string => value.trim().toLowerCase();
 
 type LayoutDataHelpers = {
-  sortSlugsWithCommonPriority: (slugs: readonly string[]) => string[];
+  /** The psychoactive index sorts Common-tagged substances first, then by name; other datasets by name only. */
   sortSlugsForDataset: (dataset: ManualDatasetKey, slugs: readonly string[]) => string[];
-  sortSectionsForDataset: (
-    dataset: ManualDatasetKey,
-    sections: readonly ManualCategorySection[],
-  ) => ManualCategorySection[];
-  resolveSlugStatus: (slug: string, counts: Map<string, number>) => SlugStatus;
-  organizeManualEntries: (dataset: ManualDatasetKey, manual: ManualIndexConfig) => ManualIndexConfig;
-  normalizeManualOrdering: (dataset: ManualDatasetKey, manual: ManualIndexConfig) => ManualIndexConfig;
 };
 
 export function createLayoutDataHelpers(
@@ -100,77 +86,5 @@ export function createLayoutDataHelpers(
     return sortSlugsAlphabetically(slugs);
   };
 
-  const sortSectionsForDataset = (
-    dataset: ManualDatasetKey,
-    sections: readonly ManualCategorySection[],
-  ): ManualCategorySection[] => sections.map((section) => ({
-    ...section,
-    drugs: sortSlugsForDataset(dataset, section.drugs),
-  }));
-
-  const resolveSlugStatus = (slug: string, counts: Map<string, number>): SlugStatus => {
-    const normalized = slugify(slug);
-    const issues: SlugIssue[] = [];
-    if (!normalized) {
-      issues.push("missing");
-      return { slug, issues };
-    }
-
-    const record = allSubstancesBySlug.get(normalized);
-    if (!record) {
-      issues.push("missing");
-      return { slug, issues };
-    }
-
-    if (record.isHidden) {
-      issues.push("hidden");
-    }
-
-    if ((counts.get(normalized) ?? 0) > 1) {
-      issues.push("duplicate");
-    }
-
-    return {
-      slug,
-      name: record.name,
-      alias: record.aliases?.[0],
-      issues,
-    };
-  };
-
-  const organizeManualEntries = (
-    dataset: ManualDatasetKey,
-    manual: ManualIndexConfig,
-  ): ManualIndexConfig => ({
-    ...manual,
-    categories: manual.categories.map((category) => ({
-      ...category,
-      drugs: sortSlugsForDataset(dataset, category.drugs),
-      sections: sortSectionsForDataset(dataset, category.sections),
-    })),
-  });
-
-  const normalizeManualOrdering = (
-    dataset: ManualDatasetKey,
-    manual: ManualIndexConfig,
-  ): ManualIndexConfig => ({
-    ...manual,
-    categories: manual.categories.map((category) => ({
-      ...category,
-      drugs: sortSlugsForDataset(dataset, category.drugs),
-      sections: category.sections.map((section) => ({
-        ...section,
-        drugs: sortSlugsForDataset(dataset, section.drugs),
-      })),
-    })),
-  });
-
-  return {
-    sortSlugsWithCommonPriority,
-    sortSlugsForDataset,
-    sortSectionsForDataset,
-    resolveSlugStatus,
-    organizeManualEntries,
-    normalizeManualOrdering,
-  };
+  return { sortSlugsForDataset };
 }

@@ -34,7 +34,6 @@ type LayoutEditorAction =
 const createInitialState = (
   datasetOrder: ManualDatasetKey[],
   datasetDefinitions: Record<ManualDatasetKey, LayoutDatasetDefinition>,
-  normalizeManualOrdering: (datasetKey: ManualDatasetKey, manual: ManualIndexConfig) => ManualIndexConfig,
   deepClone: <T,>(value: T) => T,
 ): LayoutEditorState => {
   const jsonErrors: Record<ManualDatasetKey, string | null> = {
@@ -49,8 +48,8 @@ const createInitialState = (
 
   datasetOrder.forEach((datasetKey) => {
     const definition = datasetDefinitions[datasetKey];
-    const original = normalizeManualOrdering(datasetKey, deepClone(definition.getOriginalManual()));
-    const current = normalizeManualOrdering(datasetKey, deepClone(definition.manual));
+    const original = deepClone(definition.getOriginalManual());
+    const current = deepClone(definition.manual);
     normalizedOriginalManuals[datasetKey] = original;
     normalizedCurrentManuals[datasetKey] = current;
     draftManuals[datasetKey] = current;
@@ -164,15 +163,11 @@ const createReducer = (
 export function useLayoutEditor({
   datasetOrder,
   datasetDefinitions,
-  normalizeManualOrdering,
-  organizeManualEntries,
   deepClone,
   areManualsEqual,
 }: {
   datasetOrder: ManualDatasetKey[];
   datasetDefinitions: Record<ManualDatasetKey, LayoutDatasetDefinition>;
-  normalizeManualOrdering: (datasetKey: ManualDatasetKey, manual: ManualIndexConfig) => ManualIndexConfig;
-  organizeManualEntries: (datasetKey: ManualDatasetKey, manual: ManualIndexConfig) => ManualIndexConfig;
   deepClone: <T,>(value: T) => T;
   areManualsEqual: (first: ManualIndexConfig, second: ManualIndexConfig) => boolean;
 }) {
@@ -180,7 +175,7 @@ export function useLayoutEditor({
   const [state, dispatch] = useReducer(
     reducer,
     undefined,
-    () => createInitialState(datasetOrder, datasetDefinitions, normalizeManualOrdering, deepClone),
+    () => createInitialState(datasetOrder, datasetDefinitions, deepClone),
   );
   const saveNoticeChannel = useDevNoticeChannel("indexLayout");
   const saveNotice = saveNoticeChannel.notice?.message ?? null;
@@ -197,11 +192,11 @@ export function useLayoutEditor({
     const currents = {} as Record<ManualDatasetKey, ManualIndexConfig>;
     datasetOrder.forEach((datasetKey) => {
       const definition = datasetDefinitions[datasetKey];
-      originals[datasetKey] = normalizeManualOrdering(datasetKey, deepClone(definition.getOriginalManual()));
-      currents[datasetKey] = normalizeManualOrdering(datasetKey, deepClone(definition.manual));
+      originals[datasetKey] = deepClone(definition.getOriginalManual());
+      currents[datasetKey] = deepClone(definition.manual);
     });
     dispatch({ type: "syncFromDefinitions", originals, currents });
-  }, [datasetDefinitions, datasetOrder, deepClone, normalizeManualOrdering]);
+  }, [datasetDefinitions, datasetOrder, deepClone]);
 
   const setRawJsonForDataset = useCallback((datasetKey: ManualDatasetKey, value: string) => {
     dispatch({ type: "setRawJson", datasetKey, value });
@@ -233,17 +228,16 @@ export function useLayoutEditor({
       if (!parsed || typeof parsed !== "object") {
         throw new Error("Invalid manual dataset");
       }
-      const normalized = normalizeManualOrdering(datasetKey, parsed);
-      dispatch({ type: "updateDraft", datasetKey, manual: normalized });
-      dispatch({ type: "setRawJson", datasetKey, value: JSON.stringify(normalized, null, 2) });
+      dispatch({ type: "updateDraft", datasetKey, manual: parsed });
+      dispatch({ type: "setRawJson", datasetKey, value: JSON.stringify(parsed, null, 2) });
     },
-    [normalizeManualOrdering],
+    [],
   );
 
   const saveDataset = useCallback(
     (datasetKey: ManualDatasetKey) => {
       const definition = datasetDefinitions[datasetKey];
-      const normalized = normalizeManualOrdering(datasetKey, state.draftManuals[datasetKey]);
+      const normalized = state.draftManuals[datasetKey];
       definition.replaceManual(deepClone(normalized));
       dispatch({ type: "syncFromDefinitions", originals: state.normalizedOriginalManuals, currents: {
         ...state.normalizedCurrentManuals,
@@ -258,7 +252,7 @@ export function useLayoutEditor({
         debug: { datasetKey },
       });
     },
-    [datasetDefinitions, deepClone, normalizeManualOrdering, saveNoticeChannel, state.draftManuals, state.normalizedCurrentManuals, state.normalizedOriginalManuals],
+    [datasetDefinitions, deepClone, saveNoticeChannel, state.draftManuals, state.normalizedCurrentManuals, state.normalizedOriginalManuals],
   );
 
   const resetDraft = useCallback(
@@ -279,14 +273,6 @@ export function useLayoutEditor({
     [deepClone, state.normalizedOriginalManuals],
   );
 
-  const organizeEntries = useCallback(
-    (datasetKey: ManualDatasetKey) => {
-      const organized = organizeManualEntries(datasetKey, state.draftManuals[datasetKey]);
-      dispatch({ type: "updateDraft", datasetKey, manual: organized });
-      dispatch({ type: "setRawJson", datasetKey, value: JSON.stringify(organized, null, 2) });
-    },
-    [organizeManualEntries, state.draftManuals],
-  );
 
   const setSaveNotice = useCallback((value: string | null) => {
     if (!value) {
@@ -310,7 +296,6 @@ export function useLayoutEditor({
     saveDataset,
     resetDraft,
     resetToOriginal,
-    organizeEntries,
     setSaveNotice,
   };
 }

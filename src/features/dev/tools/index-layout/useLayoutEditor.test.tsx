@@ -46,16 +46,12 @@ function definitions(manual: ManualIndexConfig): Definitions {
   };
 }
 
-const identity = (_datasetKey: ManualDatasetKey, manual: ManualIndexConfig) => manual;
-
 function renderEditor(initial: Definitions) {
   return renderHook(
     ({ datasetDefinitions }: { datasetDefinitions: Definitions }) =>
       useLayoutEditor({
         datasetOrder: DATASET_ORDER,
         datasetDefinitions,
-        normalizeManualOrdering: identity,
-        organizeManualEntries: identity,
         deepClone,
         areManualsEqual,
       }),
@@ -209,8 +205,6 @@ describe("useLayoutEditor with layoutOps", () => {
         const editor = useLayoutEditor({
           datasetOrder: DATASET_ORDER,
           datasetDefinitions,
-          normalizeManualOrdering: identity,
-          organizeManualEntries: identity,
           deepClone,
           areManualsEqual,
         });
