@@ -275,13 +275,7 @@ export function MembersTab() {
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load()} />
         ) : roster === null ? (
-          <StateCard
-            tone="accent"
-            loading
-            title="Loading members"
-            description="Fetching the roster."
-            compact
-          />
+          <StateCard loading compact title="Loading members" />
         ) : roster.members.length === 0 ? (
           <StateCard
             tone="neutral"

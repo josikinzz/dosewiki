@@ -196,13 +196,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   if (isQueueLoading) {
     return (
       <div className="mt-6">
-        <StateCard
-          badge="Citation Review"
-          title="Loading review queue"
-          description="Fetching protected citation evidence and reviewer state."
-          icon="lucide:list-checks"
-          loading
-        />
+        <StateCard loading compact title="Loading review queue" />
       </div>
     );
   }
@@ -330,13 +324,7 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
           ) : null}
 
           {isDetailLoading ? (
-            <StateCard
-              badge="Citation Review"
-              title="Loading evidence detail"
-              description="Fetching protected evidence rows for the selected article."
-              icon="lucide:file-search"
-              loading
-            />
+            <StateCard loading compact title="Loading evidence detail" />
           ) : null}
 
           {!isDetailLoading

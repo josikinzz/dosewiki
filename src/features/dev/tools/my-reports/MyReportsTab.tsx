@@ -147,7 +147,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load()} />
         ) : rows === null ? (
-          <StateCard tone="accent" loading title="Loading your reports" description="Fetching the list." compact />
+          <StateCard loading compact title="Loading your reports" />
         ) : rows.length === 0 ? (
           <StateCard
             tone="neutral"

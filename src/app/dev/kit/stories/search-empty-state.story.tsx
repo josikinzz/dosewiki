@@ -94,7 +94,7 @@ export const searchEmptyStateStory: StoryDef = {
   ],
   whenNotToUse: [
     "Full-page empty states with card chrome — use EmptyStateSurface / StatusState.",
-    "Standalone hero glyphs — use StatusOrb.",
+    "Standalone status stacks: use StateCard.",
   ],
   notes: [
     "Owns only the inner stack; wrap it in the call site's theme-public-card panel for chrome.",

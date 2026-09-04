@@ -426,20 +426,6 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/app/dev/kit/stories/status-orb.story.tsx",
-      "match": "var(--theme-text-primary)",
-      "line": 70,
-      "column": 56
-    },
-    {
-      "rule": "direct-theme-variable",
-      "filePath": "src/app/dev/kit/stories/status-orb.story.tsx",
-      "match": "var(--theme-text-muted)",
-      "line": 73,
-      "column": 44
-    },
-    {
-      "rule": "direct-theme-variable",
       "filePath": "src/app/dev/kit/stories/dropdown-menu.story.tsx",
       "match": "var(--theme-error-text)",
       "line": 48,

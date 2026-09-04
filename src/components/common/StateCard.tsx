@@ -1,17 +1,16 @@
 import type { ReactNode } from "react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { StatusState } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
-import { StatusOrb } from "./StatusOrb";
-import type { IconName } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
-type StateCardTone = "accent" | "success" | "warning" | "danger" | "neutral";
+export type StateTone = "accent" | "success" | "warning" | "danger" | "neutral";
+type StateCardTone = StateTone;
 
 export interface StateCardProps {
   badge?: string;
   badgeVariant?: BadgeProps["variant"];
   title: ReactNode;
-  description: ReactNode;
+  description?: ReactNode;
   icon?: IconName;
   tone?: StateCardTone;
   loading?: boolean;
@@ -22,6 +21,21 @@ export interface StateCardProps {
   compact?: boolean;
 }
 
+/** Plain glyph colour per tone; shared with StatusHeader so both read alike. */
+export const stateToneIconClassName: Record<StateTone, string> = {
+  accent: "theme-icon-accent",
+  success: "text-[color:var(--theme-success-text-strong)]",
+  warning: "text-[color:var(--theme-warning-text-strong)]",
+  danger: "text-[color:var(--theme-danger-text-strong)]",
+  neutral: "theme-icon-muted",
+};
+
+/**
+ * Free-floating empty / status / loading state. No panel, no orb: one small
+ * tone-coloured glyph (or, while loading, the theme-tokened indeterminate
+ * sweep), a title, a line of description, and whatever actions follow.
+ * Callers place it; it only owns its own stack.
+ */
 export function StateCard({
   badge,
   badgeVariant = "secondary",
@@ -39,53 +53,53 @@ export function StateCard({
   const centered = align === "center";
 
   return (
-    <StatusState
-      tone={tone === "danger" ? "danger" : "neutral"}
-      radius={compact ? "compactState" : "state"}
+    <div
       className={cn(
+        "flex flex-col",
+        compact ? "gap-3 py-6" : "gap-4 py-10",
+        centered ? "items-center text-center" : "items-start text-left",
         className,
       )}
       data-tone={tone}
-      data-loading-state={loading ? "loading" : undefined}
+      role={loading ? "status" : undefined}
+      aria-live={loading ? "polite" : undefined}
       aria-busy={loading || undefined}
     >
-      <div className="relative flex flex-col gap-5 p-6 sm:p-8">
-        <div
+      {badge ? (
+        <Badge variant={badgeVariant} className="w-fit">
+          {badge}
+        </Badge>
+      ) : null}
+
+      {loading ? null : (
+        <Icon icon={icon} size={compact ? 20 : 24} className={cn("shrink-0", stateToneIconClassName[tone])} />
+      )}
+
+      <div className={cn("max-w-xl", compact ? "space-y-1" : "space-y-1.5")}>
+        <h2
           className={cn(
-            "flex gap-5",
-            centered ? "flex-col items-center text-center" : "items-start text-left sm:flex-row",
+            "theme-text-primary font-display font-semibold tracking-tight",
+            compact ? "text-base" : "text-lg sm:text-xl",
           )}
         >
-          <StatusOrb
-            icon={icon}
-            tone={tone === "neutral" ? "accent" : tone}
-            size={compact ? "sm" : "md"}
-            loading={loading}
-          />
-
-          <div className={cn("space-y-3", centered ? "max-w-2xl" : "max-w-2xl flex-1") }>
-            {badge ? (
-              <Badge variant={badgeVariant} className={cn("w-fit", centered ? "mx-auto" : undefined)}>
-                {badge}
-              </Badge>
-            ) : null}
-            <div className="space-y-2.5">
-              <h2 className="theme-text-primary font-display text-2xl font-semibold tracking-tight sm:text-[2rem]">
-                {title}
-              </h2>
-              <div className="theme-text-secondary text-sm leading-7 sm:text-base">{description}</div>
-            </div>
-          </div>
-        </div>
-
-        {actions ? (
-          <div className={cn("flex flex-wrap gap-3", centered ? "justify-center" : "justify-start")}>{actions}</div>
-        ) : null}
-
-        {footer ? (
-          <div className={cn("theme-text-faint text-sm", centered ? "text-center" : "text-left")}>{footer}</div>
+          {title}
+        </h2>
+        {description ? (
+          <div className="theme-text-muted text-sm leading-6">{description}</div>
         ) : null}
       </div>
-    </StatusState>
+
+      {loading ? (
+        <div className="theme-loading-track h-0.5 w-48 overflow-hidden rounded-full" aria-hidden="true">
+          <div className="theme-loading-bar motion-reduce:animate-none" />
+        </div>
+      ) : null}
+
+      {actions ? (
+        <div className={cn("flex flex-wrap gap-3", centered ? "justify-center" : "justify-start")}>{actions}</div>
+      ) : null}
+
+      {footer ? <div className="theme-text-faint text-xs">{footer}</div> : null}
+    </div>
   );
 }

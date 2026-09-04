@@ -470,16 +470,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
 
   if (rows === undefined) {
     return (
-      <div className="mx-auto mt-10 max-w-xl">
-        <StateCard
-          icon="lucide:triangle-alert"
-          tone="accent"
-          loading
-          align="center"
-          title="Loading banner presets"
-          description="Reading the stored presets and the substances each one is enabled on."
-        />
-      </div>
+      <StateCard loading compact className="mt-10" title="Loading banner presets" />
     );
   }
 

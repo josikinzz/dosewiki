@@ -5,7 +5,7 @@ import { AppImage } from "@/components/common/AppImage";
 import { ExternalSourcePill } from "@/components/common/ExternalSourcePill";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
-import { StatusOrb } from "@/components/common/StatusOrb";
+import { stateToneIconClassName, type StateTone } from "@/components/common/StateCard";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -146,8 +146,7 @@ export interface StatusHeaderProps {
   badgeVariant?: BadgeProps["variant"];
   description: ReactNode;
   statusIcon?: IconName;
-  statusLoading?: boolean;
-  statusTone?: "accent" | "success" | "warning" | "danger" | "neutral";
+  statusTone?: StateTone;
   title: string;
 }
 
@@ -156,7 +155,6 @@ export function StatusHeader({
   badgeVariant = "default",
   description,
   statusIcon,
-  statusLoading = false,
   statusTone = "accent",
   title,
 }: StatusHeaderProps) {
@@ -168,12 +166,7 @@ export function StatusHeader({
 
       <div className="space-y-4">
         {statusIcon ? (
-          <StatusOrb
-            icon={statusIcon}
-            tone={statusTone}
-            loading={statusLoading}
-            size="md"
-          />
+          <Icon icon={statusIcon} size={28} className={stateToneIconClassName[statusTone]} />
         ) : null}
         <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
           {title}

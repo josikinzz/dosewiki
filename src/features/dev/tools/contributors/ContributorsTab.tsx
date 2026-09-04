@@ -125,16 +125,7 @@ export function ContributorsTab({
 
   if (isDirectoryLoading && directory.length === 0) {
     return (
-      <div className="mx-auto mt-10 max-w-xl">
-        <StateCard
-          icon="lucide:users"
-          tone="accent"
-          loading
-          align="center"
-          title="Loading contributors"
-          description="Pulling the contributor directory into the editor."
-        />
-      </div>
+      <StateCard loading compact className="mt-10" title="Loading contributors" />
     );
   }
 
@@ -145,14 +136,7 @@ export function ContributorsTab({
         <LoadErrorState message={detailError} onRetry={retryDetail} busy={isDetailLoading} />
       ) : null}
       {isDetailLoading && !detail ? (
-        <StateCard
-          icon="lucide:user-round"
-          tone="accent"
-          loading
-          align="center"
-          title="Loading profile"
-          description="Fetching the stored profile, replications, and reports."
-        />
+        <StateCard loading compact title="Loading profile" />
       ) : null}
       <ContributorProfileEditor controller={controller} />
       {canEdit && !detail && !isDetailLoading && !detailError ? (

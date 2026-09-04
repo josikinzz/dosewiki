@@ -47,5 +47,4 @@ export { SectionHeader } from "./SectionHeader";
 export { StateCard } from "./StateCard";
 export { StatusBadge } from "./StatusBadge";
 export type { StatusBadgeProps, StatusBadgeTone } from "./StatusBadge";
-export { StatusOrb } from "./StatusOrb";
 export { StickyTocLayout } from "./StickyTocLayout";

@@ -49,16 +49,7 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
   if (controller.articlesLength === 0) {
     return (
       <main className="theme-page-shell flex min-h-screen items-center justify-center p-8">
-        <div className="w-full max-w-xl">
-          <StateCard
-            icon="lucide:badge-check"
-            tone="accent"
-            loading
-            align="center"
-            title="Loading the review queue"
-            description="Pulling the latest substance dataset. This only takes a moment."
-          />
-        </div>
+        <StateCard loading title="Loading the review queue" />
       </main>
     );
   }

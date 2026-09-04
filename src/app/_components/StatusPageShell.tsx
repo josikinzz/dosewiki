@@ -23,7 +23,6 @@ type StatusPageShellProps = {
   complementHeading?: ReactNode;
   statusIcon?: IconName;
   statusTone?: "accent" | "success" | "warning" | "danger" | "neutral";
-  statusLoading?: boolean;
   className?: string;
   minHeightClassName?: string;
 };
@@ -41,7 +40,6 @@ export function StatusPageShell({
   complementHeading,
   statusIcon,
   statusTone = "accent",
-  statusLoading = false,
   className,
   minHeightClassName,
 }: StatusPageShellProps) {
@@ -63,7 +61,6 @@ export function StatusPageShell({
           description={description}
           statusIcon={statusIcon}
           statusTone={statusTone}
-          statusLoading={statusLoading}
         />
 
         {actions ? <StatusActions>{actions}</StatusActions> : null}

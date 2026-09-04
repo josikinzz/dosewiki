@@ -148,16 +148,7 @@ export function WritingTab({
 
   if (entries === null) {
     return (
-      <div className="mx-auto mt-10 max-w-xl">
-        <StateCard
-          icon="lucide:pen-line"
-          tone="accent"
-          loading
-          align="center"
-          title="Loading writing"
-          description="Pulling the editor listing, drafts included."
-        />
-      </div>
+      <StateCard loading compact className="mt-10" title="Loading writing" />
     );
   }
 

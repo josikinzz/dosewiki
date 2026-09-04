@@ -232,7 +232,7 @@ export const publicFeedbackPrimitivesStory: StoryDef = {
       name: "StatusHeader.statusIcon / statusTone",
       type: "IconName / status tone",
       default: '"accent"',
-      description: "Optional StatusOrb rendered above the title; tone sets its color.",
+      description: "Optional plain glyph rendered above the title; tone sets its colour.",
     },
     {
       name: "StatusActions.align",

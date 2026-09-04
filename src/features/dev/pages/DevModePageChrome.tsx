@@ -129,23 +129,25 @@ function RailDivider() {
 }
 
 /**
- * The same waiting card, rendered *inside* the shell rather than instead of it.
- * The tab rail stays interactive so a tool that needs nothing from the corpus is
+ * Waiting state rendered *inside* the shell rather than instead of it. The
+ * tab rail stays interactive so a tool that needs nothing from the corpus is
  * one click away while the drain finishes; it doubles as the fallback for the
- * lazily-loaded tool bundles.
+ * lazily-loaded tool bundles. The stalled hint only appears once the wait has
+ * gone on long enough to need one.
  */
 export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string }) {
   return (
-    <div className="mx-auto mt-10 max-w-xl">
-      <StateCard
-        icon="lucide:wrench"
-        tone="accent"
-        loading
-        align="center"
-        title={label}
-        description="Pulling the latest data into the editor. This only takes a moment."
-      />
-    </div>
+    <StateCard
+      loading
+      compact
+      className="mt-16"
+      title={label}
+      footer={
+        <span className="theme-loading-stalled-label block whitespace-nowrap">
+          Still loading. Refresh if nothing appears.
+        </span>
+      }
+    />
   );
 }
 

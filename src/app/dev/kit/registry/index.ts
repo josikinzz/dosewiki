@@ -54,7 +54,6 @@ import { smartLinkStory } from "../stories/smart-link.story";
 import { siteSupporterStory } from "../stories/site-supporter.story";
 import { stateCardStory } from "../stories/state-card.story";
 import { statusBadgeStory } from "../stories/status-badge.story";
-import { statusOrbStory } from "../stories/status-orb.story";
 import { stickyTocLayoutStory } from "../stories/sticky-toc-layout.story";
 
 // Layout & chrome — src/components/layout, plus the app-level appearance chrome
@@ -128,7 +127,6 @@ export const stories: StoryDef[] = [
   siteSupporterStory,
   stateCardStory,
   statusBadgeStory,
-  statusOrbStory,
   stickyTocLayoutStory,
 
   // Layout & chrome — src/components/layout, plus the app-level appearance chrome

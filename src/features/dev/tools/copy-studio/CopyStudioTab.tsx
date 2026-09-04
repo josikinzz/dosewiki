@@ -316,16 +316,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
 
   if (rows === undefined) {
     return (
-      <div className="mx-auto mt-10 max-w-xl">
-        <StateCard
-          icon="lucide:type"
-          tone="accent"
-          loading
-          align="center"
-          title="Loading site copy"
-          description="Pulling the editable copy blocks into the studio."
-        />
-      </div>
+      <StateCard loading compact className="mt-10" title="Loading site copy" />
     );
   }
 

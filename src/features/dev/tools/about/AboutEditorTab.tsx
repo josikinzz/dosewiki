@@ -164,14 +164,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
 
   if (!isLoaded) {
     return (
-      <StateCard
-        icon="lucide:info"
-        tone="accent"
-        loading
-        align="center"
-        title="Loading About"
-        description="Pulling the About page document."
-      />
+      <StateCard loading compact title="Loading About" />
     );
   }
 

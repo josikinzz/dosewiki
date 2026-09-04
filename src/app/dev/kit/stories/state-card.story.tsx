@@ -9,7 +9,7 @@ export const stateCardStory: StoryDef = {
   tier: "common",
   status: "stable",
   summary:
-    "Hero status panel with a status orb, optional badge, title, description, actions, and footer. Use for empty, error, loading, and 'under construction' full-bleed states.",
+    "Free-floating status stack: optional badge, a small tone-coloured glyph (or the indeterminate sweep while loading), title, description, actions, and footer. Use for empty, error, loading, and 'under construction' states without a panel around them.",
   source: "src/components/common/StateCard.tsx",
   importLine: 'import { StateCard } from "@/components/common/StateCard";',
   exports: ["StateCard"],
@@ -72,17 +72,11 @@ export const stateCardStory: StoryDef = {
     },
     {
       label: "Loading",
-      note: "loading animates the orb and sets aria-busy / data-loading-state.",
+      note: "loading swaps the glyph for the theme-tokened sweep bar and sets role=status / aria-busy. Description is optional; a title alone is enough.",
       background: "plain",
       full: true,
       render: () => (
-        <StateCard
-          className="w-full"
-          loading
-          icon="lucide:loader-circle"
-          title="Fetching the latest data"
-          description="Hang tight while we pull this content from Convex."
-        />
+        <StateCard className="w-full" loading title="Loading playlists" />
       ),
     },
     {
@@ -128,7 +122,7 @@ export const stateCardStory: StoryDef = {
   ],
   props: [
     { name: "title", type: "ReactNode", description: "Required headline rendered as an h2." },
-    { name: "description", type: "ReactNode", description: "Required supporting copy under the title." },
+    { name: "description", type: "ReactNode", description: "Optional supporting copy under the title." },
     { name: "badge", type: "string", description: "Optional pill above the title; omitted when absent." },
     {
       name: "badgeVariant",
@@ -140,36 +134,36 @@ export const stateCardStory: StoryDef = {
       name: "icon",
       type: "IconName",
       default: '"lucide:sparkles"',
-      description: "Iconify name shown inside the status orb.",
+      description: "Iconify name for the small glyph above (or beside) the title. Hidden while loading.",
     },
     {
       name: "tone",
       type: '"accent" | "success" | "warning" | "danger" | "neutral"',
       default: '"accent"',
-      description: "Drives orb colour; danger also tints the surface, neutral falls back to accent on the orb.",
+      description: "Colour of the glyph. Nothing else changes: there is no surface to tint.",
     },
-    { name: "loading", type: "boolean", default: "false", description: "Animates the orb and sets aria-busy." },
+    { name: "loading", type: "boolean", default: "false", description: "Shows the sweep bar instead of the glyph and sets role=status / aria-busy." },
     { name: "actions", type: "ReactNode", description: "Optional button row; wraps and aligns to the layout." },
     { name: "footer", type: "ReactNode", description: "Optional faint helper line below the body." },
     {
       name: "align",
       type: '"center" | "left"',
       default: '"center"',
-      description: "Center stacks the orb above the copy; left places it beside.",
+      description: "Center stacks and centres the text; left aligns everything to the start edge.",
     },
-    { name: "compact", type: "boolean", default: "false", description: "Smaller orb and tighter corner radius." },
-    { name: "className", type: "string", description: "Extra classes merged onto the outer surface." },
+    { name: "compact", type: "boolean", default: "false", description: "Smaller glyph, type, and vertical padding." },
+    { name: "className", type: "string", description: "Extra classes merged onto the outer stack." },
   ],
   whenToUse: [
     "Full-bleed empty, error, loading, or 'under construction' states.",
     "Section placeholders that prompt an editor action (generate, write, retry).",
   ],
   whenNotToUse: [
-    "Inline or compact status — reach for StatusOrb or a Badge alone.",
+    "Inline or compact status: a Badge or EditorStatusPill alone.",
     "Dense content cards — use ContentCard / NestedContentCard from the Surface recipes.",
   ],
   notes: [
-    "Built on StatusState (Surface), StatusOrb, Badge, and Icon — purely presentational, no providers needed.",
-    "tone='danger' is the only tone that changes the surface fill; all others only colour the orb.",
+    "Built on Badge and Icon plus the theme-loading-track / theme-loading-bar utilities; purely presentational, no providers needed.",
+    "It draws no panel. Place it with spacing (mt-10, py) at the call site; never wrap it in a card.",
   ],
 };

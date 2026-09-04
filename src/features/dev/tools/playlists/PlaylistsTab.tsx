@@ -214,7 +214,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
         {loadError ? (
           <LoadErrorState message={loadError} onRetry={() => void load()} busy={busy} />
         ) : playlists === null ? (
-          <StateCard tone="accent" loading title="Loading playlists" description="Fetching your playlists." compact />
+          <StateCard loading compact title="Loading playlists" />
         ) : playlists.length === 0 ? (
           <StateCard
             tone="neutral"
