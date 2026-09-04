@@ -560,7 +560,7 @@ export default async function DocsHowPage() {
             TripSit factsheet and wiki pages that the pipeline below archives and parses.
           </li>
           <li>
-            Reagent colors come from protestkit.eu&apos;s API at the moment you open the
+            Reagent colors come from the ProtestKit API at the moment you open the
             page.
           </li>
         </ul>
@@ -756,7 +756,7 @@ export default async function DocsHowPage() {
                 </td>
                 <td className="p-3">
                   Color reactions fetched live from the ProtestKit API at page view, with
-                  stored static results as fallback. Not produced by our pipeline at all.
+                  stored static results as fallback.
                 </td>
               </tr>
               <tr className={TR_CLASS}>
@@ -817,7 +817,7 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           Article content is built from ten harm-reduction and reference sites, plus one
           live API. We keep internal working copies of the relevant pages for processing.
-          We do not republish other sites&apos; content. Each article&apos;s source pages
+          Each article&apos;s source pages
           section links out to the original pages on the source sites themselves.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
@@ -983,7 +983,7 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          Of the four methods in <SectionRef s="made" />, the two automated ones run as
+          Of the four methods in <SectionRef s="made" />, the two automated methods run as
           parallel tracks over the source pages. The deterministic track parses structured
           data such as dosage tables and interaction matrices. The AI track turns the prose
           parts of the sources into excerpt documents, then into draft sections. Human and
@@ -1027,14 +1027,14 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          dose.wiki scraped the source sites once and stored them as plain-text working
-          copies, one per substance. These are internal processing material only, and{" "}
+          We scraped the source sites once and stored the pages as plain-text working
+          copies, one per substance. They are for internal processing;{" "}
           <SectionRef s="sources" /> gives the capture date.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           From there, deterministic parsers read that text and extract the structured data:
           dose ranges by route, duration values, interaction ratings, chemical identifiers,
-          and legal classifications. A parser is ordinary code with no AI involved.
+          and legal classifications. A parser is deterministic code.
           Each site needs its own, because each site structures its pages differently.
         </p>
 
@@ -1058,9 +1058,9 @@ export default async function DocsHowPage() {
               keeps the entry with the lowest comparable upper bound. The comparison value
               is the heavy minimum when the source gives one. If not, it falls back to the
               strong maximum, then the strong minimum, then the common maximum. If two
-              sources tie, the source that fills more dose tiers wins. If no source gives
+              sources tie, the source that fills more dose tiers is used. If no source gives
               weight units, a fixed source-priority order decides. This is a deliberate
-              safety bias, because underdosing is the safer error.
+              safety bias, because taking too little is safer than taking too much.
             </p>
             <p className={`${PROSE_CLASS} mt-3`}>
               A worked example: if one source lists a heavy oral dose starting at 25 mg and
@@ -1091,11 +1091,11 @@ export default async function DocsHowPage() {
               identifier, and chemical-name resolution fills the gaps.
             </p>
             <p className={`${PROSE_CLASS} mt-4`}>
-              The molecule image is not made straight from the SMILES string. A SMILES
+              The molecule image is made in two steps. A SMILES
               string says which atoms are joined and how, but it does not say how the
               molecule should be drawn. Chemists draw many families the same way by
-              habit, and a machine layout often ignores that. So each substance gets an
-              automatic 2D layout first, as a starting point only. Then a person redraws
+              habit, and a machine layout often ignores that. Each substance therefore
+              starts from an automatic 2D layout. Then a person redraws
               it by hand, or aligns it to a template that a person drew once for the
               whole chemical class. The saved result is an editable MOL block, and the
               image is rendered from that. Each drawing records whether it is automatic,
@@ -1133,7 +1133,7 @@ export default async function DocsHowPage() {
           copies the passages relevant to each topic, word for word.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          Nothing is paraphrased, summarized, or reworded. An excerpt document holds exact
+          An excerpt document holds exact
           copies of source text: complete paragraphs, formatting preserved, grouped under a
           heading for each source. The result is one excerpt document per substance per
           topic, across eight topics: intro text (which feeds the summary), dosage &amp;
@@ -1143,7 +1143,7 @@ export default async function DocsHowPage() {
 
         <div className="mt-6 space-y-8">
           <div>
-            <h3 className={SUBHEAD_CLASS}>The LLM never types the text</h3>
+            <h3 className={SUBHEAD_CLASS}>Block ids only</h3>
             <p className={PROSE_CLASS}>
               Each working copy is first split into numbered blocks (paragraphs, list
               items, table rows, headings), and the LLM reads that block-indexed version.
@@ -1172,7 +1172,7 @@ export default async function DocsHowPage() {
             <h3 className={SUBHEAD_CLASS}>Audited after extraction</h3>
             <p className={PROSE_CLASS}>
               A verbatim audit then reads every finished excerpt document. It is a
-              script, with no LLM involved. It requires that each passage appears in
+              script. It requires that each passage appears in
               the working copy, under the same source heading, as an exact substring,
               and rejects a file that drifts.
             </p>
@@ -1212,7 +1212,7 @@ export default async function DocsHowPage() {
           files the pipeline runs.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          An LLM gets one call per substance and topic, and the harness appends the
+          The pipeline calls the LLM once per substance and topic, and the harness appends the
           block-selection contract to whichever prompt it is running. We do not name the
           model here, because it changes as better models appear. The LLM only selects
           block ids and never emits source text. A change of model cannot change the
@@ -1273,10 +1273,9 @@ export default async function DocsHowPage() {
           Six sections of the finished article are AI-written end to end: summary,
           pharmacology, tolerance, harm potential, history &amp; culture, and legality.
           An LLM writes each one from exactly two inputs: the excerpt document for that
-          topic, and a section-specific prompt. The model differs by section and changes over
-          time, so this page does not name one. What stays fixed is
-          the contract: excerpts in, original prose out, under the prompts published
-          below.
+          topic, and a section-specific prompt. The model differs by section and changes
+          over time. What stays fixed is the contract: the LLM writes original prose
+          from the excerpts, under the prompts published below.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           The two remaining excerpt topics, dosage &amp; duration and subjective effects,
@@ -1314,10 +1313,10 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-7`}>
           The section prompts for all six fully AI-written sections appear below, largest
           first. This page reads them from <code>src/data/config/sectionPrompts/</code>{" "}
-          when it builds. Two copies of each prompt exist: the committed file is shown here, and
-          the editorial team can edit a live copy, which generation runs use; the live
-          copies were seeded from these files, and a comparison script reports any
-          drift between the two. The copy that produced a given article can differ from
+          when it builds. Two copies of each prompt exist: the committed file shown here,
+          and a live copy the editorial team can edit, which generation runs use. The live
+          copies were seeded from these files, and a comparison script reports any drift
+          between the two. The copy that produced a given article can differ from
           the copy printed here.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
@@ -1352,7 +1351,7 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          The six AI-written sections are the citable sections: the ones that can carry
+          The six AI-written sections are the citable sections: those that can carry
           Wikipedia-style markers linked to a reference list. Structured and excluded
           sections use separate provenance and review paths. Citation work has run in
           three passes: a marking pass that proposed the markers, a legality rebuild that
@@ -1371,7 +1370,7 @@ export default async function DocsHowPage() {
           need support. They inspect candidate sources and record the relationship they
           believe each source supports. Coverage is conservative. A marker appears only
           when inspected evidence supports a nearby claim. Uncertain relationships are
-          recorded as internal gaps and get no marker.
+          recorded as internal gaps and receive no marker.
         </p>
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -1439,8 +1438,9 @@ export default async function DocsHowPage() {
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass two: legality set the standard</h3>
         <p className={PROSE_CLASS}>
           Legality is the section most likely to become outdated, because drug law changes
-          often, differs by country, and most online summaries cite other summaries. So the legality
-          section got its own deep-research workflow, separate from the main pipeline. It
+          often, differs by country, and most published summaries cite other summaries
+          instead of the law. So the legality section has its own deep-research
+          workflow, separate from the main pipeline. It
           reads primary legal sources only: statutes, official schedules, and government
           legislation portals.
         </p>
@@ -1510,7 +1510,7 @@ export default async function DocsHowPage() {
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass three: the entailment audit</h3>
         <p className={PROSE_CLASS}>
           The legality loop has four steps: validate what can be validated, cite what a
-          primary source supports, hunt for sources for the rest, and correct or remove
+          primary source supports, find sources for the rest, and correct or remove
           what cannot be sourced. The audit ran the first and last of those steps over the
           other citable sections. It fetched each cited source and compared it with the
           claim. A marker stayed only when the source explicitly supported the claim as
@@ -1589,7 +1589,7 @@ export default async function DocsHowPage() {
           not establish.
         </p>
         <p className={`${PROSE_CLASS} mt-5`}>
-          Structure drawings are the one place where a person creates something. The
+          Structure drawings are the one pipeline output a person makes by hand. The
           molecule editor is a separate tool from the text editor
           (<SectionRef s="parsing" comma />, under Chemistry identifiers). An editor
           redraws the molecule by hand, or draws one template for a chemical class and
@@ -1649,8 +1649,8 @@ export default async function DocsHowPage() {
           an LLM that re-types source text can hallucinate: a changed digit or an invented
           phrase can slip in unnoticed (<SectionRef s="excerpts" />). So LLMs never
           transcribe, and drafts are held to their excerpt documents. Synthesis can still
-          misweigh or omit evidence. Generated or edited content is never final, because
-          it returns through the citation and review workflows.
+          misweigh or omit evidence. Drafts stay revisable because they return
+          through the citation and review workflows.
         </p>
         </section>
 
@@ -1682,7 +1682,7 @@ export default async function DocsHowPage() {
               synthesis, and claim-level citations across the working copies. Sections{" "}
               <a href="#pipeline" className={proseLinkClassName}>02</a> through{" "}
               <a href="#citations" className={proseLinkClassName}>06</a> describe this
-              pipeline. Every pipeline prompt is published on this page.
+              pipeline. Every extraction and section prompt is published on this page.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
@@ -1693,10 +1693,10 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              The country-by-country deep research in <SectionRef s="citations" />.
+              This was the country-by-country deep research in <SectionRef s="citations" />.
               The workflow validated existing legality entries against statutes and
-              official schedules where possible. Remaining claims got targeted
-              primary-source hunts. Entries that survived were cited. Entries that could
+              official schedules where possible. Remaining claims received targeted
+              primary-source searches. Entries that survived were cited. Entries that could
               not be sourced were corrected, removed, or flagged <em>citation needed</em>.
             </p>
           </div>
@@ -1723,14 +1723,12 @@ export default async function DocsHowPage() {
             </div>
             <p className={PROSE_CLASS}>
               A research pass over the audit&apos;s output, starting with pharmacology.
-              Each <em>citation needed</em> claim gets a source search. If a source is
+              Each <em>citation needed</em> claim receives a source search. If a source is
               found, the marker is restored. If none is found, or the source disagrees, the
               claim is changed or removed. A recorded human pass then reviews the results.
               The site tracks this separately from editorial review (<SectionRef s="review" />), so each carries
-              its own status and its own named scope. Done when every flagged entry carries a
-              recorded disposition.
-              The citation workflows later compare each claim with a fresh fetch of its
-              source.
+              its own status and scope. Done when every flagged entry carries a recorded
+              disposition.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
@@ -1741,7 +1739,7 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={PROSE_CLASS}>
-              A new version of the Subjective Effect Index, developed by Josie Kins at
+              This is a new version of the Subjective Effect Index, developed by Josie Kins at
               Mindstate Design Labs. On release it replaces the current Subjective Effect
               Index, and the subjective effects section of every article is rebuilt on it.
             </p>
@@ -1787,8 +1785,8 @@ export default async function DocsHowPage() {
           It also produces the molecule pack: one SVG drawing per substance, plus
           generic skeletons for chemical classes, plus a manifest that lists each
           drawing with its SMILES string and whether it was drawn by hand, aligned to a
-          template, or left as an automatic layout. Each drawing ships in two colour
-          sets, the dose.wiki brand colours and the standard textbook colours. The pack
+          template, or left as an automatic layout. Each drawing is distributed in two
+          color sets, the dose.wiki brand colors and the standard textbook colors. The pack
           is rebuilt every night from the live depiction database. It is a set of
           human-curated structure drawings that anyone can reuse.
         </p>
@@ -1825,7 +1823,7 @@ export default async function DocsHowPage() {
               feedback-form submissions whose contributors accept CC0 terms. Anyone can
               share, adapt, or build on them, commercially or not, with no attribution
               required. Legacy trip
-              reports, TripSit data, protestkit.eu data, and media with separate rights
+              reports, TripSit data, ProtestKit data, and media with separate rights
               keep their own terms. The{" "}
               <a href="/docs/license" className={proseLinkClassName}>license page</a>{" "}
               lists those boundaries.
