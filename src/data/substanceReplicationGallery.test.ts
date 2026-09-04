@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canonicalTitleDrugRoute,
+  countSubstanceGalleryMatches,
   directGalleryAssociationProvenance,
   includeDirectlyAssociatedRows,
   isCombinationReplication,
@@ -9,6 +10,7 @@ import {
   mergeCuratedGallery,
   normalizeGalleryCarouselOrder,
   normalizeGalleryCuration,
+  substanceGalleryMatchDigest,
   substanceGalleryTargetOf,
   titleDrugRoutesOf,
   type SubstanceGalleryMatchableRow,
@@ -401,6 +403,47 @@ describe("matchSubstanceGalleryReplications", () => {
       "class-image",
       "visual-fallback",
     ]);
+  });
+});
+
+describe("substanceGalleryMatchDigest", () => {
+  const corpus = [
+    row({ slug: "dxm-video", type: "video", title_drugs: [drug("dxm", "dissociatives")] }),
+    row({ slug: "dxm-vd-still", title_drugs: [drug("dxm", "dissociatives")], effect_slug: "visual-disconnection" }),
+    row({ slug: "ket-still", title_drugs: [drug("ketamine", "dissociatives")] }),
+    row({ slug: "general-disso", title_class_mentions: [classMention("dissociatives")] }),
+    row({ slug: "general-deliriant", type: "video", title_class_mentions: [classMention("deliriants")] }),
+    row({ slug: "general-psy", title_class_mentions: [classMention("psychedelics")] }),
+    row({ slug: "vd-only", effect_slug: "visual-disconnection" }),
+    row({ slug: "vd-video", type: "video", effect_slug: "visual-disconnection" }),
+    row({ slug: "combo", title_drugs: [drug("dxm", "dissociatives"), drug("lsd", "psychedelics")] }),
+    row({ slug: "excluded", title_drugs: [drug("ketamine", "dissociatives")], showcase_excluded: true }),
+    row({ slug: "lsd-still", title_drugs: [drug("lsd", "psychedelics")] }),
+  ];
+  const targets = [
+    target("dextromethorphan", ["Dissociative"]),
+    target("ketamine", ["Dissociative"]),
+    target("datura", ["Deliriant"]),
+    target("lsd", ["Psychedelic"]),
+    target("pcp", ["Dissociative", "Stimulant"]),
+    target("nothing", []),
+  ];
+
+  it("counts exactly what the full matcher places, for every target shape", () => {
+    const digest = substanceGalleryMatchDigest(corpus);
+    for (const candidate of targets) {
+      expect(countSubstanceGalleryMatches(digest, candidate)).toBe(
+        matchSubstanceGalleryReplications(corpus, candidate).matches.length,
+      );
+    }
+    expect(countSubstanceGalleryMatches(digest, target("dextromethorphan", ["Dissociative"]))).toBe(4);
+  });
+
+  it("collapses rows sharing policy inputs into one bucket and drops ineligible rows", () => {
+    const digest = substanceGalleryMatchDigest(corpus);
+    expect(digest.reduce((sum, bucket) => sum + bucket.count, 0)).toBe(9);
+    expect(digest.find((bucket) => bucket.route === "dextromethorphan" && !bucket.visualDisconnection))
+      .toMatchObject({ count: 1 });
   });
 });
 

@@ -6,6 +6,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("../../../../../../convex/_generated/api", () => ({
   api: {
     substanceGalleries: {
+      getCurationMatchDigest: "substanceGalleries.getCurationMatchDigest",
       listCurationCandidatesPage: "substanceGalleries.listCurationCandidatesPage",
     },
   },
@@ -72,8 +73,10 @@ describe("batched substance gallery candidates route", () => {
     expect(convexMocks.query).not.toHaveBeenCalled();
   });
 
-  it("drains the cursor into one sorted response and drops ambiguous slugs", async () => {
+  it("reads the corpus digest once, drains the cursor into one sorted response, and drops ambiguous slugs", async () => {
+    const digest = [{ route: "lsd", drugClass: null, visualDisconnection: false, count: 5 }];
     convexMocks.query
+      .mockResolvedValueOnce(digest)
       .mockResolvedValueOnce({
         items: [candidate("lsd", "LSD", 5), candidate("twin", "Twin A")],
         cursor: "cursor-1",
@@ -93,10 +96,15 @@ describe("batched substance gallery candidates route", () => {
       ok: true,
       substances: [candidate("2c-b", "2C-B", 2), candidate("lsd", "LSD", 5)],
     });
-    expect(convexMocks.query).toHaveBeenCalledTimes(2);
+    expect(convexMocks.query).toHaveBeenCalledTimes(3);
+    expect(convexMocks.query).toHaveBeenNthCalledWith(
+      1,
+      "substanceGalleries.getCurationMatchDigest",
+      { apiKey: "admin-key" },
+    );
     expect(convexMocks.query).toHaveBeenLastCalledWith(
       "substanceGalleries.listCurationCandidatesPage",
-      { apiKey: "admin-key", cursor: "cursor-1", limit: 100 },
+      { apiKey: "admin-key", digest, cursor: "cursor-1", limit: 32 },
     );
   });
 });

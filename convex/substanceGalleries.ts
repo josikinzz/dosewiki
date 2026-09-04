@@ -14,9 +14,11 @@ import {
   titleDrugValidator,
 } from "./lib/replicationTaxonomyValidators";
 import {
+  countSubstanceGalleryMatches,
   directGalleryAssociationProvenance,
   isCombinationReplication,
   matchSubstanceGalleryReplications,
+  substanceGalleryMatchDigest,
   includeDirectlyAssociatedRows,
   mergeCuratedGallery,
   normalizeGalleryCarouselOrder,
@@ -316,14 +318,45 @@ export const getPublicGalleryBySubstance = query({
 const CURATION_CANDIDATE_PAGE_SIZE = 32;
 const CURATION_CANDIDATE_MAX_PAGE_SIZE = 100;
 
+const curationMatchBucketValidator = v.object({
+  route: v.union(v.string(), v.null()),
+  drugClass: v.union(v.literal("dissociatives"), v.literal("deliriants"), v.null()),
+  visualDisconnection: v.boolean(),
+  count: v.number(),
+});
+
+/**
+ * The eligible corpus reduced to policy buckets, read once per picker load.
+ * `listCurationCandidatesPage` then counts each article against it without
+ * re-reading the corpus, which kept every page over Convex's 16 MB read limit.
+ */
+export const getCurationMatchDigest = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+  },
+  returns: v.array(curationMatchBucketValidator),
+  handler: async (ctx, args) => {
+    await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "editor",
+    );
+    const rows = await ctx.db.query("replications").collect();
+    return substanceGalleryMatchDigest(rows);
+  },
+});
+
 /**
  * One page of the curation portal's substance picker: every substance with its
- * automatic/direct candidate count and whether a curation delta exists.
+ * automatic candidate count (from the caller-supplied digest) and whether a
+ * curation delta exists.
  */
 export const listCurationCandidatesPage = query({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
+    digest: v.array(curationMatchBucketValidator),
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
@@ -343,15 +376,9 @@ export const listCurationCandidatesPage = query({
       numItems,
     });
 
-    const rows = await ctx.db.query("replications").collect();
-
     const items = await Promise.all(
       page.page.map(async (substance) => {
         const target = substanceGalleryTargetOf(substance);
-        const matchCount = target
-          ? matchSubstanceGalleryReplications(rows, target).matches.length
-          : 0;
-
         const gallery = await ctx.db
           .query("substanceGalleries")
           .withIndex("by_substance", (q) => q.eq("substance_slug", substance.slug))
@@ -360,7 +387,7 @@ export const listCurationCandidatesPage = query({
         return {
           slug: substance.slug,
           title: substance.title,
-          match_count: matchCount,
+          match_count: target ? countSubstanceGalleryMatches(args.digest, target) : 0,
           curated: gallery !== null,
           curated_count: gallery?.curated_slugs.length ?? 0,
           removed_count: gallery?.removed_slugs.length ?? 0,

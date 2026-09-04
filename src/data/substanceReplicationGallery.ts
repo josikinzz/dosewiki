@@ -326,6 +326,76 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
 }
 
 /**
+ * One bucket of eligible corpus rows that share every input the automatic
+ * policy looks at. The corpus collapses to a few hundred buckets, so a count
+ * for any substance is derived without re-reading the rows.
+ */
+export type SubstanceGalleryMatchBucket = {
+  /** The single title-drug route, when the row names exactly one. */
+  route: string | null;
+  /** The single permitted general class, when the row names no drug and one class. */
+  drugClass: "dissociatives" | "deliriants" | null;
+  /** A still image owned by Visual Disconnection. */
+  visualDisconnection: boolean;
+  count: number;
+};
+
+/** The eligible corpus reduced to policy buckets; read the corpus once, count for every article. */
+export function substanceGalleryMatchDigest(
+  rows: readonly SubstanceGalleryMatchableRow[],
+): SubstanceGalleryMatchBucket[] {
+  const buckets = new Map<string, SubstanceGalleryMatchBucket>();
+  for (const row of rows) {
+    if (!isShowcaseEligible(row)) continue;
+    const routes = titleDrugRoutesOf(row);
+    const classes = titleDrugClassesOf(row);
+    const route = routes.length === 1 ? routes[0] : null;
+    const drugClass =
+      routes.length === 0 && classes.length === 1 && classes[0] in GENERAL_CLASS_ARTICLE_LABEL
+        ? (classes[0] as "dissociatives" | "deliriants")
+        : null;
+    const visualDisconnection =
+      row.type === "image" && row.effect_slug === VISUAL_DISCONNECTION_EFFECT_SLUG;
+    const key = `${route ?? ""}\u0000${drugClass ?? ""}\u0000${visualDisconnection ? 1 : 0}`;
+    const bucket = buckets.get(key);
+    if (bucket) {
+      bucket.count += 1;
+    } else {
+      buckets.set(key, { route, drugClass, visualDisconnection, count: 1 });
+    }
+  }
+  return [...buckets.values()];
+}
+
+/** `matchSubstanceGalleryReplications(rows, target).matches.length` from the digest of `rows`. */
+export function countSubstanceGalleryMatches(
+  digest: readonly SubstanceGalleryMatchBucket[],
+  target: SubstanceGalleryTarget,
+): number {
+  let total = 0;
+  for (const bucket of digest) {
+    if (bucket.route !== null) {
+      if (bucket.route === target.slug) total += bucket.count;
+      else if (bucket.visualDisconnection && target.psychoactiveClasses.includes("Dissociative")) {
+        total += bucket.count;
+      }
+      continue;
+    }
+    if (bucket.drugClass !== null) {
+      const articleClass = GENERAL_CLASS_ARTICLE_LABEL[bucket.drugClass];
+      if (articleClass && target.psychoactiveClasses.includes(articleClass)) {
+        total += bucket.count;
+        continue;
+      }
+    }
+    if (bucket.visualDisconnection && target.psychoactiveClasses.includes("Dissociative")) {
+      total += bucket.count;
+    }
+  }
+  return total;
+}
+
+/**
  * Return direct-curation provenance for a stored manual association. Exclusion
  * preserves an association so editors can restore it later.
  */
