@@ -12,6 +12,7 @@ import {
   removeSection,
   removeSlug,
   renameSection,
+  sortCategory,
   sortSlot,
   updateCategoryIdentity,
 } from "./layoutOps";
@@ -109,6 +110,16 @@ describe("addSlug / removeSlug / sortSlot", () => {
     const sorted = sortSlot(MANUAL, COMMON, (slugs) => [...slugs].sort());
     expect(drugsOf(sorted, "psychedelic", "common")).toEqual(["dmt", "lsd", "mescaline"]);
     expect(sortSlot(sorted, COMMON, (slugs) => [...slugs].sort())).toBe(sorted);
+  });
+
+  it("sorts every list a category owns and keeps its identity when nothing moves", () => {
+    const sorted = sortCategory(MANUAL, "psychedelic", (slugs) => [...slugs].sort());
+    expect(drugsOf(sorted, "psychedelic", null)).toEqual(["loose"]);
+    expect(drugsOf(sorted, "psychedelic", "common")).toEqual(["dmt", "lsd", "mescaline"]);
+    expect(drugsOf(sorted, "psychedelic", "tryptamine")).toEqual(["4-aco-dmt", "dmt"]);
+    // Other categories are untouched, and a sorted category is left alone.
+    expect(sorted.categories[1]).toBe(MANUAL.categories[1]);
+    expect(sortCategory(sorted, "psychedelic", (slugs) => [...slugs].sort())).toBe(sorted);
   });
 });
 

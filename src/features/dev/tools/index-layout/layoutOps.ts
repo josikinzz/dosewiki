@@ -145,6 +145,25 @@ function updateCategory(
   return changed ? { ...manual, categories } : manual;
 }
 
+/** Sort every list a category owns, its top-level entries and each section. */
+export function sortCategory(
+  manual: ManualIndexConfig,
+  categoryKey: string,
+  sort: (slugs: readonly string[]) => string[],
+): ManualIndexConfig {
+  return updateCategory(manual, categoryKey, (category) => {
+    const drugs = sort(category.drugs);
+    const sections = category.sections.map((section) => {
+      const sorted = sort(section.drugs);
+      return sorted.every((slug, index) => slug === section.drugs[index]) ? section : { ...section, drugs: sorted };
+    });
+    const drugsChanged = !drugs.every((slug, index) => slug === category.drugs[index]);
+    const sectionsChanged = sections.some((section, index) => section !== category.sections[index]);
+    if (!drugsChanged && !sectionsChanged) return category;
+    return { ...category, drugs: drugsChanged ? drugs : category.drugs, sections };
+  });
+}
+
 
 /**
  * Place a section directly before or after another section of the same

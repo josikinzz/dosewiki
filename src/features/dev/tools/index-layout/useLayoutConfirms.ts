@@ -11,8 +11,7 @@ type UseLayoutConfirmsArgs = {
   removeCategory: (categoryKey: string) => void;
   /** `keepDrugs` moves the section's substances to the category list instead of dropping them. */
   removeSection: (categoryKey: string, sectionKey: string, keepDrugs: boolean) => void;
-  resetDraft: () => void;
-  restoreSource: () => void;
+  revertDataset: () => void;
 };
 
 const COMMIT_REMINDER = "The public index does not change until you commit to production.";
@@ -22,9 +21,9 @@ function countNoun(count: number, noun: string): string {
 }
 
 /**
- * Every destructive board action asks first through the shared dialog. The
- * draft has no undo; without this a misclick on a trash icon dropped a whole
- * category and the only way back was resetting every other edit too.
+ * Losing a whole category or section to a misclick is worth a question even
+ * with undo behind it, because the trail is per-session: a reload takes it,
+ * and a removed section's substances are not obviously recoverable by eye.
  */
 export function useLayoutConfirms({
   confirm,
@@ -33,8 +32,7 @@ export function useLayoutConfirms({
   substanceOptions,
   removeCategory,
   removeSection,
-  resetDraft,
-  restoreSource,
+  revertDataset,
 }: UseLayoutConfirmsArgs) {
   const namesBySlug = useMemo(
     () => new Map(substanceOptions.map((option) => [option.slug, option.name])),
@@ -96,25 +94,15 @@ export function useLayoutConfirms({
     [categories, confirm, datasetLabel, namesBySlug, removeSection],
   );
 
-  const requestResetDraft = useCallback(() => {
+  const requestRevertDataset = useCallback(() => {
     confirm({
-      title: "Discard unsaved changes?",
-      description: `The ${datasetLabel} draft goes back to the layout you last applied. Edits since then go away.`,
-      confirmLabel: "Discard changes",
+      title: `Revert the ${datasetLabel} layout?`,
+      description: `This dataset goes back to the layout production has now, and every draft edit to it goes away. ${COMMIT_REMINDER}`,
+      confirmLabel: "Revert layout",
       destructive: true,
-      onConfirm: resetDraft,
+      onConfirm: revertDataset,
     });
-  }, [confirm, datasetLabel, resetDraft]);
+  }, [confirm, datasetLabel, revertDataset]);
 
-  const requestRestoreSource = useCallback(() => {
-    confirm({
-      title: "Restore the source layout?",
-      description: `The ${datasetLabel} draft goes back to the layout production has now. Every edit to this dataset, applied or not, goes away.`,
-      confirmLabel: "Restore source",
-      destructive: true,
-      onConfirm: restoreSource,
-    });
-  }, [confirm, datasetLabel, restoreSource]);
-
-  return { requestRemoveCategory, requestRemoveSection, requestResetDraft, requestRestoreSource };
+  return { requestRemoveCategory, requestRemoveSection, requestRevertDataset };
 }

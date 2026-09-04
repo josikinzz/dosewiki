@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { type IconName } from "@/components/common/Icon";
 import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import {
@@ -34,8 +33,13 @@ import {
   type SubstanceIndexView,
 } from "@/utils/indexViewRoutes";
 import { SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT } from "./substanceIndexAllLayout";
-
-const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
+import {
+  SUBSTANCE_INDEX_ICON,
+  SUBSTANCE_INDEX_SUPER_TABS,
+  buildSubstanceIndexTabItems,
+  orderCategoriesForAllTab,
+  resolveSubstanceIndexSuperTabs,
+} from "./substanceIndexTabs";
 
 interface DosagesPageProps {
   layout: CategoryLayout;
@@ -43,76 +47,12 @@ interface DosagesPageProps {
   /**
    * Per-category intro content (Markdown), keyed by category `key`, projected
    * server-side from the manual index JSON. Umbrella super-category tabs carry
-   * their own content inline in `SUPER_CATEGORY_TABS`.
+   * their own content inline in `SUBSTANCE_INDEX_SUPER_TABS`.
    */
   definitions?: Record<string, CategoryTabContent>;
   /** Server-resolved URL state; must match the first rendered panel set. */
   initialView?: SubstanceIndexView;
 }
-
-/**
- * Overarching tabs that aggregate several category panels into one view.
- * These sit between "All" and the per-category tabs and render more
- * prominently than the per-category tier.
- */
-const SUPER_CATEGORY_TABS: Array<{
-  id: string;
-  label: string;
-  icon: IconName;
-  memberKeys: string[];
-  /**
-   * Intro content for the umbrella tab. These tabs aren't categories in the
-   * manual index JSON, so their `definition`/`warning` live here rather than
-   * in `psychoactiveIndexManual.json`.
-   */
-  content: CategoryTabContent;
-}> = [
-  {
-    id: "super:hallucinogens",
-    label: "Hallucinogens",
-    icon: getCategoryIcon("hallucinogen"),
-    memberKeys: ["psychedelic", "dissociative", "deliriant", "hallucinogen"],
-    content: {
-      definition:
-        '**Hallucinogens** are a class of psychoactive substances that produce strong changes in perception, mood, and thought. The experience often feels like a different state of consciousness, not a stronger or weaker version of normal awareness. There are three subclasses of hallucinogens: psychedelics, dissociatives, and deliriants. Each subclass acts on a different brain system and produces a different type of experience. The name comes from the Latin *hallucinari*, which means "to wander in the mind."',
-      warning: "",
-    },
-  },
-  {
-    id: "super:depressants",
-    label: "Depressants",
-    icon: getCategoryIcon("depressant"),
-    memberKeys: ["gabaergic", "opioid"],
-    content: {
-      definition:
-        '**Depressants** (also known as "downers") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or "braking" system of the brain. The word "depressant" means lower nervous-system activity. It does not mean sadness.',
-      warning: "",
-    },
-  },
-];
-
-/**
- * Tab row order. Categories absent from this list (a-typical hallucinogen,
- * miscellaneous) get no tab of their own; the a-typical hallucinogen panel
- * still shows under the Hallucinogens tab. "nootropic" is listed ahead of
- * its category existing so it slots in automatically once added.
- */
-const TAB_ORDER: string[] = [
-  "super:hallucinogens",
-  "psychedelic",
-  "dissociative",
-  "deliriant",
-  "cannabinoid",
-  "entactogen",
-  "stimulant",
-  "nootropic",
-  "super:depressants",
-  "gabaergic",
-  "opioid",
-  "antidepressant",
-  "antipsychotic",
-];
-
 
 /**
  * Build DosageCategoryGroup[] from category layout and slug lookup.
@@ -257,46 +197,14 @@ export function DosagesPage({
   );
 
   const superTabs = useMemo(
-    () =>
-      SUPER_CATEGORY_TABS.filter((tab) =>
-        tab.memberKeys.some((key) => groupsByKey.has(key)),
-      ),
+    () => resolveSubstanceIndexSuperTabs((key) => groupsByKey.has(key)),
     [groupsByKey],
   );
 
-  const tabItems = useMemo<PublicSegmentedTabItem[]>(() => {
-    const items: PublicSegmentedTabItem[] = [
-      { id: "all", label: "All", icon: SUBSTANCE_INDEX_ICON, prominence: "major" },
-    ];
-    for (const entry of TAB_ORDER) {
-      if (entry.startsWith("super:")) {
-        const superTab = superTabs.find((tab) => tab.id === entry);
-        if (superTab) {
-          items.push({
-            id: superTab.id,
-            label: superTab.label,
-            icon: superTab.icon,
-            prominence: "major",
-          });
-        }
-        continue;
-      }
-      const group = groupsByKey.get(entry);
-      if (group) {
-        items.push({
-          id: group.key,
-          label: group.name,
-          icon: group.icon,
-          // When the strip collapses to two rows on wide screens, keep the
-          // first row ending on Cannabinoid and start the second on Entactogen.
-          ...(entry === "cannabinoid"
-            ? { breakAfter: true, breakAfterClassName: "hidden xl:block" }
-            : {}),
-        });
-      }
-    }
-    return items;
-  }, [superTabs, groupsByKey]);
+  const tabItems = useMemo<PublicSegmentedTabItem[]>(
+    () => buildSubstanceIndexTabItems(psychoactiveGroups),
+    [psychoactiveGroups],
+  );
 
   const handleTabChange = (value: string) => {
     const nextView = value as SubstanceIndexView;
@@ -321,27 +229,11 @@ export function DosagesPage({
 
   const resolvedGroups = useMemo(() => {
     if (activeTab === "all") {
-      // Columns come from SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT; this order only
-      // decides where a category missing from that table lands. Match the tab
-      // strip read left-to-right: per-category tabs in TAB_ORDER first, then
-      // any categories without a tab.
-      const seen = new Set<string>();
-      const ordered: DosageCategoryGroup[] = [];
-      for (const entry of TAB_ORDER) {
-        if (entry.startsWith("super:")) continue;
-        const group = groupsByKey.get(entry);
-        if (group && !seen.has(group.key)) {
-          ordered.push(group);
-          seen.add(group.key);
-        }
-      }
-      for (const group of psychoactiveGroups) {
-        if (!seen.has(group.key)) {
-          ordered.push(group);
-          seen.add(group.key);
-        }
-      }
-      return ordered.map((group) => ({ ...group, columns: undefined, column: undefined }));
+      return orderCategoriesForAllTab(psychoactiveGroups).map((group) => ({
+        ...group,
+        columns: undefined,
+        column: undefined,
+      }));
     }
     const superTab = superTabs.find((tab) => tab.id === activeTab);
     if (superTab) {
@@ -365,7 +257,7 @@ export function DosagesPage({
     // The umbrella tabs are not categories in the manual index, so the server
     // contributes their prose under their tab id when the copy layer knows it.
     // The inline `tab.content` stays as the fallback.
-    const superTab = SUPER_CATEGORY_TABS.find((tab) => tab.id === activeTab);
+    const superTab = SUBSTANCE_INDEX_SUPER_TABS.find((tab) => tab.id === activeTab);
     if (superTab) return definitions?.[superTab.id] ?? superTab.content;
     return definitions?.[activeTab];
   }, [activeTab, definitions]);

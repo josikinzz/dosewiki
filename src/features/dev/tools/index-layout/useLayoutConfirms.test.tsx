@@ -27,8 +27,7 @@ function renderConfirms() {
   const confirm = vi.fn<(request: ConfirmRequest) => void>();
   const removeCategory = vi.fn();
   const removeSection = vi.fn();
-  const resetDraft = vi.fn();
-  const restoreSource = vi.fn();
+  const revertDataset = vi.fn();
   const hook = renderHook(() =>
     useLayoutConfirms({
       confirm,
@@ -37,11 +36,10 @@ function renderConfirms() {
       substanceOptions,
       removeCategory,
       removeSection,
-      resetDraft,
-      restoreSource,
+      revertDataset,
     }));
   const lastRequest = () => confirm.mock.calls[confirm.mock.calls.length - 1]?.[0];
-  return { hook, confirm, removeCategory, removeSection, resetDraft, restoreSource, lastRequest };
+  return { hook, confirm, removeCategory, removeSection, revertDataset, lastRequest };
 }
 
 describe("useLayoutConfirms", () => {
@@ -109,23 +107,17 @@ describe("useLayoutConfirms", () => {
     expect(confirm).not.toHaveBeenCalled();
   });
 
-  it("routes the toolbar resets through the same dialog", () => {
-    const { hook, resetDraft, restoreSource, lastRequest } = renderConfirms();
+  it("routes the toolbar revert through the same dialog", () => {
+    const { hook, revertDataset, lastRequest } = renderConfirms();
 
-    act(() => hook.result.current.requestResetDraft());
-    expect(resetDraft).not.toHaveBeenCalled();
-    expect(lastRequest()?.confirmLabel).toBe("Discard changes");
+    act(() => hook.result.current.requestRevertDataset());
+    expect(revertDataset).not.toHaveBeenCalled();
+    expect(lastRequest()?.title).toBe("Revert the Psychoactive class layout?");
+    expect(lastRequest()?.confirmLabel).toBe("Revert layout");
+
     act(() => {
       void lastRequest()?.onConfirm();
     });
-    expect(resetDraft).toHaveBeenCalledTimes(1);
-
-    act(() => hook.result.current.requestRestoreSource());
-    expect(restoreSource).not.toHaveBeenCalled();
-    expect(lastRequest()?.confirmLabel).toBe("Restore source");
-    act(() => {
-      void lastRequest()?.onConfirm();
-    });
-    expect(restoreSource).toHaveBeenCalledTimes(1);
+    expect(revertDataset).toHaveBeenCalledTimes(1);
   });
 });

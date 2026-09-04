@@ -46,6 +46,12 @@ interface IndexCardProps {
    * doubles as the copy-list control, so that affordance is dropped too.
    */
   hideIcon?: boolean;
+  /**
+   * Controls that sit between the title and the expand toggle. The public
+   * index passes none; the /dev index layout editor passes its per-panel
+   * handles so the editable card keeps the reader's header composition.
+   */
+  actions?: ReactNode;
 }
 
 /**
@@ -115,6 +121,7 @@ export const IndexCard = memo(function IndexCard({
   toggleLabel,
   tone = "default",
   hideIcon = false,
+  actions,
 }: IndexCardProps) {
   const generatedId = useId();
   const [uncontrolledExpanded, setUncontrolledExpanded] =
@@ -200,9 +207,9 @@ export const IndexCard = memo(function IndexCard({
         <header
           className={cn(
             "grid items-center gap-3 pb-2",
-            hideIcon
-              ? "grid-cols-[minmax(0,1fr)_auto]"
-              : "grid-cols-[auto_minmax(0,1fr)_auto]",
+            hideIcon ? "grid-cols-[minmax(0,1fr)_auto]" : "grid-cols-[auto_minmax(0,1fr)_auto]",
+            actions && "grid-cols-[minmax(0,1fr)_auto_auto]",
+            actions && !hideIcon && "grid-cols-[auto_minmax(0,1fr)_auto_auto]",
           )}
         >
           {hideIcon ? null : iconElement}
@@ -229,6 +236,7 @@ export const IndexCard = memo(function IndexCard({
               <p className="theme-text-faint mt-1 text-xs">{description}</p>
             ) : null}
           </div>
+          {actions}
           <button
             type="button"
             onClick={handleToggle}

@@ -3,28 +3,32 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PublicSegmentedTabs, type PublicSegmentedTabItem } from "@/components/layout/PublicSegmentedTabs";
+import { SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT } from "@/components/pages/substanceIndexAllLayout";
+import {
+  SUBSTANCE_INDEX_ICON,
+  buildSubstanceIndexTabItems,
+  orderCategoriesForAllTab,
+  resolveSubstanceIndexSuperTabs,
+} from "@/components/pages/substanceIndexTabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useLibrary } from "@/data/SubstanceIndexProvider";
 import {
-  EditorNotice,
   EditorSegmentedControl,
   EditorStatusPill,
   EditorToolbar,
   useConfirm,
-  useDirtyGuard,
 } from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
-import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { buildBoard, listDestinations } from "./boardModel";
-import { IndexLayoutBoard } from "./IndexLayoutBoard";
+import { UNPLACED_SLOT, buildBoard, listDestinations, type BoardItem } from "./boardModel";
+import { IndexLayoutBoard, type LayoutPanel } from "./IndexLayoutBoard";
 import type { BoardActions } from "./IndexLayoutCard";
-import { IndexLayoutJsonEditor } from "./IndexLayoutJsonEditor";
 import { createLayoutDataHelpers } from "./layoutDataUtils";
 import {
   addCategory,
-  addSection,
   addSlug,
+  addSection,
   bumpSlug,
   collectPlacedSlugs,
   moveSlug,
@@ -33,22 +37,36 @@ import {
   removeSection,
   removeSlug,
   renameSection,
+  slotsEqual,
+  sortCategory,
   sortSlot,
   updateCategoryIdentity,
   type LayoutSlot,
 } from "./layoutOps";
+import { UnplacedTray } from "./UnplacedTray";
 import { useLayoutConfirms } from "./useLayoutConfirms";
-import { useLayoutEditor } from "./useLayoutEditor";
-import { type IndexLayoutTabProps, type ManualDatasetKey, type ManualIndexConfig, type SubstanceOption } from "./types";
-import { areManualsEqual, deepClone } from "./utils";
+import { useLayoutHistory } from "./useLayoutHistory";
+import { type IndexLayoutTabProps, type ManualDatasetKey, type SubstanceOption } from "./types";
+import { areManualsEqual } from "./utils";
 
 const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
 
-const SUBSTANCE_INDEX_ICON: IconName = "streamline-ultimate:science-molecule-strucutre-bold";
+const DATASET_ICONS: Record<ManualDatasetKey, IconName> = {
+  psychoactive: "fluent:brain-circuit-28-filled",
+  chemical: "solar:benzene-ring-linear",
+  mechanism: "fa-solid:cogs",
+};
+
+const DATASET_LABELS: Record<ManualDatasetKey, string> = {
+  psychoactive: "Psychoactive class",
+  chemical: "Chemical class",
+  mechanism: "Mechanism of action",
+};
 
 function NewCategoryPopover({ onAdd }: { onAdd: (label: string) => void }) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
+
   return (
     <Popover
       open={open}
@@ -76,7 +94,13 @@ function NewCategoryPopover({ onAdd }: { onAdd: (label: string) => void }) {
           <label className="theme-text-faint block text-[11px] uppercase tracking-[0.18em]" htmlFor="new-category-label">
             Category name
           </label>
-          <Input id="new-category-label" value={label} onChange={(event) => setLabel(event.target.value)} inputSize="sm" placeholder="Anxiolytic" />
+          <Input
+            id="new-category-label"
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+            inputSize="sm"
+            placeholder="Anxiolytic"
+          />
           <p className="theme-text-faint text-xs">The icon follows the name; change it from the card afterwards.</p>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
@@ -93,10 +117,10 @@ function NewCategoryPopover({ onAdd }: { onAdd: (label: string) => void }) {
 }
 
 /**
- * The public Substance Index, editable in place. Every category panel, section
- * and row is drawn by the same primitives the page uses; the only additions are
- * the handles. Edits stay in the draft until applied, then commit to
- * production through the shell's commit panel.
+ * The public Substance Index, editable in place: the same tab strip, the same
+ * column arrangement, the same panels, with handles that appear on hover. Every
+ * gesture writes straight into the dev draft — undo is the safety net, and the
+ * shell's commit panel is the only thing that reaches production.
  */
 export function IndexLayoutTab({ commitPanel, enableStickyPanels }: IndexLayoutTabProps) {
   const {
@@ -106,279 +130,337 @@ export function IndexLayoutTab({ commitPanel, enableStickyPanels }: IndexLayoutT
     replacePsychoactiveIndexManual,
     replaceChemicalIndexManual,
     replaceMechanismIndexManual,
+    resetPsychoactiveIndexManual,
+    resetChemicalIndexManual,
+    resetMechanismIndexManual,
     getOriginalPsychoactiveIndexManual,
     getOriginalChemicalIndexManual,
     getOriginalMechanismIndexManual,
   } = useDevMode();
   const { allSubstanceRecords, allSubstancesBySlug } = useLibrary();
 
+  const [dataset, setDataset] = useState<ManualDatasetKey>("psychoactive");
+  const [view, setView] = useState("all");
+
+  const manual =
+    dataset === "psychoactive"
+      ? psychoactiveIndexManual
+      : dataset === "chemical"
+        ? chemicalIndexManual
+        : mechanismIndexManual;
+  const replace =
+    dataset === "psychoactive"
+      ? replacePsychoactiveIndexManual
+      : dataset === "chemical"
+        ? replaceChemicalIndexManual
+        : replaceMechanismIndexManual;
+  const resetDataset =
+    dataset === "psychoactive"
+      ? resetPsychoactiveIndexManual
+      : dataset === "chemical"
+        ? resetChemicalIndexManual
+        : resetMechanismIndexManual;
+  const getOriginal =
+    dataset === "psychoactive"
+      ? getOriginalPsychoactiveIndexManual
+      : dataset === "chemical"
+        ? getOriginalChemicalIndexManual
+        : getOriginalMechanismIndexManual;
+
+  const history = useLayoutHistory({ dataset, manual, replace });
+  const { edit } = history;
+
   const { sortSlugsForDataset } = useMemo(
     () => createLayoutDataHelpers(allSubstanceRecords, allSubstancesBySlug),
     [allSubstanceRecords, allSubstancesBySlug],
   );
 
-  const datasetDefinitions = useMemo(
-    () => ({
-      psychoactive: {
-        key: "psychoactive" as const,
-        label: "Psychoactive class",
-        icon: "fluent:brain-circuit-28-filled" satisfies IconName,
-        manual: psychoactiveIndexManual,
-        replaceManual: replacePsychoactiveIndexManual,
-        getOriginalManual: getOriginalPsychoactiveIndexManual,
-      },
-      chemical: {
-        key: "chemical" as const,
-        label: "Chemical class",
-        icon: "solar:benzene-ring-linear" satisfies IconName,
-        manual: chemicalIndexManual,
-        replaceManual: replaceChemicalIndexManual,
-        getOriginalManual: getOriginalChemicalIndexManual,
-      },
-      mechanism: {
-        key: "mechanism" as const,
-        label: "Mechanism of action",
-        icon: "fa-solid:cogs" satisfies IconName,
-        manual: mechanismIndexManual,
-        replaceManual: replaceMechanismIndexManual,
-        getOriginalManual: getOriginalMechanismIndexManual,
-      },
-    }),
-    [
-      chemicalIndexManual,
-      getOriginalChemicalIndexManual,
-      getOriginalMechanismIndexManual,
-      getOriginalPsychoactiveIndexManual,
-      mechanismIndexManual,
-      psychoactiveIndexManual,
-      replaceChemicalIndexManual,
-      replaceMechanismIndexManual,
-      replacePsychoactiveIndexManual,
-    ],
-  );
-
-  const [activeDataset, setActiveDataset] = useState<ManualDatasetKey>("psychoactive");
-  const [view, setView] = useState("all");
-  const [showJson, setShowJson] = useState(false);
-
-  const {
-    state,
-    setRawJsonForDataset,
-    clearJsonErrorForDataset,
-    setJsonErrorForDataset,
-    updateDraftManualForDataset,
-    applyJsonForDataset,
-    saveDataset,
-    resetDraft,
-    resetToOriginal,
-    setSaveNotice,
-  } = useLayoutEditor({
-    datasetOrder: DATASET_ORDER,
-    datasetDefinitions,
-    deepClone,
-    areManualsEqual,
-  });
-
-  const activeDefinition = datasetDefinitions[activeDataset];
-  const draftManual = state.draftManuals[activeDataset];
-  const normalizedCurrentManual = state.normalizedCurrentManuals[activeDataset];
-  const rawJsonDraft = state.rawJsonDrafts[activeDataset];
-  const jsonError = state.jsonErrors[activeDataset];
-  const saveNotice = state.saveNotice;
-
-  // Only dataset switches clear the notice; setSaveNotice changes identity on every publish.
-  useEffect(() => {
-    setSaveNotice(null);
-    setView("all");
-  }, [activeDataset]);
-
-  const hasUnsavedChanges = useMemo(
-    () => !areManualsEqual(normalizedCurrentManual, draftManual),
-    [draftManual, normalizedCurrentManual],
-  );
-  const { guard, dialog: dirtyDialog } = useDirtyGuard(hasUnsavedChanges, {
-    title: `Leave the ${activeDefinition.label} draft?`,
-    description: "Edits you have not applied to the draft are lost when you switch datasets.",
-  });
-
-  const update = useCallback(
-    (updater: (manual: ManualIndexConfig) => ManualIndexConfig) => {
-      updateDraftManualForDataset(activeDataset, updater);
-    },
-    [activeDataset, updateDraftManualForDataset],
-  );
-
-  const board = useMemo(() => buildBoard(draftManual, allSubstancesBySlug), [allSubstancesBySlug, draftManual]);
+  const board = useMemo(() => buildBoard(manual, allSubstancesBySlug), [allSubstancesBySlug, manual]);
   const destinations = useMemo(() => listDestinations(board), [board]);
+  const allSections = useMemo(() => board.flatMap((category) => category.sections), [board]);
+  const isDirty = useMemo(() => !areManualsEqual(getOriginal(), manual), [getOriginal, manual]);
+
+  const superTabs = useMemo(() => {
+    if (dataset !== "psychoactive") return [];
+    const keys = new Set(board.map((category) => category.key));
+    return resolveSubstanceIndexSuperTabs((key) => keys.has(key));
+  }, [board, dataset]);
 
   const substanceOptions = useMemo<SubstanceOption[]>(
     () =>
       allSubstanceRecords
-        .map((record) => ({ slug: record.slug, name: record.name, alias: record.aliases?.[0], isHidden: record.isHidden }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .map((record) => ({
+          slug: record.slug,
+          name: record.name,
+          alias: record.aliases?.[0],
+          isHidden: record.isHidden,
+        }))
+        .sort((first, second) => first.name.localeCompare(second.name)),
     [allSubstanceRecords],
   );
-  const addOptions = useMemo(() => {
-    const placed = collectPlacedSlugs(draftManual);
-    return substanceOptions
-      .filter((option) => !placed.has(option.slug))
-      .map((option) => ({ value: option.slug, label: option.name, hint: option.alias }));
-  }, [draftManual, substanceOptions]);
+
+  const unplaced = useMemo(() => {
+    const placed = collectPlacedSlugs(manual);
+    const publicGaps: BoardItem[] = [];
+    const hidden: BoardItem[] = [];
+    for (const record of allSubstanceRecords) {
+      if (placed.has(record.slug)) continue;
+      const invisible = record.isHidden || record.isDirectUrlOnly;
+      (invisible ? hidden : publicGaps).push({
+        slug: record.slug,
+        name: record.name,
+        issues: invisible ? ["hidden"] : [],
+        hiddenOnSite: record.isDirectUrlOnly,
+      });
+    }
+    publicGaps.sort((first, second) => first.name.localeCompare(second.name));
+    hidden.sort((first, second) => first.name.localeCompare(second.name));
+    return { publicGaps, hidden };
+  }, [allSubstanceRecords, manual]);
+
+  // The add pickers accept anything unplaced, hidden articles included: an
+  // editor placing one is how a hidden substance gets staged for release.
+  const addOptions = useMemo(
+    () =>
+      [...unplaced.publicGaps, ...unplaced.hidden]
+        .sort((first, second) => first.name.localeCompare(second.name))
+        .map((item) => ({
+          value: item.slug,
+          label: item.name,
+          hint: allSubstancesBySlug.get(item.slug)?.aliases?.[0],
+        })),
+    [allSubstancesBySlug, unplaced],
+  );
 
   const { confirm, dialog: confirmDialog } = useConfirm();
-  const { requestRemoveCategory, requestRemoveSection, requestResetDraft, requestRestoreSource } = useLayoutConfirms({
+  const { requestRemoveCategory, requestRemoveSection, requestRevertDataset } = useLayoutConfirms({
     confirm,
-    datasetLabel: activeDefinition.label,
-    categories: draftManual.categories,
+    datasetLabel: DATASET_LABELS[dataset],
+    categories: manual.categories,
     substanceOptions,
     removeCategory: (categoryKey) => {
-      update((manual) => removeCategory(manual, categoryKey));
+      edit((current) => removeCategory(current, categoryKey));
       if (view === categoryKey) setView("all");
     },
     removeSection: (categoryKey, sectionKey, keepDrugs) =>
-      update((manual) => removeSection(manual, categoryKey, sectionKey, keepDrugs)),
-    resetDraft: () => resetDraft(activeDataset),
-    restoreSource: () => resetToOriginal(activeDataset),
+      edit((current) => removeSection(current, categoryKey, sectionKey, keepDrugs)),
+    revertDataset: () => {
+      resetDataset();
+      history.forget();
+    },
   });
 
   const actions = useMemo<BoardActions>(
     () => ({
       destinations,
       addOptions,
-      onBump: (slot, slug, direction) => update((manual) => bumpSlug(manual, slot, slug, direction)),
-      onMove: (from, slug, to) => update((manual) => moveSlug(manual, from, slug, to)),
-      onRemoveSlug: (slot, slug) => update((manual) => removeSlug(manual, slot, slug)),
-      onAddSlug: (slot, slug) => update((manual) => addSlug(manual, slot, slug)),
-      onSortSlot: (slot) => update((manual) => sortSlot(manual, slot, (slugs) => sortSlugsForDataset(activeDataset, slugs))),
+      onBump: (slot, slug, direction) => edit((current) => bumpSlug(current, slot, slug, direction)),
+      onMove: (from, slug, to) =>
+        edit((current) =>
+          slotsEqual(from, UNPLACED_SLOT)
+            ? addSlug(current, to, slug)
+            : slotsEqual(to, UNPLACED_SLOT)
+              ? removeSlug(current, from, slug)
+              : moveSlug(current, from, slug, to),
+        ),
+      onRemoveSlug: (slot, slug) => edit((current) => removeSlug(current, slot, slug)),
+      onAddSlug: (slot, slug) => edit((current) => addSlug(current, slot, slug)),
+      onSortSlot: (slot) =>
+        edit((current) => sortSlot(current, slot, (slugs) => sortSlugsForDataset(dataset, slugs))),
+      onSortCategory: (categoryKey) =>
+        edit((current) => sortCategory(current, categoryKey, (slugs) => sortSlugsForDataset(dataset, slugs))),
       onPlaceSection: (categoryKey, sectionKey, targetSectionKey, placement) =>
-        update((manual) => placeSection(manual, categoryKey, sectionKey, targetSectionKey, placement)),
-      onRenameSection: (categoryKey, sectionKey, label) => update((manual) => renameSection(manual, categoryKey, sectionKey, label)),
-      onAddSection: (categoryKey, label) => update((manual) => addSection(manual, categoryKey, label).manual),
+        edit((current) => placeSection(current, categoryKey, sectionKey, targetSectionKey, placement)),
+      onRenameSection: (categoryKey, sectionKey, label) =>
+        edit((current) => renameSection(current, categoryKey, sectionKey, label)),
+      onAddSection: (categoryKey, label) => edit((current) => addSection(current, categoryKey, label).manual),
       onRemoveSection: requestRemoveSection,
-      onUpdateCategory: (categoryKey, patch) => update((manual) => updateCategoryIdentity(manual, categoryKey, patch)),
+      onUpdateCategory: (categoryKey, patch) => edit((current) => updateCategoryIdentity(current, categoryKey, patch)),
       onRemoveCategory: requestRemoveCategory,
     }),
-    [activeDataset, addOptions, destinations, requestRemoveCategory, requestRemoveSection, sortSlugsForDataset, update],
+    [addOptions, dataset, destinations, edit, requestRemoveCategory, requestRemoveSection, sortSlugsForDataset],
   );
 
   const handleDrop = useCallback(
     (from: LayoutSlot, slug: string, to: LayoutSlot, index: number) => {
-      update((manual) => moveSlug(manual, from, slug, to, index));
+      if (slotsEqual(to, UNPLACED_SLOT)) {
+        edit((current) => removeSlug(current, from, slug));
+        return;
+      }
+      if (slotsEqual(from, UNPLACED_SLOT)) {
+        // Appended first, then reordered: `addSlug` owns the slugify and the
+        // "already listed" case, and `moveSlug` owns the landing position.
+        edit((current) => moveSlug(addSlug(current, to, slug), to, slug, to, index));
+        return;
+      }
+      edit((current) => moveSlug(current, from, slug, to, index));
     },
-    [update],
+    [edit],
   );
 
-  const handleSortAll = useCallback(() => {
-    update((manual) => ({
-      ...manual,
-      categories: manual.categories.map((category) => ({
-        ...category,
-        drugs: sortSlugsForDataset(activeDataset, category.drugs),
-        sections: category.sections.map((section) => ({ ...section, drugs: sortSlugsForDataset(activeDataset, section.drugs) })),
-      })),
-    }));
-  }, [activeDataset, sortSlugsForDataset, update]);
-
-  const handleApplyJson = useCallback(() => {
-    try {
-      applyJsonForDataset(activeDataset, rawJsonDraft);
-    } catch (error) {
-      setJsonErrorForDataset(activeDataset, error instanceof Error ? error.message : "Unable to parse JSON");
+  const tabItems = useMemo<PublicSegmentedTabItem[]>(() => {
+    if (dataset === "psychoactive") {
+      return buildSubstanceIndexTabItems(board.map((category) => ({ ...category, name: category.label })));
     }
-  }, [activeDataset, applyJsonForDataset, rawJsonDraft, setJsonErrorForDataset]);
-
-  const viewItems = useMemo<PublicSegmentedTabItem[]>(
-    () => [
+    return [
       { id: "all", label: "All", icon: SUBSTANCE_INDEX_ICON, prominence: "major" },
       ...board.map((category) => ({ id: category.key, label: category.label, icon: category.icon })),
-    ],
-    [board],
+    ];
+  }, [board, dataset]);
+
+  const panels = useMemo<LayoutPanel[]>(() => {
+    if (view === "all") {
+      return orderCategoriesForAllTab(board).map((category) => ({
+        key: category.key,
+        category,
+        sections: category.sections,
+        title: category.label,
+        hideIcon: false,
+        chrome: "category" as const,
+      }));
+    }
+
+    const superTab = superTabs.find((tab) => tab.id === view);
+    if (superTab) {
+      return superTab.memberKeys
+        .map((key) => board.find((category) => category.key === key))
+        .filter((category): category is (typeof board)[number] => category !== undefined)
+        .map((category) => ({
+          key: category.key,
+          category,
+          sections: category.sections,
+          title: category.label,
+          hideIcon: false,
+          chrome: "category" as const,
+        }));
+    }
+
+    const category = board.find((entry) => entry.key === view);
+    if (!category) return [];
+    return category.sections.map((section) => ({
+      key: section.id,
+      category,
+      sections: [section],
+      title: section.label ?? category.label,
+      hideIcon: true,
+      chrome: "section" as const,
+      siblings: category.sections,
+    }));
+  }, [board, superTabs, view]);
+
+  const resolveName = useCallback(
+    (slug: string) => allSubstancesBySlug.get(slug)?.name ?? slug,
+    [allSubstancesBySlug],
   );
+
+  // The whole tab is one editing surface, so undo belongs to the window rather
+  // than to any control: a drag ends with the pointer anywhere.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "z") return;
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || /^(input|textarea|select)$/i.test(target?.tagName ?? "")) return;
+      event.preventDefault();
+      if (event.shiftKey) {
+        history.redo();
+      } else {
+        history.undo();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [history]);
+
+  const placedCount = useMemo(() => collectPlacedSlugs(manual).size, [manual]);
 
   return (
     <div className="space-y-6">
       {commitPanel ? <div>{commitPanel}</div> : null}
       {confirmDialog}
-      {dirtyDialog}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <EditorToolbar variant={enableStickyPanels ? "sticky" : "wrap"} label="Index layout actions">
         <EditorSegmentedControl
           label="Index dataset"
-          value={activeDataset}
-          onChange={(next) => guard(() => setActiveDataset(next as ManualDatasetKey))}
+          value={dataset}
+          onChange={(next) => {
+            setDataset(next as ManualDatasetKey);
+            setView("all");
+          }}
           options={DATASET_ORDER.map((key) => ({
             value: key,
-            label: datasetDefinitions[key].label,
-            icon: datasetDefinitions[key].icon,
+            label: DATASET_LABELS[key],
+            icon: DATASET_ICONS[key],
           }))}
         />
-        <div className="flex flex-wrap items-center gap-2">
-          <EditorStatusPill tone="neutral">
-            {draftManual.categories.length} categor{draftManual.categories.length === 1 ? "y" : "ies"}
-          </EditorStatusPill>
-          <EditorStatusPill tone={hasUnsavedChanges ? "warning" : "success"} live>
-            {hasUnsavedChanges ? "Unapplied edits" : "Draft matches applied layout"}
-          </EditorStatusPill>
-        </div>
-      </div>
-
-      <EditorToolbar variant={enableStickyPanels ? "sticky" : "wrap"} label="Layout actions">
-        <Button type="button" variant="accent" size="sm" disabled={!hasUnsavedChanges} onClick={() => saveDataset(activeDataset)}>
-          <Icon icon="lucide:check" size={14} />
-          Apply to draft
-        </Button>
-        <Button type="button" variant="ghost" size="sm" disabled={!hasUnsavedChanges} onClick={requestResetDraft}>
-          Discard edits
-        </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={requestRestoreSource}>
-          Restore source
-        </Button>
         <span className="mx-1 h-5 w-px bg-[var(--editor-panel-border)]" aria-hidden />
-        <NewCategoryPopover onAdd={(label) => update((manual) => addCategory(manual, label, "").manual)} />
-        <Button type="button" variant="outline" size="sm" onClick={handleSortAll} title="Sort every list the way the site used to: Common first, then A to Z">
-          <Icon icon="lucide:arrow-down-a-z" size={14} />
-          Sort all lists
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={!history.canUndo}
+          onClick={history.undo}
+          title="Undo the last layout edit (⌘Z)"
+        >
+          <Icon icon="lucide:undo-2" size={14} />
+          Undo
         </Button>
-        <Button type="button" variant={showJson ? "pillActive" : "ghost"} size="sm" aria-pressed={showJson} onClick={() => setShowJson((previous) => !previous)}>
-          <Icon icon="lucide:braces" size={14} />
-          JSON
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={!history.canRedo}
+          onClick={history.redo}
+          title="Redo (⇧⌘Z)"
+        >
+          <Icon icon="lucide:redo-2" size={14} />
+          Redo
         </Button>
-        {saveNotice ? (
-          <EditorStatusPill tone="success" live className="ml-auto">
-            {saveNotice}
+        <NewCategoryPopover onAdd={(label) => edit((current) => addCategory(current, label, "").manual)} />
+        <Button type="button" variant="ghost" size="sm" disabled={!isDirty} onClick={requestRevertDataset}>
+          Revert to production
+        </Button>
+        <span className="ml-auto flex flex-wrap items-center gap-2">
+          <EditorStatusPill tone="neutral">
+            {board.length} categor{board.length === 1 ? "y" : "ies"} · {placedCount} placed
           </EditorStatusPill>
-        ) : null}
+          <EditorStatusPill tone={isDirty ? "warning" : "success"} live>
+            {isDirty ? "Uncommitted draft edits" : "Matches production"}
+          </EditorStatusPill>
+        </span>
       </EditorToolbar>
 
-      {jsonError ? <EditorNotice notice={{ tone: "danger", message: jsonError }} /> : null}
-
-      {showJson ? (
-        <IndexLayoutJsonEditor
-          label={`${activeDefinition.label} JSON layout`}
-          value={rawJsonDraft}
-          onApply={handleApplyJson}
-          onChange={(nextValue) => {
-            setRawJsonForDataset(activeDataset, nextValue);
-            clearJsonErrorForDataset(activeDataset);
-          }}
+      <div data-nosnippet>
+        <PublicSegmentedTabs
+          ariaLabel="Edit a tab of the public index"
+          value={view}
+          onValueChange={setView}
+          items={tabItems}
+          listClassName="justify-center"
         />
-      ) : (
-        <div className="space-y-6">
-          <div data-nosnippet>
-            <PublicSegmentedTabs
-              ariaLabel="Preview a tab of the public index"
-              value={view}
-              onValueChange={setView}
-              items={viewItems}
-              listClassName="justify-center"
-            />
-          </div>
-          <p className="theme-text-faint text-center text-xs">
-            Drag rows, or use the arrows and the row menu. Common always leads its category and Other always closes it, as on the site.
-          </p>
-          <IndexLayoutBoard dataset={activeDataset} board={board} view={view} actions={actions} onDrop={handleDrop} />
-        </div>
-      )}
+      </div>
+
+      <IndexLayoutBoard
+        panels={panels}
+        columnLayout={dataset === "psychoactive" && view === "all" ? SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT : undefined}
+        actions={actions}
+        sections={allSections}
+        onDrop={handleDrop}
+        resolveName={resolveName}
+        emptyMessage={
+          view === "all"
+            ? "This index has no categories yet. Add one from the toolbar."
+            : "This category no longer exists in the draft."
+        }
+        tray={
+          <UnplacedTray
+            items={unplaced.publicGaps}
+            hiddenItems={unplaced.hidden}
+            destinations={destinations}
+            onMove={actions.onMove}
+          />
+        }
+      />
     </div>
   );
 }

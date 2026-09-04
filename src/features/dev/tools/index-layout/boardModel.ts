@@ -21,6 +21,13 @@ export type BoardItem = {
   hiddenOnSite: boolean;
 };
 
+/**
+ * The tray of substances the layout does not place. It is not a slot in the
+ * manual, so drag gestures read it as "leaving the index" and "entering the
+ * index" rather than as a move between two lists.
+ */
+export const UNPLACED_SLOT: LayoutSlot = { categoryKey: "__unplaced", sectionKey: null };
+
 export type BoardSection = {
   slot: LayoutSlot;
   id: string;

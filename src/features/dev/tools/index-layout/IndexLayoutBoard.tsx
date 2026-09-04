@@ -12,35 +12,57 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/common/IndexPanelLayout";
-import { SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT } from "@/components/pages/substanceIndexAllLayout";
-import { arrangeGroupsByLayout } from "@/features/article/components/sections/CategoryGrid";
+import { arrangeGroupsByLayout, type ColumnLayoutTable } from "@/features/article/components/sections/CategoryGrid";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
-import type { BoardCategory } from "./boardModel";
+import type { BoardCategory, BoardSection } from "./boardModel";
 import { IndexLayoutCard, type BoardActions } from "./IndexLayoutCard";
 import { parseRowId } from "./LayoutDrugRow";
 import type { LayoutSlot } from "./layoutOps";
-import type { ManualDatasetKey } from "./types";
+
+/** One card of the grid, already resolved to the tab being shown. */
+export type LayoutPanel = {
+  key: string;
+  category: BoardCategory;
+  sections: readonly BoardSection[];
+  title: string;
+  hideIcon: boolean;
+  chrome: "category" | "section";
+  /** Panel-order siblings for a section panel's move affordance. */
+  siblings?: readonly BoardSection[];
+};
 
 export interface IndexLayoutBoardProps {
-  dataset: ManualDatasetKey;
-  board: readonly BoardCategory[];
-  /** "all" mirrors the public All tab; a category key mirrors that category's tab. */
-  view: string;
+  panels: readonly LayoutPanel[];
+  /** The hand-authored column table when the view has one; round-robin otherwise. */
+  columnLayout?: ColumnLayoutTable;
   actions: BoardActions;
+  /** Every drop target of the current view, so a dropped row finds its list. */
+  sections: readonly BoardSection[];
   /** Drop a dragged substance at `index` of `to`; `from` and `to` may be the same slot. */
   onDrop: (from: LayoutSlot, slug: string, to: LayoutSlot, index: number) => void;
+  resolveName: (slug: string) => string;
+  emptyMessage: string;
+  /** The unplaced tray, inside the same drag context as the panels. */
+  tray?: ReactNode;
 }
 
 /**
- * The panels arranged as the public page arranges them: the psychoactive All
- * tab follows the hand-authored column table, everything else round-robins
- * across the responsive column count, and a category tab splits into one
- * panel per section. One drag context spans every list, so a substance can be
- * dragged between sections and between categories.
+ * The panels arranged the way the page arranges them, in one drag context that
+ * also spans the tray, so a substance can travel between sections, between
+ * categories, and in or out of the index in a single gesture.
  */
-export function IndexLayoutBoard({ dataset, board, view, actions, onDrop }: IndexLayoutBoardProps) {
+export function IndexLayoutBoard({
+  panels,
+  columnLayout,
+  actions,
+  sections,
+  onDrop,
+  resolveName,
+  emptyMessage,
+  tray,
+}: IndexLayoutBoardProps) {
   const { count: columnCount, gate } = useResponsiveColumnCount();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -48,45 +70,19 @@ export function IndexLayoutBoard({ dataset, board, view, actions, onDrop }: Inde
   );
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
 
-  const labelsByRow = useMemo(() => {
-    const labels = new Map<string, string>();
-    for (const category of board) {
-      for (const section of category.sections) {
-        for (const item of section.items) {
-          labels.set(`${section.id}::${item.slug}`, item.name);
-        }
-      }
-    }
-    return labels;
-  }, [board]);
-
   const columns = useMemo(() => {
-    if (view !== "all") {
-      const category = board.find((entry) => entry.key === view);
-      if (!category) return [];
-      const panels = category.sections.map((section) => ({ key: section.id, category, section }));
-      const stacks = Array.from({ length: columnCount }, () => [] as typeof panels);
-      panels.forEach((panel, index) => stacks[index % columnCount].push(panel));
-      return stacks.filter((stack) => stack.length > 0);
-    }
-    const groups = board.map((category) => ({ key: category.key, category, section: null }));
-    const arranged =
-      dataset === "psychoactive"
-        ? arrangeGroupsByLayout(groups, SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT, columnCount)
-        : new Map(
-            Array.from({ length: columnCount }, (_, column) => [
-              column,
-              groups.filter((_, index) => index % columnCount === column),
-            ]),
-          );
+    const arranged = columnLayout
+      ? arrangeGroupsByLayout(panels, columnLayout, columnCount)
+      : new Map(
+          Array.from({ length: columnCount }, (_, column) => [
+            column,
+            panels.filter((_, index) => index % columnCount === column),
+          ]),
+        );
     return Array.from({ length: columnCount }, (_, index) => arranged.get(index) ?? []).filter(
       (stack) => stack.length > 0,
     );
-  }, [board, columnCount, dataset, view]);
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveLabel(labelsByRow.get(String(event.active.id)) ?? null);
-  };
+  }, [columnCount, columnLayout, panels]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveLabel(null);
@@ -94,63 +90,69 @@ export function IndexLayoutBoard({ dataset, board, view, actions, onDrop }: Inde
     if (!over) return;
     const source = parseRowId(String(active.id));
     if (!source) return;
+
     const overRow = parseRowId(String(over.id));
     if (overRow) {
-      const target = board
-        .flatMap((category) => category.sections)
-        .find((section) => section.slot.categoryKey === overRow.slot.categoryKey && section.slot.sectionKey === overRow.slot.sectionKey);
+      const target = sections.find(
+        (section) =>
+          section.slot.categoryKey === overRow.slot.categoryKey &&
+          section.slot.sectionKey === overRow.slot.sectionKey,
+      );
       const index = target?.items.findIndex((item) => item.slug === overRow.slug) ?? -1;
-      if (index < 0) return;
-      onDrop(source.slot, source.slug, overRow.slot, index);
+      onDrop(source.slot, source.slug, overRow.slot, index < 0 ? 0 : index);
       return;
     }
-    // Dropped on a list itself (an empty section, or below the last row).
-    const target = board.flatMap((category) => category.sections).find((section) => section.id === String(over.id));
-    if (!target) return;
-    onDrop(source.slot, source.slug, target.slot, target.items.length);
-  };
 
-  if (columns.length === 0) {
-    return (
-      <p className="theme-text-muted px-4 py-10 text-center text-sm">
-        {view === "all" ? "This index has no categories yet. Add one from the toolbar." : "This category no longer exists in the draft."}
-      </p>
-    );
-  }
+    // Dropped on a list itself: an empty section, the tray, or below the last row.
+    const target = sections.find((section) => section.id === String(over.id));
+    if (target) {
+      onDrop(source.slot, source.slug, target.slot, target.items.length);
+      return;
+    }
+
+    const overSlot = parseRowId(`${String(over.id)}::`);
+    if (overSlot) {
+      onDrop(source.slot, source.slug, overSlot.slot, 0);
+    }
+  };
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
+      onDragStart={(event: DragStartEvent) => {
+        const row = parseRowId(String(event.active.id));
+        setActiveLabel(row ? resolveName(row.slug) : null);
+      }}
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveLabel(null)}
     >
-      <IndexPanelGrid columns={columns.length} gate={gate}>
-        {columns.map((stack, columnIndex) => (
-          <div key={columnIndex} className={INDEX_PANEL_STACK_CLASS_NAME}>
-            {stack.map((panel) =>
-              panel.section ? (
+      {columns.length === 0 ? (
+        <p className="theme-text-muted px-4 py-10 text-center text-sm">{emptyMessage}</p>
+      ) : (
+        <IndexPanelGrid columns={columns.length} gate={gate}>
+          {columns.map((stack, columnIndex) => (
+            <div key={columnIndex} className={INDEX_PANEL_STACK_CLASS_NAME}>
+              {stack.map((panel) => (
                 <IndexLayoutCard
                   key={panel.key}
                   category={panel.category}
-                  sections={[panel.section]}
-                  title={panel.section.label ?? panel.category.label}
-                  hideIcon
-                  showSectionHeaders={false}
-                  showCategoryTools={false}
+                  sections={panel.sections}
+                  title={panel.title}
+                  hideIcon={panel.hideIcon}
+                  chrome={panel.chrome}
+                  siblings={panel.siblings}
                   actions={actions}
                 />
-              ) : (
-                <IndexLayoutCard key={panel.key} category={panel.category} actions={actions} />
-              ),
-            )}
-          </div>
-        ))}
-      </IndexPanelGrid>
+              ))}
+            </div>
+          ))}
+        </IndexPanelGrid>
+      )}
+      {tray ? <div className="mt-8">{tray}</div> : null}
       <DragOverlay dropAnimation={null}>
         {activeLabel ? (
-          <div className="theme-index-card-link flex items-center gap-3 rounded-xl bg-dose-surface-muted px-3 py-2.5 text-[0.9375rem] shadow-[var(--theme-elevation-overlay)] ring-1 ring-dose-accent-strong">
+          <div className="theme-index-card-link theme-overlay-shadow flex items-center gap-3 rounded-xl bg-dose-surface-muted px-3 py-2.5 text-[0.9375rem] ring-1 ring-dose-accent-strong">
             <span className="theme-index-card-bullet inline-block h-1.5 w-1.5 rounded-full" />
             <span className="theme-index-card-label">{activeLabel}</span>
           </div>

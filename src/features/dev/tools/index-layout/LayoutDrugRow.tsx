@@ -49,6 +49,11 @@ export interface LayoutDrugRowProps {
   onBump: (slot: LayoutSlot, slug: string, direction: MoveDirection) => void;
   onMove: (from: LayoutSlot, slug: string, to: LayoutSlot) => void;
   onRemove: (slot: LayoutSlot, slug: string) => void;
+  /**
+   * Tray rows have no order to bump and nothing to remove from: their only
+   * actions are the destinations that put them into the index.
+   */
+  variant?: "list" | "tray";
 }
 
 /**
@@ -66,14 +71,16 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
   onBump,
   onMove,
   onRemove,
+  variant = "list",
 }: LayoutDrugRowProps) {
   const id = rowId(slot, item.slug);
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id,
   });
 
-  const canUp = index > 0;
-  const canDown = index < count - 1;
+  const isTray = variant === "tray";
+  const canUp = !isTray && index > 0;
+  const canDown = !isTray && index < count - 1;
   const grouped = new Map<string, BoardDestination[]>();
   for (const destination of destinations) {
     if (slotsEqual(destination.slot, slot)) continue;
@@ -88,7 +95,9 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "theme-index-card-link theme-text-secondary group/item relative mx-1 flex min-w-0 w-[calc(100%-1rem)] items-center gap-1 rounded-xl py-1 pl-1 pr-1 text-[0.9375rem] transition-[background-color,color,padding] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-within:bg-dose-surface-muted focus-within:text-dose-text",
-        "group-hover/item:pr-[5.5rem] focus-within:pr-[5.5rem] [@media(pointer:coarse)]:pr-[5.5rem]",
+        isTray
+          ? "group-hover/item:pr-9 focus-within:pr-9 [@media(pointer:coarse)]:pr-9"
+          : "group-hover/item:pr-[5.5rem] focus-within:pr-[5.5rem] [@media(pointer:coarse)]:pr-[5.5rem]",
         isDragging && "z-10 opacity-40",
         item.hiddenOnSite && "opacity-70",
       )}
@@ -120,28 +129,32 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
           "opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-within/item:opacity-100 [@media(pointer:coarse)]:opacity-100",
         )}
       >
-        <Button
-          type="button"
-          variant="ghost"
-          size="auto"
-          className={ROW_CONTROL_CLASS}
-          disabled={!canUp}
-          aria-label={`Move ${item.name} up`}
-          onClick={() => onBump(slot, item.slug, "up")}
-        >
-          <Icon icon="lucide:chevron-up" size={15} />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="auto"
-          className={ROW_CONTROL_CLASS}
-          disabled={!canDown}
-          aria-label={`Move ${item.name} down`}
-          onClick={() => onBump(slot, item.slug, "down")}
-        >
-          <Icon icon="lucide:chevron-down" size={15} />
-        </Button>
+        {isTray ? null : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="auto"
+              className={ROW_CONTROL_CLASS}
+              disabled={!canUp}
+              aria-label={`Move ${item.name} up`}
+              onClick={() => onBump(slot, item.slug, "up")}
+            >
+              <Icon icon="lucide:chevron-up" size={15} />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="auto"
+              className={ROW_CONTROL_CLASS}
+              disabled={!canDown}
+              aria-label={`Move ${item.name} down`}
+              onClick={() => onBump(slot, item.slug, "down")}
+            >
+              <Icon icon="lucide:chevron-down" size={15} />
+            </Button>
+          </>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -149,7 +162,7 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
               variant="ghost"
               size="auto"
               className={ROW_CONTROL_CLASS}
-              aria-label={`More actions for ${item.name}`}
+              aria-label={isTray ? `Place ${item.name} in the index` : `More actions for ${item.name}`}
             >
               <Icon icon="lucide:ellipsis" size={15} />
             </Button>
@@ -158,7 +171,7 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Icon icon="lucide:corner-down-right" size={14} className="mr-2" />
-                Move to
+                {isTray ? "Place in" : "Move to"}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent className="max-h-[60vh] min-w-[14rem] overflow-y-auto">
@@ -181,14 +194,18 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-dose-danger focus:text-dose-danger"
-              onSelect={() => onRemove(slot, item.slug)}
-            >
-              <Icon icon="lucide:x" size={14} className="mr-2" />
-              Remove from this list
-            </DropdownMenuItem>
+            {isTray ? null : (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-dose-danger focus:text-dose-danger"
+                  onSelect={() => onRemove(slot, item.slug)}
+                >
+                  <Icon icon="lucide:x" size={14} className="mr-2" />
+                  Remove from this list
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </span>
