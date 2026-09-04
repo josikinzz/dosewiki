@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorNotice, EditorSection, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
 
 import { PlaylistEditor } from "./PlaylistEditor";
@@ -217,7 +218,7 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
                       type="button"
                       variant="ghostDestructive"
                       size="icon"
-                      className="h-8 w-8"
+                      className={`h-8 w-8 ${TOUCH_ICON}`}
                       disabled={busy}
                       aria-label={`Remove ${playlist.title}`}
                       onClick={() => setDeleteTarget(playlist)}

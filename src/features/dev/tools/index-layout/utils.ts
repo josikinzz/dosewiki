@@ -5,6 +5,7 @@ import type {
   ManualSectionLink,
 } from "@/data/builders/manualIndexLoader";
 import type { SubstanceRecord } from "@/data/builders/contentBuilder";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { slugify } from "@/utils/slug";
 import type { SlugStatus, SlugIssue, SubstanceOption } from "./types";
 
@@ -19,6 +20,9 @@ export const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
  */
 export const inlineLabelInputClass =
   "theme-inline-label-input h-auto rounded-lg border-transparent bg-transparent px-1.5 py-1 shadow-[var(--theme-elevation-none)]";
+
+/** Compact icon control for the dense 320px card columns; the Button `icon` size is always 44px. */
+export const iconButtonClass = `h-7 w-7 ${TOUCH_ICON}`;
 
 export const areStringArraysEqual = (first: readonly string[], second: readonly string[]): boolean => {
   if (first === second) {

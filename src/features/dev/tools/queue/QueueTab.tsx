@@ -27,6 +27,7 @@ import {
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
+  useScrollToDetail,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
@@ -117,6 +118,9 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
   }, [loadList]);
 
   const selectedId = detail.status === "idle" ? null : detail.id;
+  // Below the lg split the list stacks above the review pane.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  useScrollToDetail(detailRef, selectedId);
 
   const select = (id: string) => {
     if (id === selectedId) {
@@ -279,6 +283,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
           )) : null}
         </EditorSection>
 
+        <div ref={detailRef} className="scroll-mt-6">
         <EditorSection
           icon="lucide:file-search"
           title="Review"
@@ -315,6 +320,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
             />
           )}
         </EditorSection>
+        </div>
       </div>
     </div>
   );

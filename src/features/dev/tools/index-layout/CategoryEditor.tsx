@@ -5,6 +5,7 @@ import {
   type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -20,7 +21,7 @@ import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surfa
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import type { ManualCategoryDefinition, ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
 import { AddSubstanceControl } from "./AddSubstanceControl";
-import { inlineLabelInputClass } from "./utils";
+import { iconButtonClass, inlineLabelInputClass } from "./utils";
 import { CategoryEditorDetailsPanel } from "./CategoryEditorDetailsPanel";
 import { SectionEditor } from "./SectionEditor";
 import { SubstanceListItem } from "./SubstanceListItem";
@@ -227,6 +228,7 @@ export const CategoryEditor = memo(
 
     const sectionSensors = useSensors(
       useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+      useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
       useSensor(KeyboardSensor),
     );
 
@@ -256,7 +258,7 @@ export const CategoryEditor = memo(
                 <Button
                   variant="glass"
                   size="icon"
-                  className="h-7 w-7 shrink-0 cursor-grab active:cursor-grabbing"
+                  className={`${iconButtonClass} shrink-0 cursor-grab touch-none active:cursor-grabbing`}
                   aria-label="Drag category"
                   {...attributes}
                   {...listeners}
@@ -271,7 +273,7 @@ export const CategoryEditor = memo(
                     auto-grows via field-sizing while staying a one-line value. */}
                 <Textarea
                   rows={1}
-                  className={`${inlineLabelInputClass} min-h-0 min-w-0 flex-1 resize-none overflow-hidden field-sizing-content text-[15px] font-semibold leading-snug tracking-wide`}
+                  className={`${inlineLabelInputClass} min-h-0 min-w-0 flex-1 resize-none overflow-hidden field-sizing-content text-[16px] font-semibold leading-snug tracking-wide md:text-[15px]`}
                   value={category.label}
                   onChange={(event) =>
                     handleFieldChange("label", event.target.value.replace(/\r?\n/g, " "))}
@@ -296,7 +298,7 @@ export const CategoryEditor = memo(
                   onClick={() => setIsExpanded((previous) => !previous)}
                   aria-expanded={isExpanded}
                   aria-label={isExpanded ? "Collapse category" : "Expand category"}
-                  className="ml-auto h-7 w-7 shrink-0"
+                  className={`${iconButtonClass} ml-auto shrink-0`}
                 >
                   {isExpanded ? (
                     <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" size={14} />
@@ -331,7 +333,7 @@ export const CategoryEditor = memo(
                   onClick={() => handleMoveCategory("up")}
                   disabled={index === 0}
                   aria-label="Move category up"
-                  className="h-7 w-7"
+                  className={iconButtonClass}
                 >
                   <Icon icon="lucide:arrow-up" className="h-3.5 w-3.5" size={14} />
                 </Button>
@@ -341,7 +343,7 @@ export const CategoryEditor = memo(
                   onClick={() => handleMoveCategory("down")}
                   disabled={index === total - 1}
                   aria-label="Move category down"
-                  className="h-7 w-7"
+                  className={iconButtonClass}
                 >
                   <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
                 </Button>
@@ -350,7 +352,7 @@ export const CategoryEditor = memo(
                   size="icon"
                   onClick={handleAddSection}
                   aria-label="Add section"
-                  className="h-7 w-7"
+                  className={iconButtonClass}
                 >
                   <Icon icon="lucide:plus-circle" className="h-3.5 w-3.5" size={14} />
                 </Button>
@@ -360,7 +362,7 @@ export const CategoryEditor = memo(
                   onClick={() => setDetailsOpen((previous) => !previous)}
                   aria-expanded={detailsOpen}
                   aria-label="Toggle category details"
-                  className={`h-7 w-7 ${detailsOpen ? "theme-text-primary border-[color:var(--theme-frosted-control-on-panel-hover-border)] bg-[var(--theme-frosted-control-on-panel-hover-bg)]" : ""}`.trim()}
+                  className={`${iconButtonClass} ${detailsOpen ? "theme-text-primary border-[color:var(--theme-frosted-control-on-panel-hover-border)] bg-[var(--theme-frosted-control-on-panel-hover-bg)]" : ""}`.trim()}
                 >
                   <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
                 </Button>
@@ -369,7 +371,7 @@ export const CategoryEditor = memo(
                   size="icon"
                   onClick={handleRemoveCategory}
                   aria-label="Remove category"
-                  className="ml-2 h-7 w-7"
+                  className={`${iconButtonClass} ml-2`}
                 >
                   <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
                 </Button>

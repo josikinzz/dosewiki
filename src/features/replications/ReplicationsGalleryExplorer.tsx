@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { focusRingClassName } from "@/components/ui/surface";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -292,9 +293,6 @@ export interface ReplicationsGalleryExplorerProps {
 const MASONRY_CLASS =
   "columns-3 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
 const MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid sm:mb-3";
-
-/** Control-bar toggles keep their compact height but honor 44px on touch. */
-const COARSE_TARGET_CLASS = "[@media(pointer:coarse)]:min-h-11";
 
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
@@ -1268,13 +1266,13 @@ function GalleryExplorer({
                   >
                     <ToggleGroupItem
                       value="artist"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       By artist
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="effect"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       By effect
                     </ToggleGroupItem>
@@ -1341,14 +1339,14 @@ function GalleryExplorer({
                   >
                     <ToggleGroupItem
                       value="all"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       All
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="image"
                       aria-label="Images"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       <Icon
                         icon="lucide:image"
@@ -1360,7 +1358,7 @@ function GalleryExplorer({
                     <ToggleGroupItem
                       value="video"
                       aria-label="Videos"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       <Icon
                         icon="lucide:video"
@@ -1389,19 +1387,19 @@ function GalleryExplorer({
                   >
                     <ToggleGroupItem
                       value="video-first"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       Videos first
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="count"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       Most works
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="alpha"
-                      className={COARSE_TARGET_CLASS}
+                      className={TOUCH_PILL}
                     >
                       A–Z
                     </ToggleGroupItem>
@@ -1420,7 +1418,8 @@ function GalleryExplorer({
                         aria-hidden={!sortActive || undefined}
                         inert={!sortActive}
                         className={cn(
-                          "flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+                          "flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden",
+                          TOUCH_ICON,
                           searchExpanded && "hidden",
                           !sortActive && "invisible",
                         )}
@@ -1464,7 +1463,8 @@ function GalleryExplorer({
                     aria-controls="replications-gallery-search"
                     onClick={() => setSearchExpanded(true)}
                     className={cn(
-                      "relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+                      "relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden",
+                      TOUCH_ICON,
                       searchExpanded && "hidden",
                     )}
                   >
@@ -1492,7 +1492,7 @@ function GalleryExplorer({
                       setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
                     }
                     className={cn(
-                      COARSE_TARGET_CLASS,
+                      TOUCH_PILL,
                       searchExpanded && "hidden sm:flex",
                     )}
                   />

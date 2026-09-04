@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/aria-role -- `role` here is the component prop for the member role, not an ARIA role */
-import { render, within } from "@testing-library/react";
+import { fireEvent, render, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const { badgeState } = vi.hoisted(() => ({
@@ -37,6 +37,7 @@ function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
       onPrimaryTabChange={vi.fn()}
       onTabChange={vi.fn()}
       onSignIn={vi.fn()}
+      onLeave={vi.fn()}
     />,
   );
   const nav = utils.getByRole("navigation", { name: "Dev mode tools" });
@@ -122,6 +123,7 @@ describe("DevModePageChrome rail", () => {
         onPrimaryTabChange={vi.fn()}
         onTabChange={onTabChange}
         onSignIn={vi.fn()}
+        onLeave={vi.fn()}
       />,
     );
 
@@ -157,6 +159,7 @@ describe("DevModePageChrome rail", () => {
         onPrimaryTabChange={vi.fn()}
         onTabChange={onTabChange}
         onSignIn={vi.fn()}
+        onLeave={vi.fn()}
       />,
     );
     const nav = getByRole("navigation", { name: "Dev mode tools" });
@@ -219,6 +222,7 @@ describe("DevModePageChrome rail", () => {
         onPrimaryTabChange={vi.fn()}
         onTabChange={vi.fn()}
         onSignIn={vi.fn()}
+        onLeave={vi.fn()}
       />,
     );
     const nav = getByRole("navigation", { name: "Dev mode tools" });
@@ -227,5 +231,85 @@ describe("DevModePageChrome rail", () => {
       expect(button.getAttribute("title")).toBe("Sign in required");
     }
     expect(getByRole("button", { name: "Sign in" })).toBeEnabled();
+  });
+});
+
+describe("DevModePageChrome phone sheet", () => {
+  function renderPhone(role: AppRole = "editor") {
+    const onTabChange = vi.fn();
+    const onPrimaryTabChange = vi.fn();
+    const onLeave = vi.fn();
+    const utils = render(
+      <DevModePageChrome
+        activePrimaryTab="tools"
+        activeTab="tag-editor"
+        isSignedIn
+        role={role}
+        sessionStatus="authenticated"
+        userEmail="editor@example.test"
+        userName="Editor"
+        onPrimaryTabChange={onPrimaryTabChange}
+        onTabChange={onTabChange}
+        onSignIn={vi.fn()}
+        onLeave={onLeave}
+      />,
+    );
+    return { ...utils, onTabChange, onPrimaryTabChange, onLeave };
+  }
+
+  it("names the current tool on the bar and lists every group in the sheet", () => {
+    const { getByRole, queryByRole } = renderPhone();
+    expect(queryByRole("dialog")).toBeNull();
+
+    const trigger = getByRole("button", { name: "Tools menu, current tool Tags" });
+    fireEvent.click(trigger);
+
+    const sheet = getByRole("dialog");
+    const menu = within(sheet).getByRole("navigation", { name: "Dev mode tools menu" });
+    const groups = within(menu).getAllByRole("group").map((group) => group.getAttribute("aria-label"));
+    expect(groups).toEqual(["Content", "Intake", "Site", "Site sections", "Session"]);
+
+    const shellTabs = TOOL_TABS.filter((tab) => tab.destination.kind === "shell");
+    for (const tab of shellTabs) {
+      const button = within(menu).getByRole("button", { name: new RegExp(`^${tab.label}`) });
+      expect(button.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
+      if (!roleMeetsFloor("editor", tab.role)) {
+        expect(button).toBeDisabled();
+        expect(within(button).getByText("Admin role required")).toBeInTheDocument();
+      }
+    }
+    expect(within(menu).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
+    expect(within(menu).getByRole("link", { name: "UI kit" }).getAttribute("href")).toBe("/dev/kit");
+    expect(within(menu).getByRole("link", { name: "Theme lab" }).getAttribute("href")).toBe("/dev/themes");
+    expect(within(menu).getByRole("button", { name: "Change log" })).toBeEnabled();
+    expect(within(menu).getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("switches tool and closes on selection", () => {
+    const { getByRole, queryByRole, onTabChange } = renderPhone();
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
+    fireEvent.click(within(getByRole("dialog")).getByRole("button", { name: "Substances" }));
+
+    expect(onTabChange).toHaveBeenCalledWith("articles");
+    expect(queryByRole("dialog")).toBeNull();
+  });
+
+  it("carries badges into the sheet", () => {
+    badgeState.counts = { "trip-reports": 4 };
+    const { getByRole } = renderPhone("admin");
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
+    expect(within(getByRole("dialog")).getByTitle("4 awaiting review").textContent).toBe("4");
+    badgeState.counts = {};
+  });
+
+  it("leaves the editor from the sheet and from the rail through the same handler", () => {
+    const { getByRole, getAllByRole, queryByRole, onLeave } = renderPhone();
+    fireEvent.click(getAllByRole("button", { name: "Leave editor" })[0]);
+    expect(onLeave).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
+    fireEvent.click(within(getByRole("dialog")).getByRole("button", { name: "Leave editor" }));
+    expect(onLeave).toHaveBeenCalledTimes(2);
+    expect(queryByRole("dialog")).toBeNull();
   });
 });

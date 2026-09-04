@@ -50,7 +50,7 @@ export function CategoryEditorDetailsPanel({
           placeholder="Optional editor notes for this category"
         />
         <p className="theme-text-faint text-xs">
-          Editor-facing only — never rendered on /substances. The public category
+          Editor-facing only, never rendered on /substances. The public category
           definition is a copy block (<code>{"substances-category-<key>"}</code>); edit it in
           Copy Studio.
         </p>

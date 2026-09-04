@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -68,6 +68,18 @@ describe("MyReportsTab", () => {
     expect(screen.getByText("2026-02-01")).toBeTruthy();
     expect(screen.getByText("2026-03-01")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /delete/i })).toBeNull();
+
+    // Each row is also the phone card: labelled fields and the edit action
+    // live inside it, since the header row is hidden below the tablet step.
+    const row = document.querySelector('tr[data-report="alpine-clarity"]');
+    if (!(row instanceof HTMLTableRowElement)) {
+      throw new Error("no row for alpine-clarity");
+    }
+    const card = within(row);
+    expect(card.getByRole("cell", { name: /^Address\s*\/reports\/alpine-clarity$/ })).toBeTruthy();
+    expect(card.getByRole("cell", { name: /^Trip date\s*2026-02-01$/ })).toBeTruthy();
+    expect(card.getByRole("cell", { name: /^Published\s*2026-03-01$/ })).toBeTruthy();
+    expect(card.getByRole("button", { name: "Edit" })).toBeEnabled();
   });
 
   it("shows the empty state when nothing is owned", async () => {

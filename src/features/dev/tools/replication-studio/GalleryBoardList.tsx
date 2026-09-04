@@ -29,6 +29,7 @@ import {
   type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCenter,
   useDroppable,
   useSensor,
@@ -41,7 +42,8 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { InteractiveContentCard } from "@/components/ui/surface";
-import { EditorStatusPill } from "@/features/dev/components";
+import { DesktopOnlyNotice, EditorStatusPill } from "@/features/dev/components";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 
 import { ReplicationThumb } from "./ReplicationThumb";
@@ -237,6 +239,7 @@ function CuratedRow({
   priorityIndex,
   curatedCount,
   focused,
+  readOnly,
   onMove,
   onMoveToEdge,
   onUncurate,
@@ -247,6 +250,7 @@ function CuratedRow({
   priorityIndex: number;
   curatedCount: number;
   focused: boolean;
+  readOnly: boolean;
   onMove: (slug: string, direction: "up" | "down") => void;
   onMoveToEdge: (slug: string, edge: "top" | "bottom") => void;
   onUncurate: (slug: string) => void;
@@ -255,7 +259,10 @@ function CuratedRow({
 }) {
   const { match, position, onStage } = row;
   const { title, slug } = match.replication;
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: slug });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: slug,
+    disabled: readOnly,
+  });
   const primaryActionRef = useBandFocus(focused, onFocusHandled);
 
   return (
@@ -273,60 +280,64 @@ function CuratedRow({
       >
         <div className="flex items-center gap-3">
           <PositionNumber position={position} onStage={onStage} />
-          <Button
-            variant="glass"
-            size="icon"
-            className="h-8 w-8 shrink-0 cursor-grab active:cursor-grabbing"
-            aria-label={`Drag ${title} to reorder its priority`}
-            {...attributes}
-            {...listeners}
-          >
-            <Icon icon="lucide:grip-vertical" size={14} />
-          </Button>
+          {readOnly ? null : (
+            <Button
+              variant="glass"
+              size="icon"
+              className="h-8 w-8 shrink-0 cursor-grab touch-none active:cursor-grabbing"
+              aria-label={`Drag ${title} to reorder its priority`}
+              {...attributes}
+              {...listeners}
+            >
+              <Icon icon="lucide:grip-vertical" size={14} />
+            </Button>
+          )}
           <GalleryMatchIdentity match={match} />
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              ref={primaryActionRef}
-              variant="glass"
-              size="icon"
-              className="h-8 w-8"
-              disabled={priorityIndex === 0}
-              aria-label={`Move ${title} up in priority`}
-              onClick={() => onMove(slug, "up")}
-            >
-              <Icon icon="lucide:arrow-up" size={14} />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              className="h-8 w-8"
-              disabled={priorityIndex === curatedCount - 1}
-              aria-label={`Move ${title} down in priority`}
-              onClick={() => onMove(slug, "down")}
-            >
-              <Icon icon="lucide:arrow-down" size={14} />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              className="h-8 w-8"
-              disabled={priorityIndex === 0}
-              aria-label={`Move ${title} to first priority`}
-              onClick={() => onMoveToEdge(slug, "top")}
-            >
-              <Icon icon="lucide:chevrons-up" size={14} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label={`Remove priority from ${title}`}
-              onClick={() => onUncurate(slug)}
-            >
-              <Icon icon="lucide:pin-off" size={14} />
-              Remove priority
-            </Button>
-            <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
-          </div>
+          {readOnly ? null : (
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                ref={primaryActionRef}
+                variant="glass"
+                size="icon"
+                className="h-8 w-8"
+                disabled={priorityIndex === 0}
+                aria-label={`Move ${title} up in priority`}
+                onClick={() => onMove(slug, "up")}
+              >
+                <Icon icon="lucide:arrow-up" size={14} />
+              </Button>
+              <Button
+                variant="glass"
+                size="icon"
+                className="h-8 w-8"
+                disabled={priorityIndex === curatedCount - 1}
+                aria-label={`Move ${title} down in priority`}
+                onClick={() => onMove(slug, "down")}
+              >
+                <Icon icon="lucide:arrow-down" size={14} />
+              </Button>
+              <Button
+                variant="glass"
+                size="icon"
+                className="h-8 w-8"
+                disabled={priorityIndex === 0}
+                aria-label={`Move ${title} to first priority`}
+                onClick={() => onMoveToEdge(slug, "top")}
+              >
+                <Icon icon="lucide:chevrons-up" size={14} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={`Remove priority from ${title}`}
+                onClick={() => onUncurate(slug)}
+              >
+                <Icon icon="lucide:pin-off" size={14} />
+                Remove priority
+              </Button>
+              <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
+            </div>
+          )}
         </div>
       </InteractiveContentCard>
     </li>
@@ -349,7 +360,7 @@ function ExcludeEverywhereButton({
       size="icon"
       className="h-8 w-8"
       aria-label={`Exclude ${title} from every gallery`}
-      title="Exclude everywhere — junk on every article, not just this one"
+      title="Exclude everywhere: junk on every article, not just this one"
       onClick={() => onExcludeEverywhere(slug)}
     >
       <Icon icon="lucide:trash-2" size={14} />
@@ -361,6 +372,7 @@ function ExcludeEverywhereButton({
 function CandidateRow({
   row,
   focused,
+  readOnly,
   onCurate,
   onExclude,
   onExcludeEverywhere,
@@ -368,6 +380,7 @@ function CandidateRow({
 }: {
   row: GalleryBoardRow;
   focused: boolean;
+  readOnly: boolean;
   onCurate: (slug: string) => void;
   onExclude: (slug: string) => void;
   onExcludeEverywhere: (slug: string) => void;
@@ -383,7 +396,71 @@ function CandidateRow({
         <div className="flex items-center gap-3">
           <PositionNumber position={row.position} onStage={row.onStage} />
           <GalleryMatchIdentity match={match} />
-          <div className="flex shrink-0 items-center gap-1">
+          {readOnly ? null : (
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                ref={primaryActionRef}
+                variant="secondary"
+                size="sm"
+                data-candidate-primary
+                aria-label={`Prioritize ${title}`}
+                onClick={() => onCurate(slug)}
+              >
+                <Icon icon="lucide:pin" size={14} />
+                Prioritize
+              </Button>
+              <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
+              <ExcludeEverywhereButton
+                title={title}
+                slug={slug}
+                onExcludeEverywhere={onExcludeEverywhere}
+              />
+            </div>
+          )}
+        </div>
+      </InteractiveContentCard>
+    </li>
+  );
+}
+
+/**
+ * The triage face of the same row. The junk-or-keeper call is made by looking
+ * at the picture, so the picture is the row: a big thumb, the title under it,
+ * and verbs that stay out of the way until the tile is hovered or focused.
+ */
+function TriageTile({
+  row,
+  focused,
+  readOnly,
+  onCurate,
+  onExclude,
+  onExcludeEverywhere,
+  onFocusHandled,
+}: {
+  row: GalleryBoardRow;
+  focused: boolean;
+  readOnly: boolean;
+  onCurate: (slug: string) => void;
+  onExclude: (slug: string) => void;
+  onExcludeEverywhere: (slug: string) => void;
+  onFocusHandled: () => void;
+}) {
+  const { match } = row;
+  const { title, slug, artist } = match.replication;
+  const primaryActionRef = useBandFocus(focused, onFocusHandled);
+
+  return (
+    <li className="list-none" {...{ [CANDIDATE_ATTR]: slug }}>
+      <div className="group relative overflow-hidden rounded-lg border border-[color:var(--editor-chip-border)]">
+        <ReplicationThumb row={match.replication} className="aspect-square w-full" />
+        {readOnly ? null : (
+          <div
+            className={cn(
+              "absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 bg-[var(--editor-panel-bg-subtle)] px-1 py-1",
+              "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+              MOTION,
+            )}
+          >
             <Button
               ref={primaryActionRef}
               variant="secondary"
@@ -402,65 +479,7 @@ function CandidateRow({
               onExcludeEverywhere={onExcludeEverywhere}
             />
           </div>
-        </div>
-      </InteractiveContentCard>
-    </li>
-  );
-}
-
-/**
- * The triage face of the same row. The junk-or-keeper call is made by looking
- * at the picture, so the picture is the row: a big thumb, the title under it,
- * and verbs that stay out of the way until the tile is hovered or focused.
- */
-function TriageTile({
-  row,
-  focused,
-  onCurate,
-  onExclude,
-  onExcludeEverywhere,
-  onFocusHandled,
-}: {
-  row: GalleryBoardRow;
-  focused: boolean;
-  onCurate: (slug: string) => void;
-  onExclude: (slug: string) => void;
-  onExcludeEverywhere: (slug: string) => void;
-  onFocusHandled: () => void;
-}) {
-  const { match } = row;
-  const { title, slug, artist } = match.replication;
-  const primaryActionRef = useBandFocus(focused, onFocusHandled);
-
-  return (
-    <li className="list-none" {...{ [CANDIDATE_ATTR]: slug }}>
-      <div className="group relative overflow-hidden rounded-lg border border-[color:var(--editor-chip-border)]">
-        <ReplicationThumb row={match.replication} className="aspect-square w-full" />
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 bg-[var(--editor-panel-bg-subtle)] px-1 py-1",
-            "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
-            MOTION,
-          )}
-        >
-          <Button
-            ref={primaryActionRef}
-            variant="secondary"
-            size="sm"
-            data-candidate-primary
-            aria-label={`Prioritize ${title}`}
-            onClick={() => onCurate(slug)}
-          >
-            <Icon icon="lucide:pin" size={14} />
-            Prioritize
-          </Button>
-          <ExcludeButton title={title} slug={slug} onExclude={onExclude} />
-          <ExcludeEverywhereButton
-            title={title}
-            slug={slug}
-            onExcludeEverywhere={onExcludeEverywhere}
-          />
-        </div>
+        )}
       </div>
       <p className="theme-text-primary mt-1 truncate text-xs font-medium" title={`${title} · ${artist}`}>
         {title}
@@ -480,7 +499,7 @@ function Fold({ cap }: { cap: number }) {
       <div className="theme-replication-fold flex items-center gap-3 border-y px-3 py-2">
         <Icon icon="lucide:scissors" size={14} className="theme-accent-emphasis shrink-0" />
         <p className="theme-accent-emphasis text-[11px] font-semibold uppercase tracking-[0.24em]">
-          The article stops here — positions {cap + 1}+ reach /replications only
+          The article stops here: positions {cap + 1}+ reach /replications only
         </p>
       </div>
     </li>
@@ -493,7 +512,7 @@ function GhostSlot({ position }: { position: number }) {
     <li className="list-none">
       <div className="flex h-[4.75rem] items-center gap-3 rounded-lg border border-dashed border-[color:var(--editor-chip-border)] px-3">
         <PositionNumber position={position} onStage />
-        <span className="theme-text-faint text-xs">Empty slot — nothing will fill this position.</span>
+        <span className="theme-text-faint text-xs">Empty slot: nothing will fill this position.</span>
       </div>
     </li>
   );
@@ -530,6 +549,7 @@ function CandidateBand({
   rows,
   cap,
   focusSlug,
+  readOnly,
   onCurate,
   onExclude,
   onExcludeEverywhere,
@@ -539,6 +559,7 @@ function CandidateBand({
   rows: GalleryBoardRow[];
   cap: number;
   focusSlug: string | null;
+  readOnly: boolean;
   onCurate: (slug: string) => void;
   onExclude: (slug: string) => void;
   onExcludeEverywhere: (slug: string) => void;
@@ -569,6 +590,7 @@ function CandidateBand({
   /** Keyboard verbs: `c` prioritizes, `x` excludes, arrows move focus. */
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {
+      if (readOnly) return;
       const target = event.target as HTMLElement | null;
       if (!target || event.metaKey || event.ctrlKey || event.altKey) return;
       if (target.closest("input, textarea, [contenteditable='true']")) return;
@@ -603,7 +625,7 @@ function CandidateBand({
       next?.querySelector<HTMLElement>("[data-candidate-primary]")?.focus({ preventScroll: true });
       next?.scrollIntoView?.({ block: "nearest" });
     },
-    [onCurate, onExclude, onExcludeEverywhere, triage],
+    [onCurate, onExclude, onExcludeEverywhere, readOnly, triage],
   );
 
   return (
@@ -642,13 +664,17 @@ function CandidateBand({
       >
         Automatic placements ({rows.length})
       </BandHeading>
-      {rows.length > 0 ? (
+      {rows.length === 0 ? (
+        <p className="theme-text-faint text-xs">Every published row has stored priority or is excluded.</p>
+      ) : readOnly ? (
+        <p className="theme-text-faint text-xs">
+          These rows are already on the article in policy order.
+        </p>
+      ) : (
         <p className="theme-text-faint text-xs">
           These rows are already on the article in policy order. <kbd>c</kbd> adds ordering priority,
           <kbd>x</kbd> excludes here, <kbd>Shift</kbd>+<kbd>X</kbd> excludes everywhere, and arrows move.
         </p>
-      ) : (
-        <p className="theme-text-faint text-xs">Every published row has stored priority or is excluded.</p>
       )}
       <ul
         ref={gridRef}
@@ -662,6 +688,7 @@ function CandidateBand({
               <TriageTile
                 row={row}
                 focused={focusSlug === row.match.replication.slug}
+                readOnly={readOnly}
                 onCurate={onCurate}
                 onExclude={onExclude}
                 onExcludeEverywhere={onExcludeEverywhere}
@@ -671,6 +698,7 @@ function CandidateBand({
               <CandidateRow
                 row={row}
                 focused={focusSlug === row.match.replication.slug}
+                readOnly={readOnly}
                 onCurate={onCurate}
                 onExclude={onExclude}
                 onExcludeEverywhere={onExcludeEverywhere}
@@ -741,13 +769,20 @@ export function GalleryBoardList({
   const headingBase = useId();
   const curatedHeadingId = `${headingBase}-curated`;
   const candidateHeadingId = `${headingBase}-candidates`;
+  // Curation is desktop-only: the hover triage verbs, modifier-key exclusions,
+  // and six-button rows have no touch grammar. Under a coarse pointer the board
+  // renders read-only behind the notice; Library, Playlists, and Featured keep
+  // working on a phone.
+  const readOnly = useMediaQuery("(pointer: coarse)");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
   const { setNodeRef: setUncurateZoneRef, isOver: isOverUncurateZone } = useDroppable({
     id: UNCURATE_ZONE_ID,
+    disabled: readOnly,
   });
 
   const curatedRows = board.rows.filter((row) => row.band === "curated");
@@ -759,6 +794,9 @@ export function GalleryBoardList({
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <div className="space-y-3">
+        {readOnly ? (
+          <DesktopOnlyNotice />
+        ) : null}
         <section aria-labelledby={curatedHeadingId} className="space-y-2">
           <BandHeading
             id={curatedHeadingId}
@@ -783,6 +821,7 @@ export function GalleryBoardList({
                     priorityIndex={priorityIndex}
                     curatedCount={board.curatedCount}
                     focused={focusSlug === row.match.replication.slug}
+                    readOnly={readOnly}
                     onMove={onMove}
                     onMoveToEdge={onMoveToEdge}
                     onUncurate={onUncurate}
@@ -810,7 +849,7 @@ export function GalleryBoardList({
                 ))}
               </ul>
               <p className="theme-text-faint text-xs">
-                {board.emptySlots} of the article's {board.cap} slots are empty — {board.filledSlots}{" "}
+                {board.emptySlots} of the article's {board.cap} slots are empty, {board.filledSlots}{" "}
                 filled.
               </p>
             </>
@@ -821,28 +860,33 @@ export function GalleryBoardList({
           ) : null}
         </section>
 
-        <div
-          ref={setUncurateZoneRef}
-          role="group"
-          aria-label="Drop a priority row here to restore automatic ordering"
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-1 py-2",
-            MOTION,
-            isOverUncurateZone && "bg-[var(--editor-panel-bg-subtle)]",
-          )}
-        >
-          <div className="theme-gradient-divider h-px flex-1" />
-          <span className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">
-            Drop here to remove priority
-          </span>
-          <div className="theme-gradient-divider h-px flex-1" />
-        </div>
+        {readOnly ? (
+          <div className="theme-gradient-divider h-px" />
+        ) : (
+          <div
+            ref={setUncurateZoneRef}
+            role="group"
+            aria-label="Drop a priority row here to restore automatic ordering"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-1 py-2",
+              MOTION,
+              isOverUncurateZone && "bg-[var(--editor-panel-bg-subtle)]",
+            )}
+          >
+            <div className="theme-gradient-divider h-px flex-1" />
+            <span className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">
+              Drop here to remove priority
+            </span>
+            <div className="theme-gradient-divider h-px flex-1" />
+          </div>
+        )}
 
         <CandidateBand
           headingId={candidateHeadingId}
           cap={board.cap}
           rows={candidateRows}
           focusSlug={focusSlug}
+          readOnly={readOnly}
           onCurate={onCurate}
           onExclude={onExclude}
           onExcludeEverywhere={onExcludeEverywhere}

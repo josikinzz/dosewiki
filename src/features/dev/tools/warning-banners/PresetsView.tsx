@@ -20,6 +20,7 @@
 
 import { Fragment } from "react";
 
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,12 @@ import {
   EditorActionStatus,
   EditorField,
   EditorStatusPill,
+  EditorTable,
+  EditorTableBody,
+  EditorTableCell,
+  EditorTableHead,
+  EditorTableHeading,
+  EditorTableRow,
   EditorToolbar,
   type EditorActionStatusState,
   type EditorStatusPillTone,
@@ -61,9 +68,6 @@ const STATE_LABEL: Record<WarningBannerPresetState, string> = {
   dormant: "renders nowhere",
   off: "off",
 };
-
-const HEADER_CELL_CLASS =
-  "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
 
 /**
  * The site-wide glyph size, wired as one object so the prop bundle reads as a
@@ -236,90 +240,77 @@ export function PresetsView({
       {isNew && draft ? <PresetDrawer {...drawerProps} draft={draft} isNew /> : null}
 
       {presets.length > 0 ? (
-        <div className="overflow-x-auto rounded-xl border border-dose-border">
-          <table className="w-full min-w-[44rem] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-dose-border">
-                <th scope="col" className={HEADER_CELL_CLASS}>
-                  Preset
-                </th>
-                <th scope="col" className={HEADER_CELL_CLASS}>
-                  Tone
-                </th>
-                <th scope="col" className={HEADER_CELL_CLASS}>
-                  Status
-                </th>
-                <th scope="col" className={HEADER_CELL_CLASS}>
-                  Enabled on
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {presets.map((preset) => {
-                const state = warningBannerPresetState(preset);
-                const open = preset.key === openKey;
-                return (
-                  <Fragment key={preset.key}>
-                    <tr className="border-b border-dose-border last:border-0">
-                      <td className="px-3 py-2.5">
-                        <button
-                          type="button"
-                          aria-expanded={open}
-                          onClick={() => onOpen(open ? null : preset)}
-                          className="theme-focus-ring-tight flex min-w-0 items-center gap-2 text-left"
-                        >
-                          <Icon
-                            icon={open ? "lucide:chevron-down" : "lucide:chevron-right"}
-                            size={14}
-                            className="theme-text-faint shrink-0"
-                          />
-                          {/* `key` is the name now. One banner used to carry
-                              three of them — key, label, headline — and nobody
-                              could say which the table was showing. */}
-                          <span className="min-w-0">
-                            <span
-                              className={cn(
-                                "block truncate font-mono text-sm font-medium",
-                                open ? "theme-accent-heading" : "theme-text-primary",
-                              )}
-                            >
-                              {preset.key}
-                            </span>
-                            <span className="theme-text-faint block truncate text-xs">
-                              {preset.headline || "No headline yet"}
-                            </span>
+        <EditorTable className="md:min-w-[44rem]">
+          <EditorTableHead>
+            <EditorTableHeading>Preset</EditorTableHeading>
+            <EditorTableHeading>Tone</EditorTableHeading>
+            <EditorTableHeading>Status</EditorTableHeading>
+            <EditorTableHeading>Enabled on</EditorTableHeading>
+          </EditorTableHead>
+          <EditorTableBody>
+            {presets.map((preset) => {
+              const state = warningBannerPresetState(preset);
+              const open = preset.key === openKey;
+              return (
+                <Fragment key={preset.key}>
+                  <EditorTableRow>
+                    <EditorTableCell wide>
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        onClick={() => onOpen(open ? null : preset)}
+                        className="theme-focus-ring-tight flex w-full min-w-0 items-center gap-2 text-left [@media(pointer:coarse)]:min-h-11 md:w-auto"
+                      >
+                        <ExpandIndicator isExpanded={open} className="theme-text-faint shrink-0" />
+                        {/* `key` is the name now. One banner used to carry
+                            three of them, key, label, headline, and nobody
+                            could say which the table was showing. */}
+                        <span className="min-w-0">
+                          <span
+                            className={cn(
+                              "block truncate font-mono text-sm font-medium",
+                              open ? "theme-accent-heading" : "theme-text-primary",
+                            )}
+                          >
+                            {preset.key}
                           </span>
-                        </button>
-                      </td>
-                      <td className="theme-text-secondary px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em]">
-                        {preset.tone}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <EditorStatusPill tone={STATE_PILL_TONE[state]}>
-                          {state === "live"
-                            ? preset.allSubstances
-                              ? "live · all"
-                              : `live · ${preset.enabledSlugs.length}`
-                            : STATE_LABEL[state]}
-                        </EditorStatusPill>
-                      </td>
-                      <td className="theme-text-secondary px-3 py-2.5 text-sm tabular-nums">
-                        {preset.allSubstances ? "All" : preset.enabledSlugs.length}
-                      </td>
-                    </tr>
-                    {open && draft ? (
-                      <tr className="border-b border-dose-border last:border-0">
-                        <td colSpan={4} className="p-3">
-                          <PresetDrawer {...drawerProps} draft={draft} isNew={false} />
-                        </td>
-                      </tr>
-                    ) : null}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                          <span className="theme-text-faint block truncate text-xs">
+                            {preset.headline || "No headline yet"}
+                          </span>
+                        </span>
+                      </button>
+                    </EditorTableCell>
+                    <EditorTableCell
+                      label="Tone"
+                      className="theme-text-secondary text-[11px] font-semibold uppercase tracking-[0.16em]"
+                    >
+                      {preset.tone}
+                    </EditorTableCell>
+                    <EditorTableCell label="Status">
+                      <EditorStatusPill tone={STATE_PILL_TONE[state]}>
+                        {state === "live"
+                          ? preset.allSubstances
+                            ? "live · all"
+                            : `live · ${preset.enabledSlugs.length}`
+                          : STATE_LABEL[state]}
+                      </EditorStatusPill>
+                    </EditorTableCell>
+                    <EditorTableCell label="Enabled on" className="theme-text-secondary text-sm tabular-nums">
+                      {preset.allSubstances ? "All" : preset.enabledSlugs.length}
+                    </EditorTableCell>
+                  </EditorTableRow>
+                  {open && draft ? (
+                    <EditorTableRow>
+                      <EditorTableCell wide colSpan={4} className="md:p-3">
+                        <PresetDrawer {...drawerProps} draft={draft} isNew={false} />
+                      </EditorTableCell>
+                    </EditorTableRow>
+                  ) : null}
+                </Fragment>
+              );
+            })}
+          </EditorTableBody>
+        </EditorTable>
       ) : null}
     </div>
   );

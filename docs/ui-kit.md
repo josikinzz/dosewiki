@@ -61,6 +61,15 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    `⋯ ⌄` pair is an accessibility decision: dose.wiki readers may be heavily
    intoxicated, and the doubled cue stays legible as "there is more here"
    when a lone chevron does not.
+5. **Touch targets are a public style contract.** Under a coarse pointer every
+   compact control reaches 44px: the Button sizes `sm`, `pill`, `xs`, `chip`,
+   and `quiet` carry `[@media(pointer:coarse)]:min-h-11`, and icon-only
+   controls that stay compact on desktop append `TOUCH_ICON` from
+   `src/components/ui/touchTargets.ts` (`TOUCH_PILL` for height-only floors).
+   Fields keep 16px on phones so iOS does not zoom on focus: the `sm` size of
+   `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders
+   `text-[16px] md:text-sm`. Tests may assert these two class recipes by name;
+   `src/components/ui/touch-sizing.test.tsx` guards them.
 
 ## Accent usage rules
 

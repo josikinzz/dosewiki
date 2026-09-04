@@ -5,6 +5,7 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCenter,
   type DragEndEvent,
   useSensor,
@@ -22,6 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   EditorActionStatus,
   EditorStatusPill,
@@ -34,6 +36,9 @@ import { ReplicationThumb } from "./ReplicationThumb";
 import type { StudioRow } from "./replicationStudioModel";
 
 const CANDIDATE_BATCH_SIZE = 24;
+
+/** Compact icon control; the Button `icon` size is always 44px. */
+const ICON_BUTTON_CLASS = `h-8 w-8 ${TOUCH_ICON}`;
 
 export type VisualPlaylistComposerProps = {
   allRows: readonly StudioRow[];
@@ -93,7 +98,7 @@ function SortablePlaylistRow({
         type="button"
         variant="ghost"
         size="icon"
-        className="h-8 w-8 cursor-grab active:cursor-grabbing"
+        className={cn(ICON_BUTTON_CLASS, "cursor-grab touch-none active:cursor-grabbing")}
         disabled={disabled}
         aria-label={`Drag ${row.title}`}
         {...attributes}
@@ -108,7 +113,7 @@ function SortablePlaylistRow({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className={ICON_BUTTON_CLASS}
           disabled={disabled || index === 0}
           aria-label={`Move ${row.title} up`}
           onClick={() => onMove(row.slug, "up")}
@@ -119,7 +124,7 @@ function SortablePlaylistRow({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className={ICON_BUTTON_CLASS}
           disabled={disabled || index === count - 1}
           aria-label={`Move ${row.title} down`}
           onClick={() => onMove(row.slug, "down")}
@@ -130,7 +135,7 @@ function SortablePlaylistRow({
           type="button"
           variant="ghostDestructive"
           size="icon"
-          className="h-8 w-8"
+          className={ICON_BUTTON_CLASS}
           disabled={disabled}
           aria-label={`Remove ${row.title} from playlist`}
           onClick={() => onRemove(row.slug)}
@@ -225,6 +230,7 @@ export function VisualPlaylistComposer({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 

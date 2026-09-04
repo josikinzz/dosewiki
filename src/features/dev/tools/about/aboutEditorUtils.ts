@@ -40,15 +40,26 @@ export function resolveAboutPlaceholders(
   });
 }
 
+/**
+ * Grows a textarea to fit its content between `minHeight` and `maxHeight`.
+ * Beyond the cap the field keeps its own scrollbar instead of stretching the
+ * page, so a long About body stays a field rather than a page-long column.
+ */
 export function resizeTextareaToContent(
   element: HTMLTextAreaElement | null,
   minHeight: number,
+  maxHeight: number,
 ): void {
   if (!element) {
     return;
   }
 
   element.style.height = "auto";
-  const nextHeight = Math.max(element.scrollHeight, minHeight);
+  const nextHeight = Math.min(Math.max(element.scrollHeight, minHeight), maxHeight);
   element.style.height = `${nextHeight}px`;
+}
+
+/** The auto-grow ceiling: 60% of the viewport, so the cap follows the device. */
+export function textareaViewportCap(): number {
+  return Math.round(window.innerHeight * 0.6);
 }

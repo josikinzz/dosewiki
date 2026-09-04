@@ -19,6 +19,7 @@ import {
   resizeTextareaToContent,
   resolveAboutPlaceholders,
   stripDiffHeading,
+  textareaViewportCap,
 } from "./aboutEditorUtils";
 import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
@@ -148,22 +149,22 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   }, [availableProfiles, currentFounderSet]);
 
   useEffect(() => {
-    resizeTextareaToContent(textareaRef.current, AUTO_RESIZE_MIN_HEIGHT);
+    resizeTextareaToContent(textareaRef.current, AUTO_RESIZE_MIN_HEIGHT, textareaViewportCap());
   }, [aboutMarkdown]);
 
   useEffect(() => {
-    resizeTextareaToContent(subtitleTextareaRef.current, SUBTITLE_MIN_HEIGHT);
+    resizeTextareaToContent(subtitleTextareaRef.current, SUBTITLE_MIN_HEIGHT, textareaViewportCap());
   }, [aboutSubtitle]);
 
   const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const element = event.currentTarget;
-    resizeTextareaToContent(element, AUTO_RESIZE_MIN_HEIGHT);
+    resizeTextareaToContent(element, AUTO_RESIZE_MIN_HEIGHT, textareaViewportCap());
     replaceMarkdown(element.value);
   };
 
   const handleSubtitleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const element = event.currentTarget;
-    resizeTextareaToContent(element, SUBTITLE_MIN_HEIGHT);
+    resizeTextareaToContent(element, SUBTITLE_MIN_HEIGHT, textareaViewportCap());
     replaceSubtitle(element.value);
   };
 

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { EmptyStateSurface } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { ActionNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
 
 import type { ReplicationPlaylist } from "./replicationPlaylistModel";
@@ -69,7 +70,7 @@ function PlaylistRow({
           type="button"
           variant="ghostDestructive"
           size="icon"
-          className="h-8 w-8"
+          className={`h-8 w-8 ${TOUCH_ICON}`}
           disabled={deleting || actionsDisabled}
           aria-label={deleting ? `Deleting ${playlist.title}` : `Delete ${playlist.title}`}
           onClick={() => onRequestDelete(playlist)}

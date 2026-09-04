@@ -11,6 +11,8 @@ export type { ManualCategoryDefinition, ManualCategorySection, ManualIndexConfig
 
 export interface IndexLayoutTabProps {
   commitPanel?: ReactNode;
+  /** Fine-pointer only: the action toolbar sticks to the top of the board. */
+  enableStickyPanels: boolean;
 }
 
 export type SubstanceOption = {

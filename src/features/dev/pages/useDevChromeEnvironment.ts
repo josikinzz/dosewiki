@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import type { DevModeTab } from "./devTabRegistry";
 
@@ -26,35 +28,18 @@ export function useDevChromeEnvironment({
   hasPendingChanges: boolean;
   onTabNoticeClear: (tab: DevModeTab) => void;
 }) {
-  const [enableStickyPanels, setEnableStickyPanels] = useState(false);
+  const enableStickyPanels = useMediaQuery("(pointer: fine)");
 
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+  // "Leave the editor": the tools sit as an overlay over the public site and
+  // `close()` returns to the substances index. Escape and the visible Leave
+  // editor control share this one path, including the unsaved-changes confirm.
+  const leaveEditor = useCallback(() => {
+    if (hasPendingChanges && !window.confirm("Leave the editor? Unsaved changes will be lost.")) {
       return;
     }
+    close();
+  }, [close, hasPendingChanges]);
 
-    const query = window.matchMedia("(pointer: fine)");
-    const update = () => {
-      setEnableStickyPanels(query.matches);
-    };
-
-    update();
-
-    if (typeof query.addEventListener === "function") {
-      query.addEventListener("change", update);
-      return () => {
-        query.removeEventListener("change", update);
-      };
-    }
-
-    query.addListener(update);
-    return () => {
-      query.removeListener(update);
-    };
-  }, []);
-
-  // Escape means "leave the editor": the tools sit as an overlay over the
-  // public site and `close()` returns to the substances index.
   useEffect(() => {
     const handleKeydown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== "Escape") {
@@ -67,19 +52,12 @@ export function useDevChromeEnvironment({
         return;
       }
 
-      if (
-        hasPendingChanges &&
-        !window.confirm("Leave the editor? Unsaved changes will be lost.")
-      ) {
-        return;
-      }
-
-      close();
+      leaveEditor();
     };
 
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [close, hasPendingChanges]);
+  }, [leaveEditor]);
 
   useEffect(() => {
     onTabNoticeClear(activeTab);
@@ -107,6 +85,7 @@ export function useDevChromeEnvironment({
 
   return {
     enableStickyPanels,
+    leaveEditor,
     mainClassName: "w-full px-4 py-6 text-white md:px-6 lg:px-8",
     contentWrapperClass,
   };

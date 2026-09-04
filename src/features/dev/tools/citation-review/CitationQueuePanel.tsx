@@ -114,11 +114,11 @@ export function CitationQueuePanel({
             entry.blockingRejectedCount;
           const isSelected = selectedSlug === entry.slug;
           return (
-            <div key={entry.slug} className="relative">
+            <div key={entry.slug} className="space-y-1">
               <EditorListItem
                 active={isSelected}
                 onSelect={() => onSelectSlug(entry.slug)}
-                className="flex-col items-stretch gap-1 px-4 pb-9 pt-3"
+                className="flex-col items-stretch gap-1 px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <p
@@ -142,17 +142,14 @@ export function CitationQueuePanel({
                   {entry.approvedCount} approved · Updated {formatUpdatedAt(entry.updatedAt)}
                 </p>
               </EditorListItem>
-              <Button
-                asChild
-                variant="link"
-                size="auto"
-                className="absolute bottom-3 left-4 gap-1 text-xs"
-              >
-                <a href={`/review/${entry.slug}`}>
-                  Open in Review
-                  <Icon icon="lucide:arrow-up-right" size={14} />
-                </a>
-              </Button>
+              <div className="flex justify-end">
+                <Button asChild variant="quiet" size="quiet">
+                  <a href={`/review/${entry.slug}`}>
+                    Open in Review
+                    <Icon icon="lucide:arrow-up-right" size={14} />
+                  </a>
+                </Button>
+              </div>
             </div>
           );
         })}

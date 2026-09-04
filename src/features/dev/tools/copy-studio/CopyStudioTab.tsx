@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import {
   DiffPreview,
@@ -22,6 +23,7 @@ import {
   EditorToolbar,
   type EditorActionStatusState,
   type EditorNoticeMessage,
+  useScrollToDetail,
 } from "@/features/dev/components";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { api } from "../../../../../convex/_generated/api";
@@ -44,12 +46,6 @@ import {
   type CopyStudioBlock,
   type CopyStudioDraft,
 } from "./copyStudioUtils";
-
-const TEXTAREA_CLASS =
-  "theme-editor-field w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2.5 text-sm leading-6 theme-text-primary transition focus:outline-none focus:ring-2";
-
-const ITEM_INPUT_CLASS =
-  "theme-editor-field w-full rounded-lg border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2 text-sm theme-text-primary transition focus:outline-none focus:ring-2";
 
 type SaveState = EditorActionStatusState | "idle";
 
@@ -122,6 +118,12 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     setActiveKey(key);
     setNotice(null);
   }, []);
+
+  // Below the lg split the block list stacks above the editor. Keyed on the
+  // tapped block, not `activeBlock`, so the first-block fallback on load and
+  // on a group change does not move the page.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  useScrollToDetail(detailRef, activeKey || null);
 
   const isDirty = activeBlock ? isDraftDirty(activeBlock, draft) : false;
   const canReset = activeBlock ? canResetToDefault(activeBlock, draft) : false;
@@ -342,7 +344,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div ref={detailRef} className="scroll-mt-6 space-y-6">
             {activeBlock ? (
               <>
                 {notice ? <EditorNotice notice={notice} /> : null}
@@ -377,8 +379,8 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                     <div className="space-y-2">
                       {draft.items.map((item, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <input
-                            className={ITEM_INPUT_CLASS}
+                          <Input
+                            aria-label={`Item ${index + 1}`}
                             value={item}
                             onChange={(event) => {
                               const next = [...draft.items];
@@ -390,6 +392,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                             type="button"
                             variant="ghost"
                             size="sm"
+                            className="shrink-0 [@media(pointer:coarse)]:min-w-11"
                             aria-label={`Remove item ${index + 1}`}
                             onClick={() =>
                               setDraft({
@@ -413,9 +416,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                       </Button>
                     </div>
                   ) : (
-                    <textarea
+                    <Textarea
                       {...fieldProps}
-                      className={TEXTAREA_CLASS}
+                      className="leading-6"
                       rows={activeBlock.kind === "markdown" ? 12 : 4}
                       value={draft.body}
                       onChange={(event) => setDraft({ ...draft, body: event.target.value })}

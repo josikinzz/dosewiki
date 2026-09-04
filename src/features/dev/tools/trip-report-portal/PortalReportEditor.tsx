@@ -215,7 +215,7 @@ export function PortalReportEditor({
                     aria-label="Add tag"
                     value={tagDraft}
                     placeholder="Add tag…"
-                    className="theme-text-primary min-w-24 flex-1 bg-transparent px-1 py-0.5 text-[13px] outline-none"
+                    className="theme-text-primary min-w-24 flex-1 bg-transparent px-1 py-0.5 text-[16px] outline-none md:text-[13px]"
                     onChange={(event) => setTagDraft(event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" && tagDraft.trim()) {
@@ -234,7 +234,10 @@ export function PortalReportEditor({
                 <FieldLabel>Substances</FieldLabel>
                 <div className="space-y-1.5">
                   {draft.substances.map((substance, index) => (
-                    <div key={index} className="grid grid-cols-[1.4fr_0.8fr_0.8fr_auto] gap-1.5">
+                    <div
+                      key={index}
+                      className="grid grid-cols-1 gap-1.5 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]"
+                    >
                       <Input
                         aria-label={`Substance ${index + 1} name`}
                         value={substance.name}
@@ -275,9 +278,10 @@ export function PortalReportEditor({
                       <Button
                         type="button"
                         variant="iconGhost"
-                        size="auto"
-                        className="h-9 w-9"
+                        size="icon"
+                        className="justify-self-end md:justify-self-auto"
                         aria-label={`Remove substance ${index + 1}`}
+                        title="Remove substance"
                         onClick={() =>
                           patch({ substances: draft.substances.filter((_, at) => at !== index) })
                         }
@@ -326,7 +330,7 @@ export function PortalReportEditor({
                       <Input
                         aria-label="Type the report slug to confirm deletion"
                         value={deleteConfirmation}
-                        className="w-64 font-mono"
+                        className="w-full font-mono md:w-64"
                         onChange={(event) => setDeleteConfirmation(event.target.value)}
                       />
                       <Button
@@ -423,7 +427,7 @@ function GhostPill({ children, onClick }: { children: React.ReactNode; onClick: 
     <button
       type="button"
       onClick={onClick}
-      className="theme-portal-ghost-pill inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-xs transition-colors"
+      className="theme-portal-ghost-pill inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-xs transition-colors [@media(pointer:coarse)]:min-h-11"
     >
       {children}
     </button>

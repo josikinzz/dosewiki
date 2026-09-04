@@ -111,7 +111,7 @@ function GhostPill({ children, onClick }: { children: React.ReactNode; onClick: 
     <button
       type="button"
       onClick={onClick}
-      className="theme-portal-ghost-pill inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-xs transition-colors"
+      className="theme-portal-ghost-pill inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-xs transition-colors [@media(pointer:coarse)]:min-h-11"
     >
       {children}
     </button>
@@ -208,7 +208,7 @@ function TimelineBlock({
                 aria-label={`${label} entry ${index + 1} timestamp`}
                 value={entry.time ?? ""}
                 placeholder="T+0:00"
-                className="h-7 w-24 px-1.5 py-0.5 font-mono text-xs"
+                className="w-full md:w-28 font-mono"
                 onChange={(event) =>
                   onChange(
                     entries.map((item, at) =>
@@ -222,10 +222,10 @@ function TimelineBlock({
               <Button
                 type="button"
                 variant="iconGhost"
-                size="auto"
-                className="h-7 w-7"
+                size="icon"
                 disabled={index === 0}
                 aria-label={`Move ${label} entry ${index + 1} earlier`}
+                title="Move earlier"
                 onClick={() => onChange(swap(entries, index, index - 1))}
               >
                 ↑
@@ -233,10 +233,10 @@ function TimelineBlock({
               <Button
                 type="button"
                 variant="iconGhost"
-                size="auto"
-                className="h-7 w-7"
+                size="icon"
                 disabled={index === entries.length - 1}
                 aria-label={`Move ${label} entry ${index + 1} later`}
+                title="Move later"
                 onClick={() => onChange(swap(entries, index, index + 1))}
               >
                 ↓

@@ -378,6 +378,8 @@ export function useContributorsController({
     directory,
     visibleProfiles,
     resolvedKey,
+    /** The key the editor tapped, unlike `resolvedKey` which also falls back to the first visible row. */
+    selectedKey,
     selectProfile,
     detail,
     detailError,

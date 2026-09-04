@@ -9,9 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorField } from "@/features/dev/components";
 import { EffectEntryEditor } from "./EffectEntryEditor";
 import type { EffectEntry } from "@/schema";
+
+const SUBCATEGORY_MOVE_BUTTON_CLASS =
+  `h-6 w-6 rounded p-1 text-[var(--theme-text-faint)] hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed ${TOUCH_ICON}`;
 
 export interface SubcategoryEditorProps {
   /** The subcategory key/heading */
@@ -95,20 +99,24 @@ export function SubcategoryEditor({
             <Button
               type="button"
               variant="iconGhost"
+              size="auto"
               onClick={onMoveUp}
               disabled={!canMoveUp}
-              className="rounded p-1 text-[var(--theme-text-faint)] hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
+              className={SUBCATEGORY_MOVE_BUTTON_CLASS}
               title="Move up"
+              aria-label={`Move subcategory ${index + 1} up`}
             >
               <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
             </Button>
             <Button
               type="button"
               variant="iconGhost"
+              size="auto"
               onClick={onMoveDown}
               disabled={!canMoveDown}
-              className="rounded p-1 text-[var(--theme-text-faint)] hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
+              className={SUBCATEGORY_MOVE_BUTTON_CLASS}
               title="Move down"
+              aria-label={`Move subcategory ${index + 1} down`}
             >
               <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
             </Button>
@@ -148,7 +156,8 @@ export function SubcategoryEditor({
               value={note}
               onChange={(e) => onNoteChange(e.target.value)}
               placeholder="Brief qualitative description of effects in this subcategory..."
-              className="min-h-[60px] resize-none text-sm"
+              textareaSize="sm"
+              className="resize-none"
               rows={2}
             />
           </EditorField>

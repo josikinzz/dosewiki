@@ -1,6 +1,9 @@
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
+  DesktopOnlyNotice,
   EditorActionStatus,
   EditorCheckbox,
   EditorNotice,
@@ -125,6 +128,14 @@ export function MoleculeEditorWorkbench({
   onDismissSaveResult,
 }: MoleculeEditorWorkbenchProps) {
   const guardMismatch = guard != null && !guard.match;
+  // Drawing is desktop-only: OpenChemLib's toolbar, keyboard atom typing, and
+  // click-to-pick bond modes have no touch equivalent. Mirrors the pointer query
+  // `useDevChromeEnvironment` uses for sticky panels, inverted.
+  const coarsePointer = useMediaQuery("(pointer: coarse)");
+  const hasCanvas = !!selected && !noStructure;
+  // The canvas stays mounted (invisible) on coarse pointers: it is the engine
+  // behind flip / straighten and every emitted MOL block, not just the drawing UI.
+  const drawingEnabled = hasCanvas && !coarsePointer;
 
   return (
     <EditorSection
@@ -132,11 +143,11 @@ export function MoleculeEditorWorkbench({
       title="Editor"
       delay={0.05}
       description={
-        selected && !noStructure ? (
+        drawingEnabled ? (
           <span className="inline-flex items-center gap-1.5">
             <Icon icon="lucide:lasso-select" size={13} className="shrink-0" />
             <span>
-              Pick the lasso tool near the top of the toolbar to drag atoms — the default bond
+              Pick the lasso tool near the top of the toolbar to drag atoms. The default bond
               tool draws new bonds. Wedge / hash stereo tools live in the same toolbar.
               {mode === "classes"
                 ? " To place a labeled R position, pick the ?… atom tool and type R plus the class's map number (e.g. R8 → Rα on phenethylamine)."
@@ -172,57 +183,70 @@ export function MoleculeEditorWorkbench({
         {/* Drag-and-drop duplicates the accessible tracing file picker. */}
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
-          className="relative h-[60vh] min-h-[30rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body xl:min-w-0 xl:flex-1"
+          className={cn(
+            "relative w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body xl:min-w-0 xl:flex-1",
+            coarsePointer ? "h-64" : "h-[60vh] min-h-[30rem]",
+          )}
           onDragOver={(event) => {
-            if (selected && !noStructure) event.preventDefault();
+            if (drawingEnabled) event.preventDefault();
           }}
           onDrop={(event) => {
-            if (!selected || noStructure) return;
+            if (!drawingEnabled) return;
             event.preventDefault();
             const file = event.dataTransfer.files?.[0];
             if (file) tracing.loadFile(file);
           }}
         >
-          {!selected ? (
+          {hasCanvas ? (
+            <OclEditor
+              source={source}
+              sourceEpoch={sourceEpoch}
+              atomLabels={atomLabels}
+              onChange={onEditorChange}
+              onError={onCanvasError}
+              fineRotation={fineRotation}
+              mirrorDirection={mirrorDirection}
+              onMirrorComplete={() => onMirrorDirectionChange(null)}
+              snapRequest={snapRequest}
+              onSnapComplete={onSnapComplete}
+              onSelectedBondCountChange={onSelectedBondCountChange}
+              bondPickActive={bondPickActive}
+              onBondPickComplete={onBondPickComplete}
+              boldBonds={boldBonds}
+              boldToggleActive={boldToggleActive}
+              onBoldBondsChange={onBoldBondsChange}
+              onBoldToggleExit={() => onBoldToggleActiveChange(false)}
+              className={cn(
+                "absolute inset-3 overflow-hidden rounded-lg",
+                coarsePointer && "invisible",
+              )}
+            />
+          ) : null}
+          {coarsePointer ? (
+            <DesktopOnlyCanvas />
+          ) : !selected ? (
             <EmptyCanvas />
           ) : noStructure ? (
             <NoStructureCanvas mode={mode} />
           ) : (
-            <>
-              <OclEditor
-                source={source}
-                sourceEpoch={sourceEpoch}
-                atomLabels={atomLabels}
-                onChange={onEditorChange}
-                onError={onCanvasError}
-                fineRotation={fineRotation}
-                mirrorDirection={mirrorDirection}
-                onMirrorComplete={() => onMirrorDirectionChange(null)}
-                snapRequest={snapRequest}
-                onSnapComplete={onSnapComplete}
-                onSelectedBondCountChange={onSelectedBondCountChange}
-                bondPickActive={bondPickActive}
-                onBondPickComplete={onBondPickComplete}
-                boldBonds={boldBonds}
-                boldToggleActive={boldToggleActive}
-                onBoldBondsChange={onBoldBondsChange}
-                onBoldToggleExit={() => onBoldToggleActiveChange(false)}
-                className="absolute inset-3 overflow-hidden rounded-lg"
-              />
-              <TracingOverlay layer={tracing} className="absolute inset-3 rounded-lg" />
-              {computing ? (
-                <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
-                  <span className="inline-flex items-center gap-2">
-                    <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
-                    Loading molecule…
-                  </span>
-                </div>
-              ) : null}
-            </>
+            <TracingOverlay layer={tracing} className="absolute inset-3 rounded-lg" />
           )}
+          {hasCanvas && computing ? (
+            <div className="theme-text-faint absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
+              <span className="inline-flex items-center gap-2">
+                <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
+                Loading molecule…
+              </span>
+            </div>
+          ) : null}
         </div>
 
-        <div className="sticky bottom-0 z-10 flex flex-wrap items-start gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted p-4 xl:static xl:w-64 xl:shrink-0 xl:flex-col xl:items-stretch xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0">
+        <div
+          className={cn(
+            "flex flex-wrap items-start gap-x-6 gap-y-4 rounded-xl border border-dose-border bg-dose-surface-muted p-4 xl:static xl:w-64 xl:shrink-0 xl:flex-col xl:items-stretch xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0",
+            !coarsePointer && "sticky bottom-0 z-10",
+          )}
+        >
           <MoleculePreview
             svg={previewSvg}
             ready={oclReady}
@@ -235,19 +259,23 @@ export function MoleculeEditorWorkbench({
             active={!!selected && !noStructure}
             mode={mode}
           />
-          <div className="min-w-52 space-y-2 xl:min-w-0">
-            <p className="theme-text-faint text-xs font-medium uppercase tracking-wide">Editor settings</p>
-            <EditorCheckbox
-              checked={fineRotation}
-              onChange={(event) => onFineRotationChange(event.target.checked)}
-              disabled={!selected || noStructure || renderBlocked}
-              label="Fine rotation"
-              description="Allow small free-angle adjustments below the editor's coarse rotation threshold."
-            />
-          </div>
-          <div className="min-w-52 xl:min-w-0">
-            <TracingControls layer={tracing} disabled={!selected || noStructure} />
-          </div>
+          {!coarsePointer ? (
+            <>
+              <div className="min-w-52 space-y-2 xl:min-w-0">
+                <p className="theme-text-faint text-sm font-medium uppercase tracking-wide">Editor settings</p>
+                <EditorCheckbox
+                  checked={fineRotation}
+                  onChange={(event) => onFineRotationChange(event.target.checked)}
+                  disabled={!hasCanvas || renderBlocked}
+                  label="Fine rotation"
+                  description="Allow small free-angle adjustments below the editor's coarse rotation threshold."
+                />
+              </div>
+              <div className="min-w-52 xl:min-w-0">
+                <TracingControls layer={tracing} disabled={!hasCanvas} />
+              </div>
+            </>
+          ) : null}
           <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end xl:ml-0 xl:items-stretch">
             <div className="flex min-h-6 items-center sm:justify-end xl:justify-start">
               {selected && !noStructure && (saving || dirty) ? (
@@ -284,31 +312,33 @@ export function MoleculeEditorWorkbench({
                 <Icon icon="lucide:flip-vertical-2" size={15} />
                 Flip up/down
               </Button>
-              <Button
-                variant={bondPickActive ? "accent" : "outline"}
-                aria-pressed={bondPickActive}
-                onClick={() => {
-                  if (bondPickActive) {
-                    onBondPickActiveChange(false);
-                  } else if (selectedBondCount === 1) {
-                    onSnapRequestChange("bond-vertical");
-                  } else {
-                    onBoldToggleActiveChange(false);
-                    onBondPickActiveChange(true);
+              {!coarsePointer ? (
+                <Button
+                  variant={bondPickActive ? "accent" : "outline"}
+                  aria-pressed={bondPickActive}
+                  onClick={() => {
+                    if (bondPickActive) {
+                      onBondPickActiveChange(false);
+                    } else if (selectedBondCount === 1) {
+                      onSnapRequestChange("bond-vertical");
+                    } else {
+                      onBoldToggleActiveChange(false);
+                      onBondPickActiveChange(true);
+                    }
+                  }}
+                  disabled={!canTransform || snapRequest !== null}
+                  title={
+                    bondPickActive
+                      ? "Click a bond on the canvas, or press Esc to cancel"
+                      : selectedBondCount === 1
+                        ? "Rotate the whole depiction so the selected bond is exactly vertical"
+                        : "Then click a bond on the canvas; the whole depiction rotates so that bond is exactly vertical"
                   }
-                }}
-                disabled={!canTransform || snapRequest !== null}
-                title={
-                  bondPickActive
-                    ? "Click a bond on the canvas, or press Esc to cancel"
-                    : selectedBondCount === 1
-                      ? "Rotate the whole depiction so the selected bond is exactly vertical"
-                      : "Then click a bond on the canvas; the whole depiction rotates so that bond is exactly vertical"
-                }
-              >
-                <Icon icon={bondPickActive ? "lucide:x" : "lucide:align-center-vertical"} size={15} />
-                {bondPickActive ? "Cancel bond pick" : "Set bond vertical"}
-              </Button>
+                >
+                  <Icon icon={bondPickActive ? "lucide:x" : "lucide:align-center-vertical"} size={15} />
+                  {bondPickActive ? "Cancel bond pick" : "Set bond vertical"}
+                </Button>
+              ) : null}
               <Button
                 variant="outline"
                 onClick={() => onSnapRequestChange("straighten")}
@@ -318,29 +348,31 @@ export function MoleculeEditorWorkbench({
                 <Icon icon="lucide:ruler" size={15} />
                 Straighten
               </Button>
-              <Button
-                variant={boldToggleActive ? "accent" : "outline"}
-                aria-pressed={boldToggleActive}
-                onClick={() => {
-                  if (boldToggleActive) {
-                    onBoldToggleActiveChange(false);
-                  } else {
-                    onBondPickActiveChange(false);
-                    onBoldToggleActiveChange(true);
+              {!coarsePointer ? (
+                <Button
+                  variant={boldToggleActive ? "accent" : "outline"}
+                  aria-pressed={boldToggleActive}
+                  onClick={() => {
+                    if (boldToggleActive) {
+                      onBoldToggleActiveChange(false);
+                    } else {
+                      onBondPickActiveChange(false);
+                      onBoldToggleActiveChange(true);
+                    }
+                  }}
+                  disabled={!canTransform || snapRequest !== null}
+                  title={
+                    boldToggleActive
+                      ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
+                      : mode === "templates"
+                        ? "Then click bonds on the canvas to draw them thicker while editing; applies copy coordinates, never bold"
+                        : "Then click bonds on the canvas to draw them thicker, on the canvas, the preview, and the article alike"
                   }
-                }}
-                disabled={!canTransform || snapRequest !== null}
-                title={
-                  boldToggleActive
-                    ? "Click bonds on the canvas to toggle bold; press Esc or this button to finish"
-                    : mode === "templates"
-                      ? "Then click bonds on the canvas to draw them thicker while editing; applies copy coordinates, never bold"
-                      : "Then click bonds on the canvas to draw them thicker — on the canvas, the preview, and the article alike"
-                }
-              >
-                <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
-                {boldToggleActive ? "Done with bold" : "Bold bonds"}
-              </Button>
+                >
+                  <Icon icon={boldToggleActive ? "lucide:x" : "lucide:bold"} size={15} />
+                  {boldToggleActive ? "Done with bold" : "Bold bonds"}
+                </Button>
+              ) : null}
               {mode === "classes" ? (
                 <Button
                   variant="ghostDestructive"
@@ -383,7 +415,7 @@ export function MoleculeEditorWorkbench({
               </Button>
             </div>
             {guardMismatch ? (
-              <p className="theme-danger-text max-w-xs text-xs sm:text-right xl:text-left">
+              <p className="theme-danger-text max-w-xs text-sm sm:text-right xl:text-left">
                 Saving publishes a depiction whose chemistry differs from the source structure.
               </p>
             ) : null}
@@ -425,6 +457,14 @@ function EmptyCanvas() {
           Pick a substance or class from the dropdown above to load its structure, then fix its atom positions and wedge / hash stereo bonds.
         </p>
       </div>
+    </div>
+  );
+}
+
+function DesktopOnlyCanvas() {
+  return (
+    <div className="absolute inset-0 grid place-items-center bg-dose-surface-muted p-6">
+      <DesktopOnlyNotice className="max-w-md" title="Drawing is desktop-only" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { slugify } from "@/utils/slug";
 import type { AddSlugFilterMode, SubstanceOption } from "./types";
 
@@ -205,7 +206,7 @@ export function AddSubstanceControl({
                 variant="glass"
                 size="icon"
                 onClick={() => setShowPicker(false)}
-                className="h-6 w-6"
+                className={`h-6 w-6 ${TOUCH_ICON}`}
                 aria-label="Close substance picker"
               >
                 <Icon icon="lucide:x" className="h-3 w-3" size={12} />

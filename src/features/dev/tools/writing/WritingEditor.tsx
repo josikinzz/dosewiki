@@ -2,6 +2,8 @@
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
@@ -16,11 +18,6 @@ import {
 
 import type { WritingDraft } from "./writingEditorModel";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";
-
-const INPUT_CLASS =
-  "theme-editor-field w-full rounded-lg border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2 text-sm theme-text-primary transition focus:outline-none focus:ring-2";
-const TEXTAREA_CLASS =
-  "theme-editor-field w-full rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2.5 font-mono text-[0.8125rem] leading-6 theme-text-primary transition focus:outline-none focus:ring-2";
 
 const ADMIN_ONLY_REASON = "Admin role required";
 
@@ -73,9 +70,8 @@ export function WritingEditor({
 
       <EditorField label="Title">
         {(control) => (
-          <input
+          <Input
             {...control}
-            className={INPUT_CLASS}
             value={draft.title}
             disabled={readOnly}
             onChange={(event) => updateTitle(event.target.value)}
@@ -92,9 +88,8 @@ export function WritingEditor({
       >
         {(control) => (
           <>
-            <input
+            <Input
               {...control}
-              className={INPUT_CLASS}
               value={draft.slug}
               disabled={readOnly}
               onChange={(event) => updateSlug(event.target.value)}
@@ -112,9 +107,8 @@ export function WritingEditor({
           description="Shown on the blog index card and above the post."
         >
           {(control) => (
-            <input
+            <Input
               {...control}
-              className={INPUT_CLASS}
               value={draft.coverImageUrl}
               disabled={readOnly}
               onChange={(event) => updateDraft({ coverImageUrl: event.target.value })}
@@ -133,9 +127,9 @@ export function WritingEditor({
         counter={`${draft.teaser.length} characters`}
       >
         {(control) => (
-          <textarea
+          <Textarea
             {...control}
-            className={TEXTAREA_CLASS}
+            className="font-mono leading-6"
             rows={2}
             value={draft.teaser}
             disabled={readOnly}
@@ -170,9 +164,8 @@ export function WritingEditor({
 
       <EditorField label="Tags" description="Comma separated.">
         {(control) => (
-          <input
+          <Input
             {...control}
-            className={INPUT_CLASS}
             value={draft.tags}
             disabled={readOnly}
             onChange={(event) => updateDraft({ tags: event.target.value })}
@@ -182,9 +175,8 @@ export function WritingEditor({
 
       <EditorField label="Publication date" description="YYYY-MM-DD.">
         {(control) => (
-          <input
+          <Input
             {...control}
-            className={INPUT_CLASS}
             value={draft.publicationDate}
             disabled={readOnly}
             onChange={(event) => updateDraft({ publicationDate: event.target.value })}
@@ -198,9 +190,9 @@ export function WritingEditor({
         counter={`${draft.body.length} characters`}
       >
         {(control) => (
-          <textarea
+          <Textarea
             {...control}
-            className={TEXTAREA_CLASS}
+            className="font-mono leading-6"
             rows={20}
             value={draft.body}
             disabled={readOnly}

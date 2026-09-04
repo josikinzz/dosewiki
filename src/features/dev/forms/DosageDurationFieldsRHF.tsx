@@ -10,6 +10,7 @@ import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorFieldRow } from "@/features/dev/components";
 
 import { useArticleFormContext } from "./ArticleFormContext";
@@ -36,6 +37,9 @@ const durationStageLabels: Array<["onset" | "come_up" | "peak" | "offset" | "aft
   ["after_effects", "After Effects", "e.g., Residual stimulation"],
   ["total_duration", "Total Duration", "e.g., 6-8 hours"],
 ];
+
+const ROUTE_MOVE_BUTTON_CLASS =
+  `theme-text-faint h-8 w-8 rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed ${TOUCH_ICON}`;
 
 export type DosageDurationFieldsRHFProps = {
   idPrefix: string;
@@ -92,9 +96,10 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                   <Button
                     type="button"
                     variant="iconGhost"
+                    size="auto"
                     onClick={() => handleMoveUp(index)}
                     disabled={index === 0}
-                    className="theme-text-faint rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={ROUTE_MOVE_BUTTON_CLASS}
                     title="Move route up"
                     aria-label={`Move route ${index + 1} up`}
                   >
@@ -103,9 +108,10 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                   <Button
                     type="button"
                     variant="iconGhost"
+                    size="auto"
                     onClick={() => handleMoveDown(index)}
                     disabled={index === routeCount - 1}
-                    className="theme-text-faint rounded-md p-1 hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={ROUTE_MOVE_BUTTON_CLASS}
                     title="Move route down"
                     aria-label={`Move route ${index + 1} down`}
                   >
@@ -195,7 +201,7 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                   <FormEditorField
                     htmlFor={`${routeKey}-half-life`}
                     label="Half-life"
-                    className="flex items-center gap-2 space-y-0"
+                    className="flex flex-wrap items-center gap-2 space-y-0"
                     name={`duration.routes.${index}.half_life`}
                   >
                     <Input
@@ -203,7 +209,7 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                       {...register(`duration.routes.${index}.half_life`)}
                       placeholder="e.g., 3-6 hours"
                       inputSize="sm"
-                      className="w-40"
+                      className="w-full md:w-40"
                     />
                   </FormEditorField>
                 </div>

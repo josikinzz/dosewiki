@@ -459,11 +459,11 @@ export function OclEditor({
             className="theme-danger-text-strong mx-auto mb-2"
           />
           <p className="theme-text-primary text-sm font-medium">Structure editor unavailable</p>
-          <p className="theme-text-muted mt-1 text-xs">
+          <p className="theme-text-muted mt-1 text-sm">
             OpenChemLib failed to load, so atoms and bonds can&apos;t be edited. Reload the page to
             try again.
           </p>
-          <p className="theme-text-faint mt-1 break-words font-mono text-[11px]">{error}</p>
+          <p className="theme-text-faint mt-1 break-words font-mono text-xs">{error}</p>
         </div>
       </div>
     );
@@ -501,7 +501,7 @@ export function OclEditor({
               </g>
             ) : null}
           </svg>
-          <span className="theme-text-primary pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap rounded-full border border-dose-border bg-dose-surface-muted px-3 py-1 text-xs font-medium shadow-[var(--theme-elevation-lg)]">
+          <span className="theme-text-primary pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap rounded-full border border-dose-border bg-dose-surface-muted px-3 py-1 text-sm font-medium shadow-[var(--theme-elevation-lg)]">
             {boldToggleActive
               ? "Click bonds to toggle bold · Esc to finish"
               : "Click the bond to set vertical · Esc to cancel"}

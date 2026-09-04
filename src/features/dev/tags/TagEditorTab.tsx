@@ -14,6 +14,7 @@ import {
   ActionNotice,
   EditorActionGroup,
   EditorSection,
+  useScrollToDetail,
 } from "@/features/dev/components";
 
 import { TagListPanel } from "./TagListPanel";
@@ -154,6 +155,13 @@ export function TagEditorTab({
   const filteredTags = useMemo(() => getFilteredTags(state), [state]);
   const selectedUsage = useMemo(() => getSelectedUsage(state), [state]);
   const totalTags = useMemo(() => getTotalTags(state), [state]);
+
+  // Below the lg split the tag list stacks above the detail and mutation
+  // panels. Keyed on the tapped tag, not `state.selected`, so the first-tag
+  // fallback on registry load, field change, or search does not move the page.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  const [pickedTagKey, setPickedTagKey] = useState<string | null>(null);
+  useScrollToDetail(detailRef, pickedTagKey);
 
   useEffect(() => {
     const effect = state.pendingEffect;
@@ -342,10 +350,13 @@ export function TagEditorTab({
           onSearchChange={(query) => dispatch({ type: "searchChanged", query })}
           filteredTags={filteredTags}
           selected={state.selected}
-          onSelectUsage={(usage) => dispatch({ type: "tagSelected", usage })}
+          onSelectUsage={(usage) => {
+            dispatch({ type: "tagSelected", usage });
+            setPickedTagKey(`${usage.field}:${usage.key}`);
+          }}
         />
 
-        <div className="space-y-8">
+        <div ref={detailRef} className="scroll-mt-6 space-y-8">
           {selectedUsage ? (
             <>
               <TagDetailPanel selectedUsage={selectedUsage} />

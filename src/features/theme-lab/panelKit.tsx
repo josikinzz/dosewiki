@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Badge, Button, Input, Textarea } from "@/components/ui";
+import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/common/Icon";
 import styles from "./ThemeLab.module.css";
@@ -23,9 +24,6 @@ import styles from "./ThemeLab.module.css";
  * feature's density recipes, not primitives with multiple consumers (see the
  * promotion criteria in docs/ui-system.md).
  */
-
-/** 44px on touch, dense on a mouse — the panel's one touch-target rule. */
-const TOUCH = "[@media(pointer:coarse)]:min-h-11";
 
 /**
  * The site's canonical "this view is selected" pill
@@ -83,7 +81,7 @@ export function PanelTab({ active, onClick, children, className, ...rest }: Togg
       onClick={onClick}
       className={cn(
         ROUTE_TAB,
-        TOUCH,
+        TOUCH_PILL,
         "min-h-8 flex-1 whitespace-nowrap rounded-lg px-1.5 py-1.5 text-xs font-semibold",
         className,
       )}
@@ -104,7 +102,7 @@ export function PanelChip({ active, onClick, children, className, ...rest }: Tog
       data-state={active ? "active" : "inactive"}
       aria-pressed={active}
       onClick={onClick}
-      className={cn(ROUTE_TAB, TOUCH, PANEL_ICON[15], "min-h-8 rounded-full px-3.5 py-1.5", className)}
+      className={cn(ROUTE_TAB, TOUCH_PILL, PANEL_ICON[15], "min-h-8 rounded-full px-3.5 py-1.5", className)}
       {...rest}
     >
       {children}
@@ -131,7 +129,8 @@ export function PanelIconButton({ onClick, children, active, className, ...rest 
       size="auto"
       onClick={onClick}
       className={cn(
-        "h-[1.875rem] w-[1.875rem] shrink-0 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
+        "h-[1.875rem] w-[1.875rem] shrink-0 p-0",
+        TOUCH_ICON,
         PANEL_ICON[15],
         // pillActive names a border colour but no width; the kit's other
         // pill pairs do the same, so the width comes from the call site.
@@ -169,7 +168,7 @@ export function PanelRow({
       onClick={onClick}
       className={cn(
         ROUTE_TAB,
-        TOUCH,
+        TOUCH_PILL,
         // The row's only glyph is the changed mark's 10px pencil.
         PANEL_ICON[10],
         "w-full min-h-8 justify-start gap-2 rounded-lg px-1.5 py-1 text-left",
@@ -256,7 +255,7 @@ export function PanelDisclosure({
       aria-controls={controls}
       onClick={onToggle}
       className={cn(
-        TOUCH,
+        TOUCH_PILL,
         PANEL_ICON[14],
         "w-full min-h-8 justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left",
       )}
@@ -286,7 +285,7 @@ export function PanelButton({
       variant={variant}
       size="auto"
       className={cn(
-        TOUCH,
+        TOUCH_PILL,
         PANEL_ICON[14],
         "min-h-8 gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold",
         className,

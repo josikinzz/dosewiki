@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+
 import { StateCard } from "@/components/common/StateCard";
 import { Input } from "@/components/ui/input";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
@@ -10,6 +12,7 @@ import {
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
+  useScrollToDetail,
   type EditorNavOption,
 } from "@/features/dev/components";
 
@@ -70,6 +73,7 @@ export function ContributorsTab({
     setSearch,
     directory,
     visibleProfiles,
+    selectedKey,
     resolvedKey,
     selectProfile,
     detail,
@@ -77,6 +81,12 @@ export function ContributorsTab({
     isDetailLoading,
     notice,
   } = controller;
+
+  // Below the lg split the directory stacks above the profile editor. Keyed on
+  // the tapped row, not `resolvedKey`, so the first-row fallback on load and
+  // on scope change does not move the page.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  useScrollToDetail(detailRef, selectedKey || null);
 
   if (isDirectoryLoading && directory.length === 0) {
     return (
@@ -94,7 +104,7 @@ export function ContributorsTab({
   }
 
   const editorPane = (
-    <div className="space-y-6">
+    <div ref={detailRef} className="scroll-mt-6 space-y-6">
       {notice ? <EditorNotice notice={notice} /> : null}
       {detailError ? (
         <StateCard

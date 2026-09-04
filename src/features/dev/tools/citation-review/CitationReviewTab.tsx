@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StateCard } from "@/components/common/StateCard";
 import { Icon } from "@/components/common/Icon";
-import { EditorNotice } from "@/features/dev/components";
+import { EditorNotice, useScrollToDetail } from "@/features/dev/components";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { useDevMode } from "../../context/DevModeContext";
 import { EditorCitationDiagnosticsPanel } from "../../forms/EditorCitationDiagnosticsPanel";
@@ -105,17 +105,17 @@ export function CitationReviewTab({ initialSlug }: CitationReviewTabProps) {
   );
   const articleTitle = selectedSlug ? articleTitleBySlug.get(selectedSlug) ?? selectedSlug : null;
 
+  // Below the lg split the queue stacks above the detail column, so selecting
+  // an article would otherwise give no visible feedback. Keyed on the tapped
+  // row, not `selectedSlug`, so the first-row fallback after a queue load or
+  // filter change does not move the page.
   const detailColumnRef = useRef<HTMLDivElement | null>(null);
+  const [pickedSlug, setPickedSlug] = useState<string | null>(null);
+  useScrollToDetail(detailColumnRef, pickedSlug);
   const handleSelectSlug = useCallback(
     (slug: string) => {
       setSelectedSlug(slug);
-      // Below the lg split the queue stacks above the detail column, so
-      // selecting an article would otherwise give no visible feedback.
-      if (typeof window !== "undefined" && !window.matchMedia("(min-width: 1024px)").matches) {
-        requestAnimationFrame(() => {
-          detailColumnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      }
+      setPickedSlug(slug);
     },
     [setSelectedSlug],
   );

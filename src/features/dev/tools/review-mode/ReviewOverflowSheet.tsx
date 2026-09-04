@@ -15,14 +15,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import {
   CITATION_PANEL_ID,
   MOLECULE_PANEL_ID,
   ProgressStrip,
   ReviewHelpPanel,
-  TOUCH_ICON,
-  TOUCH_PILL,
   type ProgressFlourish,
 } from "./ReviewBarChrome";
 import type { ReviewQueueGroup } from "./reviewQueue";

@@ -1,6 +1,7 @@
 import type { ReactNode, PropsWithChildren } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 export interface EntryCardProps extends PropsWithChildren {
@@ -66,10 +67,10 @@ export function EntryCard({
             <Button
               type="button"
               variant="destructivePill"
-              size="icon"
+              size="auto"
               onClick={onRemove}
               aria-label={removeLabel}
-              className="h-7 w-7 shrink-0 p-0"
+              className={cn("h-7 w-7 shrink-0 p-0", TOUCH_ICON)}
             >
               <Icon icon="lucide:x" size={14} />
             </Button>

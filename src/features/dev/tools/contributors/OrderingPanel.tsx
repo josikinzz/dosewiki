@@ -6,6 +6,7 @@ import {
   type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCenter,
   useDroppable,
   useSensor,
@@ -17,6 +18,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   EditorActionStatus,
   EditorSection,
@@ -41,6 +43,9 @@ import {
  * "un-curate", which this id satisfies without a special case.
  */
 const AUTO_ZONE_ID = "contributor-order-auto-zone";
+
+/** Compact icon control; the Button `icon` size is always 44px. */
+const ICON_BUTTON_CLASS = `h-7 w-7 ${TOUCH_ICON}`;
 
 export type OrderablePanelItem = {
   slug: string;
@@ -130,7 +135,7 @@ function SortableRow({
           <Button
             variant="glass"
             size="icon"
-            className="h-7 w-7 shrink-0 cursor-grab active:cursor-grabbing"
+            className={`${ICON_BUTTON_CLASS} shrink-0 cursor-grab touch-none active:cursor-grabbing`}
             aria-label={`Drag ${item.title}`}
             {...attributes}
             {...listeners}
@@ -150,7 +155,7 @@ function SortableRow({
               <Button
                 variant="glass"
                 size="icon"
-                className="h-7 w-7"
+                className={ICON_BUTTON_CLASS}
                 disabled={index === 0}
                 aria-label={`Move ${item.title} up`}
                 onClick={() => onMove(item.slug, "up")}
@@ -160,7 +165,7 @@ function SortableRow({
               <Button
                 variant="glass"
                 size="icon"
-                className="h-7 w-7"
+                className={ICON_BUTTON_CLASS}
                 disabled={index === curatedCount - 1}
                 aria-label={`Move ${item.title} down`}
                 onClick={() => onMove(item.slug, "down")}
@@ -218,6 +223,7 @@ export function OrderingPanel({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
 

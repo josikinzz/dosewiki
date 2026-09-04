@@ -26,6 +26,8 @@ export type DevModePageControllerState = {
   activePrimaryTab: DevModePrimaryTab;
   mainClassName: string;
   contentWrapperClass: string;
+  /** True on a fine pointer: tools may pin their toolbars and side panels. */
+  enableStickyPanels: boolean;
   /** An Auth.js session is present. */
   isSignedIn: boolean;
   /** The session role, null while signed out; the rail disables every tab above it. */
@@ -88,4 +90,6 @@ export type DevModePageControllerState = {
   /** Queue: seed the working set from a proposal, then open the substances editor. */
   onLoadProposal: (seed: DevProposalSeed) => Promise<void>;
   onSignIn: () => void;
+  /** Visible "Leave editor" action; the same path Escape takes, confirm included. */
+  onLeave: () => void;
 };

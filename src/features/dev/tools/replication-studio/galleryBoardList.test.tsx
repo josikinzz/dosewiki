@@ -1,6 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { DESKTOP_ONLY_NOTICE } from "@/features/dev/components";
 
 import { GalleryBoardList } from "./GalleryBoardList";
 import {
@@ -101,7 +103,7 @@ describe("GalleryBoardList", () => {
     expect(
       screen.getByText(/no stored priority overrides.*still publishes every automatic placement/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/9 of the article's 12 slots are empty — 3 filled/i)).toBeInTheDocument();
+    expect(screen.getByText(/9 of the article's 12 slots are empty, 3 filled/i)).toBeInTheDocument();
     expect(screen.getAllByText(/empty slot/i)).toHaveLength(9);
     expect(within(automaticBand()).getAllByTestId("board-position")).toHaveLength(3);
   });
@@ -117,7 +119,7 @@ describe("GalleryBoardList", () => {
   it("draws the fold in automatic placements when the effective order exceeds the cap", () => {
     renderBoard(20, { curated: ["work-1"], removed: [] });
 
-    expect(screen.getByText(/the article stops here — positions 13\+ reach \/replications only/i)).toBeInTheDocument();
+    expect(screen.getByText(/the article stops here: positions 13\+ reach \/replications only/i)).toBeInTheDocument();
     expect(screen.queryByText(/article slots are empty/i)).not.toBeInTheDocument();
   });
 
@@ -126,7 +128,7 @@ describe("GalleryBoardList", () => {
     renderBoard(14, { curated, removed: [] });
 
     const band = priorityBand();
-    const fold = within(band).getByText(/the article stops here — positions 13\+ reach \/replications only/i);
+    const fold = within(band).getByText(/the article stops here: positions 13\+ reach \/replications only/i);
     const items = within(band).getAllByRole("listitem");
     const foldIndex = items.findIndex((item) => item.contains(fold));
 
@@ -140,7 +142,7 @@ describe("GalleryBoardList", () => {
   it("renders ghost slots after every effective placement", () => {
     renderBoard(6, { curated: ["work-3", "work-5"], removed: [] });
 
-    expect(screen.getByText(/6 of the article's 12 slots are empty — 6 filled/i)).toBeInTheDocument();
+    expect(screen.getByText(/6 of the article's 12 slots are empty, 6 filled/i)).toBeInTheDocument();
 
     const ghosts = screen.getAllByText(/empty slot/i);
     expect(ghosts).toHaveLength(6);
@@ -185,5 +187,49 @@ describe("GalleryBoardList", () => {
 
     expect(screen.getByRole("button", { name: "Prioritize Work 2" })).toHaveFocus();
     expect(onFocusHandled).toHaveBeenCalled();
+  });
+
+  describe("under a coarse pointer", () => {
+    const originalMatchMedia = window.matchMedia;
+
+    afterEach(() => {
+      window.matchMedia = originalMatchMedia;
+    });
+
+    function mockPointer(coarse: boolean) {
+      window.matchMedia = vi.fn((media: string) => ({
+        matches: media === "(pointer: coarse)" ? coarse : false,
+        media,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })) as unknown as typeof window.matchMedia;
+    }
+
+    it("shows the desktop notice and renders the board read-only", () => {
+      mockPointer(true);
+      renderBoard(3, { curated: ["work-1"], removed: [] });
+
+      expect(screen.getByRole("note")).toHaveTextContent(DESKTOP_ONLY_NOTICE);
+      expect(screen.getByText("Work 1")).toBeInTheDocument();
+      expect(screen.getByText("Work 2")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^Drag / })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /in priority$/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^Prioritize / })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /^Exclude / })).not.toBeInTheDocument();
+      expect(screen.queryByRole("group", { name: /drop a priority row here/i })).not.toBeInTheDocument();
+    });
+
+    it("keeps every curation control under a fine pointer", () => {
+      mockPointer(false);
+      renderBoard(3, { curated: ["work-1"], removed: [] });
+
+      expect(screen.queryByRole("note")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Drag Work 1 to reorder its priority" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Prioritize Work 2" })).toBeInTheDocument();
+    });
   });
 });

@@ -155,7 +155,8 @@ export function BannerIconField({ value, onChange, onValidityChange }: BannerIco
                 type="button"
                 variant={trimmed === suggestion.icon ? "pillActive" : "ghostPill"}
                 size="quiet"
-                title={`${suggestion.hint} — ${suggestion.icon}`}
+                className="[@media(pointer:coarse)]:min-w-11"
+                title={`${suggestion.hint}: ${suggestion.icon}`}
                 aria-label={`Use ${suggestion.icon} (${suggestion.hint})`}
                 aria-pressed={trimmed === suggestion.icon}
                 onClick={() => onChange(suggestion.icon)}

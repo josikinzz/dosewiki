@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { EditorNotice } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
@@ -26,8 +27,6 @@ import {
   OpenElsewhereItems,
   ProgressStrip,
   ReviewHelpPanel,
-  TOUCH_ICON,
-  TOUCH_PILL,
 } from "./ReviewBarChrome";
 import { ReviewOverflowSheet } from "./ReviewOverflowSheet";
 import { ReviewQueueSettingsPanel } from "./ReviewQueueSettingsPanel";

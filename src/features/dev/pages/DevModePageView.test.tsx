@@ -41,6 +41,7 @@ function buildController(
     activePrimaryTab: "tools",
     mainClassName: "",
     contentWrapperClass: "",
+    enableStickyPanels: false,
     isSignedIn: true,
     role: "admin",
     canDraft: true,

@@ -7,6 +7,7 @@ import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 
 export interface EffectEntryEditorProps {
   /** The effect name */
@@ -59,9 +60,9 @@ export function EffectEntryEditor({
       <Button
         type="button"
         variant="ghostDestructive"
-        size="icon"
+        size="auto"
         onClick={onRemove}
-        className="h-8 w-8 shrink-0"
+        className={`h-8 w-8 shrink-0 ${TOUCH_ICON}`}
         aria-label={`Remove effect ${index + 1}`}
       >
         <Icon icon="lucide:x" className="h-4 w-4" size={16} />

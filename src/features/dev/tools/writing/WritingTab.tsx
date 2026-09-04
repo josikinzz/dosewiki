@@ -12,6 +12,7 @@ import {
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
+  useScrollToDetail,
 } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 
@@ -105,6 +106,12 @@ export function WritingTab({
     );
   }, [kind, selectedSlug]);
 
+  // Below the lg split the entries rail stacks above the editor. Pinned and
+  // new selections count too: About and a fresh draft both open an editor.
+  const detailRef = useRef<HTMLDivElement | null>(null);
+  const selectionKey = selection.type === "row" ? `row:${selection.slug}` : selection.type;
+  useScrollToDetail(detailRef, selectionKey);
+
   if (entries === null) {
     return (
       <div className="mx-auto mt-10 max-w-xl">
@@ -188,7 +195,7 @@ export function WritingTab({
             ) : null}
           </div>
 
-          <div className="space-y-6">
+          <div ref={detailRef} className="scroll-mt-6 space-y-6">
             {selection.type === "pinned" ? (
               <AboutEditorTab
                 availableProfiles={contributorProfiles}

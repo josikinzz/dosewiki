@@ -7,8 +7,15 @@ import {
   EditorStatusPill,
   EditorToolbar,
 } from "@/features/dev/components";
+import { cn } from "@/lib/utils";
+
+/** The frosted strip stays the same on every pointer; only its stickiness follows `enableStickyPanels`. */
+const TOOLBAR_SURFACE_CLASS =
+  "rounded-xl border-b border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg)]/95 p-3 backdrop-blur";
 
 interface LayoutToolbarProps {
+  /** Sticky only for fine pointers; on a phone the toolbar scrolls with the board. */
+  enableStickyPanels: boolean;
   hasUnsavedChanges: boolean;
   saveNotice: string | null;
   showJsonEditor: boolean;
@@ -23,6 +30,7 @@ interface LayoutToolbarProps {
 }
 
 export function LayoutToolbar({
+  enableStickyPanels,
   hasUnsavedChanges,
   saveNotice,
   showJsonEditor,
@@ -36,7 +44,11 @@ export function LayoutToolbar({
   onCollapseAll,
 }: LayoutToolbarProps) {
   return (
-    <EditorToolbar label="Index layout actions" variant="sticky" className="rounded-xl">
+    <EditorToolbar
+      label="Index layout actions"
+      variant="wrap"
+      className={cn(TOOLBAR_SURFACE_CLASS, enableStickyPanels && "sticky top-0 z-10")}
+    >
       <EditorActionGroup label="Layout save actions">
         <Button
           variant="accent"

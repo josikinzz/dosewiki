@@ -21,6 +21,12 @@ import {
   EditorSection,
   EditorSelect,
   EditorStatusPill,
+  EditorTable,
+  EditorTableBody,
+  EditorTableCell,
+  EditorTableHead,
+  EditorTableHeading,
+  EditorTableRow,
   type EditorNoticeMessage,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
@@ -41,9 +47,6 @@ import {
   type MemberRoster,
   type MemberRow,
 } from "./membersModel";
-
-const HEADER_CELL_CLASS =
-  "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
 
 const ROLE_PILL_TONE: Record<AppRole, EditorStatusPillTone> = {
   admin: "info",
@@ -237,63 +240,63 @@ type RosterTableProps = {
 
 function RosterTable({ roster, pendingEmail, onChangeRole, onToggleBan, onIssueReset }: RosterTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-dose-border">
-      <table className="w-full min-w-[56rem] border-collapse text-left">
-        <thead>
-          <tr className="border-b border-dose-border">
-            <th scope="col" className={HEADER_CELL_CLASS}>Member</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Role</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Last sign-in</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Status</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Invited by</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortRoster(roster.members).map((row) => {
-            const lock = memberRowLock(row, roster.self);
-            const pending = pendingEmail === row.email;
-            const label = row.username ?? row.email;
-            return (
-              <tr key={row.email} className="border-b border-dose-border last:border-0" data-member={row.email}>
-                <td className="px-3 py-2.5">
-                  <span className="block truncate font-mono text-sm font-medium theme-text-primary">{label}</span>
-                  <span className="theme-text-faint block truncate text-xs">
-                    {row.name ? `${row.name} · ${row.email}` : row.email}
-                  </span>
-                </td>
-                <td className="px-3 py-2.5">
-                  <EditorStatusPill tone={ROLE_PILL_TONE[row.role]}>{getRoleDisplayName(row.role)}</EditorStatusPill>
-                </td>
-                <td className="theme-text-secondary px-3 py-2.5 text-sm">{formatSeen(row.lastSeenAt)}</td>
-                <td className="px-3 py-2.5">
-                  {row.bannedAt ? (
-                    <EditorStatusPill tone="danger" icon="lucide:ban">Banned</EditorStatusPill>
-                  ) : (
-                    <EditorStatusPill tone="success">Active</EditorStatusPill>
-                  )}
-                </td>
-                <td className="theme-text-secondary px-3 py-2.5 text-sm">{row.invitedBy ?? "Seeded"}</td>
-                <td className="px-3 py-2.5">
-                  {lock === "admin" ? (
-                    <span className="theme-text-faint text-xs">{ADMIN_LOCK_REASON}</span>
-                  ) : (
-                    <RowActions
-                      row={row}
-                      disabled={pending || lock === "self"}
-                      reason={lock === "self" ? SELF_LOCK_REASON : undefined}
-                      onChangeRole={onChangeRole}
-                      onToggleBan={onToggleBan}
-                      onIssueReset={onIssueReset}
-                    />
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <EditorTable className="md:min-w-[56rem]">
+      <EditorTableHead>
+        <EditorTableHeading>Member</EditorTableHeading>
+        <EditorTableHeading>Role</EditorTableHeading>
+        <EditorTableHeading>Last sign-in</EditorTableHeading>
+        <EditorTableHeading>Status</EditorTableHeading>
+        <EditorTableHeading>Invited by</EditorTableHeading>
+        <EditorTableHeading>Actions</EditorTableHeading>
+      </EditorTableHead>
+      <EditorTableBody>
+        {sortRoster(roster.members).map((row) => {
+          const lock = memberRowLock(row, roster.self);
+          const pending = pendingEmail === row.email;
+          const label = row.username ?? row.email;
+          return (
+            <EditorTableRow key={row.email} data-member={row.email}>
+              <EditorTableCell wide>
+                <span className="block truncate font-mono text-sm font-medium theme-text-primary">{label}</span>
+                <span className="theme-text-faint block truncate text-xs">
+                  {row.name ? `${row.name} · ${row.email}` : row.email}
+                </span>
+              </EditorTableCell>
+              <EditorTableCell label="Role">
+                <EditorStatusPill tone={ROLE_PILL_TONE[row.role]}>{getRoleDisplayName(row.role)}</EditorStatusPill>
+              </EditorTableCell>
+              <EditorTableCell label="Last sign-in" className="theme-text-secondary text-sm">
+                {formatSeen(row.lastSeenAt)}
+              </EditorTableCell>
+              <EditorTableCell label="Status">
+                {row.bannedAt ? (
+                  <EditorStatusPill tone="danger" icon="lucide:ban">Banned</EditorStatusPill>
+                ) : (
+                  <EditorStatusPill tone="success">Active</EditorStatusPill>
+                )}
+              </EditorTableCell>
+              <EditorTableCell label="Invited by" className="theme-text-secondary text-sm">
+                {row.invitedBy ?? "Seeded"}
+              </EditorTableCell>
+              <EditorTableCell wide>
+                {lock === "admin" ? (
+                  <span className="theme-text-faint text-xs">{ADMIN_LOCK_REASON}</span>
+                ) : (
+                  <RowActions
+                    row={row}
+                    disabled={pending || lock === "self"}
+                    reason={lock === "self" ? SELF_LOCK_REASON : undefined}
+                    onChangeRole={onChangeRole}
+                    onToggleBan={onToggleBan}
+                    onIssueReset={onIssueReset}
+                  />
+                )}
+              </EditorTableCell>
+            </EditorTableRow>
+          );
+        })}
+      </EditorTableBody>
+    </EditorTable>
   );
 }
 
@@ -313,7 +316,7 @@ function RowActions({ row, disabled, reason, onChangeRole, onToggleBan, onIssueR
   const selectValue = row.role === "editor" || row.role === "contributor" ? row.role : "";
   return (
     <div className="flex flex-wrap items-center gap-2" aria-label={`Actions for ${label}`} role="group">
-      <div className="w-40">
+      <div className="w-full md:w-40">
         <EditorSelect
           aria-label={`Role for ${label}`}
           selectSize="sm"

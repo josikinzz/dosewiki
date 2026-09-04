@@ -11,7 +11,7 @@ import { EmptyStateSurface } from "@/components/ui/surface";
 import { slugify } from "@/utils/slug";
 import type { ManualSectionLinkType } from "@/data/builders/manualIndexLoader";
 import type { ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
-import { ensureString, inlineLabelInputClass } from "./utils";
+import { ensureString, iconButtonClass, inlineLabelInputClass } from "./utils";
 import { AddSubstanceControl } from "./AddSubstanceControl";
 import { SubstanceListItem } from "./SubstanceListItem";
 
@@ -156,7 +156,7 @@ export const SectionEditor = memo(
             <Button
               variant="glass"
               size="icon"
-              className="h-6 w-6 shrink-0 cursor-grab active:cursor-grabbing"
+              className={`${iconButtonClass} shrink-0 cursor-grab touch-none active:cursor-grabbing`}
               aria-label="Drag section"
               {...attributes}
               {...listeners}
@@ -168,7 +168,7 @@ export const SectionEditor = memo(
                 one-line value (matches the category label treatment). */}
             <Textarea
               rows={1}
-              className={`${inlineLabelInputClass} min-h-0 min-w-0 flex-1 resize-none overflow-hidden field-sizing-content text-sm font-semibold uppercase leading-snug tracking-wide`}
+              className={`${inlineLabelInputClass} min-h-0 min-w-0 flex-1 resize-none overflow-hidden field-sizing-content text-[16px] font-semibold uppercase leading-snug tracking-wide md:text-sm`}
               placeholder="Section label"
               aria-label="Section label"
               value={section.label}
@@ -191,7 +191,7 @@ export const SectionEditor = memo(
                 onClick={() => onMove("up")}
                 disabled={isFirst}
                 aria-label="Move section up"
-                className="h-6 w-6"
+                className={iconButtonClass}
               >
                 <Icon icon="lucide:arrow-up" className="h-3.5 w-3.5" size={14} />
               </Button>
@@ -201,7 +201,7 @@ export const SectionEditor = memo(
                 onClick={() => onMove("down")}
                 disabled={isLast}
                 aria-label="Move section down"
-                className="h-6 w-6"
+                className={iconButtonClass}
               >
                 <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
               </Button>
@@ -211,7 +211,7 @@ export const SectionEditor = memo(
                 onClick={() => setDetailsOpen((previous) => !previous)}
                 aria-expanded={detailsOpen}
                 aria-label="Toggle section details"
-                className="h-6 w-6"
+                className={iconButtonClass}
               >
                 <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
               </Button>
@@ -220,7 +220,7 @@ export const SectionEditor = memo(
                 size="icon"
                 onClick={handleRemove}
                 aria-label="Remove section"
-                className="ml-2 h-6 w-6"
+                className={`${iconButtonClass} ml-2`}
               >
                 <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
               </Button>
@@ -283,7 +283,7 @@ export const SectionEditor = memo(
                 placeholder="Optional editor notes"
               />
               <p className="theme-text-faint text-xs">
-                Editor-facing only — never rendered on /substances. Public index prose is a
+                Editor-facing only, never rendered on /substances. Public index prose is a
                 copy block; edit it in Copy Studio.
               </p>
             </div>

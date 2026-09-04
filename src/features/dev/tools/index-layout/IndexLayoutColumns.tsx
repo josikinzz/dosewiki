@@ -3,6 +3,7 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   closestCenter,
   useDroppable,
   useSensor,
@@ -23,16 +24,18 @@ import type { ColumnGroup } from "./useIndexLayoutCategoryController";
 
 function ColumnDroppable({
   id,
+  label,
   children,
   className,
 }: {
   id: string;
+  label: string;
   children: ReactNode;
   className?: string;
 }) {
   const { setNodeRef } = useDroppable({ id });
   return (
-    <div ref={setNodeRef} className={className ?? "flex flex-1 flex-col gap-6"}>
+    <div ref={setNodeRef} role="group" aria-label={label} className={className ?? "flex flex-1 flex-col gap-6"}>
       {children}
     </div>
   );
@@ -78,6 +81,7 @@ export function IndexLayoutColumns({
 }: IndexLayoutColumnsProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
 
@@ -88,8 +92,10 @@ export function IndexLayoutColumns({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="overflow-x-auto pb-2">
-          <div className="flex w-max gap-5">
+        {/* Below the tablet step the columns stack full width; from md up they sit
+            side by side at a fixed width inside a horizontal scroller. */}
+        <div className="md:overflow-x-auto md:pb-2">
+          <div className="grid grid-cols-1 gap-5 md:flex md:w-max">
             {columnGroups.map(({ index: colIndex, items }) => (
               <SortableContext
                 key={colIndex}
@@ -98,7 +104,8 @@ export function IndexLayoutColumns({
               >
                 <ColumnDroppable
                   id={`column-${colIndex}`}
-                  className="flex w-[320px] flex-col gap-4"
+                  label={`Column ${colIndex + 1}`}
+                  className="flex w-full flex-col gap-4 md:w-[320px]"
                 >
                   {items.length === 0 && (
                     <EmptyStateSurface

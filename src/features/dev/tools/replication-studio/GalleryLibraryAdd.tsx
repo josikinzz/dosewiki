@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorSection, EditorStatusPill } from "@/features/dev/components";
 import { isCombinationReplication } from "@/data/substanceReplicationGallery";
 
@@ -44,7 +45,7 @@ function InspectButton({
       type="button"
       variant="ghost"
       size="icon"
-      className="h-8 w-8 shrink-0"
+      className={`h-8 w-8 shrink-0 ${TOUCH_ICON}`}
       aria-label={`Open ${row.title} in the editor`}
       title="Open in the editor"
       onClick={() => onInspectRow(row.slug)}

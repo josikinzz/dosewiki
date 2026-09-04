@@ -5,6 +5,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 /** Ties the bar toggle's `aria-controls` to the inline molecule panel region. */
@@ -12,15 +13,6 @@ export const MOLECULE_PANEL_ID = "review-molecule-panel";
 
 /** Same contract for the citation palette. */
 export const CITATION_PANEL_ID = "review-citation-panel";
-
-/**
- * The repo's coarse-pointer touch floor, the same recipe `button.tsx`'s
- * `size="quiet"` and `PublicSegmentedTabs` already use. A bar whose controls
- * sit 12px apart at 30px tall is a mis-tap generator on a phone, and one of
- * those mis-taps writes a completion status to Convex.
- */
-export const TOUCH_PILL = "[@media(pointer:coarse)]:min-h-11";
-export const TOUCH_ICON = "[@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11";
 
 /**
  * Keycap glyph rendered inside the button that owns the shortcut.

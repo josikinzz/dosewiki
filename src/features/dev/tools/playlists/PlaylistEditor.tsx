@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorField, EditorFieldRow, EditorStatusPill } from "@/features/dev/components";
 import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/replicationStudioModel";
 
@@ -154,7 +155,7 @@ export function PlaylistEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className={`h-8 w-8 ${TOUCH_ICON}`}
                   disabled={busy || index === 0}
                   aria-label={`Move ${slug} up`}
                   onClick={() => onChange({ ...draft, slugs: moveSlug(draft.slugs, index, -1) })}
@@ -165,7 +166,7 @@ export function PlaylistEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className={`h-8 w-8 ${TOUCH_ICON}`}
                   disabled={busy || index === draft.slugs.length - 1}
                   aria-label={`Move ${slug} down`}
                   onClick={() => onChange({ ...draft, slugs: moveSlug(draft.slugs, index, 1) })}
@@ -176,7 +177,7 @@ export function PlaylistEditor({
                   type="button"
                   variant="ghostDestructive"
                   size="icon"
-                  className="h-8 w-8"
+                  className={`h-8 w-8 ${TOUCH_ICON}`}
                   disabled={busy}
                   aria-label={`Remove ${slug}`}
                   onClick={() => onChange({ ...draft, slugs: draft.slugs.filter((entry) => entry !== slug) })}

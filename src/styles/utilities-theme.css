@@ -2832,6 +2832,11 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   box-shadow: var(--theme-elevation-none);
 }
 
+/* Floating surfaces (sheets, menus) that sit above the page. */
+.theme-overlay-shadow {
+  box-shadow: var(--theme-elevation-overlay);
+}
+
 /* Accent roles: standalone headings follow --theme-section-heading (which
      palettes and Pro pin separately), accented emphasis follows
      --theme-accent-strong. */

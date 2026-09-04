@@ -21,6 +21,12 @@ import {
   EditorNotice,
   EditorPanel,
   EditorSection,
+  EditorTable,
+  EditorTableBody,
+  EditorTableCell,
+  EditorTableHead,
+  EditorTableHeading,
+  EditorTableRow,
   TagToken,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
@@ -36,9 +42,6 @@ import {
   type OwnedReportRecord,
   type OwnedReportRow,
 } from "./myReportsModel";
-
-const HEADER_CELL_CLASS =
-  "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
 
 type OpenReport = { record: OwnedReportRecord; draft: TripReportEditableFields };
 
@@ -245,53 +248,54 @@ function OwnedReportTable({
   onOpen: (row: OwnedReportRow) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-dose-border">
-      <table className="w-full min-w-[40rem] border-collapse text-left">
-        <thead>
-          <tr className="border-b border-dose-border">
-            <th scope="col" className={HEADER_CELL_CLASS}>Title</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Address</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Trip date</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>Published</th>
-            <th scope="col" className={HEADER_CELL_CLASS}>
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortOwnedReports(rows).map((row) => (
-            <tr key={row.id} className="border-b border-dose-border last:border-0" data-report={row.slug}>
-              <td className="px-3 py-2.5">
-                <span className="block truncate text-sm font-medium theme-text-primary">{row.title}</span>
-              </td>
-              <td className="px-3 py-2.5">
-                <a
-                  href={`/reports/${row.slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="theme-text-secondary font-mono text-xs hover:underline"
-                >
-                  /reports/{row.slug}
-                </a>
-              </td>
-              <td className="theme-text-secondary px-3 py-2.5 font-mono text-xs">{row.tripDate ?? "Unknown"}</td>
-              <td className="theme-text-secondary px-3 py-2.5 font-mono text-xs">{formatPublished(row.createdAt)}</td>
-              <td className="px-3 py-2.5 text-right">
-                <Button
-                  type="button"
-                  variant={openId === row.id ? "accent" : "outline"}
-                  size="sm"
-                  disabled={openingId !== null}
-                  onClick={() => onOpen(row)}
-                >
-                  {openingId === row.id ? "Opening" : openId === row.id ? "Open" : "Edit"}
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <EditorTable className="md:min-w-[40rem]">
+      <EditorTableHead>
+        <EditorTableHeading>Title</EditorTableHeading>
+        <EditorTableHeading>Address</EditorTableHeading>
+        <EditorTableHeading>Trip date</EditorTableHeading>
+        <EditorTableHeading>Published</EditorTableHeading>
+        <EditorTableHeading>
+          <span className="sr-only">Actions</span>
+        </EditorTableHeading>
+      </EditorTableHead>
+      <EditorTableBody>
+        {sortOwnedReports(rows).map((row) => (
+          <EditorTableRow key={row.id} data-report={row.slug}>
+            <EditorTableCell wide>
+              <span className="block truncate text-sm font-medium theme-text-primary">{row.title}</span>
+            </EditorTableCell>
+            <EditorTableCell label="Address" wide>
+              <a
+                href={`/reports/${row.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="theme-text-secondary block truncate font-mono text-xs hover:underline md:inline"
+              >
+                /reports/{row.slug}
+              </a>
+            </EditorTableCell>
+            <EditorTableCell label="Trip date" className="theme-text-secondary font-mono text-xs">
+              {row.tripDate ?? "Unknown"}
+            </EditorTableCell>
+            <EditorTableCell label="Published" className="theme-text-secondary font-mono text-xs">
+              {formatPublished(row.createdAt)}
+            </EditorTableCell>
+            <EditorTableCell wide className="md:text-right">
+              <Button
+                type="button"
+                variant={openId === row.id ? "accent" : "outline"}
+                size="sm"
+                className="w-full md:w-auto"
+                disabled={openingId !== null}
+                onClick={() => onOpen(row)}
+              >
+                {openingId === row.id ? "Opening" : openId === row.id ? "Open" : "Edit"}
+              </Button>
+            </EditorTableCell>
+          </EditorTableRow>
+        ))}
+      </EditorTableBody>
+    </EditorTable>
   );
 }
 

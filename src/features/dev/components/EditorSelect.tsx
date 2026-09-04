@@ -1,6 +1,7 @@
 import type { ReactNode, SelectHTMLAttributes } from "react";
 import { forwardRef } from "react";
 import { Icon } from "@/components/common/Icon";
+import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 export interface EditorSelectOption {
@@ -23,8 +24,8 @@ export interface EditorSelectProps
 }
 
 const selectSizeClasses: Record<NonNullable<EditorSelectProps["selectSize"]>, string> = {
-  default: "h-11 px-3 py-2 pr-10 text-[16px] md:text-sm",
-  sm: "h-10 px-3 py-2 pr-9 text-sm",
+  default: `h-11 px-3 py-2 pr-10 text-[16px] md:text-sm ${TOUCH_PILL}`,
+  sm: `h-10 px-3 py-2 pr-9 text-[16px] md:text-sm ${TOUCH_PILL}`,
 };
 
 const selectVariantClasses: Record<NonNullable<EditorSelectProps["variant"]>, string> = {

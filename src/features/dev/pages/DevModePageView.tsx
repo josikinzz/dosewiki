@@ -168,6 +168,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         onPrimaryTabChange={controller.onPrimaryTabChange}
         onTabChange={controller.onTabChange}
         onSignIn={controller.onSignIn}
+        onLeave={controller.onLeave}
       />
 
       <div className={controller.contentWrapperClass}>
@@ -180,6 +181,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <DevModeChangeLogTab controller={controller.changeLog} />
         ) : controller.activeTab === "index-layout" ? (
           <IndexLayoutTab
+            enableStickyPanels={controller.enableStickyPanels}
             commitPanel={controller.renderCommitPanel(
               undefined,
               "Save index layout changes to Convex. Requires login to save.",

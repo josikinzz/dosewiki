@@ -24,7 +24,6 @@ export function useDevModePageController({
 }: DevModePageProps): DevModePageControllerState {
   const {
     articles,
-    articleHydration,
     psychoactiveIndexManual,
     chemicalIndexManual,
     mechanismIndexManual,
@@ -160,6 +159,7 @@ export function useDevModePageController({
     activePrimaryTab: routeAccess.activePrimaryTab,
     mainClassName: chromeEnvironment.mainClassName,
     contentWrapperClass: chromeEnvironment.contentWrapperClass,
+    enableStickyPanels: chromeEnvironment.enableStickyPanels,
     isSignedIn: routeAccess.isSignedIn,
     role: routeAccess.role,
     canDraft: routeAccess.canDraft,
@@ -191,5 +191,6 @@ export function useDevModePageController({
     onTabChange: routeAccess.onTabChange,
     onLoadProposal: handleLoadProposal,
     onSignIn: handleSignIn,
+    onLeave: chromeEnvironment.leaveEditor,
   };
 }

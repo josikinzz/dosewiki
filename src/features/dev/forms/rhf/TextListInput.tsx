@@ -101,7 +101,8 @@ export function TextListInput({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                className="min-h-[60px] flex-1 resize-none text-sm"
+                textareaSize="sm"
+                className="flex-1 resize-none"
                 rows={2}
               />
               <Button

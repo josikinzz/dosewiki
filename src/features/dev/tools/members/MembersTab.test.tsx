@@ -108,6 +108,29 @@ describe("MembersTab", () => {
     expect(self.getByRole("button", { name: "Reset password" })).toBeDisabled();
   });
 
+  it("renders each row as a labelled card that carries the role control, Ban, and Reset", async () => {
+    stubMembersApi(ROSTER);
+    render(<MembersTab />);
+    await screen.findByText("ada");
+
+    // Below the tablet step the header row is hidden and the row itself is
+    // the card, so every field label and every action must live inside it.
+    const ada = rowFor("ada@example.com");
+    expect(ada.getByRole("cell", { name: /^Role\s*Editor$/ })).toBeTruthy();
+    expect(ada.getByRole("cell", { name: /^Status\s*Active$/ })).toBeTruthy();
+    expect(ada.getByRole("cell", { name: /^Last sign-in\s*2026-08-02/ })).toBeTruthy();
+    expect(ada.getByRole("cell", { name: new RegExp(`^Invited by\\s*${SELF}$`) })).toBeTruthy();
+
+    const actions = ada.getByRole("group", { name: "Actions for ada" });
+    expect(within(actions).getByRole("combobox", { name: "Role for ada" })).toHaveValue("editor");
+    expect(within(actions).getByRole("button", { name: "Ban" })).toBeEnabled();
+    expect(within(actions).getByRole("button", { name: "Reset password" })).toBeEnabled();
+
+    const bob = rowFor("bob@example.com");
+    expect(bob.getByRole("cell", { name: /^Status\s*Banned$/ })).toBeTruthy();
+    expect(within(bob.getByRole("group", { name: "Actions for bob" })).getByRole("button", { name: "Unban" })).toBeEnabled();
+  });
+
   it("posts role, ban, and reset actions for the row and shows the reset link once", async () => {
     const { calls } = stubMembersApi(ROSTER);
     const user = userEvent.setup();

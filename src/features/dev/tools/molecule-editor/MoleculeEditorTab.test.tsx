@@ -2,8 +2,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { getFunctionName } from "convex/server";
+import { DESKTOP_ONLY_NOTICE } from "@/features/dev/components";
 import {
   installMoleculeEditorTestHarness,
+  seedExampleSubstance,
+  stubOverrideFetch,
   usePaginatedQueryMock,
   useQueryMock,
   useSubstanceLookupMock,
@@ -165,4 +168,69 @@ describe("MoleculeEditorTab modes", () => {
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "up-down");
   });
 
+  it("keeps the drawing surface desktop-only while the picker and transforms work on a coarse pointer", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(pointer: coarse)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    seedExampleSubstance();
+    stubOverrideFetch();
+
+    render(<MoleculeEditorTab />);
+    expect(screen.getByText(DESKTOP_ONLY_NOTICE)).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
+    await user.click(await screen.findByText("Example"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
+    );
+
+    // The notice stays in place of the toolbar; canvas-click modes and drawing
+    // settings are gone, while the whole-depiction transforms still route to OCL.
+    expect(screen.getByText(DESKTOP_ONLY_NOTICE)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Set bond vertical" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Bold bonds" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Fine rotation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Trace an image…" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Select a structure to import" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Straighten" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Save depiction" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Flip left/right" }));
+    expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "left-right");
+  });
+
+  it("shows no desktop notice on a fine pointer", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(pointer: fine)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    seedExampleSubstance();
+    stubOverrideFetch();
+
+    render(<MoleculeEditorTab />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
+    await user.click(await screen.findByText("Example"));
+    await waitFor(() =>
+      expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
+    );
+
+    expect(screen.queryByText(DESKTOP_ONLY_NOTICE)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Set bond vertical" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Fine rotation" })).toBeInTheDocument();
+  });
 });

@@ -2,6 +2,7 @@ import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Icon } from "@/components/common/Icon"
+import { TOUCH_PILL } from "@/components/ui/touchTargets"
 
 import { cn } from "@/lib/utils"
 
@@ -20,7 +21,7 @@ const selectTriggerVariants = cva(
         error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)] focus:ring-[color:var(--theme-danger-ring)]",
       },
       selectSize: {
-        sm: "h-10 px-3 py-2 pr-10 text-sm",
+        sm: `h-10 px-3 py-2 pr-10 text-[16px] md:text-sm ${TOUCH_PILL}`,
         default: "h-11 px-4 py-2 pr-12 text-sm",
         compact: "h-11 px-4 py-2 pr-10 text-sm",
         lg: "h-12 px-4 py-3 pr-12 text-base",

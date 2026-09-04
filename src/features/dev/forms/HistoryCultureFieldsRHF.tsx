@@ -11,6 +11,7 @@ import { Icon } from "@/components/common/Icon";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { Surface } from "@/components/ui/surface";
 import { EditorFieldRow } from "@/features/dev/components";
 import { FormEditorField } from "./FormEditorField";
@@ -126,7 +127,7 @@ function SubsectionsFieldArray({
               variant="ghostDestructive"
               size="icon"
               onClick={() => remove(subIndex)}
-              className="h-8 w-8"
+              className={`h-8 w-8 ${TOUCH_ICON}`}
               title="Remove subsection"
               aria-label={`Remove subsection ${subIndex + 1}`}
             >

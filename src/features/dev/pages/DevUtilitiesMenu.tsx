@@ -4,12 +4,13 @@ import Link from "next/link";
 
 import { Icon } from "@/components/common/Icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 
 /**
  * The developer utilities that are routes of their own rather than tool tabs. Both
  * live under the `/dev` prefix, so they share the shell's role gate and its flavor gate.
  */
-const UTILITIES: readonly { href: string; label: string; detail: string; icon: string }[] = [
+export const DEV_UTILITIES: readonly { href: string; label: string; detail: string; icon: string }[] = [
   {
     href: "/dev/kit",
     label: "UI kit",
@@ -37,7 +38,7 @@ export function DevUtilitiesMenu() {
           type="button"
           title="Utilities"
           aria-label="Utilities"
-          className="theme-dev-rail-button flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none"
+          className={`theme-dev-rail-button flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${TOUCH_ICON}`}
         >
           <Icon icon="lucide:wrench" size={15} />
         </button>
@@ -45,7 +46,7 @@ export function DevUtilitiesMenu() {
       <PopoverContent align="end" aria-label="Utilities" className="w-60 p-1.5">
         <nav aria-label="Developer utilities">
           <ul className="flex flex-col gap-0.5">
-            {UTILITIES.map((utility) => (
+            {DEV_UTILITIES.map((utility) => (
               <li key={utility.href}>
                 <Link
                   href={utility.href}

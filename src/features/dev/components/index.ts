@@ -83,6 +83,14 @@ export type {
 } from "./EditorNotice";
 
 export {
+  DESKTOP_ONLY_NOTICE,
+  DesktopOnlyNotice,
+} from "./DesktopOnlyNotice";
+export type {
+  DesktopOnlyNoticeProps,
+} from "./DesktopOnlyNotice";
+
+export {
   CodeSurface,
   DiffSurface,
   JsonEditorPanel,
@@ -109,3 +117,21 @@ export {
 export type {
   TagTokenProps,
 } from "./TagToken";
+
+export {
+  useScrollToDetail,
+} from "./useScrollToDetail";
+
+export {
+  EditorTable,
+  EditorTableBody,
+  EditorTableCell,
+  EditorTableHead,
+  EditorTableHeading,
+  EditorTableRow,
+} from "./EditorTable";
+export type {
+  EditorTableCellProps,
+  EditorTableProps,
+  EditorTableRowProps,
+} from "./EditorTable";

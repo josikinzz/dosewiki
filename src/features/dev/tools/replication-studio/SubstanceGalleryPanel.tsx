@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   ActionNotice,
   DiffSurface,
@@ -235,7 +236,7 @@ export function SubstanceGalleryPanel({
               type="button"
               variant="glass"
               size="icon"
-              className="h-8 w-8"
+              className={`h-8 w-8 ${TOUCH_ICON}`}
               disabled={!undoable}
               aria-label="Undo the last curation change"
               title="Undo (Cmd/Ctrl+Z)"
@@ -247,7 +248,7 @@ export function SubstanceGalleryPanel({
               type="button"
               variant="glass"
               size="icon"
-              className="h-8 w-8"
+              className={`h-8 w-8 ${TOUCH_ICON}`}
               disabled={!redoable}
               aria-label="Redo the last undone curation change"
               title="Redo (Cmd/Ctrl+Shift+Z)"

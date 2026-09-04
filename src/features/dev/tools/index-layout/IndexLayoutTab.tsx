@@ -8,6 +8,7 @@ import {
 } from "@/features/dev/components";
 import { useDevMode } from "../../context/DevModeContext";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import type { CategoryExpansionSignal } from "./CategoryEditor";
 import { DatasetTabs } from "./DatasetTabs";
@@ -36,10 +37,15 @@ const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanis
 
 export function IndexLayoutTab({
   commitPanel,
+  enableStickyPanels,
 }: IndexLayoutTabProps) {
   const [columnMode, setColumnMode] = useState<"auto" | 1 | 2 | 3 | 4 | 5 | 6>("auto");
   const { count: autoColumnCount } = useResponsiveColumnCount();
-  const columnCount = columnMode === "auto" ? autoColumnCount : columnMode;
+  // The shared index math still fits two columns between 480px and the tablet
+  // step; the board stacks there, so "auto" means one column until `md`
+  // (Tailwind `md` starts at 768px).
+  const belowTablet = useMediaQuery("(max-width: 767px)");
+  const columnCount = columnMode === "auto" ? (belowTablet ? 1 : autoColumnCount) : columnMode;
 
   const {
     psychoactiveIndexManual,
@@ -309,6 +315,7 @@ export function IndexLayoutTab({
         </div>
       </EditorSection>
       <LayoutToolbar
+        enableStickyPanels={enableStickyPanels}
         hasUnsavedChanges={hasUnsavedChanges}
         saveNotice={saveNotice}
         showJsonEditor={showJsonEditor}

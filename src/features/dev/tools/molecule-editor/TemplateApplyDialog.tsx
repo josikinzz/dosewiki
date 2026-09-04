@@ -107,7 +107,7 @@ export function TemplateApplyDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[92dvh] max-w-6xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0"
+        className="grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0 md:max-w-6xl"
         showClose={false}
       >
         <DialogHeader className="border-b border-dose-border px-6 py-5 pr-14">
@@ -179,18 +179,18 @@ export function TemplateApplyDialog({
                         {resultStatus(result)}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       <div>
-                        <p className="theme-text-faint mb-1.5 text-xs font-medium uppercase tracking-wide">Before</p>
+                        <p className="theme-text-faint mb-1.5 text-sm font-medium uppercase tracking-wide">Before</p>
                         <MoleculePreviewFrame svg={row.beforeSvg} empty="Current depiction unavailable" />
                       </div>
                       <div>
-                        <p className="theme-text-faint mb-1.5 text-xs font-medium uppercase tracking-wide">After</p>
+                        <p className="theme-text-faint mb-1.5 text-sm font-medium uppercase tracking-wide">After</p>
                         <MoleculePreviewFrame
                           svg={row.afterSvg}
                           empty={
                             row.outcome === "protected-hand-edit"
-                              ? "Protected hand edit — not aligned"
+                              ? "Protected hand edit, not aligned"
                               : row.outcome === "no-match"
                                 ? "Template does not match"
                                 : row.reason ?? "No aligned preview"
@@ -199,9 +199,9 @@ export function TemplateApplyDialog({
                       </div>
                     </div>
                     {result?.reason ? (
-                      <p className="theme-danger-text mt-2 text-xs">{result.reason}</p>
+                      <p className="theme-danger-text mt-2 text-sm">{result.reason}</p>
                     ) : row.reason && row.outcome === "error" ? (
-                      <p className="theme-danger-text mt-2 text-xs">{row.reason}</p>
+                      <p className="theme-danger-text mt-2 text-sm">{row.reason}</p>
                     ) : null}
                   </Surface>
                 );
@@ -223,7 +223,7 @@ export function TemplateApplyDialog({
         </div>
 
         <DialogFooter className="border-t border-dose-border px-6 py-4 sm:items-center sm:justify-between">
-          <p className="theme-text-faint text-xs">
+          <p className="theme-text-faint text-sm">
             {includedSlugs.size} of {summary.aligned} aligned depictions included
           </p>
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
