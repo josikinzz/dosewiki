@@ -1,6 +1,49 @@
-import { memo, type ReactNode } from "react";
+"use client";
+
+import { memo, useLayoutEffect, useRef, type ReactNode } from "react";
 import { Icon as IconComponent, type IconName } from "../common/Icon";
 import { cn } from "@/lib/utils";
+
+const MOBILE_QUERY = "(max-width: 639px)";
+const MIN_TITLE_FONT_PX = 20;
+
+/**
+ * On phones the title is one line sized to the column: no balancing, no
+ * non-breaking-space tricks, no guessing where a long name wraps. The h1 is
+ * rendered at its stylesheet size, the text run measured, and the font shrunk
+ * by exactly the overflow ratio. Wider viewports keep the stylesheet size.
+ */
+function useFitTitleToWidth() {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const runRef = useRef<HTMLSpanElement>(null);
+
+  useLayoutEffect(() => {
+    const title = titleRef.current;
+    const run = runRef.current;
+    if (!title || !run || typeof window.matchMedia !== "function") return;
+    const media = window.matchMedia(MOBILE_QUERY);
+
+    const fit = () => {
+      title.style.fontSize = "";
+      if (!media.matches) return;
+      const available = title.clientWidth;
+      const needed = run.scrollWidth;
+      if (needed <= available || available === 0) return;
+      const base = parseFloat(getComputedStyle(title).fontSize);
+      title.style.fontSize = `${Math.max(MIN_TITLE_FONT_PX, (base * available) / needed)}px`;
+    };
+
+    fit();
+    window.addEventListener("resize", fit);
+    media.addEventListener("change", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      media.removeEventListener("change", fit);
+    };
+  }, []);
+
+  return { titleRef, runRef };
+}
 
 interface PageHeaderProps {
   className?: string;
@@ -32,17 +75,17 @@ export const PageHeader = memo(function PageHeader({
   align = "center",
 }: PageHeaderProps) {
   const isLeft = align === "left";
-  // The icon sits out of flow, hung off the left edge of the text run, so the
+  const { titleRef, runRef } = useFitTitleToWidth();
+  // On phones the icon is inline, capital-letter sized, leading the text. From
+  // `sm` up it hangs out of flow off the left edge of the text run, so the
   // title centres on its letters alone and the glyph does not shift the
-  // optical middle. It keeps the accent colour but at low opacity, so it
-  // recedes into the background. The h1 carries symmetric side padding one
-  // glyph wide so a title that fills a phone column still leaves room for
-  // the hung icon without moving the text off centre.
+  // optical middle; the h1 carries side padding one glyph wide to leave room
+  // for it. Either way it is solid accent colour.
   const iconClassName =
-    "theme-accent-heading absolute right-full top-1/2 mr-[0.15em] block h-[1em] w-[1em] -translate-y-1/2 opacity-30";
+    "theme-accent-heading mr-[0.2em] inline-block h-[0.72em] w-[0.72em] align-[0.02em] sm:absolute sm:right-full sm:top-1/2 sm:mr-[0.15em] sm:block sm:h-[1em] sm:w-[1em] sm:-translate-y-1/2";
   const titleClasses = cn(
-    "type-page-title theme-accent-heading block max-w-[22ch] text-balance text-4xl wrap-normal! sm:text-5xl md:text-6xl",
-    icon ? (isLeft ? "pl-[1.15em]" : "px-[1.15em]") : undefined,
+    "type-page-title theme-accent-heading block w-full max-w-[22ch] text-balance wrap-normal! max-sm:text-4xl! sm:text-5xl md:text-6xl",
+    icon ? (isLeft ? "sm:pl-[1.15em]" : "sm:px-[1.15em]") : undefined,
     isLeft ? undefined : "mx-auto",
     titleClassName,
   );
@@ -55,15 +98,13 @@ export const PageHeader = memo(function PageHeader({
         className,
       )}
     >
-      <h1 className={titleClasses}>
-        {icon ? (
-          <span className="relative inline-block">
-            <IconComponent icon={icon} size="1em" className={iconClassName} />
-            {title}
-          </span>
-        ) : (
-          title
-        )}
+      <h1 ref={titleRef} className={titleClasses}>
+        {/* Phone nowrap lives on the run, not the h1: `.type-page-title`'s
+            `text-wrap: balance` reopens the `white-space` shorthand there. */}
+        <span ref={runRef} className="relative inline-block max-sm:whitespace-nowrap">
+          {icon ? <IconComponent icon={icon} size="1em" className={iconClassName} /> : null}
+          {title}
+        </span>
       </h1>
       {description ? (
         <div
