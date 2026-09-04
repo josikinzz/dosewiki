@@ -11,9 +11,21 @@ interface ProseDiffProps {
   markdown: string;
   id: string;
   className?: string;
-  /** Reference id → citation number in the article as it stands now. */
-  citationNumbers?: Record<string, number>;
+  /**
+   * How to render `[cite:id]` tokens: the article's current numbering, and
+   * the page the `#ref-…` anchors live on (empty on the article itself).
+   */
+  citations?: CitationContext;
 }
+
+export type CitationContext = {
+  /** Reference id → citation number in the article as it stands now. */
+  numbers: Record<string, number>;
+  /** Path prefix for reference anchors; "" when rendering on the article page. */
+  hrefBase: string;
+};
+
+const NO_CITATIONS: CitationContext = { numbers: {}, hrefBase: "" };
 
 function isCitationToken(token: string): boolean {
   CITATION_MARKER_PATTERN.lastIndex = 0;
@@ -94,27 +106,28 @@ const isWhitespace = (token: string) => /^\s+$/.test(token);
  * when it is not (removed, or renamed since), and the citation-needed marker
  * for the sentinel.
  */
-function CitationToken({ token, numbers }: { token: string; numbers: Record<string, number> }) {
+function CitationToken({ token, citations }: { token: string; citations: CitationContext }) {
   if (token === CITATION_NEEDED_TOKEN) {
     return <CitationNeededMarker />;
   }
   const id = token.slice("[cite:".length, -1);
-  const number = numbers[id];
+  const number = citations.numbers[id];
+  const { hrefBase } = citations;
   return (
     <CitationSup
       citations={[
         number
-          ? { accessibleLabel: `Citation ${number}`, href: `#ref-${id}`, label: String(number), referenceId: id }
-          : { accessibleLabel: "Source no longer cited", href: "#sources", label: "source", title: id },
+          ? { accessibleLabel: `Citation ${number}`, href: `${hrefBase}#ref-${id}`, label: String(number), referenceId: id }
+          : { accessibleLabel: "Source no longer cited", href: `${hrefBase}#sources`, label: "source", title: id },
       ]}
     />
   );
 }
 
-function renderTokens(tokens: string[], numbers: Record<string, number>, keyPrefix: string): ReactNode[] {
+function renderTokens(tokens: string[], citations: CitationContext, keyPrefix: string): ReactNode[] {
   return tokens.map((token, index) =>
     isCitationToken(token) ? (
-      <CitationToken key={`${keyPrefix}-${index}`} token={token} numbers={numbers} />
+      <CitationToken key={`${keyPrefix}-${index}`} token={token} citations={citations} />
     ) : (
       token
     ),
@@ -198,7 +211,7 @@ function renderSide(
   runs: Run[],
   Mark: "del" | "ins",
   markClass: string,
-  numbers: Record<string, number>,
+  citations: CitationContext,
 ): ReactNode[] {
   const nodes: ReactNode[] = [];
   runs.forEach((run, index) => {
@@ -211,7 +224,7 @@ function renderSide(
       return;
     }
     if (!run.changed) {
-      nodes.push(<span key={index}>{renderTokens(run.tokens, numbers, String(index))}</span>);
+      nodes.push(<span key={index}>{renderTokens(run.tokens, citations, String(index))}</span>);
       return;
     }
     // Whitespace at the edges of a change stays outside the mark, so the
@@ -228,7 +241,7 @@ function renderSide(
       nodes.push(
         <Mark key={index} className={markClass}>
           <span className="sr-only">{Mark === "del" ? "removed: " : "added: "}</span>
-          {renderTokens(inner, numbers, String(index))}
+          {renderTokens(inner, citations, String(index))}
         </Mark>,
       );
     }
@@ -246,11 +259,11 @@ function renderSide(
 function BeforeAfter({
   before,
   after,
-  numbers,
+  citations,
 }: {
   before: string;
   after: string;
-  numbers: Record<string, number>;
+  citations: CitationContext;
 }) {
   const parts = diffArrays(before.match(DIFF_TOKEN) ?? [], after.match(DIFF_TOKEN) ?? []);
   const keep = keepWindows(parts);
@@ -261,11 +274,11 @@ function BeforeAfter({
     <div className="grid gap-3 md:grid-cols-2 md:gap-5">
       <div>
         <span className={sideLabelClass}>Before</span>
-        <p className={passageClass}>{renderSide(beforeRuns, "del", removedClass, numbers)}</p>
+        <p className={passageClass}>{renderSide(beforeRuns, "del", removedClass, citations)}</p>
       </div>
       <div className="border-t border-dose-border pt-3 md:border-l md:border-t-0 md:pl-5 md:pt-0">
         <span className={sideLabelClass}>After</span>
-        <p className={passageClass}>{renderSide(afterRuns, "ins", addedClass, numbers)}</p>
+        <p className={passageClass}>{renderSide(afterRuns, "ins", addedClass, citations)}</p>
       </div>
     </div>
   );
@@ -274,11 +287,11 @@ function BeforeAfter({
 function Standalone({
   kind,
   text,
-  numbers,
+  citations,
 }: {
   kind: "removed" | "added";
   text: string;
-  numbers: Record<string, number>;
+  citations: CitationContext;
 }) {
   const tokens = text.match(DIFF_TOKEN) ?? [];
   return (
@@ -288,12 +301,12 @@ function Standalone({
         {kind === "removed" ? (
           <del className={removedClass}>
             <span className="sr-only">removed: </span>
-            {renderTokens(tokens, numbers, "removed")}
+            {renderTokens(tokens, citations, "removed")}
           </del>
         ) : (
           <ins className={addedClass}>
             <span className="sr-only">added: </span>
-            {renderTokens(tokens, numbers, "added")}
+            {renderTokens(tokens, citations, "added")}
           </ins>
         )}
       </p>
@@ -306,7 +319,7 @@ function Standalone({
  * words marked on each side. For the changelog's line-pair diffs of article
  * copy; JSON and structural diffs stay on `ChangelogDiff`.
  */
-export function ProseDiff({ markdown, id, className, citationNumbers = {} }: ProseDiffProps) {
+export function ProseDiff({ markdown, id, className, citations = NO_CITATIONS }: ProseDiffProps) {
   const blocks = toBlocks(markdown);
   // One field edited: the row above already names it. Several: label each.
   const showLabels = blocks.filter((block) => block.kind === "label").length > 1;
@@ -321,10 +334,10 @@ export function ProseDiff({ markdown, id, className, citationNumbers = {} }: Pro
               </p>
             ) : null;
           case "pair":
-            return <BeforeAfter key={index} before={block.before} after={block.after} numbers={citationNumbers} />;
+            return <BeforeAfter key={index} before={block.before} after={block.after} citations={citations} />;
           case "removed":
           case "added":
-            return <Standalone key={index} kind={block.kind} text={block.text} numbers={citationNumbers} />;
+            return <Standalone key={index} kind={block.kind} text={block.text} citations={citations} />;
           case "context":
             return (
               <p key={index} className="theme-text-muted text-sm leading-relaxed">

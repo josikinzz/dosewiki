@@ -130,6 +130,10 @@ export const publicHref = {
     const trimmed = query?.trim() ?? "";
     return trimmed.length > 0 ? `/search?q=${encodeURIComponent(trimmed)}` : "/search";
   },
+  changes: (articleSlug?: string) => {
+    const segment = articleSlug ? nonEmptyPathSegment(articleSlug) : null;
+    return segment ? `/changes?article=${encodeURIComponent(segment)}` : "/changes";
+  },
 };
 
 export function getPublicHref(intent: PublicHrefIntent): string {

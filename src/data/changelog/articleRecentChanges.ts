@@ -34,17 +34,19 @@ export type ArticleRecentChange = {
     href: string | null;
     avatarUrl: string | null;
   } | null;
-  /** Unified-diff-style lines for this article only; empty when none stored. */
+  /** Unified-diff-style lines; sliced to one article on the article page, empty when none stored. */
   diff: string;
-  /** How many articles the same save touched, including this one. */
-  articleCount: number;
+  /** Every article the same save touched, in the order the save recorded them. */
+  articles: ChangeLogArticleSummary[];
+  /** The article this row was read for; null on the site-wide feed. */
+  subjectSlug: string | null;
 };
 
 /** The reader-facing description of a save, before contributor resolution. */
 export type ChangeDescription = Pick<ArticleRecentChange, "kind" | "message" | "detail" | "section" | "field">;
 
 const SECTION_HEADING = /^# (.+)$/;
-const INLINE_EDIT_MESSAGE = /^Inline edit — ([\w.]+)$/;
+const INLINE_EDIT_MESSAGE = /^Inline edit — ([\w.[\]]+)$/;
 const SOURCE_MESSAGE = /^(Added|Removed) a source — (.+)$/;
 const BULK_MESSAGE = /^Dev editor update - (.+)$/;
 
@@ -153,7 +155,12 @@ export function describeChange(message: string, diff: string): ChangeDescription
 
   const inline = INLINE_EDIT_MESSAGE.exec(trimmed);
   if (inline) {
-    const [head, ...rest] = inline[1].split(".").filter((segment) => segment.length > 0);
+    // "dosage.routes[0].dose_ranges.heavy": an index is part of its parent
+    // segment, so it reads as "Routes 1" rather than a bare number.
+    const [head, ...rest] = inline[1]
+      .replace(/\[(\d+)\]/g, (_match, index: string) => `_${Number(index) + 1}`)
+      .split(".")
+      .filter((segment) => segment.length > 0);
     const section = sectionsByField[head] ?? null;
     const fieldSegments = section ? rest : [head, ...rest];
     return {
@@ -165,11 +172,16 @@ export function describeChange(message: string, diff: string): ChangeDescription
     };
   }
 
+  // The Dev editor stamps "Dev editor update - <locale timestamp>" when the
+  // save has no message of its own; the row already shows the time, so the
+  // stamp adds nothing. A hand-written note is worth keeping.
   const bulk = BULK_MESSAGE.exec(trimmed);
+  const note = bulk ? bulk[1].trim() : trimmed;
+  const isTimestamp = /^\d{1,2}\/\d{1,2}\/\d{4}(?:[ ,]+\d{1,2}:\d{2}(?::\d{2})?(?: ?[AP]M)?)?$/i.test(note);
   return {
     kind: "bulk",
     message: "Updated the article",
-    detail: bulk ? bulk[1].trim() : trimmed.length > 0 ? trimmed : null,
+    detail: note.length > 0 && !isTimestamp ? note : null,
     section: null,
     field: null,
   };

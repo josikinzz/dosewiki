@@ -80,7 +80,8 @@ describe("ContributorsSection", () => {
             field: "Threshold",
             contributor: { name: "Josie Kins", href: "/contributors/josie", avatarUrl: null },
             diff: "@@ dosage.threshold @@\n- 5 mg\n+ 4 mg",
-            articleCount: 1,
+            articles: [{ id: 12, title: "2C-B", slug: "2c-b" }],
+            subjectSlug: "2c-b",
           },
           {
             id: "source-1",
@@ -92,7 +93,8 @@ describe("ContributorsSection", () => {
             field: null,
             contributor: null,
             diff: "@@ references @@\n+ Some paper",
-            articleCount: 1,
+            articles: [{ id: 12, title: "2C-B", slug: "2c-b" }],
+            subjectSlug: "2c-b",
           },
           {
             id: "bulk-1",
@@ -104,7 +106,14 @@ describe("ContributorsSection", () => {
             field: null,
             contributor: null,
             diff: "",
-            articleCount: 14,
+            articles: [
+              { id: 12, title: "2C-B", slug: "2c-b" },
+              { id: 4, title: "LSD", slug: "lsd" },
+              { id: 5, title: "Psilocybin", slug: "psilocybin" },
+              { id: 6, title: "DMT", slug: "dmt" },
+              { id: 7, title: "Mescaline", slug: "mescaline" },
+            ],
+            subjectSlug: "2c-b",
           },
         ]}
       />,
@@ -126,7 +135,11 @@ describe("ContributorsSection", () => {
     expect(screen.getByRole("link", { name: "Dosage & Duration" })).toHaveAttribute("href", "#dosage-duration");
     expect(screen.getByText(/› Threshold/)).toBeInTheDocument();
     expect(screen.getByText("Some paper")).toBeInTheDocument();
-    expect(screen.getByText(/part of a save across 14 articles/)).toBeInTheDocument();
+    // A bulk save names its first few other articles as links, then counts the rest.
+    expect(screen.getByRole("link", { name: "LSD" })).toHaveAttribute("href", "/lsd");
+    expect(screen.getByRole("link", { name: "DMT" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Mescaline" })).toBeNull();
+    expect(screen.getByText(/and 1 more/)).toBeInTheDocument();
     // Only the prose row has something to open: source rows say it all inline.
     expect(screen.getAllByRole("button", { name: "Show what changed" })).toHaveLength(1);
 

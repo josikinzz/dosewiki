@@ -28,7 +28,7 @@ describe("ProseDiff", () => {
       <ProseDiff
         id="d"
         markdown={"- Claim.[citation-needed]\n+ Claim.[cite:doi-1][cite:gone]"}
-        citationNumbers={{ "doi-1": 3 }}
+        citations={{ numbers: { "doi-1": 3 }, hrefBase: "" }}
       />,
     );
 

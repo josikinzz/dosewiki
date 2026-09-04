@@ -93,13 +93,14 @@ describe("describeChange", () => {
     });
   });
 
-  it("treats a Dev editor save as a bulk update with its note", () => {
-    expect(describeChange("Dev editor update - 2026-07-02", "")).toEqual({
+  it("treats a Dev editor save as a bulk update, dropping an auto timestamp note", () => {
+    expect(describeChange("Dev editor update - 9/1/2026 3:38:03 PM", "")).toMatchObject({
       kind: "bulk",
       message: "Updated the article",
-      detail: "2026-07-02",
-      section: null,
-      field: null,
+      detail: null,
+    });
+    expect(describeChange("Dev editor update - Fixed the dose table", "")).toMatchObject({
+      detail: "Fixed the dose table",
     });
   });
 });
@@ -147,5 +148,14 @@ describe("mergeSourceChurn", () => {
         row("a", "Removed a source", "2026-09-03T10:00:00Z"),
       ]),
     ).toHaveLength(2);
+  });
+});
+describe("describeChange legacy paths", () => {
+  it("reads an indexed field path as words", () => {
+    expect(describeChange("Inline edit — dosage.routes[0].dose_ranges.heavy", "- 1\n+ 2")).toMatchObject({
+      kind: "prose",
+      section: { id: "dosage-duration", label: "Dosage & Duration" },
+      field: "Routes 1 › Dose ranges › Heavy",
+    });
   });
 });

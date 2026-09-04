@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
 import { buildCitationNumbering } from "@/lib/citations/referenceModel";
-import { RecentChangesList } from "./RecentChangesList";
+import { RecentChangesList } from "@/components/changelog/RecentChangesList";
+import { publicHref } from "@/utils/publicHref";
 import {
   EXPERT_REVIEW_CREDIT_FALLBACK,
   REVIEW_STATUS_BANNER_FALLBACK,
@@ -226,9 +227,8 @@ function RecentChangesDisclosure({
     latestDate.getUTCFullYear() === new Date().getUTCFullYear() ? summaryDayFormat : summaryDateWithYearFormat;
   // Diffs render `[cite:id]` tokens as the article's citation numbers, so a
   // reader can follow one to the reference it points at today.
-  const citationNumbers = Object.fromEntries(
-    buildCitationNumbering(article.references ?? [], article).numbersById,
-  );
+  const numbers = Object.fromEntries(buildCitationNumbering(article.references ?? [], article).numbersById);
+  const slug = latest.subjectSlug;
   return (
     <details className="group/changes mt-6 border-t border-dose-border pt-3">
       <summary
@@ -263,7 +263,16 @@ function RecentChangesDisclosure({
         />
       </summary>
       <div className="sm:pl-[3.25rem]">
-        <RecentChangesList changes={changes} citationNumbers={citationNumbers} />
+        <RecentChangesList changes={changes} article={{ citations: { numbers, hrefBase: "" } }} />
+        <p className="mt-3 text-sm">
+          <SmartLink href={publicHref.changes(slug ?? undefined)} className="theme-accent-heading theme-focus-ring rounded font-semibold underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2 hover:decoration-current">
+            {slug ? "All changes to this article" : "All recent changes"}
+          </SmartLink>
+          <span className="theme-text-faint"> · </span>
+          <SmartLink href={publicHref.changes()} className="theme-text-secondary theme-focus-ring rounded underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2 hover:decoration-current">
+            Site-wide recent changes
+          </SmartLink>
+        </p>
       </div>
     </details>
   );

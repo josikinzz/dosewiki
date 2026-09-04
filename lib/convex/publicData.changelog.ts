@@ -199,47 +199,62 @@ export const getPublicProfileHistory = cache(
  */
 export const PUBLIC_ARTICLE_HISTORY_LIMIT = 8;
 
+/** How many edits the site-wide /changes page lists, with or without an article filter. */
+export const PUBLIC_CHANGES_PAGE_LIMIT = 60;
+
 type ConvexArticleChangelogRow = Omit<ConvexChangelogRow, "articles"> & { articles: unknown };
 
-/** The cached, per-article projection before contributor resolution. */
+/** The cached projection before contributor resolution. */
 type StampedArticleChange = Omit<ArticleRecentChange, "contributor"> & {
   submittedBy: string | null;
 };
+
+/**
+ * Project raw changelog rows into reader-facing changes. With `slug`, each
+ * row's diff is sliced to that article; without it, a single-article save is
+ * still sliced to its one section and a bulk save keeps its whole capped diff.
+ */
+function projectChanges(rows: unknown, slug: string | null): StampedArticleChange[] {
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+  const changes: StampedArticleChange[] = [];
+  for (const row of rows as ConvexArticleChangelogRow[]) {
+    if (typeof row !== "object" || row === null) continue;
+    if (typeof row.entryId !== "string" || typeof row.createdAt !== "string") continue;
+    const articles = normalizeArticles(row.articles);
+    const article = slug ? articles.find((candidate) => candidate.slug === slug) : articles[0];
+    if (slug && !article) continue;
+    const markdown = typeof row.markdown === "string" ? row.markdown : "";
+    const diff = truncateDiffMarkdown(
+      article && (slug || articles.length === 1) ? sliceArticleDiff(markdown, article) : markdown,
+    );
+    changes.push({
+      id: row.entryId,
+      createdAt: row.createdAt,
+      ...describeChange(typeof row.message === "string" ? row.message : "", diff),
+      diff,
+      articles,
+      subjectSlug: slug,
+      submittedBy: typeof row.submittedBy === "string" ? row.submittedBy : null,
+    });
+  }
+  return mergeSourceChurn(changes);
+}
 
 const readChangelogByArticleSlug = cache(
   unstable_cache(
     // Slicing to this article and the diff cap both run inside the cache
     // boundary: a bulk save's 500 KB multi-article diff never reaches the
     // cached value, only this article's section of it.
-    async (slug: string): Promise<StampedArticleChange[]> => {
+    async (slug: string, limit: number): Promise<StampedArticleChange[]> => {
       const rows = await queryConvex<ConvexArticleChangelogRow[], { slug: string; limit: number }>(
         "changelog:getByArticleSlug",
-        { slug, limit: PUBLIC_ARTICLE_HISTORY_LIMIT },
+        { slug, limit },
       );
-      if (!Array.isArray(rows)) {
-        return [];
-      }
-      const changes: StampedArticleChange[] = [];
-      for (const row of rows) {
-        if (typeof row !== "object" || row === null) continue;
-        if (typeof row.entryId !== "string" || typeof row.createdAt !== "string") continue;
-        const articles = normalizeArticles(row.articles);
-        const article = articles.find((candidate) => candidate.slug === slug);
-        if (!article) continue;
-        const markdown = typeof row.markdown === "string" ? row.markdown : "";
-        const diff = truncateDiffMarkdown(sliceArticleDiff(markdown, article));
-        changes.push({
-          id: row.entryId,
-          createdAt: row.createdAt,
-          ...describeChange(typeof row.message === "string" ? row.message : "", diff),
-          diff,
-          articleCount: articles.length,
-          submittedBy: typeof row.submittedBy === "string" ? row.submittedBy : null,
-        });
-      }
-      return mergeSourceChurn(changes);
+      return projectChanges(rows, slug);
     },
-    ["convex-public-changelog-by-article-slug"],
+    ["convex-public-changelog-by-article-slug", "v2"],
     {
       revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
       tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.changelog],
@@ -247,48 +262,90 @@ const readChangelogByArticleSlug = cache(
   ),
 );
 
+const readRecentChangelog = cache(
+  unstable_cache(
+    async (limit: number): Promise<StampedArticleChange[]> => {
+      const rows = await queryConvex<ConvexArticleChangelogRow[], { limit: number }>("changelog:getRecent", {
+        limit,
+      });
+      return projectChanges(rows, null);
+    },
+    ["convex-public-changelog-recent-changes", "v2"],
+    {
+      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.changelog],
+    },
+  ),
+);
+
+function resolveContributors(
+  rows: StampedArticleChange[],
+  directory: ContributorDirectory,
+): ArticleRecentChange[] {
+  return rows.map(({ submittedBy, ...change }) => {
+    if (!submittedBy) {
+      return { ...change, contributor: null };
+    }
+    // Legacy stamps (WITCHY) attribute to their current profile (LYREA), the
+    // same grouping the profile page uses in the other direction.
+    let profile = null;
+    for (const handle of expandLegacyContributorHandles([submittedBy])) {
+      profile = findContributorProfileByKeyOrAlias(directory, handle);
+      if (profile) break;
+    }
+    return {
+      ...change,
+      contributor: profile
+        ? {
+            name: profile.displayName,
+            href: publicHref.contributor(profile.key.toLowerCase()),
+            avatarUrl: profile.avatarUrl ?? null,
+          }
+        : { name: toContributorDisplayName(submittedBy), href: null, avatarUrl: null },
+    };
+  });
+}
+
 /**
- * The human edits recorded against one article, newest first, for the public
- * article page. Only signed-in editor saves write changelog rows (agent and
- * script pipelines mutate articles without one), so every row here is a human
- * edit by construction.
+ * The human edits recorded against one article, newest first. Only signed-in
+ * editor saves write changelog rows (agent and script pipelines mutate
+ * articles without one), so every row here is a human edit by construction.
  *
  * Contributor identity resolves here against the directory so the page never
- * ships raw submitter stamps for known profiles. Returns [] when the query is
- * not deployed yet or Convex is unreachable: the disclosure simply does not
- * render, which is the same thing an unedited article shows.
+ * ships raw submitter stamps for known profiles. Returns [] when Convex is
+ * unreachable: the disclosure simply does not render, which is the same thing
+ * an unedited article shows.
  */
 export const getPublicArticleHistory = cache(
-  async (slug: string, directory: ContributorDirectory): Promise<ArticleRecentChange[]> => {
-    let rows: StampedArticleChange[] = [];
+  async (
+    slug: string,
+    directory: ContributorDirectory,
+    limit: number = PUBLIC_ARTICLE_HISTORY_LIMIT,
+  ): Promise<ArticleRecentChange[]> => {
     try {
-      rows = await readChangelogByArticleSlug(slug);
+      return resolveContributors(await readChangelogByArticleSlug(slug, limit), directory);
     } catch (error) {
       console.warn(`[publicData] article changelog unavailable for ${slug}; hiding recent changes.`, error);
       return [];
     }
+  },
+);
 
-    return rows.map(({ submittedBy, ...change }) => {
-      if (!submittedBy) {
-        return { ...change, contributor: null };
-      }
-      // Legacy stamps (WITCHY) attribute to their current profile (LYREA), the
-      // same grouping the profile page uses in the other direction.
-      let profile = null;
-      for (const handle of expandLegacyContributorHandles([submittedBy])) {
-        profile = findContributorProfileByKeyOrAlias(directory, handle);
-        if (profile) break;
-      }
-      return {
-        ...change,
-        contributor: profile
-          ? {
-              name: profile.displayName,
-              href: publicHref.contributor(profile.key.toLowerCase()),
-              avatarUrl: profile.avatarUrl ?? null,
-            }
-          : { name: toContributorDisplayName(submittedBy), href: null, avatarUrl: null },
-      };
-    });
+/**
+ * The site's most recent human edits across every article, newest first, for
+ * the public /changes page. Same projection and contributor resolution as the
+ * per-article ledger.
+ */
+export const getPublicRecentChanges = cache(
+  async (
+    directory: ContributorDirectory,
+    limit: number = PUBLIC_CHANGES_PAGE_LIMIT,
+  ): Promise<ArticleRecentChange[]> => {
+    try {
+      return resolveContributors(await readRecentChangelog(limit), directory);
+    } catch (error) {
+      console.warn("[publicData] site changelog unavailable; /changes shows nothing.", error);
+      return [];
+    }
   },
 );
