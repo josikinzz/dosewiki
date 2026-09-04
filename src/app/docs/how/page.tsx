@@ -411,7 +411,7 @@ function Method({ tone, children }: { tone?: StageTone; children: ReactNode }) {
 const SECTION_TITLES = {
   made: { num: "00", title: "What is in an article" },
   sources: { num: "01", title: "The ten source sites" },
-  pipeline: { num: "02", title: "The pipeline at a glance" },
+  pipeline: { num: "02", title: "The pipeline" },
   parsing: { num: "03", title: "Scraping & parsing" },
   excerpts: { num: "04", title: "Verbatim excerpts" },
   synthesis: { num: "05", title: "AI synthesis & the prompts" },
@@ -979,7 +979,7 @@ export default async function DocsHowPage() {
         </ContentCard></section>
 
         <section id="pipeline" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
-          <span className={SECTION_NUM_CLASS}>02</span>{" "}The pipeline at a glance
+          <span className={SECTION_NUM_CLASS}>02</span>{" "}The pipeline
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
@@ -1104,7 +1104,7 @@ export default async function DocsHowPage() {
             <p className={`${PROSE_CLASS} mt-4`}>
               The drawing tool and the page image both use one engine: a dose.wiki fork
               of the open-source OpenChemLib library, with small additions for fine
-              rotation and bold bonds. One engine means the page shows exactly what the
+              rotation and bold bonds. The published image matches what the
               editor drew. A check compares the molecule before and after each edit, so a
               redraw cannot quietly turn it into a different molecule.
             </p>
@@ -1143,7 +1143,7 @@ export default async function DocsHowPage() {
 
         <div className="mt-6 space-y-8">
           <div>
-            <h3 className={SUBHEAD_CLASS}>Block ids only</h3>
+            <h3 className={SUBHEAD_CLASS}>Block-id selection</h3>
             <p className={PROSE_CLASS}>
               Each working copy is first split into numbered blocks (paragraphs, list
               items, table rows, headings), and the LLM reads that block-indexed version.
@@ -1163,8 +1163,7 @@ export default async function DocsHowPage() {
               the source wording. Each reproduction created an opportunity for wording to change.
               One batch of 47 files turned an &quot;antihistamine&quot; into an
               &quot;antihistaminic&quot;, dropped a &quot;however,&quot;, and shortened
-              the name of an organization by two words. These are small edits, easy to
-              miss, in text whose only job is to be an exact copy. Block selection prevents
+              the name of an organization by two words. Block selection prevents
               that drift; a warning in the prompt only asked the model to avoid it.
             </p>
           </div>
@@ -1178,7 +1177,7 @@ export default async function DocsHowPage() {
             </p>
           </div>
           <div>
-            <h3 className={SUBHEAD_CLASS}>Why verbatim matters</h3>
+            <h3 className={SUBHEAD_CLASS}>Tracing drafts to sources</h3>
             <p className={PROSE_CLASS}>
               The excerpt documents are the only material the writing stage is allowed to
               see. Because they are word-for-word copies, a reviewer can trace anything a
@@ -1189,25 +1188,25 @@ export default async function DocsHowPage() {
           </div>
         </div>
 
-        <h3 className={`${SUBHEAD_CLASS} mt-8`}>A real excerpt document</h3>
+        <h3 className={`${SUBHEAD_CLASS} mt-8`}>2C-B intro-text excerpt</h3>
         <DisclosureCard
           variant="subtle"
-          summary="Example: the 2C-B intro-text excerpt document (unedited)"
+          summary="Example: the 2C-B intro-text excerpt document"
           className="mt-3"
         >
           <p className={PROMPT_META_CLASS}>
-            This is the actual working file for 2C-B&apos;s intro-text topic: verbatim
+            This is the working file for 2C-B&apos;s intro-text topic: verbatim
             passages from each source, grouped under source headings. The summary section
             of the 2C-B article was written from this document and nothing else.
           </p>
-          <PromptBody label="Example: the 2C-B intro-text excerpt document (unedited)">
+          <PromptBody label="Example: the 2C-B intro-text excerpt document">
             {INTRO_QUOTES}
           </PromptBody>
         </DisclosureCard>
 
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>The extraction prompts</h3>
         <p className={`${PROSE_CLASS} mb-3 mt-2`}>
-          All eight extraction prompts appear below, unedited. This page reads them
+          All eight extraction prompts appear below. This page reads them
           straight from <code>scripts/prompts/</code> when it builds, so they are the same
           files the pipeline runs.
         </p>
@@ -1215,17 +1214,16 @@ export default async function DocsHowPage() {
           The pipeline calls the LLM once per substance and topic, and the harness appends the
           block-selection contract to whichever prompt it is running. We do not name the
           model here, because it changes as better models appear. The LLM only selects
-          block ids and never emits source text. A change of model cannot change the
-          wording of an excerpt. It can only change which passages are kept.
+          block ids and never emits source text. Changing the model can alter which
+          passages are kept, without changing excerpt wording.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           The eight share one skeleton: hard verbatim rules, an input format, and
           empty-result handling. They differ mainly in their &quot;what counts&quot;
-          sections. Read one prompt in full, then skim the others for that section.
+          sections.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
-          <strong>Read the block-selection contract first.</strong>{" "}
           Each prompt below
           still carries an &quot;Output format&quot; section describing an excerpt file.
           The contract replaces those sections at run time. A prompt defines what counts as
@@ -1240,8 +1238,7 @@ export default async function DocsHowPage() {
         >
           <p className={PROMPT_META_CLASS}>
             The harness appends this text to all eight prompts, replacing{" "}
-            <code>{"{{TOPIC}}"}</code> with the topic name. This is the instruction that
-            makes the excerpts verbatim. The LLM names blocks, and a script copies them
+            <code>{"{{TOPIC}}"}</code> with the topic name. The LLM names blocks, and a script copies them
             out.
           </p>
           <PromptBody label="The block-selection contract, appended after every prompt below">
@@ -1274,7 +1271,7 @@ export default async function DocsHowPage() {
           pharmacology, tolerance, harm potential, history &amp; culture, and legality.
           An LLM writes each one from exactly two inputs: the excerpt document for that
           topic, and a section-specific prompt. The model differs by section and changes
-          over time. What stays fixed is the contract: the LLM writes original prose
+          over time. The LLM writes original prose
           from the excerpts, under the prompts published below.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
@@ -1291,7 +1288,7 @@ export default async function DocsHowPage() {
 
         <div className="mt-6 space-y-8">
           <div>
-            <h3 className={SUBHEAD_CLASS}>Evidence only</h3>
+            <h3 className={SUBHEAD_CLASS}>Evidence constraint</h3>
             <p className={PROSE_CLASS}>
               The prompts instruct the LLM to include only information explicitly stated
               or clearly implied in the supplied quotes, and to omit information that it cannot
@@ -1300,7 +1297,7 @@ export default async function DocsHowPage() {
             </p>
           </div>
           <div>
-            <h3 className={SUBHEAD_CLASS}>Original prose only</h3>
+            <h3 className={SUBHEAD_CLASS}>Original prose</h3>
             <p className={PROSE_CLASS}>
               &quot;Synthesize information from the provided excerpts into original prose.
               Do not copy sentences or lengthy phrases verbatim from any source.&quot; The
@@ -1319,10 +1316,6 @@ export default async function DocsHowPage() {
           between the two. The copy that produced a given article can differ from
           the copy printed here.
         </p>
-        <p className={`${PROSE_CLASS} mt-4`}>
-          Read the pharmacology and harm potential prompts to see in detail how each prompt
-          shapes its section.
-        </p>
 
         {SECTION_PROMPTS.map((prompt) => (
           <DisclosureCard
@@ -1338,7 +1331,7 @@ export default async function DocsHowPage() {
         ))}
 
         <p className={`${PROSE_CLASS} mt-7`}>
-          All six prompts are part of the project. They are version-controlled alongside the
+          The six prompts are version-controlled alongside the
           code, and the live copies are editable by the editorial team. When a prompt
           improves, future generation runs that use it change. The citation and legality workflows
           carry their own prompt families; those live in the repository under{" "}
@@ -1368,7 +1361,7 @@ export default async function DocsHowPage() {
         <p className={PROSE_CLASS}>
           LLM research agents read the citable prose and choose bounded claims that may
           need support. They inspect candidate sources and record the relationship they
-          believe each source supports. Coverage is conservative. A marker appears only
+          believe each source supports. A marker appears only
           when inspected evidence supports a nearby claim. Uncertain relationships are
           recorded as internal gaps and receive no marker.
         </p>
@@ -1431,11 +1424,11 @@ export default async function DocsHowPage() {
           Citations render as numbered markers linked to the reference list. Behind each
           marker, the workflow retains the quote and rationale as review evidence, so a
           human can inspect exactly what the marker was based on.{" "}
-          <SectionRef s="limits" cap /> states plainly what a marker does and does not
+          <SectionRef s="limits" cap /> states what a marker does and does not
           establish.
         </p>
 
-        <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass two: legality set the standard</h3>
+        <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass two: legality deep research</h3>
         <p className={PROSE_CLASS}>
           Legality is the section most likely to become outdated, because drug law changes
           often, differs by country, and most published summaries cite other summaries
@@ -1445,8 +1438,8 @@ export default async function DocsHowPage() {
           legislation portals.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          Legality was also the test case for a per-subsection research pipeline. It is one
-          subsection, one kind of source, and one question per country. The invariants
+          Legality was also the test case for a per-subsection research pipeline. Each country
+          is a separate subsection with one question and one class of source. The invariants
           below are what the test case settled, and they are the template for a separate
           pipeline for each remaining subsection. Pharmacology is next. The end state is
           one pipeline per subsection, run over every article.
@@ -1531,8 +1524,7 @@ export default async function DocsHowPage() {
 
         <p className={`${PROSE_CLASS} mt-4`}>
           Editorial review is the first person-led stage specific to one article. The
-          baseline pipeline before it was produced for every substance at once. From here
-          on, a named person does the work.
+          baseline pipeline before it was produced for every substance at once.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           Readers take part in this stage. The report-an-issue form at the bottom of
@@ -1585,7 +1577,7 @@ export default async function DocsHowPage() {
           The editorial reviewer reads and corrects the article text. The citation
           workflows (<SectionRef s="citations" />) attach and audit citation markers
           under their own recorded states, separate from editorial review.{" "}
-          <SectionRef s="limits" cap /> spells out what a completed status does and does
+          <SectionRef s="limits" cap /> states what a completed status does and does
           not establish.
         </p>
         <p className={`${PROSE_CLASS} mt-5`}>
@@ -1603,9 +1595,7 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          The workflows above reduce error without eliminating it. This section
-          collects the limits in one place so that the rest of the page does not
-          have to hedge every sentence.
+          The workflows above reduce error without eliminating it.
         </p>
 
         <p className={`${PROSE_CLASS} mt-5`}>
@@ -1759,7 +1749,7 @@ export default async function DocsHowPage() {
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h3 className={SUBHEAD_CLASS}>Phase 7: Continuous improvement</h3>
+              <h3 className={SUBHEAD_CLASS}>Phase 7: Editor and reader corrections</h3>
               <div className={LEGEND_ITEM_CLASS}>
                 <StageSwatch tone="source" /> Ongoing
               </div>
@@ -1776,7 +1766,7 @@ export default async function DocsHowPage() {
         </h2>
 
         <p className={`${PROSE_CLASS} mt-4`}>
-          This pipeline produces more than public pages. It produces{" "}
+          The pipeline produces{" "}
           <code>SubstanceIndex.json</code>: the full substance database in one consistent
           schema and one downloadable file. The download is a snapshot, made when the dataset
           is exported. The article database continues to change between snapshots.
@@ -1787,15 +1777,9 @@ export default async function DocsHowPage() {
           drawing with its SMILES string and whether it was drawn by hand, aligned to a
           template, or left as an automatic layout. Each drawing is distributed in two
           color sets, the dose.wiki brand colors and the standard textbook colors. The pack
-          is rebuilt every night from the live depiction database. It is a set of
-          human-curated structure drawings that anyone can reuse.
+          is rebuilt every night from the live depiction database.
         </p>
 
-        <p className={`${PROSE_CLASS} mt-4`}>
-          Researchers, developers, educators, and community projects can download the
-          dataset and build on it, without rebuilding a harm-reduction encyclopedia
-          first.
-        </p>
 
         <div className="mt-6">
           <AboutArchivePreview
