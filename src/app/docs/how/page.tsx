@@ -440,6 +440,22 @@ function SectionRef({
   );
 }
 
+/** Site-standard prose link for external destinations: proseLinkClassName
+ *  treatment plus the external-link icon VCode's ExtLink uses. */
+function ExternalProseLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${proseLinkClassName} inline-flex items-center gap-0.5`}
+    >
+      {children}
+      <Icon icon="lucide:external-link" size={12} className="opacity-60" />
+    </a>
+  );
+}
+
 export default async function DocsHowPage() {
   const [copy, previewSubstances, substanceDownload] = await Promise.all([
     getCopy(),
@@ -476,18 +492,18 @@ export default async function DocsHowPage() {
             decades of documentation by scientists, psychonauts, and the harm-reduction
             community. They are spread primarily across ten psychopharmacology reference
             sites in ten formats, with no shared standard and no one site covering
-            everything. We know what compiling them by hand costs, because we have done
+            everything. We know what compiling them by hand takes, because we have done
             it:{" "}
-            <a
-              href="https://en.wikipedia.org/wiki/Josie_Kins"
-              className={proseLinkClassName}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <ExternalProseLink href="https://en.wikipedia.org/wiki/Josie_Kins">
               Josie Kins
-            </a>
-            , who co-founded dose.wiki, founded PsychonautWiki. Its first draft took her
-            and a team of contributors from 2011 to 2016 to write by hand. This time we
+            </ExternalProseLink>
+            , who co-founded dose.wiki, founded{" "}
+            <ExternalProseLink href="https://psychonautwiki.rip">
+              PsychonautWiki
+            </ExternalProseLink>
+            , the Subjective Effect Index, and numerous other similar projects.
+            PsychonautWiki&apos;s first draft took her and a team of contributors from
+            2011 to 2016 to write by hand. This time we
             let software do the initial compilation. Building the pipeline took about a
             year, and its output then went through months of human review before we were
             comfortable publishing it. Editors have been working on top of that baseline
@@ -1018,9 +1034,8 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-4`}>
           From there, deterministic parsers read that text and extract the structured data:
           dose ranges by route, duration values, interaction ratings, chemical identifiers,
-          and legal classifications. A parser is ordinary code, one per source site, with
-          no AI involved. Each site needs its own parser, because each site structures its
-          pages differently.
+          and legal classifications. A parser is ordinary code with no AI involved.
+          Each site needs its own, because each site structures its pages differently.
         </p>
 
         {/* Implementation reference, not narrative: each parser subsection
@@ -1156,10 +1171,10 @@ export default async function DocsHowPage() {
           <div>
             <h3 className={SUBHEAD_CLASS}>Audited after extraction</h3>
             <p className={PROSE_CLASS}>
-              A verbatim audit then reads every finished excerpt document. The audit is a
-              script, with no LLM involved. The audit requires that each passage appears
-              in the working copy, under the same source heading, as an exact substring.
-              The audit rejects a file that drifts.
+              A verbatim audit then reads every finished excerpt document. It is a
+              script, with no LLM involved. It requires that each passage appears in
+              the working copy, under the same source heading, as an exact substring,
+              and rejects a file that drifts.
             </p>
           </div>
           <div>
@@ -1300,8 +1315,8 @@ export default async function DocsHowPage() {
           The section prompts for all six fully AI-written sections appear below, largest
           first. This page reads them from <code>src/data/config/sectionPrompts/</code>{" "}
           when it builds. Two copies of each prompt exist. The committed file is shown here.
-          The editorial team can edit a live copy, and generation runs use that live copy.
-          The live copies were seeded from these files. A comparison script reports any
+          The editorial team can edit a live copy, which generation runs use; the live
+          copies were seeded from these files, and a comparison script reports any
           drift between the two. The copy that produced a given article can differ from
           the copy printed here.
         </p>
@@ -1352,7 +1367,7 @@ export default async function DocsHowPage() {
 
         <h3 className={`${SUBHEAD_CLASS} mt-8`}>Pass one: proposing markers</h3>
         <p className={PROSE_CLASS}>
-          LLM research agents read the citable prose and choose bounded claims that can
+          LLM research agents read the citable prose and choose bounded claims that may
           need support. They inspect candidate sources and record the relationship they
           believe each source supports. Coverage is conservative. A marker appears only
           when inspected evidence supports a nearby claim. Uncertain relationships are
@@ -1361,7 +1376,7 @@ export default async function DocsHowPage() {
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <PipelineStep num={1} name="Identify claims" tone="automated">
-            Research agents inspect the citable prose and choose bounded claims that can
+            Research agents inspect the citable prose and choose bounded claims that may
             need support
           </PipelineStep>
           <div className={PIPELINE_ARROW_CLASS}>→</div>
@@ -1529,14 +1544,6 @@ export default async function DocsHowPage() {
           Editorial review is a recorded human workflow with four steps.
         </p>
 
-        <p className={`${PROSE_CLASS} mt-4`}>
-          Each article shows this as a three-step Article Status. Step 1 is automated
-          synthesis, which creates the baseline draft. Step 2 is the editorial review described
-          here. Step 3 is a human citation review that compares each claim with its
-          source. Step 3 is the human pass planned as Phase 4 in{" "}
-          <SectionRef s="status" />, not the automated entailment audit before it. No
-          article has a completed citation review yet.
-        </p>
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <PipelineStep num={1} name="Inspect" tone="review">
@@ -1557,6 +1564,14 @@ export default async function DocsHowPage() {
             time
           </PipelineStep>
         </div>
+        <p className={`${PROSE_CLASS} mt-4`}>
+          Each article shows this as a three-step Article Status. Step 1 is automated
+          synthesis, which creates the baseline draft. Step 2 is the editorial review described
+          here. Step 3 is a human citation review that compares each claim with its
+          source. Step 3 is the human pass planned as Phase 4 in{" "}
+          <SectionRef s="status" />, not the automated entailment audit before it. No
+          article has a completed citation review yet.
+        </p>
 
         <p className={`${PROSE_CLASS} mt-7`}>
           The review workbench stores one of three statuses: <strong>needed</strong>,{" "}
