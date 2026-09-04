@@ -16,6 +16,7 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "articles",
   "blog",
   "category",
+  "changes",
   "chemical",
   "chemical-classes",
   "contact",
