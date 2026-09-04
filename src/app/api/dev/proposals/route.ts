@@ -17,6 +17,7 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { substanceArticleLightValidator } from "../../../../../convex/lib/validators";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PROPOSAL_STATUSES, type ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
+import { truncateDiffMarkdown } from "../../../../../lib/proposals/diffMarkdown";
 import {
   parseChangelogPayload,
   parseIndexLayoutPayloads,
@@ -28,7 +29,6 @@ import { parseCopyBlockPayloads } from "../copy-block/parseCopyBlockBody";
 export const runtime = "nodejs";
 
 const MAX_PROPOSAL_PAYLOAD_BYTES = 20 * 1024 * 1024;
-const MAX_DIFF_LENGTH = 500_000;
 
 type ProposalBody = {
   payload?: {
@@ -108,11 +108,7 @@ export const POST = protectedRouteOperation<ProposalBody>({
     if (summary.length === 0) {
       return NextResponse.json({ error: "A proposal needs a summary." }, { status: 400 });
     }
-    const diff = typeof body.diff === "string" ? body.diff : "";
-    const truncatedDiff =
-      diff.length > MAX_DIFF_LENGTH
-        ? `${diff.slice(0, MAX_DIFF_LENGTH)}\n\n... [Diff truncated - too large to store]`
-        : diff;
+    const diff = truncateDiffMarkdown(typeof body.diff === "string" ? body.diff : "");
     const revisionOf = typeof body.revisionOf === "string" ? body.revisionOf.trim() : "";
     if (body.revisionOf !== undefined && body.revisionOf !== null && revisionOf.length === 0) {
       return NextResponse.json({ error: "revisionOf must name a proposal." }, { status: 400 });
@@ -132,7 +128,7 @@ export const POST = protectedRouteOperation<ProposalBody>({
       actorEmail,
       payload,
       summary,
-      diff: truncatedDiff,
+      diff,
       ...(revisionOf ? { revisionOf: revisionOf as Id<"changeProposals"> } : {}),
     });
 

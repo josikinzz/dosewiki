@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
 import { saveRevalidationPaths } from "../../../../convex/lib/saveRevalidationPaths";
+import { truncateDiffMarkdown } from "../../../../lib/proposals/diffMarkdown";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { revalidateSavedPaths } from "./revalidateSavedPaths";
 import {
@@ -19,7 +20,6 @@ import {
 export const runtime = "nodejs";
 
 const MAX_SAVE_PAYLOAD_BYTES = 20 * 1024 * 1024;
-const MAX_MARKDOWN_SIZE = 500_000;
 
 type SaveToConvexBody = {
   articles?: unknown;
@@ -247,10 +247,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         const now = new Date();
         const createdAt = now.toISOString();
         const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-        const markdown =
-          changelog.markdown.length > MAX_MARKDOWN_SIZE
-            ? `${changelog.markdown.slice(0, MAX_MARKDOWN_SIZE)}\n\n... [Diff truncated - too large to store]`
-            : changelog.markdown;
+        const markdown = truncateDiffMarkdown(changelog.markdown);
         const entryId = buildEntryId(now);
 
         await client.mutation(api.changelog.addEntry, {

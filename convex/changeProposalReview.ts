@@ -4,6 +4,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { deriveSubmittedBy } from "../lib/changelog/submitterStamp";
 import { contentHash } from "../lib/proposals/contentHash";
 import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
+import { truncateDiffMarkdown } from "../lib/proposals/diffMarkdown";
 import { addEntryHandler } from "./changelog";
 import { requireRole, type AuthorizedActor } from "./lib/auth";
 import {
@@ -25,8 +26,6 @@ import { hashProposalTarget } from "./lib/changeProposalTargets";
  * `changes_requested` with the drifted targets named and nothing else is
  * written. Revert is the mirror image against `appliedHashes`.
  */
-
-const MAX_MARKDOWN_SIZE = 500_000;
 
 type ReviewArgs = { apiKey?: string; actorEmail?: string; proposalId: Id<"changeProposals"> };
 
@@ -59,12 +58,6 @@ function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus)
       message: `A ${proposal.status.replace("_", " ")} proposal cannot become ${to.replace("_", " ")}.`,
     });
   }
-}
-
-function truncateMarkdown(markdown: string): string {
-  return markdown.length > MAX_MARKDOWN_SIZE
-    ? `${markdown.slice(0, MAX_MARKDOWN_SIZE)}\n\n... [Diff truncated - too large to store]`
-    : markdown;
 }
 
 export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs) {
@@ -112,7 +105,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     entryId,
     createdAt: now,
     message: `${proposal.summary} (proposed by ${proposal.proposedBy}, approved by ${actor.email})`,
-    markdown: truncateMarkdown(payload.changelog?.markdown ?? proposal.diff),
+    markdown: truncateDiffMarkdown(payload.changelog?.markdown ?? proposal.diff),
     submittedBy: deriveSubmittedBy(proposal.proposedBy),
     articles: payload.changelog?.articles ?? [],
   });

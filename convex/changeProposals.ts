@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
+import { DIFF_MARKDOWN_MAX_LENGTH } from "../lib/proposals/diffMarkdown";
 import { requireRole } from "./lib/auth";
 import { deriveProposalTargets, hashProposalTarget } from "./lib/changeProposalTargets";
 import {
@@ -56,7 +57,6 @@ type SubmitArgs = {
 };
 
 const SUMMARY_MAX_LENGTH = 500;
-const DIFF_MAX_LENGTH = 500_000;
 
 /** A proposal an editor may rebase: returned with changes requested, or still waiting. */
 const REVISABLE_STATUSES: readonly ProposalStatus[] = ["submitted", "changes_requested"];
@@ -97,10 +97,10 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
       message: `Summary must be 1 to ${SUMMARY_MAX_LENGTH} characters.`,
     });
   }
-  if (args.diff.length > DIFF_MAX_LENGTH) {
+  if (args.diff.length > DIFF_MARKDOWN_MAX_LENGTH) {
     throw new ConvexError({
       code: "PROPOSAL_DIFF_TOO_LARGE",
-      message: `Diff exceeds ${DIFF_MAX_LENGTH} characters.`,
+      message: `Diff exceeds ${DIFF_MARKDOWN_MAX_LENGTH} characters.`,
     });
   }
 

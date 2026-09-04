@@ -6,6 +6,7 @@ import {
   installProtectedRouteMocks,
   resetRouteMocks,
 } from "@/test/routeHarness";
+import { DIFF_MARKDOWN_MAX_LENGTH } from "../../../../../lib/proposals/diffMarkdown";
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
@@ -82,6 +83,24 @@ describe("dev proposals route", () => {
     });
     // Targets are the mutation's to derive: the exact-shape match above admits no `targets` key.
     expect(client.mutation).not.toHaveBeenCalledWith("substanceIndex.saveSubstances", expect.anything());
+  });
+
+  it("clips an oversized diff to the ceiling the mutation enforces, marker included", async () => {
+    const client = grantWriteCapability(createClient());
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      post({
+        payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] },
+        summary: "Big",
+        diff: "+ line\n".repeat(120_000),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const { diff } = client.mutation.mock.calls[0][1] as { diff: string };
+    expect(diff.length).toBeLessThanOrEqual(DIFF_MARKDOWN_MAX_LENGTH);
+    expect(diff.endsWith("... [Diff truncated - too large to store]")).toBe(true);
   });
 
   it("forwards a slugless article untouched so the mutation derives its slug from the title", async () => {
