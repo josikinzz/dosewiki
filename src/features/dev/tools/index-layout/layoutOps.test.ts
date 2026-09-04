@@ -6,7 +6,6 @@ import {
   addSlug,
   bumpSlug,
   collectPlacedSlugs,
-  countSlugPlacements,
   placeSection,
   moveSlug,
   removeCategory,
@@ -152,9 +151,7 @@ describe("categories", () => {
 });
 
 describe("placement lookups", () => {
-  it("collects placed slugs and counts duplicates across the layout", () => {
+  it("collects every placed slug across the layout", () => {
     expect([...collectPlacedSlugs(MANUAL)].sort()).toEqual(["4-aco-dmt", "dmt", "ketamine", "loose", "lsd", "mescaline"]);
-    expect(countSlugPlacements(MANUAL).get("dmt")).toBe(2);
-    expect(countSlugPlacements(MANUAL).get("lsd")).toBe(1);
   });
 });

@@ -4,7 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { IndexCard, IndexCardSection } from "@/components/common/IndexCard";
+import { IndexCard, IndexCardCountBadge, IndexCardSection } from "@/components/common/IndexCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -191,7 +191,7 @@ function SectionBlock({
         <div className="group/section mb-1.5 flex items-center gap-2">
           <p className="theme-index-card-section-label flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
             <span className="truncate">{section.label}</span>
-            <span className="theme-text-faint normal-case tracking-normal tabular-nums">{section.items.length}</span>
+            <IndexCardCountBadge count={section.items.length} size="sm" />
             {section.hiddenOnSite ? (
               <span className="theme-text-faint normal-case tracking-normal" title="Empty sections do not render on the site">
                 · not shown
@@ -291,7 +291,7 @@ function SectionBlock({
           ))}
         </ul>
       </SortableContext>
-      <div className="mx-1 mt-1">
+      <div className="mt-0.5">
         <SearchablePicker
           options={actions.addOptions}
           value={null}
@@ -299,6 +299,7 @@ function SectionBlock({
             if (slug) actions.onAddSlug(section.slot, slug);
           }}
           placeholder="Add substance"
+          triggerVariant="quiet"
           emptyText="Every substance is already placed in this index."
           ariaLabel={`Add a substance to ${section.label ?? category.label}`}
         />
@@ -378,7 +379,7 @@ export function IndexLayoutCard({
           </Button>
         </div>
       ) : null}
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         {sections.map((section, index) => (
           <IndexCardSection key={section.id} showDivider={index > 0}>
             <SectionBlock

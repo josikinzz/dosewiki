@@ -10,7 +10,7 @@ import type { SubstanceRecord } from "@/data/builders/contentBuilder";
 import { orderIndexSections, sectionConventionRank } from "@/data/builders/indexSectionOrder";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { slugify } from "@/utils/slug";
-import { countSlugPlacements, type LayoutSlot } from "./layoutOps";
+import type { LayoutSlot } from "./layoutOps";
 import type { ManualIndexConfig, SlugIssue } from "./types";
 
 export type BoardItem = {
@@ -47,30 +47,27 @@ export type BoardCategory = {
   hiddenOnSite: boolean;
 };
 
-function describeItem(
-  slug: string,
-  library: ReadonlyMap<string, SubstanceRecord>,
-  counts: ReadonlyMap<string, number>,
-): BoardItem {
+/**
+ * A slug listed under Common and again under its class, or in two categories,
+ * is how this index reads, so repeats are never flagged; only substances the
+ * page cannot show are.
+ */
+function describeItem(slug: string, library: ReadonlyMap<string, SubstanceRecord>): BoardItem {
   const normalized = slugify(slug);
   const record = normalized ? library.get(normalized) : undefined;
-  const issues: SlugIssue[] = [];
   if (!record) {
-    issues.push("missing");
-    return { slug, name: slug, issues, hiddenOnSite: true };
+    return { slug, name: slug, issues: ["missing"], hiddenOnSite: true };
   }
-  if (record.isHidden || record.isDirectUrlOnly) issues.push("hidden");
-  if ((counts.get(normalized) ?? 0) > 1) issues.push("duplicate");
-  return { slug, name: record.name, issues, hiddenOnSite: record.isDirectUrlOnly };
+  const hidden = record.isHidden || record.isDirectUrlOnly;
+  return { slug, name: record.name, issues: hidden ? ["hidden"] : [], hiddenOnSite: record.isDirectUrlOnly };
 }
 
 export function buildBoard(
   manual: ManualIndexConfig,
   library: ReadonlyMap<string, SubstanceRecord>,
 ): BoardCategory[] {
-  const counts = countSlugPlacements(manual);
   return manual.categories.map((category) => {
-    const describe = (slug: string) => describeItem(slug, library, counts);
+    const describe = (slug: string) => describeItem(slug, library);
     const topLevel = category.drugs.map(describe);
     const named = category.sections.map((section) => {
       const items = section.drugs.map(describe);

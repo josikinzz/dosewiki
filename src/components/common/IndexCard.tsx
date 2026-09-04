@@ -67,7 +67,7 @@ interface IndexCardProps {
  *
  * `leading-*` stays after `text-[..]`: tailwind-merge otherwise drops it.
  */
-function IndexCardCountBadge({
+export function IndexCardCountBadge({
   count,
   size = "md",
 }: {

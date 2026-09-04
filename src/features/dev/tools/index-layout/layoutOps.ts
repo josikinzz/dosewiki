@@ -274,16 +274,3 @@ export function collectPlacedSlugs(manual: ManualIndexConfig): ReadonlySet<strin
   return placed;
 }
 
-/** How many times each slug appears across the whole layout; >1 is a duplicate. */
-export function countSlugPlacements(manual: ManualIndexConfig): Map<string, number> {
-  const counts = new Map<string, number>();
-  const register = (slug: string) => {
-    const normalized = slugify(slug);
-    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
-  };
-  for (const category of manual.categories) {
-    category.drugs.forEach(register);
-    for (const section of category.sections) section.drugs.forEach(register);
-  }
-  return counts;
-}

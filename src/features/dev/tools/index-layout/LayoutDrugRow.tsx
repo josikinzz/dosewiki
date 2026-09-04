@@ -87,7 +87,8 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "theme-index-card-link theme-text-secondary group/item relative mx-1 flex w-[calc(100%-1rem)] items-center gap-1 rounded-xl py-1 pl-1 pr-1 text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-within:bg-dose-surface-muted focus-within:text-dose-text",
+        "theme-index-card-link theme-text-secondary group/item relative mx-1 flex min-w-0 w-[calc(100%-1rem)] items-center gap-1 rounded-xl py-1 pl-1 pr-1 text-[0.9375rem] transition-[background-color,color,padding] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-within:bg-dose-surface-muted focus-within:text-dose-text",
+        "group-hover/item:pr-[5.5rem] focus-within:pr-[5.5rem] [@media(pointer:coarse)]:pr-[5.5rem]",
         isDragging && "z-10 opacity-40",
         item.hiddenOnSite && "opacity-70",
       )}
@@ -97,7 +98,7 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
         ref={setActivatorNodeRef}
         type="button"
         className={cn(
-          "theme-focus-ring flex h-7 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[var(--theme-text-faint)] hover:text-[var(--theme-text-primary)] active:cursor-grabbing",
+          "theme-focus-ring theme-text-faint flex h-7 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md hover:text-dose-text active:cursor-grabbing",
           "opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100",
         )}
         aria-label={`Drag ${item.name}`}
@@ -109,13 +110,13 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
       <span className="theme-index-card-bullet mr-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
       <span className="theme-index-card-label min-w-0 flex-1 truncate py-1.5">{item.name}</span>
       {item.issues.map((issue) => (
-        <EditorStatusPill key={issue} tone={slugIssueTones[issue]} className="shrink-0 px-1.5 py-0 text-[10px]">
+        <EditorStatusPill key={issue} tone={slugIssueTones[issue]} className="min-w-0 shrink px-1.5 py-0 text-[10px]">
           {slugIssueLabels[issue]}
         </EditorStatusPill>
       ))}
       <span
         className={cn(
-          "flex shrink-0 items-center",
+          "absolute right-1 top-1/2 flex -translate-y-1/2 items-center",
           "opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-within/item:opacity-100 [@media(pointer:coarse)]:opacity-100",
         )}
       >

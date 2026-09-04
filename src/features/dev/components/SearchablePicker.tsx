@@ -24,6 +24,8 @@ interface PickerBaseProps {
   emptyText: string;
   disabled?: boolean;
   ariaLabel?: string;
+  /** "field" is the outlined select-like control; "quiet" is an inline add row for list feet. */
+  triggerVariant?: "field" | "quiet";
 }
 
 export interface SearchablePickerProps extends PickerBaseProps {
@@ -81,6 +83,7 @@ function PickerMenu({
   ariaLabel,
   onPick,
   leading,
+  triggerVariant = "field",
 }: {
   id: string;
   open: boolean;
@@ -96,6 +99,7 @@ function PickerMenu({
   ariaLabel?: string;
   onPick: (value: string) => void;
   leading?: ReactNode;
+  triggerVariant?: "field" | "quiet";
 }) {
   const [query, setQuery] = useState("");
   const { matches, total } = useMatches(options, query, exclude);
@@ -110,21 +114,42 @@ function PickerMenu({
       }}
     >
       <PopoverTrigger asChild>
-        <Button
-          id={id}
-          type="button"
-          variant="outline"
-          size="sm"
-          role="combobox"
-          aria-expanded={open}
-          aria-haspopup="listbox"
-          aria-label={ariaLabel}
-          disabled={disabled}
-          className={cn("w-full justify-between gap-2 font-normal", muted ? "theme-text-faint" : "theme-text-primary")}
-        >
-          <span className="min-w-0 flex-1 truncate text-left">{triggerLabel}</span>
-          <Icon icon="lucide:chevrons-up-down" size={14} className="theme-text-faint shrink-0" />
-        </Button>
+        {triggerVariant === "quiet" ? (
+          <Button
+            id={id}
+            type="button"
+            variant="ghost"
+            size="auto"
+            role="combobox"
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            aria-label={ariaLabel}
+            disabled={disabled}
+            className={cn(
+              "theme-text-faint h-8 w-full justify-start gap-2 rounded-xl px-3 text-sm font-normal hover:bg-transparent",
+              TOUCH_PILL,
+            )}
+          >
+            <Icon icon="lucide:plus" size={14} className="shrink-0" />
+            <span className="min-w-0 truncate text-left">{triggerLabel}</span>
+          </Button>
+        ) : (
+          <Button
+            id={id}
+            type="button"
+            variant="outline"
+            size="sm"
+            role="combobox"
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            aria-label={ariaLabel}
+            disabled={disabled}
+            className={cn("w-full justify-between gap-2 font-normal", muted ? "theme-text-faint" : "theme-text-primary")}
+          >
+            <span className="min-w-0 flex-1 truncate text-left">{triggerLabel}</span>
+            <Icon icon="lucide:chevrons-up-down" size={14} className="theme-text-faint shrink-0" />
+          </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] min-w-64 p-0">
         <Command shouldFilter={false} label={ariaLabel ?? placeholder} className="border-0">
@@ -171,6 +196,7 @@ export function SearchablePicker({
   emptyText,
   disabled,
   ariaLabel,
+  triggerVariant,
 }: SearchablePickerProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
@@ -189,6 +215,7 @@ export function SearchablePicker({
       placeholder={placeholder}
       emptyText={emptyText}
       ariaLabel={ariaLabel}
+      triggerVariant={triggerVariant}
       onPick={(next) => {
         onChange(next);
         setOpen(false);
