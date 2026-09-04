@@ -23,6 +23,7 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
       "Approve, reject, and revert proposals in the queue.",
       "Mint invites, change roles, ban accounts, issue password resets.",
       "Edit banners, molecules, replications, and anyone's profile, playlists, or reports.",
+      "See every prior version of a profile, playlist, or report, and restore a removed playlist.",
     ],
     cannot: ["Demote or ban themselves."],
   },
@@ -39,7 +40,7 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
     cannot: [
       "Publish anything directly.",
       "Approve a proposal, including their own.",
-      "Delete an article, profile, or trip report. A playlist they own is theirs to delete.",
+      "Delete anything. A playlist they own can be removed from view, and an admin can bring it back.",
       "See the member list or mint invites.",
     ],
   },
@@ -50,7 +51,7 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
     cannot: [
       "Open the article tools or the review queue.",
       "Change anything someone else owns.",
-      "Delete a trip report, even their own. A playlist they own is theirs to delete.",
+      "Delete anything. A playlist they own can be removed from view, and an admin can bring it back.",
     ],
   },
   viewer: {

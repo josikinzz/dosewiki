@@ -62,11 +62,13 @@ function createCtx({
     return null;
   };
 
+  const insert = vi.fn(async (_table: string, _doc: Record<string, unknown>) => "revision-1");
   const ctx = {
     auth: { getUserIdentity: vi.fn(async () => null) },
     storage: { getUrl: vi.fn(async () => "https://cdn.example.com/avatar.png") },
     db: {
       patch,
+      insert,
       query: vi.fn((table: string) => ({
         withIndex: (
           _indexName: string,
@@ -98,6 +100,7 @@ function createCtx({
   return {
     ctx: ctx as never,
     patch,
+    insert,
     read: () => stored,
   };
 }
@@ -180,6 +183,19 @@ describe("contributorProfiles.saveProfileAsEditor authorization", () => {
       profile: { key: "JOSIE", displayName: "Josie", bio: "New bio." },
     });
     expect(harness.read()?.updatedBy).toBe("josie@example.com");
+    // The version before the edit is journaled, whole, before the patch lands.
+    expect(harness.insert).toHaveBeenCalledTimes(1);
+    const [table, revision] = harness.insert.mock.calls[0] as [string, Record<string, unknown>];
+    expect(table).toBe("contentRevisions");
+    expect(revision).toMatchObject({
+      table: "contributorProfiles",
+      key: "JOSIE",
+      action: "update",
+      actorEmail: "josie@example.com",
+      actorRole: "editor",
+    });
+    expect((revision.before as { bio?: string }).bio).toBe(baseProfile.bio);
+    expect(harness.insert.mock.invocationCallOrder[0]).toBeLessThan(harness.patch.mock.invocationCallOrder[0]);
   });
 
   it("lets an admin edit a profile that is not their own", async () => {

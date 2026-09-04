@@ -122,7 +122,7 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
     void run(async () => {
       await deletePlaylist(target.key);
       setDraft((current) => (current?.key === target.key ? null : current));
-      return `Deleted "${target.title}".`;
+      return `Removed "${target.title}".`;
     });
   };
 
@@ -219,7 +219,7 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
                       size="icon"
                       className="h-8 w-8"
                       disabled={busy}
-                      aria-label={`Delete ${playlist.title}`}
+                      aria-label={`Remove ${playlist.title}`}
                       onClick={() => setDeleteTarget(playlist)}
                     >
                       <Icon icon="lucide:trash-2" size={14} />
@@ -256,9 +256,9 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete {deleteTarget?.title ?? "this playlist"}?</DialogTitle>
+            <DialogTitle>Remove {deleteTarget?.title ?? "this playlist"}?</DialogTitle>
             <DialogDescription>
-              This permanently deletes the saved playlist. Galleries it was applied to are unchanged, because applying is a one-time copy.
+              It disappears from your lists and the pickers, but stays on the server; an admin can bring it back. Galleries it was applied to are unchanged, because applying is a one-time copy.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -273,7 +273,7 @@ export function PlaylistsTab({ isAdmin }: PlaylistsTabProps) {
                 if (deleteTarget) remove(deleteTarget);
               }}
             >
-              Delete playlist
+              Remove playlist
             </Button>
           </DialogFooter>
         </DialogContent>

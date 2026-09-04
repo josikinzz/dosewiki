@@ -7,6 +7,7 @@ import {
   listHandler,
   listOwnedHandler,
   removeHandler,
+  restoreHandler,
   setMembershipHandler,
   upsertHandler,
 } from "../convex/replicationPlaylists";
@@ -286,16 +287,62 @@ describe("replicationPlaylists ownership", () => {
       status: "ok",
       key: "adas-list",
     });
-    expect(rowsOf("replicationPlaylists").has("p1")).toBe(false);
+    const archived = rowsOf("replicationPlaylists").get("p1")!;
+    expect(archived.archived_by).toBe("admin@example.com");
+    expect(typeof archived.archived_at).toBe("string");
   });
 
-  it("lets the owner delete their own playlist", async () => {
+  it("archives, never deletes, when the owner removes their own playlist", async () => {
     const { ctx, rowsOf } = seed();
     await expect(removeHandler(ctx, { ...as("ada@example.com"), key: "adas-list" })).resolves.toEqual({
       status: "ok",
       key: "adas-list",
     });
-    expect(rowsOf("replicationPlaylists").has("p1")).toBe(false);
+    const row = rowsOf("replicationPlaylists").get("p1")!;
+    expect(row.replication_slugs).toEqual(["alpha"]);
+    expect(row.archived_by).toBe("ada@example.com");
+
+    // Gone from every list and unreachable through the owner paths.
+    expect(await listOwnedHandler(ctx, as("ada@example.com"))).toEqual([]);
+    expect((await listHandler(ctx, as("editor@example.com"))).map((p) => p.key)).not.toContain("adas-list");
+    await expect(removeHandler(ctx, { ...as("ada@example.com"), key: "adas-list" })).resolves.toEqual({
+      status: "missing",
+      key: "adas-list",
+    });
+    await expect(
+      upsertHandler(ctx, { ...as("ada@example.com"), key: "adas-list", title: "Again", replication_slugs: [] }),
+    ).rejects.toMatchObject({ data: { code: "PLAYLIST_ARCHIVED" } });
+
+    // The journal holds the version before removal.
+    const revisions = [...rowsOf("contentRevisions").values()];
+    expect(revisions).toHaveLength(1);
+    expect(revisions[0]).toMatchObject({
+      table: "replicationPlaylists",
+      key: "adas-list",
+      action: "remove",
+      actorEmail: "ada@example.com",
+      actorRole: "contributor",
+    });
+    expect((revisions[0].before as Row).replication_slugs).toEqual(["alpha"]);
+
+    // Only an admin restores it, exactly as it was.
+    await expect(restoreHandler(ctx, { ...as("ada@example.com"), key: "adas-list" })).rejects.toThrow();
+    await expect(restoreHandler(ctx, { ...as("admin@example.com"), key: "adas-list" })).resolves.toEqual({
+      status: "ok",
+      key: "adas-list",
+    });
+    expect((await listOwnedHandler(ctx, as("ada@example.com"))).map((p) => p.key)).toEqual(["adas-list"]);
+    expect(rowsOf("replicationPlaylists").get("p1")!.archived_at).toBeUndefined();
+  });
+
+  it("journals the prior slugs when a member edits their playlist", async () => {
+    const { ctx, rowsOf } = seed();
+    await setMembershipHandler(ctx, { ...as("ada@example.com"), key: "adas-list", replicationSlug: "alpha", included: false });
+    const revisions = [...rowsOf("contentRevisions").values()];
+    expect(revisions).toHaveLength(1);
+    expect(revisions[0]).toMatchObject({ action: "update", actorEmail: "ada@example.com" });
+    expect((revisions[0].before as Row).replication_slugs).toEqual(["alpha"]);
+    expect(rowsOf("replicationPlaylists").get("p1")!.replication_slugs).toEqual([]);
   });
 
   it("lets an admin create a playlist for a member, and refuses an unknown member", async () => {

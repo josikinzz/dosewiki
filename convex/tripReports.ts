@@ -9,6 +9,7 @@ import {
 } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireRole, roleMeetsFloor } from "./lib/auth";
+import { recordRevision } from "./lib/contentRevisions";
 import {
   assertAuthorNameClaimAdjudicated,
   normalizeAssignedProfileKey,
@@ -454,6 +455,7 @@ export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
     };
   }
 
+  await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, actor });
   await ctx.db.patch(args.id, patch);
   await syncTripReportSubstanceRows(ctx, args.id, updates.substances);
 
@@ -648,7 +650,7 @@ export const deleteById = mutation({
     id: v.id("tripReports"),
   },
   handler: async (ctx, args) => {
-    await requireRole(
+    const actor = await requireRole(
       ctx,
       { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
       "admin",
@@ -659,6 +661,7 @@ export const deleteById = mutation({
       return { deleted: false, reason: "not_found" as const };
     }
 
+    await recordRevision(ctx, { table: "tripReports", key: existing.slug, action: "remove", before: existing, actor });
     await deleteTripReportSubstanceRows(ctx, args.id);
     await ctx.db.delete(args.id);
     return { deleted: true };

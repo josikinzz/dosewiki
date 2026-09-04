@@ -284,6 +284,8 @@ export const substanceGallery = v.object({
   carousel_order: v.optional(v.array(v.string())),
   updated_at: v.string(),               // ISO timestamp
   updated_by: v.optional(v.string()),
+  archived_at: v.optional(v.string()),  // set instead of deleting; hidden everywhere until restored
+  archived_by: v.optional(v.string()),
 });
 
 // A reusable, named, ordered set of replications an editor can apply to any
@@ -299,4 +301,6 @@ export const replicationPlaylist = v.object({
   replication_slugs: v.array(v.string()),
   updated_at: v.string(),               // ISO timestamp
   updated_by: v.optional(v.string()),
+  archived_at: v.optional(v.string()),  // set instead of deleting; hidden everywhere until restored
+  archived_by: v.optional(v.string()),
 });

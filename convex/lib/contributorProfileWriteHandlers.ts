@@ -1,6 +1,7 @@
 import { ConvexError } from "convex/values";
 import type { MutationCtx } from "../_generated/server";
 import { requireRole, roleMeetsFloor } from "./auth";
+import { recordRevision } from "./contentRevisions";
 import {
   buildEditorProfilePatch,
   buildStoredProfile,
@@ -96,6 +97,7 @@ export async function saveContributorProfileHandler(
   );
   const aliases = attributionAliasesForProfile(existingProfile, nextProfile.aliases);
   if (existing) {
+    await recordRevision(ctx, { table: "contributorProfiles", key: targetKey, action: "update", before: existing, actor });
     await ctx.db.patch(existing._id, { ...nextProfile, aliases });
     const updated = await getStoredContributorProfile(ctx, targetKey);
     return {
@@ -129,7 +131,7 @@ export async function deleteContributorProfileHandler(
   ctx: MutationCtx,
   args: { apiKey?: string; actorEmail?: string; key: string; confirmDelete: boolean },
 ) {
-  await requireRole(
+  const actor = await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
     "admin",
@@ -151,6 +153,7 @@ export async function deleteContributorProfileHandler(
     );
   }
   const profile = existing as StoredProfile;
+  await recordRevision(ctx, { table: "contributorProfiles", key, action: "remove", before: existing, actor });
   await ctx.db.delete(existing._id);
   return {
     deleted: true,
@@ -170,7 +173,7 @@ export async function mergeContributorProfileHandler(
     discardSourceContent?: boolean;
   },
 ) {
-  await requireRole(
+  const actor = await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" },
     "admin",
@@ -201,6 +204,7 @@ export async function mergeContributorProfileHandler(
     source.displayName,
     fromKey.toLowerCase(),
   ]);
+  await recordRevision(ctx, { table: "contributorProfiles", key: toKey, action: "update", before: targetDoc, actor });
   await ctx.db.patch(targetDoc._id, {
     aliases: mergedAliases,
     updatedAt: new Date().toISOString(),
@@ -210,6 +214,7 @@ export async function mergeContributorProfileHandler(
     [source.displayName, ...(source.aliases ?? []), fromKey],
     toKey,
   );
+  await recordRevision(ctx, { table: "contributorProfiles", key: fromKey, action: "merge", before: sourceDoc, actor });
   await ctx.db.delete(sourceDoc._id);
   return {
     mergedFrom: fromKey,
@@ -258,6 +263,7 @@ export async function retargetTripReportsToContributorHandler(
     targetKey,
     args.embeddedAuthorName,
   );
+  await recordRevision(ctx, { table: "contributorProfiles", key: targetKey, action: "update", before: existing, actor });
   await ctx.db.patch(existing._id, {
     aliases: attributionAliasesForProfile(existingProfile, [args.authorName]),
     updatedAt: new Date().toISOString(),
@@ -302,6 +308,7 @@ export async function saveContributorProfileAsEditorHandler(
     throw new Error("You can only edit your own contributor profile.");
   }
   const patch = buildEditorProfilePatch(args.patch, existing as StoredProfile, actor.email);
+  await recordRevision(ctx, { table: "contributorProfiles", key, action: "update", before: existing, actor });
   await ctx.db.patch(existing._id, patch);
   const updated = await getStoredContributorProfile(ctx, key);
   return {

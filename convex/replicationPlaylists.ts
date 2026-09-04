@@ -3,6 +3,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/s
 import type { Doc } from "./_generated/dataModel";
 import { auditStampFor } from "./lib/auditStamp";
 import { requireRole, roleMeetsFloor, type AuthorizedActor } from "./lib/auth";
+import { recordRevision } from "./lib/contentRevisions";
 import { isShowcaseEligible } from "../src/data/substanceReplicationGallery";
 
 /**
@@ -88,12 +89,21 @@ function projectPlaylist(row: PlaylistRow, actor: AuthorizedActor): PlaylistProj
   };
 }
 
-async function findPlaylist(ctx: QueryCtx | MutationCtx, key: string) {
+/** The row under `key` whether or not it is archived. */
+async function findPlaylistRow(ctx: QueryCtx | MutationCtx, key: string) {
   return await ctx.db
     .query("replicationPlaylists")
     .withIndex("by_key", (q) => q.eq("key", key))
     .first();
 }
+
+/** The live row under `key`; an archived playlist reads as absent. */
+async function findPlaylist(ctx: QueryCtx | MutationCtx, key: string) {
+  const row = await findPlaylistRow(ctx, key);
+  return row && !row.archived_at ? row : null;
+}
+
+const isLive = (row: PlaylistRow) => !row.archived_at;
 
 function byTitle(left: PlaylistProjection, right: PlaylistProjection): number {
   return left.title.localeCompare(right.title);
@@ -106,7 +116,7 @@ export async function listHandler(ctx: QueryCtx, args: ActorArgs) {
     "editor",
   );
   const rows = await ctx.db.query("replicationPlaylists").collect();
-  return rows.map((row) => projectPlaylist(row, actor)).sort(byTitle);
+  return rows.filter(isLive).map((row) => projectPlaylist(row, actor)).sort(byTitle);
 }
 
 /** Every playlist, each flagged with whether the actor may change it. Editor floor. */
@@ -128,7 +138,7 @@ export async function listOwnedHandler(ctx: QueryCtx, args: ActorArgs) {
           .query("replicationPlaylists")
           .withIndex("by_owner_email", (q) => q.eq("owner_email", actor.email))
           .collect();
-  return rows.map((row) => projectPlaylist(row, actor)).sort(byTitle);
+  return rows.filter(isLive).map((row) => projectPlaylist(row, actor)).sort(byTitle);
 }
 
 /** The actor's own playlists; an admin sees all of them. Contributor floor. */
@@ -187,7 +197,14 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
     );
   }
 
-  const existing = await findPlaylist(ctx, args.key);
+  const stored = await findPlaylistRow(ctx, args.key);
+  if (stored?.archived_at) {
+    throw new ConvexError({
+      code: "PLAYLIST_ARCHIVED",
+      message: `"${stored.title}" was removed on ${stored.archived_at.slice(0, 10)} and still holds the key "${args.key}". An admin can restore it, or pick another key.`,
+    });
+  }
+  const existing = stored;
   if (existing) {
     requireOwnership(actor, existing);
   }
@@ -253,6 +270,7 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
     } else {
       owner_email = existing.owner_email;
     }
+    await recordRevision(ctx, { table: "replicationPlaylists", key: existing.key, action: "update", before: existing, actor });
     await ctx.db.patch(existing._id, patch);
   } else {
     await ctx.db.insert("replicationPlaylists", {
@@ -333,6 +351,7 @@ export async function setMembershipHandler(ctx: MutationCtx, args: SetMembership
     throw new Error(`This playlist holds more than ${MAX_PLAYLIST_SLUGS} works.`);
   }
   const updated_at = new Date().toISOString();
+  await recordRevision(ctx, { table: "replicationPlaylists", key: existing.key, action: "update", before: existing, actor });
   await ctx.db.patch(existing._id, {
     replication_slugs: slugs,
     updated_at,
@@ -373,11 +392,16 @@ export async function removeHandler(ctx: MutationCtx, args: ActorArgs & { key: s
     return { status: "missing" as const, key: args.key };
   }
   requireOwnership(actor, existing);
-  await ctx.db.delete(existing._id);
+  await recordRevision(ctx, { table: "replicationPlaylists", key: existing.key, action: "remove", before: existing, actor });
+  await ctx.db.patch(existing._id, { archived_at: new Date().toISOString(), archived_by: actor.email });
   return { status: "ok" as const, key: args.key };
 }
 
-/** Delete one playlist: its owner may, an admin may, and an unowned row is admin-only. */
+/**
+ * Remove one playlist from every list and picker: its owner may, an admin
+ * may, and an unowned row is admin-only. The row stays on the server with
+ * `archived_at` set; `restore` brings it back, and nothing here deletes.
+ */
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -385,6 +409,59 @@ export const remove = mutation({
     key: v.string(),
   },
   handler: removeHandler,
+});
+
+export async function restoreHandler(ctx: MutationCtx, args: ActorArgs & { key: string }) {
+  const actor = await requireRole(
+    ctx,
+    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
+    "admin",
+  );
+  const row = await findPlaylistRow(ctx, args.key);
+  if (!row) {
+    return { status: "missing" as const, key: args.key };
+  }
+  if (!row.archived_at) {
+    return { status: "live" as const, key: args.key };
+  }
+  await ctx.db.patch(row._id, {
+    archived_at: undefined,
+    archived_by: undefined,
+    updated_at: new Date().toISOString(),
+    updated_by: actor.email,
+  });
+  return { status: "ok" as const, key: args.key };
+}
+
+/** Bring an archived playlist back exactly as it was removed. Admin floor. */
+export const restore = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.optional(v.string()),
+    key: v.string(),
+  },
+  handler: restoreHandler,
+});
+
+/** Archived playlists, newest removal first. Admin floor. */
+export const listArchived = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const actor = await requireRole(
+      ctx,
+      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
+      "admin",
+    );
+    const rows = await ctx.db.query("replicationPlaylists").collect();
+    return rows
+      .filter((row) => row.archived_at)
+      .sort((left, right) => (right.archived_at ?? "").localeCompare(left.archived_at ?? ""))
+      .map((row) => ({
+        ...projectPlaylist(row, actor),
+        archived_at: row.archived_at ?? null,
+        archived_by: row.archived_by ?? null,
+      }));
+  },
 });
 
 type AssignOwnerArgs = ActorArgs & { key: string; ownerEmail: string | null };

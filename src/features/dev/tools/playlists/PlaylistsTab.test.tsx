@@ -92,7 +92,7 @@ describe("PlaylistsTab", () => {
     await screen.findByText("Ada's list");
     const own = rowFor("adas-list");
     expect(own.getByRole("button", { name: "Edit" })).toBeEnabled();
-    expect(own.getByRole("button", { name: "Delete Ada's list" })).toBeEnabled();
+    expect(own.getByRole("button", { name: "Remove Ada's list" })).toBeEnabled();
     expect(own.getByText(/2 works/)).toBeTruthy();
 
     const other = rowFor("house-opener");
@@ -136,12 +136,12 @@ describe("PlaylistsTab", () => {
     render(<PlaylistsTab isAdmin={false} />);
 
     await screen.findByText("Ada's list");
-    await user.click(screen.getByRole("button", { name: "Delete Ada's list" }));
-    await user.click(await screen.findByRole("button", { name: "Delete playlist" }));
+    await user.click(screen.getByRole("button", { name: "Remove Ada's list" }));
+    await user.click(await screen.findByRole("button", { name: "Remove playlist" }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toMatchObject({ method: "DELETE", path: "/api/dev/replications/playlists/adas-list" });
-    await screen.findByText('Deleted "Ada\'s list".');
+    await screen.findByText('Removed "Ada\'s list".');
   });
 
   it("shows owners to an admin and assigns one through the owner route", async () => {
@@ -177,8 +177,8 @@ describe("PlaylistsTab", () => {
     render(<PlaylistsTab isAdmin={false} />);
 
     await screen.findByText("Ada's list");
-    await user.click(screen.getByRole("button", { name: "Delete Ada's list" }));
-    await user.click(await screen.findByRole("button", { name: "Delete playlist" }));
+    await user.click(screen.getByRole("button", { name: "Remove Ada's list" }));
+    await user.click(await screen.findByRole("button", { name: "Remove playlist" }));
 
     await screen.findByText(/only its owner or an admin may change it/);
   });

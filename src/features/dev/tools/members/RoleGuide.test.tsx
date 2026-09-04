@@ -6,7 +6,7 @@ describe("RoleGuide", () => {
   it("renders every can and cannot line for each role", () => {
     render(<RoleGuide roles={[ROLE_DESCRIPTIONS.admin, ROLE_DESCRIPTIONS.editor, ROLE_DESCRIPTIONS.contributor]} />);
     for (const r of ["admin", "editor", "contributor"] as const) {
-      for (const line of [...ROLE_DESCRIPTIONS[r].can, ...ROLE_DESCRIPTIONS[r].cannot]) expect(screen.getByText(line)).toBeTruthy();
+      for (const line of [...ROLE_DESCRIPTIONS[r].can, ...ROLE_DESCRIPTIONS[r].cannot]) expect(screen.getAllByText(line).length).toBeGreaterThan(0);
     }
   });
 });

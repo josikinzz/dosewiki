@@ -536,6 +536,25 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_owner_email", ["owner_email"]),
 
+  // Append-only journal of what a profile, playlist, or trip report looked
+  // like before each write. A member editing or deleting their own things
+  // never destroys the prior version; it moves here. Read by admins only.
+  contentRevisions: defineTable({
+    table: v.union(
+      v.literal("contributorProfiles"),
+      v.literal("replicationPlaylists"),
+      v.literal("tripReports"),
+    ),
+    key: v.string(),
+    action: v.union(v.literal("update"), v.literal("remove"), v.literal("merge")),
+    before: v.any(),
+    actorEmail: v.string(),
+    actorRole: v.string(),
+    createdAt: v.string(),
+  })
+    .index("by_table_key", ["table", "key"])
+    .index("by_created_at", ["createdAt"]),
+
   memberships: defineTable(membership)
     .index("by_email", ["email"])
     .index("by_username", ["username"])
