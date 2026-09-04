@@ -48,7 +48,7 @@ describe("useLayoutConfirms", () => {
   it("asks before a category leaves the draft and lists what goes with it", () => {
     const { hook, removeCategory, lastRequest } = renderConfirms();
 
-    act(() => hook.result.current.requestRemoveCategory(0));
+    act(() => hook.result.current.requestRemoveCategory("psychedelics"));
 
     // Nothing leaves the draft until the editor confirms.
     expect(removeCategory).not.toHaveBeenCalled();
@@ -62,43 +62,48 @@ describe("useLayoutConfirms", () => {
     act(() => {
       void request?.onConfirm();
     });
-    expect(removeCategory).toHaveBeenCalledWith(0);
+    expect(removeCategory).toHaveBeenCalledWith("psychedelics");
   });
 
-  it("asks before a section leaves its category", () => {
+  it("asks before a section leaves its category and keeps its substances on the category list", () => {
     const { hook, removeSection, lastRequest } = renderConfirms();
 
-    act(() => hook.result.current.requestRemoveSection(0, 0));
+    act(() => hook.result.current.requestRemoveSection("psychedelics", "tryptamines"));
 
     expect(removeSection).not.toHaveBeenCalled();
     const request = lastRequest();
     expect(request?.title).toBe("Remove Tryptamines?");
-    expect(request?.description).toContain("3 substances leave Psychedelics");
+    expect(request?.description).toContain("3 substances move to the Psychedelics list");
+    expect(request?.confirmLabel).toBe("Remove section, keep substances");
     expect(request?.affected).toEqual(["DMT", "psilocybin", "LSD"]);
 
     act(() => {
       void request?.onConfirm();
     });
-    expect(removeSection).toHaveBeenCalledWith(0, 0);
+    expect(removeSection).toHaveBeenCalledWith("psychedelics", "tryptamines", true);
   });
 
   it("names unlabeled and empty sections plainly", () => {
-    const { hook, lastRequest } = renderConfirms();
+    const { hook, removeSection, lastRequest } = renderConfirms();
 
-    act(() => hook.result.current.requestRemoveSection(0, 1));
+    act(() => hook.result.current.requestRemoveSection("psychedelics", "empty"));
 
     const request = lastRequest();
     expect(request?.title).toBe("Remove this section?");
     expect(request?.description).toContain("It holds no substances yet.");
-    expect(request?.affected).toEqual([]);
+    expect(request?.affected).toBeUndefined();
+    act(() => {
+      void request?.onConfirm();
+    });
+    expect(removeSection).toHaveBeenCalledWith("psychedelics", "empty", false);
   });
 
   it("ignores requests for rows that no longer exist", () => {
     const { hook, confirm } = renderConfirms();
 
     act(() => {
-      hook.result.current.requestRemoveCategory(4);
-      hook.result.current.requestRemoveSection(0, 9);
+      hook.result.current.requestRemoveCategory("nope");
+      hook.result.current.requestRemoveSection("psychedelics", "nope");
     });
 
     expect(confirm).not.toHaveBeenCalled();

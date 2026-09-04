@@ -16,6 +16,7 @@ import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import type { CategoryTabContent } from "../../data/categoryTabContent";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
+import { orderIndexSections, sectionConventionRank } from "../../data/builders/indexSectionOrder";
 import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
 // Deep-import the pure visibility helper instead of the `@/schema` barrel: the
 // barrel `export *`s the Zod-heavy substance schema, which would otherwise drag
@@ -112,24 +113,6 @@ const TAB_ORDER: string[] = [
   "antipsychotic",
 ];
 
-/**
- * Canonical section ordering for index panels: a "Common" (or "General")
- * bucket first, then the named chemical subclasses, then any "Other …"
- * catch-all last. `Array.prototype.sort` is stable, so callers that pass
- * sections in their authored (JSON) order keep that order within each rank.
- */
-function sectionConventionRank(name: string | undefined): number {
-  const n = (name ?? "").trim().toLowerCase();
-  if (n === "common" || n === "general") return 0;
-  if (n.startsWith("other")) return 2;
-  return 1;
-}
-
-function orderIndexSections<T extends { name?: string }>(sections: T[]): T[] {
-  return sections
-    .slice()
-    .sort((a, b) => sectionConventionRank(a.name) - sectionConventionRank(b.name));
-}
 
 /**
  * Build DosageCategoryGroup[] from category layout and slug lookup.

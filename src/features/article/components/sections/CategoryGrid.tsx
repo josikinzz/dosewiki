@@ -16,15 +16,15 @@ const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.nam
  */
 export type ColumnLayoutTable = Record<number, readonly (readonly string[])[]>;
 
-export function arrangeGroupsByLayout(
-  groups: readonly DosageCategoryGroup[],
+export function arrangeGroupsByLayout<T extends { key: string }>(
+  groups: readonly T[],
   table: ColumnLayoutTable,
   columnCount: number,
-): Map<number, DosageCategoryGroup[]> {
+): Map<number, T[]> {
   const largestKey = Math.max(...Object.keys(table).map(Number));
   const layout = table[Math.min(columnCount, largestKey)] ?? [];
   const byKey = new Map(groups.map((group) => [group.key, group]));
-  const columns = new Map<number, DosageCategoryGroup[]>();
+  const columns = new Map<number, T[]>();
   for (let i = 0; i < columnCount; i++) {
     columns.set(i, []);
   }

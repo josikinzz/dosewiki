@@ -8,8 +8,9 @@ type UseLayoutConfirmsArgs = {
   datasetLabel: string;
   categories: readonly ManualCategoryDefinition[];
   substanceOptions: readonly SubstanceOption[];
-  removeCategory: (index: number) => void;
-  removeSection: (index: number, sectionIndex: number) => void;
+  removeCategory: (categoryKey: string) => void;
+  /** `keepDrugs` moves the section's substances to the category list instead of dropping them. */
+  removeSection: (categoryKey: string, sectionKey: string, keepDrugs: boolean) => void;
   resetDraft: () => void;
   restoreSource: () => void;
 };
@@ -41,8 +42,8 @@ export function useLayoutConfirms({
   );
 
   const requestRemoveCategory = useCallback(
-    (index: number) => {
-      const category = categories[index];
+    (categoryKey: string) => {
+      const category = categories.find((entry) => entry.key === categoryKey);
       if (!category) {
         return;
       }
@@ -57,32 +58,39 @@ export function useLayoutConfirms({
         confirmLabel: "Remove category",
         destructive: true,
         affected,
-        onConfirm: () => removeCategory(index),
+        onConfirm: () => removeCategory(categoryKey),
       });
     },
     [categories, confirm, datasetLabel, namesBySlug, removeCategory],
   );
 
   const requestRemoveSection = useCallback(
-    (index: number, sectionIndex: number) => {
-      const category = categories[index];
-      const section = category?.sections[sectionIndex];
+    (categoryKey: string, sectionKey: string) => {
+      const category = categories.find((entry) => entry.key === categoryKey);
+      const section = category?.sections.find((entry) => entry.key === sectionKey);
       if (!category || !section) {
         return;
       }
       const affected = section.drugs.map((slug) => namesBySlug.get(slug) ?? slug);
       const label = section.label.trim() || "this section";
       const categoryLabel = category.label.trim() || "its category";
-      const contents = affected.length === 0
-        ? "It holds no substances yet."
-        : `Its ${countNoun(affected.length, "substance")} leave ${categoryLabel} in the ${datasetLabel} draft.`;
+      if (affected.length === 0) {
+        confirm({
+          title: `Remove ${label}?`,
+          description: `It holds no substances yet. ${COMMIT_REMINDER}`,
+          confirmLabel: "Remove section",
+          destructive: true,
+          onConfirm: () => removeSection(categoryKey, sectionKey, false),
+        });
+        return;
+      }
       confirm({
         title: `Remove ${label}?`,
-        description: `${contents} ${COMMIT_REMINDER}`,
-        confirmLabel: "Remove section",
+        description: `Its ${countNoun(affected.length, "substance")} move to the ${categoryLabel} list, where the site shows them under General. Remove them from the list afterwards if they should leave the ${datasetLabel} index. ${COMMIT_REMINDER}`,
+        confirmLabel: "Remove section, keep substances",
         destructive: true,
         affected,
-        onConfirm: () => removeSection(index, sectionIndex),
+        onConfirm: () => removeSection(categoryKey, sectionKey, true),
       });
     },
     [categories, confirm, datasetLabel, namesBySlug, removeSection],

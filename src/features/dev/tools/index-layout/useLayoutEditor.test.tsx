@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { ManualCategoryDefinition, ManualDatasetKey, ManualIndexConfig } from "./types";
-import { useIndexLayoutCategoryController } from "./useIndexLayoutCategoryController";
+import { bumpSlug, moveSlug } from "./layoutOps";
 import { useLayoutEditor, type LayoutDatasetDefinition } from "./useLayoutEditor";
 import { areManualsEqual, deepClone } from "./utils";
 
@@ -202,9 +202,7 @@ describe("useLayoutEditor", () => {
   });
 });
 
-describe("useLayoutEditor with useIndexLayoutCategoryController", () => {
-  const COLUMN_COUNT = 3;
-
+describe("useLayoutEditor with layoutOps", () => {
   function renderComposed(initial: Definitions) {
     return renderHook(
       ({ datasetDefinitions }: { datasetDefinitions: Definitions }) => {
@@ -217,64 +215,50 @@ describe("useLayoutEditor with useIndexLayoutCategoryController", () => {
           areManualsEqual,
         });
         const draftManual = editor.state.draftManuals.psychoactive;
-        const controller = useIndexLayoutCategoryController({
-          allSubstanceRecords: [],
-          draftManual,
-          columnCount: COLUMN_COUNT,
-          updateDraftManualForActive: (updater) =>
-            editor.updateDraftManualForDataset("psychoactive", updater),
-        });
-        // Mirrors `IndexLayoutTab.tsx`, which gates the Stage button on this.
+        // Mirrors `IndexLayoutTab.tsx`, which gates Apply to draft on this.
         const hasUnsavedChanges = !areManualsEqual(
           editor.state.normalizedCurrentManuals.psychoactive,
           draftManual,
         );
-        return { editor, controller, hasUnsavedChanges };
+        return { editor, hasUnsavedChanges };
       },
       { initialProps: { datasetDefinitions: initial } },
     );
   }
 
-  it("records a column assignment for the active column count", () => {
+  it("reports a cross-category move as unsaved and keeps authored order otherwise", () => {
     const { result } = renderComposed(definitions(LOADED));
     expect(result.current.hasUnsavedChanges).toBe(false);
 
     act(() => {
-      result.current.controller.setColumn(0, 2);
+      result.current.editor.updateDraftManualForDataset("psychoactive", (manual) =>
+        moveSlug(
+          manual,
+          { categoryKey: "psychedelics", sectionKey: null },
+          "lsd",
+          { categoryKey: "stimulants", sectionKey: null },
+          0,
+        ),
+      );
     });
 
-    const [moved, untouched] = result.current.editor.state.draftManuals.psychoactive.categories;
-    expect(moved.columns).toEqual({ [String(COLUMN_COUNT)]: 2 });
-    expect(untouched.columns).toBeUndefined();
-    expect(result.current.controller.columnGroups[2].items.map((item) => item.category.key)).toEqual([
-      "psychedelics",
-    ]);
-  });
-
-  it("reports a reorder as unsaved", () => {
-    const { result } = renderComposed(definitions(LOADED));
-
-    act(() => {
-      result.current.controller.moveCategory(0, "down");
-    });
-
-    expect(keysOf(result.current.editor.state.draftManuals.psychoactive)).toEqual([
-      "stimulants",
-      "psychedelics",
-    ]);
+    const [psychedelics, stimulants] = result.current.editor.state.draftManuals.psychoactive.categories;
+    expect(psychedelics.drugs).toEqual([]);
+    expect(stimulants.drugs).toEqual(["lsd", "amphetamine"]);
     expect(result.current.hasUnsavedChanges).toBe(true);
   });
 
-  // Defect 3 of josikinzz/dosewiki-admin#111: `areCategoriesEqual`
-  // (`utils.ts`) ignores `columns`, so a column-only change made through
-  // `setColumn` leaves `hasUnsavedChanges` false and the Stage button disabled.
-  it.fails("reports a column-only change as unsaved", () => {
+  it("treats an identity update as no change", () => {
     const { result } = renderComposed(definitions(LOADED));
+    const before = result.current.editor.state.draftManuals.psychoactive;
 
     act(() => {
-      result.current.controller.setColumn(0, 2);
+      result.current.editor.updateDraftManualForDataset("psychoactive", (manual) =>
+        bumpSlug(manual, { categoryKey: "psychedelics", sectionKey: null }, "lsd", "up"),
+      );
     });
 
-    expect(result.current.hasUnsavedChanges).toBe(true);
+    expect(result.current.editor.state.draftManuals.psychoactive).toBe(before);
+    expect(result.current.hasUnsavedChanges).toBe(false);
   });
 });
