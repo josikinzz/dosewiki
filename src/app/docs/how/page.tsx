@@ -986,8 +986,8 @@ export default async function DocsHowPage() {
           Of the four methods in <SectionRef s="made" />, the two automated ones run as
           parallel tracks over the source pages. The deterministic track parses structured
           data such as dosage tables and interaction matrices. The AI track turns the prose
-          parts of the sources into excerpt documents, then into draft sections. The human
-          and live-API methods sit outside this pipeline and act on its output.
+          parts of the sources into excerpt documents, then into draft sections. Human and
+          live-API methods sit outside this pipeline and act on its output.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
           Both tracks fill one draft article. After publication, the citation, audit, and
@@ -1049,8 +1049,8 @@ export default async function DocsHowPage() {
               TripSit factsheets and PsychonautWiki carry the most structured data: dose
               tiers (threshold / light / common / strong / heavy) per route of
               administration and onset / peak / offset durations. The parsers read these
-              tables directly and transcribe the numbers as published. The parser does not
-              choose between sources that disagree. The merge step does that later, when
+              tables directly and transcribe the numbers as published. A parser does not
+              choose between sources that disagree; the merge step does that later, when
               the parsed tables enter the article.
             </p>
             <p className={`${PROSE_CLASS} mt-3`}>
@@ -1314,14 +1314,14 @@ export default async function DocsHowPage() {
         <p className={`${PROSE_CLASS} mt-7`}>
           The section prompts for all six fully AI-written sections appear below, largest
           first. This page reads them from <code>src/data/config/sectionPrompts/</code>{" "}
-          when it builds. Two copies of each prompt exist. The committed file is shown here.
-          The editorial team can edit a live copy, which generation runs use; the live
+          when it builds. Two copies of each prompt exist: the committed file is shown here, and
+          the editorial team can edit a live copy, which generation runs use; the live
           copies were seeded from these files, and a comparison script reports any
           drift between the two. The copy that produced a given article can differ from
           the copy printed here.
         </p>
         <p className={`${PROSE_CLASS} mt-4`}>
-          The pharmacology and harm potential prompts show in detail how each prompt
+          Read the pharmacology and harm potential prompts to see in detail how each prompt
           shapes its section.
         </p>
 
@@ -1339,7 +1339,7 @@ export default async function DocsHowPage() {
         ))}
 
         <p className={`${PROSE_CLASS} mt-7`}>
-          The prompts are part of the project. They are version-controlled alongside the
+          All six prompts are part of the project. They are version-controlled alongside the
           code, and the live copies are editable by the editorial team. When a prompt
           improves, future generation runs that use it change. The citation and legality workflows
           carry their own prompt families; those live in the repository under{" "}
@@ -1569,8 +1569,7 @@ export default async function DocsHowPage() {
           synthesis, which creates the baseline draft. Step 2 is the editorial review described
           here. Step 3 is a human citation review that compares each claim with its
           source. Step 3 is the human pass planned as Phase 4 in{" "}
-          <SectionRef s="status" />, not the automated entailment audit before it. No
-          article has a completed citation review yet.
+          <SectionRef s="status" />. No article has a completed citation review yet.
         </p>
 
         <p className={`${PROSE_CLASS} mt-7`}>
@@ -1590,8 +1589,8 @@ export default async function DocsHowPage() {
           not establish.
         </p>
         <p className={`${PROSE_CLASS} mt-5`}>
-          Structure drawings are the one place where a person makes something rather
-          than checks it. The molecule editor is a separate tool from the text editor
+          Structure drawings are the one place where a person creates something. The
+          molecule editor is a separate tool from the text editor
           (<SectionRef s="parsing" comma />, under Chemistry identifiers). An editor
           redraws the molecule by hand, or draws one template for a chemical class and
           applies it to every member. Hand-drawn molecules are never overwritten by a
@@ -1653,11 +1652,7 @@ export default async function DocsHowPage() {
           misweigh or omit evidence. Generated or edited content is never final, because
           it returns through the citation and review workflows.
         </p>
-
-        <p className={`${PROSE_CLASS} mt-6`}>
-          If something looks wrong, use the report form at the bottom of the article page.
-          Reports feed the correction stages above.
-        </p></section>
+        </section>
 
         <section id="status" className={SECTION_CLASS}><h2 className={SECTION_HEADING_CLASS}>
           <span className={SECTION_NUM_CLASS}>09</span>{" "}Status &amp; roadmap
@@ -1734,6 +1729,8 @@ export default async function DocsHowPage() {
               The site tracks this separately from editorial review (<SectionRef s="review" />), so each carries
               its own status and its own named scope. Done when every flagged entry carries a
               recorded disposition.
+              The citation workflows later compare each claim with a fresh fetch of its
+              source.
             </p>
           </div>
           <div className={DIVIDED_ITEM_CLASS}>
@@ -1771,10 +1768,7 @@ export default async function DocsHowPage() {
             </div>
             <p className={PROSE_CLASS}>
               Editor corrections, messages sent through the article feedback form,
-              replication evidence, and curated additions continue to build on the
-              baseline indefinitely. Any
-              regenerated or edited content returns through the audit and review stages
-              above.
+              replication evidence, and curated additions continue to build on the baseline.
             </p>
           </div>
         </ContentCard></section>
@@ -1828,7 +1822,7 @@ export default async function DocsHowPage() {
             <p className={PROSE_CLASS}>
               These parts are dedicated to the public domain under CC0: dose.wiki-authored
               writing, structured data, schema work, generated molecule assets, and
-              report-form submissions whose contributors accept CC0 terms. Anyone can
+              feedback-form submissions whose contributors accept CC0 terms. Anyone can
               share, adapt, or build on them, commercially or not, with no attribution
               required. Legacy trip
               reports, TripSit data, protestkit.eu data, and media with separate rights
