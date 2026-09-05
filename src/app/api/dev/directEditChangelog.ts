@@ -15,7 +15,7 @@
  */
 import { revalidateTag } from "next/cache";
 import { api } from "../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { PUBLIC_CHANGELOG_LISTS_TAG, publicArticleHistoryTag } from "@server/convex/publicData.cache";
 import { deriveSubmittedBy } from "../save-to-convex/saveToConvexUtils";
 import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
 
@@ -96,7 +96,8 @@ export async function recordDirectEditChangelog({
     });
     // The contributor profile reads its history through this tag, and stale is
     // exactly the complaint this entry exists to answer.
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.changelog, { expire: 0 });
+    revalidateTag(PUBLIC_CHANGELOG_LISTS_TAG, { expire: 0 });
+    revalidateTag(publicArticleHistoryTag(article.slug), { expire: 0 });
   } catch (error) {
     // The article write already landed. Losing its history row is worth a log,
     // never an error response that invites the reviewer to edit again.

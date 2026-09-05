@@ -54,18 +54,24 @@ import {
   type PublicEffectIndexPost,
 } from "../../convex/lib/effectIndexArchiveReadProjections";
 import { publicDataReadCatalog } from "./publicData.readCatalog";
+import {
+  drainConvexPaginationPages,
+  drainPublicCorpusPages,
+  queryPaginatedPublicProjectionRead,
+  visitPublicCorpusPages,
+  type QueryArgs,
+  type QueryTransport,
+} from "./publicData.pagination";
+import {
+  publicDataCache,
+  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CONVEX_CACHE_TAGS,
+  PUBLIC_SUBSTANCE_LISTS_TAG,
+} from "./publicData.cache";
 
 export { publicDataReadCatalog };
 
-type QueryArgs = Record<string, unknown>;
-type QueryTransport = <Result, Args extends QueryArgs = Record<string, never>>(
-  name: string,
-  args: Args,
-) => Promise<Result>;
-
 const ABOUT_PREVIEW_COUNT = 12;
-const PUBLIC_CORPUS_MAX_PAGES = 512;
-const PUBLIC_CORPUS_MAX_ROWS = 20_000;
 const ABOUT_PREVIEW_MAX_PAGES = 128;
 const ABOUT_PREVIEW_MAX_ROWS = 8_192;
 
@@ -131,7 +137,7 @@ export type PublicDataReadAdapter = {
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicMatchableReplicationPage(cursor?: string): Promise<PublicMatchableReplicationPage>;
   getPublicSubstanceGalleryCuration(substanceSlug: string): Promise<PublicSubstanceGalleryCuration | null>;
-  /** The merged showcase in one round trip, or null while the query is not deployed. */
+  /** The merged showcase, or null while the query or its complete index is unavailable. */
   getPublicSubstanceGallery(substanceSlug: string): Promise<PublicSubstanceGallery | null>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
@@ -439,154 +445,6 @@ function reportDegradedEffectIndexArchiveRead(scope: string, error: unknown): bo
   );
 
   return true;
-}
-
-type PublicCorpusPage<Item> = {
-  items: Item[];
-  cursor: string;
-  isDone: boolean;
-};
-
-type PublicCorpusPageSource = {
-  functionName: string;
-  args: (cursor?: string) => { cursor?: string; limit: number };
-};
-
-type PublicCorpusDrainLimits = {
-  maxPages: number;
-  maxRows: number;
-};
-
-type PublicCorpusVisitResult = "done" | "stopped";
-
-async function visitPublicCorpusPages<Item>(
-  query: QueryTransport,
-  source: PublicCorpusPageSource,
-  limits: PublicCorpusDrainLimits,
-  visitItems: (items: Item[]) => boolean,
-): Promise<PublicCorpusVisitResult> {
-  const seenCursors = new Set<string>();
-  let cursor: string | undefined;
-  let rowCount = 0;
-
-  for (let pageNumber = 1; pageNumber <= limits.maxPages; pageNumber += 1) {
-    const page = await query<PublicCorpusPage<Item>, { cursor?: string; limit: number }>(
-      source.functionName,
-      source.args(cursor),
-    );
-
-    if (!Array.isArray(page.items) || typeof page.isDone !== "boolean") {
-      throw new Error(`Public corpus page "${source.functionName}" returned an invalid payload.`);
-    }
-    rowCount += page.items.length;
-    if (rowCount > limits.maxRows) {
-      throw new Error(
-        `Public corpus pagination for "${source.functionName}" exceeded maxRows (${limits.maxRows}).`,
-      );
-    }
-    if (visitItems(page.items)) {
-      return "stopped";
-    }
-    if (page.isDone) {
-      return "done";
-    }
-    if (
-      typeof page.cursor !== "string" ||
-      page.cursor.length === 0 ||
-      seenCursors.has(page.cursor)
-    ) {
-      throw new Error(`Public corpus pagination for "${source.functionName}" did not advance.`);
-    }
-    seenCursors.add(page.cursor);
-    cursor = page.cursor;
-  }
-
-  throw new Error(
-    `Public corpus pagination for "${source.functionName}" exceeded maxPages (${limits.maxPages}).`,
-  );
-}
-
-async function drainPublicCorpusPages<Item>(
-  query: QueryTransport,
-  source: PublicCorpusPageSource,
-): Promise<Item[]> {
-  const items: Item[] = [];
-  await visitPublicCorpusPages<Item>(
-    query,
-    source,
-    { maxPages: PUBLIC_CORPUS_MAX_PAGES, maxRows: PUBLIC_CORPUS_MAX_ROWS },
-    (pageItems) => {
-      items.push(...pageItems);
-      return false;
-    },
-  );
-  return items;
-}
-
-type ConvexPaginationPage<Item> = {
-  page: Item[];
-  isDone: boolean;
-  continueCursor: string | null;
-};
-
-/**
- * Drain a standard Convex `paginationOpts` query (page/isDone/continueCursor),
- * unlike the bespoke corpus pages above (items/cursor/isDone). Shares their
- * fail-closed guards against malformed pages, stalled cursors, and runaway
- * reads.
- */
-async function drainConvexPaginationPages<Item>(
-  query: QueryTransport,
-  source: {
-    functionName: string;
-    args: (cursor: string | null) => { paginationOpts: { cursor: string | null; numItems: number } };
-  },
-): Promise<Item[]> {
-  const items: Item[] = [];
-  const seenCursors = new Set<string>();
-  let cursor: string | null = null;
-
-  for (let pageNumber = 1; pageNumber <= PUBLIC_CORPUS_MAX_PAGES; pageNumber += 1) {
-    const result = await query<ConvexPaginationPage<Item>, { paginationOpts: { cursor: string | null; numItems: number } }>(
-      source.functionName,
-      source.args(cursor),
-    );
-    if (!Array.isArray(result.page) || typeof result.isDone !== "boolean") {
-      throw new Error(`Convex pagination for "${source.functionName}" returned an invalid payload.`);
-    }
-    items.push(...result.page);
-    if (items.length > PUBLIC_CORPUS_MAX_ROWS) {
-      throw new Error(
-        `Convex pagination for "${source.functionName}" exceeded maxRows (${PUBLIC_CORPUS_MAX_ROWS}).`,
-      );
-    }
-    if (result.isDone) {
-      return items;
-    }
-    const nextCursor = result.continueCursor;
-    if (
-      typeof nextCursor !== "string" ||
-      nextCursor.length === 0 ||
-      nextCursor === cursor ||
-      seenCursors.has(nextCursor)
-    ) {
-      throw new Error(`Convex pagination for "${source.functionName}" did not advance.`);
-    }
-    seenCursors.add(nextCursor);
-    cursor = nextCursor;
-  }
-
-  throw new Error(
-    `Convex pagination for "${source.functionName}" exceeded maxPages (${PUBLIC_CORPUS_MAX_PAGES}).`,
-  );
-}
-
-async function queryPaginatedPublicProjectionRead<RawItem, PublicResult>(
-  query: QueryTransport,
-  source: PublicCorpusPageSource,
-  project: (result: RawItem[]) => PublicResult,
-): Promise<PublicResult> {
-  return project(await drainPublicCorpusPages<RawItem>(query, source));
 }
 
 export function createConvexPublicDataReadAdapter(query: QueryTransport = queryConvex): PublicDataReadAdapter {
@@ -923,9 +781,8 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         carousel_order: doc.carousel_order ?? [],
       };
     },
-    // The single-round-trip showcase read. Additive across function rollout:
-    // a deployment that predates it reports null (warned once) and the caller
-    // assembles the showcase from the paged matchable corpus instead.
+    // A missing query or incomplete index must use the shared paged corpus.
+    // Cached null means use that complete fallback, never an empty gallery.
     getPublicSubstanceGallery: async (substanceSlug) => {
       try {
         return await query<PublicSubstanceGallery, { substance_slug: string }>(
@@ -933,6 +790,13 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           publicDataReadCatalog.publicSubstanceGallery.args(substanceSlug),
         );
       } catch (error) {
+        if (
+          typeof error === "object" && error !== null && "data" in error &&
+          typeof error.data === "object" && error.data !== null &&
+          "code" in error.data && error.data.code === "SUBSTANCE_GALLERY_INDEX_NOT_READY"
+        ) {
+          return null;
+        }
         if (isExplicitMissingPublicFunctionError(error)) {
           if (!hasWarnedAboutSubstanceGalleryRead) {
             hasWarnedAboutSubstanceGalleryRead = true;
@@ -1003,7 +867,37 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
   };
 }
 
-const defaultPublicDataReadAdapter = createConvexPublicDataReadAdapter();
+// These two complete corpus reads feed request-only library/route compositions.
+// Persist their existing 32-row pages, never the assembled multi-megabyte input.
+// Other adapter methods already have their own persistent leaves; wrapping
+// their transport here too would reintroduce nested-cache bypass.
+const readPublicSubstanceProjectionPage = publicDataCache(
+  async (name: string, args: QueryArgs) => queryConvex<unknown, QueryArgs>(name, args),
+  ["convex-public-substance-projection-page-v1"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [
+      PUBLIC_CONVEX_CACHE_TAGS.all,
+      PUBLIC_CONVEX_CACHE_TAGS.substances,
+      PUBLIC_SUBSTANCE_LISTS_TAG,
+    ],
+  },
+);
+
+const queryDefaultPublicData: QueryTransport = async <
+  Result,
+  Args extends QueryArgs = Record<string, never>,
+>(name: string, args: Args): Promise<Result> => {
+  if (
+    name === publicDataReadCatalog.publicSubstanceLibraryInput.functionName ||
+    name === publicDataReadCatalog.publicSubstanceMechanismRouteInput.functionName
+  ) {
+    return await readPublicSubstanceProjectionPage(name, args) as Result;
+  }
+  return queryConvex<Result, Args>(name, args);
+};
+
+const defaultPublicDataReadAdapter = createConvexPublicDataReadAdapter(queryDefaultPublicData);
 
 let publicDataReadAdapter: PublicDataReadAdapter = defaultPublicDataReadAdapter;
 

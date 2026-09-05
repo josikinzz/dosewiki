@@ -20,10 +20,10 @@
  * a dropped response is safe and returns `created: false`.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
 import { api } from "../../../../../convex/_generated/api";
 import { ARTICLE_REFERENCE_MAX_AUTHORS } from "../../../../../convex/lib/articleReferenceWrites";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+
 import { parseReferenceYear } from "@/features/dev/forms/referenceFormShared";
 import {
   buildDirectEditDiff,
@@ -174,8 +174,7 @@ export const POST = protectedRouteOperation<AddReferenceBody, ParsedAddReference
           body.reference.title,
         ),
       });
-      revalidatePath(`/${body.slug}`);
-      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+      revalidateSavedPaths([`/${body.slug}`], "manual");
     }
 
     return NextResponse.json({
@@ -262,8 +261,7 @@ export const DELETE = protectedRouteOperation<RemoveReferenceBody, ParsedRemoveR
         message: `Removed a source — ${referenceLabel}`,
         markdown: buildDirectEditDiff(result.title, "references", referenceLabel, null),
       });
-      revalidatePath(`/${body.slug}`);
-      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+      revalidateSavedPaths([`/${body.slug}`], "manual");
     }
 
     return NextResponse.json({

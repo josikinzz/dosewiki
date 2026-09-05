@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "./publicData.cache"
 import { cache } from "react";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
@@ -9,7 +9,7 @@ import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { PublicAboutData } from "./publicData.shared";
 
 /** The About config document, a leaf read persisted at the top level. */
-const getPublicAboutConfig = cache(unstable_cache(async () => {
+const getPublicAboutConfig = cache(publicDataCache(async () => {
   return await getPublicDataReadAdapter().getPublicAboutConfig();
 }, ["convex-public-about-config-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,

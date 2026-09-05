@@ -99,7 +99,7 @@ describe("revalidate-article route", () => {
     expect(await response.json()).toEqual({ error: "Provide slug or slugs." });
   });
 
-  it("revalidates the page path and expires the shared substances tag, like the editor write routes", async () => {
+  it("immediately expires the article, gallery and history without evicting other article leaves", async () => {
     const { POST } = await import("./route");
     const { revalidatePath, revalidateTag } = await import("next/cache");
     const { PUBLIC_CONVEX_CACHE_TAGS } = await import("@server/convex/publicData");
@@ -110,11 +110,14 @@ describe("revalidate-article route", () => {
     expect(await response.json()).toEqual({ ok: true, revalidated: ["/2c-b"] });
     expect(revalidatePath).toHaveBeenCalledTimes(1);
     expect(revalidatePath).toHaveBeenCalledWith("/2c-b");
-    expect(revalidateTag).toHaveBeenCalledTimes(1);
-    expect(revalidateTag).toHaveBeenCalledWith(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:substances:2c-b", { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:replications:substance:2c-b", { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:changelog:article:2c-b", { expire: 0 });
+    expect(revalidateTag).not.toHaveBeenCalledWith(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    expect(revalidateTag).not.toHaveBeenCalledWith(PUBLIC_CONVEX_CACHE_TAGS.all, { expire: 0 });
   });
 
-  it("dedupes a multi-slug batch and expires the tag once", async () => {
+  it("dedupes a multi-slug batch while refreshing each article identity", async () => {
     const { POST } = await import("./route");
     const { revalidatePath, revalidateTag } = await import("next/cache");
 
@@ -127,7 +130,8 @@ describe("revalidate-article route", () => {
     expect(revalidatePath).toHaveBeenCalledTimes(2);
     expect(revalidatePath).toHaveBeenNthCalledWith(1, "/2c-b");
     expect(revalidatePath).toHaveBeenNthCalledWith(2, "/dxm");
-    expect(revalidateTag).toHaveBeenCalledTimes(1);
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:substances:dxm", { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:substances:2c-b", { expire: 0 });
   });
 
   it("honours the rate limiter before auth", async () => {

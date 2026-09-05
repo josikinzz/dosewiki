@@ -29,7 +29,7 @@ vi.mock("next/cache", async (importOriginal) => ({
   revalidateTag: cacheMocks.revalidateTag,
 }));
 vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications" },
+  PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications", contributors: "convex-public:contributors" },
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -189,7 +189,7 @@ describe("carousel order PATCH", () => {
       }),
     );
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith(
-      "public-replications",
+      "convex-public:replications:substance:ketamine",
       { expire: 0 },
     );
   });

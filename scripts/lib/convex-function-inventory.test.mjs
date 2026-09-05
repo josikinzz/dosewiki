@@ -82,6 +82,23 @@ test("aliased and type-only imports are handled", () => {
   );
 });
 
+test("indexed mutation registrations retain public and internal deployment identities", () => {
+  const functions = collectModuleFunctions({
+    modulePath: "publicReadIndexes.ts",
+    source: `
+      import { mutation, internalMutation } from "./lib/indexedMutation";
+      export const save = mutation({ args: {}, handler: async () => null });
+      export const backfill = internalMutation({ args: {}, handler: async () => null });
+    `,
+  });
+  assert.deepEqual(functions.map(({ identifier, functionType, visibility }) => ({
+    identifier, functionType, visibility,
+  })), [
+    { identifier: "publicReadIndexes.js:save", functionType: "Mutation", visibility: "public" },
+    { identifier: "publicReadIndexes.js:backfill", functionType: "Mutation", visibility: "internal" },
+  ]);
+});
+
 test("a module importing nothing from _generated/server defines no functions", () => {
   const functions = collectModuleFunctions({
     modulePath: "lib/validators.ts",

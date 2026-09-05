@@ -14,7 +14,7 @@
  *   POST /api/dev/article-field   { slug, path, value, expected }  → one field
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
 import { api } from "../../../../../convex/_generated/api";
 import {
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
@@ -23,7 +23,7 @@ import {
   type EditableFieldKind,
   type EditableFieldValue,
 } from "../../../../../convex/lib/articleFieldWrites";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+
 import { isFieldPathDiagnostic, parseFieldPath } from "@/data/schema/fieldPath";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -158,10 +158,8 @@ export const POST = protectedRouteOperation<SetArticleFieldBody, ParsedSetArticl
       ),
     });
 
-    // The edit changes public article content, so the article's own cached
-    // projections must refresh alongside the shared substances tag.
-    revalidatePath(`/${body.slug}`);
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    // Refresh this article's leaves and the shared listing projections immediately.
+    revalidateSavedPaths([`/${body.slug}`], "manual");
     return NextResponse.json({
       ok: true,
       slug: result.slug,

@@ -67,6 +67,7 @@ function createCtx({
     auth: { getUserIdentity: vi.fn(async () => null) },
     storage: { getUrl: vi.fn(async () => "https://cdn.example.com/avatar.png") },
     db: {
+      normalizeId: () => null, // This fixture only mutates contributor profiles.
       patch,
       insert,
       query: vi.fn((table: string) => ({

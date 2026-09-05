@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache, publicEffectTag } from "./publicData.cache";
 import { cache } from "react";
 import { contributorMatchNames, profileMatchesName } from "../contributorProfileIdentity";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
@@ -27,7 +27,7 @@ const PUBLIC_REPLICATION_MAX_ROWS = 20_000;
  */
 const PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE = 200;
 
-export const getPublicEffects = cache(unstable_cache(async (): Promise<PublicEffectPreview[]> => {
+export const getPublicEffects = cache(publicDataCache(async (): Promise<PublicEffectPreview[]> => {
   return await getPublicDataReadAdapter().getPublicEffects();
 }, ["convex-public-effect-previews"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -38,21 +38,21 @@ export const getFeaturedEffects = cache(async (limit = 8) => {
   return (await getPublicEffects()).slice(0, limit);
 });
 
-export const getPublicEffectBySlug = cache(unstable_cache(async (slug: string): Promise<SubjectiveEffectDetailRecord | null> => {
+export const getPublicEffectBySlug = cache(publicDataCache(async (slug: string): Promise<SubjectiveEffectDetailRecord | null> => {
   return await getPublicDataReadAdapter().getPublicEffectBySlug(slug);
 }, ["convex-public-effect-by-slug"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects],
+  tags: (slug) => [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects, publicEffectTag(slug)],
 }));
 
-export const getPublicEffectArticles = cache(unstable_cache(async (): Promise<PublicEffectArticle[]> => {
+export const getPublicEffectArticles = cache(publicDataCache(async (): Promise<PublicEffectArticle[]> => {
   return await getPublicDataReadAdapter().getPublicEffectArticles();
 }, ["convex-public-effect-articles"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects],
 }));
 
-export const getEffectsByCategory = cache(unstable_cache(async (category: string): Promise<PublicEffectPreview[]> => {
+export const getEffectsByCategory = cache(publicDataCache(async (category: string): Promise<PublicEffectPreview[]> => {
   return await getPublicDataReadAdapter().getPublicEffectsByCategory(category);
 }, ["convex-public-effects-by-category"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -167,7 +167,7 @@ const fetchPublishableReplicationsByEffect = cache(async (
   );
 });
 
-const getPublicReplicationsByEffectChunk = cache(unstable_cache(async (
+const getPublicReplicationsByEffectChunk = cache(publicDataCache(async (
   effectSlug: string,
   chunkIndex: number,
 ): Promise<{ items: ReplicationWithUrl[]; chunkCount: number }> => {
@@ -184,7 +184,7 @@ const getPublicReplicationsByEffectChunk = cache(unstable_cache(async (
   };
 }, ["convex-public-replications-by-effect-chunk-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+  tags: (slug) => [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications, publicEffectTag(slug)],
 }));
 
 export const getPublicReplicationsByEffect = cache(async (
@@ -216,7 +216,7 @@ export const getPublicReplicationsByEffect = cache(async (
  * from inside another `unstable_cache` callback, so any persisted wrapper above
  * this drain would turn every one of its misses into a full Convex re-drain.
  */
-const getPublicReplicationCorpusPage = cache(unstable_cache(async (
+const getPublicReplicationCorpusPage = cache(publicDataCache(async (
   cursor?: string,
 ) => {
   return await getPublicDataReadAdapter().getPublicGalleryReplicationPage(
@@ -264,7 +264,7 @@ export const getPublicReplications = cache(async (): Promise<GalleryReplication[
   );
 });
 
-export const getPublicReplicationBySlug = cache(unstable_cache(async (slug: string): Promise<ReplicationWithUrl | null> => {
+export const getPublicReplicationBySlug = cache(publicDataCache(async (slug: string): Promise<ReplicationWithUrl | null> => {
   return await getPublicDataReadAdapter().getPublicReplicationBySlug(slug);
 }, ["convex-public-replication-by-slug"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,

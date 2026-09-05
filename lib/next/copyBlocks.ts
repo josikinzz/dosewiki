@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "../convex/publicData.cache";
 import { cache } from "react";
 
 import {
@@ -101,28 +101,26 @@ function reportDegradedCopyRead(error: unknown): void {
 }
 
 export const getCopyBlocks = cache(
-  unstable_cache(
-    async (): Promise<CopyBlockRecord[]> => {
-      try {
-        const rows = await queryConvex<unknown[]>("copyBlocks:getAll", {});
-        if (!Array.isArray(rows)) {
-          return [];
-        }
-        return rows.flatMap((row) => {
-          const parsed = parseCopyBlockRecord(row);
-          return parsed ? [parsed] : [];
-        });
-      } catch (error) {
-        reportDegradedCopyRead(error);
+  publicDataCache(async (): Promise<CopyBlockRecord[]> => {
+    try {
+      const rows = await queryConvex<unknown[]>("copyBlocks:getAll", {});
+      if (!Array.isArray(rows)) {
         return [];
       }
-    },
-    ["convex-public-copy-blocks"],
-    {
-      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.copy],
-    },
-  ),
+      return rows.flatMap((row) => {
+        const parsed = parseCopyBlockRecord(row);
+        return parsed ? [parsed] : [];
+      });
+    } catch (error) {
+      reportDegradedCopyRead(error);
+      return [];
+    }
+  },
+  ["convex-public-copy-blocks"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.copy],
+  },),
 );
 
 function toRecord(definition: CopyBlockDefinition): CopyBlockRecord {

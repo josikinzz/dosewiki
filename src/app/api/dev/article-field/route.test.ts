@@ -166,7 +166,7 @@ describe("article field route contribution history", () => {
 
     await POST(editRequest());
 
-    expect(revalidateTag).toHaveBeenCalledWith("convex-public:changelog", { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith("convex-public:changelog:article:2c-b", { expire: 0 });
   });
 
   it("keeps a saved edit successful when the history row cannot be written", async () => {

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 
 export const listValidator = v.union(

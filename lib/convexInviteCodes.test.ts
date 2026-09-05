@@ -90,6 +90,7 @@ function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRo
     ctx: {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
+        normalizeId: () => null, // Neither invite codes nor memberships are source tables.
         query: vi.fn(query),
         get: vi.fn(async (id: string) => tableOf(id).get(id) ?? null),
         patch: vi.fn(async (id: string, patch: Record<string, unknown>) => {

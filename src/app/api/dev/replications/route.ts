@@ -10,7 +10,8 @@
  *   POST /api/dev/replications  { …asset fields }    → create one row
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData.cache";
 import { api } from "../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -193,6 +194,8 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
     if (body.effectSlug) {
       revalidatePath(`/effects/${body.effectSlug}`);
     }
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidatePath("/api/replications/showcase");
 
     return NextResponse.json({ ok: true, slug: result.slug, id: result.id });
   },

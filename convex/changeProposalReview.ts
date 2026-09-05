@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, type MutationCtx } from "./_generated/server";
+import { type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc, Id } from "./_generated/dataModel";
 import { deriveSubmittedBy } from "../lib/changelog/submitterStamp";
 import { contentHash } from "../lib/proposals/contentHash";
@@ -143,7 +144,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     ...auth,
     entryId,
     createdAt: now,
-    message: `${proposal.summary} (proposed by ${proposal.proposedBy}, approved by ${actor.email})`,
+    message: proposal.summary,
     markdown: truncateDiffMarkdown(buildProposalDiff(payload, snapshotBefore)),
     submittedBy: deriveSubmittedBy(proposal.proposedBy),
     articles: proposalChangelogArticles(payload.changelog?.articles, await readArticleRows(ctx, proposal.targets)),
@@ -246,7 +247,7 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
     entryId,
     createdAt: now,
     message: `Reverted proposal ${proposal._id}`,
-    markdown: `Reverted "${proposal.summary}" (proposed by ${proposal.proposedBy}, applied by ${proposal.reviewedBy ?? "unknown"}, reverted by ${actor.email}).`,
+    markdown: `Reverted "${proposal.summary}".`,
     submittedBy: deriveSubmittedBy(actor.email),
     articles: proposalChangelogArticles(payload.changelog?.articles, await readArticleRows(ctx, proposal.targets)),
   });

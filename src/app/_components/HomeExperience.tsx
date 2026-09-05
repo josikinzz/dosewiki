@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useContext, useId, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
@@ -14,6 +14,7 @@ import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { homeTileGlyphStyle } from "./homeTileGlyph";
 import { AppearanceControls } from "./AppearanceControls";
 import { MailingListInvite } from "./MailingListInvite";
+import { EditorLauncherEligibilityContext } from "@/features/editor-launcher/context";
 
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
@@ -30,6 +31,7 @@ export function HomeExperience({
   copy,
 }: HomeExperienceProps) {
   const searchInputId = useId();
+  const hasEditorLauncher = useContext(EditorLauncherEligibilityContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
 
@@ -324,11 +326,12 @@ export function HomeExperience({
           className="theme-home-corner-widget fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
         />
 
-        {/* The mailing-list trigger takes the remaining free corner, bottom-right,
-            opposite the supporter credit. Like `SiteSupporter` it sits outside
-            <section> because the hero stage animates `transform`, and a transformed
-            ancestor would become the containing block for a fixed child. */}
-        <MailingListInvite className="theme-home-corner-widget fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
+        {/* The shared launcher takes this corner only after live session eligibility
+            resolves. Otherwise keep the mailing-list entry point, outside the
+            transformed hero stage so fixed positioning remains viewport-relative. */}
+        {!hasEditorLauncher ? (
+          <MailingListInvite className="theme-home-corner-widget fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
+        ) : null}
       </main>
     </>
   );

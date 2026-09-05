@@ -352,7 +352,8 @@ describe("changeProposals reads", () => {
     const mine = await listMineHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "editor@example.com" });
 
     expect(mine.map((row) => row.summary)).toEqual(["Second", "First"]);
-    expect(mine[0]).toMatchObject({ status: "submitted", commentCount: 0, proposedBy: "editor@example.com" });
+    expect(mine[0]).toMatchObject({ status: "submitted", commentCount: 0, proposerName: "Contributor", isAuthor: true });
+    expect(mine[0]).not.toHaveProperty("proposedBy");
     expect(mine[0]).not.toHaveProperty("payload");
     expect(mine[0]).not.toHaveProperty("diff");
   });
@@ -466,9 +467,10 @@ describe("changeProposals reads", () => {
       id: proposalId,
       text: "  Looks right to me.  ",
     });
-    expect(comment).toMatchObject({ by: "editor@example.com", text: "Looks right to me." });
+    expect(comment).toMatchObject({ authorName: "Contributor", text: "Looks right to me." });
+    expect(comment).not.toHaveProperty("by");
     const stored = rowsOf("changeProposals").get(proposalId)!;
-    expect(stored.comments).toEqual([comment]);
+    expect(stored.comments).toEqual([{ by: editor.email, at: comment.at, text: comment.text }]);
     expect(stored.updatedAt).toBe(comment.at);
 
     await expect(
@@ -485,6 +487,58 @@ describe("changeProposals reads", () => {
     await expect(
       commentHandler(ctx, { apiKey: SERVER_KEY, actorEmail: "contributor@example.com", id: proposalId, text: "Hi" }),
     ).rejects.toThrow("Editor access required");
+  });
+
+  it("exposes only linked public names and server ownership while preserving private audit identities", async () => {
+    const admin = { ...editor, _id: "admin", email: "reviewer@example.com", role: "admin" };
+    const { ctx, rowsOf } = createCtx({
+      memberships: [editor, admin],
+      substanceIndex: [storedLsd],
+      contributorProfiles: [
+        { _id: "profile-editor", membershipEmail: editor.email, displayName: "Ada" },
+        { _id: "profile-admin", membershipEmail: admin.email, displayName: `Private <${admin.email}>` },
+      ],
+    });
+    const { proposalId } = await submitHandler(ctx, submitArgs() as never);
+    const row = rowsOf("changeProposals").get(proposalId)!;
+    rowsOf("changeProposals").set(proposalId, {
+      ...row,
+      reviewedBy: admin.email,
+      comments: [{ by: admin.email, at: "now", text: "Checked" }],
+      payload: {
+        articles: [{ ...proposedLsd, submittedBy: { email: editor.email }, contactEmail: admin.email }],
+        changelog: { submittedBy: editor.email, markdown: admin.email, articles: [] },
+      },
+    });
+
+    const mine = await listMineHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email });
+    const adminQueue = await listHandler(ctx, { apiKey: SERVER_KEY, actorEmail: admin.email });
+    const ownDetail = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId });
+    const adminDetail = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: admin.email, id: proposalId });
+    for (const result of [mine[0], adminQueue[0], ownDetail, adminDetail]) {
+      expect(result).toMatchObject({ proposerName: "Ada", reviewerName: "Reviewer" });
+      expect(JSON.stringify(result)).not.toContain(editor.email);
+      expect(JSON.stringify(result)).not.toContain(admin.email);
+    }
+    expect(mine[0].isAuthor).toBe(true);
+    expect(ownDetail!.isAuthor).toBe(true);
+    expect(adminQueue[0].isAuthor).toBe(false);
+    expect(adminDetail!.isAuthor).toBe(false);
+    expect(ownDetail!.payload).toEqual({ articles: [proposedLsd] });
+    expect(ownDetail!.comments).toEqual([{ authorName: "Contributor", at: "now", text: "Checked" }]);
+    expect(rowsOf("changeProposals").get(proposalId)).toMatchObject({
+      proposedBy: editor.email, reviewedBy: admin.email,
+      comments: [{ by: admin.email, at: "now", text: "Checked" }],
+    });
+
+    const comment = await commentHandler(ctx, {
+      apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId, text: "Rechecked",
+    });
+    expect(comment.authorName).toBe("Ada");
+    expect(JSON.stringify(comment)).not.toContain(editor.email);
+    rowsOf("contributorProfiles").delete("profile-editor");
+    const withoutProfile = await getHandler(ctx, { apiKey: SERVER_KEY, actorEmail: editor.email, id: proposalId });
+    expect(withoutProfile).toMatchObject({ proposerName: "Contributor", isAuthor: true });
   });
 });
 

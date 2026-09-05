@@ -21,7 +21,8 @@
  * report with the full form.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData.cache";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { canApprove } from "@/lib/auth/roles";
@@ -203,6 +204,7 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
       });
 
       revalidatePath("/reports");
+      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.reports, { expire: 0 });
       return NextResponse.json({ ok: true, deleted: result.deleted });
     }
 
@@ -219,6 +221,7 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
     // The published report and the index that lists it both went stale.
     revalidatePath("/reports");
     revalidatePath(`/reports/${result.slug}`);
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.reports, { expire: 0 });
 
     return NextResponse.json({ ok: true, slug: result.slug });
   },

@@ -17,6 +17,7 @@ import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnaps
 import type { SubstanceArticle } from "@/schema";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 
 export const revalidate = 3600;
 
@@ -134,19 +135,24 @@ export default async function AboutPage() {
 
 
   return (
-    <AboutContentPage
-      founderProfiles={contributors.founderProfiles}
-      contributorRoster={contributors.roster}
-      contributorsSectionTitle={contributors.sectionTitle}
-      previewSnapshots={previewSnapshots}
-      missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
-      subtitle={resolveAboutSubtitle(about.subtitle)}
-      downloads={{
-        substances: substanceDownload,
-        effects: effectDownload,
-        reports: reportDownload,
-        molecules: showOpenData ? getMoleculePackDownloadStats() : undefined,
-      }}
-    />
+    <>
+      <EditorLauncherTarget
+        target={{ kind: "writing", slug: "about", name: "About", writingKind: "article" }}
+      />
+      <AboutContentPage
+        founderProfiles={contributors.founderProfiles}
+        contributorRoster={contributors.roster}
+        contributorsSectionTitle={contributors.sectionTitle}
+        previewSnapshots={previewSnapshots}
+        missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
+        subtitle={resolveAboutSubtitle(about.subtitle)}
+        downloads={{
+          substances: substanceDownload,
+          effects: effectDownload,
+          reports: reportDownload,
+          molecules: showOpenData ? getMoleculePackDownloadStats() : undefined,
+        }}
+      />
+    </>
   );
 }

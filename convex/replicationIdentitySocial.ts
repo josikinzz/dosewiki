@@ -1,7 +1,8 @@
 import { type Infer, v } from "convex/values";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { internalQuery, query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRegisteredDelegatedEditorWrite } from "./lib/auth";
 import { isValidR2Key, replicationMediaBaseUrl } from "./lib/replicationUrls";
 import { normalizeProfileAliases } from "../lib/contributorProfileIdentity";

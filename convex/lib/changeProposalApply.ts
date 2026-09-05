@@ -189,9 +189,8 @@ export async function applyTarget(
           updatedBy: auth.actorEmail,
         });
       }
-      // Copy renders on many pages; the approve route's `convex-public` tag
-      // sweep is what makes it visible, so there is no single path to name.
-      return { revalidatePaths: [] };
+      // Cache invalidation signal consumed by the Next adapter, not a route.
+      return { revalidatePaths: ["/copy-blocks"] };
     }
   }
 }

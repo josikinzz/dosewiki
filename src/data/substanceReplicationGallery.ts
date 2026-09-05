@@ -86,6 +86,7 @@ export type SubstanceGalleryMatchableRow = {
   /** Corpus-wide suppression: junk or a combination belongs on no drug article. */
   showcase_excluded?: boolean;
   replication_status?: "replication" | "not-replication" | "unclear" | "unreviewed" | "source-corrupt";
+  publication_state?: "published" | "duplicate-suppressed";
 };
 
 export type SubstanceGalleryTarget = {

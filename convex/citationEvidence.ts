@@ -1,6 +1,7 @@
 import { citationEvidenceGateErrors } from "../lib/citations/citationSafety.mjs";
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole, type AuthorizedActor } from "./lib/auth";
 import { accumulateQueueSummary, type CitationQueueSummary } from "./lib/citationQueueFilter";
 import {

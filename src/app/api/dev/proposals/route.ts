@@ -18,6 +18,7 @@ import { substanceArticleLightValidator } from "../../../../../convex/lib/valida
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PROPOSAL_STATUSES, type ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
 import type { ProposalBaseline } from "../../../../../lib/proposals/proposalBaseline";
+import { projectProposalSummary } from "../../../../../lib/proposals/proposalPublic";
 import {
   parseChangelogPayload,
   parseIndexLayoutPayloads,
@@ -70,7 +71,7 @@ export const GET = protectedRouteOperation({
       ...(status ? { status } : {}),
     });
 
-    return NextResponse.json({ ok: true, proposals });
+    return NextResponse.json({ ok: true, proposals: proposals.map((proposal) => projectProposalSummary(proposal, actorEmail)) });
   },
 });
 

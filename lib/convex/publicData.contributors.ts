@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "./publicData.cache"
 import { cache } from "react";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import {
@@ -37,21 +37,19 @@ export const withResolvedReportProfile = <
 ): T => projectPublicReportDetail(report, profiles);
 
 export const getPublicContributorProfiles = cache(
-  unstable_cache(
-    async (): Promise<NormalizedUserProfile[]> => {
-      const profiles =
-        await getPublicDataReadAdapter().getPublicContributorProfiles();
-      return collapseContributorProfiles(profiles);
-    },
-    ["convex-public-contributor-profiles"],
-    {
-      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-      tags: [
-        PUBLIC_CONVEX_CACHE_TAGS.all,
-        PUBLIC_CONVEX_CACHE_TAGS.contributors,
-      ],
-    },
-  ),
+  publicDataCache(async (): Promise<NormalizedUserProfile[]> => {
+    const profiles =
+      await getPublicDataReadAdapter().getPublicContributorProfiles();
+    return collapseContributorProfiles(profiles);
+  },
+  ["convex-public-contributor-profiles"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [
+      PUBLIC_CONVEX_CACHE_TAGS.all,
+      PUBLIC_CONVEX_CACHE_TAGS.contributors,
+    ],
+  },),
 );
 
 export const getPublicContributorDirectory = cache(

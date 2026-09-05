@@ -5,7 +5,8 @@ import {
   planBindingSiteMigration,
   remapBindingSiteEvidencePath,
 } from "../lib/article/normalization.mjs";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { validateArticleForIngestion } from "./lib/validators";
 

@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { v } from "convex/values";
 import { requireRole } from "./lib/auth";
 import { writeCategoryLayout } from "./lib/categoryLayoutMirror";

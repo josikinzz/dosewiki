@@ -9,7 +9,7 @@ import type { ProposalDetail, ProposalSummary } from "./queueModel";
 function renderQueue(overrides: Partial<Parameters<typeof QueueTab>[0]> = {}) {
   const onLoadIntoEditor = vi.fn(async () => undefined);
   render(
-    <QueueTab canApprove={false} actorEmail="editor@example.com" libraryReady onLoadIntoEditor={onLoadIntoEditor} {...overrides} />,
+    <QueueTab canApprove={false} libraryReady onLoadIntoEditor={onLoadIntoEditor} {...overrides} />,
   );
   return { onLoadIntoEditor };
 }
@@ -18,7 +18,8 @@ const BASE = "/api/dev/proposals";
 
 const submitted: ProposalSummary = {
   _id: "cp_1",
-  proposedBy: "ada@example.com",
+  proposerName: "Ada",
+  isAuthor: false,
   createdAt: "2026-09-01T10:00:00.000Z",
   updatedAt: "2026-09-01T10:00:00.000Z",
   status: "submitted",
@@ -53,7 +54,7 @@ const requested: ProposalSummary = {
 const submittedDetail: ProposalDetail = {
   ...submitted,
   diff: "# LSD\n\n- Stored summary\n+ Proposed summary",
-  comments: [{ by: "josie@example.com", at: "2026-09-01T11:00:00.000Z", text: "Checked the citations." }],
+  comments: [{ authorName: "Josie", at: "2026-09-01T11:00:00.000Z", text: "Checked the citations." }],
   liveHashes: [
     { kind: "article", key: "lsd", hash: "h-lsd-moved" },
     { kind: "indexLayout", key: "chemical", hash: "h-chem" },
@@ -91,7 +92,7 @@ function stubQueueApi(
       return Response.json(approveAnswer);
     }
     if (method === "POST" && url.endsWith("/comment")) {
-      return Response.json({ ok: true, comment: { by: "me", at: "now", text: "x" } });
+      return Response.json({ ok: true, comment: { authorName: "Contributor", at: "now", text: "x" } });
     }
     if (method === "POST") {
       return Response.json({ ok: true });
@@ -132,7 +133,8 @@ describe("QueueTab", () => {
     expect(lsd).toHaveTextContent("lsd");
     expect(chemical).toHaveTextContent("chemical");
 
-    expect(screen.getByText("ada@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Ada")).toBeInTheDocument();
+    expect(screen.queryByText("ada@example.com")).not.toBeInTheDocument();
     expect(screen.getByText("Before")).toBeInTheDocument();
     expect(screen.getByText("After")).toBeInTheDocument();
     expect(screen.getByRole("deletion")).toHaveTextContent("Stored");
@@ -267,8 +269,8 @@ describe("QueueTab", () => {
 
   describe("Load into editor", () => {
     it("shows it to the proposer on a returned proposal and hands the shell the seed from a fresh read", async () => {
-      const { calls } = stubQueueApi([requested], { cp_3: requestedDetail });
-      const { onLoadIntoEditor } = renderQueue({ actorEmail: "ada@example.com" });
+      const { calls } = stubQueueApi([requested], { cp_3: { ...requestedDetail, isAuthor: true } });
+      const { onLoadIntoEditor } = renderQueue();
 
       await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
       const load = await screen.findByRole("button", { name: "Load into editor" });
@@ -290,17 +292,18 @@ describe("QueueTab", () => {
     it("shows it to an admin, and to the proposer of a waiting proposal, but not to another editor", async () => {
       stubQueueApi([submitted, requested], { cp_1: submittedDetail, cp_3: requestedDetail });
 
-      renderQueue({ canApprove: true, actorEmail: "admin@example.com" });
+      renderQueue({ canApprove: true });
       await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
       expect(await screen.findByRole("button", { name: "Load into editor" })).toBeInTheDocument();
       cleanup();
 
-      renderQueue({ actorEmail: "ada@example.com" });
+      stubQueueApi([submitted, requested], { cp_1: { ...submittedDetail, isAuthor: true }, cp_3: requestedDetail });
+      renderQueue();
       await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
       expect(await screen.findByRole("button", { name: "Load into editor" })).toBeInTheDocument();
       cleanup();
 
-      renderQueue({ actorEmail: "someone-else@example.com" });
+      renderQueue();
       await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
       await screen.findByRole("button", { name: "Post comment" });
       expect(screen.queryByRole("button", { name: "Load into editor" })).toBeNull();
@@ -314,7 +317,7 @@ describe("QueueTab", () => {
         targets: [{ kind: "copyBlock", key: "footer", baseHash: "h-footer" }],
       };
       stubQueueApi([copyRow], { cp_4: { ...copyRow, diff: "", comments: [], liveHashes: [], payload: {} } });
-      renderQueue({ canApprove: true, actorEmail: "ada@example.com" });
+      renderQueue({ canApprove: true });
       await userEvent.click(await screen.findByRole("button", { name: /Footer copy/ }));
       await screen.findByRole("button", { name: "Post comment" });
       expect(screen.queryByRole("button", { name: "Load into editor" })).toBeNull();
@@ -338,11 +341,11 @@ describe("QueueTab", () => {
     });
 
     it("reports a seed that failed instead of leaving the tab", async () => {
-      stubQueueApi([requested], { cp_3: requestedDetail });
+      stubQueueApi([requested], { cp_3: { ...requestedDetail, isAuthor: true } });
       const onLoadIntoEditor = vi.fn(async () => {
         throw new Error("Could not load mescaline from the library; try again.");
       });
-      renderQueue({ actorEmail: "ada@example.com", onLoadIntoEditor });
+      renderQueue({ onLoadIntoEditor });
 
       await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
       await userEvent.click(await screen.findByRole("button", { name: "Load into editor" }));
@@ -356,8 +359,8 @@ describe("QueueTab", () => {
         ...requested,
         targets: [{ kind: "about", key: "about", baseHash: "h-about" }],
       };
-      stubQueueApi([aboutRow], { cp_3: { ...requestedDetail, ...aboutRow } });
-      renderQueue({ actorEmail: "ada@example.com" });
+      stubQueueApi([aboutRow], { cp_3: { ...requestedDetail, ...aboutRow, isAuthor: true } });
+      renderQueue();
       await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
       expect(await screen.findByRole("link", { name: "Open About editor" })).toHaveAttribute("href", "/dev/writing/about");
       expect(screen.queryByRole("button", { name: "Load into editor" })).not.toBeInTheDocument();
@@ -365,8 +368,8 @@ describe("QueueTab", () => {
   });
 
   it("prevents an admin approving their own submission", async () => {
-    const { calls } = stubQueueApi([submitted], { cp_1: submittedDetail });
-    renderQueue({ canApprove: true, actorEmail: submitted.proposedBy });
+    const { calls } = stubQueueApi([submitted], { cp_1: { ...submittedDetail, isAuthor: true } });
+    renderQueue({ canApprove: true });
     await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
     const approve = await screen.findByRole("button", { name: "Approve and apply" });
     expect(approve).toBeDisabled();
@@ -404,7 +407,7 @@ describe("QueueTab", () => {
     expect(other).toBeDisabled();
     await userEvent.click(other);
     expect(screen.getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");
-    await act(async () => { resolvePost(Response.json({ ok: true, comment: { by: "me", at: "now", text: "Please check" } })); });
+    await act(async () => { resolvePost(Response.json({ ok: true, comment: { authorName: "Contributor", at: "now", text: "Please check" } })); });
     expect(await screen.findByText("Comment posted.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
     expect(await screen.findByLabelText("Add a comment")).toHaveValue("");

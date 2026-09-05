@@ -6,6 +6,7 @@ import { payloadDocuments, type ProposalPayload, type ProposalSnapshotEntry } fr
 import type { Reference } from "../../src/schema/substance/shared";
 import { validateArticleForIngestion } from "./validators";
 import { normalizeCopyBlockPayload, type CopyBlockDocument } from "../copyBlocks";
+import { proposalPublicDocument } from "../../lib/proposals/proposalPublic";
 
 /** Mirror article patch/reference-merge semantics rather than treating omitted fields as deletions. */
 export function proposalWriteDocument(entry: ProposalSnapshotEntry, before: unknown): unknown {
@@ -36,8 +37,8 @@ export function buildProposalDiff(payload: ProposalPayload, baseline: readonly P
     const before = baseline.find((row) => row.kind === entry.kind && row.key === entry.key)?.document ?? null;
     const changes: DiffEntry[] = [];
     collectDiff(
-      proposalComparableDocument(entry.kind, before),
-      proposalComparableDocument(entry.kind, proposalWriteDocument(entry, before)),
+      proposalPublicDocument(proposalComparableDocument(entry.kind, before)),
+      proposalPublicDocument(proposalComparableDocument(entry.kind, proposalWriteDocument(entry, before))),
       [],
       changes,
     );

@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { query, mutation, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { auditStampFor } from "./lib/auditStamp";
 import { requireRole } from "./lib/auth";
 

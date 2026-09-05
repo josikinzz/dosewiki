@@ -16,6 +16,7 @@ vi.mock("../../../../../convex/_generated/api", () => ({
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));

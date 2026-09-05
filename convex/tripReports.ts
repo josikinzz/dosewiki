@@ -1,12 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import {
-  query,
-  mutation,
-  internalMutation,
-  internalQuery,
-  type MutationCtx,
-  type QueryCtx,
-} from "./_generated/server";
+import { query, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation, internalMutation } from "./lib/indexedMutation";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireRole, roleMeetsFloor } from "./lib/auth";
 import { recordRevision } from "./lib/contentRevisions";
@@ -30,10 +24,9 @@ import {
 } from "./tripReportContract";
 import { findMembershipByEmail, ownsReport, refuseNotOwner } from "./lib/tripReportOwnership";
 import {
-  deleteTripReportSubstanceRows,
   findTripReportsBySubstanceNames,
-  syncTripReportSubstanceRows,
 } from "./lib/tripReportSubstanceIndex";
+import { backfillPublicReadIndexPage, getPublicReadIndexStatus } from "./lib/publicReadIndexBackfill";
 
 /**
  * Trip report functions.
@@ -457,7 +450,6 @@ export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
 
   await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, actor });
   await ctx.db.patch(args.id, patch);
-  await syncTripReportSubstanceRows(ctx, args.id, updates.substances);
 
   return { updated: true, slug: row.slug };
 }
@@ -602,11 +594,9 @@ export const bulkImport = internalMutation({
 
         if (existing) {
           await ctx.db.patch(existing._id, report);
-          await syncTripReportSubstanceRows(ctx, existing._id, report.substances);
           results.updated++;
         } else {
-          const reportId = await ctx.db.insert("tripReports", report);
-          await syncTripReportSubstanceRows(ctx, reportId, report.substances);
+          await ctx.db.insert("tripReports", report);
           results.created++;
         }
       } catch (error) {
@@ -628,7 +618,6 @@ export const deleteAll = internalMutation({
     const allReports = await ctx.db.query("tripReports").collect();
 
     for (const report of allReports) {
-      await deleteTripReportSubstanceRows(ctx, report._id);
       await ctx.db.delete(report._id);
     }
 
@@ -662,7 +651,6 @@ export const deleteById = mutation({
     }
 
     await recordRevision(ctx, { table: "tripReports", key: existing.slug, action: "remove", before: existing, actor });
-    await deleteTripReportSubstanceRows(ctx, args.id);
     await ctx.db.delete(args.id);
     return { deleted: true };
   },
@@ -704,8 +692,6 @@ export const renameAuthor = mutation({
   },
 });
 
-const SUBSTANCE_INDEX_BACKFILL_PAGE_SIZE = 50;
-const SUBSTANCE_INDEX_BACKFILL_MAX_PAGE_SIZE = 200;
 
 /**
  * Internal mutation: (re)build one page of the `tripReportSubstances` join
@@ -719,56 +705,11 @@ export const backfillSubstanceIndex = internalMutation({
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    const requested = Math.floor(args.limit ?? SUBSTANCE_INDEX_BACKFILL_PAGE_SIZE);
-    const numItems = Math.min(Math.max(requested, 1), SUBSTANCE_INDEX_BACKFILL_MAX_PAGE_SIZE);
-    const page = await ctx.db
-      .query("tripReports")
-      .paginate({ cursor: args.cursor ?? null, numItems });
-
-    let inserted = 0;
-    let removed = 0;
-    for (const report of page.page) {
-      const result = await syncTripReportSubstanceRows(ctx, report._id, report.substances);
-      inserted += result.inserted;
-      removed += result.removed;
-    }
-
-    return {
-      processed: page.page.length,
-      inserted,
-      removed,
-      cursor: page.continueCursor,
-      isDone: page.isDone,
-    };
-  },
+  handler: (ctx, args) => backfillPublicReadIndexPage(ctx, { ...args, name: "tripReports" }),
 });
 
-/**
- * Internal query: how much of the corpus the join table covers, for the
- * backfill script's dry run and post-run check.
- */
+/** Bounded durable completion status, not a whole-corpus counting query. */
 export const getSubstanceIndexBackfillStatus = internalQuery({
   args: {},
-  handler: async (ctx) => {
-    const reports = await ctx.db.query("tripReports").collect();
-    const rows = await ctx.db.query("tripReportSubstances").collect();
-    const indexedReportIds = new Set(rows.map((row) => row.report_id as string));
-    const reportIds = new Set(reports.map((report) => report._id as string));
-    let orphanRows = 0;
-    for (const row of rows) {
-      if (!reportIds.has(row.report_id as string)) orphanRows += 1;
-    }
-    const reportsMissingRows = reports.filter(
-      (report) => report.substances.length > 0 && !indexedReportIds.has(report._id as string),
-    ).length;
-    return {
-      reportCount: reports.length,
-      joinRowCount: rows.length,
-      indexedReportCount: indexedReportIds.size,
-      reportsMissingRows,
-      orphanRows,
-      indexActive: rows.length > 0,
-    };
-  },
+  handler: (ctx) => getPublicReadIndexStatus(ctx, "tripReports"),
 });

@@ -28,7 +28,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publicSubstanceGalleryTag } from "@server/convex/publicData.cache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { GALLERY_CURATION_SLUG_CAP } from "@/data/substanceReplicationGallery";
@@ -226,7 +226,8 @@ export const POST = protectedRouteOperation<CurationBody, ParsedCurationBody>({
       );
     }
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidateTag(publicSubstanceGalleryTag(slug), { expire: 0 });
+    revalidatePath("/api/replications/showcase");
     revalidatePath(`/${slug}`);
 
     return NextResponse.json({

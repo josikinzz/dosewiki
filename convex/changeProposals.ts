@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc, Id } from "./_generated/dataModel";
 import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
 import { contentHash } from "../lib/proposals/contentHash";
@@ -16,6 +17,7 @@ import {
 import { copyBlockDocumentValidator, type CopyBlockDocument } from "./copyBlocks";
 import { changeProposalStatusValidator } from "./schema";
 import { aboutDocumentValidator, type AboutDocument } from "./siteConfig";
+import { projectProposalComment, projectProposalDetail, projectProposalSummary } from "../lib/proposals/proposalPublic";
 
 /**
  * Editor change proposals: the commit panel's staged save, held for an admin
@@ -200,23 +202,29 @@ export const submit = mutation({
 
 const LIST_MINE_LIMIT = 50;
 
-function summarizeProposal(row: Doc<"changeProposals">) {
-  return {
-    _id: row._id,
-    proposedBy: row.proposedBy,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    status: row.status,
-    targets: row.targets,
-    summary: row.summary,
-    revisionOf: row.revisionOf,
-    reviewedBy: row.reviewedBy,
-    reviewedAt: row.reviewedAt,
-    reviewNotes: row.reviewNotes,
-    commentCount: row.comments.length,
-    appliedAt: row.appliedAt,
-    conflictReason: row.conflictReason,
+/** Only an explicitly linked public profile may supply a display name. */
+function proposalNameResolver(ctx: QueryCtx | MutationCtx) {
+  const names = new Map<string, Promise<string | undefined>>();
+  return (email: string) => {
+    let name = names.get(email);
+    if (!name) {
+      name = ctx.db.query("contributorProfiles")
+        .withIndex("by_membership_email", (q) => q.eq("membershipEmail", email))
+        .first()
+        .then((profile) => profile?.displayName);
+      names.set(email, name);
+    }
+    return name;
   };
+}
+
+async function summarizeProposals(ctx: QueryCtx, rows: Doc<"changeProposals">[], actorEmail: string) {
+  const nameOf = proposalNameResolver(ctx);
+  return Promise.all(rows.map(async (row) => projectProposalSummary({
+    ...row,
+    proposerName: await nameOf(row.proposedBy),
+    reviewerName: row.reviewedBy ? await nameOf(row.reviewedBy) : undefined,
+  }, actorEmail)));
 }
 
 export async function listMineHandler(
@@ -234,7 +242,7 @@ export async function listMineHandler(
     .withIndex("by_proposed_by", (q) => q.eq("proposedBy", actor.email))
     .order("desc")
     .take(limit);
-  return rows.map(summarizeProposal);
+  return summarizeProposals(ctx, rows, actor.email);
 }
 
 /** The actor's own proposals, newest first, without payload or diff. Editor floor. */
@@ -309,7 +317,7 @@ export async function listHandler(
     rows = [...submitted, ...returned, ...recent.filter((row) => !isActive(row))];
   }
   rows.sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right._creationTime - left._creationTime);
-  return rows.map(summarizeProposal);
+  return summarizeProposals(ctx, rows, actor.email);
 }
 
 /** Admin-global review queue; editors see only their own submissions. */
@@ -361,7 +369,16 @@ export async function getHandler(
   const comparisonNote = comparisonMode === "unavailable"
     ? "Historical comparison unavailable: this older proposal has no verified server-generated diff or captured baseline. The original client-supplied diff is not trusted. Reload current production and submit a fresh revision to review these changes."
     : undefined;
-  return { ...row, diff, comparisonMode, comparisonNote, liveHashes };
+  const nameOf = proposalNameResolver(ctx);
+  return projectProposalDetail({
+    ...row,
+    proposerName: await nameOf(row.proposedBy),
+    reviewerName: row.reviewedBy ? await nameOf(row.reviewedBy) : undefined,
+    comments: await Promise.all(row.comments.map(async (comment) => ({
+      ...comment, authorName: await nameOf(comment.by),
+    }))),
+    diff, comparisonMode, comparisonNote, liveHashes,
+  }, actor.email);
 }
 
 /** One proposal in full, with the live hash of every target. Editor floor. */
@@ -398,7 +415,7 @@ export async function commentHandler(
   }
   const comment = { by: actor.email, at: new Date().toISOString(), text };
   await ctx.db.patch(row._id, { comments: [...row.comments, comment], updatedAt: comment.at });
-  return comment;
+  return projectProposalComment({ ...comment, authorName: await proposalNameResolver(ctx)(actor.email) });
 }
 
 /** Append a discussion comment. Editor floor; any status, including terminal ones. */

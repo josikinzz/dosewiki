@@ -6,6 +6,7 @@ import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publicEffectTag, publicSubstanceGalleryTag } from "@server/convex/publicData.cache";
 import { replicationViewerEditorRoute } from "@server/next/replicationViewerEditorPolicy";
 
 export const runtime = "nodejs";
@@ -214,7 +215,15 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
       revalidatePath(`/replications/artist/${body.targetKey}`);
     }
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidateTag(
+      body.targetKind === "substance"
+        ? publicSubstanceGalleryTag(body.targetKey)
+        : body.targetKind === "artist"
+          ? PUBLIC_CONVEX_CACHE_TAGS.contributors
+          : publicEffectTag(body.targetKey),
+      { expire: 0 },
+    );
+    revalidatePath("/api/replications/showcase");
     return NextResponse.json({ ok: true, result });
   },
 }));

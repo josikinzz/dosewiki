@@ -243,7 +243,7 @@ describe("replication associations PATCH", () => {
       },
     );
     expect(cacheMocks.revalidateTag).toHaveBeenCalledWith(
-      "public-replications",
+      "convex-public:replications:substance:ketamine",
       { expire: 0 },
     );
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/ketamine");
@@ -282,7 +282,7 @@ describe("replication associations POST", () => {
         updatedBy: "admin@example.com",
       },
     );
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:replications:substance:lsd", { expire: 0 });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/lsd");
   });
 

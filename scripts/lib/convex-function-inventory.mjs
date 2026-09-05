@@ -69,7 +69,7 @@ function importedBuilderNames(sourceFile) {
   for (const statement of sourceFile.statements) {
     if (!ts.isImportDeclaration(statement)) continue;
     if (!ts.isStringLiteralLike(statement.moduleSpecifier)) continue;
-    if (!/_generated\/server(?:\.js)?$/.test(statement.moduleSpecifier.text)) continue;
+    if (!/(?:_generated\/server|lib\/indexedMutation)(?:\.js)?$/.test(statement.moduleSpecifier.text)) continue;
 
     const bindings = statement.importClause?.namedBindings;
     if (!bindings || !ts.isNamedImports(bindings)) continue;

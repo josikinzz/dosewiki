@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { publicReadIndexReady } from "./publicReadIndexes";
 
 /**
  * Denormalized substance-name lookup for `tripReports`.
@@ -14,10 +15,9 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
  * compared `s.name.toLowerCase() === query.toLowerCase()`, and a stricter
  * normalization (trimming, diacritics) would change which reports match.
  *
- * Every path that inserts, patches, or deletes a `tripReports` row must call
- * `syncTripReportSubstanceRows` or `deleteTripReportSubstanceRows`. Until the
- * backfill has populated the table, `hasTripReportSubstanceRows` is false and
- * readers keep the legacy full scan.
+ * The central indexed mutation boundary maintains every source write. Until
+ * a complete durable backfill pass is certified, readers keep full results
+ * through the temporary legacy scan, even when some join rows already exist.
  */
 
 export function tripReportSubstanceKey(name: string): string {
@@ -82,18 +82,14 @@ export async function deleteTripReportSubstanceRows(
   return existing.length;
 }
 
-export async function hasTripReportSubstanceRows(ctx: QueryCtx): Promise<boolean> {
-  return (await ctx.db.query("tripReportSubstances").first()) !== null;
-}
 
 /**
  * Reports whose `substances` contain any of `substanceNames`, case-insensitive,
  * in `_creationTime` order, which is the order the legacy full scan returned.
  *
- * Falls back to the full scan while the join table is empty so a deployment
- * whose backfill has not run yet keeps answering. Once rows exist, every hit
- * is re-checked against the stored report, so a stale join row can never
- * surface a report that no longer mentions the substance.
+ * Falls back only while the durable completion marker is absent. Every hit
+ * is re-checked against the report, so stale or orphaned legacy join rows
+ * cannot surface a report that no longer mentions the substance.
  */
 export async function findTripReportsBySubstanceNames(
   ctx: QueryCtx,
@@ -104,7 +100,7 @@ export async function findTripReportsBySubstanceNames(
   const matches = (report: Doc<"tripReports">) =>
     report.substances.some((s) => lowerNames.has(tripReportSubstanceKey(s.name)));
 
-  if (!(await hasTripReportSubstanceRows(ctx))) {
+  if (!(await publicReadIndexReady(ctx, "tripReports"))) {
     const allReports = await ctx.db.query("tripReports").collect();
     return allReports.filter(matches);
   }

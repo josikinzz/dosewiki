@@ -20,6 +20,7 @@ export type WritingBlogPost = {
   dateLabel: string | null;
   dateTime: string | null;
   body: string;
+  bodyFormat?: "vcode" | "markdown";
   bylineAuthors: ArticleBylineAuthor[];
 };
 
@@ -31,6 +32,7 @@ export function toWritingBlogPost(
     coverImageUrl?: string;
     publicationDate?: string;
     body_raw: string;
+    bodyFormat?: "vcode" | "markdown";
   },
   bylineAuthors: ArticleBylineAuthor[] = [],
 ): WritingBlogPost {
@@ -45,6 +47,7 @@ export function toWritingBlogPost(
     dateLabel,
     dateTime: dateLabel ? row.publicationDate ?? null : null,
     body: row.body_raw,
+    bodyFormat: row.bodyFormat,
     bylineAuthors,
   };
 }

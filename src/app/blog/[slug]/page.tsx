@@ -9,6 +9,7 @@ import {
 import { isEffectIndex, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { BlogPostPage } from "@/features/blog/pages/BlogPostPage";
 import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 
 // Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
@@ -82,5 +83,19 @@ export default async function BlogPostRoute({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  return <WritingBlogPostPage {...result.pageProps} />;
+  return (
+    <>
+      {result.pageProps.post.bodyFormat === "markdown" ? (
+        <EditorLauncherTarget
+          target={{
+            kind: "writing",
+            slug: result.pageProps.post.slug,
+            name: result.pageProps.post.title,
+            writingKind: "blog",
+          }}
+        />
+      ) : null}
+      <WritingBlogPostPage {...result.pageProps} />
+    </>
+  );
 }

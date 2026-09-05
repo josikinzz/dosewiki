@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "../convex/publicData.cache";
 import { cache } from "react";
 
 import {
@@ -106,31 +106,29 @@ function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
  * when a live row names the slug. Silence is the safe failure here.
  */
 export const getWarningBannerPresets = cache(
-  unstable_cache(
-    async (): Promise<WarningBannerPreset[]> => {
-      try {
-        const rows = await queryConvex<unknown[]>("warningBanners:listPresets", {});
-        if (!Array.isArray(rows)) {
-          return [];
-        }
-        return rows.flatMap((row: unknown) => {
-          const parsed = parseWarningBannerPreset(row);
-          return parsed ? [parsed] : [];
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(
-          `[banners] warningBanners:listPresets failed; no safety banners will render. Cause: ${message}`,
-        );
+  publicDataCache(async (): Promise<WarningBannerPreset[]> => {
+    try {
+      const rows = await queryConvex<unknown[]>("warningBanners:listPresets", {});
+      if (!Array.isArray(rows)) {
         return [];
       }
-    },
-    ["convex-public-warning-banners"],
-    {
-      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
-    },
-  ),
+      return rows.flatMap((row: unknown) => {
+        const parsed = parseWarningBannerPreset(row);
+        return parsed ? [parsed] : [];
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `[banners] warningBanners:listPresets failed; no safety banners will render. Cause: ${message}`,
+      );
+      return [];
+    }
+  },
+  ["convex-public-warning-banners"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
+  },),
 );
 
 /**
@@ -151,25 +149,23 @@ export const getWarningBannerPresets = cache(
  * instead of trickling in over the `/[slug]` hour.
  */
 export const getSafetyBannerIconSize = cache(
-  unstable_cache(
-    async (): Promise<number> => {
-      try {
-        const config = await queryConvex<unknown>("siteConfig:getBannerDisplay", {});
-        // Clamped here too, not just on write: a row written by an older
-        // deployment (or by hand) is data this process did not validate.
-        return clampSafetyBannerIconSize(isRecord(config) ? config.iconSize : undefined);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(
-          `[banners] siteConfig:getBannerDisplay failed; safety banner glyphs render at the default ${SAFETY_BANNER_ICON_SIZE_DEFAULT}px. Cause: ${message}`,
-        );
-        return SAFETY_BANNER_ICON_SIZE_DEFAULT;
-      }
-    },
-    ["convex-public-safety-banner-icon-size"],
-    {
-      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
-    },
-  ),
+  publicDataCache(async (): Promise<number> => {
+    try {
+      const config = await queryConvex<unknown>("siteConfig:getBannerDisplay", {});
+      // Clamped here too, not just on write: a row written by an older
+      // deployment (or by hand) is data this process did not validate.
+      return clampSafetyBannerIconSize(isRecord(config) ? config.iconSize : undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `[banners] siteConfig:getBannerDisplay failed; safety banner glyphs render at the default ${SAFETY_BANNER_ICON_SIZE_DEFAULT}px. Cause: ${message}`,
+      );
+      return SAFETY_BANNER_ICON_SIZE_DEFAULT;
+    }
+  },
+  ["convex-public-safety-banner-icon-size"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
+  },),
 );

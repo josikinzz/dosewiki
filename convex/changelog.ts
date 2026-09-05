@@ -1,6 +1,9 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
+import { projectPublicChangelog } from "../lib/changelog/publicChangelog";
+import { publicReadIndexReady } from "./lib/publicReadIndexes";
 
 /**
  * Query to get all changelog entries.
@@ -10,11 +13,12 @@ import { requireRole } from "./lib/auth";
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
+    const rows = await ctx.db
       .query("changelog")
       .withIndex("by_created_at")
       .order("desc")
       .collect();
+    return rows.map(projectPublicChangelog);
   },
 });
 
@@ -26,11 +30,12 @@ export const getRecent = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 50, 500);
-    return await ctx.db
+    const rows = await ctx.db
       .query("changelog")
       .withIndex("by_created_at")
       .order("desc")
       .take(limit);
+    return rows.map(projectPublicChangelog);
   },
 });
 
@@ -76,26 +81,15 @@ export const getBySubmitter = query({
 
     merged.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-    return merged.slice(0, limit).map((row) => ({
-      entryId: row.entryId,
-      createdAt: row.createdAt,
-      message: row.message,
-      markdown: row.markdown,
-      submittedBy: row.submittedBy,
-      articles: row.articles,
-    }));
+    return merged.slice(0, limit).map(projectPublicChangelog);
   },
 });
 
 /**
  * Newest-first changelog rows that touched one article, by slug.
  *
- * Powers the public article's "Recent changes" disclosure. `articles` is an
- * array field, which Convex cannot index into, so this walks `by_created_at`
- * descending and filters in the handler, stopping as soon as `limit` matches
- * are in hand or `scanCap` rows have been read. The cap bounds the worst case
- * (an article nobody has ever edited) to one bounded index walk; promote to a
- * junction table with a `by_slug_created` index if the table outgrows it.
+ * Ready reads walk the per-article relation and hydrate only the newest
+ * winners. The temporary pre-backfill path remains complete, not scan-capped.
  */
 export const getByArticleSlug = query({
   args: {
@@ -104,25 +98,21 @@ export const getByArticleSlug = query({
   },
   handler: async (ctx, args) => {
     const limit = Math.min(Math.max(args.limit ?? 8, 1), 50);
-    const scanCap = 2000;
+    if (await publicReadIndexReady(ctx, "history")) {
+      const links = await ctx.db.query("articleHistory")
+        .withIndex("by_slug_created", (q) => q.eq("slug", args.slug))
+        .order("desc").take(limit);
+      const rows = await Promise.all(links.map((link) => ctx.db.get(link.changelog_id)));
+      return rows.filter((row) => row !== null).map(projectPublicChangelog);
+    }
     const slug = args.slug;
 
     const matches = [];
-    let scanned = 0;
     for await (const row of ctx.db.query("changelog").withIndex("by_created_at").order("desc")) {
-      scanned += 1;
       if (row.articles.some((article) => article.slug === slug)) {
-        matches.push({
-          entryId: row.entryId,
-          createdAt: row.createdAt,
-          message: row.message,
-          markdown: row.markdown,
-          submittedBy: row.submittedBy,
-          articles: row.articles,
-        });
+        matches.push(projectPublicChangelog(row));
         if (matches.length >= limit) break;
       }
-      if (scanned >= scanCap) break;
     }
 
     return matches;
@@ -224,26 +214,20 @@ export async function addEntryHandler(ctx: MutationCtx, args: ChangelogEntryArgs
     .query("changelog")
     .withIndex("by_entry_id", (q) => q.eq("entryId", args.entryId))
     .first();
+  const publication = projectPublicChangelog(args);
 
   if (existing) {
     await ctx.db.patch(existing._id, {
-      createdAt: args.createdAt,
-      message: args.message,
-      markdown: args.markdown,
-      submittedBy: args.submittedBy,
-      articles: args.articles,
+      createdAt: publication.createdAt,
+      message: publication.message,
+      markdown: publication.markdown,
+      submittedBy: publication.submittedBy,
+      articles: publication.articles,
     });
     return { created: false, id: existing._id };
   }
 
-  const id = await ctx.db.insert("changelog", {
-    entryId: args.entryId,
-    createdAt: args.createdAt,
-    message: args.message,
-    markdown: args.markdown,
-    submittedBy: args.submittedBy,
-    articles: args.articles,
-  });
+  const id = await ctx.db.insert("changelog", publication);
 
   return { created: true, id };
 }

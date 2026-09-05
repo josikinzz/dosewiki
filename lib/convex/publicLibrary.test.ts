@@ -7,19 +7,6 @@ vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  unstableCache: vi.fn(
-    <T extends (...args: never[]) => unknown>(
-      fn: T,
-      _keyParts?: string[],
-      _options?: { tags?: string[] },
-    ) => fn,
-  ),
-}));
-
-vi.mock("next/cache", () => ({
-  unstable_cache: cacheMocks.unstableCache,
-}));
 
 const mocks = vi.hoisted(() => ({
   getRawSubstances: vi.fn(),
@@ -110,7 +97,6 @@ describe("publicLibrary search index cache", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.useRealTimers();
-    cacheMocks.unstableCache.mockClear();
     mocks.getRawSubstances.mockReset();
     mocks.getIndexLayoutByType.mockReset();
     mocks.buildLibrary.mockReset();
@@ -164,45 +150,6 @@ describe("publicLibrary search index cache", () => {
     expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(1);
   });
 
-  it("data-caches only the JSON-safe search manifest and suggestion wrappers", async () => {
-    mocks.buildLibrary.mockReturnValue(createLibrary([]));
-
-    const { getPublicSearchManifest, getPublicSearchIndex, getPublicLibrary } =
-      await import("./publicLibrary");
-
-    await getPublicSearchManifest();
-    await getPublicSearchIndex();
-    await getPublicLibrary();
-
-    expect(
-      cacheMocks.unstableCache.mock.calls.map((call) => call[1]),
-    ).toEqual([
-      ["convex-public-search-manifest"],
-      ["convex-public-search-suggestions"],
-    ]);
-    expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
-      expect.any(Function),
-      ["convex-public-search-manifest"],
-      expect.objectContaining({
-        tags: expect.arrayContaining([
-          "convex-public",
-          "convex-public:substances",
-          "convex-public:effects",
-        ]),
-      }),
-    );
-    expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
-      expect.any(Function),
-      ["convex-public-search-suggestions"],
-      expect.objectContaining({
-        tags: expect.arrayContaining([
-          "convex-public",
-          "convex-public:substances",
-          "convex-public:effects",
-        ]),
-      }),
-    );
-  });
 
   it("serves suggestions as normalized JSON-safe projections", async () => {
     mocks.buildLibrary.mockReturnValue(

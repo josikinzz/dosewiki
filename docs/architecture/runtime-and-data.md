@@ -40,6 +40,39 @@ The schema in `convex/schema.ts` validates the essential top-level shape for maj
 
 This reduces schema churn but makes application-level discipline more important.
 
+### Maintained public read indexes
+
+The expensive public reads use compact derived relations, not repeated scans
+of unrelated heavy source documents:
+
+- `replicationGalleryCandidates`: indexed drug/class/direct-slug candidate
+  lookup, canonical matching and curation, then winner-only hydration.
+- `articleHistory`: per-article chronological links, followed by hydration of
+  only the requested history entries.
+- `reviewedArticles`: compact completed-review records, indexed by normalized
+  reviewer identity; public results never expose those emails.
+- `tripReportSubstances`: the existing report-substance relation, now gated by
+  verified full-pass completion rather than the presence of any row.
+
+`publicReadIndexState` holds versioned readiness and durable backfill cursors.
+`convex/lib/indexedMutation.ts` supplies the application mutation builders and
+intercepts indexed source inserts, relevant patches, replacements, and deletes
+in the same transaction. Both root and table-scoped writer APIs preserve this
+maintenance boundary. Imported handlers inherit it. An index-write failure
+rejects the enclosing mutation even if bulk row handling catches the immediate
+error, preventing a successful source write with an incomplete derived index.
+
+Backfill page writes and cursor advancement commit atomically. Only the final
+source page marks an index ready. Membership changes, deletion, and concurrent
+writes remain covered during a pass. A policy change that alters derived keys
+requires a `PUBLIC_READ_INDEX_VERSION` increment and new complete passes.
+Raw dashboard edits and `convex import` bypass these mutation builders and are
+not valid source-table maintenance paths.
+
+See [public read-index rollout](../agents/deployment.md#public-read-index-rollout)
+for guarded staging and backfills. Readiness, production activation, and measured
+savings are separate checks.
+
 ### Article schema ownership
 
 Canonical article structure is defined in:
@@ -181,11 +214,28 @@ mechanism route after the validated library drops it; this avoids parsing every
 full article and coupling the projection query to the full application article
 contract.
 
-The JSON-safe public route plan and browser search manifest use Next's tagged
-data cache. The Map/function-bearing library and server search index remain in
-process memory only. Editor saves immediately expire the shared public Convex
-cache tag from the request-scoped save Route Handler and separately clear the
-library/search module caches.
+Public route plans and search manifest/suggestion composition use request
+memoization, not an outer persistent cache that would bypass Next's nested
+leaf caches. The bounded source pages and public leaves use `publicDataCache`,
+with the selected Convex read URL, callback identity, and arguments in the key.
+Library and mechanism input pages persist separately, including on cold
+instances. Existing process-local library/search caches still bound repeated
+computation, but their invalidation is not cross-instance proof of freshness.
+
+Persistent values are size-checked as escaped UTF-8 JSON. Oversized results
+store only a bounded bypass sentinel and return complete uncached content;
+successful stale refreshes therefore replace the old value instead of pinning
+it through a swallowed cache error. Gallery query/index unavailability stores
+an explicit `null` marker and selects the complete shared corpus outside the
+persistent leaf. It never means an empty gallery.
+
+Editor saves immediately expire affected article/history/gallery tags and
+shared listing projections, while unrelated article leaves remain cached.
+Global/family tags remain for genuinely broad changes. Safety corrections,
+removals, publication changes, and banner changes retain immediate invalidation.
+The default leaf interval remains 900 seconds, and the showcase endpoint's
+browser/CDN cache headers are unchanged. Canonical-host freshness and
+cross-project Effect Index invalidation still require live verification.
 
 The About page reads full-article candidates in bounded pages, validates each
 page with the normal public substance contract, filters low-priority records,

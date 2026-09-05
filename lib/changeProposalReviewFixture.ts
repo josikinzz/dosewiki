@@ -62,11 +62,12 @@ export function createCtx(seed: Record<string, Row[]>) {
   });
 
   const db = {
+    normalizeId: (table: string, id: string) => rowsOf(table).has(id) || id.startsWith(`${table}:`) ? id : null,
     query: vi.fn(query),
     get: vi.fn(async (id: string) => rowById(id)?.row ?? null),
     insert: vi.fn(async (table: string, doc: Record<string, unknown>) => {
       const _id = `${table}:${nextId++}`;
-      rowsOf(table).set(_id, { _id, ...doc });
+      rowsOf(table).set(_id, { _id, _creationTime: nextId, ...doc });
       return _id;
     }),
     patch: vi.fn(async (id: string, patch: Record<string, unknown>) => {
@@ -75,7 +76,7 @@ export function createCtx(seed: Record<string, Row[]>) {
     }),
     replace: vi.fn(async (id: string, doc: Record<string, unknown>) => {
       const hit = rowById(id);
-      if (hit) hit.rows.set(id, { _id: id, ...doc });
+      if (hit) hit.rows.set(id, { _id: id, _creationTime: hit.row._creationTime, ...doc });
     }),
     delete: vi.fn(async (id: string) => {
       rowById(id)?.rows.delete(id);

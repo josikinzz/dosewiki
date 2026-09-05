@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ConvexError } from "convex/values";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 import {
   createConvexPublicDataReadAdapter,
@@ -493,4 +494,16 @@ describe("public data read adapter", () => {
 
     expect(catalogFunctionNames.filter((name) => forbiddenFunctionNames.includes(name))).toEqual([]);
   });
+});
+
+it("maps gallery index readiness to fallback without hiding unrelated errors", async () => {
+  const notReady = createConvexPublicDataReadAdapter(async () => {
+    throw new ConvexError({ code: "SUBSTANCE_GALLERY_INDEX_NOT_READY" });
+  });
+  expect(await notReady.getPublicSubstanceGallery("lsd")).toBeNull();
+
+  const failed = createConvexPublicDataReadAdapter(async () => {
+    throw new ConvexError({ code: "DATABASE_FAILURE" });
+  });
+  await expect(failed.getPublicSubstanceGallery("lsd")).rejects.toThrow();
 });

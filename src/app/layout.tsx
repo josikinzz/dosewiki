@@ -21,6 +21,7 @@ import {
 } from "@/theme/appearanceSheets";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
+import { EditorLauncherProvider } from "@/features/editor-launcher/EditorLauncherProvider";
 import { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
 import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
 import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
@@ -177,6 +178,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           initialVisualStyle={initialAppearance.visualStyle}
           isVisualStyleLocked={isVisualStyleLocked}
         >
+          <EditorLauncherProvider>
           <RouteChrome />
           <div className="app-content relative">
             <div className="flex-1">
@@ -185,6 +187,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <RouteFooter />
           </div>
           {SITE_FLAVOR === "dosewiki" ? <ThemeLabLazy /> : null}
+          </EditorLauncherProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -152,9 +152,6 @@ describe("save-to-convex route", () => {
     expect(publicLibraryMocks.invalidatePublicDerivedDataCache).toHaveBeenCalledWith({
       source: "save-to-convex",
     });
-    expect(nextCacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public", {
-      expire: 0,
-    });
     await expect(response.json()).resolves.toMatchObject({
       success: true,
       savedItems: ["1 article(s)"],

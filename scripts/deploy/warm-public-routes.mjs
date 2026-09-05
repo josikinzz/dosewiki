@@ -25,8 +25,8 @@
  * Always point this at the public host (dose.wiki), never the editor host:
  * the editor hosts publish an empty sitemap by design.
  *
- * The same warming runs server-side from the vercel.json cron at
- * src/app/api/warm/route.ts; this CLI is the on-demand, observable version.
+ * The scheduled route at src/app/api/warm/route.ts only warms a bounded
+ * high-priority set. This CLI remains deliberate post-deployment sitemap warming.
  */
 
 import {

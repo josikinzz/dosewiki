@@ -154,7 +154,7 @@ describe("substance gallery POST", () => {
       updatedBy: "admin@example.com",
       expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
     });
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:replications:substance:lsd", { expire: 0 });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/lsd");
   });
 

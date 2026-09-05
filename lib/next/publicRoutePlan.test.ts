@@ -12,18 +12,8 @@ vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
 
-const routeCacheMocks = vi.hoisted(() => ({
-  unstableCache: vi.fn(
-    <T extends (...args: never[]) => unknown>(
-      fn: T,
-      _keyParts?: string[],
-      _options?: { tags?: string[] },
-    ) => fn,
-  ),
-}));
-
 vi.mock("next/cache", () => ({
-  unstable_cache: routeCacheMocks.unstableCache,
+  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
 
 const createFixturePlan = () =>
@@ -172,19 +162,6 @@ describe("public route plan", () => {
     ).toBe(false);
   });
 
-  it("data-caches the JSON-safe derived plan", () => {
-    expect(routeCacheMocks.unstableCache).toHaveBeenCalledWith(
-      expect.any(Function),
-      ["convex-public-route-plan-v4"],
-      expect.objectContaining({
-        tags: expect.arrayContaining([
-          "convex-public",
-          "convex-public:substances",
-          "convex-public:layouts",
-        ]),
-      }),
-    );
-  });
 
   it("centralizes static parameter shapes and matching route paths", () => {
     const plan = createFixturePlan();

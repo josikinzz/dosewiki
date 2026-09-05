@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "./_generated/dataModel";
 import { requireRole } from "./lib/auth";
 

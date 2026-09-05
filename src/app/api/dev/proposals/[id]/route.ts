@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { proposalIdOf } from "../proposalRouteId";
+import { projectProposalDetail } from "../../../../../../lib/proposals/proposalPublic";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,6 @@ export const GET = protectedRouteOperation({
       return NextResponse.json({ ok: false, error: "No proposal with that id." }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true, proposal });
+    return NextResponse.json({ ok: true, proposal: projectProposalDetail(proposal, actorEmail) });
   },
 });

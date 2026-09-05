@@ -66,8 +66,9 @@ describe("changeProposalReview.approveAndApply", () => {
       entryId: "proposal-proposal_p1",
       submittedBy: "EDITOR",
     });
-    expect(entry.message).toContain("editor@example.com");
-    expect(entry.message).toContain("admin@example.com");
+    expect(JSON.stringify(entry)).not.toContain("@example.com");
+    expect(entry.markdown).toContain("Proposed summary");
+    expect(entry.markdown).toContain("Stored summary");
   });
 
   it("applies an index layout through the layout write path, including the categoryLayout mirror", async () => {
@@ -270,6 +271,9 @@ describe("changeProposalReview.revert", () => {
       message: "Reverted proposal proposal_p1",
       submittedBy: "ADMIN",
     });
+    expect(JSON.stringify(entries[1])).not.toContain("@example.com");
+    expect(entries[1].markdown).toContain(proposal.summary);
+    expect(proposal.reviewedBy).toBe("admin@example.com");
   });
 
   it("removes a row the proposal created when the snapshot recorded absence", async () => {
@@ -324,8 +328,8 @@ describe("changeProposalReview.revert", () => {
     await revertHandler(withMirror.ctx, asAdmin);
 
     expect(withMirror.rowsOf("indexLayouts").size).toBe(0);
-    expect([...withMirror.rowsOf("categoryLayout").values()]).toEqual([
-      { _id: "cl1", version: 1, categories: seededMirror.categories },
+    expect([...withMirror.rowsOf("categoryLayout").values()]).toMatchObject([
+      { version: 1, categories: seededMirror.categories },
     ]);
 
     // Neither row existed: the revert clears the mirror the apply projected.

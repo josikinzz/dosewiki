@@ -13,19 +13,20 @@ export type ProposalTargetKind = "article" | "indexLayout" | "about" | "copyBloc
 
 export type ProposalTarget = { kind: ProposalTargetKind; key: string; baseHash: string };
 
-export type ProposalComment = { by: string; at: string; text: string };
+export type ProposalComment = { authorName: string; at: string; text: string };
 
 /** One row of `GET /api/dev/proposals`: everything but payload, diff, and snapshot. */
 export type ProposalSummary = {
   _id: string;
-  proposedBy: string;
+  proposerName: string;
+  isAuthor: boolean;
   createdAt: string;
   updatedAt: string;
   status: ProposalStatus;
   targets: ProposalTarget[];
   summary: string;
   revisionOf?: string;
-  reviewedBy?: string;
+  reviewerName?: string;
   reviewedAt?: string;
   reviewNotes?: string;
   commentCount: number;
@@ -127,12 +128,12 @@ export function reviewActionsFor(status: ProposalStatus): { approve: boolean; re
  * `revisionOf`.
  */
 export function canLoadIntoEditor(
-  proposal: Pick<ProposalSummary, "status" | "proposedBy" | "targets">,
-  viewer: { actorEmail: string | null | undefined; canApprove: boolean },
+  proposal: Pick<ProposalSummary, "status" | "isAuthor" | "targets">,
+  viewer: { canApprove: boolean },
 ): boolean {
   const open = proposal.status === "submitted" || proposal.status === "changes_requested";
   const seedable = proposal.targets.every((target) => target.kind === "article" || target.kind === "indexLayout");
-  return open && seedable && (viewer.canApprove || (!!viewer.actorEmail && proposal.proposedBy === viewer.actorEmail));
+  return open && seedable && (viewer.canApprove || proposal.isAuthor);
 }
 
 /** The seed the dev context takes: the row's identity, why it came back, and its staged save. */

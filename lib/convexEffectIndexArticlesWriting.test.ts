@@ -40,6 +40,7 @@ function createCtx({
   const ctx = {
     auth: { getUserIdentity: vi.fn(async () => null) },
     db: {
+      normalizeId: () => null, // Effect Index posts are not indexed source tables.
       query: vi.fn((table: string) => {
         if (table === "effectIndexArticles") {
           return {

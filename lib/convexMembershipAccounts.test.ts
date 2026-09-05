@@ -74,6 +74,7 @@ function createCtx(seed: Row[]) {
     ctx: {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
+        normalizeId: () => null, // This fixture contains membership rows only.
         query: vi.fn(query),
         patch: vi.fn(async (id: string, patch: Partial<Row>) => {
           const next = { ...rows.get(id)!, ...patch };

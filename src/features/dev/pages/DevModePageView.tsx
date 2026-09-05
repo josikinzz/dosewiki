@@ -214,7 +214,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "queue" ? (
           <QueueTab
             canApprove={controller.canApprove}
-            actorEmail={controller.userEmail}
+            key={controller.userEmail}
             libraryReady={!controller.isLibraryLoading}
             onLoadIntoEditor={controller.onLoadProposal}
           />

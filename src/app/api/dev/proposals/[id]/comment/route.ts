@@ -1,7 +1,7 @@
 /**
  * Discussion on a change proposal.
  *
- *   POST /api/dev/proposals/<id>/comment  { text } -> { comment: { by, at, text } }
+ *   POST /api/dev/proposals/<id>/comment  { text } -> { comment: { authorName, at, text } }
  *
  * Editors may comment on their own proposals; admins may comment globally.
  * Convex enforces ownership and attributes the comment to the session email.
@@ -11,6 +11,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { proposalIdOf } from "../../proposalRouteId";
+import { projectProposalComment } from "../../../../../../../lib/proposals/proposalPublic";
 
 export const runtime = "nodejs";
 
@@ -45,6 +46,6 @@ export const POST = protectedRouteOperation<CommentBody, ParsedCommentBody>({
       text: body.text,
     });
 
-    return NextResponse.json({ ok: true, comment });
+    return NextResponse.json({ ok: true, comment: projectProposalComment(comment) });
   },
 });

@@ -4,6 +4,7 @@ import { loadArticleRoute } from "@server/next/routeLoaders.publications";
 import { getStaticArticleParams } from "@server/next/staticParams";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 
 export const revalidate = 3600;
 export const dynamicParams = false;
@@ -44,5 +45,19 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  return <EffectIndexArticlePage {...result.pageProps} />;
+  return (
+    <>
+      {result.pageProps.article.bodyFormat === "markdown" ? (
+        <EditorLauncherTarget
+          target={{
+            kind: "writing",
+            slug: result.pageProps.article.slug,
+            name: result.pageProps.article.title,
+            writingKind: "article",
+          }}
+        />
+      ) : null}
+      <EffectIndexArticlePage {...result.pageProps} />
+    </>
+  );
 }

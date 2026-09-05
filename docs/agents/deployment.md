@@ -34,6 +34,53 @@ This repo is linked to Vercel. Treat this file as the repo-local deployment/acco
 - Remote analytics must remain limited to the exact public host allowlist. PostHog initialises only on `dose.wiki`/`www.dose.wiki`, and only when `NEXT_PUBLIC_POSTHOG_KEY` is set; admin and Vercel preview HTML must not load it. Leave that variable unset on the Effect Index project so the credential-free deployment stays analytics-free.
 - HTML responses must retain the path-split browser policy documented in [browser-security-policy.md](browser-security-policy.md): public documents use the static-compatible `script-src` (`'unsafe-inline'`, no nonce/hash) so ISR stays effective; `/dev` documents keep the strict nonce-plus-hash policy. Plain `'unsafe-eval'` remains forbidden everywhere.
 
+#### Reading-page editor launcher
+
+The bottom-right wrench appears only for contributor-or-higher sessions on the
+two approved editor hosts. On the homepage it replaces the mailing-list entry
+point; pending, failed, anonymous, and viewer sessions retain the mailing list.
+The launcher is absent within editor, review, and authentication flows. Public
+DoseWiki hosts and Effect Index do not load its session subtree or issue its auth
+requests. The browser editor hint is not a prerequisite.
+
+All actions are native links to existing editors, filtered by the dev registry's
+role floors. This is a navigation convenience, not a new authorization boundary
+or write API. Pages declare loaded record identity through
+`src/features/editor-launcher/EditorLauncherTarget.tsx`; no arbitrary pathname
+is interpreted as a substance.
+
+| Reading surface | Contextual destination |
+| --- | --- |
+| Substance article | Substances for editor/admin; Molecules and Citations for admin |
+| About | Pinned About record in Writing for editor/admin |
+| Markdown `/articles/[slug]` and DoseWiki `/blog/[slug]` | Matching Writing record and kind for editor/admin |
+| Open substance-scoped replication viewer | Matching substance in Replications for admin |
+| VCode/unspecified writing formats, artist/effect/unscoped galleries | All dev tools only; no writable exact handoff |
+| Reports, effects, chemical classes, taxonomy, indexes, search, contributors, static/form/multi-copy pages | All dev tools only |
+| Redirect-only addresses | Destination owns context |
+| Effect Index | No launcher |
+
+The replication viewer hosts the same launcher inside its modal focus boundary.
+Its menu portal remains inside that outlet for native fullscreen, and launcher
+keyboard events do not drive viewer navigation. The existing inline gallery
+editor and its desktop restriction are unchanged. Dev edits still target
+production data; following a shortcut does not save anything.
+
+#### Proposal and changelog email privacy
+
+Proposal responses expose safe contributor names and a server-computed ownership
+flag, not account emails or storage snapshots. Private ownership and review audit
+fields remain stored server-side. Public changelog reads sanitize historical
+email-bearing attribution, and new approval/revert entries omit account emails.
+
+Deploy the Next application before the Convex functions for this DTO cutover.
+The new application projects both legacy and current proposal responses safely;
+an old application expects identity fields removed by the new functions.
+The application also uses new changelog cache namespaces. Both deployments are
+needed: the application protects rendered responses, while Convex protects
+direct public queries and future publication writes. No history deletion or
+data migration is required. Previously delivered responses cannot be recalled.
+
 #### The domains were moved to `dosewiki-admin` on 2026-08-22
 
 Until that date `dose.wiki` and `www.dose.wiki` were served by a separate,
@@ -335,7 +382,11 @@ either rule.
 
 Public routes are prerendered (SSG) or incrementally revalidated. `PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS` in `lib/convex/publicData.cache.ts` is **900 seconds (15 minutes)**.
 
-Importing content into Convex therefore does **not** immediately change the live site. A prerendered route keeps serving its build-time snapshot until either a redeploy regenerates it or the revalidation interval elapses. **This has already bitten this project once** — a completed import looked like a failed import because the pages had not regenerated. After any content import, either trigger a redeploy or wait out the interval before concluding anything is wrong.
+Imports that bypass the editor do not invalidate Next caches automatically.
+Revalidation intervals are demand-driven, not timers that regenerate every
+article. After an import, perform an authorized targeted revalidation or
+redeployment and verify the canonical public response. Do not treat elapsed
+time or an editor-host response as proof of public freshness.
 
 ### Keeping substance articles warm across deploys
 
@@ -347,32 +398,36 @@ after every deploy. Two mechanisms keep readers off that cold path:
    substance whose `priority` is `high` or `normal`
    (`PRERENDERED_SUBSTANCE_PRIORITIES` in `lib/next/staticParams.ts`); the
    `low` tier, which the sitemap already omits, stays on demand with
-   `dynamicParams = true` and the hourly ISR window. The slug list comes from
-   the cached `getPublicSubstanceLookup` read, so the build costs one extra
-   paginated read, not a corpus drain per worker. The `experimental.cpus` and
-   `staticPageGenerationTimeout` comments in `next.config.ts` describe the
-   worker budget this relies on.
-2. **Cron warmer.** `vercel.json` schedules `/api/warm` every 15 minutes
-   (`src/app/api/warm/route.ts`). It requests substance articles on the canonical public origin (`PUBLIC_SITE.url`, so `https://dose.wiki`
-   on the dose.wiki project and `https://effectindex.com` on Effect Index; never
-   the request host, never the editor hosts) with concurrency 4 inside a
-   45-second budget, and returns a JSON summary: `count`, `hits`, `misses`
-   (from `x-vercel-cache`), `failures`, `slowest`, `rotateBy`, and
-   `remaining` (URLs the budget did not reach). Order matters: the `low`
-   tier goes first because it is the only tier that is never pre-rendered,
-   and its starting offset advances by `WARM_ROTATION_STEP` (120) every
-   15-minute tick, so a run that only reaches ~120 cold pages still sweeps
-   the whole tail within a few ticks. The pre-rendered tiers follow, most
-   important first. Query overrides: `?concurrency=1..8`,
-   `?budgetMs=1000..50000`, `?includeLow=0` (skip the low tier),
-   `?rotate=N` (start the low tier at offset N instead of the tick-derived one).
+   `dynamicParams = true`. The route declares a 3,600-second interval, but
+   its 900-second data dependencies can shorten effective revalidation.
+   The slug list uses the cached `getPublicSubstanceLookup` read rather than
+   a corpus drain per worker. The worker budget remains documented in
+   `next.config.ts`.
+2. **Bounded cron warmer.** `vercel.json` schedules `/api/warm` hourly
+   (`0 * * * *`). The default run selects at most 40 distinct, non-alias
+   **high-priority** substance URLs. Normal and low-priority articles are
+   excluded from scheduled warming. This uses existing editorial priority,
+   not an inferred traffic ranking.
 
-   The route refuses to run (HTTP 503) until the project sets `CRON_SECRET`,
-   and then only honours `Authorization: Bearer <CRON_SECRET>`, which Vercel
-   attaches to cron invocations automatically. **Set `CRON_SECRET` on
-   `dosewiki-admin` (Production) to switch the warmer on**; it is read-only
-   with respect to Convex and safe to set on Effect Index as well. The
-   `/open-data` crons need no secret and are unchanged.
+   Targets use `PUBLIC_SITE.url`: `https://dose.wiki` or
+   `https://effectindex.com`, never the request host or an editor host.
+   Concurrency remains 4 within the 45-second dispatch budget, with a
+   20-second request timeout and one retry. The response reports planned
+   targets, completed results, cache headers, failures, and remaining URLs.
+
+   Query overrides: `concurrency=1..8`, `budgetMs=1000..50000`,
+   `maxUrls=1..120` (default 40), and `rotate=0..1000000`.
+   `includeLow=1` explicitly enables broader deployment-oriented warming:
+   rotated low-priority targets first, then high/normal targets, still
+   subject to `maxUrls`. The default offset advances 120 per hourly tick.
+   Absence of `includeLow`, or `includeLow=0`, retains high-only selection.
+
+   The route requires `CRON_SECRET` and its matching bearer token, with the
+   existing rate-limit gate. No secret or provider setting is changed by
+   this source edit. The daily `/open-data` crons are unchanged.
+   Production log inspection on 2026-09-05 confirmed the previous
+   15-minute warmer was receiving requests; its downstream completion counts
+   and share of Convex I/O were not measured.
 
 To warm from a workstation, or right after a deploy finishes, run the
 observable CLI version against the public host:
@@ -390,6 +445,55 @@ URLs, and the total time. It exits non-zero above `--max-failure-percent`
 publish an empty sitemap by design, and the script says so. There is no
 Vercel post-deploy hook in use (`scripts/deploy/vercel-build.mjs` is the build
 command only), which is why the scheduled route exists.
+
+Routine warming must not use the whole-corpus CLI merely to conceal expensive
+queries. A CDN miss is not proof of a database read. Compare warmer response
+summaries with ISR regeneration, Data Cache behavior, and Convex function I/O.
+
+### Public read-index rollout
+
+The indexed readers and atomic maintenance are implemented in the checkout;
+their release and data backfills are separate production operations. Follow
+[Convex credentials](convex-credentials.md) and obtain explicit authorization
+for the exact deployment and write batch.
+
+1. Resolve the current checkout's release gates. Confirm that the public
+   frontend supports the complete shared gallery-corpus fallback before
+   activating the new backend readiness condition. If not, stage the
+   fallback-aware frontend first without publishing Convex.
+   **The normal production build publishes Convex before Next**, so a
+   frontend-only stage must deliberately use the documented verification-only
+   build mode rather than the normal write-capable wrapper.
+2. Run `npm run convex:doctor` with
+   `TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud`, and complete the
+   strict deployment/function-drift gates before the authorized backend release.
+   Do not publish an unrelated or unreviewed working tree.
+3. Use the existing `scripts/convex/backfill-trip-report-substance-index.mjs`
+   with `--index=history`, then `--index=gallery`, `--index=reviews`, and
+   `--index=tripReports`. Run each with `--dry-run` first. It prints the exact
+   operation confirmation and deployment fingerprint required for `--write`.
+   Gallery/history/reviews additionally require
+   `--confirm-public-read-index-backfill`; tripReports retains
+   `--confirm-trip-report-substance-index-backfill`.
+4. Use bounded batches, such as `--batch-size=25 --max-pages=100`, and resume
+   from the server-owned checkpoint until every status reports
+   `indexActive: true` for the current version. A nonempty relation or a
+   successfully completed partial batch is not readiness. Never invent or
+   advance a cursor manually.
+5. Complete the authorized Next rollout for both projects, then verify public
+   gallery membership/order, history, contributor credits, report matching,
+   and edit/removal freshness on their canonical hosts. Backend readiness and
+   cache key changes do not certify cross-host or cross-project invalidation.
+6. Compare at least one complete UTC day of per-function calls, database bytes,
+   cache behavior, and warmer activity against the dated baseline. Source
+   improvements are not measured savings.
+
+Before readiness, gallery reads use the existing shared paged corpus;
+history, review, and report reads retain complete source fallbacks. Those
+fallbacks are not service-limit-proof, so backfill history promptly and keep
+the rollout window short. Direct dashboard edits or raw `convex import` bypass
+application index maintenance and must not modify the indexed source tables.
+See [Runtime and Data Architecture](../architecture/runtime-and-data.md#maintained-public-read-indexes).
 
 ### Post-deploy verification checklist
 

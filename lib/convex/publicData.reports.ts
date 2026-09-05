@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "./publicData.cache"
 import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicContributorProfiles } from "./publicData.contributors";
@@ -48,14 +48,14 @@ function reportBelongsToContributor(report: TripReportRecord, profile: Normalize
  * report read instead of being shared across them.
  */
 
-const getPublicTripReportRecords = cache(unstable_cache(async (): Promise<TripReportRecord[]> => {
+const getPublicTripReportRecords = cache(publicDataCache(async (): Promise<TripReportRecord[]> => {
   return await getPublicDataReadAdapter().getPublicTripReportRecords();
 }, ["convex-public-trip-report-records-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
 }));
 
-const getPublicTripReportRecordBySlug = cache(unstable_cache(async (
+const getPublicTripReportRecordBySlug = cache(publicDataCache(async (
   slug: string,
 ): Promise<TripReportDetailRecord | null> => {
   return await getPublicDataReadAdapter().getPublicTripReportBySlug(slug);
@@ -64,7 +64,7 @@ const getPublicTripReportRecordBySlug = cache(unstable_cache(async (
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
 }));
 
-const getPublicTripReportRecordsByAuthor = cache(unstable_cache(async (
+const getPublicTripReportRecordsByAuthor = cache(publicDataCache(async (
   authorName: string,
 ): Promise<TripReportRecord[]> => {
   return await getPublicDataReadAdapter().getPublicTripReportsByAuthor(authorName);
@@ -73,7 +73,7 @@ const getPublicTripReportRecordsByAuthor = cache(unstable_cache(async (
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
 }));
 
-const getPublicTripReportRecordsBySubstanceNames = cache(unstable_cache(async (
+const getPublicTripReportRecordsBySubstanceNames = cache(publicDataCache(async (
   substanceNames: string[],
 ): Promise<TripReportDetailRecord[]> => {
   return await getPublicDataReadAdapter().getPublicTripReportsBySubstanceNames(substanceNames);

@@ -13,7 +13,8 @@
  * enforces the same floor.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData.cache";
 import { api } from "../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -192,6 +193,8 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       for (const slug of new Set([body.expected.effect_slug, body.updates.effect_slug])) {
         if (slug) revalidatePath(`/effects/${slug}`);
       }
+      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+      revalidatePath("/api/replications/showcase");
 
       return NextResponse.json({ ok: true, updated: 1, slugs: [result.slug] });
     }
@@ -210,6 +213,8 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
     if (body.effectSlug) {
       revalidatePath(`/effects/${body.effectSlug}`);
     }
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidatePath("/api/replications/showcase");
 
     return NextResponse.json({ ok: true, updated: result.updated, slugs: result.slugs });
   },

@@ -16,7 +16,7 @@
  * deployment records what was already on screen rather than silently replacing
  * it with something else.
  *
- * The POST finishes by revalidating `PUBLIC_CONVEX_CACHE_TAGS.replications`
+ * The POST finishes by revalidating `PUBLIC_CONVEX_CACHE_TAGS.featuredReplications`
  * with `expire: 0`, which is what makes a re-curation reach the homepage
  * immediately instead of at the end of the 15-minute public-data window, and by
  * revalidating the Effect Index home route that renders the carousel.
@@ -108,7 +108,7 @@ export const POST = protectedRouteOperation<FeaturedBody, string[]>({
       updatedBy: actorEmail,
     });
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.featuredReplications, { expire: 0 });
     revalidatePath("/");
 
     return NextResponse.json({ ok: true, slugs: result.slugs, pruned: result.pruned });

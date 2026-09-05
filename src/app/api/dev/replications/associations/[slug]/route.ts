@@ -37,7 +37,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publicSubstanceGalleryTag } from "@server/convex/publicData.cache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { replicationViewerEditorRoute } from "@server/next/replicationViewerEditorPolicy";
@@ -210,7 +210,8 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
         assigned: body.assigned,
       },
     );
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    revalidateTag(publicSubstanceGalleryTag(body.substanceSlug), { expire: 0 });
+    revalidatePath("/api/replications/showcase");
     revalidatePath(`/${body.substanceSlug}`);
     return NextResponse.json({ ok: true, association: result.association });
   },
@@ -245,10 +246,11 @@ export const POST = protectedRouteOperation<ExclusionBody, ParsedExclusionBody>(
     // Only substances whose row actually changed are revalidated; a save that
     // wrote nothing leaves every cache entry still true.
     if (result.updated.length > 0) {
-      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
       for (const substanceSlug of result.updated) {
         revalidatePath(`/${substanceSlug}`);
+        revalidateTag(publicSubstanceGalleryTag(substanceSlug), { expire: 0 });
       }
+      revalidatePath("/api/replications/showcase");
     }
 
     return NextResponse.json({

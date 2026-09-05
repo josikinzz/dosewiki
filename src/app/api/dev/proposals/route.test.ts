@@ -25,7 +25,12 @@ function createClient() {
   return {
     query: vi.fn(async (name: string) => {
       if (name === "changeProposals.list") {
-        return [{ _id: "cp_1", status: "submitted", summary: "Update LSD" }];
+        return [{
+          _id: "cp_1", status: "submitted", summary: "Update LSD", targets: [],
+          proposedBy: "editor@example.com", reviewedBy: "reviewer@example.com",
+          comments: [{ by: "commenter@example.com", at: "now", text: "Checked" }],
+          payload: { contactEmail: "private@example.com" },
+        }];
       }
       throw new Error(`Unexpected query ${name}`);
     }),
@@ -231,7 +236,7 @@ describe("dev proposals list route", () => {
     resetRouteMocks("editor");
   });
 
-  it("lists the queue for an editor, passing a valid status filter through", async () => {
+  it("projects legacy queue identities privately while retaining ownership and status filtering", async () => {
     const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { GET } = await import("./route");
 
@@ -239,7 +244,10 @@ describe("dev proposals list route", () => {
     expect(all.status).toBe(200);
     await expect(all.json()).resolves.toEqual({
       ok: true,
-      proposals: [{ _id: "cp_1", status: "submitted", summary: "Update LSD" }],
+      proposals: [{
+        _id: "cp_1", status: "submitted", summary: "Update LSD", targets: [],
+        proposerName: "Contributor", reviewerName: "Reviewer", isAuthor: true, commentCount: 1,
+      }],
     });
     expect(client.query).toHaveBeenLastCalledWith("changeProposals.list", {
       apiKey: "article-token",

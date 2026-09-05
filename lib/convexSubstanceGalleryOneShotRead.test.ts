@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Doc } from "../convex/_generated/dataModel";
 import type { QueryCtx } from "../convex/_generated/server";
 import { getPublicGalleryBySubstanceHandler } from "../convex/lib/substanceGalleryPublicReads";
+import { galleryCandidateKeys, galleryMatchProjection } from "../convex/lib/publicReadIndexes";
 
 const ketamineDrug = {
   slug: "ketamine",
@@ -33,13 +34,24 @@ function galleryContext(options: {
   gallery?: { curated_slugs: string[]; removed_slugs: string[]; carousel_order?: string[] } | null;
   substances?: unknown[];
   storageUrls?: Record<string, string>;
+  ready?: boolean;
 }) {
-  const collect = vi.fn(async () => options.rows);
-  const paginate = vi.fn(() => {
-    throw new Error("the one-shot gallery read must not paginate");
-  });
+  const collect = vi.fn(() => { throw new Error("Public gallery must not scan heavy replication rows"); });
+  const candidates = options.rows.flatMap((row, index) => galleryCandidateKeys(row).map((candidate_key) => ({
+    ...galleryMatchProjection(row), candidate_key, replication_id: row._id, source_created: index,
+  })));
   const getUrl = vi.fn(async (storageId: string) => options.storageUrls?.[storageId] ?? null);
   const query = vi.fn((table: string) => {
+    if (table === "publicReadIndexState") {
+      return { withIndex: () => ({ unique: async () => options.ready === false ? null : { version: 1, ready: true } }) };
+    }
+    if (table === "replicationGalleryCandidates") {
+      return { withIndex: (_name: string, select: (q: unknown) => unknown) => {
+        let key = "";
+        select({ eq: (_field: string, value: string) => { key = value; } });
+        return { take: async (limit: number) => candidates.filter((row) => row.candidate_key === key).slice(0, limit) };
+      } };
+    }
     if (table === "substanceIndex") {
       return {
         withIndex: () => ({
@@ -57,11 +69,11 @@ function galleryContext(options: {
     if (table === "substanceGalleries") {
       return { withIndex: () => ({ first: async () => options.gallery ?? null }) };
     }
-    if (table === "replications") return { collect, paginate };
+    if (table === "replications") return { collect };
     throw new Error(`Unexpected table ${table}`);
   });
   return {
-    ctx: { db: { query }, storage: { getUrl } } as unknown as QueryCtx,
+    ctx: { db: { query, get: async (id: string) => options.rows.find((row) => row._id === id) ?? null }, storage: { getUrl } } as unknown as QueryCtx,
     collect,
     getUrl,
   };
@@ -114,7 +126,7 @@ describe("substanceGalleries:getPublicGalleryBySubstance", () => {
       "drug_class",
       "curated",
     ]);
-    expect(test.collect).toHaveBeenCalledTimes(1);
+    expect(test.collect).not.toHaveBeenCalled();
 
     // Same row contract as `replications:getBySlugs`: a resolved main URL is
     // required, renditions appear only when they resolved.
@@ -175,5 +187,21 @@ describe("substanceGalleries:getPublicGalleryBySubstance", () => {
       getPublicGalleryBySubstanceHandler(test.ctx, { substance_slug: "ketamine" }),
     ).resolves.toEqual({ items: [] });
     expect(test.getUrl).not.toHaveBeenCalled();
+  });
+
+  it("refuses a partially populated index instead of publishing an incomplete gallery", async () => {
+    const test = galleryContext({ rows: [replication("specific", { title_drugs: [ketamineDrug] })], ready: false });
+    await expect(getPublicGalleryBySubstanceHandler(test.ctx, { substance_slug: "ketamine" }))
+      .rejects.toMatchObject({ data: { code: "SUBSTANCE_GALLERY_INDEX_NOT_READY" } });
+  });
+
+  it("honors title aliases, visual fallback and publication suppression through compact candidates", async () => {
+    const test = galleryContext({ rows: [
+      replication("title", { title: "Ketamine simulation" }),
+      replication("visual", { effect_slug: "visual-disconnection" }),
+      replication("suppressed", { title_drugs: [ketamineDrug], publication_state: "duplicate-suppressed" }),
+    ], gallery: { curated_slugs: ["suppressed"], removed_slugs: [] } });
+    const result = await getPublicGalleryBySubstanceHandler(test.ctx, { substance_slug: "ketamine" });
+    expect(result.items.map((item) => item.replication.slug)).toEqual(["title", "visual"]);
   });
 });

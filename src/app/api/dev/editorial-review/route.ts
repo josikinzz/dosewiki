@@ -12,9 +12,9 @@
  */
 import { NextResponse } from "next/server";
 import { makeFunctionReference } from "convex/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { canApprove } from "@/lib/auth/roles";
@@ -112,8 +112,7 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
     // coverage audit and the article's own cached projections must refresh.
     if (body.action === "status") {
       revalidatePath("/about/coverage");
-      revalidatePath(`/${body.slug}`);
-      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+      revalidateSavedPaths([`/${body.slug}`], "manual");
     }
 
     return NextResponse.json({

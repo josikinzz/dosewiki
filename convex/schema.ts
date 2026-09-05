@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { publicReadIndexTables } from "./lib/publicReadIndexSchema";
 import {
   articleFeedback,
   articleSource,
@@ -304,6 +305,7 @@ const warningBannerPreset = v.object({
 });
 
 export default defineSchema({
+  ...publicReadIndexTables,
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])

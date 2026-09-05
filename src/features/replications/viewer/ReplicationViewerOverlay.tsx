@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { focusRingClassName } from "@/components/ui/surface";
+import { EditorLauncherOutlet } from "@/features/editor-launcher/EditorLauncherOutlet";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -731,6 +733,20 @@ export function ReplicationViewerOverlay({
         if (!nextOpen) close();
       }}
     >
+      {open ? (
+        <EditorLauncherTarget
+          priority="overlay"
+          target={
+            sourceCollection.editorTarget?.kind === "substance"
+              ? {
+                  kind: "replications",
+                  slug: sourceCollection.editorTarget.key,
+                  name: sourceCollection.editorTarget.label,
+                }
+              : { kind: "generic", name: sourceCollection.label }
+          }
+        />
+      ) : null}
       <DialogContent
         ref={contentRef}
         aria-modal="true"
@@ -802,6 +818,7 @@ export function ReplicationViewerOverlay({
         tabIndex={-1}
         className={VIEWER_DIALOG_CLASS}
       >
+        {open ? <EditorLauncherOutlet /> : null}
         <DialogDescription className="sr-only">
           Viewing {active.replication.title} by {artistLabel}. {collection.label}.
           Work {position.itemIndex + 1} of {group.items.length}.

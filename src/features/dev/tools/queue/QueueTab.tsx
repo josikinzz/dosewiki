@@ -55,8 +55,6 @@ import {
 type QueueTabProps = {
   /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
   canApprove: boolean;
-  /** The signed-in email; a proposer may load their own open proposal back into the editor. */
-  actorEmail?: string | null;
   /** The substance corpus has drained: a rebase can seed over production rows. */
   libraryReady: boolean;
   /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
@@ -81,7 +79,7 @@ const targetCount = (count: number) => `${count} ${count === 1 ? "item" : "items
 const affectedRows = (targets: readonly TargetDrift[], showChanges = true) =>
   targets.map((target) => `${TARGET_KIND_LABELS[target.kind]} ${target.key}${showChanges && target.drifted ? " (changed since submission)" : ""}`);
 
-export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEditor }: QueueTabProps) {
+export function QueueTab({ canApprove, libraryReady, onLoadIntoEditor }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
@@ -135,7 +133,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
       ++listVersion.current;
       ++detailVersion.current;
     };
-  }, [loadList, actorEmail, canApprove]);
+  }, [loadList, canApprove]);
 
   const selectedId = detail.status === "idle" ? null : detail.id;
   const commentText = selectedId ? drafts[selectedId]?.comment ?? "" : "";
@@ -277,7 +275,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
     setNotice(null);
     try {
       const proposal = await fetchProposal(selectedId);
-      if (!canLoadIntoEditor(proposal, { actorEmail, canApprove })) {
+      if (!canLoadIntoEditor(proposal, { canApprove })) {
         throw new Error(`A ${STATUS_LABELS[proposal.status].toLowerCase()} proposal can no longer be loaded.`);
       }
       await onLoadIntoEditor(proposalSeedOf(proposal));
@@ -367,7 +365,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
                   disabled={pending !== null}
                   onSelect={() => select(row._id)}
                   title={row.summary}
-                  subtitle={`${canApprove ? `${row.proposedBy} · ` : ""}${formatProposalDate(row.createdAt)} · ${targetCount(row.targets.length)}${row.commentCount ? ` · ${row.commentCount} ${row.commentCount === 1 ? "comment" : "comments"}` : ""}`}
+                  subtitle={`${canApprove ? `${row.proposerName} · ` : ""}${formatProposalDate(row.createdAt)} · ${targetCount(row.targets.length)}${row.commentCount ? ` · ${row.commentCount} ${row.commentCount === 1 ? "comment" : "comments"}` : ""}`}
                   badge={<StatusPill status={row.status} />}
                 />
               ))}
@@ -403,8 +401,8 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
             <ProposalReview
               proposal={detail.proposal}
               canApprove={canApprove}
-              isAuthor={detail.proposal.proposedBy === actorEmail}
-              canLoad={canLoadIntoEditor(detail.proposal, { actorEmail, canApprove })}
+              isAuthor={detail.proposal.isAuthor}
+              canLoad={canLoadIntoEditor(detail.proposal, { canApprove })}
               libraryReady={libraryReady}
               pending={pending}
               commentText={commentText}
@@ -497,14 +495,14 @@ function ProposalReview({
           <StatusPill status={proposal.status} />
         </dd>
         <dt className="theme-text-faint">Proposed by</dt>
-        <dd className="theme-text-primary">{proposal.proposedBy}</dd>
+        <dd className="theme-text-primary">{proposal.proposerName}</dd>
         <dt className="theme-text-faint">Submitted</dt>
         <dd className="theme-text-primary">{formatProposalDate(proposal.createdAt)}</dd>
-        {proposal.reviewedBy ? (
+        {proposal.reviewerName ? (
           <>
             <dt className="theme-text-faint">Reviewed</dt>
             <dd className="theme-text-primary">
-              {proposal.reviewedBy} · {formatProposalDate(proposal.reviewedAt)}
+              {proposal.reviewerName} · {formatProposalDate(proposal.reviewedAt)}
             </dd>
           </>
         ) : null}
@@ -634,7 +632,7 @@ function ProposalReview({
             {proposal.comments.map((entry, index) => (
               <li key={`${entry.at}-${index}`} className="border-b border-divider pb-3 text-sm">
                 <p className="theme-text-faint text-xs">
-                  {entry.by} · {formatProposalDate(entry.at)}
+                  {entry.authorName} · {formatProposalDate(entry.at)}
                 </p>
                 <p className="theme-text-secondary mt-1 whitespace-pre-line leading-6">{entry.text}</p>
               </li>

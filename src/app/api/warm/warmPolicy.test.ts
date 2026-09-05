@@ -79,6 +79,26 @@ describe("planWarmTargets", () => {
       "https://dose.wiki/lsd",
     ]);
   });
+
+  it("bounds the scheduled high-priority set without generating the normal or low tiers", () => {
+    const entries = [
+      { slug: "low-tail", priority: "low" as const },
+      { slug: "normal-tail", priority: "normal" as const },
+      ...Array.from({ length: 80 }, (_, index) => ({ slug: `popular-${index}`, priority: "high" as const })),
+    ];
+    const defaults = parseWarmSearchParams(new URLSearchParams());
+    expect(planWarmTargets(entries, "https://dose.wiki", {
+      ...defaults, highOnly: !defaults.includeLow,
+    })).toEqual(entries.slice(2, 42).map(({ slug }) => `https://dose.wiki/${slug}`));
+  });
+
+  it("never warms an editor host even for explicit deployment warming", () => {
+    for (const host of ["dev.dose.wiki", "dosewiki-admin.vercel.app"]) {
+      expect(planWarmTargets([{ slug: "lsd", priority: "high" }], `https://${host}`, {
+        includeLow: true,
+      })).toEqual([]);
+    }
+  });
 });
 
 describe("warmRotationForTick", () => {
@@ -95,7 +115,8 @@ describe("parseWarmSearchParams", () => {
     expect(parseWarmSearchParams(new URLSearchParams())).toEqual({
       concurrency: 4,
       budgetMs: 45_000,
-      includeLow: true,
+      includeLow: false,
+      maxUrls: 40,
       rotate: null,
     });
     expect(parseWarmSearchParams(new URLSearchParams("includeLow=0"))).toMatchObject({
@@ -103,7 +124,7 @@ describe("parseWarmSearchParams", () => {
     });
     expect(
       parseWarmSearchParams(new URLSearchParams("concurrency=99&budgetMs=10&includeLow=1")),
-    ).toEqual({ concurrency: 8, budgetMs: 1_000, includeLow: true, rotate: null });
+    ).toEqual({ concurrency: 8, budgetMs: 1_000, includeLow: true, rotate: null, maxUrls: 40 });
     expect(parseWarmSearchParams(new URLSearchParams("rotate=240"))).toMatchObject({ rotate: 240 });
     expect(parseWarmSearchParams(new URLSearchParams("rotate=-5"))).toMatchObject({ rotate: 0 });
     expect(parseWarmSearchParams(new URLSearchParams("concurrency=abc"))).toMatchObject({

@@ -5,6 +5,6 @@
     { "path": "/open-data/SubstanceIndex.json", "schedule": "0 9 * * *" },
     { "path": "/open-data/EffectIndex.json", "schedule": "0 9 * * *" },
     { "path": "/open-data/TripReports.json", "schedule": "0 9 * * *" },
-    { "path": "/api/warm", "schedule": "*/15 * * * *" }
+    { "path": "/api/warm", "schedule": "0 * * * *" }
   ]
 }

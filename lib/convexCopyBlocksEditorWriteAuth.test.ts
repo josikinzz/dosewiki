@@ -28,6 +28,7 @@ function createCtx({
       getUserIdentity: vi.fn(async () => identity ?? null),
     },
     db: {
+      normalizeId: () => null, // Copy blocks are not indexed source tables.
       insert,
       patch,
       delete: remove_,

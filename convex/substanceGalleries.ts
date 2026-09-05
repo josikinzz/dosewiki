@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, type QueryCtx } from "./_generated/server";
-import type { Doc } from "./_generated/dataModel";
+import { query, type QueryCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replications";
 import {
@@ -31,7 +31,9 @@ import {
 } from "../src/data/substanceReplicationGallery";
 import type { ReplicationAssociation } from "../src/features/dev/tools/replication-studio/replicationAssociationModel";
 import { getPublicGalleryBySubstanceHandler } from "./lib/substanceGalleryPublicReads";
+import { getCurationDetailHandler, uniqueSubstanceBySlug } from "./lib/substanceGalleryCurationReads";
 import { resolvedReplication } from "./lib/replicationValidators";
+import { galleryMatchProjection } from "./lib/publicReadIndexes";
 
 /**
  * Per-substance Replication Showcase: automatic drug/class placement and the
@@ -102,19 +104,6 @@ export function clampPublicSubstanceGalleryPageSize(requested?: number): number 
       ? Math.floor(requested)
       : PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE;
   return Math.min(Math.max(normalized, 1), PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE);
-}
-
-/**
- * The substance for a slug, or null. Mirrors `substanceIndex:getPublicBySlug`:
- * a duplicated slug is ambiguous and treated as not found rather than letting
- * two articles fight over one gallery.
- */
-async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
-  const matches = await ctx.db
-    .query("substanceIndex")
-    .withIndex("by_slug", (q) => q.eq("slug", slug))
-    .take(2);
-  return matches.length === 1 ? matches[0] : null;
 }
 
 /** The stored curation row for one substance, or null when never curated. */
@@ -218,6 +207,7 @@ const publicMatchableReplicationRow = v.object({
   title_class_mentions: v.optional(v.array(titleClassMentionValidator)),
   showcase_excluded: v.optional(v.boolean()),
   replication_status: v.optional(replicationStatusValidator),
+  publication_state: v.optional(v.union(v.literal("published"), v.literal("duplicate-suppressed"))),
 });
 
 /**
@@ -236,25 +226,6 @@ function clampPublicMatchableReplicationsPageSize(requested?: number): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_MATCHABLE_REPLICATIONS_PAGE_SIZE);
 }
 
-function projectPublicMatchableReplicationRow(row: Doc<"replications">) {
-  return {
-    slug: row.slug,
-    title: row.title,
-    type: row.type,
-    ...(row.role !== undefined ? { role: row.role } : {}),
-    ...(row.effect_slug !== undefined ? { effect_slug: row.effect_slug } : {}),
-    ...(row.title_drugs !== undefined ? { title_drugs: row.title_drugs } : {}),
-    ...(row.title_class_mentions !== undefined
-      ? { title_class_mentions: row.title_class_mentions }
-      : {}),
-    ...(row.showcase_excluded !== undefined
-      ? { showcase_excluded: row.showcase_excluded }
-      : {}),
-    ...(row.replication_status !== undefined
-      ? { replication_status: row.replication_status }
-      : {}),
-  };
-}
 
 /**
  * One storage-ordered page of the shared matchable corpus: every replication
@@ -276,7 +247,7 @@ export async function getPublicMatchableReplicationsPageHandler(
     numItems: clampPublicMatchableReplicationsPageSize(args.limit),
   });
   return {
-    items: page.page.map(projectPublicMatchableReplicationRow),
+    items: page.page.map(galleryMatchProjection),
     cursor: page.continueCursor,
     isDone: page.isDone,
   };
@@ -415,85 +386,7 @@ export const getCurationDetail = query({
     actorEmail: v.optional(v.string()),
     substance_slug: v.string(),
   },
-  handler: async (ctx, args) => {
-    await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
-      "editor",
-    );
-
-    const substance = await uniqueSubstanceBySlug(ctx, args.substance_slug);
-    if (!substance) {
-      return null;
-    }
-
-    const rows = await ctx.db.query("replications").collect();
-    const target = substanceGalleryTargetOf(substance);
-    const matches = target
-      ? matchSubstanceGalleryReplications(rows, target).matches
-      : [];
-
-    const gallery = await ctx.db
-      .query("substanceGalleries")
-      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
-      .first();
-    const available = includeDirectlyAssociatedRows(rows, matches, gallery);
-
-    const effects = await ctx.db.query("subjectiveEffects").collect();
-    const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
-
-    // Effect identity remains presentation metadata for each work. It no
-    // longer decides which substance articles receive the row.
-
-    const resolvedUrls = memoizedStorageUrls(ctx);
-    const resolved = await Promise.all(
-      available.map(async ({ row, provenance }) => {
-        const { url, thumbnail_url } = await resolveReplicationUrls(resolvedUrls, row, { preview: false });
-        return {
-          replication: {
-            id: row._id,
-            slug: row.slug,
-            title: row.title,
-            artist: row.artist,
-            type: row.type,
-            effect_slug: row.effect_slug ?? null,
-            effect_name: row.effect_slug
-              ? effectNames.get(row.effect_slug) ?? row.effect_slug
-              : null,
-            effect_tags: row.effect_tags ?? [],
-            credit_line: row.credit_line ?? null,
-            rights_status: row.rights_status ?? null,
-            url,
-            thumbnail_url,
-            format: row.format,
-          },
-          provenance: {
-            ...provenance,
-            effectName:
-              provenance.matchedVia === "specific_drug"
-                ? substance.title
-                : provenance.matchedVia === "drug_class"
-                  ? provenance.drugClass
-                  : effectNames.get(provenance.effectSlug) ?? provenance.effectSlug,
-          },
-        };
-      }),
-    );
-
-    return {
-      substance: { slug: substance.slug, title: substance.title },
-      matches: resolved,
-      curation: gallery
-        ? {
-            curated_slugs: gallery.curated_slugs,
-            removed_slugs: gallery.removed_slugs,
-            carousel_order: gallery.carousel_order ?? [],
-            updated_at: gallery.updated_at,
-            updated_by: gallery.updated_by,
-          }
-        : null,
-    };
-  },
+  handler: getCurationDetailHandler,
 });
 
 /**

@@ -78,6 +78,7 @@ function createCtx(seed: Record<string, Row[]>): FakeDb {
     ctx: {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
+        normalizeId: (table: string, id: string) => rowsOf(table).has(id) || id.startsWith(`${table}:`) ? id : null,
         get: vi.fn(async (id: string) => find(id)?.existing ?? null),
         query: vi.fn(query),
         insert: vi.fn(async (table: string, doc: Record<string, unknown>) => {
