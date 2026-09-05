@@ -67,9 +67,11 @@ import {
  * and unlayered theme CSS beats layered utilities — only layered important
  * utilities keep this surface borderless, shadowless, pure black in every
  * theme. `--theme-elevation-none` is the audited flat-shadow token.
+ * Full-viewport surfaces must not inherit the centered dialog's slide/zoom:
+ * those keyframes displace and shrink the entire viewer during startup.
  */
 const VIEWER_DIALOG_CLASS =
-  "theme-media-tile-title fixed inset-0 z-[70] h-dvh w-full max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] duration-150 sm:rounded-none";
+  "theme-media-tile-title fixed inset-0 z-[70] h-dvh w-full max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] !animate-none sm:rounded-none";
 /**
  * The side the incoming work enters from after a non-swipe navigation
  * (group jumps, rail taps, editor activation). Horizontal work changes ride
