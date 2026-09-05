@@ -172,4 +172,40 @@ describe("sound custody", () => {
     expect(element.volume).toBe(0.5);
     expect(custody.iouOutstanding()).toBe(true);
   });
+
+  it("does not retry refused audio after an explicit pause", async () => {
+    const { element, play } = video();
+    document.body.append(element);
+    element.muted = false;
+    const pending = Promise.withResolvers<void>();
+    play.mockReturnValueOnce(pending.promise);
+    const onBlocked = vi.fn();
+    const custody = createSoundCustody({ volume: 1, onBlocked });
+    custody.attemptPlay(element);
+    custody.pause(element);
+    pending.reject(new DOMException("denied", "NotAllowedError"));
+    await settlePromises();
+    expect(play).toHaveBeenCalledOnce();
+    expect(element.muted).toBe(false);
+    expect(onBlocked).not.toHaveBeenCalled();
+  });
+
+  it("ignores a stale fallback rejection after custody moves to a new element", async () => {
+    const { element, play } = video();
+    const next = video();
+    document.body.append(element, next.element);
+    element.muted = false;
+    const fallback = Promise.withResolvers<void>();
+    play.mockRejectedValueOnce(new Error("sound denied"))
+      .mockReturnValueOnce(fallback.promise);
+    const onBlocked = vi.fn();
+    const custody = createSoundCustody({ volume: 1, onBlocked });
+    custody.attemptPlay(element);
+    await settlePromises();
+    custody.pause(element);
+    custody.attemptPlay(next.element);
+    fallback.reject(new Error("old fallback denied"));
+    await settlePromises();
+    expect(onBlocked).not.toHaveBeenCalled();
+  });
 });

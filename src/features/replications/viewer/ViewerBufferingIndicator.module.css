@@ -1,0 +1,175 @@
+.indicator {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: rgb(var(--c-white) / 0.94);
+  opacity: 1;
+  transition: opacity 160ms ease-out;
+}
+
+.indicator[hidden] {
+  display: none;
+}
+
+.indicator[data-buffering="false"] {
+  opacity: 0;
+}
+
+.content {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+}
+
+.markFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  isolation: isolate;
+  background: radial-gradient(
+    closest-side,
+    rgb(var(--c-black) / 0.76) 52%,
+    transparent
+  );
+}
+
+.mark {
+  width: 40px;
+  height: 40px;
+  animation: markTurn 5s linear infinite;
+  animation-play-state: paused;
+}
+
+.washClip {
+  position: absolute;
+  z-index: -1;
+  width: 184px;
+  height: 184px;
+  overflow: hidden;
+  contain: paint;
+  pointer-events: none;
+}
+
+.wash {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(
+      ellipse at 35% 40%,
+      color-mix(in srgb, currentColor 30%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 68% 60%,
+      color-mix(in srgb, currentColor 22%, transparent),
+      transparent 56%
+    );
+  opacity: 0.5;
+  animation: washDrift 9s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+.indicator[data-running="true"] .mark,
+.indicator[data-running="true"] .wash {
+  animation-play-state: running;
+}
+
+.indicator[data-phase="rebuffer"] .markFrame {
+  width: 60px;
+  height: 60px;
+}
+
+.indicator[data-phase="rebuffer"] .mark {
+  width: 32px;
+  height: 32px;
+  animation-duration: 7s;
+}
+
+.label {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgb(var(--c-black) / 0.76);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.playNow.playNow {
+  min-height: 44px;
+  pointer-events: auto;
+  touch-action: manipulation;
+  border-color: rgb(var(--c-white) / 0.4);
+  background: rgb(var(--c-black) / 0.9);
+  color: rgb(var(--c-white) / 0.94);
+  transition: none;
+}
+
+.playNow.playNow:hover {
+  border-color: rgb(var(--c-white) / 0.72);
+  background: rgb(var(--c-black));
+  color: rgb(var(--c-white));
+}
+
+.playNow.playNow:focus-visible {
+  outline: 2px solid rgb(var(--c-white));
+  outline-offset: 3px;
+}
+
+:global(html[data-visual-style="pro"]) .indicator {
+  --theme-accent-strong: var(--ei-accent-on-dark);
+  --theme-logo-fill: linear-gradient(
+    118deg,
+    var(--ei-accent-on-dark),
+    color-mix(in srgb, var(--ei-accent-on-dark) 72%, black)
+  );
+}
+
+:global(html[data-visual-style="pro"]) .washClip {
+  opacity: 0.5;
+}
+
+.indicator[data-reduced-motion="true"] {
+  transition: none;
+}
+
+.indicator[data-reduced-motion="true"] .mark {
+  animation: none;
+}
+
+@keyframes markTurn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes washDrift {
+  from {
+    transform: rotate(-15deg) scale(0.92);
+    opacity: 0.4;
+  }
+  to {
+    transform: rotate(20deg) scale(1.04);
+    opacity: 0.62;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator {
+    transition: none;
+  }
+
+  .mark,
+  .wash {
+    animation: none;
+  }
+
+  .washClip {
+    display: none;
+  }
+}

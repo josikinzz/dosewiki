@@ -1,10 +1,10 @@
 import type { ReplicationType } from "@/types/replications";
 
 /**
- * The frame a slide shows beneath its video while frames are still arriving:
+ * The frame a slide shows while its first video frame is still arriving:
  * GIFs lead with their motion poster, videos with their thumbnail, stills
- * with the artwork itself. The underlay sits below the media element, so a
- * painted frame simply covers it.
+ * with the artwork itself. The poster overlays undecoded video and fades
+ * once a frame has been presented.
  */
 export function slidePosterSource(replication: {
   type: ReplicationType;

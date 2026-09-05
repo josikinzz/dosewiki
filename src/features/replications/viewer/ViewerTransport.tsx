@@ -26,6 +26,13 @@ import {
   seekRatioFromPointer,
 } from "./seekClock";
 import { shouldLoopReplicationMotion, slideMotionSource } from "./qualityLadder";
+import { RotatingIcon } from "./RotatingIcon";
+import { ViewerBufferingIndicator } from "./ViewerBufferingIndicator";
+import {
+  createViewerBuffering,
+  type ViewerBufferingController,
+  type ViewerBufferState,
+} from "./viewerBuffering";
 
 /** Overlay controls float directly on the media: no pills, no chips — just
     filled glyphs (fluent) with the 44px hit area and rounded focus ring the
@@ -134,6 +141,7 @@ export interface ViewerTransportProps {
   infoControls?: string;
   /** The session's sticky rotate-mode preference (owned by the overlay). */
   rotateMode?: boolean;
+  rotated?: boolean;
   onRotateModeChange?: (rotateMode: boolean) => void;
   /** Whether rotate-to-fit is available in this viewport. */
   canRotate: boolean;
@@ -142,6 +150,7 @@ export interface ViewerTransportProps {
    * overlay can fade its own chrome in step for a true immersive state.
    */
   onTransportVisibleChange?: (visible: boolean) => void;
+  onBufferHealthChange?: (mediaKey: string, healthy: boolean) => void;
   /** Receives gesture-safe playback verbs; called with null on unmount. */
   onTransportHandle?: (handle: ViewerTransportHandle | null) => void;
   onFullscreen?: () => void;
@@ -170,9 +179,11 @@ export function ViewerTransport({
   infoOpen = false,
   infoControls,
   rotateMode = false,
+  rotated = false,
   onRotateModeChange,
   canRotate,
   onTransportVisibleChange,
+  onBufferHealthChange,
   onTransportHandle,
   onFullscreen,
   fullscreenSupported,
@@ -185,6 +196,9 @@ export function ViewerTransport({
   const knownAudio = ordinaryVideo ? replication.has_audio : false;
 
   const soundCustodyRef = useRef<SoundCustody | null>(null);
+  const bufferingControllerRef = useRef<ViewerBufferingController | null>(null);
+  const healthCallbackRef = useRef(onBufferHealthChange);
+  healthCallbackRef.current = onBufferHealthChange;
   /** Latest shared state, readable from per-work effects without re-running. */
   const mutedRef = useRef(muted);
   const volumeRef = useRef(volume);
@@ -200,10 +214,14 @@ export function ViewerTransport({
   /** Last whole second written to aria-valuenow, deduping per-frame writes. */
   const ariaSecondRef = useRef(-1);
   const reducedMotion = useReducedMotion();
-  const [playing, setPlaying] = useState(false);
-  const [blocked, setBlocked] = useState(false);
-  const [error, setError] = useState(false);
-  const [buffering, setBuffering] = useState(false);
+  const [playback, setPlayback] = useState<ViewerBufferState>({
+    phase: null,
+    canPlayNow: false,
+    wantsPlaying: false,
+    blocked: false,
+    error: false,
+  });
+  const { wantsPlaying: playing, blocked, error } = playback;
   const [controlsVisible, setControlsVisible] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
   const [elementMuted, setElementMuted] = useState(video?.muted ?? muted);
@@ -229,13 +247,12 @@ export function ViewerTransport({
   const toggleChrome = useCallback(() => {
     scrubbingRef.current = false;
     setScrubbing(false);
+    bufferingControllerRef.current?.endSeek();
     setControlsVisible((current) => !current);
   }, []);
 
   const markBlocked = useCallback(() => {
-    setBuffering(false);
-    setBlocked(true);
-    setPlaying(false);
+    bufferingControllerRef.current?.blocked();
   }, []);
   if (!soundCustodyRef.current) {
     soundCustodyRef.current = createSoundCustody({
@@ -245,22 +262,12 @@ export function ViewerTransport({
   }
   const soundCustody = soundCustodyRef.current;
 
-  /**
-   * Start playback the way phone feeds do: when the browser rejects unmuted
-   * playback (iOS Safari outside a user gesture), retry muted so the work
-   * keeps moving, while preserving the reader's sound intent until an
-   * explicit playback or unmute action can restore it.
-   */
-  const attemptPlay = soundCustody.attemptPlay;
-
-  const repaySoundIou = soundCustody.repayIou;
+  const playNow = useCallback(() => bufferingControllerRef.current?.playNow(), []);
 
   // Reset per-work presentation state whenever the active work changes.
   useEffect(() => {
-    setBlocked(false);
+    setPlayback({ phase: null, canPlayNow: false, wantsPlaying: false, blocked: false, error: false });
     setAudioPresence(knownAudio === true ? "present" : "unknown");
-    setError(false);
-    setBuffering(false);
     setScrubbing(false);
     scrubbingRef.current = false;
     // A new work re-asks for the shared sound preference in the binding
@@ -285,7 +292,11 @@ export function ViewerTransport({
   // adopt whatever state it arrived in (a drag-committed neighbor is often
   // already playing; a neighbor that failed carries its error).
   useEffect(() => {
-    if (!video || !moving) return;
+    // The active item can commit before the track reports its next pooled node.
+    if (!video || !moving || (video.dataset.slug && video.dataset.slug !== replication.slug)) {
+      setPlayback({ phase: null, canPlayNow: false, wantsPlaying: false, blocked: false, error: false });
+      return;
+    }
     const syncLoop = () => {
       video.loop = shouldLoopReplicationMotion(
         replication.format,
@@ -293,75 +304,43 @@ export function ViewerTransport({
       );
     };
     const syncMuted = () => setElementMuted(video.muted);
-    const onPlay = () => {
-      setPlaying(true);
-      syncMuted();
-      setBlocked(false);
-    };
-    const onPause = () => {
-      setBuffering(false);
-      setPlaying(false);
-    };
-    const onWaiting = () => {
-      if (
-        video.paused ||
-        video.ended ||
-        video.error ||
-        video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
-      ) {
-        return;
-      }
-      setBuffering(true);
-    };
-    const onSettled = () => setBuffering(false);
-    const onError = () => {
-      setBuffering(false);
-      setError(true);
-      setPlaying(false);
-    };
-    const onEnded = () => {
-      setBuffering(false);
-      setPlaying(false);
-    };
     const onLoadedMetadata = () => {
       syncLoop();
       soundCustody.setVolume(video);
       settleAudioPresence(video);
     };
     const onTimeUpdate = () => settleAudioPresence(video);
-    video.addEventListener("play", onPlay);
-    video.addEventListener("playing", onSettled);
-    video.addEventListener("canplay", onSettled);
-    video.addEventListener("pause", onPause);
-    video.addEventListener("waiting", onWaiting);
-    video.addEventListener("stalled", onWaiting);
-    video.addEventListener("error", onError);
-    video.addEventListener("ended", onEnded);
+    video.addEventListener("play", syncMuted);
+    video.addEventListener("playing", syncMuted);
     video.addEventListener("loadedmetadata", onLoadedMetadata);
     video.addEventListener("timeupdate", onTimeUpdate);
     video.addEventListener("volumechange", syncMuted);
     syncMuted();
     // Adopt the element's current condition on bind.
     syncLoop();
-    setPlaying(!video.paused && !video.ended);
-    setError(Boolean(video.error));
+    soundCustody.applyPreference(video, mutedRef.current);
+    const controller = createViewerBuffering({
+      video,
+      sound: soundCustody,
+      autoplay: autoplayAllowed,
+      onChange: setPlayback,
+      onHealth: (healthy) => healthCallbackRef.current?.(replication.slug, healthy),
+    });
+    bufferingControllerRef.current = controller;
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
       settleAudioPresence(video);
     }
     return () => {
-      video.removeEventListener("play", onPlay);
-      video.removeEventListener("playing", onSettled);
-      video.removeEventListener("canplay", onSettled);
-      video.removeEventListener("pause", onPause);
-      video.removeEventListener("waiting", onWaiting);
-      video.removeEventListener("stalled", onWaiting);
-      video.removeEventListener("error", onError);
-      video.removeEventListener("ended", onEnded);
+      controller.dispose();
+      if (bufferingControllerRef.current === controller) bufferingControllerRef.current = null;
+      video.removeEventListener("play", syncMuted);
+      video.removeEventListener("playing", syncMuted);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       video.removeEventListener("timeupdate", onTimeUpdate);
       video.removeEventListener("volumechange", syncMuted);
     };
   }, [
+    autoplayAllowed,
     moving,
     replication.duration,
     replication.format,
@@ -369,20 +348,6 @@ export function ViewerTransport({
     settleAudioPresence,
     video,
   ]);
-
-  // Every work re-asks for the reader's sound preference. An element the
-  // reader has already unmuted inside a gesture keeps that blessing across
-  // src swaps, so it simply plays with sound; an unblessed one is refused
-  // and attemptPlay's muted fallback waits for explicit play or unmute.
-  useEffect(() => {
-    if (!video || !moving) return;
-    if (!autoplayAllowed) {
-      soundCustody.pause(video);
-      return;
-    }
-    soundCustody.applyPreference(video, mutedRef.current);
-    attemptPlay(video);
-  }, [attemptPlay, autoplayAllowed, moving, replication.slug, video]);
 
 
   useEffect(() => {
@@ -392,14 +357,8 @@ export function ViewerTransport({
   }, [muted, video, volume]);
 
   const togglePlayback = useCallback(() => {
-    if (!video) return;
-    if (video.paused || video.ended) {
-      repaySoundIou(video);
-      attemptPlay(video);
-    } else {
-      soundCustody.pause(video);
-    }
-  }, [attemptPlay, repaySoundIou, video]);
+    bufferingControllerRef.current?.togglePlayback();
+  }, []);
 
   /**
    * The mute button's whole gesture, shared with the keyboard shortcut: flip
@@ -412,14 +371,12 @@ export function ViewerTransport({
     if (video) {
       soundCustody.setMuted(video, next);
       setElementMuted(next);
-      if (!next && autoplayAllowed) {
-        attemptPlay(video);
-      }
+      if (!next) bufferingControllerRef.current?.resumeSound();
     } else {
       soundCustody.clearIou();
     }
     onMutedChange(next);
-  }, [attemptPlay, autoplayAllowed, onMutedChange, video]);
+  }, [onMutedChange, video]);
 
   const surfaceTap = toggleChrome;
 
@@ -466,6 +423,7 @@ export function ViewerTransport({
       if (!video || !slider) return;
       const duration = resolveSeekDuration(video);
       if (duration <= 0) return;
+      bufferingControllerRef.current?.beginSeek();
       const rect = slider.getBoundingClientRect();
       const ratio = seekRatioFromPointer(clientX, rect.left, rect.width);
       const target = ratio * duration;
@@ -482,6 +440,7 @@ export function ViewerTransport({
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    bufferingControllerRef.current?.endSeek();
   }, []);
 
   // The compact playback meter: per-frame direct-DOM writes keep the accent
@@ -528,10 +487,23 @@ export function ViewerTransport({
           ? `${formatPlaybackClock(video.currentTime)} / ${formatPlaybackClock(duration)}`
           : "";
       }
-      frame = requestAnimationFrame(tick);
+      if (!video.paused && document.visibilityState !== "hidden") {
+        frame = requestAnimationFrame(tick);
+      }
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    const update = () => {
+      cancelAnimationFrame(frame);
+      if (document.visibilityState !== "hidden") tick();
+    };
+    const meterEvents = ["play", "pause", "timeupdate", "progress", "seeked", "loadedmetadata"];
+    for (const name of meterEvents) video.addEventListener(name, update);
+    document.addEventListener("visibilitychange", update);
+    update();
+    return () => {
+      cancelAnimationFrame(frame);
+      for (const name of meterEvents) video.removeEventListener(name, update);
+      document.removeEventListener("visibilitychange", update);
+    };
   }, [
     ordinaryVideo,
     paintPlayhead,
@@ -564,12 +536,10 @@ export function ViewerTransport({
    * the click gesture, so a replay is blessed.
    */
   const retryLoad = useCallback(() => {
-    setError(false);
-    setBuffering(false);
     if (!video) return;
     reloadPooledElement(video);
-    if (autoplayAllowed) attemptPlay(video);
-  }, [attemptPlay, autoplayAllowed, video]);
+    bufferingControllerRef.current?.retry();
+  }, [video]);
 
   const showWorkNavigation = Boolean(onPrevious || onNext);
 
@@ -605,19 +575,12 @@ export function ViewerTransport({
         </div>
       ) : null}
 
-      {buffering && !error ? (
-        <div className="pointer-events-none absolute inset-x-3 top-16 z-20 flex justify-center">
-          <div className="theme-media-tile-title flex min-h-8 items-center justify-center rounded-full bg-black/65 px-2.5 py-2 backdrop-blur-sm">
-            <span
-              role="img"
-              aria-label="Buffering"
-              className="grid size-4 shrink-0 place-items-center"
-            >
-              <Icon icon="eos-icons:loading" className="size-4" />
-            </span>
-          </div>
-        </div>
-      ) : null}
+      <ViewerBufferingIndicator
+        phase={error ? null : playback.phase}
+        canPlayNow={playback.canPlayNow}
+        onPlayNow={playNow}
+        mediaKey={replication.slug}
+      />
 
       {ordinaryVideo && !error && moving ? (
         // The YouTube grammar: a hairline meter that is secretly a full
@@ -682,7 +645,9 @@ export function ViewerTransport({
               Math.max(video.currentTime + step, 0),
               duration,
             );
+            bufferingControllerRef.current?.beginSeek();
             seekPooledElement(video, next);
+            bufferingControllerRef.current?.endSeek();
             paintPlayhead(next / duration);
             showControls();
           }}
@@ -791,6 +756,7 @@ export function ViewerTransport({
                   }}
                   className={dockControlClassName}
                 >
+                  <RotatingIcon key={replication.slug} rotated={rotated}>
                     <Icon
                       icon={
                         playing
@@ -799,6 +765,7 @@ export function ViewerTransport({
                       }
                       className="size-6"
                     />
+                  </RotatingIcon>
                 </button>
                 {soundAvailable ? (
                   <>
@@ -811,6 +778,7 @@ export function ViewerTransport({
                       }}
                       className={dockControlClassName}
                     >
+                      <RotatingIcon key={replication.slug} rotated={rotated}>
                         <Icon
                           icon={
                             elementMuted
@@ -819,6 +787,7 @@ export function ViewerTransport({
                           }
                           className="size-6"
                         />
+                      </RotatingIcon>
                     </button>
                     <label
                       className="sr-only"
@@ -843,7 +812,7 @@ export function ViewerTransport({
                             nextMuted ? null : nextVolume,
                           );
                           setElementMuted(nextMuted);
-                          if (!nextMuted && autoplayAllowed) attemptPlay(video);
+                          if (!nextMuted) bufferingControllerRef.current?.resumeSound();
                         } else {
                           soundCustody.clearIou();
                         }
@@ -883,10 +852,12 @@ export function ViewerTransport({
                   !rotateMode && dockToggleOffClassName,
                 )}
               >
+                <RotatingIcon key={replication.slug} rotated={rotated}>
                   <Icon
                     icon="fluent:arrow-rotate-clockwise-20-filled"
                     className="size-6"
                   />
+                </RotatingIcon>
               </button>
             ) : null}
             {onInfo ? (
@@ -901,7 +872,9 @@ export function ViewerTransport({
                 }}
                 className={dockControlClassName}
               >
+                <RotatingIcon key={replication.slug} rotated={rotated}>
                   <Icon icon="fluent:info-20-filled" className="size-6" />
+                </RotatingIcon>
               </button>
             ) : null}
             {fullscreenSupported && onFullscreen ? (
@@ -914,10 +887,12 @@ export function ViewerTransport({
                 }}
                 className={dockControlClassName}
               >
+                <RotatingIcon key={replication.slug} rotated={rotated}>
                   <Icon
                     icon="fluent:full-screen-maximize-20-filled"
                     className="size-6"
                   />
+                </RotatingIcon>
               </button>
             ) : null}
           </div>

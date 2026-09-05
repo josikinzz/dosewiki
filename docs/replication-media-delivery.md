@@ -113,10 +113,33 @@ source. Tile previews remain gallery assets, not a viewer quality tier. GIFs
 use `motion_url` when their companion motion poster exists.
 
 Five persistent player slots cover the active work and the four navigation
-directions. Parked videos request metadata; only the approached neighbor warms
-on a swipe or navigation command. Committing either axis retains that player's
-source and playback position. Browser preload hints are advisory, not download
-limits, and reduced-motion/data-saving preferences disable automatic warming.
+directions. Parked videos use `preload="none"`. Only one likely next work is
+prepared after the active clip has a healthy runway and measured spare bandwidth,
+or its entire remaining duration is buffered. A gesture prioritizes the approached
+neighbor; its decoder stops after its first frame or one second. Committing either
+axis retains that player's source and playback position. Native preload hints are
+advisory, not download limits: health changes stop further speculation without
+clearing sources or forcibly aborting existing requests.
+
+Startup waits for about 1.75 seconds of contiguous buffered media at the playhead,
+adapting within 1.5 to 2.5 seconds from observed buffer growth and stalls. Recovery
+uses a larger 3 to 4 second runway. Targets clamp to the remaining finite duration,
+and already-buffered works start without an artificial delay. `canplay` alone
+cannot release the gate. A sustained wait offers **Play now** after five seconds;
+explicit pause cancels deferred playback, and seeking or changing works invalidates
+stale callbacks. Short native loops remain uninterrupted.
+
+The poster stays above undecoded video until a presented frame is available.
+Startup loading uses the canonical SVG mark and a bounded, subtle gradient wash;
+rebuffering keeps the last decoded frame and uses a smaller mark. The indicator
+waits 250 ms before appearing and fades out after presentation. Its animations
+use only transform and opacity. Hidden tabs suspend playback and loading animation;
+returning restores only prior playback intent. Reduced motion makes the indicator
+stationary and, like data saving, disables automatic playback and neighbor warming.
+
+Buffering cannot make a source sustainable on a connection slower than its bitrate.
+These controls do not transcode media, replace a playing source, or introduce an
+adaptive-streaming quality tier.
 
 Each pane resolves its own orientation before activation. The media stage
 occupies the full viewport with header, transport and numbered thumbnails
@@ -126,6 +149,11 @@ walk works; up/down walk groups and remember the last work in each group.
 
 Playback stays inline (`playsInline`) on iPhone. Optional fullscreen targets
 the dialog container, never the native video player.
+
+Playback icon artwork follows the video's rotation inside fixed 44px touch targets.
+Labels, timestamps, seek and volume controls, and navigation arrows remain upright.
+Work changes mount icons at their incoming angle; user rotation uses a short
+transform transition, disabled for reduced motion.
 
 ### The resolver is the integration surface
 

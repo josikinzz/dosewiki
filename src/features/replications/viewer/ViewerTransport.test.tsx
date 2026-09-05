@@ -54,6 +54,14 @@ const createVideo = (
 ): HTMLVideoElement => {
   const video = document.createElement("video");
   video.src = src;
+  Object.defineProperties(video, {
+    duration: { configurable: true, value: 30 },
+    readyState: { configurable: true, value: HTMLMediaElement.HAVE_CURRENT_DATA },
+    buffered: {
+      configurable: true,
+      value: { length: 1, start: () => 0, end: () => 30 },
+    },
+  });
   Object.defineProperty(video, "currentTime", {
     configurable: true,
     writable: true,
@@ -157,7 +165,7 @@ describe("ViewerTransport", () => {
     expect(
       screen.getByRole("region", { name: "Tracers loop media controls" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
     const volume = screen.getByRole("slider", { name: "Volume" });
     expect(volume).toHaveValue("0"); // muted presents as zero
@@ -170,7 +178,7 @@ describe("ViewerTransport", () => {
         {...baseProps(silent, { item: item({ has_audio: false }) })}
       />,
     );
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Unmute" }),
     ).not.toBeInTheDocument();
@@ -259,6 +267,7 @@ describe("ViewerTransport", () => {
 
     // Explicit playback and unmute own restoration without revealing chrome.
     (video.play as Mock).mockResolvedValue(undefined);
+    if (restoreAudio === "togglePlayback") act(() => handle!.togglePlayback());
     setPaused(video, true);
     act(() => handle![restoreAudio]());
     expect(video.muted).toBe(false);
@@ -491,7 +500,7 @@ describe("ViewerTransport", () => {
         />
       </div>,
     );
-    const play = screen.getByRole("button", { name: "Play" });
+    const play = screen.getByRole("button", { name: "Pause" });
     act(() => play.focus());
     expect(play).toHaveFocus();
     act(() => handle!.toggleChrome());
@@ -647,5 +656,50 @@ describe("ViewerTransport", () => {
     // Horizontal pointer math still owns the seek: x=50 of 100 → 15s of 30.
     fireEvent.pointerDown(slider, { clientX: 50, button: 0, pointerId: 1 });
     expect(video.currentTime).toBeCloseTo(15, 5);
+  });
+
+  it("keeps Play now available with ordinary chrome hidden and Pause cancels a pending startup", () => {
+    vi.useFakeTimers();
+    const video = createVideo();
+    Object.defineProperty(video, "buffered", {
+      configurable: true,
+      value: { length: 0, start: () => 0, end: () => 0 },
+    });
+    let handle: ViewerTransportHandle | null = null;
+    render(<ViewerTransport {...baseProps(video, {
+      onTransportHandle: (next) => { handle = next; },
+    })} />);
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+    act(() => handle!.toggleChrome());
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Play now" }));
+    expect(video.play).toHaveBeenCalledOnce();
+    act(() => handle!.togglePlayback());
+    fireEvent(video, new Event("progress"));
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(video.play).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: "Play now" })).not.toBeInTheDocument();
+  });
+
+  it("does not resume the previous pooled work while its replacement node is being reported", () => {
+    const previous = createVideo();
+    previous.dataset.slug = "tracers-loop";
+    const { rerender } = render(<ViewerTransport {...baseProps(previous)} />);
+    (previous.play as Mock).mockClear();
+    setPaused(previous, false);
+    const nextItem = item({ slug: "next-work", url: "https://cdn.test/next.mp4" });
+    rerender(<ViewerTransport {...baseProps(previous, { item: nextItem })} />);
+    fireEvent(previous, new Event("canplay"));
+    fireEvent(previous, new Event("progress"));
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(previous.pause).toHaveBeenCalledOnce();
+    expect(previous.play).not.toHaveBeenCalled();
+
+    const next = createVideo(nextItem.replication.url);
+    next.dataset.slug = "next-work";
+    rerender(<ViewerTransport {...baseProps(next, { item: nextItem })} />);
+    expect(next.play).toHaveBeenCalledOnce();
+    expect(previous.play).not.toHaveBeenCalled();
   });
 });

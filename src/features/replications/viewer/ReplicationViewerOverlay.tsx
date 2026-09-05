@@ -36,6 +36,7 @@ import {
 } from "./ViewerMediaTrack";
 import { ViewerThumbnailRail } from "./ViewerThumbnailRail";
 import { useStageFit } from "./useStageFit";
+import { slideMotionSource } from "./qualityLadder";
 import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { ReplicationViewerEditorGate } from "./editor/ReplicationViewerEditorGate";
@@ -159,6 +160,10 @@ export function ReplicationViewerOverlay({
   const [activeVideo, setActiveVideo] = useState<HTMLVideoElement | null>(
     null,
   );
+  const [bufferHealth, setBufferHealth] = useState<{
+    mediaKey: string;
+    healthy: boolean;
+  } | null>(null);
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -232,6 +237,23 @@ export function ReplicationViewerOverlay({
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
   const activeSlug = active ? active.replication.slug : null;
+  const activeSlugRef = useRef(activeSlug);
+  activeSlugRef.current = activeSlug;
+  const handleBufferHealthChange = useCallback(
+    (mediaKey: string, healthy: boolean) => {
+      if (mediaKey !== activeSlugRef.current) return;
+      setBufferHealth((previous) =>
+        previous?.mediaKey === mediaKey && previous.healthy === healthy
+          ? previous
+          : { mediaKey, healthy },
+      );
+    },
+    [],
+  );
+  const allowNeighborPreload =
+    active !== null &&
+    (slideMotionSource(active.replication) === null ||
+      (bufferHealth?.mediaKey === activeSlug && bufferHealth.healthy));
 
   const { canRotate, rotated, probeAspect } =
     useStageFit({
@@ -1036,6 +1058,7 @@ export function ReplicationViewerOverlay({
                       : null
                   }
                   autoplayAllowed
+                  allowNeighborPreload={allowNeighborPreload}
                   rotateMode={rotateMode}
                   onActiveVideoChange={setActiveVideo}
                   onNavigateWork={commitWork}
@@ -1055,6 +1078,8 @@ export function ReplicationViewerOverlay({
                 onPrevious={previousWork ? () => slideWork(-1) : undefined}
                 onNext={nextWork ? () => slideWork(1) : undefined}
                 rotateMode={rotateMode}
+                rotated={rotated}
+                onBufferHealthChange={handleBufferHealthChange}
                 onRotateModeChange={handleRotateModeChange}
                 canRotate={canRotate}
                 onTransportVisibleChange={setChromeVisible}

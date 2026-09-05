@@ -87,21 +87,27 @@ export function createSoundCustody({
   onBlocked,
 }: SoundCustodyOptions): SoundCustody {
   let soundIou = false;
+  let playGeneration = 0;
   const currentVolume = () =>
     typeof volume === "function" ? volume() : volume;
 
   const attemptPlay = (element: HTMLVideoElement) => {
+    const generation = ++playGeneration;
     const attemptSrc = element.src;
     const attempt = element.play();
     if (!attempt) return;
     void attempt.catch((reason: unknown) => {
-      if (!element.isConnected || element.src !== attemptSrc) return;
+      if (generation !== playGeneration || !element.isConnected || element.src !== attemptSrc) return;
       if (reason instanceof DOMException && reason.name === "AbortError") return;
       if (!element.muted) {
         element.muted = true;
         soundIou = true;
         const retry = element.play();
-        if (retry) void retry.catch(onBlocked);
+        if (retry) void retry.catch((retryReason: unknown) => {
+          if (generation !== playGeneration || !element.isConnected || element.src !== attemptSrc) return;
+          if (retryReason instanceof DOMException && retryReason.name === "AbortError") return;
+          onBlocked();
+        });
         return;
       }
       onBlocked();
@@ -135,6 +141,7 @@ export function createSoundCustody({
       element.volume = currentVolume();
     },
     pause(element) {
+      playGeneration += 1;
       if (!element.paused) element.pause();
     },
     clearIou() {

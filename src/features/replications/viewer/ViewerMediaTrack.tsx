@@ -36,6 +36,7 @@ const DRAG_AXIS_LOCK_PX = 8;
 const SCREEN_EDGE_GUARD_PX = 24;
 const SLIDE_TRANSITION = "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
 const COMMIT_FALLBACK_MS = 320;
+const NEIGHBOR_WARMUP_MS = 1000;
 const INTERACTIVE_SELECTOR =
   "button, a, input, select, textarea, [role='slider']";
 const POOL_SLOTS = [0, 1, 2, 3, 4] as const;
@@ -73,6 +74,7 @@ export interface ViewerMediaTrackProps {
   nextGroupItem: ReplicationViewerMediaItem | null;
   positionKey: string;
   autoplayAllowed: boolean;
+  allowNeighborPreload?: boolean;
   rotateMode: boolean;
   onActiveVideoChange: (video: HTMLVideoElement | null) => void;
   onNavigateWork: (direction: Direction) => void;
@@ -95,6 +97,8 @@ interface ViewerSlideProps {
   pane: number;
   rotateMode: boolean;
   saveData: boolean;
+  preparation: "none" | "preload" | "gesture";
+  reducedMotion: boolean;
   registerVideo: (element: HTMLVideoElement | null) => void;
   onProbeAspect: (mediaWidth: number, mediaHeight: number) => void;
   onSurfaceTap: () => void;
@@ -107,6 +111,8 @@ function ViewerSlide({
   pane,
   rotateMode,
   saveData,
+  preparation,
+  reducedMotion,
   registerVideo,
   onProbeAspect,
   onSurfaceTap,
@@ -114,17 +120,22 @@ function ViewerSlide({
 }: ViewerSlideProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [paintedSource, setPaintedSource] = useState<string | null>(null);
+  const [posterAspect, setPosterAspect] = useState<{ source: string; width: number; height: number } | null>(null);
   const active = pane === CENTER;
+  const activeRef = useRef(active);
+  activeRef.current = active;
   const replication = item?.replication ?? null;
   const source = replication ? slideMotionSource(replication) : null;
   const poster = replication ? slidePosterSource(replication) : null;
   const gifLike = replication?.format.toLowerCase() === "gif";
+  const paintKey = source ? `${replication?.slug}|${source}` : null;
+  const knownPosterAspect = posterAspect?.source === poster ? posterAspect : null;
   const { canRotate, rotated, aspectSettled, mediaAspect, probeAspect } = useStageFit({
     mediaKey: replication ? `${replication.slug}|${replication.url}` : "",
     type: replication?.type ?? "image",
     rotateMode,
-    width: replication?.width,
-    height: replication?.height,
+    width: replication?.width ?? knownPosterAspect?.width,
+    height: replication?.height ?? knownPosterAspect?.height,
   });
   const orientationPending = canRotate && rotateMode && !aspectSettled;
   const mediaGeometryClassName = cn(
@@ -159,9 +170,9 @@ function ViewerSlide({
       if (element.getAttribute("src")) clearPooledSource(element);
       return;
     }
+    element.dataset.slug = replication?.slug;
     if (element.getAttribute("src") === source) return;
     silencePooledElement(element);
-    element.dataset.slug = replication?.slug;
     assignPooledSource(element, source, {
       time: 0,
       resume: false,
@@ -169,13 +180,15 @@ function ViewerSlide({
     });
   }, [source, replication?.slug, gifLike, poster]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setPaintedSource(null);
     const element = videoRef.current;
-    if (!element || !source) return;
+    if (!element || !source || !paintKey) return;
     let cancelled = false;
     const markPainted = () => {
-      if (!cancelled) setPaintedSource(source);
+      if (cancelled) return;
+      setPaintedSource(paintKey);
+      if (!activeRef.current) demotePooledElement(element);
     };
     if (typeof element.requestVideoFrameCallback === "function") {
       const handle = element.requestVideoFrameCallback(markPainted);
@@ -184,20 +197,54 @@ function ViewerSlide({
         element.cancelVideoFrameCallback(handle);
       };
     }
-    if (element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) markPainted();
-    element.addEventListener("canplay", markPainted);
+    // Metadata says nothing about a presented frame. Without rVFC, require
+    // current data and a paint opportunity before uncovering the video.
+    let frame = 0;
+    const present = () => {
+      if (frame || element.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          if (element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) markPainted();
+        });
+      });
+    };
+    present();
+    element.addEventListener("loadeddata", present);
+    element.addEventListener("playing", present);
     return () => {
       cancelled = true;
-      element.removeEventListener("canplay", markPainted);
+      cancelAnimationFrame(frame);
+      element.removeEventListener("loadeddata", present);
+      element.removeEventListener("playing", present);
     };
-  }, [source]);
+  }, [source, paintKey]);
 
   useEffect(() => {
     const element = videoRef.current;
     if (element && !active) silencePooledElement(element);
   }, [active, source]);
 
-  // Every parked video probes at metadata time, before it can enter the stage.
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element || active || !source) return;
+    if (preparation !== "gesture" || paintedSource === paintKey) {
+      demotePooledElement(element);
+      return;
+    }
+    // A gesture may decode one frame, never leave an offscreen loop running.
+    element.loop = false;
+    warmPooledElement(element);
+    const timer = window.setTimeout(() => {
+      if (!activeRef.current) demotePooledElement(element);
+    }, NEIGHBOR_WARMUP_MS);
+    return () => {
+      window.clearTimeout(timer);
+      if (!activeRef.current) demotePooledElement(element);
+    };
+  }, [active, source, preparation, paintedSource, paintKey]);
+
+  // Metadata from the active or selected neighbor refines catalog/poster geometry.
   useEffect(() => {
     const element = videoRef.current;
     if (!element || !source) return;
@@ -207,7 +254,7 @@ function ViewerSlide({
     return () => element.removeEventListener("loadedmetadata", probe);
   }, [source, probeAspect]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (active && aspectSettled) onProbeAspect(mediaAspect, 1);
   }, [active, aspectSettled, mediaAspect, onProbeAspect, replication?.slug]);
 
@@ -227,27 +274,42 @@ function ViewerSlide({
       className={cn("absolute inset-0 overflow-hidden bg-black", !active && "pointer-events-none")}
       style={{ transform: `translate(${x * 100}%, ${y * 100}%)`, containerType: "size" }}
     >
-      {source && poster && paintedSource !== source ? (
-        <div aria-hidden className={cn("absolute", mediaGeometryClassName)}>
+      {/* Non-verbal artworks: creator and rights context live in the viewer. */}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <video
+        ref={attachVideo}
+        playsInline
+        preload={active ? (saveData ? "metadata" : "auto") : preparation === "none" ? "none" : "auto"}
+        className={cn("absolute object-contain", mediaGeometryClassName, !source && "hidden")}
+      />
+      {source && poster ? (
+        <div
+          key={`${paintKey}|${poster}`}
+          aria-hidden
+          className={cn("pointer-events-none absolute", mediaGeometryClassName)}
+          style={{
+            opacity: orientationPending || paintedSource === paintKey ? 0 : 1,
+            transition: reducedMotion ? "none" : "opacity 140ms ease-out",
+          }}
+          onLoadCapture={(event) => {
+            const image = event.target;
+            if (image instanceof HTMLImageElement && image.naturalWidth > 0 && image.naturalHeight > 0) {
+              setPosterAspect({ source: poster, width: image.naturalWidth, height: image.naturalHeight });
+            }
+          }}
+        >
           <AppImage
             src={poster}
             alt=""
             width={width}
             height={height}
             priority={active}
+            loading="eager"
             unoptimized
             className="h-full w-full object-contain"
           />
         </div>
       ) : null}
-      {/* Non-verbal artworks: creator and rights context live in the viewer. */}
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video
-        ref={attachVideo}
-        playsInline
-        preload={active && !saveData ? "auto" : "metadata"}
-        className={cn("absolute object-contain", mediaGeometryClassName, !source && "hidden")}
-      />
       {!source && stillSource && replication ? (
         <div className={cn("absolute", mediaGeometryClassName)}>
           <ReplicationStillStage
@@ -275,6 +337,7 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
     nextGroupItem,
     positionKey,
     autoplayAllowed,
+    allowNeighborPreload = false,
     rotateMode,
     onActiveVideoChange,
     onNavigateWork,
@@ -289,17 +352,33 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
     const suppressTapRef = useRef(false);
     const commitRef = useRef<{ cancel: () => void } | null>(null);
     const reducedMotion = usePrefersReducedMotion();
-    const saveData =
+    const [saveData, setSaveData] = useState(() =>
       typeof navigator !== "undefined" &&
-      (navigator as Navigator & { connection?: { saveData?: boolean } })
-        .connection?.saveData === true;
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true,
+    );
+    const [visible, setVisible] = useState(() => typeof document === "undefined" || !document.hidden);
+    useEffect(() => {
+      const connection = (navigator as Navigator & {
+        connection?: EventTarget & { saveData?: boolean };
+      }).connection;
+      const updateConnection = () => setSaveData(connection?.saveData === true);
+      const updateVisibility = () => setVisible(!document.hidden);
+      connection?.addEventListener?.("change", updateConnection);
+      document.addEventListener("visibilitychange", updateVisibility);
+      return () => {
+        connection?.removeEventListener?.("change", updateConnection);
+        document.removeEventListener("visibilitychange", updateVisibility);
+      };
+    }, []);
     const motionAllowed = autoplayAllowed && !saveData && !reducedMotion && !prefersReducedMotion();
+    const canPrepareNeighbor = allowNeighborPreload && motionAllowed && visible;
+    const [approachedPane, setApproachedPane] = useState<number | null>(null);
+    const preparedPane = canPrepareNeighbor ? approachedPane ?? (nextItem ? 2 : null) : null;
     const committedPositionRef = useRef<string | null>(null);
     const [slotByPane, setSlotByPane] = useState<SlotByPane>([0, 1, 2, 3, 4]);
     const slotByPaneRef = useRef(slotByPane);
     slotByPaneRef.current = slotByPane;
     const slotVideosRef = useRef<(HTMLVideoElement | null)[]>([null, null, null, null, null]);
-    const warmedSlotRef = useRef<number | null>(null);
     const slotRegistrars = useMemo(() => POOL_SLOTS.map(
       (slot) => (element: HTMLVideoElement | null) => {
         slotVideosRef.current[slot] = element;
@@ -313,7 +392,7 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
       slotVideosRef.current.forEach((element, slot) => {
         if (element && slot !== keptSlot) demotePooledElement(element);
       });
-      warmedSlotRef.current = null;
+      setApproachedPane(null);
     }, []);
 
     const activeIsMotion = slideMotionSource(activeItem.replication) !== null;
@@ -338,19 +417,8 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
     useEffect(() => () => commitRef.current?.cancel(), []);
 
     const warmNeighbor = useCallback((axis: Axis, direction: Direction) => {
-      if (!motionAllowed) return;
-      const pane = neighborPane(axis, direction);
-      const slot = itemsByPaneRef.current[pane] ? slotByPaneRef.current[pane] : null;
-      if (warmedSlotRef.current === slot) return;
-      if (warmedSlotRef.current !== null) {
-        const previous = slotVideosRef.current[warmedSlotRef.current];
-        if (previous) demotePooledElement(previous);
-      }
-      warmedSlotRef.current = slot;
-      if (slot === null) return;
-      const element = slotVideosRef.current[slot];
-      if (element?.getAttribute("src") && element.paused) warmPooledElement(element);
-    }, [motionAllowed]);
+      setApproachedPane(neighborPane(axis, direction));
+    }, []);
 
     const commitNavigation = useCallback((axis: Axis, direction: Direction) => {
       committedPositionRef.current = positionKey;
@@ -505,6 +573,8 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
                 pane={pane}
                 rotateMode={rotateMode}
                 saveData={!motionAllowed}
+                preparation={pane === preparedPane ? approachedPane === null ? "preload" : "gesture" : "none"}
+                reducedMotion={reducedMotion}
                 registerVideo={slotRegistrars[slot]}
                 onProbeAspect={onProbeAspect}
                 onSurfaceTap={onSurfaceTap}
