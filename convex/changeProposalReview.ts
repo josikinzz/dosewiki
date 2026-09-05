@@ -15,6 +15,7 @@ import {
   type ProposalSnapshotEntry,
 } from "./lib/changeProposalApply";
 import { deriveProposalTargets, hashProposalTarget } from "./lib/changeProposalTargets";
+import { proposalChangelogArticles, type ProposalArticleRow } from "../lib/proposals/proposalChangelogStamp";
 import { buildProposalDiff } from "./lib/changeProposalDiff";
 
 /**
@@ -59,6 +60,27 @@ function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus)
       message: `A ${proposal.status.replace("_", " ")} proposal cannot become ${to.replace("_", " ")}.`,
     });
   }
+}
+
+/**
+ * The article rows the proposal's targets name, as production stands right
+ * now. Read after the write so an applied entry stamps the id and slug the
+ * reader will follow, exactly like the direct save's history row.
+ */
+async function readArticleRows(
+  ctx: MutationCtx,
+  targets: Doc<"changeProposals">["targets"],
+): Promise<ProposalArticleRow[]> {
+  const rows: ProposalArticleRow[] = [];
+  for (const target of targets) {
+    if (target.kind !== "article") continue;
+    const row = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", target.key))
+      .first();
+    rows.push({ slug: target.key, id: row?.id ?? null, title: row?.title ?? null });
+  }
+  return rows;
 }
 
 export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs) {
@@ -124,7 +146,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     message: `${proposal.summary} (proposed by ${proposal.proposedBy}, approved by ${actor.email})`,
     markdown: truncateDiffMarkdown(buildProposalDiff(payload, snapshotBefore)),
     submittedBy: deriveSubmittedBy(proposal.proposedBy),
-    articles: payload.changelog?.articles ?? [],
+    articles: proposalChangelogArticles(payload.changelog?.articles, await readArticleRows(ctx, proposal.targets)),
   });
 
   await ctx.db.patch(proposal._id, {
@@ -226,7 +248,7 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
     message: `Reverted proposal ${proposal._id}`,
     markdown: `Reverted "${proposal.summary}" (proposed by ${proposal.proposedBy}, applied by ${proposal.reviewedBy ?? "unknown"}, reverted by ${actor.email}).`,
     submittedBy: deriveSubmittedBy(actor.email),
-    articles: payload.changelog?.articles ?? [],
+    articles: proposalChangelogArticles(payload.changelog?.articles, await readArticleRows(ctx, proposal.targets)),
   });
 
   await ctx.db.patch(proposal._id, {

@@ -36,13 +36,8 @@ export interface VCodeHeading {
 export function createVCodeHeadingIdAssigner(
   reservedIds?: Iterable<string>,
 ): (text: string) => string | undefined {
-  const used = new Map<string, number>();
-
-  if (reservedIds) {
-    for (const id of reservedIds) {
-      used.set(id, (used.get(id) ?? 0) + 1);
-    }
-  }
+  const used = new Set(reservedIds);
+  const nextSuffix = new Map<string, number>();
 
   return (text) => {
     const base = slugify(text);
@@ -51,10 +46,15 @@ export function createVCodeHeadingIdAssigner(
       return undefined;
     }
 
-    const seen = used.get(base) ?? 0;
-    used.set(base, seen + 1);
-
-    return seen === 0 ? base : `${base}-${seen + 1}`;
+    let suffix = nextSuffix.get(base) ?? 1;
+    let id = suffix === 1 ? base : `${base}-${suffix}`;
+    while (used.has(id)) {
+      suffix += 1;
+      id = `${base}-${suffix}`;
+    }
+    used.add(id);
+    nextSuffix.set(base, suffix + 1);
+    return id;
   };
 }
 
@@ -140,13 +140,19 @@ const MARKDOWN_FENCE_PATTERN = /^(?:```|~~~)/;
  * title produce the same anchor, and a repeated title takes the same `-2`
  * suffix on both paths. Fenced code is skipped, because `# comment` inside a
  * code block renders as code, not as a heading.
+ *
+ * `assignId` lets a caller that renders the body in pieces, each piece with
+ * its own renderer, thread one assigner through every piece so the ids here
+ * still match the ids those renderers emit.
  */
-export function extractMarkdownHeadings(markdown: string | undefined): VCodeHeading[] {
+export function extractMarkdownHeadings(
+  markdown: string | undefined,
+  assignId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
+): VCodeHeading[] {
   if (!markdown) {
     return [];
   }
 
-  const assignId = createVCodeHeadingIdAssigner();
   const headings: VCodeHeading[] = [];
   let inFence = false;
 
@@ -182,15 +188,18 @@ export function extractMarkdownHeadings(markdown: string | undefined): VCodeHead
 /**
  * Every heading a VCode body renders, in document order, with the anchor id
  * `VCodeRenderer` emits for it. Raw string bodies are parsed first, so an
- * article that only carries `body_raw` still yields its headings.
+ * article that only carries `body_raw` still yields its headings. `assignId`
+ * is shared across pieces the same way as in {@link extractMarkdownHeadings}.
  */
-export function extractVCodeHeadings(content: VCodeContent | undefined): VCodeHeading[] {
+export function extractVCodeHeadings(
+  content: VCodeContent | undefined,
+  assignId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
+): VCodeHeading[] {
   if (content == null) {
     return [];
   }
 
   const normalized = normalizeVCodeContent(content, undefined) ?? content;
-  const assignId = createVCodeHeadingIdAssigner();
   const headings: VCodeHeading[] = [];
 
   const push = (level: number, text: string) => {

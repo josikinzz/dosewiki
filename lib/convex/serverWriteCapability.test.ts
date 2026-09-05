@@ -182,6 +182,11 @@ describe("server Convex write capability", () => {
     const setField = makeFunctionReference<"mutation", { apiKey: string; actorEmail?: string; slug: string }, unknown>(
       "substanceIndex:setArticleField",
     );
+    const submitTripReport = makeFunctionReference<
+      "mutation",
+      { apiKey: string; submission: { id: string } },
+      unknown
+    >("tripReportSubmissions:create");
     const syncAction = makeFunctionReference<"action", { apiKey: string; actorEmail?: string }, unknown>(
       "replications:sync",
     );
@@ -206,6 +211,20 @@ describe("server Convex write capability", () => {
         client.mutation(setField, { apiKey: "admin-key", actorEmail: "   ", slug: "lsd" }),
       ).rejects.toThrow("Server Convex write without actorEmail: substanceIndex:setArticleField");
       expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+    it("permits only allowlisted public intake mutations to run as the server", async () => {
+      const client = await readyClient();
+      const args = { apiKey: "admin-key", submission: { id: "submission-1" } };
+
+      await expect(client.mutationAsService(submitTripReport, args)).resolves.toEqual({ updated: 1 });
+      await expect(
+        client.mutationAsService(setField, { apiKey: "admin-key", slug: "lsd" }),
+      ).rejects.toThrow(
+        "Server Convex service mutation is not allowlisted: substanceIndex:setArticleField",
+      );
+
+      expect(mocks.mutation).toHaveBeenCalledTimes(1);
+      expect(mocks.mutation).toHaveBeenCalledWith(submitTripReport, args, undefined);
     });
 
     it("passes a mutation that names its actor through with args and options intact", async () => {

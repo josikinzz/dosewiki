@@ -63,7 +63,7 @@ export function IndexLayoutBoard({
   emptyMessage,
   tray,
 }: IndexLayoutBoardProps) {
-  const { count: columnCount, gate } = useResponsiveColumnCount();
+  const { count: columnCount, gate, ref: panelRef } = useResponsiveColumnCount();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -130,7 +130,7 @@ export function IndexLayoutBoard({
       {columns.length === 0 ? (
         <p className="theme-text-muted px-4 py-10 text-center text-sm">{emptyMessage}</p>
       ) : (
-        <IndexPanelGrid columns={columns.length} gate={gate}>
+        <IndexPanelGrid ref={panelRef} columns={columns.length} gate={gate}>
           {columns.map((stack, columnIndex) => (
             <div key={columnIndex} className={INDEX_PANEL_STACK_CLASS_NAME}>
               {stack.map((panel) => (

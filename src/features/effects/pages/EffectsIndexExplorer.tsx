@@ -8,7 +8,10 @@ import {
   useState,
 } from "react";
 import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/common/IndexPanelLayout";
+import { proseLinkClassName } from "@/components/common/ProseLink";
+import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
+import { PublicContentSection } from "@/components/layout/PublicContentPrimitives";
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
@@ -24,6 +27,7 @@ import {
   type ParentCategoryConfig,
   type TabId,
 } from "./effectsIndexConfig";
+import { LIBRARY_PANELS, type LibraryPanel } from "./libraryConfig";
 import {
   EFFECT_INDEX_DEFAULT_VIEW,
   EFFECT_INDEX_LEGACY_COVER_ID,
@@ -67,6 +71,51 @@ function matchesTags(effect: EffectWithLowerTags, tags: string[]) {
   return tags.every((tag) => effect.lowerTags.has(tag.toLowerCase()));
 }
 
+/**
+ * One Library panel as an open section of hairline rows, the same material the
+ * articles index uses, so the tab reads as a table of contents for the archive
+ * rather than another grid of category cards.
+ */
+function LibraryPanelSection({ panel }: { panel: LibraryPanel }) {
+  return (
+    <PublicContentSection heading={panel.title} icon={panel.icon}>
+      <p className="theme-text-muted mt-3 max-w-2xl text-sm leading-6">{panel.blurb}</p>
+      <ul className="mt-5">
+        {panel.items.map((item) => (
+          <li key={item.href} className="theme-index-row">
+            <SmartLink
+              href={item.href}
+              className="theme-index-row-link group flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl px-3 py-2.5"
+            >
+              <span className="theme-accent-heading shrink-0 text-[0.9375rem] font-medium transition group-hover:opacity-90">
+                {item.title}
+              </span>
+              {item.description ? (
+                <span className="theme-text-muted min-w-0 flex-1 truncate text-xs leading-5">
+                  {item.description}
+                </span>
+              ) : null}
+              {item.meta ? (
+                <span className="theme-text-faint shrink-0 text-xs leading-5">{item.meta}</span>
+              ) : null}
+            </SmartLink>
+          </li>
+        ))}
+      </ul>
+      {panel.footerLinks?.length ? (
+        <p className="theme-text-muted mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 px-3 text-xs leading-5">
+          <span>See also</span>
+          {panel.footerLinks.map((link) => (
+            <SmartLink key={link.href} href={link.href} className={proseLinkClassName}>
+              {link.label}
+            </SmartLink>
+          ))}
+        </p>
+      ) : null}
+    </PublicContentSection>
+  );
+}
+
 
 export function EffectsIndexExplorer({
   effects,
@@ -98,7 +147,7 @@ export function EffectsIndexExplorer({
     redirect: redirectLegacyHash,
   });
 
-  const { count: columnCount, gate: columnGate } = useResponsiveColumnCount();
+  const { count: columnCount, gate: columnGate, ref: panelRef } = useResponsiveColumnCount();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -408,7 +457,7 @@ export function EffectsIndexExplorer({
           // offset from the tab strip — the same one the Substance Index
           // panels use — instead of hugging the pills.
           <div className="mt-6 sm:mt-10">
-            <IndexPanelGrid columns={nonEmptyColumns.length} gate={columnGate}>
+            <IndexPanelGrid ref={panelRef} columns={nonEmptyColumns.length} gate={columnGate}>
               {nonEmptyColumns.map((column) => (
                 <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
                   {column.categories.map((category) => (
@@ -437,7 +486,17 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {activeTab !== "all" && (() => {
+      {activeTab === "library" && (
+        // Static curation, so no column measurement or hydration gate: two
+        // open sections side by side from lg, one column below.
+        <div className="mx-auto grid w-full max-w-5xl gap-x-10 gap-y-8 px-4 lg:grid-cols-2">
+          {LIBRARY_PANELS.map((panel) => (
+            <LibraryPanelSection key={panel.id} panel={panel} />
+          ))}
+        </div>
+      )}
+
+      {activeTab !== "all" && activeTab !== "library" && (() => {
         const nonEmptyColumns = Array.from({ length: columnCount })
           .map((_, index) => ({ index, categories: flatCategoriesByColumn.get(index) ?? [] }))
           .filter((column) => column.categories.length > 0);
@@ -447,7 +506,7 @@ export function EffectsIndexExplorer({
         }
 
         return (
-          <IndexPanelGrid columns={nonEmptyColumns.length} gate={columnGate}>
+          <IndexPanelGrid ref={panelRef} columns={nonEmptyColumns.length} gate={columnGate}>
             {nonEmptyColumns.map((column) => (
               <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
                 {column.categories.map((category) => (
@@ -473,7 +532,9 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {filteredEffects.length === 0 && (
+      {/* The Library is curated config, not a filtered effect list, so an
+          empty corpus must not paint "No effects found" under its panels. */}
+      {activeTab !== "library" && filteredEffects.length === 0 && (
         <StateCard
           badge={emptyState?.badge ?? "No effects"}
           badgeVariant="secondary"

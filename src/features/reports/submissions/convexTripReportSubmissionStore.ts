@@ -15,6 +15,7 @@ import {
 
 type ConvexCallableClient = {
   mutation(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
+  mutationAsService(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   query(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
 };
 
@@ -186,7 +187,7 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
       now: this.options.now?.() ?? new Date(),
     });
 
-    const stored = await this.options.client.mutation(createSubmissionRef, {
+    const stored = await this.options.client.mutationAsService(createSubmissionRef, {
       apiKey: this.options.apiKey,
       submission: row,
     }) as TripReportSubmissionRow;

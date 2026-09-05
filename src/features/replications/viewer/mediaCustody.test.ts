@@ -177,13 +177,15 @@ describe("sound custody", () => {
     const { element, play } = video();
     document.body.append(element);
     element.muted = false;
-    const pending = Promise.withResolvers<void>();
-    play.mockReturnValueOnce(pending.promise);
+    let rejectPending!: (reason: unknown) => void;
+    play.mockReturnValueOnce(new Promise<void>((_resolve, reject) => {
+      rejectPending = reject;
+    }));
     const onBlocked = vi.fn();
     const custody = createSoundCustody({ volume: 1, onBlocked });
     custody.attemptPlay(element);
     custody.pause(element);
-    pending.reject(new DOMException("denied", "NotAllowedError"));
+    rejectPending(new DOMException("denied", "NotAllowedError"));
     await settlePromises();
     expect(play).toHaveBeenCalledOnce();
     expect(element.muted).toBe(false);
@@ -195,16 +197,18 @@ describe("sound custody", () => {
     const next = video();
     document.body.append(element, next.element);
     element.muted = false;
-    const fallback = Promise.withResolvers<void>();
+    let rejectFallback!: (reason: unknown) => void;
     play.mockRejectedValueOnce(new Error("sound denied"))
-      .mockReturnValueOnce(fallback.promise);
+      .mockReturnValueOnce(new Promise<void>((_resolve, reject) => {
+        rejectFallback = reject;
+      }));
     const onBlocked = vi.fn();
     const custody = createSoundCustody({ volume: 1, onBlocked });
     custody.attemptPlay(element);
     await settlePromises();
     custody.pause(element);
     custody.attemptPlay(next.element);
-    fallback.reject(new Error("old fallback denied"));
+    rejectFallback(new Error("old fallback denied"));
     await settlePromises();
     expect(onBlocked).not.toHaveBeenCalled();
   });

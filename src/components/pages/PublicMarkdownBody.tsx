@@ -97,10 +97,13 @@ export const publicMarkdownComponents = {
  * anchor — including the `-2` suffix a repeated title takes.
  *
  * A fresh assigner per render keeps the numbering stable; the map is therefore
- * built per call rather than hoisted to module scope.
+ * built per call rather than hoisted to module scope. A page that renders one
+ * body as several pieces passes its own assigner instead, so the numbering
+ * runs across the pieces rather than restarting in each.
  */
-function createHeadingIdComponents() {
-  const assignHeadingId = createVCodeHeadingIdAssigner();
+function createHeadingIdComponents(
+  assignHeadingId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
+) {
   const idFor = (children: ReactNode) => assignHeadingId(flattenHeadingChildren(children));
 
   return {
@@ -123,18 +126,25 @@ function createHeadingIdComponents() {
  * `headingIds` mirrors `VCodeRenderer`'s prop of the same name: off by default,
  * because most callers (About copy, the archived blog) render prose with no
  * contents rail pointing into it, and an unnecessary DOM id can collide with a
- * surrounding section's.
+ * surrounding section's. `assignHeadingId` mirrors that renderer's prop too,
+ * and implies `headingIds`.
  */
 export function PublicMarkdownBody({
   content,
   className = "max-w-none",
   headingIds = false,
+  assignHeadingId,
 }: {
   content: string;
   className?: string;
   headingIds?: boolean;
+  assignHeadingId?: (text: string) => string | undefined;
 }) {
-  const components = headingIds ? createHeadingIdComponents() : publicMarkdownComponents;
+  const components = assignHeadingId
+    ? createHeadingIdComponents(assignHeadingId)
+    : headingIds
+      ? createHeadingIdComponents()
+      : publicMarkdownComponents;
 
   return (
     <div className={className}>

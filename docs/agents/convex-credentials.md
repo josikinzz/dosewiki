@@ -126,12 +126,14 @@ The admin key only proves the caller is our server or a workstation. It never
 decides the role. `requireRole(ctx, args, floor)` in `convex/lib/auth.ts` is
 the one write gate and resolves the actor from `actorEmail`:
 
-- Every server route write names an actor. The client returned by
-  `getServerConvexWriteCapability` (`ServerConvexWriteClient` in
-  `lib/convex/serverWriteCapability.ts`) refuses any mutation or action whose
-  args carry no non-empty `actorEmail`, before sending it. The role then comes
-  from that email's membership row, and a banned member is refused at every
-  floor.
+- Server routes acting for a signed-in user name `actorEmail`. The client
+  returned by `getServerConvexWriteCapability` (`ServerConvexWriteClient` in
+  `lib/convex/serverWriteCapability.ts`) rejects ordinary mutations and actions
+  without a non-empty actor before sending them. The role comes from that
+  email's membership row, and a banned member is refused at every floor.
+- Public feedback and trip-report intake have no authenticated user to name.
+  Their three create mutations use the client's allowlisted
+  `mutationAsService` path, then authenticate the server token inside Convex.
 - Scripts run headless as admin. A server-key call with no `actorEmail` is a
   workstation or Convex-environment script and resolves to admin.
 - No email pattern grants admin. The old `@local.dose.wiki` shortcut is gone;

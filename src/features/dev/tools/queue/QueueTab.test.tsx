@@ -133,7 +133,10 @@ describe("QueueTab", () => {
     expect(chemical).toHaveTextContent("chemical");
 
     expect(screen.getByText("ada@example.com")).toBeInTheDocument();
-    expect(document.querySelector("pre")).toHaveTextContent("+ Proposed summary");
+    expect(screen.getByText("Before")).toBeInTheDocument();
+    expect(screen.getByText("After")).toBeInTheDocument();
+    expect(screen.getByRole("deletion")).toHaveTextContent("Stored");
+    expect(screen.getByRole("insertion")).toHaveTextContent("Proposed");
     expect(screen.getByText("Checked the citations.")).toBeInTheDocument();
 
     // An editor reads and comments; the admin decisions never render.
@@ -141,6 +144,20 @@ describe("QueueTab", () => {
     expect(screen.queryByRole("button", { name: /Approve/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Reject" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Revert" })).toBeNull();
+  });
+
+  it("keeps unrelated JSON fields as separate removals and additions, not a prose replacement", async () => {
+    stubQueueApi([submitted], {
+      cp_1: { ...submittedDetail, diff: '# LSD\n- "_id": "old",\n+ "summary": "New summary",' },
+    });
+    renderQueue();
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+
+    const diff = await screen.findByLabelText("Diff of changed lines");
+    expect(diff).toHaveTextContent('- "_id": "old",');
+    expect(diff).toHaveTextContent('+ "summary": "New summary",');
+    expect(screen.queryByText("Before")).not.toBeInTheDocument();
+    expect(screen.queryByText("After")).not.toBeInTheDocument();
   });
 
 

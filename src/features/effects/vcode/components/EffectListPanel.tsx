@@ -6,6 +6,7 @@ import {
   IndexCardSection,
 } from "@/components/common/IndexCard";
 import { cn } from "@/lib/utils";
+import { resolveEffectCategoryIcon } from "../../pages/effectsIndexConfig";
 import { countVCodePanelRows, type VCodePanelSection } from "../panelModel";
 import { resolveInternalHref } from "./IntLink";
 
@@ -18,33 +19,28 @@ import { resolveInternalHref } from "./IntLink";
  * effects in it occur, and each group's heading links to the frequency scale.
  */
 
-/**
- * Titles come from a fixed vocabulary — Sensory, Visual, Cognitive, Physical,
- * Other — so they pick the glyph the matching effect category already uses.
- * The source's own icon filename is the fallback: it distinguishes nothing the
- * titles do not, but it survives a title this list has not seen.
- */
-const PANEL_ICONS_BY_TITLE: Record<string, IconName> = {
-  sensory: "lucide:scan-eye",
-  visual: "lucide:eye",
-  cognitive: "fluent:thinking-24-regular",
-  physical: "lucide:person-standing",
-  other: "lucide:cog",
-};
-
-const PANEL_ICONS_BY_SOURCE_FILE: Record<string, IconName> = {
-  "eye.svg": "lucide:eye",
-  "user.svg": "fluent:thinking-24-regular",
-  "child.svg": "lucide:person-standing",
-  "cogs.svg": "lucide:cog",
+// Legacy panels used source filenames rather than category identifiers.
+const PANEL_CATEGORIES_BY_SOURCE_FILE: Record<string, string> = {
+  "eye.svg": "visual",
+  "user.svg": "cognitive",
+  "child.svg": "physical",
+  "cogs.svg": "multisensory",
 };
 
 const FALLBACK_PANEL_ICON: IconName = "lucide:layout-list";
 
 export function resolveEffectListPanelIcon(title: string, sourceIcon?: string): IconName {
+  const categoryIcon = resolveEffectCategoryIcon(
+    title.trim().toLowerCase() === "other" ? "multisensory" : title,
+  );
+  if (categoryIcon) return categoryIcon;
+
+  const sourceFile = sourceIcon?.trim().toLowerCase() ?? "";
+  const sourceCategory = Object.prototype.hasOwnProperty.call(PANEL_CATEGORIES_BY_SOURCE_FILE, sourceFile)
+    ? PANEL_CATEGORIES_BY_SOURCE_FILE[sourceFile]
+    : undefined;
   return (
-    PANEL_ICONS_BY_TITLE[title.trim().toLowerCase()] ??
-    PANEL_ICONS_BY_SOURCE_FILE[sourceIcon?.trim().toLowerCase() ?? ""] ??
+    (sourceCategory ? resolveEffectCategoryIcon(sourceCategory) : undefined) ??
     FALLBACK_PANEL_ICON
   );
 }

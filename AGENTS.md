@@ -8,6 +8,7 @@
 - For UI work, reuse the [UI kit](docs/ui-kit.md), then follow [.impeccable.md](.impeccable.md) and the [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
 - For environment or deployment work, use [README environment guidance](README.md#environment-and-deployment) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
 - For a trip report submitted as one flat body, follow the [trip report timeline runbook](docs/agents/trip-report-timeline.md) so the reshape stays lossless.
+- For `/goal continue the cite-pi process till completion`, follow the [cite-pi skill](.agents/skills/cite-pi/SKILL.md). It regenerates five non-legality narrative sections on every URL-only/hidden article with isolated Sol-low workers; it is not the `citation-pi` entailment audit.
 
 ## Hard Invariants
 

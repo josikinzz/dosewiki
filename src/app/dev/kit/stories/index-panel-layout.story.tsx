@@ -39,7 +39,7 @@ export const indexPanelLayoutStory: StoryDef = {
   examples: [
     {
       label: "IndexPanelGrid",
-      note: "Fixed column count (collapses to a single column under 640px). Each cell is equal-width.",
+      note: "320px panels, capped by available width, with a single column below 640px. Sparse groups do not stretch.",
       full: true,
       render: () => (
         <div className="w-full">
@@ -53,7 +53,7 @@ export const indexPanelLayoutStory: StoryDef = {
     },
     {
       label: "IndexPanelMasonry",
-      note: "CSS-columns masonry for uneven card heights. Apply INDEX_PANEL_MASONRY_ITEM_CLASS_NAME to each child so it doesn't break across columns.",
+      note: "CSS-columns masonry at the same 320px panel width. Apply INDEX_PANEL_MASONRY_ITEM_CLASS_NAME to each child so it does not break across columns.",
       full: true,
       render: () => (
         <div className="w-full">
@@ -86,10 +86,11 @@ export const indexPanelLayoutStory: StoryDef = {
     },
   ],
   props: [
-    { name: "IndexPanelGrid: columns", type: "number", description: "Number of equal columns at >=640px; clamps to >=1." },
-    { name: "IndexPanelGrid: gate", type: "IndexPanelColumnGate | null", description: "From useResponsiveColumnCount().gate. While set, pre-paint CSS keeps the grid unpainted in viewport bands where `columns` is the server guess, so hydration never visibly reshuffles cards. Omit for a fixed count." },
+    { name: "IndexPanelGrid: columns", type: "number", description: "Number of 320px preferred-width columns at >=640px; clamps to >=1." },
+    { name: "IndexPanelGrid: gate", type: "IndexPanelColumnGate | null", description: "From useResponsiveColumnCount().gate. Hides provisional grouping until the container is measured, with an eight-second no-JS fallback." },
+    { name: "IndexPanelGrid: ref", type: "Ref<HTMLDivElement>", description: "Pass useResponsiveColumnCount().ref to measure this grid's actual content width and gap rather than the viewport." },
     { name: "IndexPanelGrid / Masonry: children", type: "ReactNode", description: "The index cards to lay out." },
-    { name: "IndexPanelGrid / Masonry: padded", type: "boolean", default: "true", description: "Page gutters. Pass false when nesting inside a column that already has its own padding — an article body — so the panels keep its left edge." },
+    { name: "IndexPanelGrid / Masonry: padded", type: "boolean", default: "true", description: "Page gutters. Pass false when nesting inside an already-padded article body." },
     { name: "INDEX_PANEL_STACK_CLASS_NAME", type: "string", description: "Utility class for a single-column gap-matched stack." },
     { name: "INDEX_PANEL_MASONRY_ITEM_CLASS_NAME", type: "string", description: "Per-item class for masonry children (margin + break-inside-avoid)." },
   ],

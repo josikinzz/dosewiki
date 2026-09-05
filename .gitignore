@@ -97,6 +97,7 @@ learning/
 .venv-molecules/
 __pycache__/
 /runs/legality/
+/runs/section-generation/
 
 # Runtime lock for the headless pi citation loop (held by a live process)
 .pi-loop.json.lock

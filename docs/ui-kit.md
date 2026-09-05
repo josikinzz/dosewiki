@@ -70,6 +70,16 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders
    `text-[16px] md:text-sm`. Tests may assert these two class recipes by name;
    `src/components/ui/touch-sizing.test.tsx` guards them.
+6. **Index panels share one measure.** Use `IndexPanelGrid` or
+   `IndexPanelMasonry` for substance, effect, category, and article panels.
+   Both prefer 320px columns, shrink only when the container is narrower, and
+   use 20px gaps below `lg` or 24px at `lg`. Responsive grouped grids pass the
+   `ref`, `count`, and `gate` returned by `useResponsiveColumnCount` so column
+   counts follow the actual content box rather than viewport width.
+7. **Effect category icons follow the index registry.** Resolve category titles,
+   slugs, or display labels with `resolveEffectCategoryIcon` from
+   `src/features/effects/pages/effectsIndexConfig.ts`. Keep bespoke fallback icons
+   only for sections that do not correspond to a canonical effect category.
 
 ## Accent usage rules
 

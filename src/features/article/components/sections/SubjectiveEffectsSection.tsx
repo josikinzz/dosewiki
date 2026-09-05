@@ -10,6 +10,14 @@ import {
   ArticleSection,
   ArticleSectionGroup,
 } from "@/components/common/ArticleSection";
+import { GuideLinkLine } from "@/features/articles/components/GuideLinkLine";
+import {
+  ARTICLE_GUIDES_BY_CLASS,
+  buildSummaryCaption,
+  resolveGuideClass,
+  resolveSubstanceGuide,
+} from "@/features/articles/domain/articleGuides";
+import { slugify } from "@/utils/slug";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { ArticleText } from "../CitedText";
 import {
@@ -129,6 +137,22 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   const hasStubNotice =
     isFlaggedStub ||
     countVisibleEffects(subjective_effects) <= SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS;
+
+  const guideClass = resolveGuideClass(
+    article.classification?.psychoactive_class ?? [],
+  );
+  const guides = guideClass ? ARTICLE_GUIDES_BY_CLASS[guideClass] : undefined;
+  // The scale grades every substance in the class; the guide is offered only on
+  // the page of the substance it is about. The article carries no slug field,
+  // and its route slug is the slugified title (`Dextromethorphan` ->
+  // `dextromethorphan`), which is what the guide names.
+  const guideLine = guides ? (
+    <GuideLinkLine
+      scale={guides.scale}
+      guide={resolveSubstanceGuide(guides, slugify(article.title))}
+      summaryCaption={buildSummaryCaption(guides)}
+    />
+  ) : null;
 
   return (
     <ArticleSection
@@ -411,6 +435,13 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             />
           );
         })()}
+
+      {/* Further reading closes the section: it points away from the page, so
+          it belongs after the effects and their credit rather than above the
+          prose. The roadmap note stays at the top, where it qualifies
+          everything below it. */}
+      {guideLine}
+
       {replicationShowcaseSection ?? null}
     </ArticleSection>
   );

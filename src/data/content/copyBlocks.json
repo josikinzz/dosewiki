@@ -383,6 +383,13 @@
     "body": "Physical effects are subjective effects that directly affect part of a person's physical body."
   },
   {
+    "key": "effects-index-tab-library",
+    "kind": "plain",
+    "label": "Library tab intro",
+    "group": "Subjective Effect Index",
+    "body": "The long-form writing behind the index: the scales that grade how intense these effects are, the substance guides that walk an experience end to end, and the pieces on dreaming and meditation."
+  },
+  {
     "key": "effects-category-visual-effects",
     "kind": "markdown",
     "label": "Visual Effects description",
@@ -1100,7 +1107,7 @@
     "kind": "markdown",
     "label": "01 · Numbers · closing paragraph",
     "group": "Docs · Code",
-    "body": "**Roughly a third of this repository is not the website.** The `scripts/` directory holds around 700 script files, half as many as the app itself, because pipelines produce most content and media. Scripts scrape source wikis, generate prose through OpenRouter, tie claims to real literature, and move replication media through Cloudflare R2. A person reviews everything before publication. If you read only `src/`, you see the site but not the tooling that fills it."
+    "body": "The `scripts/` directory holds around 700 script files, compared with around 1,400 TS/TSX files in `src/`, because pipelines produce most content and media. Scripts scrape source wikis, generate prose through OpenRouter, tie claims to real literature, and move replication media through Cloudflare R2. Editors review trip-report submissions before publication. Article text and citations have separate, ongoing review workflows; each article shows its review status. If you read only `src/`, you see the site but not the tooling that fills it."
   },
   {
     "key": "docs-code-s2-intro",
@@ -1149,7 +1156,7 @@
     "kind": "markdown",
     "label": "02 · Overview · no-REST-backend callout",
     "group": "Docs · Code",
-    "body": "**There is no separate REST backend.** Convex hosts the database and the server functions (`convex/*.ts`) that read and write it. The Next.js app, the `/dev` editor, and the scripts all connect to the same Convex deployment. Public pages read through the `lib/convex/publicData.*` helpers. Browser writes (editor saves, reader submissions) go through Next.js route handlers under `src/app/api/`, each gated by auth and a named rate limit. Scripts use an admin key. The one extra piece of infrastructure is **Cloudflare R2**, which stores replication media bytes (section 09)."
+    "body": "**There is no separate REST backend.** Convex hosts the database and the server functions (`convex/*.ts`) that read and write it. The Next.js app, the `/dev` editor, and the scripts all connect to the same Convex deployment. Public pages read through the `lib/convex/publicData.*` helpers. Browser writes (editor saves, reader submissions) go through Next.js route handlers under `src/app/api/`. Editor saves require an authenticated session with the appropriate role. Public submissions do not require sign-in; they use the abuse controls described in section 07. Both paths have named rate limits. Scripts use an admin key. The one extra piece of infrastructure is **Cloudflare R2**, which stores replication media bytes (section 09)."
   },
   {
     "key": "docs-code-s3-framework-label",
@@ -1205,14 +1212,14 @@
     "kind": "plain",
     "label": "03 · Tech stack · Auth: title",
     "group": "Docs · Code",
-    "body": "next-auth: GitHub OAuth + editor credentials"
+    "body": "next-auth: username and password"
   },
   {
     "key": "docs-code-s3-auth-body",
     "kind": "markdown",
     "label": "03 · Tech stack · Auth: body",
     "group": "Docs · Code",
-    "body": "`auth.ts` configures sign-in: a single username + password credentials provider backed by the Convex `memberships` table (scrypt hashes, never env passwords). `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. Roles (admin / editor / contributor) live on the membership row."
+    "body": "`auth.ts` configures sign-in: a single username + password credentials provider backed by the Convex `memberships` table (scrypt hashes, never env passwords). `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. The membership role is admin, editor, contributor, or viewer. Viewer has no editor access; the other roles have different permissions."
   },
   {
     "key": "docs-code-s3-ai-label",
@@ -1233,7 +1240,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · AI generation: body",
     "group": "Docs · Code",
-    "body": "One API gateway to many LLMs. Each workflow (section synthesis, dosage and duration rewrites, quote extraction, formal citations) selects its own model in its config or entry module, and those choices change as better models appear, so this page does not list them. Both the batch scripts and the in-editor section generator use the gateway."
+    "body": "One API gateway to many LLMs. Each workflow (section synthesis, dosage and duration rewrites, quote extraction, formal citations) selects its own model in its config or entry module. Model choices change over time, so this page does not list them. Source-backed generation uses the gateway through authenticated local batch workflows. The browser editor is for manual review and editing."
   },
   {
     "key": "docs-code-s3-styling-label",
@@ -1296,7 +1303,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Tooling + safety: body",
     "group": "Docs · Code",
-    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, so the app rejects malformed or AI-mangled content early. The repository has ~500 Vitest test files. Molecule diagrams render through a vendored **OpenChemLib** fork (`vendor/openchemlib`) with its own verification script."
+    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, rejecting data that does not match the required structure. These checks do not establish factual accuracy. The repository has ~500 Vitest test files. Molecule diagrams render through a vendored **OpenChemLib** fork (`vendor/openchemlib`) with its own verification script."
   },
   {
     "key": "docs-code-s4-intro",
@@ -1393,7 +1400,7 @@
     "kind": "plain",
     "label": "05 · Frontend · dev features card label",
     "group": "Docs · Code",
-    "body": "src/features/dev/ · the editor (~350 files, the largest module)"
+    "body": "src/features/dev/ · the editor (~400 TS/TSX files, including tests)"
   },
   {
     "key": "docs-code-s5-features-dev",
@@ -1402,7 +1409,7 @@
     "group": "Docs · Code",
     "items": [
       "**`forms/`**: one React Hook Form section per article field group",
-      "**`tools/`**: the ~14 editor tools (substance editor + AI section generator, replication studio, copy studio, molecule editor, banner studio, citation review, the three intake queues, contributors, writing, index layout)",
+      "**`tools/`**: the ~14 editor tools (substance editor, replication studio, copy studio, molecule editor, banner studio, citation review, the three intake queues, contributors, writing, index layout)",
       "**`save-orchestrator/`**: coordinates multi-endpoint saves",
       "**`context/ · notices/ · profile/ · tags/ · prompts/`**: editor state, toasts, profile & tag editing"
     ]
@@ -1538,7 +1545,7 @@
     "kind": "markdown",
     "label": "06 · Data layer · table row: memberships",
     "group": "Docs · Code",
-    "body": "Who can edit: email → role (admin / editor / viewer), synced from Auth.js sign-ins."
+    "body": "Membership records linking each email to an admin, editor, contributor, or viewer role, read by Auth.js at sign-in. Viewer has no editor access; the other roles have different permissions."
   },
   {
     "key": "docs-code-s6-table-changelog",
@@ -1608,7 +1615,7 @@
     "kind": "markdown",
     "label": "06 · Data layer · table row: replication provenance + identity",
     "group": "Docs · Code",
-    "body": "The replication back office (~17 `replication*` and `contributor*` tables): source attribution, artist and contributor identity bindings, alias evidence, taxonomy evidence, duplicate reconciliations, date-research dossiers, and reversible merge/social operations, all kept out of the hot gallery documents."
+    "body": "Replication workflow records (~17 `replication*` and `contributor*` tables): source attribution, artist and contributor identity bindings, alias evidence, taxonomy evidence, duplicate reconciliations, date-research dossiers, and reversible merge/social operations. All these records are kept separate from the documents read when displaying the gallery."
   },
   {
     "key": "docs-code-s6-table-effect-index-archive",
@@ -1622,7 +1629,7 @@
     "kind": "markdown",
     "label": "06 · Data layer · table row: generatedPublicationOperations",
     "group": "Docs · Code",
-    "body": "Successful reviewed section publications. The proposal ID is the idempotency boundary for applying a generated section."
+    "body": "Successful reviewed section publications. The proposal ID prevents the same generated section publication from being applied more than once."
   },
   {
     "key": "docs-code-s7-read-label",
@@ -1748,42 +1755,71 @@
     "kind": "markdown",
     "label": "08 · Scripts · intro",
     "group": "Docs · Code",
-    "body": "Alongside the site and the editor, `scripts/` is a set of Node and Bun command-line programs, one subdirectory per workflow family, each exposed as an `npm run` command. Articles are built in stages: parsers turn scraped wiki text into structured data (`scripts/parsers/`), prepopulation loads the high-confidence fields into Convex (`scripts/prepopulate/`), batch generation drafts the prose sections through OpenRouter (`scripts/batch/`), editors review the result in `/dev`, and the citation and legality workflows tie each claim to a source (`scripts/citations/`, `scripts/legality/`)."
+    "body": "Alongside the site and the editor, `scripts/` is a set of Node and Bun command-line programs, one subdirectory per workflow family, each exposed as an `npm run` command. Parsers turn scraped wiki text into structured data (`scripts/parsers/`). Prepopulation loads the high-confidence fields into Convex (`scripts/prepopulate/`), and batch generation drafts the prose sections through OpenRouter (`scripts/batch/`). Editors review the result in `/dev`. The citation and legality workflows research and check the sources supporting individual claims (`scripts/citations/`, `scripts/legality/`); a claim can remain uncited."
   },
   {
     "key": "docs-code-s8-writes",
     "kind": "markdown",
     "label": "08 · Scripts · how scripts write to Convex",
     "group": "Docs · Code",
-    "body": "**Scripts write to Convex as an administrator, behind gates.** Where the browser goes through an authenticated route handler, a script holds an admin token scoped to the one kind of write it performs (`CONVEX_ADMIN_TOKEN_<INTENT>`, resolved by `scripts/lib/data-ops-run-context.mjs`). Production writes share one gate, in that run context and the `scripts/lib/production-write-command.mjs` wrapper: dry run by default, and a real write only with `--write`, an explicit `TARGET_CONVEX_URL`, a `--confirm-write=<operation>` phrase, and an `--expected-deployment` that must match the target. The same module offers a pre-write backup and an audit log under `scripts/data/audit-logs/`, which the migration-style scripts use. `npm run convex:doctor` checks the environment before any of this (see `AGENTS.md`)."
+    "body": "**Scripts write to Convex as an administrator, behind gates.** Where an editor save goes through an authenticated route handler, a script holds an admin token scoped to the one kind of write it performs (`CONVEX_ADMIN_TOKEN_<INTENT>`, resolved by `scripts/lib/data-ops-run-context.mjs`). Production writes share one gate, in that run context and the `scripts/lib/production-write-command.mjs` wrapper. A run is a dry run by default. A real write is permitted only with `--write`, an explicit `TARGET_CONVEX_URL`, a `--confirm-write=<operation>` phrase, and an `--expected-deployment` that must match the target."
+  },
+  {
+    "key": "docs-code-s8-write-records",
+    "kind": "markdown",
+    "label": "08 · Scripts · backups and audit records",
+    "group": "Docs · Code",
+    "body": "The same module offers a pre-write backup and an audit log under `scripts/data/audit-logs/`, which the migration-style scripts use. `npm run convex:doctor` checks the environment before any of this (see `AGENTS.md`)."
+  },
+  {
+    "key": "docs-code-s8-families-intro",
+    "kind": "markdown",
+    "label": "08 · Scripts · workflow families introduction",
+    "group": "Docs · Code",
+    "body": "These write conventions also apply to the following workflow families:"
   },
   {
     "key": "docs-code-s8-families",
-    "kind": "markdown",
+    "kind": "list",
     "label": "08 · Scripts · workflow families",
     "group": "Docs · Code",
-    "body": "The same conventions drive pipelines beyond article prose: the citation entailment audit (`scripts/citations/verdict-*`, run by the `citation-pi` skill), the legality-source workflow (`scripts/legality/`, run by `legality-pi`), replication intake and R2 media migration (`scripts/replications/`, the largest family; section 09), contributor avatar tooling (`scripts/contributors/`), molecule and chemistry audits (`scripts/chemistry/`), Convex migrations and exports (`scripts/migrate/`, `scripts/convex/`), and the build-time generators for social cards and theme CSS (`scripts/build/`). The registry in `scripts/lib/workflow-command-surface.mjs` (with `citation-command-surface.mjs` beside it) is the index of runnable commands."
+    "items": [
+      "Citation entailment audit: `scripts/citations/verdict-*`, run by the `citation-pi` skill.",
+      "Legality-source research: `scripts/legality/`, run by `legality-pi`.",
+      "Replication intake and R2 media migration: `scripts/replications/`, the largest family (section 09).",
+      "Contributor avatar tooling: `scripts/contributors/`.",
+      "Molecule and chemistry audits: `scripts/chemistry/`.",
+      "Convex migrations and exports: `scripts/migrate/` and `scripts/convex/`.",
+      "Build-time generators for social cards and theme CSS: `scripts/build/`."
+    ]
+  },
+  {
+    "key": "docs-code-s8-command-registry",
+    "kind": "markdown",
+    "label": "08 · Scripts · command registry",
+    "group": "Docs · Code",
+    "body": "The registry in `scripts/lib/workflow-command-surface.mjs` (with `citation-command-surface.mjs` beside it) is the index of runnable commands."
   },
   {
     "key": "docs-code-s8-deferral",
     "kind": "markdown",
     "label": "08 · Scripts · pointer to the content page",
     "group": "Docs · Code",
-    "body": "**The content pipeline has its own page.** This page stops at the architecture. [How dose.wiki substance articles are made](/docs/how) covers what the scrapers collect, how verbatim excerpts are pulled from them, the prompts each section is written from, how citations are proposed and then audited, and where people review; it also publishes every prompt unedited."
+    "body": "**The content pipeline has its own page.** This page stops at the architecture. [How dose.wiki substance articles are made](/docs/how) covers what the scrapers collect, how verbatim excerpts are pulled from them, the prompts each section is written from, how citations are proposed and then audited, and where people review. It publishes the extraction and section-generation prompt files unedited, but not the citation and legality workflow prompts. It also explains why the published section prompts may differ from the live versions used to generate an article."
   },
   {
     "key": "docs-code-s9-intro",
     "kind": "markdown",
     "label": "09 · Replications · intro",
     "group": "Docs · Code",
-    "body": "Replications (artist-made video, image, and audio recreations of subjective effects) are the one content type whose bytes do not live in Convex. **Convex stores metadata; Cloudflare R2 stores media.** Every media object sits under a content-addressed R2 key, and `convex/lib/replicationUrls.ts` resolves public URLs from the `REPLICATION_MEDIA_BASE_URL` deployment variable; unset it and the site falls back to Convex Storage, which is the rollback switch."
+    "body": "Replications (artist-made video, image, and audio recreations of subjective effects) are the one content type whose bytes do not live in Convex. **Convex stores metadata; Cloudflare R2 stores media.** Every media object sits under a content-addressed R2 key, a key derived from the file contents. `convex/lib/replicationUrls.ts` resolves public URLs from the `REPLICATION_MEDIA_BASE_URL` deployment variable; unset it and the site falls back to Convex Storage, which is the rollback switch."
   },
   {
     "key": "docs-code-s9-intake",
     "kind": "markdown",
     "label": "09 · Replications · intake paragraph",
     "group": "Docs · Code",
-    "body": "Media arrives through `scripts/replications/`. Reviewed source media (for example the Reddit archive, following `docs/agents/reddit-replication-intake.md`) is uploaded to R2 under content-addressed keys and verified, then a production import writes the gallery metadata, taxonomy, and attribution rows to Convex. Provenance and artist identity land in the side tables from section 06, keeping the hot gallery documents small. Editors curate the result in the `/dev` Replication Studio: featured carousels, per-substance showcases, playlists, and duplicate reconciliation."
+    "body": "Media arrives through `scripts/replications/`. Reviewed source media (for example the Reddit archive, following `docs/agents/reddit-replication-intake.md`) is uploaded to R2 under content-addressed keys and verified, then a production import writes the gallery metadata, taxonomy, and attribution rows to Convex. Provenance and artist identity are stored in the side tables from section 06, keeping the documents read when displaying the gallery small. Editors curate the result in the `/dev` Replication Studio: featured carousels, per-substance showcases, playlists, and duplicate reconciliation."
   },
   {
     "key": "docs-code-s9-curation",
@@ -1874,7 +1910,7 @@
     "kind": "markdown",
     "label": "10 · Flow A · step5 body",
     "group": "Docs · Code",
-    "body": "Hourly ISR plus tag-based revalidation on editor saves; each page also emits JSON-LD and a per-substance social card"
+    "body": "Hourly incremental static regeneration (ISR) refreshes prerendered pages, with tag-based revalidation on editor saves; each page also emits JSON-LD and a per-substance social card"
   },
   {
     "key": "docs-code-s10-flow-b-heading",
@@ -1909,7 +1945,7 @@
     "kind": "markdown",
     "label": "10 · Flow B · step2 body",
     "group": "Docs · Code",
-    "body": "`save-orchestrator/` collects dirty articles"
+    "body": "`save-orchestrator/` collects articles with unsaved changes"
   },
   {
     "key": "docs-code-s10-flow-b-step3-title",
@@ -2131,7 +2167,7 @@
       "**`convex/schema.ts`**: the data model that everything else is built around. Skim the `substanceIndex` table definition first.",
       "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/convex/publicData.*` → `src/features/article/`**: Flow A from section 10. This chain covers the whole public read path.",
       "**`middleware.ts` + `auth.ts`**: short files that show how `/dev` is protected and how roles work.",
-      "**`src/lib/http/protectedRouteOperation.ts` + `lib/http/rateLimitPolicy.ts`**: the gate every API route goes through (session role, named rate-limit bucket, payload cap).",
+      "**`src/lib/http/protectedRouteOperation.ts` + `lib/http/rateLimitPolicy.ts`**: the shared handler for protected API operations (session role, named rate-limit bucket, payload cap). Public submission routes have separate abuse controls and do not require sign-in.",
       "**`src/features/dev/save-orchestrator/` and `src/app/api/save-to-convex/`**: Flow B. These files show how edits reach the database with an audit trail.",
       "**`scripts/lib/workflow-command-surface.mjs`**: the registry of pipeline commands. From here you can find whichever pipeline (batch, citations, replications, migrate, sync) you need."
     ]

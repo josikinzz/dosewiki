@@ -75,6 +75,16 @@ describe("effect article section model", () => {
     expect(model.sections.map(section => section.kind)).toEqual(["overview"]);
   });
 
+  it("marks disconnective effects with the class whose scale grades them", () => {
+    expect(buildEffectArticleModel({ effect: minimalEffect }).hero.guideClass).toBeUndefined();
+
+    const disconnective = buildEffectArticleModel({
+      effect: { ...minimalEffect, tags: ["Visual", "Disconnective"] },
+    });
+
+    expect(disconnective.hero.guideClass).toBe("dissociative");
+  });
+
   it("prefers AST content over raw content", () => {
     const ast = {
       name: "paragraph",

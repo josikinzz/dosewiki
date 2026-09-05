@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
+import { ARTICLE_GUIDES_BY_CLASS, GUIDE_CLASSES } from "./articleGuides";
 
 /**
  * Index model for the published Effect Index articles.
@@ -25,18 +26,14 @@ export interface ArticleIndexEntry {
   bodyFormat?: "vcode" | "markdown";
 }
 
-export type ArticleRowDensity = "full" | "compact";
-
 export interface ArticleIndexRow {
   slug: string;
   title: string;
+  /** The editor's blurb, or the body's opening sentence when none was written. */
   description?: string;
-  /** "May 2021" — the day carries no meaning for archive material. */
+  /** "May 2021": the day carries no meaning for archive material. */
   dateLabel?: string;
   lengthLabel?: string;
-  /** Tags the group heading does not already say. */
-  tags: string[];
-  density: ArticleRowDensity;
 }
 
 export interface ArticleIndexGroup {
@@ -54,23 +51,35 @@ interface ArticleGroupDefinition {
   blurb: string;
   /** Lowercased tags that claim an article for this group. */
   tags: readonly string[];
+  /** Slugs claimed outright, checked before tags so a guide tagged "intensity scale" still files as a guide. */
+  slugs?: readonly string[];
 }
 
 const GROUP_DEFINITIONS: readonly ArticleGroupDefinition[] = [
   {
+    id: "drug-guides",
+    label: "Drug guides",
+    icon: "lucide:flask-conical",
+    blurb: "Single-substance guides that walk the experience end to end.",
+    tags: [],
+    // The curated guide map is the one place that decides what counts as a
+    // drug guide; the tags on these rows only say "intensity scale".
+    slugs: GUIDE_CLASSES.flatMap((guideClass) =>
+      ARTICLE_GUIDES_BY_CLASS[guideClass].guides.map((guide) => guide.slug),
+    ),
+  },
+  {
     id: "scales",
     label: "Intensity & rating scales",
     icon: "lucide:ruler",
-    blurb:
-      "Level-by-level models of experience intensity, written in the lineage of the Shulgin Rating Scale.",
+    blurb: "Level-by-level models of experience intensity, in the lineage of the Shulgin Rating Scale.",
     tags: ["intensity scale", "rating scale"],
   },
   {
     id: "consciousness",
     label: "Dreaming & consciousness",
     icon: "lucide:moon",
-    blurb:
-      "Long-form guides to dream states, lucidity, and the practices used to explore them.",
+    blurb: "Guides to dream states, lucidity, and the practices used to explore them.",
     tags: ["dreams", "meditation", "psychonautics"],
   },
 ];
@@ -95,8 +104,7 @@ const FALLBACK_GROUP: Omit<ArticleGroupDefinition, "tags"> = {
   id: "reference",
   label: "Reference & other writing",
   icon: "lucide:notebook-text",
-  blurb:
-    "Short definitional pages and supporting notes the rest of the archive refers back to.",
+  blurb: "Short definitional pages and notes the rest of the archive refers back to.",
 };
 
 const MONTH_LABELS = [
@@ -117,29 +125,32 @@ const MONTH_LABELS = [
 /** Bracketed VCode markup (`[h2]`, `[ref url=…]`) is chrome, not prose. */
 const VCODE_TAG_PATTERN = /\[[^\]]*\]/g;
 
+/**
+ * Heading text, VCode `[h2]…[/h2]` or a Markdown `## …` line, is a label rather
+ * than a sentence: it has no full stop, so left in it would fuse with the first
+ * real sentence ("Onset Onset is the point…").
+ */
+const HEADING_PATTERN = /\[h[1-6]\][\s\S]*?\[\/h[1-6]\]|^#{1,6}\s.*$/gm;
+
 const WORDS_PER_MINUTE = 220;
 
 /**
- * Under this, a page is a definition rather than an article. Those entries get
- * a compact row wherever they land, so a 220-word glossary entry never wears
- * the same weight as a 5,000-word guide sitting above it.
+ * A fallback description is a glance, not a paragraph: long enough to say what
+ * the page is about, short enough to share a line with the title.
  */
-const REFERENCE_WORD_LIMIT = 400;
+const DESCRIPTION_LIMIT = 140;
 
-function countBodyWords(body: string | undefined): number {
-  if (!body) {
-    return 0;
-  }
-
-  const prose = body.replace(VCODE_TAG_PATTERN, " ").replace(/\s+/g, " ").trim();
-
-  return prose.length > 0 ? prose.split(" ").length : 0;
+/** Body text with VCode chrome stripped and whitespace collapsed; empty when there is no body. */
+function bodyProse(body: string | undefined): string {
+  return (body ?? "").replace(VCODE_TAG_PATTERN, " ").replace(/\s+/g, " ").trim();
 }
 
-function formatLengthLabel(words: number): string | undefined {
-  if (words === 0) {
+function formatLengthLabel(prose: string): string | undefined {
+  if (prose.length === 0) {
     return undefined;
   }
+
+  const words = prose.split(" ").length;
 
   return `${Math.max(1, Math.round(words / WORDS_PER_MINUTE))} min read`;
 }
@@ -152,7 +163,7 @@ function formatLengthLabel(words: number): string | undefined {
  * make the site contradict itself.
  */
 export function formatArticleLengthLabel(body: string | undefined): string | undefined {
-  return formatLengthLabel(countBodyWords(body));
+  return formatLengthLabel(bodyProse(body));
 }
 
 function formatDateLabel(publicationDate: string | undefined): string | undefined {
@@ -171,32 +182,55 @@ function formatDateLabel(publicationDate: string | undefined): string | undefine
   return monthLabel ? `${monthLabel} ${match[1]}` : match[1];
 }
 
-function matchGroupDefinition(tags: string[]): ArticleGroupDefinition | undefined {
-  const normalized = tags.map((tag) => tag.trim().toLowerCase());
+/**
+ * The body's opening sentence, for rows whose editor never wrote a blurb.
+ * Headings are dropped first (they still count toward reading time), then the
+ * text is cut at the first sentence end and, past the limit, on a word boundary,
+ * so a truncated fragment still reads as prose rather than as a cut-off word.
+ */
+function deriveDescription(body: string | undefined): string | undefined {
+  const prose = bodyProse(body?.replace(HEADING_PATTERN, " "));
 
-  return GROUP_DEFINITIONS.find((definition) =>
-    definition.tags.some((tag) => normalized.includes(tag)),
+  if (prose.length === 0) {
+    return undefined;
+  }
+
+  const sentenceEnd = /[.!?](?=\s|$)/.exec(prose);
+  const sentence = sentenceEnd ? prose.slice(0, sentenceEnd.index + 1) : prose;
+
+  if (sentence.length <= DESCRIPTION_LIMIT) {
+    return sentence;
+  }
+
+  const cut = sentence.lastIndexOf(" ", DESCRIPTION_LIMIT);
+  const head = sentence.slice(0, cut > 0 ? cut : DESCRIPTION_LIMIT);
+
+  return `${head.replace(/[\s,;:]+$/, "")}…`;
+}
+
+function matchGroupDefinition(entry: ArticleIndexEntry): ArticleGroupDefinition | undefined {
+  const normalized = entry.tags.map((tag) => tag.trim().toLowerCase());
+
+  return (
+    GROUP_DEFINITIONS.find((definition) => definition.slugs?.includes(entry.slug)) ??
+    GROUP_DEFINITIONS.find((definition) =>
+      definition.tags.some((tag) => normalized.includes(tag)),
+    )
   );
 }
 
-function toIndexRow(
-  entry: ArticleIndexEntry,
-  claimedTags: readonly string[],
-): ArticleIndexRow {
-  const words = countBodyWords(entry.body_raw);
+function toIndexRow(entry: ArticleIndexEntry): ArticleIndexRow {
   const description = entry.shortDescription?.trim();
 
   return {
     slug: entry.slug,
     title: entry.title,
-    description: description && description.length > 0 ? description : undefined,
+    description:
+      description && description.length > 0
+        ? description
+        : deriveDescription(entry.body_raw),
     dateLabel: formatDateLabel(entry.publicationDate),
-    lengthLabel: formatLengthLabel(words),
-    // A tag the group heading already states is noise; anything else is signal.
-    tags: entry.tags.filter(
-      (tag) => !claimedTags.includes(tag.trim().toLowerCase()),
-    ),
-    density: words > 0 && words < REFERENCE_WORD_LIMIT ? "compact" : "full",
+    lengthLabel: formatLengthLabel(bodyProse(entry.body_raw)),
   };
 }
 
@@ -211,11 +245,11 @@ export function groupArticlesForIndex(
 
   for (const entry of entries) {
     const isRecent = entry.bodyFormat === "markdown";
-    const definition = isRecent ? undefined : matchGroupDefinition(entry.tags);
+    const definition = isRecent ? undefined : matchGroupDefinition(entry);
     const groupId = isRecent ? RECENT_GROUP.id : definition?.id ?? FALLBACK_GROUP.id;
     const rows = grouped.get(groupId) ?? [];
 
-    rows.push(toIndexRow(entry, definition?.tags ?? []));
+    rows.push(toIndexRow(entry));
     grouped.set(groupId, rows);
   }
 

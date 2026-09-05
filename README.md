@@ -192,6 +192,12 @@ Convex-changing commands must use an explicit `TARGET_CONVEX_URL` for `glad-minn
 
 For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow [citation workbench guidance](docs/agents/citation-workbench.md) and [production rollout](docs/citation-production-rollout.md).
 
+For isolated Sol-low regeneration of existing URL-only and hidden article
+sections, use `/goal continue the cite-pi process till completion` and the
+[cite-pi skill](.agents/skills/cite-pi/SKILL.md). `npm run cite-pi -- --help`
+lists its resumable, production-read-only campaign commands. Legality is
+excluded; publishing replacements remains a separately approved operation.
+
 ## Further Reading
 
 | Document | Description |

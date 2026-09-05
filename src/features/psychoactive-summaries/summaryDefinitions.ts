@@ -24,7 +24,7 @@ export type PsychoactiveSummarySelection =
 
 export interface PsychoactiveSummarySectionDefinition {
   title: string;
-  icon: IconName;
+  icon?: IconName;
   definitionHtml: string;
   selection: PsychoactiveSummarySelection;
 }
@@ -88,7 +88,7 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       "A curated guide to the visual effects of psychedelics, from visual amplifications and distortions to geometry and hallucinatory states.",
     icon: "lucide:eye",
     image: {
-      src: "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/In_the_tree_by_Eddie_calz.jpg",
+      src: "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/a9/a92e629cd61f8d288027a768f69644b7cc488ce4b68f764184bebc26d3a519c2.jpg",
       title: "In the Tree",
       artist: "Eddie Calz",
       width: "300",
@@ -103,7 +103,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
     sections: [
       {
         title: "Visual Amplifications",
-        icon: "lucide:arrow-up",
         definitionHtml:
           "<strong>Visual amplifications</strong> are defined as any subjective effect that increases, enhances, or intensifies a facet of a person's sense of sight.",
         selection: {
@@ -113,7 +112,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Visual Distortions",
-        icon: "lucide:blend",
         definitionHtml:
           "<strong>Visual distortions</strong> are any subjective effect which alters and changes the perception or appearance of pre-existing visual data without adding any entirely new content.",
         selection: {
@@ -123,7 +121,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Geometric Patterns",
-        icon: "lucide:shapes",
         definitionHtml:
           "<strong>Geometric patterns</strong> are defined as any subjective effect that introduces complex arrays of shapes, colours, symbols, patterns, geometry, form constants, and fractals to one's field of vision.",
         selection: {
@@ -133,7 +130,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Hallucinatory States",
-        icon: "custom:elf",
         definitionHtml:
           "<strong>Hallucinatory states</strong> are any subjective effect which changes the perception or appearance of pre-existing visual data by adding entirely new content in a manner which is similar to that of dreams.",
         selection: {
@@ -171,7 +167,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
     sections: [
       {
         title: "Cognitive Amplifications",
-        icon: "lucide:arrow-up",
         definitionHtml:
           "<strong>Cognitive amplifications</strong> are defined as any subjective effect that increases, enhances, or intensifies a facet of a person's sense of cognition.",
         selection: {
@@ -181,7 +176,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Cognitive Suppressions",
-        icon: "lucide:arrow-down",
         definitionHtml:
           "<strong>Cognitive suppressions</strong> are any subjective effect which decreases or lowers the intensity of an aspect of a person's cognition.",
         selection: {
@@ -191,7 +185,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Novel States",
-        icon: "lucide:lightbulb",
         definitionHtml:
           "A <strong>novel cognitive state</strong> is any cognitive effect which does not merely amplify or suppress familiar states of mind, but rather induces an experience that is qualitatively different from that of ordinary consciousness.<br /><br />Although many transpersonal and psychological effects also technically fit into this definition, they are excluded from this category of effects as they have their own defining qualities which standard novel states do not.",
         selection: {
@@ -201,7 +194,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Psychological States",
-        icon: "lucide:brain",
         definitionHtml:
           "<strong>Psychological effects</strong> are any cognitive effect that is either established within the psychological literature or arises as a result of the complex interplay between other more simplistic components such as cognitive enhancements and suppressions.",
         selection: {
@@ -211,7 +203,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Transpersonal States",
-        icon: "lucide:infinity",
         definitionHtml:
           "<strong>Transpersonal states</strong> are any subjective effect which feels as if it alters a person's cognition in a manner which relates to or contains information regarding their place in the universe, the inner workings of reality or consciousness, and the context of their existence. The fullest manifestation of these effects fall under what are sometimes called \"peak\", \"transcendent\" or \"transformative\" experiences.",
         selection: {
@@ -249,7 +240,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
     sections: [
       {
         title: "Auditory Effects",
-        icon: "lucide:volume-2",
         definitionHtml:
           "<strong>Auditory effects</strong> are any subjective effect which directly alters a person's sense of hearing.",
         selection: {
@@ -259,7 +249,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Tactile Effects",
-        icon: "lucide:hand",
         definitionHtml:
           "<strong>Tactile effects</strong> are any subjective effect which directly alters a person's sense of touch.",
         selection: {
@@ -269,7 +258,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Multisensory Effects",
-        icon: "lucide:cog",
         definitionHtml:
           "<strong>Multisensory effects</strong> are any subjective effect which directly alters two or more senses simultaneously.<br /><br />Although some hallucinatory effects may affect multiple senses at one time they are usually not categorized as 'multisensory effects' unless they do so consistently. For example, while experiences with autonomous entities may sometimes have a tactile component to them, more often than not they are primarily a visual experience and are therefore classified as such.",
         selection: {
@@ -279,7 +267,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Physical Effects",
-        icon: "lucide:heart-pulse",
         definitionHtml:
           "<strong>Physical effects</strong> are any subjective effect which directly affects an aspect of a person's physical body.<br /><br />Although many uncomfortable physical effects also technically fit into this definition, they are excluded from this category of effects as they have their own defining qualities which standard physical effects do not.",
         selection: {
@@ -340,7 +327,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
     sections: [
       {
         title: "Disconnective Effects",
-        icon: "lucide:unplug",
         definitionHtml:
           "<strong>Disconnective effects</strong> are any subjective effect which feels as if it detaches or disconnects one from the external environment, their senses, and their consciousness.<br /><br />These effects are typically associated with dissociative hallucinogens and likely occur due to the way in which these compounds function as NMDA receptor antagonists. This means they bind to the receptor, but do not activate it and block other neurotransmitters from doing so. The result is a dose-dependent decrease in the passing of electrical signals across the brain and an overall disconnection of neurons, which leads to states of disconnection between conscious parts of the brain and its sensory organs.",
         selection: {
@@ -366,7 +352,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Cognitive Effects",
-        icon: "lucide:user",
         definitionHtml:
           "<strong>Cognitive effects</strong> are any subjective experience which directly alter or introduce new content to an element of a person's cognition.",
         selection: {
@@ -377,7 +362,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Physical Effects",
-        icon: "lucide:heart-pulse",
         definitionHtml:
           "<strong>Physical effects</strong> are any subjective experience which directly affects an aspect of a person's physical body.",
         selection: {
@@ -408,8 +392,11 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       "A curated guide to the visual, auditory, tactile, multisensory, cognitive, physical, and uncomfortable effects of deliriants.",
     icon: "tabler:spider",
     image: {
-      src: "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/deliriants.jpg",
-      title: "700mg Diphenhydramine",
+      // The artist's own published work on this site, not the 2016 copy the
+      // Effect Index page carried: same composition, a later rendition, and
+      // 1536x2048 instead of 750x1127. Row `700mg-of-dph-stas-constantine`.
+      src: "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/cc/cc7abaacd147c43cb10107de4718c18155d4058511d9d0376be613d4fe92a5f4.png",
+      title: "700mg of DPH",
       artist: "Stas Constantine",
       width: "300",
       align: "right",
@@ -438,7 +425,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
     sections: [
       {
         title: "Visual Effects",
-        icon: "lucide:eye",
         definitionHtml:
           "<strong>Visual effects</strong> are any subjective experience which directly alters a person's sense of sight.",
         selection: {
@@ -448,7 +434,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Auditory Effects",
-        icon: "lucide:volume-2",
         definitionHtml:
           "<strong>Auditory effects</strong> are any subjective effect which directly alters a person's sense of hearing.",
         selection: {
@@ -458,7 +443,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Tactile Effects",
-        icon: "lucide:hand",
         definitionHtml:
           "<strong>Tactile effects</strong> are any subjective effect which directly alters a person's sense of touch.",
         selection: {
@@ -468,7 +452,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Multisensory Effects",
-        icon: "lucide:cog",
         definitionHtml:
           "<strong>Multisensory effects</strong> are any subjective effect which directly alters two or more senses simultaneously.<br /><br />Although some hallucinatory effects may affect multiple senses at one time they are usually not categorized as 'multisensory effects' unless they do so consistently. For example, while experiences with autonomous entities may sometimes have a tactile component to them, more often than not they are primarily a visual experience and are therefore classified as such.",
         selection: {
@@ -478,7 +461,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Cognitive Effects",
-        icon: "lucide:user",
         definitionHtml:
           "<strong>Cognitive effects</strong> are any subjective experience which directly alter or introduce new content to an element of a person's cognition.",
         selection: {
@@ -488,7 +470,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Physical Effects",
-        icon: "lucide:heart-pulse",
         definitionHtml:
           "<strong>Physical effects</strong> are any subjective experience which directly affects an aspect of a person's physical body.",
         selection: {
@@ -499,7 +480,6 @@ export const PSYCHOACTIVE_SUMMARY_DEFINITIONS = [
       },
       {
         title: "Uncomfortable Physical Effects",
-        icon: "lucide:frown",
         definitionHtml:
           "An <strong>uncomfortable physical effect</strong> is any substance-induced alteration of a person's physical state which is unpleasant, undesirable, painful, or otherwise a source of distress. In most cases they indicate a temporary part of a substance's interaction with the body. However, in certain contexts, they can also indicate the need for attention or even medical treatment if they become dangerously severe.",
         selection: {

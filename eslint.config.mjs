@@ -93,9 +93,9 @@ export default tseslint.config(
       },
     },
   },
-  // Active workflow scripts run in Node and are linted through npm run lint:scripts.
+  // Active workflow scripts run in Node or Bun and are linted through npm run lint:scripts.
   {
-    files: ['scripts/**/*.{js,mjs,ts}'],
+    files: ['scripts/**/*.{js,mjs,ts}', 'tools/section-generation/**/*.{js,mjs,ts}'],
     ignores: ['scripts/deprecated/**', 'scripts/**/archive/**'],
     languageOptions: {
       globals: {

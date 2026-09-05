@@ -4,6 +4,7 @@ import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
+import { resolveEffectCategoryIcon } from "@/features/effects/pages/effectsIndexConfig";
 import { CaptionedImage } from "@/features/effects/vcode/components/CaptionedImage";
 import type { PublicEffectArticle } from "@server/convex/publicData";
 
@@ -67,7 +68,7 @@ export function PsychoactiveSummaryPage({
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")
               .replace(/^-|-$/g, "")}
-            icon={section.icon}
+            icon={resolveEffectCategoryIcon(section.title) ?? section.icon ?? "lucide:layout-list"}
             heading={section.title}
             spacing="effect"
           >

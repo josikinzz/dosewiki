@@ -98,6 +98,7 @@ export async function EffectsIndexRoute({
           sensory: copy.text("effects-index-tab-sensory") || undefined,
           cognitive: copy.text("effects-index-tab-cognitive") || undefined,
           physical: copy.text("effects-index-tab-physical") || undefined,
+          library: copy.text("effects-index-tab-library") || undefined,
         }}
       />
     </>

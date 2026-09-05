@@ -37,6 +37,7 @@ export class SiteFeedbackNotFoundError extends Error {
 
 type ConvexCallableClient = {
   mutation(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
+  mutationAsService(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   query(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
 };
 
@@ -110,7 +111,7 @@ export class ConvexSiteFeedbackStore {
       ip_hash: hashIpAddress(context.ip, context.ip_hash_secret),
     });
 
-    return await this.options.client.mutation(createFeedbackRef, {
+    return await this.options.client.mutationAsService(createFeedbackRef, {
       apiKey: this.options.apiKey,
       feedback: row,
     }) as SiteFeedbackRow;

@@ -120,6 +120,8 @@ export function normalizeVCodeContent(ast: unknown, raw: string | undefined): VC
  * card would double the framing. Quotes nested deeper in the content keep
  * their normal chrome.
  */
+export function unwrapTopLevelQuotes(content: (string | VCodeNode)[]): (string | VCodeNode)[];
+export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent;
 export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent {
   if (typeof content === "string") {
     return content;

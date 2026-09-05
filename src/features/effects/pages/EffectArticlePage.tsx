@@ -5,6 +5,8 @@ import { PublicTableOfContents } from "@/components/common/PublicTableOfContents
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
+import { GuideLinkLine } from "@/features/articles/components/GuideLinkLine";
+import { ARTICLE_GUIDES_BY_CLASS } from "@/features/articles/domain/articleGuides";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
 import { createVCodeHeadingIdAssigner } from "../vcode/headings";
 import { CommentaryBubble } from "../components/CommentaryBubble";
@@ -132,6 +134,14 @@ export function EffectArticlePage({
                       assignHeadingId={assignHeadingId}
                     />
                   </div>
+                  {/* The scale grades this whole family of effects. A guide to
+                      one substance belongs on that substance's page, not here. */}
+                  {article.hero.guideClass ? (
+                    <GuideLinkLine
+                      className="mt-5"
+                      scale={ARTICLE_GUIDES_BY_CLASS[article.hero.guideClass].scale}
+                    />
+                  ) : null}
                 </section>
               );
 

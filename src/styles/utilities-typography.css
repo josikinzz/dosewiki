@@ -118,6 +118,11 @@
     max-width: var(--type-measure-reading);
   }
 
+  /* Article prose stays readable while embedded index panels use the full rail. */
+  .article-narrative-body :where(p, ul, ol, blockquote):not(:where(.not-prose, .not-prose *)) {
+    max-width: var(--type-measure-reading);
+  }
+
   .numeric-tabular {
     font-variant-numeric: tabular-nums;
   }

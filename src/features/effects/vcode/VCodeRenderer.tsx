@@ -3,6 +3,7 @@ import type { VCodeNode, VCodeContent } from "./types";
 import { vcodeRenderers } from "./renderers";
 import { normalizeVCodeContent } from "./normalize";
 import { createVCodeHeadingIdAssigner } from "./headings";
+import type { HeaderedTextboxPresentation } from "./components/HeaderedTextbox";
 
 interface VCodeRendererProps {
   content: VCodeContent;
@@ -21,6 +22,9 @@ interface VCodeRendererProps {
    * would collide. Implies `headingIds`.
    */
   assignHeadingId?: (text: string) => string | undefined;
+  /** Opt-in narrative treatment; effect/substance callers retain cards. */
+  headeredTextboxPresentation?: HeaderedTextboxPresentation;
+  headeredTextboxHeadingLevel?: 2 | 3;
 }
 
 /**
@@ -35,6 +39,8 @@ export function VCodeRenderer({
   subarticles = [],
   headingIds = false,
   assignHeadingId: sharedAssignHeadingId,
+  headeredTextboxPresentation = "card",
+  headeredTextboxHeadingLevel = 3,
 }: VCodeRendererProps) {
   const normalizedContent = normalizeVCodeContent(content, undefined) ?? content;
   // Document-order state, so it must live for exactly one render pass.
@@ -72,6 +78,8 @@ export function VCodeRenderer({
         renderChildren,
         renderNode,
         assignHeadingId,
+        headeredTextboxPresentation,
+        headeredTextboxHeadingLevel,
       });
     }
 

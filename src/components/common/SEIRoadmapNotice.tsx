@@ -1,5 +1,6 @@
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import { quietLinkClassName } from "@/components/common/ProseLink";
 
 /**
  * The quiet roadmap note that the Subjective Effect Index is being replaced.
@@ -13,8 +14,9 @@ import { cn } from "@/lib/utils";
  * Only the lab name links out, to mindstate.design; the sentence carries the
  * whole message on its own.
  */
-const linkClassName =
-  "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[3px] whitespace-nowrap transition hover:text-dose-accent hover:decoration-dose-accent";
+// The caption link treatment, shared with the guide line beside a substance's
+// effects so the two quiet captions never drift apart.
+const linkClassName = cn(quietLinkClassName, "whitespace-nowrap");
 
 export function SEIRoadmapNotice({
   className,

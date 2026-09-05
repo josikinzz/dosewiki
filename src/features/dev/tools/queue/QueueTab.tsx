@@ -7,13 +7,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ChangelogDiff } from "@/components/changelog/ChangelogDiff";
+import { ProseDiff } from "@/components/changelog/ProseDiff";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  DiffSurface,
   EditorActionGroup,
   EditorField,
   EditorListItem,
@@ -603,7 +604,25 @@ function ProposalReview({
                 : proposal.comparisonMode === "verified_live" ? "Changes compared with the verified submission baseline." : "Recorded change comparison."}
           </p>
         )}
-        <DiffSurface title="What changed" diffText={proposal.diff} maxHeight={480} emptyText="No text comparison is available. Do not approve until the full change can be reviewed." />
+        <h4 className="theme-accent-heading text-sm font-semibold">What changed</h4>
+        {proposal.diff.trim() ? /^[-+]\s*(?:"(?:[^"\\]|\\.)+"\s*:|[{}[\]])/m.test(proposal.diff) ? (
+          <ChangelogDiff
+            markdown={proposal.diff}
+            id={`proposal-diff-${proposal._id}`}
+            keyPrefix={proposal._id}
+            className="rounded-xl border border-dose-border"
+          />
+        ) : (
+          <ProseDiff
+            markdown={proposal.diff}
+            id={`proposal-diff-${proposal._id}`}
+            className="theme-public-card-subtle rounded-xl border px-4 py-3"
+          />
+        ) : (
+          <p className="theme-text-faint text-sm">
+            No text comparison is available. Do not approve until the full change can be reviewed.
+          </p>
+        )}
       </section>
 
       <section className="space-y-3">

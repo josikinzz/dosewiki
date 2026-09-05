@@ -209,10 +209,14 @@
     "deadAssetsLeftDead": {
       "$comment": "Nothing survives to file. Owner ruling 5 said do not chase dead assets and do not substitute anything, and round 2's recovery pass settled which of them were truly gone. A054 (/audio/deliriant audio.mp3) and S002 (the deliriants.jpg page hero) each survived two independent passes with nothing found; A085 is a filename whose object 404s. A021, A028, A029, A035 and A037 left this list in round 2 because the recovery pass actually found them — A021 is now promoted above, and the other four are dropped on their merits rather than for being missing.",
       "ids": [
-        "A054",
-        "A085",
-        "S002"
-      ]
+        "A054"
+      ],
+      "$resolved-2026-09-04": {
+        "$comment": "Round 3 emptied two of these three. The searches behind them were correct about the public web and wrong about what the owner already held: the bytes were in the owner's own PsychonautWiki mirror (psychonautwiki.rip), which no earlier pass had queried. Recorded here because 'searched twice, found nothing' was about to become a permanent ruling on assets that exist. Digests, dimensions and sources are in recovery/batch3/manifest.json; both are now published to the R2 media bucket.",
+        "A085": "Recovered from the mirror under the same filename, 326x49 animated GIF, 163836 bytes. Owner approved shipping the audited batch on 2026-09-05. The lucid-dreaming body and AST now reference the recovered R2 object; production readback verified the replacement.",
+        "S002": "Recovered from the mirror at 750x1127, and then superseded: the artist has a later rendition of the same composition published on this site as replication 700mg-of-dph-stas-constantine (1536x2048). The deliriant hero points at the artist's own work; the archive copy is kept only as the record of what the Effect Index page served.",
+        "A054": "Still dead. No copy of /audio/deliriant audio.mp3 in the mirror or anywhere else searched."
+      }
     },
     "droppedAssets": [
       {

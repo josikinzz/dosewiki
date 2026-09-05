@@ -3,6 +3,8 @@ import { PropsWithChildren } from "react";
 import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
+export type HeaderedTextboxPresentation = "card" | "section";
+
 interface HeaderedTextboxProps {
   /** Anchor id when the box is a table-of-contents destination. */
   id?: string;
@@ -10,6 +12,10 @@ interface HeaderedTextboxProps {
   header?: string;
   labelBackground?: string;
   headerBackground?: string;
+  /** Narrative articles opt out of the intensity-card surface. */
+  presentation?: HeaderedTextboxPresentation;
+  /** Section rank in the surrounding article; card presentation is unchanged. */
+  headingLevel?: 2 | 3;
 }
 
 /**
@@ -23,6 +29,8 @@ export function HeaderedTextbox({
   id,
   label,
   header,
+  presentation = "card",
+  headingLevel = 3,
   children,
 }: PropsWithChildren<HeaderedTextboxProps>) {
   // Map intensity levels to accent colors (dot + label text only)
@@ -53,6 +61,30 @@ export function HeaderedTextbox({
   };
 
   const intensity = getIntensityClasses(label);
+
+  if (presentation === "section") {
+    const Heading = headingLevel === 2 ? "h2" : "h3";
+    return (
+      <section id={id} className={cn("my-8", id && "scroll-mt-24")}>
+        {(label || header) && (
+          <Heading className="not-prose mb-4 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+            {label && (
+              <span className="inline-flex items-center gap-2.5">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${intensity.dot}`} />
+                <span className={`text-xs font-semibold uppercase tracking-[0.16em] ${intensity.text}`}>
+                  {label}
+                </span>
+              </span>
+            )}
+            {header && (
+              <span className="theme-text-primary text-xl font-semibold">{header}</span>
+            )}
+          </Heading>
+        )}
+        <div className="type-supporting-copy theme-text-secondary space-y-5">{children}</div>
+      </section>
+    );
+  }
 
   return (
     <Surface

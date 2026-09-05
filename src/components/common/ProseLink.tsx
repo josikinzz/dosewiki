@@ -17,6 +17,16 @@ import { cn } from "@/lib/utils";
 export const proseLinkClassName =
   "theme-accent-emphasis theme-accent-underline font-medium underline decoration-dotted underline-offset-2 transition-colors hover:decoration-solid focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong";
 
+/**
+ * Links inside a quiet meta caption: the roadmap note under a section heading,
+ * the guide line beside a substance's effects. The caption is faint by design,
+ * so an accent-emphasis prose link inside it would outshout the sentence it
+ * sits in. This treatment keeps the link at secondary text weight with a
+ * hairline underline that takes the accent on hover.
+ */
+export const quietLinkClassName =
+  "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[3px] transition hover:text-dose-accent hover:decoration-dose-accent";
+
 export type ProseLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 export const ProseLink = React.forwardRef<HTMLAnchorElement, ProseLinkProps>(

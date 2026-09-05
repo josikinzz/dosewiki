@@ -26,6 +26,7 @@ const EFFECT_VIEW_SLUGS = {
   sensory: "sensory",
   cognitive: "cognitive",
   physical: "physical",
+  library: "library",
   info: "info",
 } as const;
 

@@ -15,7 +15,7 @@ const longBody = `[p]${"word ".repeat(1200)}[/p]`;
 describe("groupArticlesForIndex", () => {
   it("routes articles to the group their tags claim", () => {
     const groups = groupArticlesForIndex([
-      entry({ slug: "dmt", title: "DMT", tags: ["intensity scale"], body_raw: longBody }),
+      entry({ slug: "psychedelic-intensity-scale", title: "PIS", tags: ["intensity scale"], body_raw: longBody }),
       entry({ slug: "dreams", title: "Dreams", tags: ["dreams", "psychonautics"], body_raw: longBody }),
       entry({ slug: "funding", title: "Funding Proposal", tags: [], body_raw: longBody }),
     ]);
@@ -28,6 +28,21 @@ describe("groupArticlesForIndex", () => {
     expect(groups[2].articles.map((article) => article.slug)).toEqual(["funding"]);
   });
 
+  it("files the curated drug guides by slug ahead of the scale their tags would claim", () => {
+    const groups = groupArticlesForIndex([
+      entry({ slug: "psychedelic-intensity-scale", tags: ["intensity scale"], body_raw: longBody }),
+      entry({ slug: "dmt", title: "DMT", tags: ["intensity scale"], body_raw: longBody }),
+      entry({ slug: "dxm", title: "DXM", tags: ["intensity scale"], body_raw: longBody }),
+    ]);
+
+    expect(groups.map((group) => group.id)).toEqual(["drug-guides", "scales"]);
+    expect(groups[0].label).toBe("Drug guides");
+    expect(groups[0].articles.map((article) => article.slug)).toEqual(["dmt", "dxm"]);
+    expect(groups[1].articles.map((article) => article.slug)).toEqual([
+      "psychedelic-intensity-scale",
+    ]);
+  });
+
   it("omits groups with no articles", () => {
     const groups = groupArticlesForIndex([
       entry({ tags: ["rating scale"], body_raw: longBody }),
@@ -37,31 +52,50 @@ describe("groupArticlesForIndex", () => {
     expect(groups[0].id).toBe("scales");
   });
 
-  it("drops tags the group heading already states", () => {
+  it("falls back to the body's first sentence when no short description was written", () => {
     const [group] = groupArticlesForIndex([
       entry({
-        tags: ["dreams", "psychonautics", "subjective effect documentation"],
-        body_raw: longBody,
+        tags: [],
+        body_raw:
+          "[h2]Onset[/h2][p]Onset is the point at which the first effects appear. Come up follows.[/p]",
       }),
     ]);
 
-    expect(group.articles[0].tags).toEqual(["subjective effect documentation"]);
+    expect(group.articles[0].description).toBe(
+      "Onset is the point at which the first effects appear.",
+    );
   });
 
-  it("marks short definitional pages as compact rows", () => {
+  it("prefers the written short description over the body", () => {
     const [group] = groupArticlesForIndex([
-      entry({
-        slug: "duration-terminology",
-        tags: [],
-        body_raw: `[h2]Onset[/h2][p]${"word ".repeat(220)}[/p]`,
-      }),
-      entry({ slug: "funding", tags: [], body_raw: longBody }),
+      entry({ tags: [], shortDescription: "  Written blurb.  ", body_raw: "[p]Body text.[/p]" }),
     ]);
 
-    expect(group.articles.map((article) => article.density)).toEqual([
-      "compact",
-      "full",
+    expect(group.articles[0].description).toBe("Written blurb.");
+  });
+
+  it("caps a long opening sentence on a word boundary with an ellipsis", () => {
+    const sentence = `${"lorem ipsum ".repeat(20).trim()}.`;
+    const [group] = groupArticlesForIndex([entry({ tags: [], body_raw: `[p]${sentence}[/p]` })]);
+    const description = group.articles[0].description ?? "";
+
+    // Ends on a whole word, never mid-word, and stays within the glance limit.
+    expect(description).toMatch(/ (lorem|ipsum)…$/);
+    expect(description.length).toBeLessThanOrEqual(141);
+  });
+
+  it("leaves the description off entries with neither blurb nor body", () => {
+    const [group] = groupArticlesForIndex([entry({ tags: [], body_raw: "[h2][/h2]" })]);
+
+    expect(group.articles[0].description).toBeUndefined();
+  });
+
+  it("skips a markdown heading when deriving a description for new writing", () => {
+    const [group] = groupArticlesForIndex([
+      entry({ tags: [], bodyFormat: "markdown", body_raw: "# Hello\n\nWritten today. More." }),
     ]);
+
+    expect(group.articles[0].description).toBe("Written today.");
   });
 
   it("reports reading length from body prose rather than markup", () => {

@@ -4,7 +4,7 @@ import { CaptionedImage } from "./components/CaptionedImage";
 import { Columns, Column } from "./components/Columns";
 import { EffectListPanel } from "./components/EffectListPanel";
 import { ExtLink } from "./components/ExtLink";
-import { HeaderedTextbox } from "./components/HeaderedTextbox";
+import { HeaderedTextbox, type HeaderedTextboxPresentation } from "./components/HeaderedTextbox";
 import { IntLink } from "./components/IntLink";
 import { List, ListItem } from "./components/List";
 import { Paragraph } from "./components/Paragraph";
@@ -30,6 +30,8 @@ export type VCodeRendererContext = {
    * used, so ids agree on repeated titles.
    */
   assignHeadingId?: (text: string) => string | undefined;
+  headeredTextboxPresentation?: HeaderedTextboxPresentation;
+  headeredTextboxHeadingLevel?: 2 | 3;
 };
 
 export type VCodeNodeRenderer = (
@@ -307,6 +309,8 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
         header={node.properties.header}
         labelBackground={node.properties.labelBackground}
         headerBackground={node.properties.headerBackground}
+        presentation={context.headeredTextboxPresentation}
+        headingLevel={context.headeredTextboxHeadingLevel}
       >
         {context.renderChildren(node.children)}
       </HeaderedTextbox>
