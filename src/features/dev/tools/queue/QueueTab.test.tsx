@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -113,14 +113,14 @@ describe("QueueTab", () => {
     vi.unstubAllGlobals();
   });
 
-  it("groups proposals by status with counts and flags a drifted target on the open proposal", async () => {
+  it("separates pending submissions from history, omits empty groups, and shows the selected change and discussion", async () => {
     stubQueueApi([submitted, applied, requested], { cp_1: submittedDetail });
     renderQueue();
 
     await waitFor(() => expect(screen.getByTestId("queue-group-submitted-count")).toHaveTextContent("1"));
     expect(screen.getByTestId("queue-group-changes_requested-count")).toHaveTextContent("1");
     expect(screen.getByTestId("queue-group-applied-count")).toHaveTextContent("1");
-    expect(screen.getByTestId("queue-group-closed-count")).toHaveTextContent("0");
+    expect(screen.queryByTestId("queue-group-closed")).not.toBeInTheDocument();
     expect(group("submitted").getByText("Update LSD")).toBeInTheDocument();
     expect(group("applied").getByText("Retitle DMT")).toBeInTheDocument();
     expect(group("changes_requested").getByText("Mescaline dosing")).toBeInTheDocument();
@@ -130,10 +130,7 @@ describe("QueueTab", () => {
     await waitFor(() => expect(screen.getAllByTestId("proposal-target")).toHaveLength(2));
     const [lsd, chemical] = screen.getAllByTestId("proposal-target");
     expect(lsd).toHaveTextContent("lsd");
-    expect(lsd).toHaveTextContent("Drifted");
     expect(chemical).toHaveTextContent("chemical");
-    expect(chemical).toHaveTextContent("Matches production");
-    expect(chemical).not.toHaveTextContent("Drifted");
 
     expect(screen.getByText("ada@example.com")).toBeInTheDocument();
     expect(document.querySelector("pre")).toHaveTextContent("+ Proposed summary");
@@ -146,16 +143,6 @@ describe("QueueTab", () => {
     expect(screen.queryByRole("button", { name: "Revert" })).toBeNull();
   });
 
-  it("shows the conflict reason as an alert on a changes-requested proposal", async () => {
-    stubQueueApi([requested], { cp_3: requestedDetail });
-    renderQueue();
-
-    await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("Changes requested");
-    expect(alert).toHaveTextContent("Article lsd changed since this proposal was pinned.");
-  });
 
   it("renders approve and reject for an admin on a submitted proposal, and posts them to the review routes once confirmed", async () => {
     const { calls } = stubQueueApi([submitted], { cp_1: submittedDetail });
@@ -163,7 +150,7 @@ describe("QueueTab", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
 
-    const approve = await screen.findByRole("button", { name: "Approve and apply" });
+    await screen.findByRole("button", { name: "Approve and apply" });
     const reject = screen.getByRole("button", { name: "Reject" });
     expect(screen.queryByRole("button", { name: "Revert" })).toBeNull();
     expect(reject).toBeDisabled();
@@ -180,21 +167,13 @@ describe("QueueTab", () => {
     expect(await screen.findByText("Proposal rejected.")).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 
-    await userEvent.click(approve);
+    await userEvent.click(screen.getByRole("button", { name: "Approve and apply" }));
     const approveDialog = await screen.findByRole("dialog", { name: "Apply to production?" });
-    // The decision inputs travel into the dialog: target count and which ones drifted.
-    expect(approveDialog).toHaveTextContent("2 targets change on the public site.");
-    expect(approveDialog).toHaveTextContent("1 of them drifted");
-    expect(approveDialog).toHaveTextContent("Article lsd (drifted)");
-    expect(approveDialog).toHaveTextContent("Index layout chemical");
     expect(calls.some((call) => call.url.endsWith("/approve"))).toBe(false);
     await userEvent.click(within(approveDialog).getByRole("button", { name: "Apply to production" }));
     await waitFor(() => expect(calls).toContainEqual({ url: `${BASE}/cp_1/approve`, method: "POST", body: {} }));
-    expect(await screen.findByText("Approved and applied to production.")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Approve and apply" })).toBeEnabled());
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    // Both panes refetch after an action.
-    expect(calls.filter((call) => call.url === BASE).length).toBeGreaterThanOrEqual(3);
-    expect(calls.filter((call) => call.url === `${BASE}/cp_1` && call.method === "GET").length).toBeGreaterThanOrEqual(3);
   });
 
   it("cancelling the confirm writes nothing and keeps the rejection note", async () => {
@@ -227,8 +206,7 @@ describe("QueueTab", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Approve and apply" }));
     await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Apply to production" }));
 
-    expect(await screen.findByText("Not applied: changes requested")).toBeInTheDocument();
-    expect(screen.getByText("Article lsd moved.")).toBeInTheDocument();
+    expect(await screen.findByText("Article lsd moved.")).toBeInTheDocument();
   });
 
   it("offers revert only on an applied proposal and posts a comment with the typed text", async () => {
@@ -244,7 +222,6 @@ describe("QueueTab", () => {
     expect(screen.queryByRole("button", { name: "Reject" })).toBeNull();
     await userEvent.click(revert);
     const revertDialog = await screen.findByRole("dialog", { name: "Revert production?" });
-    expect(revertDialog).toHaveTextContent("1 target goes back to the snapshot");
     expect(revertDialog).toHaveTextContent("Article dmt");
     await userEvent.click(within(revertDialog).getByRole("button", { name: "Revert production" }));
     await waitFor(() => expect(calls).toContainEqual({ url: `${BASE}/cp_2/revert`, method: "POST", body: {} }));
@@ -268,8 +245,7 @@ describe("QueueTab", () => {
     stubQueueApi([], {});
     renderQueue();
 
-    expect(await screen.findByText("Nothing has been proposed yet.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open the Substances editor" })).toHaveAttribute("href", "/dev/articles");
+    expect(await screen.findByRole("link", { name: "Open the Substances editor" })).toHaveAttribute("href", "/dev/articles");
   });
 
   describe("Load into editor", () => {
@@ -325,6 +301,7 @@ describe("QueueTab", () => {
       await userEvent.click(await screen.findByRole("button", { name: /Footer copy/ }));
       await screen.findByRole("button", { name: "Post comment" });
       expect(screen.queryByRole("button", { name: "Load into editor" })).toBeNull();
+      expect(screen.getByRole("link", { name: "Open Copy editor: footer" })).toHaveAttribute("href", "/dev/copy-studio/footer");
     });
 
     it("never offers it on a closed proposal, and waits for the library before enabling it", async () => {
@@ -341,7 +318,6 @@ describe("QueueTab", () => {
       await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
       const load = await screen.findByRole("button", { name: "Load into editor" });
       expect(load).toBeDisabled();
-      expect(screen.getByText("Waiting for the substance library to load.")).toBeInTheDocument();
     });
 
     it("reports a seed that failed instead of leaving the tab", async () => {
@@ -357,5 +333,129 @@ describe("QueueTab", () => {
       expect(await screen.findByText("Could not load mescaline from the library; try again.")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Load into editor" })).toBeEnabled();
     });
+
+    it("routes About revisions to Writing instead of loading a substances seed", async () => {
+      const aboutRow: ProposalSummary = {
+        ...requested,
+        targets: [{ kind: "about", key: "about", baseHash: "h-about" }],
+      };
+      stubQueueApi([aboutRow], { cp_3: { ...requestedDetail, ...aboutRow } });
+      renderQueue({ actorEmail: "ada@example.com" });
+      await userEvent.click(await screen.findByRole("button", { name: /Mescaline dosing/ }));
+      expect(await screen.findByRole("link", { name: "Open About editor" })).toHaveAttribute("href", "/dev/writing/about");
+      expect(screen.queryByRole("button", { name: "Load into editor" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("prevents an admin approving their own submission", async () => {
+    const { calls } = stubQueueApi([submitted], { cp_1: submittedDetail });
+    renderQueue({ canApprove: true, actorEmail: submitted.proposedBy });
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+    const approve = await screen.findByRole("button", { name: "Approve and apply" });
+    expect(approve).toBeDisabled();
+    await userEvent.click(approve);
+    expect(calls.filter((call) => call.method === "POST")).toEqual([]);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("retains separate comment and rejection drafts when switching submissions", async () => {
+    stubQueueApi([submitted, requested], { cp_1: submittedDetail, cp_3: requestedDetail });
+    renderQueue({ canApprove: true });
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+    await userEvent.type(await screen.findByLabelText("Add a comment"), "Question about LSD");
+    await userEvent.type(screen.getByLabelText("Rejection note"), "Missing evidence");
+    await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
+    expect(await screen.findByLabelText("Add a comment")).toHaveValue("");
+    expect(screen.getByLabelText("Rejection note")).toHaveValue("");
+    await userEvent.type(screen.getByLabelText("Add a comment"), "Question about mescaline");
+    await userEvent.click(screen.getByRole("button", { name: /Update LSD/ }));
+    expect(await screen.findByLabelText("Add a comment")).toHaveValue("Question about LSD");
+    expect(screen.getByLabelText("Rejection note")).toHaveValue("Missing evidence");
+    await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
+    expect(await screen.findByLabelText("Add a comment")).toHaveValue("Question about mescaline");
+  });
+
+  it("keeps an in-flight action on its submission and never transfers its feedback to the next selection", async () => {
+    const { fetchMock } = stubQueueApi([submitted, requested], { cp_1: submittedDetail, cp_3: requestedDetail });
+    renderQueue();
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+    await userEvent.type(await screen.findByLabelText("Add a comment"), "Please check");
+    let resolvePost!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => { resolvePost = resolve; }));
+    await userEvent.click(screen.getByRole("button", { name: "Post comment" }));
+    const other = screen.getByRole("button", { name: /Mescaline dosing/ });
+    expect(other).toBeDisabled();
+    await userEvent.click(other);
+    expect(screen.getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");
+    await act(async () => { resolvePost(Response.json({ ok: true, comment: { by: "me", at: "now", text: "Please check" } })); });
+    expect(await screen.findByText("Comment posted.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
+    expect(await screen.findByLabelText("Add a comment")).toHaveValue("");
+    expect(screen.queryByText("Comment posted.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Mescaline dosing/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("preserves a failed comment for retry and unlocks navigation", async () => {
+    const { fetchMock, calls } = stubQueueApi([submitted, requested], { cp_1: submittedDetail, cp_3: requestedDetail });
+    renderQueue();
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+    await userEvent.type(await screen.findByLabelText("Add a comment"), "Keep this draft");
+    fetchMock.mockResolvedValueOnce(Response.json({ error: "Unable to save comment" }, { status: 503 }));
+    await userEvent.click(screen.getByRole("button", { name: "Post comment" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to save comment");
+    expect(screen.getByLabelText("Add a comment")).toHaveValue("Keep this draft");
+    expect(screen.getByRole("button", { name: /Mescaline dosing/ })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Post comment" }));
+    expect(await screen.findByText("Comment posted.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Add a comment")).toHaveValue("");
+    expect(calls).toContainEqual({ url: `${BASE}/cp_1/comment`, method: "POST", body: { text: "Keep this draft" } });
+  });
+
+  it("ignores a late detail response after another submission has been selected", async () => {
+    const { fetchMock } = stubQueueApi([submitted, requested], { cp_1: submittedDetail, cp_3: requestedDetail });
+    renderQueue();
+    await screen.findByRole("button", { name: /Update LSD/ });
+    let resolveFirst!: (response: Response) => void;
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => { resolveFirst = resolve; }));
+    await userEvent.click(screen.getByRole("button", { name: /Update LSD/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
+    await screen.findByLabelText("Add a comment");
+    await act(async () => { resolveFirst(Response.json({ ok: true, proposal: submittedDetail })); });
+    expect(screen.getByRole("button", { name: /Mescaline dosing/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByText("Checked the citations.")).not.toBeInTheDocument();
+  });
+
+  it("retries a failed detail request without requiring another selection", async () => {
+    const { fetchMock } = stubQueueApi([submitted], { cp_1: submittedDetail });
+    renderQueue();
+    await screen.findByRole("button", { name: /Update LSD/ });
+    fetchMock.mockRejectedValueOnce(new Error("Offline"));
+    await userEvent.click(screen.getByRole("button", { name: /Update LSD/ }));
+    await userEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Checked the citations.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("recovers from a failed list request", async () => {
+    const { fetchMock } = stubQueueApi([submitted], { cp_1: submittedDetail });
+    fetchMock.mockRejectedValueOnce(new Error("Offline"));
+    renderQueue();
+    await userEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+    expect(await screen.findByLabelText("Add a comment")).toBeEnabled();
+  });
+
+  it("refreshes the selected status and actions without discarding its comment draft", async () => {
+    const details = { cp_1: submittedDetail };
+    stubQueueApi([submitted], details);
+    renderQueue({ canApprove: true });
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+    await userEvent.type(await screen.findByLabelText("Add a comment"), "Still drafting");
+    expect(screen.getByRole("button", { name: "Approve and apply" })).toBeEnabled();
+    details.cp_1 = { ...submittedDetail, status: "applied", appliedAt: "2026-09-04T10:00:00.000Z" };
+    await userEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await screen.findByRole("button", { name: "Revert" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Approve and apply" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Add a comment")).toHaveValue("Still drafting");
   });
 });

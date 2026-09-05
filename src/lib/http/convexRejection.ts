@@ -67,6 +67,8 @@ const REJECTION_STATUS_BY_CODE = new Map<string, number>([
   // applied, rejected, or superseded), or production moved under it: the
   // queue is stale, reload it.
   ["PROPOSAL_STATUS_INVALID", 409],
+  ["PROPOSAL_BASELINE_STALE", 409],
+  ["PROPOSAL_SELF_APPROVAL", 403],
   ["REVERT_CONFLICT", 409],
 ]);
 

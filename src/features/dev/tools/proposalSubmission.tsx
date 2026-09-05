@@ -2,31 +2,21 @@
  * Submitting a tab-local document (a copy block, the About page) as a change
  * proposal instead of saving it. Editors land here; admins keep the tool's
  * direct save. The proposal carries the same body the direct save route
- * validates, a one-line summary, and a field-by-field diff for the Queue.
+ * validates, a one-line summary, and the loaded baseline for server comparison.
  */
 import { Button } from "@/components/ui/button";
 import type { EditorNoticeMessage } from "@/features/dev/components";
 import type { ProposalPayload } from "@/hooks/useApiMutations";
-import { buildTextChangelog } from "@/utils/data/changelog";
 import { viewToPath } from "@/utils/routing";
+import type { ProposalBaseline } from "../../../../lib/proposals/proposalBaseline";
 
 const PROPOSALS_PATH = "/api/dev/proposals";
 
-export type ProposalFieldChange = { label: string; before: string; after: string };
-
-/** One `# Label` diff section per field that changed; fields that did not are left out. */
-export function buildFieldDiff(fields: readonly ProposalFieldChange[]): string {
-  return fields
-    .map((field) => buildTextChangelog(field.label, field.before, field.after))
-    .filter((changelog) => changelog.hasChanges)
-    .map((changelog) => changelog.markdown)
-    .join("\n");
-}
 
 export async function submitToolProposal(input: {
   payload: ProposalPayload;
   summary: string;
-  diff: string;
+  baselines: ProposalBaseline[];
 }): Promise<{ proposalId: string }> {
   let response: Response;
   try {

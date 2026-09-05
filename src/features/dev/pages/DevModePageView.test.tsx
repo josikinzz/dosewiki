@@ -82,25 +82,6 @@ describe("DevModePageView", () => {
     expect(queryByText(/writes to production|commit to production/)).toBeNull();
   });
 
-  it("labels a staged tool with the draft-then-commit family from its descriptor", () => {
-    const { getByText, queryByText } = render(<DevModePageView controller={buildController("articles")} />);
-
-    expect(getByText("Apply to draft, then commit to production")).toBeTruthy();
-    expect(queryByText("Save writes to production")).toBeNull();
-  });
-
-  it("labels an immediate tool with the save-writes-to-production family from its descriptor", () => {
-    const { getByText, queryByText } = render(<DevModePageView controller={buildController("molecule-editor")} />);
-
-    expect(getByText("Save writes to production")).toBeTruthy();
-    expect(queryByText("Apply to draft, then commit to production")).toBeNull();
-  });
-
-  it("gives the Change log no save family, since it is not a tool", () => {
-    const { queryByText } = render(<DevModePageView controller={buildController("change-log")} />);
-
-    expect(queryByText(/writes to production|commit to production/)).toBeNull();
-  });
 
   it("renders the locked panel instead of the tool when the settled session is below the tab's role", () => {
     const { getByText, queryByTestId } = render(

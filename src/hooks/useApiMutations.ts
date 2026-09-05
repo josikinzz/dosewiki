@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { pickString, pickStringArray, postJson } from "./apiMutationClient";
+import type { ProposalBaseline } from "../../lib/proposals/proposalBaseline";
 
 // ============================================================================
 // Types
@@ -91,7 +92,7 @@ export type ProposalPayload = SaveToConvexPayload & {
 export interface SubmitProposalPayload {
   payload: ProposalPayload;
   summary: string;
-  diff: string;
+  baselines: ProposalBaseline[];
   /** The returned proposal this submission rebases; the server supersedes it. */
   revisionOf?: string;
 }

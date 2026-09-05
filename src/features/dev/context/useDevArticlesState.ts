@@ -51,10 +51,8 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
    * both halves of a row at once, which is why it cannot mark anything dirty and
    * cannot be mistaken for an upstream refresh.
    *
-   * A row whose draft has already diverged from its baseline is left alone in
-   * the draft: the user's edit outranks the fetch that raced it. Its baseline is
-   * still filled in, so the save diff compares an edited whole article against
-   * the whole article it was edited from.
+   * A row already edited is left alone in both draft and baseline: a later
+   * hydration must not make a stale edit appear freshly based.
    */
   const hydrateArticles = (articlesBySlug: ReadonlyMap<string, ArticleRecord>) => {
     if (articlesBySlug.size === 0) {
@@ -69,7 +67,7 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
         const hydrated = baseline
           ? articlesBySlug.get(resolveEditorArticleSlug(baseline))
           : undefined;
-        if (!hydrated || hydrated === baseline) {
+        if (!hydrated || hydrated === baseline || draft[index] !== baseline) {
           return;
         }
 
@@ -92,11 +90,12 @@ export function useDevArticlesState(articlesSource: ArticleRecord[]) {
 
   return {
     applyArticlesTransform,
+    hasUnsavedArticleChanges: document.isDirty,
     articles: document.draft,
     // The newest snapshot the live Convex query delivered. It keeps updating
     // while `articles` is frozen, so it is the only in-process record of what
     // the database now holds once the working set has stopped taking updates.
-    sourceArticles: document.original,
+    sourceArticles: document.refreshConflict?.incomingSource ?? document.original,
     // Non-null exactly while the working set is refusing live updates because
     // it holds unapplied changes. A surface that writes with an `expected`
     // baseline read out of `articles` has to be able to say so.

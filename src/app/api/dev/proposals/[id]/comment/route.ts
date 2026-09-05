@@ -3,8 +3,8 @@
  *
  *   POST /api/dev/proposals/<id>/comment  { text } -> { comment: { by, at, text } }
  *
- * Any editor may comment on any proposal in any status; the comment is
- * attributed to the session's email.
+ * Editors may comment on their own proposals; admins may comment globally.
+ * Convex enforces ownership and attributes the comment to the session email.
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../../convex/_generated/api";

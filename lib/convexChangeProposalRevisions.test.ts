@@ -147,7 +147,7 @@ function submitArgs(overrides: Record<string, unknown> = {}) {
     actorEmail: "editor@example.com",
     payload: { articles: [{ ...proposedLsd, summary: "Rebased summary" }] },
     summary: "Update LSD (rebased)",
-    diff: "# LSD\n\n- Stored summary\n+ Rebased summary",
+    baselines: [{ kind: "article", key: "lsd", document: projectEditorArticle(storedLsd as never) }],
     revisionOf: "proposal_p1",
     ...overrides,
   } as never;
@@ -259,6 +259,7 @@ describe("changeProposals.submit with revisionOf", () => {
       submitHandler(ctx, submitArgs({
         payload: { indexLayouts: [{ type: "chemical", version: 1, categories: [] }] },
         summary: "Unrelated layout",
+        baselines: [{ kind: "indexLayout", key: "chemical", document: null }],
       })),
     ).rejects.toMatchObject({ data: { code: "PROPOSAL_REVISION_MISMATCH" } });
 
@@ -271,6 +272,10 @@ describe("changeProposals.submit with revisionOf", () => {
         articles: [{ ...proposedLsd, summary: "Rebased summary" }],
         indexLayouts: [{ type: "chemical", version: 1, categories: [] }],
       },
+      baselines: [
+        { kind: "article", key: "lsd", document: projectEditorArticle(storedLsd as never) },
+        { kind: "indexLayout", key: "chemical", document: null },
+      ],
     }));
     expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("superseded");
   });

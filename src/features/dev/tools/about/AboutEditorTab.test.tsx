@@ -203,7 +203,7 @@ describe("AboutEditorTab", () => {
     expect(screen.getByText("1 section changed")).toBeTruthy();
   });
 
-  it("submits an editor's document as a proposal with a field diff and keeps the draft pending", async () => {
+  it("submits an editor's document and keeps the draft pending", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, proposalId: "cp_abc123" }),
@@ -234,14 +234,26 @@ describe("AboutEditorTab", () => {
       },
       summary: "Update the About page",
     });
-    expect(body.diff).toContain("# About copy");
-    expect(body.diff).toContain("-We index {{compoundCount}} compounds.");
-    expect(body.diff).toContain("+We index {{compoundCount}} compounds. Edited.");
-    expect(body.diff).not.toContain("# About subtitle");
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
     // Production is untouched, so the edit is still pending against it.
     expect(screen.getByText("1 section changed")).toBeTruthy();
+  });
+
+  it("preserves a stale draft and its loaded baseline across a production refresh and rejection", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false, json: async () => ({ error: "Production changed. Your draft is preserved." }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { rerender } = render(<AboutEditorTab availableProfiles={[]} canApprove={false} />);
+    await userEvent.type(screen.getByLabelText("Markdown source"), " Local.");
+    useQueryMock.mockReturnValue({ ...ABOUT, aboutMarkdown: "Remote replacement" });
+    rerender(<AboutEditorTab availableProfiles={[]} canApprove={false} />);
+    await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+    expect(await screen.findByText("Production changed. Your draft is preserved.")).toBeTruthy();
+    expect(screen.getByLabelText("Markdown source")).toHaveValue(`${ABOUT.aboutMarkdown} Local.`);
+    const input = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(input.baselines[0].document.aboutMarkdown).toBe(ABOUT.aboutMarkdown);
   });
 });

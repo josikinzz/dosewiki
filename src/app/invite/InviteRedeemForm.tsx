@@ -35,9 +35,11 @@ export function InviteRedeemForm({ initialCode, destination }: InviteRedeemFormP
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [accountCreated, setAccountCreated] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting || accountCreated) return;
     setError(null);
     setStatusMessage(null);
 
@@ -85,29 +87,33 @@ export function InviteRedeemForm({ initialCode, destination }: InviteRedeemFormP
       return;
     }
 
+    setAccountCreated(true);
     setStatusMessage("Account created. Signing you in…");
-    const result = await signIn("credentials", {
-      username: typeof payload.username === "string" ? payload.username : normalizeUsername(username),
-      password,
-      callbackUrl: destination,
-      redirect: false,
-    });
-
-    setIsSubmitting(false);
-    if (!result || result.error) {
+    try {
+      const result = await signIn("credentials", {
+        username: typeof payload.username === "string" ? payload.username : normalizeUsername(username),
+        password,
+        callbackUrl: destination,
+        redirect: false,
+      });
+      if (!result || result.error) {
+        throw new Error("Sign-in did not complete.");
+      }
+      setStatusMessage("Signed in. Redirecting to the editor…");
+      window.location.href = result.url ?? destination;
+    } catch {
       setStatusMessage(null);
-      setError("Your account was created but sign-in did not complete. Sign in with your new username and password.");
-      return;
+      setError("Your account was created but sign-in did not complete. Sign in with your new username and password. You do not need to use the invite again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setStatusMessage("Signed in. Redirecting to the editor…");
-    window.location.href = result.url ?? destination;
   };
 
   const errorId = error ? "invite-redeem-error" : undefined;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-describedby={errorId}>
+      <fieldset disabled={isSubmitting || accountCreated} className="space-y-5">
       <div className="space-y-1.5">
         <Label htmlFor="invite-code">Invite code</Label>
         <Input
@@ -198,11 +204,12 @@ export function InviteRedeemForm({ initialCode, destination }: InviteRedeemFormP
           />
         </div>
       </div>
+      </fieldset>
 
       {error ? (
         <Alert id={errorId} variant="destructive">
           <Icon icon="lucide:alert-circle" size={16} />
-          <AlertTitle>Could not accept the invite</AlertTitle>
+          <AlertTitle>{accountCreated ? "Account created: sign in to continue" : "Could not accept the invite"}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
@@ -216,9 +223,17 @@ export function InviteRedeemForm({ initialCode, destination }: InviteRedeemFormP
         ) : null}
       </p>
 
-      <Button type="submit" variant="accent" disabled={isSubmitting} className="min-h-11 w-full justify-center">
-        {isSubmitting ? "Creating account…" : "Create account"}
-      </Button>
+      {accountCreated ? (
+        !isSubmitting ? (
+          <Button asChild variant="accent" className="min-h-11 w-full justify-center">
+            <a href="/sign-in">Continue to sign in</a>
+          </Button>
+        ) : null
+      ) : (
+        <Button type="submit" variant="accent" disabled={isSubmitting} className="min-h-11 w-full justify-center">
+          {isSubmitting ? "Creating account…" : "Create account"}
+        </Button>
+      )}
     </form>
   );
 }

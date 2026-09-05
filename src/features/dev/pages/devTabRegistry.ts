@@ -182,8 +182,8 @@ const REGISTRY = [
   },
   {
     id: "queue",
-    label: "Queue",
-    group: "site",
+    label: "Change Review",
+    group: "intake",
     aliases: ["proposals"],
     // Every editor reads the review queue and comments; approve, reject and
     // revert are admin buttons inside the tab. The corpus drains behind it so

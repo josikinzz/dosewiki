@@ -7,7 +7,7 @@
  * The POST body is the same `SaveToConvexPayload` the save route takes, plus
  * the tab-local documents editors cannot write directly (`copyBlocks[]`,
  * parsed as `/api/dev/copy-block` parses one block, and `about`, parsed as
- * `/api/dev/about` does), plus a summary and the diff the shell rendered;
+ * `/api/dev/about` does), plus a summary and each document's loaded baseline;
  * nothing here touches production, only `changeProposals`.
  */
 import { NextResponse } from "next/server";
@@ -17,7 +17,7 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { substanceArticleLightValidator } from "../../../../../convex/lib/validators";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PROPOSAL_STATUSES, type ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
-import { truncateDiffMarkdown } from "../../../../../lib/proposals/diffMarkdown";
+import type { ProposalBaseline } from "../../../../../lib/proposals/proposalBaseline";
 import {
   parseChangelogPayload,
   parseIndexLayoutPayloads,
@@ -39,7 +39,7 @@ type ProposalBody = {
     changelog?: unknown;
   };
   summary?: unknown;
-  diff?: unknown;
+  baselines?: unknown;
   /** The returned proposal this submission revises; Convex supersedes it in the same mutation. */
   revisionOf?: unknown;
 };
@@ -108,7 +108,12 @@ export const POST = protectedRouteOperation<ProposalBody>({
     if (summary.length === 0) {
       return NextResponse.json({ error: "A proposal needs a summary." }, { status: 400 });
     }
-    const diff = truncateDiffMarkdown(typeof body.diff === "string" ? body.diff : "");
+    if (!Array.isArray(body.baselines) || body.baselines.some((entry) =>
+      !entry || typeof entry !== "object" || !["article", "indexLayout", "copyBlock", "about"].includes(entry.kind) ||
+      typeof entry.key !== "string" || !Object.prototype.hasOwnProperty.call(entry, "document"))) {
+      return NextResponse.json({ error: "Every change needs its loaded baseline. Your draft is preserved; reload the source and reapply your edits." }, { status: 400 });
+    }
+    const baselines = body.baselines as ProposalBaseline[];
     const revisionOf = typeof body.revisionOf === "string" ? body.revisionOf.trim() : "";
     if (body.revisionOf !== undefined && body.revisionOf !== null && revisionOf.length === 0) {
       return NextResponse.json({ error: "revisionOf must name a proposal." }, { status: 400 });
@@ -128,7 +133,7 @@ export const POST = protectedRouteOperation<ProposalBody>({
       actorEmail,
       payload,
       summary,
-      diff,
+      baselines,
       ...(revisionOf ? { revisionOf: revisionOf as Id<"changeProposals"> } : {}),
     });
 

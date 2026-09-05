@@ -152,7 +152,7 @@ describe("CopyStudioTab", () => {
     expect(JSON.parse(removeInit.body as string)).toEqual({ key: "about-reuse-notice" });
   });
 
-  it("submits an editor's block as a proposal with a diff and links to the queue", async () => {
+  it("submits an editor's block and links to the queue", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, proposalId: "cp_abc123" }),
@@ -183,9 +183,25 @@ describe("CopyStudioTab", () => {
       body: `${before} Edited.`,
     });
     expect(body.summary).toMatch(/^Update copy "/);
-    expect(body.diff).toContain(`+${before} Edited.`);
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+  });
+
+  it("keeps edited copy and its loaded baseline when production changes", async () => {
+    query.rows = [STORED_REUSE_NOTICE];
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false, json: async () => ({ error: "Production changed. Your draft is preserved." }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { rerender } = render(<CopyStudioTab initialKey="about-reuse-notice" canApprove={false} />);
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Local.");
+    query.rows = [{ ...STORED_REUSE_NOTICE, body: "Remote replacement" }];
+    rerender(<CopyStudioTab initialKey="about-reuse-notice" canApprove={false} />);
+    await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+    expect(await screen.findByText("Production changed. Your draft is preserved.")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Copy" })).toHaveValue(`${STORED_REUSE_NOTICE.body} Local.`);
+    const input = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(input.baselines[0].document.body).toBe(STORED_REUSE_NOTICE.body);
   });
 });

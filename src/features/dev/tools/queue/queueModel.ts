@@ -36,6 +36,8 @@ export type ProposalSummary = {
 /** `GET /api/dev/proposals/<id>`: the full row plus the live hash of each target. */
 export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   diff: string;
+  comparisonMode?: "applied" | "submitted" | "verified_live" | "unavailable";
+  comparisonNote?: string;
   comments: ProposalComment[];
   revertedAt?: string;
   liveHashes: Array<{ kind: ProposalTargetKind; key: string; hash: string }>;
@@ -56,18 +58,18 @@ export type QueueGroup = {
 
 /** Rail order: what an admin has to act on first, closed proposals last. */
 export const QUEUE_GROUPS: readonly QueueGroup[] = [
-  { id: "submitted", label: "Submitted", statuses: ["submitted"] },
-  { id: "changes_requested", label: "Changes requested", statuses: ["changes_requested"] },
-  { id: "applied", label: "Applied", statuses: ["applied"] },
-  { id: "closed", label: "Rejected / Superseded / Reverted", statuses: ["rejected", "superseded", "reverted"] },
+  { id: "submitted", label: "Awaiting review", statuses: ["submitted"] },
+  { id: "changes_requested", label: "Needs revision", statuses: ["changes_requested"] },
+  { id: "applied", label: "Published", statuses: ["applied"] },
+  { id: "closed", label: "Closed", statuses: ["rejected", "superseded", "reverted"] },
 ];
 
 export const STATUS_LABELS: Record<ProposalStatus, string> = {
-  submitted: "Submitted",
+  submitted: "Awaiting review",
   changes_requested: "Changes requested",
-  applied: "Applied",
+  applied: "Published",
   rejected: "Rejected",
-  superseded: "Superseded",
+  superseded: "Replaced by revision",
   reverted: "Reverted",
 };
 

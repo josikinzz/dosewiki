@@ -16,6 +16,8 @@ import {
   type ArticleRecord,
   type MarkdownChange,
 } from "./devModePageUtils";
+import { resolveEditorArticleSlug, EMPTY_INDEX_CONFIG } from "../context/devModeUtils";
+import type { ProposalBaseline } from "../../../../lib/proposals/proposalBaseline";
 
 /**
  * Who a save is attributed to. The Auth.js session cookie is the credential;
@@ -32,6 +34,7 @@ export type ManualLayoutDocument = {
   type: ManualLayoutType;
   label: string;
   data: unknown;
+  originalData: unknown;
   changelog: MarkdownChange;
 };
 
@@ -214,9 +217,9 @@ export function buildProposalSummary(draft: DevSaveDraft, payload: SaveToConvexP
 
 /**
  * The editor-side adapter: the same payload the Convex adapter would save is
- * posted to /api/dev/proposals and held for an admin. The diff is the commit
- * markdown the shell already renders in the change log. With `revisionOf`
- * the submission rebases that returned proposal, which the server supersedes.
+ * posted to /api/dev/proposals with the original documents the editor loaded.
+ * The server refuses stale baselines and derives its own diff. With `revisionOf`
+ * the submission revises that returned proposal, which the server supersedes.
  */
 export function createProposalSaveAdapter({
   submitProposal,
@@ -231,10 +234,25 @@ export function createProposalSaveAdapter({
     validateAvailability: () => ({ ok: true }),
     execute: async (draft, credentials) => {
       const { payload } = buildConvexCommandPayload(draft);
+      const baselines: ProposalBaseline[] = [
+        ...(payload.articles ?? []).map((value) => {
+          const article = value as SubstanceArticle;
+          const key = resolveEditorArticleSlug(article);
+          if (!key) throw new Error("The article needs a slug before it can be submitted.");
+          const original = draft.originalArticles.find((row) =>
+            article.id !== null && article.id !== undefined ? row.id === article.id : resolveEditorArticleSlug(row) === key);
+          return { kind: "article" as const, key, document: original ?? null };
+        }),
+        ...(payload.indexLayouts ?? []).map((layout) => {
+          const original = draft.layouts.find((row) => row.type === layout.type)!.originalData;
+          if (original === undefined) throw new Error("The layout baseline is unavailable. Your draft is preserved; reload the source.");
+          return { kind: "indexLayout" as const, key: layout.type, document: original === EMPTY_INDEX_CONFIG ? null : original };
+        }),
+      ];
       const result = await submitProposal({
         payload,
         summary: buildProposalSummary(draft, payload),
-        diff: payload.changelog?.markdown ?? "",
+        baselines,
         ...(revisionOf ? { revisionOf } : {}),
       });
 

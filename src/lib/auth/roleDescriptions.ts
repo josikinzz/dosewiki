@@ -20,28 +20,28 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
     summary: "Runs the site. Publishes directly and decides what everyone else's changes become.",
     can: [
       "Publish any change straight to production, no review.",
-      "Approve, reject, and revert proposals in the queue.",
+      "Approve other editors' proposals, reject submissions, and revert eligible published changes.",
       "Mint invites, change roles, ban accounts, issue password resets.",
       "Edit banners, molecules, replications, and anyone's profile, playlists, or reports.",
       "See every prior version of a profile, playlist, or report, and restore a removed playlist.",
     ],
-    cannot: ["Demote or ban themselves."],
+    cannot: ["Demote or ban themselves.", "Approve their own proposals."],
   },
   editor: {
     role: "editor",
     summary:
-      "Writes. Every edit lands in the review queue as a proposal, and nothing reaches the site until an admin approves it.",
+      "Drafts article and site-copy changes for admin review. Submitting a proposal does not publish it.",
     can: [
       "Open the article, tag, index layout, copy, and About editors and draft changes in them.",
-      "Submit each change as a proposal, comment on proposals, and revise their own after review.",
-      "See the whole review queue.",
+      "Track their own submissions, read review feedback, comment, and submit revisions.",
       "Edit their own profile, playlists, and trip reports.",
     ],
     cannot: [
-      "Publish anything directly.",
+      "Publish article or site-copy proposals directly.",
       "Approve a proposal, including their own.",
       "Delete anything. A playlist they own can be removed from view, and an admin can bring it back.",
       "See the member list or mint invites.",
+      "Open the global change review queue or read another editor's submissions.",
     ],
   },
   contributor: {

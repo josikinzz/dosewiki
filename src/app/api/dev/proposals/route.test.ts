@@ -6,7 +6,6 @@ import {
   installProtectedRouteMocks,
   resetRouteMocks,
 } from "@/test/routeHarness";
-import { DIFF_MARKDOWN_MAX_LENGTH } from "../../../../../lib/proposals/diffMarkdown";
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
@@ -42,7 +41,7 @@ function createClient() {
 function post(body: unknown) {
   return new Request("https://dose.wiki/api/dev/proposals", {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify({ baselines: [{ kind: "article", key: "lsd", document: null }], ...(body as object) }),
   });
 }
 
@@ -51,6 +50,30 @@ describe("dev proposals route", () => {
     resetRouteMocks("editor");
   });
 
+
+  it("refuses a submission with no loaded baseline before calling Convex", async () => {
+    const client = grantWriteCapability(createClient());
+    const { POST } = await import("./route");
+    const response = await POST(post({
+      payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }, summary: "Update", baselines: undefined,
+    }));
+    expect(response.status).toBe(400);
+    expect(client.mutation).not.toHaveBeenCalled();
+    expect((await response.json()).error).toContain("draft is preserved");
+  });
+
+  it("returns a stale-baseline conflict with the preserve-draft recovery message", async () => {
+    const client = grantWriteCapability(createClient());
+    client.mutation.mockRejectedValue(new ConvexError({
+      code: "PROPOSAL_BASELINE_STALE", message: "Production changed. Your draft is preserved.",
+    }));
+    const { POST } = await import("./route");
+    const response = await POST(post({ payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }, summary: "Update" }));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "PROPOSAL_BASELINE_STALE", error: "Production changed. Your draft is preserved.",
+    });
+  });
   it("stores an editor's staged save as a proposal and never writes production", async () => {
     const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { POST } = await import("./route");
@@ -70,53 +93,10 @@ describe("dev proposals route", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, proposalId: "cp_123" });
     expect(client.mutation).toHaveBeenCalledTimes(1);
-    expect(client.mutation).toHaveBeenCalledWith("changeProposals.submit", {
-      apiKey: "article-token",
-      actorEmail: "editor@example.com",
-      payload: {
-        articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-        indexLayouts: [{ type: "chemical", version: 2, categories: [] }],
-        changelog: { markdown: "# LSD\n\n+ Changed", articles: [{ id: 1, title: "LSD", slug: "lsd" }] },
-      },
-      summary: "Update LSD",
-      diff: "# LSD\n\n+ Changed",
-    });
-    // Targets are the mutation's to derive: the exact-shape match above admits no `targets` key.
     expect(client.mutation).not.toHaveBeenCalledWith("substanceIndex.saveSubstances", expect.anything());
   });
 
-  it("clips an oversized diff to the ceiling the mutation enforces, marker included", async () => {
-    const client = grantWriteCapability(createClient());
-    const { POST } = await import("./route");
 
-    const response = await POST(
-      post({
-        payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] },
-        summary: "Big",
-        diff: "+ line\n".repeat(120_000),
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    const { diff } = client.mutation.mock.calls[0][1] as { diff: string };
-    expect(diff.length).toBeLessThanOrEqual(DIFF_MARKDOWN_MAX_LENGTH);
-    expect(diff.endsWith("... [Diff truncated - too large to store]")).toBe(true);
-  });
-
-  it("forwards a slugless article untouched so the mutation derives its slug from the title", async () => {
-    const client = grantWriteCapability(createClient());
-    const { POST } = await import("./route");
-
-    await POST(post({ payload: { articles: [{ id: null, title: "Ketamine HCl" }] }, summary: "New", diff: "" }));
-
-    expect(client.mutation).toHaveBeenCalledWith(
-      "changeProposals.submit",
-      expect.objectContaining({
-        apiKey: "admin-key",
-        payload: expect.objectContaining({ articles: [{ id: null, title: "Ketamine HCl" }] }),
-      }),
-    );
-  });
 
   it("forwards revisionOf to Convex and omits it when the body carries none", async () => {
     const client = grantWriteCapability(createClient());

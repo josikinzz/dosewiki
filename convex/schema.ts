@@ -139,6 +139,8 @@ const changeProposal = v.object({
   payload: v.any(),
   summary: v.string(),
   diff: v.string(),
+  /** Present only when submit generated this diff from a verified server baseline. */
+  diffVersion: v.optional(v.literal(1)),
   revisionOf: v.optional(v.id("changeProposals")),
   reviewedBy: v.optional(v.string()),
   reviewedAt: v.optional(v.string()),
@@ -705,5 +707,6 @@ export default defineSchema({
   changeProposals: defineTable(changeProposal)
     .index("by_status", ["status"])
     .index("by_proposed_by", ["proposedBy"])
+    .index("by_proposed_by_status", ["proposedBy", "status"])
     .index("by_created_at", ["createdAt"]),
 });

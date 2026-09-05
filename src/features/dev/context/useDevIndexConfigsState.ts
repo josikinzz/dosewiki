@@ -9,6 +9,7 @@ function useManualIndexState<T>(source: T) {
   const document = useEditorDocument(source);
 
   return {
+    isDirty: document.isDirty,
     applyTransform: document.applyDraftTransform,
     getOriginal: document.getOriginal,
     markSaved: document.markSaved,
@@ -32,6 +33,7 @@ export function useDevIndexConfigsState({
   const mechanism = useManualIndexState(mechanismSource);
 
   return {
+    hasUnsavedIndexChanges: psychoactive.isDirty || chemical.isDirty || mechanism.isDirty,
     applyChemicalIndexManualTransform: chemical.applyTransform,
     applyMechanismIndexManualTransform: mechanism.applyTransform,
     applyPsychoactiveIndexManualTransform: psychoactive.applyTransform,

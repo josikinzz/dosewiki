@@ -33,7 +33,7 @@ import { buildTextChangelog } from "@/utils/data/changelog";
 import { viewToPath } from "@/utils/routing";
 import { api } from "../../../../../convex/_generated/api";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
-import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import {
   blockCurrentText,
   buildCopyStudioBlocks,
@@ -94,6 +94,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const [draft, setDraft] = useState<CopyStudioDraft>({ body: "", items: [] });
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [loadedBlock, setLoadedBlock] = useState<CopyStudioBlock | null>(null);
+  const [baselineRow, setBaselineRow] = useState<CopyBlockRow | null>(null);
+  const awaitingWrite = useRef<CopyStudioBlock | null>(null);
 
   // The group tab follows the selected block until the editor picks a group
   // themselves, so a deep link lands on the block's own group.
@@ -119,16 +122,22 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     [blocks, groupBlocks, activeKey],
   );
 
-  // The draft follows the selected block, and re-seeds whenever that block's
-  // published value changes underneath it (a save landing, another editor's
-  // write arriving over the live query).
+  // Live production updates must never replace an unsaved draft or its baseline.
   useEffect(() => {
-    if (!activeBlock) {
+    if (!activeBlock || rows === undefined) {
       return;
     }
+    if (awaitingWrite.current?.key === activeBlock.key) {
+      if (blockCurrentText(awaitingWrite.current) !== blockCurrentText(activeBlock)) return;
+      awaitingWrite.current = null;
+    }
+    if (loadedBlock === activeBlock) return;
+    if (loadedBlock?.key === activeBlock.key && isDraftDirty(loadedBlock, draft)) return;
+    setLoadedBlock(activeBlock);
+    setBaselineRow(rows.find((row) => row.key === activeBlock.key) ?? null);
     setDraft(draftFromBlock(activeBlock));
     setSaveState("idle");
-  }, [activeBlock?.key, activeBlock?.current.body, activeBlock?.current.items.join("\u0000")]);
+  }, [activeBlock, rows, loadedBlock, draft]);
 
   // The address names the open block so a reload or a shared link lands on it.
   // Only a change writes: the address the editor arrived on is left alone.
@@ -140,7 +149,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "copy-studio", slug: key }));
   }, [activeBlock?.key]);
 
-  const isDirty = activeBlock ? isDraftDirty(activeBlock, draft) : false;
+  const isDirty = loadedBlock ? isDraftDirty(loadedBlock, draft) : false;
   const canReset = activeBlock ? canResetToDefault(activeBlock, draft) : false;
 
   const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, {
@@ -186,7 +195,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   useScrollToDetail(detailRef, activeKey || null, STACKED_BELOW_XL_QUERY);
 
   const draftText = activeBlock ? draftToText(activeBlock.kind, draft) : "";
-  const currentText = activeBlock ? blockCurrentText(activeBlock) : "";
+  const currentText = loadedBlock ? blockCurrentText(loadedBlock) : "";
   const placeholders = useMemo(() => countPlaceholders(draftText), [draftText]);
   const previewText = useMemo(
     () => resolveCopyPlaceholders(draftText, COPY_PREVIEW_PLACEHOLDER_VALUES),
@@ -225,7 +234,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         const { proposalId } = await submitToolProposal({
           payload: { copyBlocks: [block] },
           summary: `Update copy "${activeBlock.label}"`,
-          diff: buildFieldDiff([{ label: activeBlock.label, before: currentText, after: draftText }]),
+          baselines: [{ kind: "copyBlock", key: activeBlock.key, document: baselineRow }],
         });
         setSaveState("saved");
         setNotice(proposalSubmittedNotice(`“${activeBlock.label}”`, proposalId));
@@ -242,6 +251,14 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       if (!response.ok) {
         throw new Error(payload.error ?? "The copy block could not be saved.");
       }
+      const savedBlock: CopyStudioBlock = {
+        ...activeBlock,
+        current: { body: "body" in block ? block.body : "", items: "items" in block ? block.items : [] },
+        source: "convex",
+      };
+      awaitingWrite.current = savedBlock;
+      setLoadedBlock(savedBlock);
+      setBaselineRow(block);
 
       setSaveState("saved");
       setNotice({
@@ -261,7 +278,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
               : "The proposal could not be submitted.",
       });
     }
-  }, [activeBlock, canApprove, currentText, draft, draftText]);
+  }, [activeBlock, baselineRow, canApprove, currentText, draft, draftText]);
 
   /** Reset drops the draft back to the checked-in default without saving. */
   const handleResetDraft = useCallback(() => {

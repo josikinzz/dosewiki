@@ -12,7 +12,7 @@ import type {
 import { useEditorDocument } from "@/features/dev/context/editorDocumentSession";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { api } from "../../../../../convex/_generated/api";
-import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import type { AboutCopyNotice } from "./aboutEditorUtils";
 
 const API_PATH = "/api/dev/about";
@@ -30,6 +30,7 @@ export type AboutDocument = {
   markdown: string;
   subtitle: string;
   founderKeys: string[];
+  exists: boolean;
 };
 
 function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
@@ -37,6 +38,7 @@ function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
     markdown: aboutConfig?.aboutMarkdown ?? "",
     subtitle: aboutConfig?.aboutSubtitle ?? "",
     founderKeys: aboutConfig?.founderProfileKeys ?? [],
+    exists: aboutConfig != null,
   };
 }
 
@@ -216,15 +218,15 @@ export function useAboutEditorController({ canApprove }: AboutEditorControllerOp
         const { proposalId } = await submitToolProposal({
           payload: { about: body },
           summary: "Update the About page",
-          diff: buildFieldDiff([
-            { label: "About copy", before: original.markdown, after: draft.markdown },
-            { label: "About subtitle", before: original.subtitle, after: draft.subtitle },
-            {
-              label: "Founders",
-              before: original.founderKeys.join("\n"),
-              after: draft.founderKeys.join("\n"),
-            },
-          ]),
+          baselines: [{
+            kind: "about",
+            key: "about",
+            document: original.exists ? {
+              aboutMarkdown: original.markdown,
+              aboutSubtitle: original.subtitle,
+              founderProfileKeys: original.founderKeys,
+            } : null,
+          }],
         });
         setSaveState("saved");
         setNotice(proposalSubmittedNotice("The About page", proposalId));

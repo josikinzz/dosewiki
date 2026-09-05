@@ -8,7 +8,7 @@ import { projectEditorArticle } from "./substanceReadProjections";
 
 export type ProposalTargetKind = Doc<"changeProposals">["targets"][number]["kind"];
 
-/** A target as the caller names it: the base hash is only ever read from production. */
+/** A target derived from the proposed writes, never accepted as an apply instruction. */
 export type ProposalTargetRef = { kind: ProposalTargetKind; key: string };
 
 /** The proposal body as far as target derivation reads it. */

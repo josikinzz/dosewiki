@@ -67,7 +67,7 @@ describe("useEditorDocument", () => {
 
     expect(result.current.isDirty).toBe(true);
     expect(result.current.draft.title).toBe("Local About");
-    expect(result.current.getOriginal().title).toBe("Remote About");
+    expect(result.current.getOriginal().title).toBe("About");
     expect(result.current.refreshConflict).toEqual({
       previousOriginal: { title: "About", version: 1 },
       incomingSource: { title: "Remote About", version: 2 },

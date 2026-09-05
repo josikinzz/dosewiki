@@ -25,6 +25,16 @@ afterEach(() => {
 });
 
 describe("changeProposalReview.approveAndApply", () => {
+  it("requires a different admin to approve an admin-authored proposal", async () => {
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin],
+      substanceIndex: [storedLsd],
+      changeProposals: [proposalRow({ proposedBy: "admin@example.com" })],
+    });
+    await expect(approveAndApplyHandler(ctx, asAdmin)).rejects.toMatchObject({ data: { code: "PROPOSAL_SELF_APPROVAL" } });
+    expect(rowsOf("substanceIndex").get("s1")).toEqual(storedLsd);
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("submitted");
+  });
   it("applies the payload through the article write path and records the snapshot, hashes, and changelog", async () => {
     const { ctx, rowsOf } = createCtx({
       memberships: [admin, editor],
@@ -54,11 +64,10 @@ describe("changeProposalReview.approveAndApply", () => {
     const [entry] = [...rowsOf("changelog").values()];
     expect(entry).toMatchObject({
       entryId: "proposal-proposal_p1",
-      message: "Update LSD (proposed by editor@example.com, approved by admin@example.com)",
-      markdown: "# LSD\n\n- Stored summary\n+ Proposed summary",
       submittedBy: "EDITOR",
-      articles: [],
     });
+    expect(entry.message).toContain("editor@example.com");
+    expect(entry.message).toContain("admin@example.com");
   });
 
   it("applies an index layout through the layout write path, including the categoryLayout mirror", async () => {
@@ -87,7 +96,6 @@ describe("changeProposalReview.approveAndApply", () => {
       snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null }],
     });
     expect([...rowsOf("changelog").values()][0]).toMatchObject({
-      markdown: "layout diff",
       articles: [{ id: 1, title: "LSD", slug: "lsd" }],
     });
   });
@@ -131,6 +139,24 @@ describe("changeProposalReview.approveAndApply", () => {
     expect(result).toMatchObject({ status: "changes_requested" });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ slug: "lysergide", summary: "Stored summary" });
     expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "changes_requested" });
+  });
+
+  it("refuses an ID acquired at another slug after a creation proposal was submitted", async () => {
+    const newArticle = { ...proposedLsd, id: 2, slug: "new-article" };
+    const unrelated = { ...storedLsd, _id: "s2", id: 2, slug: "other-article", summary: "Unrelated production" };
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin],
+      substanceIndex: [unrelated],
+      changeProposals: [proposalRow({
+        targets: [{ kind: "article", key: "new-article", baseHash: contentHash(null) }],
+        payload: { articles: [newArticle] },
+      })],
+    });
+    const result = await approveAndApplyHandler(ctx, asAdmin);
+    expect(result).toMatchObject({ status: "changes_requested" });
+    expect(rowsOf("substanceIndex").get("s2")).toEqual(unrelated);
+    expect(rowsOf("substanceIndex").size).toBe(1);
+    expect(rowsOf("changelog").size).toBe(0);
   });
 
   it("refuses a proposal that is not open for approval", async () => {

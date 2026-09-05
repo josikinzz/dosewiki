@@ -123,11 +123,14 @@ const SAVE_FAMILY_PILL: Record<
  * shell renders get one: the chrome cluster (Change log) is not a tool, and
  * an external destination (Review) never renders here at all.
  */
-function DevToolSaveFamily({ tab }: { tab: DevTabDescriptor }) {
-  if (tab.group === "chrome" || tab.destination.kind !== "shell") {
+function DevToolSaveFamily({ tab, canApprove }: { tab: DevTabDescriptor; canApprove: boolean }) {
+  if (tab.group === "chrome" || tab.destination.kind !== "shell" || tab.id === "queue") {
     return null;
   }
-  const pill = SAVE_FAMILY_PILL[tab.saveFamily];
+  const needsReview = !canApprove && (tab.saveFamily === "staged" || tab.id === "writing" || tab.id === "copy-studio");
+  const pill = needsReview
+    ? { label: "Changes need admin approval", detail: "Submitting for review does not publish your changes.", icon: "lucide:git-pull-request", tone: "info" as const }
+    : SAVE_FAMILY_PILL[tab.saveFamily];
   return (
     <div className="mt-4 flex justify-end">
       <EditorStatusPill tone={pill.tone} icon={pill.icon} title={pill.detail}>
@@ -183,7 +186,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       />
 
       <div className={controller.contentWrapperClass}>
-        <DevToolSaveFamily tab={activeDescriptor} />
+        <DevToolSaveFamily tab={activeDescriptor} canApprove={controller.canApprove} />
         {controller.activeTabLockReason !== null ? (
           <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
         ) : isWaitingOnLibrary ? (

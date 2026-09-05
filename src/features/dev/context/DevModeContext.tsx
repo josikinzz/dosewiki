@@ -76,8 +76,8 @@ export function DevModeProvider({
     articleCount: articlesState.articles.length,
     hydrateArticles: articlesState.hydrateArticles,
   });
-  const { hydrateArticles: _hydrateArticles, ...articleContextValue } = articlesState;
-  const { markIndexManualsSaved, ...indexContextValue } = indexConfigsState;
+  const { hydrateArticles: _hydrateArticles, hasUnsavedArticleChanges, ...articleContextValue } = articlesState;
+  const { markIndexManualsSaved, hasUnsavedIndexChanges, ...indexContextValue } = indexConfigsState;
   const proposalLayouts = useMemo(
     () => ({
       psychoactive: { replace: indexConfigsState.replacePsychoactiveIndexManual, reset: indexConfigsState.resetPsychoactiveIndexManual },
@@ -94,6 +94,7 @@ export function DevModeProvider({
     ],
   );
   const proposalSeed = useDevProposalSeed({
+    hasUnsavedChanges: hasUnsavedArticleChanges || hasUnsavedIndexChanges,
     hydrateArticlesNow: articleHydration.hydrateArticlesNow,
     applyArticlesTransform: articlesState.applyArticlesTransform,
     getOriginalArticles: articlesState.getOriginalArticles,

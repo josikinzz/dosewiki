@@ -14,7 +14,8 @@ import {
   type ProposalPayload,
   type ProposalSnapshotEntry,
 } from "./lib/changeProposalApply";
-import { hashProposalTarget } from "./lib/changeProposalTargets";
+import { deriveProposalTargets, hashProposalTarget } from "./lib/changeProposalTargets";
+import { buildProposalDiff } from "./lib/changeProposalDiff";
 
 /**
  * Admin review of change proposals: approve (which applies in the same
@@ -63,6 +64,9 @@ function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus)
 export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs) {
   const actor = await requireReviewer(ctx, args);
   const proposal = await loadProposal(ctx, args.proposalId);
+  if (proposal.proposedBy === actor.email) {
+    throw new ConvexError({ code: "PROPOSAL_SELF_APPROVAL", message: "Another admin must review and approve your proposal." });
+  }
   requireTransition(proposal, "applied");
   const now = new Date().toISOString();
 
@@ -71,6 +75,20 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   // against something that is no longer there.
   const snapshotBefore: ProposalSnapshotEntry[] = [];
   const drifted: string[] = [];
+  const payload = proposal.payload as ProposalPayload;
+  // An ID absent at submission may now resolve to a different slug. Re-resolve
+  // the write destinations before the slug-based CAS can authorize any writes.
+  try {
+    const currentTargets = await deriveProposalTargets(ctx, payload);
+    if (currentTargets.length !== proposal.targets.length || currentTargets.some((current) =>
+      !proposal.targets.some((pinned) => pinned.kind === current.kind && pinned.key === current.key))) {
+      drifted.push("the payload's write destinations");
+    }
+  } catch (error) {
+    if (!(error instanceof ConvexError) || typeof error.data !== "object" || error.data === null ||
+        error.data.code !== "PROPOSAL_SLUG_MOVE" || typeof error.data.message !== "string") throw error;
+    drifted.push(error.data.message);
+  }
   for (const target of proposal.targets) {
     const entry = await snapshotProposalTarget(ctx, target);
     if (contentHash(entry.document) !== target.baseHash) {
@@ -91,7 +109,6 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   }
 
   const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail };
-  const payload = proposal.payload as ProposalPayload;
   const revalidatePaths = await applyDocuments(ctx, auth, payloadDocuments(payload));
 
   const appliedHashes = [];
@@ -105,7 +122,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     entryId,
     createdAt: now,
     message: `${proposal.summary} (proposed by ${proposal.proposedBy}, approved by ${actor.email})`,
-    markdown: truncateDiffMarkdown(payload.changelog?.markdown ?? proposal.diff),
+    markdown: truncateDiffMarkdown(buildProposalDiff(payload, snapshotBefore)),
     submittedBy: deriveSubmittedBy(proposal.proposedBy),
     articles: payload.changelog?.articles ?? [],
   });

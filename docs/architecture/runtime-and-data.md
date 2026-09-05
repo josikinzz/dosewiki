@@ -243,28 +243,47 @@ This is the cleanest write path in the current system because it preserves Conve
 An editor session sees the same commit panel, but its primary action reads
 "Submit for review" and nothing it does writes production:
 
-1. client builds the identical `SaveToConvexPayload`, a one-line summary, and
-   the commit markdown as the diff
+1. client builds the `SaveToConvexPayload`, a one-line summary, and
+   `baselines: [{ kind, key, document }]` from the originals actually loaded
+   into the editor. Dirty drafts retain those originals across live refreshes.
 2. client calls `POST /api/dev/proposals` (editor floor)
 3. route sanitizes the payload with the save-to-convex utilities and forwards
-   it; it never names targets
+   it with the loaded baselines. A client-supplied diff is not accepted.
 4. `changeProposals.submit` (editor floor) validates the payload with the save
-   validators and the article ingestion contract, derives one target per
-   article slug, index layout type, copy block key, and the About row, reads
-   each target's current production row, records its `contentHash`
-   (`lib/proposals/contentHash.ts`) as `baseHash`, and inserts the row with
+   validators and article ingestion contract, derives its targets, and compares
+   each loaded baseline with current production. A stale baseline returns
+   `PROPOSAL_BASELINE_STALE` (HTTP 409); the editor keeps the unsaved draft.
+   On a match, the server records each target's `contentHash` as `baseHash`,
+   generates the comparison from the actual write semantics, and inserts the row with
    status `submitted`. An article that carries an id is pinned to the slug the
    id-row currently has; a payload that would move it to another slug is
    refused (`PROPOSAL_SLUG_MOVE`), since renames go through the admin save. A
    revision (`revisionOf`) must share at least one target with the proposal it
    supersedes (`PROPOSAL_REVISION_MISMATCH`).
-5. the panel marks the draft saved and links to the review queue
+5. the panel marks the submitted draft saved and links to My submissions.
+   Submitting does not publish the changes.
+   Loading a proposal into the editor is refused while article or layout drafts
+   contain unsaved changes, so preparing a revision cannot overwrite other work.
+
+`/dev/queue` appears under Intake as **Change Review** for admins and **My
+submissions** for editors. Convex scopes list, count, detail, and comments to
+the editor's own proposals; admins see the global queue. Default lists retain
+all active proposals plus bounded terminal history. Pending count badges refresh
+when the window regains focus and once per minute while visible, and their
+cache is scoped to the signed-in account. They are in-app counts, not email or
+push notifications.
+
+The detail comparison is generated on the server. New submissions retain a
+server-marked comparison captured at submission; published or reverted history
+uses `snapshotBefore`. Older active proposals are compared only when live hashes
+still verify their pinned baseline. Otherwise the UI reports that the historical
+comparison is unavailable rather than trusting the old client diff.
 
 Status moves only along `lib/proposals/proposalStatus.ts`. Review is admin
 floor and lives in `convex/changeProposalReview.ts`, reached through
 `POST /api/dev/proposals/<id>/approve|reject|revert`:
 
-- **approve** applies in the same mutation. It re-reads every target with
+- **approve** requires a different admin from the proposer and applies in the same mutation. It re-reads every target with
   `readProposalTarget`, and if any `contentHash` differs from the recorded
   `baseHash` the proposal flips to `changes_requested` with the drifted targets
   in `conflictReason` and nothing else is written. On a clean match the live
@@ -287,7 +306,7 @@ floor and lives in `convex/changeProposalReview.ts`, reached through
   "Reverted proposal" changelog entry.
 
 `applyTarget` in `convex/lib/changeProposalApply.ts` is the one switch on
-target kind; `about` and `copyBlock` land there in wave 3.
+target kind, including articles, index layouts, About, and copy blocks.
 
 ### Reviewed generated-section publication flow
 

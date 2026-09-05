@@ -28,11 +28,13 @@ type SeededKeys = { slugs: ReadonlySet<string>; layouts: ReadonlySet<LayoutType>
 type ProposedArticle = NonNullable<DevProposalSeed["payload"]["articles"]>[number];
 
 export function useDevProposalSeed({
+  hasUnsavedChanges,
   hydrateArticlesNow,
   applyArticlesTransform,
   getOriginalArticles,
   layouts,
 }: {
+  hasUnsavedChanges: boolean;
   hydrateArticlesNow: (slugs: readonly string[]) => Promise<{ ok: boolean; articles: SubstanceArticle[] }>;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
   getOriginalArticles: () => ArticleRecord[];
@@ -40,9 +42,14 @@ export function useDevProposalSeed({
 }) {
   const [activeProposal, setActiveProposal] = useState<DevActiveProposal | null>(null);
   const seededRef = useRef<SeededKeys | null>(null);
+  const dirtyRef = useRef(hasUnsavedChanges);
+  dirtyRef.current = hasUnsavedChanges;
 
   const loadProposal = useCallback(
     async (seed: DevProposalSeed) => {
+      if (dirtyRef.current) {
+        throw new Error("You have unsaved editor changes. Return to the editor and submit or discard them before loading a submission.");
+      }
       const proposedBySlug = new Map<string, ProposedArticle>();
       for (const article of seed.payload.articles ?? []) {
         proposedBySlug.set(resolveEditorArticleSlug(article as SubstanceArticle), article);
@@ -59,6 +66,9 @@ export function useDevProposalSeed({
           const missing = toHydrate.filter((slug) => !landed.has(slug));
           throw new Error(`Could not load ${missing.join(", ")} from the library; try again.`);
         }
+      }
+      if (dirtyRef.current) {
+        throw new Error("Your editor draft changed while this submission was loading. Submit or discard those edits before trying again.");
       }
 
       applyArticlesTransform((previous) => {

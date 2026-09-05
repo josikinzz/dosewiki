@@ -42,22 +42,22 @@ export function createCtx(seed: Record<string, Row[]>) {
     unique: async () => matches[0] ?? null,
     collect: async () => matches,
   });
+  type IndexFilter = { eq: (field: string, value: unknown) => IndexFilter };
   const query = (table: string) => ({
     ...results([...rowsOf(table).values()]),
     withIndex: (
       _indexName: string,
-      selector?: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
+      selector?: (query: IndexFilter) => unknown,
     ) => {
-      let field = "";
-      let value: unknown;
-      selector?.({
+      const filters: Array<[string, unknown]> = [];
+      const filter: IndexFilter = {
         eq: (name, candidate) => {
-          field = name;
-          value = candidate;
-          return {};
+          filters.push([name, candidate]);
+          return filter;
         },
-      });
-      return results([...rowsOf(table).values()].filter((row) => field === "" || row[field] === value));
+      };
+      selector?.(filter);
+      return results([...rowsOf(table).values()].filter((row) => filters.every(([field, value]) => row[field] === value)));
     },
   });
 

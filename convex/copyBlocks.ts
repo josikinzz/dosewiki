@@ -85,7 +85,7 @@ function reject(message: string): never {
  * cleared rather than left behind: a block that flips from a list to markdown
  * must not keep serving stale `items` to a reader whose renderer still looks.
  */
-function normalizeCopyBlockPayload(args: {
+export function normalizeCopyBlockPayload(args: {
   kind: CopyBlockKind;
   body?: string;
   items?: string[];
