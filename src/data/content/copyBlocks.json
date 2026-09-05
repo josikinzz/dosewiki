@@ -2572,7 +2572,14 @@
     "kind": "markdown",
     "label": "03 · CC0 scope — intro",
     "group": "Docs · License",
-    "body": "The CC0 release covers dose.wiki's own copyrightable contributions. The rest of this page calls these the **covered material**."
+    "body": "Published facts and the writing used to explain them are different things. In U.S. copyright law, copyright generally does not protect the underlying facts, but it can protect an author's wording and original selection or arrangement."
+  },
+  {
+    "key": "docs-license-s3-dedication",
+    "kind": "markdown",
+    "label": "03 · CC0 scope: public-domain dedication",
+    "group": "Docs · License",
+    "body": "Where dose.wiki holds copyright or database rights in its own writing, editorial contributions, schema, or compilation, it waives those rights through CC0 to the extent the law allows. The rest of this page calls these the **covered material**. The dedication applies to those contributions, not to the source works used to prepare them. Quoted passages, third-party media, and separately licensed data keep their own terms, whether they appear on a page or in a download."
   },
   {
     "key": "docs-license-s3-covered-label",
@@ -3046,6 +3053,13 @@
     "label": "08 · Full terms — replication card summary",
     "group": "Docs · License",
     "body": "Replication media - creator and rightsholder terms"
+  },
+  {
+    "key": "docs-license-s8-replication-purpose",
+    "kind": "markdown",
+    "label": "08 · Full terms: replication purpose",
+    "group": "Docs · License",
+    "body": "Replications accompany the effect descriptions as visual and auditory examples. They give readers another way to understand experiences that can be difficult to describe in words. Creator credits and source links, where known, let readers find the work in its original context."
   },
   {
     "key": "docs-license-s8-replication-policy",

@@ -488,11 +488,11 @@ export default async function DocsHowPage() {
             {copy.text("docs-how-title")}
           </h1>
           <p className="theme-text-secondary text-[1.0625rem] leading-7">
-            The facts a substance article needs have already been gathered and published:
+            Much of the information a substance article needs has already been gathered and published:
             decades of documentation by scientists, psychonauts, and the harm-reduction
-            community. They are spread primarily across ten psychopharmacology reference
+            community. It is spread primarily across ten psychopharmacology reference
             sites in ten formats, with no shared standard and no one site covering
-            everything. We know what compiling them by hand takes, because we have done
+            everything. We know what compiling it by hand takes, because we have done
             it:{" "}
             <ExternalProseLink href="https://en.wikipedia.org/wiki/Josie_Kins">
               Josie Kins
@@ -1195,9 +1195,11 @@ export default async function DocsHowPage() {
           className="mt-3"
         >
           <p className={PROMPT_META_CLASS}>
-            This is the working file for 2C-B&apos;s intro-text topic: verbatim
-            passages from each source, grouped under source headings. The summary section
-            of the 2C-B article was written from this document and nothing else.
+            The 2C-B example below shows how source passages are grouped before drafting,
+            so readers can inspect the extraction method. It is the working file for
+            2C-B&apos;s intro-text topic: verbatim passages grouped under source headings.
+            The summary section of the 2C-B article was written from this document and
+            nothing else.
           </p>
           <PromptBody label="Example: the 2C-B intro-text excerpt document">
             {INTRO_QUOTES}
@@ -1299,10 +1301,16 @@ export default async function DocsHowPage() {
           <div>
             <h3 className={SUBHEAD_CLASS}>Original prose</h3>
             <p className={PROSE_CLASS}>
-              &quot;Synthesize information from the provided excerpts into original prose.
-              Do not copy sentences or lengthy phrases verbatim from any source.&quot; The
-              verbatim text exists only in the internal excerpt documents. The published
-              text is new writing, anchored to that evidence.
+              The writing stage uses the excerpts as evidence for a new account of the
+              subject. Its instructions are to synthesize the information, not reproduce
+              the source&apos;s sentences or lengthy phrases. Keeping the excerpts separate
+              makes it possible to check both the factual basis of a draft and how it
+              uses the source material.
+            </p>
+            <p className={`${PROSE_CLASS} mt-4`}>
+              Later citation research checks claims against supporting references, and
+              editors correct and expand the text. The source-page links remain available
+              for readers who want the original discussion and context.
             </p>
           </div>
         </div>
