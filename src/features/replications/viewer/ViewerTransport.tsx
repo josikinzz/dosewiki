@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -12,7 +13,6 @@ import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 import {
-  assignPooledSource,
   createSoundCustody,
   reloadPooledElement,
   seekPooledElement,
@@ -25,16 +25,7 @@ import {
   formatPlaybackClock,
   seekRatioFromPointer,
 } from "./seekClock";
-import {
-  AUTO_HQ_SETTLE_MS,
-  decide,
-  previewTruncated,
-  slideMotionSource,
-  type LadderContext,
-  type LadderVerdict,
-  type SlideQuality,
-} from "./qualityLadder";
-import { RotatingIcon } from "./RotatingIcon";
+import { shouldLoopReplicationMotion, slideMotionSource } from "./qualityLadder";
 
 /** Overlay controls float directly on the media: no pills, no chips — just
     filled glyphs (fluent) with the 44px hit area and rounded focus ring the
@@ -122,7 +113,7 @@ function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
 export interface ViewerTransportHandle {
   togglePlayback: () => void;
   toggleMuted: () => void;
-  /** A plain tap on the media surface: repay sound, else toggle chrome. */
+  /** A plain tap on the media surface only toggles chrome. */
   surfaceTap: () => void;
   /** Pure chrome visibility toggle; never touches the sound IOU. */
   toggleChrome: () => void;
@@ -136,9 +127,6 @@ export interface ViewerTransportProps {
   volume: number;
   onMutedChange: (muted: boolean) => void;
   onVolumeChange: (volume: number) => void;
-  /** Rendition the active slide is asked to play (owned by the overlay). */
-  quality: SlideQuality;
-  onQualityChange: (quality: SlideQuality) => void;
   onPrevious?: () => void;
   onNext?: () => void;
   onInfo?: () => void;
@@ -147,10 +135,8 @@ export interface ViewerTransportProps {
   /** The session's sticky rotate-mode preference (owned by the overlay). */
   rotateMode?: boolean;
   onRotateModeChange?: (rotateMode: boolean) => void;
-  /** Rotation decision and aspect for the active work (from useStageFit). */
+  /** Whether rotate-to-fit is available in this viewport. */
   canRotate: boolean;
-  rotated: boolean;
-  mediaAspect: number;
   /**
    * Reports whether the transport chrome is currently presented, so the
    * overlay can fade its own chrome in step for a true immersive state.
@@ -168,8 +154,8 @@ export interface ViewerTransportProps {
 /**
  * The viewer's single set of playback chrome, floating above the pooled
  * track and bound to whichever element the active pane holds. It owns
- * playback intent (play/pause, sound, seek, quality) but never the media
- * elements themselves — those live in the track's recycled pool.
+ * playback intent (play/pause, sound, seek) but never the media
+ * elements themselves, which live in the track's recycled pool.
  */
 export function ViewerTransport({
   item,
@@ -178,8 +164,6 @@ export function ViewerTransport({
   volume,
   onMutedChange,
   onVolumeChange,
-  quality,
-  onQualityChange,
   onPrevious,
   onNext,
   onInfo,
@@ -188,7 +172,6 @@ export function ViewerTransport({
   rotateMode = false,
   onRotateModeChange,
   canRotate,
-  rotated,
   onTransportVisibleChange,
   onTransportHandle,
   onFullscreen,
@@ -200,17 +183,12 @@ export function ViewerTransport({
   const moving = slideMotionSource(replication) !== null && video !== null;
   const ordinaryVideo = replication.type === "video";
   const knownAudio = ordinaryVideo ? replication.has_audio : false;
-  /** The explicit HQ escape exists only when a distinct preview plays. */
-  const hqAvailable =
-    ordinaryVideo &&
-    Boolean(replication.preview_url) &&
-    replication.preview_url !== replication.url;
 
   const soundCustodyRef = useRef<SoundCustody | null>(null);
   /** Latest shared state, readable from per-work effects without re-running. */
   const mutedRef = useRef(muted);
   const volumeRef = useRef(volume);
-  const qualityRef = useRef(quality);
+  const transportRef = useRef<HTMLElement>(null);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const progressBufferedRef = useRef<HTMLDivElement>(null);
   const progressThumbRef = useRef<HTMLDivElement>(null);
@@ -228,8 +206,7 @@ export function ViewerTransport({
   const [buffering, setBuffering] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
-  /** Keyboard focus inside the transport pins the chrome (focus-within). */
-  const [focusWithin, setFocusWithin] = useState(false);
+  const [elementMuted, setElementMuted] = useState(video?.muted ?? muted);
   const [audioPresence, setAudioPresence] = useState<AudioPresence>(
     knownAudio === true ? "present" : "unknown",
   );
@@ -237,7 +214,6 @@ export function ViewerTransport({
   useEffect(() => {
     mutedRef.current = muted;
     volumeRef.current = volume;
-    qualityRef.current = quality;
   });
 
   // Catalogued waveform evidence beats runtime track probes: a row proven
@@ -247,19 +223,12 @@ export function ViewerTransport({
     ordinaryVideo && knownAudio !== false && audioPresence !== "absent";
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
 
-  /**
-   * Reveal the chrome for an intent gesture. There is no idle fade: the
-   * chrome stays up until the reader explicitly dismisses it (surface tap or
-   * the `h` shortcut), and only an intent gesture brings it back.
-   */
+  /** Only explicit chrome gestures change the reader's visibility preference. */
   const showControls = useCallback(() => setControlsVisible(true), []);
 
-  /**
-   * The pure chrome toggle behind surface taps and the `h` shortcut. States
-   * that plainly need the chrome (paused, error, scrubbing, keyboard focus)
-   * pin it in transportVisible below, never here.
-   */
   const toggleChrome = useCallback(() => {
+    scrubbingRef.current = false;
+    setScrubbing(false);
     setControlsVisible((current) => !current);
   }, []);
 
@@ -267,7 +236,6 @@ export function ViewerTransport({
     setBuffering(false);
     setBlocked(true);
     setPlaying(false);
-    setControlsVisible(true);
   }, []);
   if (!soundCustodyRef.current) {
     soundCustodyRef.current = createSoundCustody({
@@ -280,35 +248,10 @@ export function ViewerTransport({
   /**
    * Start playback the way phone feeds do: when the browser rejects unmuted
    * playback (iOS Safari outside a user gesture), retry muted so the work
-   * keeps moving — but keep the reader's sound intent as an IOU that the
-   * next gesture repays, instead of flipping the shared mute control.
+   * keeps moving, while preserving the reader's sound intent until an
+   * explicit playback or unmute action can restore it.
    */
   const attemptPlay = soundCustody.attemptPlay;
-
-  const ladderContext = useCallback(
-    (): LadderContext => ({
-      replication,
-      quality: qualityRef.current,
-      hqAvailable,
-      dataSaver: browserRequestsDataSaving(),
-    }),
-    [hqAvailable, replication],
-  );
-
-  /** Apply a pure ladder decision to the active pooled element. */
-  const applyVerdict = useCallback(
-    (verdict: LadderVerdict) => {
-      if (!video || verdict.kind === "stay") return;
-      qualityRef.current = verdict.quality;
-      onQualityChange(verdict.quality);
-      assignPooledSource(video, verdict.src, {
-        time: verdict.time,
-        resume: false,
-      });
-      if (verdict.play) attemptPlay(video);
-    },
-    [attemptPlay, onQualityChange, video],
-  );
 
   const repaySoundIou = soundCustody.repayIou;
 
@@ -318,8 +261,6 @@ export function ViewerTransport({
     setAudioPresence(knownAudio === true ? "present" : "unknown");
     setError(false);
     setBuffering(false);
-    // Every work opens with the chrome up.
-    setControlsVisible(true);
     setScrubbing(false);
     scrubbingRef.current = false;
     // A new work re-asks for the shared sound preference in the binding
@@ -346,23 +287,20 @@ export function ViewerTransport({
   useEffect(() => {
     if (!video || !moving) return;
     const syncLoop = () => {
-      const verdict = decide(
-        { type: "metadata", elementDuration: video.duration },
-        ladderContext(),
+      video.loop = shouldLoopReplicationMotion(
+        replication.format,
+        replication.duration ?? video.duration,
       );
-      if (verdict.kind === "stay" && verdict.loop !== undefined) {
-        video.loop = verdict.loop;
-      }
     };
+    const syncMuted = () => setElementMuted(video.muted);
     const onPlay = () => {
       setPlaying(true);
+      syncMuted();
       setBlocked(false);
-      showControls();
     };
     const onPause = () => {
       setBuffering(false);
       setPlaying(false);
-      setControlsVisible(true);
     };
     const onWaiting = () => {
       if (
@@ -380,20 +318,10 @@ export function ViewerTransport({
       setBuffering(false);
       setError(true);
       setPlaying(false);
-      setControlsVisible(true);
     };
     const onEnded = () => {
       setBuffering(false);
-      const verdict = decide(
-        { type: "ended", elementDuration: video.duration },
-        ladderContext(),
-      );
-      if (verdict.kind === "switch") {
-        applyVerdict(verdict);
-        return;
-      }
       setPlaying(false);
-      setControlsVisible(true);
     };
     const onLoadedMetadata = () => {
       syncLoop();
@@ -411,6 +339,8 @@ export function ViewerTransport({
     video.addEventListener("ended", onEnded);
     video.addEventListener("loadedmetadata", onLoadedMetadata);
     video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener("volumechange", syncMuted);
+    syncMuted();
     // Adopt the element's current condition on bind.
     syncLoop();
     setPlaying(!video.paused && !video.ended);
@@ -429,21 +359,21 @@ export function ViewerTransport({
       video.removeEventListener("ended", onEnded);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("volumechange", syncMuted);
     };
   }, [
-    applyVerdict,
-    ladderContext,
     moving,
+    replication.duration,
+    replication.format,
     replication.slug,
     settleAudioPresence,
-    showControls,
     video,
   ]);
 
   // Every work re-asks for the reader's sound preference. An element the
   // reader has already unmuted inside a gesture keeps that blessing across
   // src swaps, so it simply plays with sound; an unblessed one is refused
-  // and attemptPlay's muted fallback re-arms the IOU for the next tap.
+  // and attemptPlay's muted fallback waits for explicit play or unmute.
   useEffect(() => {
     if (!video || !moving) return;
     if (!autoplayAllowed) {
@@ -454,51 +384,22 @@ export function ViewerTransport({
     attemptPlay(video);
   }, [attemptPlay, autoplayAllowed, moving, replication.slug, video]);
 
-  // The feed lands every work on its lightweight preview so a swipe never
-  // waits on the network — but the preview is a 480p hover-tile rendition,
-  // not stage quality. Once the reader has settled on a work (sustained
-  // playback, not a fling), the active element quietly swaps to the
-  // catalogued file at the same playhead. Data-saver sessions keep the
-  // preview until the reader asks via the HQ control.
-  useEffect(() => {
-    if (!video || !moving || !hqAvailable) return;
-    if (quality !== "preview" || !playing) return;
-    if (ladderContext().dataSaver) return;
-    const timer = window.setTimeout(() => {
-      applyVerdict(
-        decide(
-          { type: "settled", currentTime: video.currentTime },
-          ladderContext(),
-        ),
-      );
-    }, AUTO_HQ_SETTLE_MS);
-    return () => window.clearTimeout(timer);
-  }, [
-    applyVerdict,
-    hqAvailable,
-    ladderContext,
-    moving,
-    playing,
-    quality,
-    replication.slug,
-    video,
-  ]);
 
   useEffect(() => {
     if (!video) return;
     soundCustody.applyPreference(video, muted);
+    setElementMuted(video.muted);
   }, [muted, video, volume]);
 
   const togglePlayback = useCallback(() => {
     if (!video) return;
-    showControls();
     if (video.paused || video.ended) {
       repaySoundIou(video);
       attemptPlay(video);
     } else {
       soundCustody.pause(video);
     }
-  }, [attemptPlay, repaySoundIou, showControls, video]);
+  }, [attemptPlay, repaySoundIou, video]);
 
   /**
    * The mute button's whole gesture, shared with the keyboard shortcut: flip
@@ -507,32 +408,20 @@ export function ViewerTransport({
    * outside it and be refused.
    */
   const toggleMuted = useCallback(() => {
-    const next = !mutedRef.current;
+    const next = !(video?.muted ?? mutedRef.current);
     if (video) {
       soundCustody.setMuted(video, next);
+      setElementMuted(next);
       if (!next && autoplayAllowed) {
         attemptPlay(video);
       }
     } else {
       soundCustody.clearIou();
     }
-    showControls();
     onMutedChange(next);
-  }, [attemptPlay, autoplayAllowed, onMutedChange, showControls, video]);
+  }, [attemptPlay, autoplayAllowed, onMutedChange, video]);
 
-  /**
-   * A tap on the media surface adopts the still-stage grammar: it only
-   * reveals or dismisses the chrome; pause lives exclusively on the play
-   * button. But a tap is also the live gesture that can repay a refused
-   * unmute, so an outstanding sound IOU is settled first.
-   */
-  const surfaceTap = useCallback(() => {
-    if (video && repaySoundIou(video)) {
-      showControls();
-      return;
-    }
-    toggleChrome();
-  }, [repaySoundIou, showControls, toggleChrome, video]);
+  const surfaceTap = toggleChrome;
 
   // Hand the overlay gesture-safe playback verbs for keyboard and gestures.
   useEffect(() => {
@@ -546,11 +435,7 @@ export function ViewerTransport({
     return () => onTransportHandle(null);
   }, [onTransportHandle, surfaceTap, toggleChrome, toggleMuted, togglePlayback]);
 
-  /**
-   * The timeline the seek bar advertises: a truncated preview still shows
-   * the work's full catalogued length, and a seek past the preview's end
-   * escalates to the full file — never a silently shortened piece.
-   */
+  /** Use the full file's duration, with catalogue timing until metadata arrives. */
   const resolveSeekDuration = useCallback(
     (element: HTMLVideoElement): number => {
       const own =
@@ -561,12 +446,9 @@ export function ViewerTransport({
         typeof replication.duration === "number" && replication.duration > 0
           ? replication.duration
           : 0;
-      if (previewTruncated(ladderContext(), element.duration)) {
-        return Math.max(own, catalogued);
-      }
       return own > 0 ? own : catalogued;
     },
-    [ladderContext, replication.duration],
+    [replication.duration],
   );
 
   /** One direct-DOM write moves both the accent fill and its thumb. */
@@ -577,10 +459,7 @@ export function ViewerTransport({
     if (thumb) thumb.style.left = `${ratio * 100}%`;
   }, []);
 
-  /**
-   * Seek to the pointer's position on the bar and paint the playhead there.
-   * A target beyond a truncated preview's end swaps to the full file first.
-   */
+  /** Seek the full work directly without replacing its pooled source. */
   const seekToPointer = useCallback(
     (clientX: number) => {
       const slider = progressSliderRef.current;
@@ -590,21 +469,10 @@ export function ViewerTransport({
       const rect = slider.getBoundingClientRect();
       const ratio = seekRatioFromPointer(clientX, rect.left, rect.width);
       const target = ratio * duration;
-      const verdict = decide(
-        {
-          type: "seek",
-          target,
-          elementDuration: video.duration,
-          paused: video.paused,
-          ended: video.ended,
-        },
-        ladderContext(),
-      );
-      if (verdict.kind === "switch") applyVerdict(verdict);
-      else seekPooledElement(video, target);
+      seekPooledElement(video, target);
       paintPlayhead(ratio);
     },
-    [applyVerdict, ladderContext, paintPlayhead, resolveSeekDuration, video],
+    [paintPlayhead, resolveSeekDuration, video],
   );
 
   const endScrub = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
@@ -672,15 +540,18 @@ export function ViewerTransport({
     video,
   ]);
 
-  // Pins hold the chrome up while the reader plainly needs it: a paused,
-  // blocked, or failed work, a scrub in progress, or keyboard focus inside
-  // the transport. Otherwise visibility follows the intent toggle + fade.
-  const transportVisible =
-    controlsVisible ||
-    scrubbing ||
-    focusWithin ||
-    error ||
-    (moving && (!playing || blocked));
+  // Recovery can reveal controls temporarily without erasing a hidden preference.
+  const transportVisible = controlsVisible || error || (moving && blocked);
+  useLayoutEffect(() => {
+    if (transportVisible) return;
+    const focused = document.activeElement;
+    const transport = transportRef.current;
+    if (transport && focused instanceof HTMLElement && transport.contains(focused)) {
+      const dialog = transport.closest<HTMLElement>('[role="dialog"]');
+      if (dialog) dialog.focus({ preventScroll: true });
+      else focused.blur();
+    }
+  }, [transportVisible]);
   // The overlay fades its own chrome (header, rail, byline) in step with
   // the transport, so hidden chrome means the whole screen belongs to the
   // work — not just the corner controls.
@@ -703,27 +574,11 @@ export function ViewerTransport({
   const showWorkNavigation = Boolean(onPrevious || onNext);
 
   return (
-    // Focus/blur bubble up from the transport's buttons and sliders; the
-    // section only observes them to pin the chrome while a control is
-    // focused. It is delegation, not interaction on the landmark itself.
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <section
+      ref={transportRef}
       aria-label={`${replication.title} media controls`}
       data-replication-media-stage
       data-controls-visible={transportVisible || undefined}
-      // Tab users are never operating invisible controls: focus landing on
-      // any transport control reveals the chrome and pins it until focus
-      // leaves, when the ordinary fade resumes.
-      onFocus={() => {
-        setFocusWithin(true);
-        setControlsVisible(true);
-      }}
-      onBlur={(event) => {
-        if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          return;
-        }
-        setFocusWithin(false);
-      }}
       className="pointer-events-none absolute inset-0 [container-type:size]"
     >
       {error ? (
@@ -775,7 +630,9 @@ export function ViewerTransport({
         <div
           ref={progressSliderRef}
           role="slider"
-          tabIndex={0}
+          tabIndex={transportVisible ? 0 : -1}
+          aria-hidden={!transportVisible || undefined}
+          inert={!transportVisible}
           aria-label="Seek"
           aria-valuemin={0}
           aria-valuemax={Math.round(replication.duration ?? 0)}
@@ -825,23 +682,13 @@ export function ViewerTransport({
               Math.max(video.currentTime + step, 0),
               duration,
             );
-            const verdict = decide(
-              {
-                type: "seek",
-                target: next,
-                elementDuration: video.duration,
-                paused: video.paused,
-                ended: video.ended,
-              },
-              ladderContext(),
-            );
-            if (verdict.kind === "switch") applyVerdict(verdict);
-            else seekPooledElement(video, next);
+            seekPooledElement(video, next);
             paintPlayhead(next / duration);
             showControls();
           }}
           className={cn(
-            "group pointer-events-auto absolute inset-x-0 bottom-0 z-30 flex h-5 cursor-pointer touch-none flex-col justify-end",
+            "group pointer-events-auto absolute inset-x-0 bottom-[var(--viewer-rail-height,0px)] z-30 flex h-5 cursor-pointer touch-none flex-col justify-end",
+            !transportVisible && "invisible !pointer-events-none",
             focusRingClassName,
           )}
         >
@@ -880,11 +727,13 @@ export function ViewerTransport({
       ) : null}
 
       <div
+        aria-hidden={!transportVisible || undefined}
+        inert={!transportVisible}
         className={cn(
           "pointer-events-none absolute inset-0 z-20 transition-opacity duration-200 motion-reduce:transition-none",
           transportVisible
             ? "opacity-100"
-            : "opacity-0 [&_*]:!pointer-events-none",
+            : "invisible opacity-0 [&_*]:!pointer-events-none",
         )}
       >
         {/* Work navigation sits at the stage's vertical midline (the classic
@@ -904,9 +753,7 @@ export function ViewerTransport({
               "pointer-events-auto absolute left-3 top-1/2 -translate-y-1/2 disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
             )}
           >
-            <RotatingIcon rotated={rotated}>
               <Icon icon="fluent:chevron-left-20-filled" className="size-8" />
-            </RotatingIcon>
           </button>
         ) : null}
         {showWorkNavigation ? (
@@ -923,9 +770,7 @@ export function ViewerTransport({
               "pointer-events-auto absolute right-3 top-1/2 -translate-y-1/2 disabled:cursor-not-allowed disabled:opacity-30 [@media(pointer:coarse)]:hidden",
             )}
           >
-            <RotatingIcon rotated={rotated}>
               <Icon icon="fluent:chevron-right-20-filled" className="size-8" />
-            </RotatingIcon>
           </button>
         ) : null}
 
@@ -933,8 +778,8 @@ export function ViewerTransport({
             bar over a quiet bottom scrim, upright in every orientation like
             the header. Playback verbs sit left; work-level modes sit right.
             The scrim itself never eats taps — only the controls do. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/60 to-transparent px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8 sm:px-3">
-          <div className="flex min-w-0 items-center gap-1">
+        <div className="pointer-events-none absolute inset-x-0 bottom-[var(--viewer-rail-height,0px)] flex items-center justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8 sm:gap-2 sm:px-3">
+          <div className="flex min-w-0 items-center gap-0 sm:gap-1">
             {moving ? (
               <>
                 <button
@@ -946,7 +791,6 @@ export function ViewerTransport({
                   }}
                   className={dockControlClassName}
                 >
-                  <RotatingIcon rotated={rotated}>
                     <Icon
                       icon={
                         playing
@@ -955,29 +799,26 @@ export function ViewerTransport({
                       }
                       className="size-6"
                     />
-                  </RotatingIcon>
                 </button>
                 {soundAvailable ? (
                   <>
                     <button
                       type="button"
-                      aria-label={muted ? "Unmute" : "Mute"}
+                      aria-label={elementMuted ? "Unmute" : "Mute"}
                       onClick={(event) => {
                         event.stopPropagation();
                         toggleMuted();
                       }}
                       className={dockControlClassName}
                     >
-                      <RotatingIcon rotated={rotated}>
                         <Icon
                           icon={
-                            muted
+                            elementMuted
                               ? "fluent:speaker-mute-20-filled"
                               : "fluent:speaker-2-20-filled"
                           }
                           className="size-6"
                         />
-                      </RotatingIcon>
                     </button>
                     <label
                       className="sr-only"
@@ -991,7 +832,7 @@ export function ViewerTransport({
                       min={0}
                       max={1}
                       step={0.05}
-                      value={muted ? 0 : volume}
+                      value={elementMuted ? 0 : volume}
                       onChange={(event) => {
                         const nextVolume = Number(event.currentTarget.value);
                         const nextMuted = nextVolume === 0;
@@ -1001,6 +842,7 @@ export function ViewerTransport({
                             nextMuted,
                             nextMuted ? null : nextVolume,
                           );
+                          setElementMuted(nextMuted);
                           if (!nextMuted && autoplayAllowed) attemptPlay(video);
                         } else {
                           soundCustody.clearIou();
@@ -1008,7 +850,7 @@ export function ViewerTransport({
                         if (!nextMuted) onVolumeChange(nextVolume);
                         if (nextMuted !== muted) onMutedChange(nextMuted);
                       }}
-                      className="pointer-events-auto hidden w-24 accent-white [@media(pointer:fine)]:block"
+                      className="pointer-events-auto hidden w-24 accent-white [@media(min-width:640px)_and_(pointer:fine)]:block"
                     />
                   </>
                 ) : null}
@@ -1018,50 +860,13 @@ export function ViewerTransport({
                   <span
                     ref={timeReadoutRef}
                     aria-hidden
-                    className="theme-media-tile-title px-1.5 text-xs font-medium tabular-nums"
+                    className="theme-media-tile-title overflow-hidden whitespace-nowrap px-1 text-xs font-medium tabular-nums sm:px-1.5"
                   />
                 ) : null}
               </>
             ) : null}
           </div>
-          <div className="flex flex-none items-center gap-1">
-            {hqAvailable && moving ? (
-              <button
-                type="button"
-                aria-label={
-                  quality === "full"
-                    ? "Switch to preview quality"
-                    : "Play original quality"
-                }
-                aria-pressed={quality === "full"}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (video) {
-                    applyVerdict(
-                      decide(
-                        {
-                          type: "hq",
-                          desired: quality === "full" ? "preview" : "full",
-                          currentTime: video.currentTime,
-                          paused: video.paused,
-                          ended: video.ended,
-                        },
-                        ladderContext(),
-                      ),
-                    );
-                  }
-                  showControls();
-                }}
-                className={cn(
-                  dockControlClassName,
-                  quality !== "full" && dockToggleOffClassName,
-                )}
-              >
-                <RotatingIcon rotated={rotated}>
-                  <Icon icon="fluent:hd-20-filled" className="size-6" />
-                </RotatingIcon>
-              </button>
-            ) : null}
+          <div className="flex flex-none items-center gap-0 sm:gap-1">
             {canRotate && onRotateModeChange ? (
               <button
                 type="button"
@@ -1078,12 +883,10 @@ export function ViewerTransport({
                   !rotateMode && dockToggleOffClassName,
                 )}
               >
-                <RotatingIcon rotated={rotated}>
                   <Icon
                     icon="fluent:arrow-rotate-clockwise-20-filled"
                     className="size-6"
                   />
-                </RotatingIcon>
               </button>
             ) : null}
             {onInfo ? (
@@ -1098,9 +901,7 @@ export function ViewerTransport({
                 }}
                 className={dockControlClassName}
               >
-                <RotatingIcon rotated={rotated}>
                   <Icon icon="fluent:info-20-filled" className="size-6" />
-                </RotatingIcon>
               </button>
             ) : null}
             {fullscreenSupported && onFullscreen ? (
@@ -1113,12 +914,10 @@ export function ViewerTransport({
                 }}
                 className={dockControlClassName}
               >
-                <RotatingIcon rotated={rotated}>
                   <Icon
                     icon="fluent:full-screen-maximize-20-filled"
                     className="size-6"
                   />
-                </RotatingIcon>
               </button>
             ) : null}
           </div>

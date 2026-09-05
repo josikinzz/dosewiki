@@ -207,7 +207,7 @@ export function ViewerThumbnailRail({
           <button
             type="button"
             data-rail-index={itemIndex}
-            aria-label={`Show ${item.replication.title}`}
+            aria-label={`Show ${item.replication.title}, work ${itemIndex + 1} of ${items.length}`}
             aria-current={selected ? "true" : undefined}
             onClick={() => onSelect(itemIndex)}
             className={cn(
@@ -235,6 +235,12 @@ export function ViewerThumbnailRail({
                 </RotatingIcon>
               </span>
             )}
+            <span
+              aria-hidden
+              className="theme-media-tile-title absolute bottom-0 left-0 min-w-4 rounded-tr bg-black/85 px-1 py-0.5 text-[10px] font-semibold leading-none tabular-nums"
+            >
+              {itemIndex + 1}
+            </span>
           </button>
         </li>,
       );
@@ -252,7 +258,7 @@ export function ViewerThumbnailRail({
         // Landscape phones surrender too much height to a browse strip the
         // swipe grammar already covers: the rail stands down and the work
         // keeps the screen.
-        "theme-media-thumbnail-border border-t bg-black px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] transition-opacity duration-200 motion-reduce:transition-none sm:px-5 sm:py-2 [@media(max-height:500px)]:hidden",
+        "theme-media-thumbnail-border absolute inset-x-0 bottom-0 z-10 bg-black/75 px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] transition-opacity duration-200 motion-reduce:transition-none sm:px-5 sm:py-2 [@media(max-height:500px)]:hidden",
         chromeHidden && "opacity-0",
       )}
     >

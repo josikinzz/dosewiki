@@ -61,19 +61,6 @@ export function warmPooledElement(element: HTMLVideoElement): void {
   if (attempt) void attempt.catch(() => undefined);
 }
 
-export function blessPooledElement(
-  element: HTMLVideoElement,
-  keepPlaying: () => boolean,
-): void {
-  element.muted = true;
-  const attempt = element.play();
-  if (!attempt) return;
-  void attempt
-    .then(() => {
-      if (!keepPlaying()) element.pause();
-    })
-    .catch(() => undefined);
-}
 
 interface SoundCustodyOptions {
   volume: number | (() => number);

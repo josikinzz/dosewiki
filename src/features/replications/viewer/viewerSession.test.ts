@@ -91,7 +91,7 @@ describe("createViewerSession", () => {
     expect(state.session.snapshot().entry).toBeNull();
   });
 
-  it("uses vertical entries and remembers the last work in each group", () => {
+  it("prepares the remembered group destination without navigating early", () => {
     const state = setup(
       collection([
         { key: "a", slugs: ["a1", "a2"] },
@@ -99,16 +99,20 @@ describe("createViewerSession", () => {
       ]),
     );
     state.session.open("a2");
+    expect(state.session.adjacentGroup(1)).toEqual({ groupIndex: 1, itemIndex: 0 });
+    expect(state.session.snapshot().position).toEqual({ groupIndex: 0, itemIndex: 1 });
+    expect(state.session.adjacentGroup(-1)).toBeNull();
     state.session.commitGroup(1);
     expect(state.session.snapshot()).toEqual({
       position: { groupIndex: 1, itemIndex: 0 },
-      entry: "bottom",
+      entry: null,
     });
     state.session.commitWork(1);
+    expect(state.session.adjacentGroup(-1)).toEqual({ groupIndex: 0, itemIndex: 1 });
     state.session.commitGroup(-1);
     expect(state.session.snapshot()).toEqual({
       position: { groupIndex: 0, itemIndex: 1 },
-      entry: "top",
+      entry: null,
     });
     state.session.commitGroup(1);
     expect(state.session.snapshot().position).toEqual({ groupIndex: 1, itemIndex: 1 });

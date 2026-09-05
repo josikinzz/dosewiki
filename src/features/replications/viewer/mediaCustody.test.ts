@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   adoptPooledElement,
   assignPooledSource,
-  blessPooledElement,
   clearPooledSource,
   createSoundCustody,
   detachPooledElement,
@@ -11,7 +10,6 @@ import {
   reloadPooledElement,
   seekPooledElement,
   silencePooledElement,
-  warmPooledElement,
 } from "./mediaCustody";
 
 function video({ paused = true }: { paused?: boolean } = {}) {
@@ -85,18 +83,6 @@ describe("pooled element custody verbs", () => {
     expect(load).toHaveBeenCalledOnce();
   });
 
-  it("warms muted and blesses with a post-play parking decision", async () => {
-    const warm = video();
-
-    warmPooledElement(warm.element);
-    expect(warm.element.muted).toBe(true);
-    expect(warm.play).toHaveBeenCalledOnce();
-
-    const blessed = video({ paused: false });
-    blessPooledElement(blessed.element, () => false);
-    await settlePromises();
-    expect(blessed.pause).toHaveBeenCalledOnce();
-  });
   it("detaches through the generic deferred release", async () => {
     const { element, pause, load } = video({ paused: false });
     element.src = "https://cdn.test/old.mp4";

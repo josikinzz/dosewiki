@@ -6,8 +6,8 @@ import {
   type ReplicationViewerPosition,
 } from "./viewerModel";
 
-/** The side the incoming work enters from after non-swipe navigation. */
-export type EntryMotion = "top" | "bottom" | "fade";
+/** Non-swipe selections may fade; both swipe axes animate in the track. */
+export type EntryMotion = "fade";
 
 export interface ViewerHistoryAdapter {
   push(url: string): void;
@@ -34,6 +34,7 @@ export interface ViewerSession {
   open(slug: string, entry?: EntryMotion | null): void;
   commitWork(direction: 1 | -1): void;
   commitGroup(direction: 1 | -1): void;
+  adjacentGroup(direction: 1 | -1): ReplicationViewerPosition | null;
   regroup(grouping: "artist" | "effect", currentSlug: string): void;
   applyOrder(slugs: readonly string[]): void;
   setCollection(collection: ReplicationViewerCollection): void;
@@ -97,8 +98,13 @@ export function createViewerSession(
       if (!position) return;
       land(
         moveViewerGroup(collection, position, direction, rememberedSlugByGroup),
-        direction === 1 ? "bottom" : "top",
+        null,
       );
+    },
+    adjacentGroup(direction: 1 | -1) {
+      return position
+        ? moveViewerGroup(collection, position, direction, rememberedSlugByGroup)
+        : null;
     },
     regroup(grouping: "artist" | "effect", currentSlug: string) {
       if (collection.grouping === grouping) return;

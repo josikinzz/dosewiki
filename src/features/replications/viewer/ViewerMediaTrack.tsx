@@ -13,11 +13,11 @@ import {
 } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 import {
   adoptPooledElement,
   assignPooledSource,
-  blessPooledElement,
   clearPooledSource,
   demotePooledElement,
   detachPooledElement,
@@ -25,28 +25,26 @@ import {
   warmPooledElement,
 } from "./mediaCustody";
 import { ReplicationStillStage } from "./ReplicationStillStage";
-import {
-  slideMotionSource,
-  slidePosterSource,
-  type SlideQuality,
-} from "./qualityLadder";
+import { slideMotionSource, slidePosterSource } from "./qualityLadder";
+import { useStageFit } from "./useStageFit";
 import type { ReplicationViewerMediaItem } from "./viewerModel";
 
-/** Distance that commits a work change on release. */
 const SWIPE_THRESHOLD_PX = 48;
-/** A fast flick commits a work change well before the full swipe distance. */
 const SWIPE_FLICK_MIN_PX = 20;
 const SWIPE_FLICK_VELOCITY_PX_PER_MS = 0.45;
-/** Movement below this keeps the gesture axis undecided (still a tap). */
 const DRAG_AXIS_LOCK_PX = 8;
-/** Touches this close to a screen edge belong to the OS (iOS back swipe). */
 const SCREEN_EDGE_GUARD_PX = 24;
 const SLIDE_TRANSITION = "transform 200ms cubic-bezier(0.22, 1, 0.36, 1)";
-/** Commits if transitionend never fires (throttled tab, dropped frames). */
 const COMMIT_FALLBACK_MS = 320;
-
 const INTERACTIVE_SELECTOR =
   "button, a, input, select, textarea, [role='slider']";
+const POOL_SLOTS = [0, 1, 2, 3, 4] as const;
+const PANE_OFFSETS = [[-1, 0], [0, 0], [1, 0], [0, -1], [0, 1]] as const;
+const CENTER = 1;
+type Axis = "x" | "y";
+type Direction = 1 | -1;
+/** Slots at left, center, right, above, below. DOM order never changes. */
+type SlotByPane = readonly [number, number, number, number, number];
 
 function prefersReducedMotion(): boolean {
   return (
@@ -56,46 +54,31 @@ function prefersReducedMotion(): boolean {
   );
 }
 
-/** Gesture-safe verbs the overlay drives from keys, buttons, and gestures. */
+function neighborPane(axis: Axis, direction: Direction): number {
+  return axis === "x" ? (direction === 1 ? 2 : 0) : (direction === 1 ? 4 : 3);
+}
+
 export interface ViewerTrackHandle {
-  /**
-   * Animate one work over and commit, exactly like a completed swipe.
-   * Returns false when no neighbor exists in that direction.
-   */
-  slide: (direction: 1 | -1) => boolean;
-  /**
-   * Prime every pooled media element inside a live user gesture: a play()
-   * issued here marks the element user-activated, so later unmuted playback
-   * on recycled elements is honoured (iOS Safari's blessing is per-element
-   * and survives src swaps). Safe to call repeatedly; only the first runs.
-   */
-  blessPool: () => void;
+  /** Animate and commit an adjacent work, retaining its pooled player. */
+  slide: (direction: Direction) => boolean;
+  /** Animate and commit an adjacent group's remembered work. */
+  slideGroup: (direction: Direction) => boolean;
 }
 
 export interface ViewerMediaTrackProps {
-  /** Works surrounding the active position: previous and next may be null. */
   previousItem: ReplicationViewerMediaItem | null;
   activeItem: ReplicationViewerMediaItem;
   nextItem: ReplicationViewerMediaItem | null;
-  /** Identity of the current position; any change recenters the track. */
+  previousGroupItem: ReplicationViewerMediaItem | null;
+  nextGroupItem: ReplicationViewerMediaItem | null;
   positionKey: string;
-  /** Rendition the active slide plays; neighbors always warm the preview. */
-  activeQuality: SlideQuality;
-  /** Motion may start on its own (no reduced-motion / data-saver request). */
   autoplayAllowed: boolean;
-  /** Rotation geometry for the active media element (from useStageFit). */
-  activeMediaClassName: string;
-  /** Reported whenever the active slide's video element changes (null = still). */
+  rotateMode: boolean;
   onActiveVideoChange: (video: HTMLVideoElement | null) => void;
-  /** A completed horizontal gesture landed one work over. */
-  onNavigateWork: (direction: 1 | -1) => void;
-  /** A completed vertical gesture asked for the adjacent group. */
-  onNavigateGroup: (direction: 1 | -1) => void;
-  /** A plain tap on the media surface (reveal/dismiss chrome, repay sound). */
+  onNavigateWork: (direction: Direction) => void;
+  onNavigateGroup: (direction: Direction) => void;
   onSurfaceTap: () => void;
-  /** Intrinsic size of the active media, for rotate-to-fit. */
   onProbeAspect: (mediaWidth: number, mediaHeight: number) => void;
-  /** Chrome visibility, spoken by the active still's toggle surface. */
   controlsVisible: boolean;
 }
 
@@ -104,19 +87,13 @@ interface DragState {
   x: number;
   y: number;
   t: number;
-  axis: "x" | "y" | null;
+  axis: Axis | null;
 }
-
-type Pane = -1 | 0 | 1;
-
-/** [slot at previous pane, slot at active pane, slot at next pane]. */
-type SlotByPane = readonly [number, number, number];
 
 interface ViewerSlideProps {
   item: ReplicationViewerMediaItem | null;
-  pane: Pane;
-  quality: SlideQuality;
-  activeMediaClassName: string;
+  pane: number;
+  rotateMode: boolean;
   saveData: boolean;
   registerVideo: (element: HTMLVideoElement | null) => void;
   onProbeAspect: (mediaWidth: number, mediaHeight: number) => void;
@@ -124,18 +101,11 @@ interface ViewerSlideProps {
   controlsVisible: boolean;
 }
 
-/**
- * One pooled pane of the track. The `<video>` element is unconditionally
- * mounted and never keyed, so it survives every recycle: iOS Safari's
- * unmuted-playback blessing is per-element, and a remount would also leak
- * the old media pipeline until GC (browsers cap live players per page).
- * Items rotate through panes purely by src assignment and CSS transforms.
- */
+/** A persistent player and independently prepared geometry for one pool slot. */
 function ViewerSlide({
   item,
   pane,
-  quality,
-  activeMediaClassName,
+  rotateMode,
   saveData,
   registerVideo,
   onProbeAspect,
@@ -143,18 +113,26 @@ function ViewerSlide({
   controlsVisible,
 }: ViewerSlideProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  /**
-   * True once the pooled element has decoded real frames for the CURRENT
-   * work. The poster underlay lives only in the gap before that: a
-   * thumbnail is an editorial crop whose aspect may differ from the video,
-   * so leaving it visible would leak around the letterboxed frame.
-   */
-  const [framePainted, setFramePainted] = useState(false);
-  const active = pane === 0;
+  const [paintedSource, setPaintedSource] = useState<string | null>(null);
+  const active = pane === CENTER;
   const replication = item?.replication ?? null;
-  const motion = replication ? slideMotionSource(replication) !== null : false;
-  const gifLike = replication?.format.toLowerCase() === "gif";
+  const source = replication ? slideMotionSource(replication) : null;
   const poster = replication ? slidePosterSource(replication) : null;
+  const gifLike = replication?.format.toLowerCase() === "gif";
+  const { canRotate, rotated, aspectSettled, mediaAspect, probeAspect } = useStageFit({
+    mediaKey: replication ? `${replication.slug}|${replication.url}` : "",
+    type: replication?.type ?? "image",
+    rotateMode,
+    width: replication?.width,
+    height: replication?.height,
+  });
+  const orientationPending = canRotate && rotateMode && !aspectSettled;
+  const mediaGeometryClassName = cn(
+    rotated
+      ? "left-1/2 top-1/2 h-[100cqw] w-[100cqh] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90"
+      : "inset-0 h-full w-full",
+    orientationPending && "opacity-0",
+  );
 
   const attachVideo = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -166,21 +144,38 @@ function ViewerSlide({
         return;
       }
       videoRef.current = node;
-      // Neighbors are always muted; the transport governs the active element.
       adoptPooledElement(node);
       registerVideo(node);
     },
     [registerVideo],
   );
 
-  const assignedSlug = replication && motion ? replication.slug : null;
-  useEffect(() => {
-    setFramePainted(false);
+  // Activation never changes the source. Only recycling a slot does so.
+  useLayoutEffect(() => {
     const element = videoRef.current;
-    if (!element || !assignedSlug) return;
+    if (!element) return;
+    if (!source) {
+      delete element.dataset.slug;
+      if (element.getAttribute("src")) clearPooledSource(element);
+      return;
+    }
+    if (element.getAttribute("src") === source) return;
+    silencePooledElement(element);
+    element.dataset.slug = replication?.slug;
+    assignPooledSource(element, source, {
+      time: 0,
+      resume: false,
+      poster: gifLike ? poster : null,
+    });
+  }, [source, replication?.slug, gifLike, poster]);
+
+  useEffect(() => {
+    setPaintedSource(null);
+    const element = videoRef.current;
+    if (!element || !source) return;
     let cancelled = false;
     const markPainted = () => {
-      if (!cancelled) setFramePainted(true);
+      if (!cancelled) setPaintedSource(source);
     };
     if (typeof element.requestVideoFrameCallback === "function") {
       const handle = element.requestVideoFrameCallback(markPainted);
@@ -189,92 +184,50 @@ function ViewerSlide({
         element.cancelVideoFrameCallback(handle);
       };
     }
-    if (element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-      markPainted();
-      return;
-    }
+    if (element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) markPainted();
     element.addEventListener("canplay", markPainted);
     return () => {
       cancelled = true;
       element.removeEventListener("canplay", markPainted);
     };
-  }, [assignedSlug]);
+  }, [source]);
 
-  // Assign this pane's work to the pooled element. Recycles preserve the
-  // element (and its blessing); only the source and poster change. A swap
-  // within the same work (preview <-> full) carries playback position and
-  // intent across, so a quality change never restarts the piece.
   useEffect(() => {
     const element = videoRef.current;
-    if (!element) return;
-    const source = replication
-      ? slideMotionSource(replication, active ? quality : "preview")
-      : null;
-    if (!source || !replication) {
-      delete element.dataset.slug;
-      if (element.getAttribute("src")) clearPooledSource(element);
-      return;
-    }
-    const sameWork = element.dataset.slug === replication.slug;
-    if (sameWork && element.src === source) return;
-    const keepTime = sameWork ? element.currentTime : 0;
-    const wasPlaying = sameWork && !element.paused && !element.ended;
-    element.dataset.slug = replication.slug;
-    assignPooledSource(element, source, {
-      time: keepTime,
-      resume: wasPlaying,
-      poster: gifLike ? poster : null,
-    });
-  }, [replication, active, quality, gifLike, poster]);
+    if (element && !active) silencePooledElement(element);
+  }, [active, source]);
 
-  // A pane that stops being active immediately falls silent and still; the
-  // incoming active element is governed by the transport instead.
+  // Every parked video probes at metadata time, before it can enter the stage.
   useEffect(() => {
     const element = videoRef.current;
-    if (!element || active) return;
-    silencePooledElement(element);
-  }, [active, item]);
-
-  // Rows imported before dimensions were catalogued still need a real
-  // orientation for rotate-to-fit: read it off the active video itself.
-  useEffect(() => {
-    const element = videoRef.current;
-    if (!element || !active || !motion) return;
-    const probe = () => {
-      if (element.videoWidth > 0 && element.videoHeight > 0) {
-        onProbeAspect(element.videoWidth, element.videoHeight);
-      }
-    };
+    if (!element || !source) return;
+    const probe = () => probeAspect(element.videoWidth, element.videoHeight);
     if (element.readyState >= HTMLMediaElement.HAVE_METADATA) probe();
     element.addEventListener("loadedmetadata", probe);
     return () => element.removeEventListener("loadedmetadata", probe);
-  }, [active, motion, item, onProbeAspect]);
+  }, [source, probeAspect]);
+
+  useEffect(() => {
+    if (active && aspectSettled) onProbeAspect(mediaAspect, 1);
+  }, [active, aspectSettled, mediaAspect, onProbeAspect, replication?.slug]);
 
   const width = replication?.width ?? 1600;
   const height = replication?.height ?? Math.round(width / (4 / 3));
-  const mediaGeometryClassName = active
-    ? activeMediaClassName
-    : "inset-0 h-full w-full";
   const stillSource = replication
-    ? gifLike
-      ? (poster ?? replication.url)
-      : replication.url
+    ? gifLike ? (poster ?? replication.url) : replication.url
     : null;
+  const [x, y] = PANE_OFFSETS[pane];
 
   return (
     <div
       aria-hidden={active ? undefined : true}
+      inert={!active}
       data-viewer-pane={pane}
       data-viewer-active-pane={active || undefined}
-      className={cn(
-        "absolute inset-0 overflow-hidden bg-black",
-        !active && "pointer-events-none",
-      )}
-      style={{ transform: `translateX(${pane * 100}%)` }}
+      className={cn("absolute inset-0 overflow-hidden bg-black", !active && "pointer-events-none")}
+      style={{ transform: `translate(${x * 100}%, ${y * 100}%)`, containerType: "size" }}
     >
-      {/* Poster underlay: the video covers it the instant real frames
-          paint, and until then the pane reads as the work, never black. */}
-      {motion && poster && !framePainted ? (
+      {source && poster && paintedSource !== source ? (
         <div aria-hidden className={cn("absolute", mediaGeometryClassName)}>
           <AppImage
             src={poster}
@@ -287,21 +240,16 @@ function ViewerSlide({
           />
         </div>
       ) : null}
-      {/* Replications are non-verbal visual artworks; title, effect,
-          creator, and rights context are exposed by the surrounding viewer. */}
+      {/* Non-verbal artworks: creator and rights context live in the viewer. */}
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         ref={attachVideo}
         playsInline
-        preload={saveData ? "metadata" : "auto"}
-        className={cn(
-          "absolute object-contain",
-          mediaGeometryClassName,
-          !motion && "hidden",
-        )}
+        preload={active && !saveData ? "auto" : "metadata"}
+        className={cn("absolute object-contain", mediaGeometryClassName, !source && "hidden")}
       />
-      {!motion && stillSource && replication ? (
-        active ? (
+      {!source && stillSource && replication ? (
+        <div className={cn("absolute", mediaGeometryClassName)}>
           <ReplicationStillStage
             src={stillSource}
             alt={replication.title}
@@ -309,186 +257,124 @@ function ViewerSlide({
             height={height}
             controlsVisible={controlsVisible}
             onToggleControls={onSurfaceTap}
-            mediaClassName={cn("absolute", mediaGeometryClassName)}
-            onProbeAspect={onProbeAspect}
+            onProbeAspect={probeAspect}
           />
-        ) : (
-          <AppImage
-            src={stillSource}
-            alt=""
-            width={width}
-            height={height}
-            unoptimized
-            className="absolute inset-0 h-full w-full object-contain"
-          />
-        )
+        </div>
       ) : null}
     </div>
   );
 }
 
-/**
- * The swipe feed's moving floor: three pooled panes riding one translated
- * track. Neighbors hold already-buffered preview renditions, so a committed
- * swipe is pause-outgoing/play-incoming — never a media load. Gestures are
- * pointer events with capture on a touch-action-none surface, so the browser
- * never fights the drag; commits land on transitionend with a timer backstop.
- */
-export const ViewerMediaTrack = forwardRef<
-  ViewerTrackHandle,
-  ViewerMediaTrackProps
->(function ViewerMediaTrack(
-  {
+/** Five fixed DOM slots follow the same gesture and commit path on both axes. */
+export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackProps>(
+  function ViewerMediaTrack({
     previousItem,
     activeItem,
     nextItem,
+    previousGroupItem,
+    nextGroupItem,
     positionKey,
-    activeQuality,
     autoplayAllowed,
-    activeMediaClassName,
+    rotateMode,
     onActiveVideoChange,
     onNavigateWork,
     onNavigateGroup,
     onSurfaceTap,
     onProbeAspect,
     controlsVisible,
-  },
-  ref,
-) {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<DragState | null>(null);
-  const suppressTapRef = useRef(false);
-  /** Non-null while a commit animation owns the track. */
-  const commitRef = useRef<{ finish: () => void; cancel: () => void } | null>(
-    null,
-  );
-  const blessedRef = useRef(false);
-  /**
-   * Which pool slot sits at each pane. Ring-buffer: a committed swipe
-   * rotates roles so the incoming work keeps its DOM element — the
-   * already-playing video simply becomes the active one.
-   */
-  const [slotByPane, setSlotByPane] = useState<SlotByPane>([0, 1, 2]);
-  /** Mirror for event handlers and imperative callbacks. */
-  const slotByPaneRef = useRef<SlotByPane>(slotByPane);
-  slotByPaneRef.current = slotByPane;
-  const slotVideosRef = useRef<(HTMLVideoElement | null)[]>([
-    null,
-    null,
-    null,
-  ]);
-  /**
-   * Identity-stable per-slot registrars: a fresh closure per render would
-   * re-run each slide's ref attach cycle, and the attach pass re-stamps
-   * muted — silencing an actively unmuted work on every overlay re-render.
-   */
-  const slotRegistrars = useMemo(
-    () =>
-      [0, 1, 2].map(
-        (slot) => (element: HTMLVideoElement | null) => {
-          slotVideosRef.current[slot] = element;
-        },
-      ),
-    [],
-  );
+  }, ref) {
+    const viewportRef = useRef<HTMLDivElement>(null);
+    const trackRef = useRef<HTMLDivElement>(null);
+    const dragRef = useRef<DragState | null>(null);
+    const suppressTapRef = useRef(false);
+    const commitRef = useRef<{ cancel: () => void } | null>(null);
+    const reducedMotion = usePrefersReducedMotion();
+    const saveData =
+      typeof navigator !== "undefined" &&
+      (navigator as Navigator & { connection?: { saveData?: boolean } })
+        .connection?.saveData === true;
+    const motionAllowed = autoplayAllowed && !saveData && !reducedMotion && !prefersReducedMotion();
+    const committedPositionRef = useRef<string | null>(null);
+    const [slotByPane, setSlotByPane] = useState<SlotByPane>([0, 1, 2, 3, 4]);
+    const slotByPaneRef = useRef(slotByPane);
+    slotByPaneRef.current = slotByPane;
+    const slotVideosRef = useRef<(HTMLVideoElement | null)[]>([null, null, null, null, null]);
+    const warmedSlotRef = useRef<number | null>(null);
+    const slotRegistrars = useMemo(() => POOL_SLOTS.map(
+      (slot) => (element: HTMLVideoElement | null) => {
+        slotVideosRef.current[slot] = element;
+      },
+    ), []);
+    const itemsByPane = [previousItem, activeItem, nextItem, previousGroupItem, nextGroupItem];
+    const itemsByPaneRef = useRef(itemsByPane);
+    itemsByPaneRef.current = itemsByPane;
 
-  const itemsByPane: readonly [
-    ReplicationViewerMediaItem | null,
-    ReplicationViewerMediaItem,
-    ReplicationViewerMediaItem | null,
-  ] = [previousItem, activeItem, nextItem];
+    const pauseAllExcept = useCallback((keptSlot: number) => {
+      slotVideosRef.current.forEach((element, slot) => {
+        if (element && slot !== keptSlot) demotePooledElement(element);
+      });
+      warmedSlotRef.current = null;
+    }, []);
 
-  // Hand the active element up whenever the position (or its slot's element)
-  // changes. Runs after ref callbacks, so mounted elements are visible here.
-  const activeIsMotion = slideMotionSource(activeItem.replication) !== null;
-  useEffect(() => {
-    onActiveVideoChange(
-      activeIsMotion
-        ? (slotVideosRef.current[slotByPane[1]] ?? null)
-        : null,
-    );
-  }, [activeIsMotion, onActiveVideoChange, positionKey, slotByPane]);
+    const activeIsMotion = slideMotionSource(activeItem.replication) !== null;
+    useEffect(() => {
+      onActiveVideoChange(activeIsMotion ? slotVideosRef.current[slotByPane[CENTER]] : null);
+    }, [activeIsMotion, onActiveVideoChange, positionKey, slotByPane]);
 
-  // Any position change recenters the floor instantly. After a commit the
-  // pane transforms and the track reset cancel out in one layout pass, so
-  // the frame the reader is watching never moves.
-  useLayoutEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.style.transition = "none";
-    track.style.transform = "";
-    dragRef.current = null;
-  }, [positionKey]);
+    // External navigation cancels pending work. A committed rotation and this
+    // reset land in one layout pass, so the incoming frame stays in place.
+    useLayoutEffect(() => {
+      committedPositionRef.current = null;
+      commitRef.current?.cancel();
+      const track = trackRef.current;
+      if (track) {
+        track.style.transition = "none";
+        track.style.transform = "";
+      }
+      dragRef.current = null;
+      pauseAllExcept(slotByPaneRef.current[CENTER]);
+    }, [positionKey, pauseAllExcept]);
 
-  // An in-flight commit must not outlive the track: cancel, never commit,
-  // so a closing overlay cannot navigate or rewrite the URL post-unmount.
-  useEffect(() => {
-    return () => commitRef.current?.cancel();
-  }, []);
+    useEffect(() => () => commitRef.current?.cancel(), []);
 
-  const pauseAllExcept = useCallback((keptSlot: number) => {
-    slotVideosRef.current.forEach((element, slot) => {
-      if (!element || slot === keptSlot) return;
-      demotePooledElement(element);
-    });
-  }, []);
-
-  /**
-   * Start the neighbors' already-buffered previews the moment a horizontal
-   * drag begins (a live gesture, so muted playback is always honoured): the
-   * pane sliding into view is moving before the finger lifts.
-   */
-  const playNeighbors = useCallback(() => {
-    if (!autoplayAllowed) return;
-    const [previousSlot, activeSlot, nextSlot] = slotByPaneRef.current;
-    for (const slot of [previousSlot, nextSlot]) {
+    const warmNeighbor = useCallback((axis: Axis, direction: Direction) => {
+      if (!motionAllowed) return;
+      const pane = neighborPane(axis, direction);
+      const slot = itemsByPaneRef.current[pane] ? slotByPaneRef.current[pane] : null;
+      if (warmedSlotRef.current === slot) return;
+      if (warmedSlotRef.current !== null) {
+        const previous = slotVideosRef.current[warmedSlotRef.current];
+        if (previous) demotePooledElement(previous);
+      }
+      warmedSlotRef.current = slot;
+      if (slot === null) return;
       const element = slotVideosRef.current[slot];
-      if (!element || slot === activeSlot) continue;
-      if (!element.getAttribute("src") || !element.paused) continue;
-      warmPooledElement(element);
-    }
-  }, [autoplayAllowed]);
+      if (element?.getAttribute("src") && element.paused) warmPooledElement(element);
+    }, [motionAllowed]);
 
-  const blessPool = useCallback(() => {
-    if (blessedRef.current) return;
-    blessedRef.current = true;
-    const activeSlot = slotByPaneRef.current[1];
-    slotVideosRef.current.forEach((element, slot) => {
-      if (!element || slot === activeSlot) return;
-      if (!element.getAttribute("src")) return;
-      blessPooledElement(
-        element,
-        () => slot === slotByPaneRef.current[1],
-      );
-    });
-  }, []);
-
-  const commitWork = useCallback(
-    (direction: 1 | -1) => {
-      const [previousSlot, activeSlot, nextSlot] = slotByPaneRef.current;
-      const incoming = direction === 1 ? nextSlot : previousSlot;
-      const outgoing = direction === 1 ? previousSlot : nextSlot;
-      const rotated: SlotByPane =
-        direction === 1
-          ? [activeSlot, incoming, outgoing]
-          : [outgoing, incoming, activeSlot];
+    const commitNavigation = useCallback((axis: Axis, direction: Direction) => {
+      committedPositionRef.current = positionKey;
+      const incomingPane = neighborPane(axis, direction);
+      const farPane = neighborPane(axis, direction === 1 ? -1 : 1);
+      const slots = slotByPaneRef.current;
+      const rotated: [number, number, number, number, number] = [...slots];
+      rotated[CENTER] = slots[incomingPane];
+      rotated[farPane] = slots[CENTER];
+      rotated[incomingPane] = slots[farPane];
       slotByPaneRef.current = rotated;
       setSlotByPane(rotated);
-      pauseAllExcept(incoming);
-      onNavigateWork(direction);
-    },
-    [onNavigateWork, pauseAllExcept],
-  );
+      pauseAllExcept(rotated[CENTER]);
+      if (axis === "x") onNavigateWork(direction);
+      else onNavigateGroup(direction);
+    }, [onNavigateWork, onNavigateGroup, pauseAllExcept, positionKey]);
 
-  const slide = useCallback(
-    (direction: 1 | -1): boolean => {
-      const target = direction === 1 ? nextItem : previousItem;
-      if (!target || commitRef.current) return false;
+    const slideAxis = useCallback((axis: Axis, direction: Direction): boolean => {
+      if (!itemsByPaneRef.current[neighborPane(axis, direction)] || commitRef.current || committedPositionRef.current === positionKey) return false;
       const track = trackRef.current;
-      const width = track?.clientWidth ?? 0;
-      if (!track || width === 0 || prefersReducedMotion()) {
-        commitWork(direction);
+      const distance = axis === "x" ? track?.clientWidth : track?.clientHeight;
+      warmNeighbor(axis, direction);
+      if (!track || !distance || prefersReducedMotion()) {
+        commitNavigation(axis, direction);
         return true;
       }
       let settled = false;
@@ -501,186 +387,133 @@ export const ViewerMediaTrack = forwardRef<
       const finish = () => {
         if (settled) return;
         teardown();
-        commitWork(direction);
+        commitNavigation(axis, direction);
       };
       const cancel = () => {
         if (!settled) teardown();
       };
       const onEnd = (event: TransitionEvent) => {
-        if (event.target !== track || event.propertyName !== "transform")
-          return;
-        finish();
+        if (event.target === track && event.propertyName === "transform") finish();
       };
       const timer = window.setTimeout(finish, COMMIT_FALLBACK_MS);
-      commitRef.current = { finish, cancel };
+      commitRef.current = { cancel };
       track.addEventListener("transitionend", onEnd);
       track.style.transition = SLIDE_TRANSITION;
-      track.style.transform = `translateX(${direction * -100}%)`;
+      track.style.transform = `translate${axis.toUpperCase()}(${direction * -100}%)`;
       return true;
-    },
-    [commitWork, nextItem, previousItem],
-  );
+    }, [commitNavigation, warmNeighbor, positionKey]);
 
-  useImperativeHandle(ref, () => ({ slide, blessPool }), [slide, blessPool]);
+    const slide = useCallback((direction: Direction) => slideAxis("x", direction), [slideAxis]);
+    const slideGroup = useCallback((direction: Direction) => slideAxis("y", direction), [slideAxis]);
+    useImperativeHandle(ref, () => ({ slide, slideGroup }), [slide, slideGroup]);
 
-  const snapBack = useCallback(() => {
-    const track = trackRef.current;
-    if (track?.style.transform) {
-      track.style.transition = prefersReducedMotion()
-        ? "none"
-        : SLIDE_TRANSITION;
-      track.style.transform = "";
-    }
-    pauseAllExcept(slotByPaneRef.current[1]);
-  }, [pauseAllExcept]);
-
-  const releasePointer = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      const viewport = viewportRef.current;
-      if (viewport?.hasPointerCapture?.(event.pointerId)) {
-        viewport.releasePointerCapture(event.pointerId);
+    const snapBack = useCallback(() => {
+      const track = trackRef.current;
+      if (track?.style.transform) {
+        track.style.transition = prefersReducedMotion() ? "none" : SLIDE_TRANSITION;
+        track.style.transform = "";
       }
-    },
-    [],
-  );
+      pauseAllExcept(slotByPaneRef.current[CENTER]);
+    }, [pauseAllExcept]);
 
-  return (
-    // The viewport is the gesture floor, not a semantic control: taps fall
-    // through to it only from non-interactive space, and every action it
-    // proxies has a real control or keyboard path (still surface button,
-    // transport buttons, overlay shortcuts).
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-    <div
-      ref={viewportRef}
-      data-replication-media-track
-      className="relative h-full w-full overflow-hidden"
-      style={{ touchAction: "none" }}
-      onPointerDown={(event) => {
-        blessPool();
-        suppressTapRef.current = false;
-        if (event.pointerType === "mouse" && event.button !== 0) return;
-        if (commitRef.current) return;
-        const target = event.target;
-        // A still's whole surface is a chrome-toggle <button>; it is the
-        // artwork, so drags MUST start there. Real controls stay exempt.
-        if (
-          target instanceof Element &&
-          target.closest(INTERACTIVE_SELECTOR) &&
-          !target.closest("[data-replication-media-surface]")
-        ) {
-          return;
-        }
-        if (
-          event.pointerType === "touch" &&
-          (event.clientX <= SCREEN_EDGE_GUARD_PX ||
-            event.clientX >= window.innerWidth - SCREEN_EDGE_GUARD_PX)
-        ) {
-          return;
-        }
-        dragRef.current = {
-          pointerId: event.pointerId,
-          x: event.clientX,
-          y: event.clientY,
-          t: event.timeStamp,
-          axis: null,
-        };
-      }}
-      onPointerMove={(event) => {
-        const drag = dragRef.current;
-        if (!drag || drag.pointerId !== event.pointerId) return;
-        const dx = event.clientX - drag.x;
-        const dy = event.clientY - drag.y;
-        if (!drag.axis) {
-          if (Math.max(Math.abs(dx), Math.abs(dy)) < DRAG_AXIS_LOCK_PX) return;
-          drag.axis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
-          viewportRef.current?.setPointerCapture?.(event.pointerId);
-          if (drag.axis === "x") playNeighbors();
-        }
-        if (drag.axis !== "x") return;
-        const track = trackRef.current;
-        if (!track) return;
-        // The floor follows the finger; endpoints resist instead of moving.
-        const bounded =
-          (dx > 0 && !previousItem) || (dx < 0 && !nextItem) ? dx / 3 : dx;
-        track.style.transition = "none";
-        track.style.transform = `translateX(${bounded}px)`;
-      }}
-      onPointerUp={(event) => {
-        const drag = dragRef.current;
-        dragRef.current = null;
-        if (!drag || drag.pointerId !== event.pointerId) return;
-        releasePointer(event);
-        if (!drag.axis) return;
-        suppressTapRef.current = true;
-        const dx = event.clientX - drag.x;
-        const dy = event.clientY - drag.y;
-        if (drag.axis === "x") {
-          const elapsed = Math.max(1, event.timeStamp - drag.t);
-          const flick =
-            Math.abs(dx) >= SWIPE_FLICK_MIN_PX &&
-            Math.abs(dx) / elapsed >= SWIPE_FLICK_VELOCITY_PX_PER_MS;
-          const direction: 1 | -1 = dx > 0 ? -1 : 1;
-          if (
-            (Math.abs(dx) >= SWIPE_THRESHOLD_PX || flick) &&
-            slide(direction)
-          ) {
-            return;
-          }
-          snapBack();
-          return;
-        }
-        if (Math.abs(dy) < SWIPE_THRESHOLD_PX) return;
-        onNavigateGroup(dy > 0 ? -1 : 1);
-      }}
-      onPointerCancel={(event) => {
-        dragRef.current = null;
-        releasePointer(event);
-        snapBack();
-      }}
-      onClickCapture={(event) => {
-        if (!suppressTapRef.current) return;
-        suppressTapRef.current = false;
-        event.preventDefault();
-        event.stopPropagation();
-      }}
-      onClick={(event) => {
-        const target = event.target;
-        if (
-          target instanceof Element &&
-          target.closest(INTERACTIVE_SELECTOR)
-        ) {
-          return;
-        }
-        onSurfaceTap();
-      }}
-    >
+    const releasePointer = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+      const viewport = viewportRef.current;
+      if (viewport?.hasPointerCapture?.(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+    }, []);
+
+    const cancelDrag = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+      if (dragRef.current?.pointerId !== event.pointerId) return;
+      suppressTapRef.current = Boolean(dragRef.current.axis);
+      dragRef.current = null;
+      releasePointer(event);
+      snapBack();
+    }, [releasePointer, snapBack]);
+
+    return (
+      // The gesture floor proxies controls and keyboard paths, not semantics.
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
-        ref={trackRef}
-        data-viewer-track-floor
-        className="relative h-full w-full"
+        ref={viewportRef}
+        data-replication-media-track
+        className="relative h-full w-full overflow-hidden"
+        style={{ touchAction: "none" }}
+        onPointerDown={(event) => {
+          if ((event.pointerType === "mouse" && event.button !== 0) || commitRef.current || dragRef.current) return;
+          const target = event.target;
+          if (target instanceof Element && target.closest(INTERACTIVE_SELECTOR) && !target.closest("[data-replication-media-surface]")) return;
+          if (event.pointerType === "touch" && (event.clientX <= SCREEN_EDGE_GUARD_PX || event.clientX >= window.innerWidth - SCREEN_EDGE_GUARD_PX)) return;
+          suppressTapRef.current = false;
+          dragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, t: event.timeStamp, axis: null };
+        }}
+        onPointerMove={(event) => {
+          const drag = dragRef.current;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+          const dx = event.clientX - drag.x;
+          const dy = event.clientY - drag.y;
+          if (!drag.axis) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) < DRAG_AXIS_LOCK_PX) return;
+            drag.axis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+            viewportRef.current?.setPointerCapture?.(event.pointerId);
+          }
+          const delta = drag.axis === "x" ? dx : dy;
+          const direction = delta > 0 ? -1 : 1;
+          warmNeighbor(drag.axis, direction);
+          const track = trackRef.current;
+          if (!track) return;
+          const bounded = itemsByPaneRef.current[neighborPane(drag.axis, direction)] ? delta : delta / 3;
+          track.style.transition = "none";
+          track.style.transform = `translate${drag.axis.toUpperCase()}(${bounded}px)`;
+        }}
+        onPointerUp={(event) => {
+          const drag = dragRef.current;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+          dragRef.current = null;
+          releasePointer(event);
+          if (!drag.axis) return;
+          suppressTapRef.current = true;
+          const delta = drag.axis === "x" ? event.clientX - drag.x : event.clientY - drag.y;
+          const elapsed = Math.max(1, event.timeStamp - drag.t);
+          const flick = Math.abs(delta) >= SWIPE_FLICK_MIN_PX && Math.abs(delta) / elapsed >= SWIPE_FLICK_VELOCITY_PX_PER_MS;
+          if ((Math.abs(delta) >= SWIPE_THRESHOLD_PX || flick) && slideAxis(drag.axis, delta > 0 ? -1 : 1)) return;
+          snapBack();
+        }}
+        onPointerCancel={cancelDrag}
+        onLostPointerCapture={(event) => {
+          // Taking capture from a touched video emits a bubbling loss for that
+          // child. Only losing the viewport's own capture cancels the swipe.
+          if (event.target === event.currentTarget) cancelDrag(event);
+        }}
+        onClickCapture={(event) => {
+          if (!suppressTapRef.current) return;
+          suppressTapRef.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={(event) => {
+          const target = event.target;
+          if (target instanceof Element && target.closest(INTERACTIVE_SELECTOR)) return;
+          onSurfaceTap();
+        }}
       >
-        {/* DOM order is fixed by slot, never by pane: React must never move
-            a pooled <video> between siblings — a reinserted media element
-            risks a playback hiccup and defeats the pool's whole point. Panes
-            are pure transforms. */}
-        {[0, 1, 2].map((slot) => {
-          const paneIndex = slotByPane.indexOf(slot);
-          return (
-            <ViewerSlide
-              key={`slot-${slot}`}
-              item={itemsByPane[paneIndex]}
-              pane={(paneIndex - 1) as Pane}
-              quality={activeQuality}
-              activeMediaClassName={activeMediaClassName}
-              saveData={!autoplayAllowed}
-              registerVideo={slotRegistrars[slot]}
-              onProbeAspect={onProbeAspect}
-              onSurfaceTap={onSurfaceTap}
-              controlsVisible={controlsVisible}
-            />
-          );
-        })}
+        <div ref={trackRef} data-viewer-track-floor className="relative h-full w-full">
+          {POOL_SLOTS.map((slot) => {
+            const pane = slotByPane.indexOf(slot);
+            return (
+              <ViewerSlide
+                key={slot}
+                item={itemsByPane[pane]}
+                pane={pane}
+                rotateMode={rotateMode}
+                saveData={!motionAllowed}
+                registerVideo={slotRegistrars[slot]}
+                onProbeAspect={onProbeAspect}
+                onSurfaceTap={onSurfaceTap}
+                controlsVisible={controlsVisible}
+              />
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);

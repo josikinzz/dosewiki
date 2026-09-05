@@ -105,6 +105,28 @@ Two more `<video>` elements consume the same shape:
 `src/features/effect-index/home/FeaturedReplicationsPanel.tsx:149-163`. Both are
 client components fed by a server read; no client `useQuery` reads replications.
 
+### Immersive viewer playback
+
+The expanded Replication Viewer uses the resolved full-length `url` from its
+first frame. It does not replace a playing 10-second tile preview with another
+source. Tile previews remain gallery assets, not a viewer quality tier. GIFs
+use `motion_url` when their companion motion poster exists.
+
+Five persistent player slots cover the active work and the four navigation
+directions. Parked videos request metadata; only the approached neighbor warms
+on a swipe or navigation command. Committing either axis retains that player's
+source and playback position. Browser preload hints are advisory, not download
+limits, and reduced-motion/data-saving preferences disable automatic warming.
+
+Each pane resolves its own orientation before activation. The media stage
+occupies the full viewport with header, transport and numbered thumbnails
+overlaid. Tapping the artwork toggles all chrome without changing stage size,
+playback or sound, and the hidden preference survives navigation. Left/right
+walk works; up/down walk groups and remember the last work in each group.
+
+Playback stays inline (`playsInline`) on iPhone. Optional fullscreen targets
+the dialog container, never the native video player.
+
 ### The resolver is the integration surface
 
 The current resolver is R2-first and falls back safely:
