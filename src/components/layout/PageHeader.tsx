@@ -30,7 +30,11 @@ function useFitTitleToWidth() {
       const needed = run.scrollWidth;
       if (needed <= available || available === 0) return;
       const base = parseFloat(getComputedStyle(title).fontSize);
-      title.style.fontSize = `${Math.max(MIN_TITLE_FONT_PX, (base * available) / needed)}px`;
+      title.style.setProperty(
+        "font-size",
+        `${Math.max(MIN_TITLE_FONT_PX, (base * available) / needed)}px`,
+        "important",
+      );
     };
 
     fit();
