@@ -12,7 +12,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Icon } from "@/components/common/Icon";
+import { Icon, type IconName } from "@/components/common/Icon";
 import {
   dismissPrePaintRouteStateCover,
   PrePaintRouteStateCover,
@@ -25,12 +25,15 @@ import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { focusRingClassName } from "@/components/ui/surface";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { ContributorDirectory } from "@server/contributorDirectory";
@@ -102,6 +105,40 @@ interface EffectSummary {
 }
 
 type GalleryPageLoadState = "idle" | "loading" | "error";
+
+/** Square icon control for the phone control bar (44px on coarse pointers). */
+const COMPACT_ICON = cn("h-10 w-10 shrink-0 p-0", TOUCH_ICON);
+
+/** Phone menu rows: finger-height, glyph before label. */
+const PHONE_MENU_ITEM = "min-h-11 gap-2";
+
+const MODE_ICON: Record<GalleryMode, IconName> = {
+  artist: "lucide:palette",
+  effect: "lucide:sparkles",
+};
+
+const TYPE_ICON: Record<GalleryTypeFilter, IconName> = {
+  all: "lucide:layers",
+  image: "lucide:image",
+  video: "lucide:video",
+};
+
+const TYPE_LABEL: Record<GalleryTypeFilter, string> = {
+  all: "All",
+  image: "Images",
+  video: "Videos",
+};
+
+const ARTIST_SORT_OPTIONS: ReadonlyArray<[GalleryArtistSort, string]> = [
+  ["video-first", "Videos first"],
+  ["count", "Most works"],
+  ["alpha", "A–Z"],
+];
+
+const ARTIST_SORT_LABEL = Object.fromEntries(ARTIST_SORT_OPTIONS) as Record<
+  GalleryArtistSort,
+  string
+>;
 
 function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
   return (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[])
@@ -653,22 +690,6 @@ function GalleryExplorer({
 
   useEffect(() => () => clearTimeout(debounceRef.current), []);
 
-  /**
-   * Mobile-only disclosure state. Below `sm` the bar keeps exactly one row:
-   * the search input lives behind an icon button (the input takes over the
-   * row while open, collapsing on blur/Escape), and the browse-mode toggle
-   * lives behind a Filters chip opening a near-full-bleed popover. Popover
-   * rather than a new Sheet primitive is the kit's standing convention for
-   * phone control sheets (see the review bar's overflow) — the kit has no
-   * Sheet, and inventing one here would be a second convention. From `sm` up
-   * both states are inert: the full control set renders inline.
-   */
-  const [searchExpanded, setSearchExpanded] = useState(false);
-
-  useEffect(() => {
-    if (searchExpanded) inputRef.current?.focus();
-  }, [searchExpanded]);
-
   /** Every toggle writes the *whole* state, flushing any pending search text. */
   const currentInputQuery = () => inputRef.current?.value ?? browse.query;
 
@@ -1205,6 +1226,8 @@ function GalleryExplorer({
    * width across mode switches instead of jittering.
    */
   const sortActive = mode === "artist" && !searching && !focus;
+  // Below Tailwind's `sm` (640px) the control bar is the one-row icon layout.
+  const phone = useMediaQuery("(max-width: 639px)");
 
   return (
     <>
@@ -1230,29 +1253,16 @@ function GalleryExplorer({
               </Alert>
             ) : null}
 
-            {/* Sticky control bar — the gallery's only elevated surface now that
-              the card wrapper is gone. Offset: the site header (.app-header,
-              components.css) is itself sticky at top-0/z-50 and measures 68px
-              (py-3 + its 44px controls), so a small offset like top-2 would
-              pin this bar underneath it. 4.75rem = 68px header + 8px gap
-              keeps the bar fully visible below the header while pinned.
-
-              The row NEVER wraps (flex-nowrap + min-w-0 discipline), so the
-              sticky chrome is always one header row plus this one control row.
-              Below `sm` the browse-mode toggle folds behind the Filters chip,
-              search behind an icon button that swaps the row for the input,
-              and the media-type pills wear glyphs instead of words. From `sm`
-              up every control is inline; the artist sort — three pills since
-              video-first sorting landed — stays a compact menu until `md`,
-              where the row first has room for the full pill set.
-
-              Under `focus-only` chrome the bar (and the stats line below) is
-              suppressed entirely — see the `chrome` prop. */}
+            {/* Phones get one row: search, then three icon menus (browse,
+                media, filters) so the sticky bar costs ~3.5rem of a short
+                viewport instead of three stacked rows. From `sm` up the
+                same state is driven by the labelled pill groups and the
+                artist-sort menu; the two sets never render together. */}
             {chrome === "full" ? (
               <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
                 <div
                   data-testid="gallery-control-bar"
-                  className="flex w-full min-w-0 flex-nowrap items-center gap-2 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-2 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:gap-3"
+                  className="flex w-full min-w-0 items-center gap-1.5 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-1.5 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:flex-wrap sm:gap-3 sm:p-2"
                 >
                   <ToggleGroup
                     type="single"
@@ -1266,27 +1276,25 @@ function GalleryExplorer({
                   >
                     <ToggleGroupItem
                       value="artist"
-                      className={TOUCH_PILL}
+                      className={cn(
+                        TOUCH_PILL,
+                        "data-[state=on]:border-dose-accent-strong data-[state=on]:font-semibold",
+                      )}
                     >
                       By artist
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="effect"
-                      className={TOUCH_PILL}
+                      className={cn(
+                        TOUCH_PILL,
+                        "data-[state=on]:border-dose-accent-strong data-[state=on]:font-semibold",
+                      )}
                     >
                       By effect
                     </ToggleGroupItem>
                   </ToggleGroup>
 
-                  {/* Always mounted so the tests and the debounce wiring see one
-                    input; below `sm` its visibility is the expand/collapse
-                    state, from `sm` up it is simply the inline search box. */}
-                  <div
-                    className={cn(
-                      "relative min-w-0 flex-1",
-                      searchExpanded ? "block" : "hidden sm:block",
-                    )}
-                  >
+                  <div className="relative min-w-0 flex-1 basis-0 sm:min-w-60 sm:flex-[1_1_calc(100%_-_12rem)] lg:flex-[1_1_15rem]">
                     <Icon
                       icon="lucide:search"
                       className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
@@ -1296,21 +1304,41 @@ function GalleryExplorer({
                       id="replications-gallery-search"
                       defaultValue={browse.query}
                       onChange={(event) => updateQuery(event.target.value)}
-                      onBlur={() => searchExpanded && setSearchExpanded(false)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Escape" && searchExpanded) {
-                          event.preventDefault();
-                          setSearchExpanded(false);
-                        }
-                      }}
-                      placeholder="Search art, artist, effect"
-                      className="h-9 pl-9 [@media(pointer:coarse)]:h-11"
+                      placeholder={
+                        phone ? "Search replications" : "Search art, artist, effect"
+                      }
+                      className={cn(
+                        "h-10 pl-9 [@media(pointer:coarse)]:h-11 sm:h-9 sm:pr-12",
+                        // The trailing slot only holds the clear button or the
+                        // pending spinner; on a phone the room is the
+                        // placeholder's, so reserve it only while occupied.
+                        searching || queryWritePending ? "pr-10" : "pr-3",
+                      )}
                       inputMode="search"
                       aria-label="Search replications"
                     />
+                    {searching ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="auto"
+                        aria-label="Clear search"
+                        className={cn(
+                          "absolute right-0 top-1/2 h-9 w-9 -translate-y-1/2 p-0",
+                          TOUCH_ICON,
+                        )}
+                        onClick={() => {
+                          if (inputRef.current) inputRef.current.value = "";
+                          updateQuery("");
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        <Icon icon="lucide:x" className="h-4 w-4" aria-hidden />
+                      </Button>
+                    ) : null}
                     {/* Decorative only (aria-hidden): the debounce is 250ms, and a
                       live region firing per keystroke would be pure noise. */}
-                    {queryWritePending ? (
+                    {queryWritePending && !searching ? (
                       <span
                         aria-hidden
                         data-testid="query-write-pending"
@@ -1324,6 +1352,124 @@ function GalleryExplorer({
                     ) : null}
                   </div>
 
+                  {/* Phone: browse mode and (in artist mode) artist sort share
+                      one menu; the trigger's glyph is the current mode. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="pill"
+                        size="auto"
+                        aria-label={
+                          mode === "artist"
+                            ? "Browse: by artist"
+                            : "Browse: by effect"
+                        }
+                        className={cn(COMPACT_ICON, "sm:hidden")}
+                      >
+                        <Icon
+                          icon={MODE_ICON[mode]}
+                          className="h-4 w-4"
+                          aria-hidden
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Browse by</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={mode}
+                        onValueChange={(value) =>
+                          switchMode(value as GalleryMode)
+                        }
+                      >
+                        {(["artist", "effect"] as const).map((value) => (
+                          <DropdownMenuRadioItem
+                            key={value}
+                            value={value}
+                            className={PHONE_MENU_ITEM}
+                          >
+                            <Icon
+                              icon={MODE_ICON[value]}
+                              className="h-4 w-4"
+                              aria-hidden
+                            />
+                            {value === "artist" ? "Artist" : "Effect"}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                      {sortActive ? (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>Sort artists</DropdownMenuLabel>
+                          <DropdownMenuRadioGroup
+                            value={artistSort}
+                            onValueChange={(value) =>
+                              setArtistSort(value as GalleryArtistSort)
+                            }
+                          >
+                            {ARTIST_SORT_OPTIONS.map(([value, label]) => (
+                              <DropdownMenuRadioItem
+                                key={value}
+                                value={value}
+                                className={PHONE_MENU_ITEM}
+                              >
+                                {label}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Phone: media type as a menu whose glyph is the current
+                      filter. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="pill"
+                        size="auto"
+                        aria-label={`Media: ${TYPE_LABEL[typeFilter]}`}
+                        className={cn(
+                          COMPACT_ICON,
+                          "sm:hidden",
+                          typeFilter !== "all" && "border-dose-accent-strong",
+                        )}
+                      >
+                        <Icon
+                          icon={TYPE_ICON[typeFilter]}
+                          className="h-4 w-4"
+                          aria-hidden
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Media</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={typeFilter}
+                        onValueChange={(value) =>
+                          setTypeFilter(value as GalleryTypeFilter)
+                        }
+                      >
+                        {(["all", "image", "video"] as const).map((value) => (
+                          <DropdownMenuRadioItem
+                            key={value}
+                            value={value}
+                            className={PHONE_MENU_ITEM}
+                          >
+                            <Icon
+                              icon={TYPE_ICON[value]}
+                              className="h-4 w-4"
+                              aria-hidden
+                            />
+                            {TYPE_LABEL[value]}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <ToggleGroup
                     type="single"
                     variant="pill"
@@ -1332,82 +1478,25 @@ function GalleryExplorer({
                       value && setTypeFilter(value as GalleryTypeFilter)
                     }
                     aria-label="Filter by media type"
-                    className={cn(
-                      "shrink-0",
-                      searchExpanded && "hidden sm:flex",
-                    )}
+                    className="hidden shrink-0 sm:flex"
                   >
-                    <ToggleGroupItem
-                      value="all"
-                      className={TOUCH_PILL}
-                    >
-                      All
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="image"
-                      aria-label="Images"
-                      className={TOUCH_PILL}
-                    >
-                      <Icon
-                        icon="lucide:image"
-                        className="sm:hidden"
-                        aria-hidden
-                      />
-                      <span className="hidden sm:inline">Images</span>
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="video"
-                      aria-label="Videos"
-                      className={TOUCH_PILL}
-                    >
-                      <Icon
-                        icon="lucide:video"
-                        className="sm:hidden"
-                        aria-hidden
-                      />
-                      <span className="hidden sm:inline">Videos</span>
-                    </ToggleGroupItem>
+                    {(["all", "image", "video"] as const).map((value) => (
+                      <ToggleGroupItem
+                        key={value}
+                        value={value}
+                        className={cn(
+                          TOUCH_PILL,
+                          "data-[state=on]:border-dose-accent-strong data-[state=on]:font-semibold",
+                        )}
+                      >
+                        {TYPE_LABEL[value]}
+                      </ToggleGroupItem>
+                    ))}
                   </ToggleGroup>
 
-                  {/* Full sort pill set — the row only has room for it from `md`. */}
-                  <ToggleGroup
-                    type="single"
-                    variant="pill"
-                    value={artistSort}
-                    onValueChange={(value) =>
-                      value && setArtistSort(value as GalleryArtistSort)
-                    }
-                    aria-label="Sort artists"
-                    aria-hidden={!sortActive || undefined}
-                    inert={!sortActive}
-                    className={cn(
-                      "hidden shrink-0 md:flex",
-                      !sortActive && "invisible",
-                    )}
-                  >
-                    <ToggleGroupItem
-                      value="video-first"
-                      className={TOUCH_PILL}
-                    >
-                      Videos first
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="count"
-                      className={TOUCH_PILL}
-                    >
-                      Most works
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="alpha"
-                      className={TOUCH_PILL}
-                    >
-                      A–Z
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-
-                  {/* Compact sort — one menu button below `md`. Like the pill set
-                    it stays mounted (inert + invisible) outside the artist
-                    browse view so the row keeps one width across mode switches. */}
+                  {/* From `sm` up the artist sort stays mounted (inert +
+                      invisible) outside artist mode so the bar keeps one width
+                      across mode switches instead of jittering. */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -1418,9 +1507,8 @@ function GalleryExplorer({
                         aria-hidden={!sortActive || undefined}
                         inert={!sortActive}
                         className={cn(
-                          "flex h-8 w-8 shrink-0 items-center justify-center p-0 md:hidden",
-                          TOUCH_ICON,
-                          searchExpanded && "hidden",
+                          "hidden min-h-10 shrink-0 items-center justify-center gap-1.5 px-2 text-sm sm:flex",
+                          TOUCH_PILL,
                           !sortActive && "invisible",
                         )}
                       >
@@ -1429,6 +1517,7 @@ function GalleryExplorer({
                           className="h-4 w-4"
                           aria-hidden
                         />
+                        <span>{ARTIST_SORT_LABEL[artistSort]}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -1438,63 +1527,23 @@ function GalleryExplorer({
                           setArtistSort(value as GalleryArtistSort)
                         }
                       >
-                        <DropdownMenuRadioItem value="video-first">
-                          Videos first
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="count">
-                          Most works
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="alpha">
-                          A–Z
-                        </DropdownMenuRadioItem>
+                        {ARTIST_SORT_OPTIONS.map(([value, label]) => (
+                          <DropdownMenuRadioItem key={value} value={value}>
+                            {label}
+                          </DropdownMenuRadioItem>
+                        ))}
                       </DropdownMenuRadioGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {/* Phone search reveal — expands into the input above, which
-                    collapses back on blur or Escape. The dot marks a live query
-                    that would otherwise be invisible while collapsed. */}
-                  <Button
-                    type="button"
-                    variant="pill"
-                    size="auto"
-                    aria-label="Search replications"
-                    aria-expanded={searchExpanded}
-                    aria-controls="replications-gallery-search"
-                    onClick={() => setSearchExpanded(true)}
-                    className={cn(
-                      "relative flex h-8 w-8 shrink-0 items-center justify-center p-0 sm:hidden",
-                      TOUCH_ICON,
-                      searchExpanded && "hidden",
-                    )}
-                  >
-                    <Icon
-                      icon="lucide:search"
-                      className="h-4 w-4"
-                      aria-hidden
-                    />
-                    {searching ? (
-                      <span
-                        aria-hidden
-                        className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--theme-accent-strong)]"
-                      />
-                    ) : null}
-                  </Button>
-
                   <ReplicationTaxonomyFilters
                     filters={taxonomyFilters}
-                    mode={mode}
-                    onModeChange={switchMode}
                     onChange={setTaxonomyFilters}
                     drugOptions={drugOptions}
                     effectOptions={effectOptions}
                     onClear={() =>
                       setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
                     }
-                    className={cn(
-                      TOUCH_PILL,
-                      searchExpanded && "hidden sm:flex",
-                    )}
                   />
                 </div>
               </div>
@@ -1732,36 +1781,6 @@ function GalleryExplorer({
                     }
                     mobileCompact
                     onTileOpen={openViewerAt}
-                    /* "View all" on an artist rail opens the viewer on that
-                     artist's first work — the viewer collection already holds
-                     every artist group — while the anchor keeps the Artist
-                     Page href for modified clicks, new tabs, and crawlers.
-                     Effect rails keep navigating: their "View all" is the
-                     effect's playlist page, not a viewer entry point. */
-                    onViewAllOpen={(event) => {
-                      if (
-                        event.button !== 0 ||
-                        event.metaKey ||
-                        event.ctrlKey ||
-                        event.shiftKey ||
-                        event.altKey
-                      ) {
-                        return;
-                      }
-                      event.preventDefault();
-                      const target = buildGalleryFocusUrl(
-                        { kind: mode, key: galleryGroupUrlKey(mode, group) },
-                        mode === "artist" ? { type: typeFilter } : {},
-                      );
-                      runWithCompleteCorpus(() => {
-                        const first = group.items[0];
-                        if (mode === "artist" && first) {
-                          launchViewer(first.slug);
-                        } else {
-                          router.push(target);
-                        }
-                      });
-                    }}
                   />
                 ))}
                 {hiddenRailCount > 0 ? (

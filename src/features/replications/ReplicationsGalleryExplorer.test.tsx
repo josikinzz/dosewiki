@@ -110,7 +110,6 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     mobileCompact,
     onTileOpen,
     avatarUrl,
-    onViewAllOpen,
     viewerHrefFor,
     countIsComplete = true,
   }: {
@@ -125,7 +124,6 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
     avatarUrl?: string | null;
     countIsComplete?: boolean;
     viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
-    onViewAllOpen?: (event: ReactMouseEvent) => void;
   }) => (
     <section
       data-testid="rail"
@@ -141,7 +139,7 @@ vi.mock("@/features/effects/gallery/MediaRail", () => ({
         <span>{group.label}</span>
       )}
       {!countIsComplete || group.count > Math.min(group.items.length, 14) ? (
-        <a href={viewAllHref} onClick={onViewAllOpen}>
+        <a href={viewAllHref}>
           {countIsComplete ? `View all ${group.count}` : "View all"}
         </a>
       ) : null}
@@ -246,9 +244,16 @@ function renderExplorer(
   );
 }
 
-/** The explorer only reads `matches`, so a stub this thin is faithful. */
+/** `matches` plus the listener pair `useMediaQuery` subscribes with. */
 function stubMatchMedia(matches: boolean) {
-  vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches }));
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockReturnValue({
+      matches,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }),
+  );
 }
 
 beforeEach(() => {
@@ -281,10 +286,9 @@ describe("URL → rendered state", () => {
       "data-state",
       "on",
     );
-    // Video-first is the default artist order (T-8), so its pill is lit.
-    expect(screen.getByRole("radio", { name: "Videos first" })).toHaveAttribute(
-      "data-state",
-      "on",
+    // The current order stays visible without opening the sort menu.
+    expect(screen.getByRole("button", { name: "Sort artists" })).toHaveTextContent(
+      "Videos first",
     );
     // The spotlight row is gone: density-first, media starts immediately.
     expect(screen.queryByText("Spotlight")).toBeNull();
@@ -531,7 +535,7 @@ describe("hybrid browse layout", () => {
     renderExplorer("view=effect");
 
     expect(
-      screen.getByText("Most works").closest('[aria-hidden="true"]'),
+      screen.getByText("Videos first").closest('[aria-hidden="true"]'),
     ).not.toBeNull();
   });
 });
@@ -978,58 +982,27 @@ describe("focused views", () => {
   });
 });
 
-describe("one-line control bar", () => {
-  it("renders one non-wrapping row with min-width discipline", () => {
-    renderExplorer("");
-
-    const bar = screen.getByTestId("gallery-control-bar");
-    expect(bar.className).toContain("flex-nowrap");
-    expect(bar.className).toContain("min-w-0");
-    expect(bar.className.split(/\s+/)).not.toContain("flex-wrap");
-  });
-
-  it("expands the phone search button into the focused input and collapses on Escape", async () => {
-    const user = userEvent.setup();
-    renderExplorer("");
-    const reveal = screen.getByRole("button", { name: "Search replications" });
-    expect(reveal).toHaveAttribute("aria-expanded", "false");
-
-    await user.click(reveal);
-
-    expect(reveal).toHaveAttribute("aria-expanded", "true");
-    const input = screen.getByRole("textbox", { name: "Search replications" });
-    expect(input).toHaveFocus();
-
-    await user.keyboard("{Escape}");
-    expect(reveal).toHaveAttribute("aria-expanded", "false");
-  });
-
-  it("collapses the expanded phone search when the input blurs, keeping the query", async () => {
+describe("responsive gallery controls", () => {
+  it("keeps search visible after blur and provides a clear action", async () => {
     const user = userEvent.setup();
     renderExplorer("q=drifting");
-    const reveal = screen.getByRole("button", { name: "Search replications" });
     const input = screen.getByRole("textbox", { name: "Search replications" });
-
-    await user.click(reveal);
     fireEvent.blur(input);
-
-    expect(reveal).toHaveAttribute("aria-expanded", "false");
-    // Collapse is presentation only — the live query survives it.
     expect(input).toHaveValue("drifting");
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(input).toHaveValue("");
+    expect(input).toHaveFocus();
   });
 
-  it("keeps the browse-mode toggle reachable through the Filters sheet", async () => {
+  it("keeps grouping outside advanced filters", async () => {
     const user = userEvent.setup();
     renderExplorer("");
-
-    await user.click(screen.getByRole("button", { name: /Filters/ }));
-
-    const sheet = screen.getByRole("dialog");
-    await user.click(within(sheet).getByRole("radio", { name: "By effect" }));
-
+    await user.click(screen.getByRole("radio", { name: "By effect" }));
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
-    // Choosing a mode is the sheet's whole job; it closes on selection.
-    expect(screen.queryByRole("dialog")).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Filters/ }));
+    expect(
+      within(screen.getByRole("dialog")).queryByRole("group", { name: "Browse by" }),
+    ).toBeNull();
   });
 
   it("orders the filter selects with the named-in-the-title group last and closes on Done", async () => {
@@ -1413,95 +1386,26 @@ describe("complete corpus loading", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("loads the complete corpus before opening View all", async () => {
+  it("links View all directly to the artist overview before the corpus loads", () => {
     const initial = Array.from({ length: 15 }, (_, index) =>
-      rep({ title: `Initial work ${index + 1}` }),
+      rep({ title: `Work ${index}` }),
     );
-    const deferred = rep({ title: "Deferred work" });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(corpusResponse([...initial, deferred]));
+    const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-
     renderExplorer("", {
       replications: initial,
       completeCorpusUrl: "/api/replications/gallery",
     });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("link", { name: "View all" }));
-    });
-
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
-      "data-item-count",
-      "16",
+    const link = screen.getByRole("link", { name: "View all" });
+    expect(link).toHaveAttribute(
+      "href",
+      expect.stringContaining("/replications/artist/"),
     );
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("preserves a pending View all action through failure and retry", async () => {
-    const initial = Array.from({ length: 15 }, (_, index) =>
-      rep({ title: `Initial work ${index + 1}` }),
-    );
-    const deferred = rep({ title: "Deferred work" });
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: false, status: 503 })
-      .mockResolvedValueOnce(corpusResponse([...initial, deferred]));
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderExplorer("", {
-      replications: initial,
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("link", { name: "View all" }));
-    });
-
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+    fireEvent(link, click);
+    expect(click.defaultPrevented).toBe(false);
     expect(screen.queryByTestId("replication-viewer")).toBeNull();
-    expect(
-      screen.getByText(/complete gallery could not finish loading/i),
-    ).toBeInTheDocument();
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
-      "data-item-count",
-      "16",
-    );
-  });
-
-  it("supersedes a pending View all action with a newer gallery action", async () => {
-    const initial = Array.from({ length: 15 }, (_, index) =>
-      rep({ title: `Initial work ${index + 1}` }),
-    );
-    let resolveResponse: ((response: unknown) => void) | undefined;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        () =>
-          new Promise((resolve) => {
-            resolveResponse = resolve;
-          }),
-      ),
-    );
-
-    renderExplorer("", {
-      replications: initial,
-      completeCorpusUrl: "/api/replications/gallery",
-    });
-    fireEvent.click(screen.getByRole("link", { name: "View all" }));
-    fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
-
-    await act(async () => {
-      resolveResponse?.(corpusResponse([]));
-    });
-
-    expect(screen.queryByTestId("replication-viewer")).toBeNull();
-    expect(historySpies.push).toHaveBeenCalledTimes(1);
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("loads the complete corpus before changing a taxonomy filter", async () => {
