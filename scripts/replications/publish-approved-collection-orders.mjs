@@ -79,17 +79,28 @@ const SHOWCASE_ORIGIN =
  * Live membership as the public site serves it. This is the set the human
  * approved an order over, and it is independent of the stored pinned order.
  */
-const membershipCache = new Map();
+// Persisted across runs: the public endpoint tolerates only a handful of
+// requests per sweep, so a resumed run must not re-fetch what it already knows.
+const CACHE_PATH = "/tmp/approved-order-membership-cache.json";
+const membershipCache = new Map(
+  (() => {
+    try {
+      return Object.entries(JSON.parse(readFileSync(CACHE_PATH, "utf8")));
+    } catch {
+      return [];
+    }
+  })(),
+);
 async function fetchLiveMembership(targetKind, targetKey) {
   const cacheKey = `${targetKind}:${targetKey}`;
   if (membershipCache.has(cacheKey)) return membershipCache.get(cacheKey);
   const parameter = targetKind === "substance" ? "substance" : "effect";
   const url = `${SHOWCASE_ORIGIN}/api/replications/showcase?${parameter}=${encodeURIComponent(targetKey)}`;
   let lastError;
-  // The public endpoint rate-limits a long serial sweep, so back off rather
-  // than reporting a transient refusal as membership drift.
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    if (attempt) await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+  // The public endpoint rate-limits a long serial sweep, so pace every request
+  // and back off rather than reporting a transient refusal as membership drift.
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, attempt ? 2000 * 2 ** attempt : 750));
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`showcase endpoint returned ${response.status}`);
@@ -98,6 +109,7 @@ async function fetchLiveMembership(targetKind, targetKey) {
       if (!Array.isArray(works)) throw new Error("showcase endpoint returned no works array");
       const slugs = works.map((work) => work.slug);
       membershipCache.set(cacheKey, slugs);
+      writeFileSync(CACHE_PATH, JSON.stringify(Object.fromEntries(membershipCache)));
       return slugs;
     } catch (error) {
       lastError = error;

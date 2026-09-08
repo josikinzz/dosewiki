@@ -308,6 +308,36 @@ present top-level and absent inside a frame with `parentOrigin` set. Evidence:
 `runs/replication-embed-chrome/2026-09-07-embed-carousel-only.json`. Roll back to
 `dpl_EssXvXMrXV7JrWCdCkki3SGTr7Rz` using the explicit scope above.
 
+The 2026-09-08 replication-order release serves `dpl_HzjGJgQTLqrDZSiGsJ1m7Cgvdhfm`
+on both public DoseWiki hosts. It publishes the operator-approved curation
+orders for all 7 eligible drug collections and all 49 nonempty effect-article
+galleries: 12,752 ordered positions, verified exact against both Convex and
+`https://dose.wiki/api/replications/showcase` for all 56 collections. Membership
+was never changed; every publication was an order-only permutation.
+
+The public release was required because the preceding build predated the
+ordering path, so the published orders were invisible while Convex already held
+them. Cache invalidation alone did not surface them; the tags in
+`lib/convex/publicData.cache.ts` were expired on both projects first and ruled
+the data cache out.
+
+The backend release lifted two gates in `publishCollection`. The deployed body
+capped every collection kind at 250 works, which blocked the 15 collections
+above that size, and the checkout already scoped that cap to playlists and
+artists. Showcase eligibility also gated every member, refusing 343 combination
+and 33 showcase-excluded works that legitimately belong to effect galleries;
+eligibility now applies only to substance placement. Effect and artist orders
+remain order-only, so presence is already the membership decision.
+
+Convex functions were deployed to `glad-minnow-656` through the committed-source
+gate; the strict live inventory matched all 351 checkout functions. Effect Index
+and the editor hosts were not redeployed. Audio suitability across the published
+corpus remains pending human listening, and 782 members carry an uncleared
+flash risk sequenced late with `mustNotAutoplayPendingHumanReview`; none were
+cleared by this release. Evidence is retained in the curation run's
+`dossier-verification.json`. Roll back the public release by promoting the
+deployment previously aliased to `dose.wiki` with the explicit scope above.
+
 The 2026-09-08 aggregated-embed release serves `dpl_HiRd8QsTVUuTSu2NqcfK48pUvuRW`
 on both public DoseWiki hosts, adding five files to the preceding overlay set.
 A multi-slug embed now skips a slug that resolves to no collection — a
