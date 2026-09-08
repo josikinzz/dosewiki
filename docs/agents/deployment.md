@@ -394,6 +394,48 @@ was changed for verification. No cost reduction or signed-in editor UI session
 is claimed. Targeted regressions passed; the interrupted aggregate rerun is
 not represented as a full-suite pass.
 
+The 2026-09-08 gallery-and-reports release serves these production deployments,
+all built from commit `8e64c666` on `no-corpus-drain`:
+
+| Surface | Deployment | Rollback deployment |
+| --- | --- | --- |
+| dose.wiki and www.dose.wiki | `dpl_G1pZgizxN2ogaHGBpURUmicTAayx` | `dpl_HzjGJgQTLqrDZSiGsJ1m7Cgvdhfm` |
+| dev.dose.wiki and dosewiki-admin.vercel.app | `dpl_1n2ms6UkWP1Mt3sFpyS3zTzsx7j9` | `dpl_9GBwPyAgDxVDPQCNqNW5Z8YAWA3b` |
+| effectindex.com | `dpl_17uYSRwMyxkjDUn8MQuxrqSADvDg` | `dpl_HvYnmsxhqvxX8aVuhzceJYXDJNWY` |
+
+This is an application-only release of public reading surfaces: gallery tiles
+keep their caption on phones and carry one corner chip for medium, video
+duration and a defensible work year; the replications section heading is
+accessible-only on the Gallery tab; the trip reports index gains collapsible
+per-group shelves, a spotlight, and query-string filter, sort and search state.
+Every project uploaded 5,132 source files from the same tree.
+
+No Convex functions were published. The public and Effect Index projects hold
+no deploy key, and the editor build was run with `--build-env
+CONVEX_DEPLOY_KEY=`, so all three logged `Convex functions will NOT be deployed
+by this build`. The checkout-only call-site integrity check passed in each.
+
+The first Effect Index attempt (`dpl_9NUEc48vzQAfPhsL2GUkGs8SP8Ut`) failed
+while prerendering `/pipradrol`: `glad-minnow-656.convex.cloud` returned a
+Cloudflare 520 during static generation. The unchanged source succeeded on
+retry once the backend answered again. No Convex or provider setting was
+changed.
+
+Live checks: `dose.wiki/reports` serves the new index with its spotlight and
+shelves at desktop and 390px; `dose.wiki/replications` opens on artwork with
+chips reading duration and year, including the `≤2022` upper-bound form; the
+collapsed gallery search resolves its placeholder to `transparent` at rest and
+to `--theme-text-faint` on focus through `.theme-collapsed-search-input`;
+`effectindex.com/reports` renders the same index in its own flavor. Anonymous
+`dev.dose.wiki/dev` still redirects to sign-in and
+`POST /api/dev/revalidate-article` without a token still returns 401.
+Authenticated production editing was not exercised.
+
+Local gates before the release: 613 test files and 5,873 tests passed, and
+`tsc --noEmit` was clean. Two failures that predated the change were repaired
+rather than deferred, one in the copyBlocks write harness and one in the theme
+token audit baseline.
+
 Public caches are project-local, so an editor-side invalidation reaches only
 the editor project. Editorial writes therefore publish across deployments: the
 seam in `lib/next/publishPublicCache.ts` expires the editor project's own
