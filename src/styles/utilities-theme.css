@@ -154,17 +154,19 @@ a[data-nav-pending="true"] {
   color: var(--theme-accent-strong);
 }
 
-/* Homepage tiles (HomeExperience.tsx) answer the click by lighting up rather
-   than dimming: an app icon that has just been pressed should read as
-   activated, so the pending state takes the accent ring the tile already
-   wears on focus, accent ink in the label, and the same 1px lift its hover
-   uses. The generic dim above would fight that, so it is overridden here.
+/* Homepage tiles (HomeExperience.tsx) answer the click the same way the Index
+   entries do: the label takes the progress bar's accent ink and a narrow
+   brighter band sweeps through it, on the same 1.4s cycle and the same
+   negative delay, so a click anywhere in the app reads as one gesture. The
+   generic dim above would fight that, so it is overridden here.
 
-   An outline rather than a surface restyle: the tile's own background is a
-   layered gradient that each theme re-declares through the `background`
-   shorthand (light mode with !important), so a pending wash would have to be
-   cloned per theme to survive. The outline paints over all of them and reads
-   the same everywhere. */
+   No ring and no lift. A 2px outline at a 3px offset around a 5.75rem icon is
+   a wide flat band of accent that reads as a selection chrome rather than as
+   progress, and it lands on the loudest element on the page. The shimmer says
+   the same thing in the label's own ink.
+
+   The icon keeps a quiet accent border so the pressed tile is still
+   identifiable at a glance while its label carries the motion. */
 .theme-home-nav-link[data-nav-pending="true"] {
   opacity: 1;
   color: var(--theme-text-primary);
@@ -175,14 +177,13 @@ a[data-nav-pending="true"] {
 }
 
 .theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-icon {
-  outline: 2px solid var(--theme-accent-strong);
-  outline-offset: 3px;
-  transform: translate3d(0, -1px, 0);
+  border-color: var(--theme-accent-strong);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   @supports (-webkit-background-clip: text) or (background-clip: text) {
-    .theme-index-card-link[data-nav-pending="true"] .theme-index-card-label {
+    .theme-index-card-link[data-nav-pending="true"] .theme-index-card-label,
+    .theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-label {
       background-image: linear-gradient(
         100deg,
         var(--theme-accent-strong) 40%,
@@ -611,6 +612,17 @@ html[data-theme="light"]
 .theme-control-pill-faint:focus-visible {
   outline: 2px solid var(--theme-accent-strong);
   outline-offset: 3px;
+}
+
+/* The floating control bar's own material. `--theme-frosted-control-bg` holds
+   two stacked gradients and `--theme-frosted-control-shadow` holds a ring plus
+   an inset highlight, so both have to travel through the `background` and
+   `box-shadow` shorthands. Tailwind's `bg-[var(...)]` compiles to
+   `background-color`, which drops a gradient on the floor: the bar was
+   rendering as a bare hairline with no fill at all. */
+.theme-frosted-control-bar {
+  background: var(--theme-frosted-control-bg);
+  box-shadow: var(--theme-frosted-control-shadow);
 }
 
 .theme-evidence-accent {
