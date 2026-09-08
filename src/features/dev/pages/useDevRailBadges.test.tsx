@@ -9,8 +9,8 @@ import {
   useDevRailBadges,
 } from "./useDevRailBadges";
 
-function Badges({ role = "admin" }: { role?: AppRole | null }) {
-  const counts = useDevRailBadges(role);
+function Badges({ role = "admin", email }: { role?: AppRole | null; email?: string }) {
+  const counts = useDevRailBadges(role, email);
   return (
     <>
       <span data-testid="trip-reports">{counts["trip-reports"] ?? "none"}</span>
@@ -60,6 +60,7 @@ describe("useDevRailBadges", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it("shows each badge's count once its endpoint answers, and hides zero", async () => {
@@ -121,7 +122,7 @@ describe("useDevRailBadges", () => {
     expect(fetch).toHaveBeenCalledWith("/api/dev/proposals/count");
 
     rerender(<Badges role="admin" />);
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4));
     expect(screen.getByTestId("trip-reports")).toHaveTextContent("none");
   });
 
@@ -136,5 +137,41 @@ describe("useDevRailBadges", () => {
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4));
     expect(screen.getByTestId("trip-reports")).toHaveTextContent("4");
+  });
+
+  it("refreshes proposals from another session when the window regains focus", async () => {
+    stubCounts({ proposals: [0, 2] });
+    render(<Badges />);
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    act(() => window.dispatchEvent(new Event("focus")));
+    await waitFor(() => expect(screen.getByTestId("proposals")).toHaveTextContent("2"));
+  });
+
+  it("hides another account's cached counts and refetches for the new actor", async () => {
+    stubCounts({ proposals: [3, 1] });
+    const { rerender } = render(<Badges role="editor" email="ada@example.com" />);
+    await waitFor(() => expect(screen.getByTestId("proposals")).toHaveTextContent("3"));
+    rerender(<Badges role="editor" email="ben@example.com" />);
+    expect(screen.getByTestId("proposals")).toHaveTextContent("none");
+    await waitFor(() => expect(screen.getByTestId("proposals")).toHaveTextContent("1"));
+    rerender(<Badges role={null} />);
+    expect(screen.getByTestId("proposals")).toHaveTextContent("none");
+  });
+
+  it("updates while visible without polling a hidden tab", async () => {
+    vi.useFakeTimers();
+    stubCounts({ proposals: [1, 2, 3] });
+    await act(async () => { render(<Badges role="editor" />); });
+    expect(screen.getByTestId("proposals")).toHaveTextContent("1");
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(screen.getByTestId("proposals")).toHaveTextContent("2");
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    try {
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+      expect(screen.getByTestId("proposals")).toHaveTextContent("2");
+      expect(fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      visibility.mockRestore();
+    }
   });
 });

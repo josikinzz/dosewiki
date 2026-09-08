@@ -1,6 +1,10 @@
 import { SITE_FLAVOR, type SiteFlavor } from "../../src/config/siteFlavor";
 import { MAILING_LIST_API_ORIGIN } from "../../src/features/mailing-list/subscribe";
 import { normalizeHost } from "./publicHostPolicy";
+import {
+  getReplicationEmbedFrameAncestors,
+  isReplicationEmbedPath,
+} from "./replicationEmbedPolicy";
 
 export const CSP_ENFORCEMENT_HEADER = "Content-Security-Policy";
 export const CSP_NONCE_REQUEST_HEADER = "x-nonce";
@@ -127,6 +131,7 @@ export function getBrowserSecurityHeaders({
 }: BrowserSecurityPolicyInput): ResponseHeader[] {
   const normalizedHost = normalizeHost(host);
   const isDevRoute = pathname.startsWith("/dev");
+  const isReplicationEmbed = isReplicationEmbedPath(pathname);
   let scriptSources: string[];
 
   if (isDevRoute) {
@@ -176,7 +181,7 @@ export function getBrowserSecurityHeaders({
     `connect-src ${connectSources.join(" ")}`,
     "font-src 'self' data:",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    `frame-ancestors ${isReplicationEmbed ? getReplicationEmbedFrameAncestors({ isDevelopment }) : "'none'"}`,
     `frame-src ${TURNSTILE_SOURCE}`,
     // Public article media is editor-curated but may live on many HTTPS origins.
     "img-src 'self' blob: data: https:",
@@ -196,13 +201,17 @@ export function getBrowserSecurityHeaders({
 
   return [
     { key: CSP_ENFORCEMENT_HEADER, value: directives.join("; ") },
-    { key: "X-Frame-Options", value: "DENY" },
+    // X-Frame-Options cannot express a cross-origin allowlist; CSP owns the embed boundary.
+    ...(isReplicationEmbed
+      ? [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]
+      : [{ key: "X-Frame-Options", value: "DENY" }]),
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     {
       key: "Permissions-Policy",
       value:
-        "accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
+        "accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+        + (isReplicationEmbed ? ", fullscreen=(self), autoplay=(self)" : ""),
     },
   ];
 }

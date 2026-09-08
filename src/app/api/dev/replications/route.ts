@@ -10,7 +10,8 @@
  *   POST /api/dev/replications  { …asset fields }    → create one row
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -189,10 +190,11 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
       credit_line: body.creditLine,
     });
 
-    // A new asset changes its effect's gallery, so the owning page is stale.
-    if (body.effectSlug) {
-      revalidatePath(`/effects/${body.effectSlug}`);
-    }
+    // A new asset changes its effect's gallery, so the owning page is stale,
+    // and it joins every replication collection the showcase feeds.
+    const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
+    if (body.effectSlug) targets.push({ kind: "effect", slug: body.effectSlug });
+    await publishPublicCache({ targets, source: "manual" });
 
     return NextResponse.json({ ok: true, slug: result.slug, id: result.id });
   },

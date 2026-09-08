@@ -52,7 +52,7 @@ export type ParsedPlaylist = {
   ownerEmail: string | undefined;
 };
 
-export function parsePlaylistBody(raw: PlaylistBody): ParsedPlaylist {
+function parsePlaylistBody(raw: PlaylistBody): ParsedPlaylist {
   if (typeof raw?.key !== "string" || !PLAYLIST_KEY.test(raw.key)) {
     throw new JsonBodyError(400, "A playlist needs a kebab-case key.");
   }

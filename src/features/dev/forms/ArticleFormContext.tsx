@@ -15,9 +15,9 @@ export function ArticleFormProvider({ value, children }: ArticleFormProviderProp
 
 /**
  * Shared field arrays and the paired dosage/duration helpers stay single-sourced
- * in `useArticleForm` — the sync effect there rebuilds duration from dosage by
- * index, so a second `useFieldArray` over the same names would desynchronise the
- * pairing. Section components read them from here instead of taking them as props.
+ * in `useArticleForm`. It pairs routes during hydration and moves, renames and
+ * removes both sides together. A second `useFieldArray` over the same names
+ * would desynchronise them; section components consume this context instead.
  */
 export function useArticleFormContext(): UseArticleFormReturn {
   const context = useContext(ArticleFormContext);

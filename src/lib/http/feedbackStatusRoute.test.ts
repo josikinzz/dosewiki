@@ -42,7 +42,7 @@ function statusRequest(body: unknown): Request {
   });
 }
 
-const context = { params: { id: "feedback-1" } };
+const context = { params: Promise.resolve({ id: "feedback-1" }) };
 
 describe("feedbackStatusRoute", () => {
   beforeEach(() => {

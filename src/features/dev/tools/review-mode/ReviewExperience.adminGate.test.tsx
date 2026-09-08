@@ -1,9 +1,4 @@
-/**
- * The workbench's tick is editor work, but its inline field edit and the
- * citation palette's add/remove write the published article directly. An
- * editor keeps the loop (R still persists) and loses only the direct writes:
- * the inline-edit pill is inert with the reason, and E arms nothing.
- */
+/** Review ticks persist separately; editor inline edits are now private drafts. */
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
@@ -62,9 +57,8 @@ vi.mock("@/features/article/components/ArticleLayout", () => ({
   ),
 }));
 
-vi.mock("../../forms/ArticleDraftFormFieldsRHF", () => ({
-  ArticleDraftFormFieldsRHF: () => <div data-testid="article-form" />,
-}));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 import { createHydratedArticleHydration } from "@/test/fixtures/devArticleHydration";
 import { ReviewExperience } from "./ReviewExperience";
@@ -85,6 +79,7 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
+      if (url.includes("article-lifecycle")) return new Response(JSON.stringify({ article: articles[0], baseHash: "base", draft: null, draftVersion: 0, history: [], proposals: [] }), { status: 200 });
       if (url.includes("article-source-stats")) {
         return new Response(JSON.stringify({ stats: [] }), { status: 200 });
       }
@@ -108,8 +103,8 @@ beforeEach(() => {
   );
 });
 
-describe("review workbench admin gate", () => {
-  it("keeps inline editing inert for an editor while the tick still persists", async () => {
+describe("review workbench drafting capability", () => {
+  it("lets an editor arm local editing while the review tick still persists", async () => {
     sessionState.current = {
       status: "authenticated",
       data: { user: { email: "editor@example.com", role: "editor" } },
@@ -118,12 +113,12 @@ describe("review workbench admin gate", () => {
     await waitFor(() => expect(view.getAllByTestId("article-layout").length).toBeGreaterThan(0));
 
     const pill = view.getAllByRole("button", { name: "Inline editing" })[0];
-    expect(pill).toBeDisabled();
-    expect(pill).toHaveAttribute("title", "Admin role required");
+    expect(pill).toBeEnabled();
 
-    // E is the keyboard route to the same mode; it must not arm it either.
+    // Entering local edit mode never publishes the article.
     fireEvent.keyDown(window, { key: "e" });
-    expect(pill).toHaveAttribute("aria-pressed", "false");
+    await waitFor(() => expect(pill).toHaveAttribute("aria-pressed", "true"));
+    expect(vi.mocked(fetch).mock.calls.some(([url, init]) => String(url).includes("article-lifecycle") && init?.method === "POST")).toBe(false);
 
     fireEvent.keyDown(window, { key: "r" });
     await waitFor(() => {

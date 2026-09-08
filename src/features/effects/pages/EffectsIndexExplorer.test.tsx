@@ -160,6 +160,35 @@ describe("EffectsIndexExplorer", () => {
     expect(screen.queryByRole("link", { name: "Visual Alpha" })).not.toBeInTheDocument();
   });
 
+  it("opens the Library tab on curated article panels, not on the effect grid", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <EffectsIndexExplorer
+        effects={visualAmplificationEffects}
+        effectHrefPrefix="/effects/"
+      />,
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Library" }));
+
+    // Each panel is a heading over article rows, and the rows are the archive.
+    expect(screen.getByRole("heading", { name: "Intensity scales" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Dissociative Intensity Scale/ }),
+    ).toHaveAttribute("href", "/articles/dissociative-intensity-scale");
+    expect(screen.getByRole("link", { name: /Lucid dreaming/ })).toHaveAttribute(
+      "href",
+      "/articles/lucid-dreaming",
+    );
+    // Curated config, so a filtered effect list must not claim the tab is empty.
+    expect(screen.queryByText("No effects found")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Visual Alpha" })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(window.location.pathname).toBe("/effects/group/library"),
+    );
+  });
+
   it("keeps tab filtering usable with full panels", async () => {
     const user = userEvent.setup();
 

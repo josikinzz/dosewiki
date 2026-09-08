@@ -33,6 +33,7 @@ import {
 } from "@/features/replications/galleryUrlState";
 import { ReplicationViewerOverlay } from "@/features/replications/viewer/ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "@/features/replications/viewer/viewerModel";
+import { viewerItemFromShowcaseWork } from "@/features/replications/viewer/viewerModel";
 import { publicHref } from "@/utils/publicHref";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import {
@@ -122,6 +123,12 @@ export interface ReplicationShowcaseProps {
    */
   showCreator?: boolean;
   /**
+   * Render the collection heading (label · count) above the card. The
+   * embed passes false: its host already heads the section, so the card
+   * stands alone and the section carries the label as `aria-label`.
+   */
+  showHeading?: boolean;
+  /**
    * Page-level viewer ownership. A page that renders several showcases over
    * one collection (the Artist Page) resolves the `?viewer=` deep link and
    * mounts the overlay itself; a controlled showcase reports launches through
@@ -133,6 +140,8 @@ export interface ReplicationShowcaseProps {
   controller?: {
     sourcePath: string;
     onOpenWork: (slug: string) => void;
+    /** Hands inline playback ownership to the host's canonical overlay. */
+    viewerOpen?: boolean;
   };
 }
 
@@ -163,6 +172,7 @@ export function ReplicationShowcase({
   effectSlug,
   collectionLabel,
   showCreator = true,
+  showHeading = true,
   controller,
 }: ReplicationShowcaseProps) {
   const baseId = useId();
@@ -290,34 +300,7 @@ export function ReplicationShowcase({
         {
           key: substanceSlug ?? effectSlug ?? "replications",
           label,
-          items: effectiveCollection.map((work) => ({
-            replication: {
-              slug: work.slug,
-              title: work.title,
-              artist: hasKnownCreator(work.artistName)
-                ? work.artistName!.trim()
-                : "Unattributed",
-              type: work.type,
-              format: work.format ?? (work.type === "video" ? "mp4" : "image"),
-              url: work.url,
-              thumbnail_url: work.thumbnailUrl,
-              preview_url: work.previewUrl,
-              motion_url: work.motionUrl,
-              motion_poster_url: work.motionPosterUrl,
-              width: work.width,
-              height: work.height,
-              duration: work.duration,
-              has_audio: work.hasAudio,
-            },
-            effectName: work.effectName,
-            effectSlug: work.effectSlug,
-            effectCategories: [],
-            artistProfileHref:
-              hasKnownCreator(work.artistName) && !work.artistHrefExternal
-                ? work.artistHref
-                : null,
-            avatarUrl: work.avatarUrl ?? null,
-          })),
+          items: effectiveCollection.map(viewerItemFromShowcaseWork),
         },
       ],
     };
@@ -371,8 +354,24 @@ export function ReplicationShowcase({
   ]);
 
   useEffect(() => {
+
     setInlineMuted(readStoredViewerMuted());
   }, []);
+  const controlledPlaybackRef = useRef(false);
+  useEffect(() => {
+    if (!controller) return;
+    const video = videoRef.current;
+    if (controller.viewerOpen) {
+      controlledPlaybackRef.current = Boolean(video && !video.paused);
+      video?.pause();
+    } else {
+      const muted = readStoredViewerMuted();
+      setInlineMuted(muted);
+      if (video) video.muted = muted;
+      if (controlledPlaybackRef.current && video) void video.play().catch(() => undefined);
+      controlledPlaybackRef.current = false;
+    }
+  }, [controller?.viewerOpen]);
 
   const launchViewer = (slug: string) => {
     if (controller) {
@@ -539,23 +538,29 @@ export function ReplicationShowcase({
           cover if the slug is unknown here. A controlled showcase renders no
           cover or notice — the page-level controller owns both. */}
       {controller ? null : <ViewerDeepLinkCover />}
-      <section aria-labelledby={collectionHeadingId} className="space-y-2">
-        <h3
-          id={collectionHeadingId}
-          data-replication-collection-heading
-          tabIndex={-1}
-          className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold"
-        >
-          <Icon
-            icon={resolveRouteChromeIcon("replications")}
-            size={16}
-            className="self-center"
-            aria-hidden
-          />
-          {viewerCollection.label}
-          <span aria-hidden>·</span>
-          <span>{total}</span>
-        </h3>
+      <section
+        aria-labelledby={showHeading ? collectionHeadingId : undefined}
+        aria-label={showHeading ? undefined : `${viewerCollection.label} · ${total}`}
+        className={showHeading ? "space-y-2" : "flex flex-col gap-2"}
+      >
+        {showHeading ? (
+          <h3
+            id={collectionHeadingId}
+            data-replication-collection-heading
+            tabIndex={-1}
+            className="theme-text-secondary inline-flex items-center gap-1.5 text-sm font-semibold"
+          >
+            <Icon
+              icon={resolveRouteChromeIcon("replications")}
+              size={16}
+              className="self-center"
+              aria-hidden
+            />
+            {viewerCollection.label}
+            <span aria-hidden>·</span>
+            <span>{total}</span>
+          </h3>
+        ) : null}
         {!controller && unavailableViewerSlug ? (
           <Alert role="status">
             <AlertDescription>

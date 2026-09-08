@@ -151,9 +151,9 @@ export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
 
       return {
         draft: previous.draft,
-        original: source,
+        original: previous.original,
         refreshConflict: {
-          previousOriginal: previous.original,
+          previousOriginal: previous.refreshConflict?.previousOriginal ?? previous.original,
           incomingSource: source,
         },
         source,
@@ -204,7 +204,8 @@ export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
       }
       return {
         ...previous,
-        draft: previous.original,
+        draft: previous.refreshConflict?.incomingSource ?? previous.original,
+        original: previous.refreshConflict?.incomingSource ?? previous.original,
         refreshConflict: null,
       };
     });

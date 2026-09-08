@@ -1,3 +1,5 @@
+import { stableStringify } from "../../lib/proposals/contentHash";
+import { projectPublicArticle } from "./substanceReadProjections";
 import { mergeReferenceCollections } from "../../lib/citations/referenceIdentity.mjs";
 import type { Reference } from "../../src/schema/substance/shared";
 import { slugify } from "../../src/utils/slug";
@@ -52,6 +54,7 @@ export type SubstanceIngestionOutcome = {
   validationErrors: string[];
   error: string | null;
   affectedPaths: string[];
+  publicRevision?: string;
 };
 
 export type SubstanceIngestionResult = {
@@ -131,7 +134,7 @@ function buildSkippedOutcome({
   article: unknown;
   index: number;
   validationErrors: string[];
-  error: string;
+  error: string | null;
 }): SubstanceIngestionOutcome {
   const summary = summarizeSubstanceWriteTarget(article, index);
 
@@ -193,8 +196,8 @@ export function remapReferenceIds(value: unknown, remap: Map<string, string>, fi
   );
 }
 
-export function mergeArticleReferenceMetadataForReplacement(
-  article: Record<string, unknown>,
+export function mergeArticleReferenceMetadataForReplacement<T extends Record<string, unknown>>(
+  article: T,
   storedReferences: Reference[] = [],
 ) {
   const incomingReferences = (Array.isArray(article.references) ? article.references : []) as Reference[];
@@ -206,7 +209,7 @@ export function mergeArticleReferenceMetadataForReplacement(
     allowTrustedScalarOverride: true,
     retainExistingUnmatched: false,
   });
-  const remappedArticle = remapReferenceIds(article, merged.remap) as Record<string, unknown>;
+  const remappedArticle = remapReferenceIds(article, merged.remap) as T;
   return {
     article: { ...remappedArticle, references: merged.references },
     remap: merged.remap,
@@ -368,11 +371,7 @@ export async function ingestSubstanceArticle({
       next: null,
       validationErrors: [],
       error,
-      affectedPaths: pathsForOutcome({
-        canonicalSlug,
-        previous: toSubstanceSnapshot(existingById),
-        next: toSubstanceSnapshot(existingBySlug),
-      }),
+      affectedPaths: [],
     };
   }
 
@@ -382,7 +381,17 @@ export async function ingestSubstanceArticle({
     Array.isArray(existing?.references) ? existing.references : [],
   ).article;
   const previous = toSubstanceSnapshot(existing);
-  const next = toSubstanceSnapshot(articleWithMergedReferences as unknown as SubstanceArticleLike);
+  const next = toSubstanceSnapshot(articleWithMergedReferences);
+  if (existing && Object.entries(articleWithMergedReferences).every(([key, value]) =>
+    stableStringify(existing[key]) === stableStringify(value))) {
+    return {
+      ...buildSkippedOutcome({ article, index, validationErrors: [], error: null }),
+      convexId: existing._id, previous, next,
+    };
+  }
+  const publicRevision = projectPublicArticle(
+    { ...existing, ...articleWithMergedReferences },
+  ).publicRevision;
 
   if (existing) {
     await db.patch(existing._id, articleWithMergedReferences);
@@ -397,6 +406,7 @@ export async function ingestSubstanceArticle({
       canonicalSlug,
       previous,
       next,
+      publicRevision,
       validationErrors: [],
       error: null,
       affectedPaths: pathsForOutcome({ canonicalSlug, previous, next }),
@@ -415,6 +425,7 @@ export async function ingestSubstanceArticle({
     canonicalSlug,
     previous: null,
     next,
+    publicRevision,
     validationErrors: [],
     error: null,
     affectedPaths: pathsForOutcome({ canonicalSlug, previous: null, next }),

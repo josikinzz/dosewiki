@@ -54,12 +54,14 @@ export type BoardCategory = {
   hiddenOnSite: boolean;
 };
 
+export type BoardRecord = Pick<SubstanceRecord, "name" | "isHidden" | "isDirectUrlOnly">;
+
 /**
  * A slug listed under Common and again under its class, or in two categories,
  * is how this index reads, so repeats are never flagged; only substances the
  * page cannot show are.
  */
-function describeItem(slug: string, library: ReadonlyMap<string, SubstanceRecord>): BoardItem {
+function describeItem(slug: string, library: ReadonlyMap<string, BoardRecord>): BoardItem {
   const normalized = slugify(slug);
   const record = normalized ? library.get(normalized) : undefined;
   if (!record) {
@@ -71,7 +73,7 @@ function describeItem(slug: string, library: ReadonlyMap<string, SubstanceRecord
 
 export function buildBoard(
   manual: ManualIndexConfig,
-  library: ReadonlyMap<string, SubstanceRecord>,
+  library: ReadonlyMap<string, BoardRecord>,
 ): BoardCategory[] {
   return manual.categories.map((category) => {
     const describe = (slug: string) => describeItem(slug, library);

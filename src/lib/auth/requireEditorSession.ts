@@ -30,6 +30,16 @@ type SessionGuardResult =
  * review metadata, `contributor` for routes that then check ownership.
  */
 export async function requireRoleSession(floor: RoleFloor): Promise<SessionGuardResult> {
+  // Legacy protected endpoints outside /api/dev must obey the same publication boundary.
+  if (process.env.NEXT_PUBLIC_EDITOR_BUILD === "false") {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Editor operations are unavailable on this publication." },
+        { status: 403, headers: { "Cache-Control": "private, no-store" } },
+      ),
+    };
+  }
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {

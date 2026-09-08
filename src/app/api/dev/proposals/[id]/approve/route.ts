@@ -33,7 +33,7 @@ export const POST = protectedRouteOperation({
     });
 
     if (result.status === "applied") {
-      revalidateSavedPaths(result.revalidatePaths, "proposal-apply");
+      await revalidateSavedPaths(result.revalidatePaths, "proposal-apply");
       return NextResponse.json({ ok: true, status: result.status, revalidatedPaths: result.revalidatePaths });
     }
     return NextResponse.json({ ok: true, status: result.status, conflictReason: result.conflictReason });

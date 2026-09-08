@@ -76,6 +76,8 @@ export default tseslint.config(
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+      // Named scroll regions must be keyboard-focusable for overflow navigation.
+      'jsx-a11y/no-noninteractive-tabindex': ['error', { roles: ['tabpanel', 'region'] }],
 
       // Vercel security guardrails
       'vercel-guardrails/no-hardcoded-secrets': 'error',
@@ -93,9 +95,9 @@ export default tseslint.config(
       },
     },
   },
-  // Active workflow scripts run in Node and are linted through npm run lint:scripts.
+  // Active workflow scripts run in Node or Bun and are linted through npm run lint:scripts.
   {
-    files: ['scripts/**/*.{js,mjs,ts}'],
+    files: ['scripts/**/*.{js,mjs,ts}', 'tools/section-generation/**/*.{js,mjs,ts}'],
     ignores: ['scripts/deprecated/**', 'scripts/**/archive/**'],
     languageOptions: {
       globals: {

@@ -15,4 +15,9 @@ export interface ArticleBylineAuthor {
   name: string;
   /** Path to their contributor page. */
   href: string;
+  /**
+   * The profile's avatar, so an attribution chip under the author's own
+   * commentary can show their face. Absent when the profile has none.
+   */
+  avatarSrc?: string;
 }

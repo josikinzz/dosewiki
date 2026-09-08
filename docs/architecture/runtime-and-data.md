@@ -40,6 +40,39 @@ The schema in `convex/schema.ts` validates the essential top-level shape for maj
 
 This reduces schema churn but makes application-level discipline more important.
 
+### Maintained public read indexes
+
+The expensive public reads use compact derived relations, not repeated scans
+of unrelated heavy source documents:
+
+- `replicationGalleryCandidates`: indexed drug/class/direct-slug candidate
+  lookup, canonical matching and curation, then winner-only hydration.
+- `articleHistory`: per-article chronological links, followed by hydration of
+  only the requested history entries.
+- `reviewedArticles`: compact completed-review records, indexed by normalized
+  reviewer identity; public results never expose those emails.
+- `tripReportSubstances`: the existing report-substance relation, now gated by
+  verified full-pass completion rather than the presence of any row.
+
+`publicReadIndexState` holds versioned readiness and durable backfill cursors.
+`convex/lib/indexedMutation.ts` supplies the application mutation builders and
+intercepts indexed source inserts, relevant patches, replacements, and deletes
+in the same transaction. Both root and table-scoped writer APIs preserve this
+maintenance boundary. Imported handlers inherit it. An index-write failure
+rejects the enclosing mutation even if bulk row handling catches the immediate
+error, preventing a successful source write with an incomplete derived index.
+
+Backfill page writes and cursor advancement commit atomically. Only the final
+source page marks an index ready. Membership changes, deletion, and concurrent
+writes remain covered during a pass. A policy change that alters derived keys
+requires a `PUBLIC_READ_INDEX_VERSION` increment and new complete passes.
+Raw dashboard edits and `convex import` bypass these mutation builders and are
+not valid source-table maintenance paths.
+
+See [public read-index rollout](../agents/deployment.md#public-read-index-rollout)
+for guarded staging and backfills. Readiness, production activation, and measured
+savings are separate checks.
+
 ### Article schema ownership
 
 Canonical article structure is defined in:
@@ -181,19 +214,43 @@ mechanism route after the validated library drops it; this avoids parsing every
 full article and coupling the projection query to the full application article
 contract.
 
-The JSON-safe public route plan and browser search manifest use Next's tagged
-data cache. The Map/function-bearing library and server search index remain in
-process memory only. Editor saves immediately expire the shared public Convex
-cache tag from the request-scoped save Route Handler and separately clear the
-library/search module caches.
+Public route plans and search manifest/suggestion composition use request
+memoization, not an outer persistent cache that would bypass Next's nested
+leaf caches. The bounded source pages and public leaves use `publicDataCache`,
+with the selected Convex read URL, callback identity, and arguments in the key.
+Library and mechanism input pages persist separately, including on cold
+instances. Existing process-local library/search caches still bound repeated
+computation, but their invalidation is not cross-instance proof of freshness.
+
+Persistent values are size-checked as escaped UTF-8 JSON. Oversized results
+store only a bounded bypass sentinel and return complete uncached content;
+successful stale refreshes therefore replace the old value instead of pinning
+it through a swallowed cache error. Gallery query/index unavailability stores
+an explicit `null` marker and selects the complete shared corpus outside the
+persistent leaf. It never means an empty gallery.
+
+Editor saves immediately expire affected article/history/gallery tags and
+shared listing projections, while unrelated article leaves remain cached.
+The same signed content identities reach both public Vercel projects. Indexed
+public writes also coalesce identities transactionally into a durable Convex
+outbox; leased recovery retries incomplete delivery without carrying content.
+Article receipts verify the committed revision against canonical public HTML,
+separately from accepting cache invalidation. The default leaf interval remains
+900 seconds, and the showcase endpoint's browser/CDN cache headers are unchanged.
 
 The About page reads full-article candidates in bounded pages, validates each
 page with the normal public substance contract, filters low-priority records,
 and stops once it has selected 12 previews. It reaches the full corpus only in
 the worst case where validation or priority filtering requires it.
-`/about/coverage` is the explicit uncached full-corpus exception: the noIndex
-internal table must run the exact same section and citation rules as public
-article rendering.
+`/about/coverage` is the explicit full-corpus exception: the noIndex internal
+table must run the exact same section and citation rules as public article
+rendering. Coverage and full-document exports persist bounded four-document
+source pages on the shared substance listing tags, not an assembled corpus.
+Request memoization composes those leaves, so an export larger than the cache
+envelope does not force every regeneration to drain Convex again. Individual
+oversized pages retain the bounded-sentinel fallback above. Download statistics
+likewise compose cached leaves without an outer persistent cache; rendered
+page revalidation retains the displayed labels.
 
 ### Editor read flow
 
@@ -243,34 +300,62 @@ This is the cleanest write path in the current system because it preserves Conve
 An editor session sees the same commit panel, but its primary action reads
 "Submit for review" and nothing it does writes production:
 
-1. client builds the identical `SaveToConvexPayload`, a one-line summary, and
-   the commit markdown as the diff
+1. client builds the `SaveToConvexPayload`, a one-line summary, and
+   `baselines: [{ kind, key, document }]` from the originals actually loaded
+   into the editor. Dirty drafts retain those originals across live refreshes.
 2. client calls `POST /api/dev/proposals` (editor floor)
 3. route sanitizes the payload with the save-to-convex utilities and forwards
-   it; it never names targets
+   it with the loaded baselines. A client-supplied diff is not accepted.
 4. `changeProposals.submit` (editor floor) validates the payload with the save
-   validators and the article ingestion contract, derives one target per
-   article slug, index layout type, copy block key, and the About row, reads
-   each target's current production row, records its `contentHash`
-   (`lib/proposals/contentHash.ts`) as `baseHash`, and inserts the row with
+   validators and article ingestion contract, derives its targets, and compares
+   each loaded baseline with current production. A stale baseline returns
+   `PROPOSAL_BASELINE_STALE` (HTTP 409); the editor keeps the unsaved draft.
+   On a match, the server records each target's `contentHash` as `baseHash`,
+   generates the comparison from the actual write semantics, and inserts the row with
    status `submitted`. An article that carries an id is pinned to the slug the
    id-row currently has; a payload that would move it to another slug is
    refused (`PROPOSAL_SLUG_MOVE`), since renames go through the admin save. A
    revision (`revisionOf`) must share at least one target with the proposal it
    supersedes (`PROPOSAL_REVISION_MISMATCH`).
-5. the panel marks the draft saved and links to the review queue
+5. the panel marks the submitted draft saved and links to My submissions.
+   Submitting does not publish the changes.
+   Loading a proposal into the editor is refused while article or layout drafts
+   contain unsaved changes, so preparing a revision cannot overwrite other work.
+
+`/dev/queue` appears under Intake as **Change Review** for admins and **My
+submissions** for editors. Convex scopes list, count, detail, and comments to
+the editor's own proposals; admins see the global queue. Default lists retain
+all active proposals plus bounded terminal history. Pending count badges refresh
+when the window regains focus and once per minute while visible, and their
+cache is scoped to the signed-in account. They are in-app counts, not email or
+push notifications.
+
+The detail comparison is generated on the server. New submissions retain a
+server-marked comparison captured at submission; published or reverted history
+uses `snapshotBefore`. Older active proposals are compared only when live hashes
+still verify their pinned baseline. Otherwise the UI reports that the historical
+comparison is unavailable rather than trusting the old client diff.
+
+Article comparisons and new `snapshotBefore` entries retain the stored article,
+not the editor projection. Updates use the same changed-unit validation as the
+actual article patch, so an unrelated legacy route or country is neither
+ingestion-normalized nor reported as deleted. Existing proposal CAS identities
+still use the editor projection; capturing raw snapshots does not invalidate
+previously submitted hashes. Older stored comparisons and projected snapshots
+cannot recover source distinctions that were never captured.
 
 Status moves only along `lib/proposals/proposalStatus.ts`. Review is admin
 floor and lives in `convex/changeProposalReview.ts`, reached through
 `POST /api/dev/proposals/<id>/approve|reject|revert`:
 
-- **approve** applies in the same mutation. It re-reads every target with
+- **approve** requires a different admin from the proposer and applies in the same mutation. It re-reads every target with
   `readProposalTarget`, and if any `contentHash` differs from the recorded
   `baseHash` the proposal flips to `changes_requested` with the drifted targets
   in `conflictReason` and nothing else is written. On a clean match the live
-  documents are kept as `snapshotBefore`, the payload is written through the
-  same handlers the direct save uses (`saveSubstancesHandler` for articles,
-  `saveIndexLayoutHandler` for layouts, which mirrors into `categoryLayout`),
+  documents are kept as `snapshotBefore`. Existing articles use contextual
+  changed-unit patches and the article revision journal; new articles use
+  `saveSubstancesHandler`. Layouts use `saveIndexLayoutHandler`, which mirrors
+  into `categoryLayout`. Then
   a changelog entry stamped "proposed by / approved by" is upserted through
   `addEntryHandler` with the proposer's submitter key, the post-apply hashes
   are stored as `appliedHashes`, and the mutation returns the public paths the
@@ -282,12 +367,12 @@ floor and lives in `convex/changeProposalReview.ts`, reached through
   same handlers (a target that was absent before is deleted; a psychoactive
   layout that was absent also restores or clears the `categoryLayout` mirror
   captured beside it), then checks that every article hashes back to its
-  `baseHash` and throws `REVERT_INCOMPLETE` (rolling the mutation back) when the
-  reference merge kept applied metadata the snapshot lacked. It appends a
+  `baseHash` and throws `REVERT_INCOMPLETE` (rolling the mutation back) when
+  restoration fails to recover the recorded baseline. It appends a
   "Reverted proposal" changelog entry.
 
 `applyTarget` in `convex/lib/changeProposalApply.ts` is the one switch on
-target kind; `about` and `copyBlock` land there in wave 3.
+target kind, including articles, index layouts, About, and copy blocks.
 
 ### Reviewed generated-section publication flow
 
@@ -334,11 +419,14 @@ used on Save. Rows may carry `boldBonds` — bond indices the fork draws at a so
 canvas, in the preview, and in the published SVG identically.
 
 Public substance routes resolve one indexed metadata row by slug, while cached chemical-class
-comparison data resolves the depiction index through `lib/convex/publicData.molecules.ts`. A
+comparison data resolves the depiction index through `lib/convex/publicData.molecules.ts`. Those
+reads and the SVG served by the three public molecule routes persist through `publicDataCache`, so
+a warm request inside the revalidate window makes no Convex call. A transport failure is never
+persisted: the index reads degrade to the static fallback and the image routes answer 502/503. A
 stored row uses `/api/molecules/<slug>?v=<updatedAt>`; missing rows or query failures retain the
-static `public/molecules` fallback. Editor saves
-revalidate the owner page. The versioned image response is immutable, so propagation is governed
-by page revalidation rather than stale image bytes.
+static `public/molecules` fallback. Editor saves revalidate the owner page and expire
+`convex-public:molecules:<slug>` plus `convex-public:molecules`. The versioned image response is
+immutable, so propagation is governed by page revalidation rather than stale image bytes.
 
 ## Auth and Authorization
 

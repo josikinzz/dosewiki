@@ -15,6 +15,7 @@ type PublicSubstancePriority = z.infer<typeof publicSubstancePrioritySchema>;
 
 export type PublicSubstanceArticleRecord = PublicArticleProjection<SubstanceArticle> & {
   slug: string;
+  publicRevision?: string;
   priority: PublicSubstancePriority;
   /**
    * Public-safe signal that an editor completed manual review of the article.
@@ -26,6 +27,7 @@ export type PublicSubstanceArticleRecord = PublicArticleProjection<SubstanceArti
 
 const publicSubstanceArticleRecordSchema = substanceArticleSchema.extend({
   slug: z.string().min(1),
+  publicRevision: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   priority: publicSubstancePrioritySchema,
   // Preserved through parsing so an already-projected record keeps its derived
   // flag; `.optional()` lets raw (pre-projection) records parse and have the
@@ -432,6 +434,7 @@ export function parsePublicSubstanceRecord(input: unknown): PublicSubstanceArtic
     ...publicArticle,
     slug: parsed.data.slug,
     priority: parsed.data.priority ?? "normal",
+    publicRevision: parsed.data.publicRevision,
     expert_reviewed: expertReviewed,
   };
 }

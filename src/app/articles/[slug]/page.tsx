@@ -1,15 +1,16 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadArticleRoute } from "@server/next/routeLoaders.publications";
-import { getStaticArticleParams } from "@server/next/staticParams";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
+import WritingContextualEditor from "@/features/dev/tools/writing/WritingContextualEditor.editor";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return await getStaticArticleParams();
+// Keep the build bounded; published keys enter the ISR cache on first request.
+export function generateStaticParams() {
+  return [];
 }
 
 type ArticlePageProps = {
@@ -23,11 +24,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   const result = await loadArticleRoute(slug);
 
   if (result.kind === "not-found") {
-    return buildPublicPageMetadata({
-      title: "Article",
-      description: SITE_FLAVOR_CONFIG.articleFallbackDescription,
-      route: { family: "article", params: { slug } },
-    });
+    notFound();
   }
 
   return buildPublicPageMetadata({
@@ -35,6 +32,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     route: result.canonicalRoute,
   });
 }
+
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
@@ -44,5 +42,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  return <EffectIndexArticlePage {...result.pageProps} />;
+  return (
+    <>
+        <EditorLauncherTarget
+          target={{
+            kind: "writing",
+            slug: result.pageProps.article.slug,
+            name: result.pageProps.article.title,
+            writingKind: "article",
+          }}
+        />
+      <WritingContextualEditor slug={result.pageProps.article.slug} writingKind="article" bylineAuthors={result.pageProps.bylineAuthors} />
+      <EffectIndexArticlePage {...result.pageProps} />
+    </>
+  );
 }

@@ -78,6 +78,16 @@ describe("substance ingestion", () => {
     expect(docs).toHaveLength(1);
   });
 
+  it("does not advertise a revision or invalidation for an unchanged committed article", async () => {
+    const { db } = createFakeDb();
+    const input = article({ title: "Unchanged", slug: "unchanged" });
+    const first = await ingestSubstanceArticle({ db, article: input });
+    const replay = await ingestSubstanceArticle({ db, article: input });
+    expect(first.publicRevision).toMatch(/^[a-f0-9]{64}$/);
+    expect(replay).toMatchObject({ action: "skipped", affectedPaths: [], error: null });
+    expect(replay.publicRevision).toBeUndefined();
+  });
+
   it("stores the parsed canonical article and strips legacy pharmacology duplicates", async () => {
     const { db, docs } = createFakeDb();
     const incoming = {
@@ -453,6 +463,7 @@ describe("substance ingestion", () => {
 
     expect(outcome.action).toBe("skipped");
     expect(outcome.error).toContain('Slug "second" already belongs to "Second"');
+    expect(outcome.affectedPaths).toEqual([]);
     expect(docs).toHaveLength(2);
     expect(docs[0]).toMatchObject({ id: 1, title: "First", slug: "first" });
     expect(docs[1]).toMatchObject({ id: 2, title: "Second", slug: "second" });

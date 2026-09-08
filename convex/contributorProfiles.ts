@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import {
   buildImportedStoredProfile,
@@ -31,6 +32,7 @@ import {
   retargetTripReportsToContributorHandler,
   saveContributorProfileAsEditorHandler,
   saveContributorProfileHandler,
+  readContributorProfilePublicationHandler,
 } from "./lib/contributorProfileWriteHandlers";
 import {
   importReviewedProfilePlanHandler,
@@ -124,6 +126,9 @@ export const saveProfile = mutation({
     apiKey: v.optional(v.string()),
     actorEmail: v.string(),
     profile: profileInputValidator,
+    expectedUpdatedAt: v.union(v.string(), v.null()),
+    operationId: v.optional(v.string()),
+    clientRequestIdentity: v.optional(v.string()),
   },
   handler: saveContributorProfileHandler,
 });
@@ -277,8 +282,22 @@ export const saveProfileAsEditor = mutation({
     actorEmail: v.optional(v.string()),
     key: v.string(),
     patch: editorProfilePatchValidator,
+    expectedUpdatedAt: v.union(v.string(), v.null()),
+    operationId: v.optional(v.string()),
+    clientRequestIdentity: v.optional(v.string()),
   },
   handler: saveContributorProfileAsEditorHandler,
+});
+
+export const getPublicationReceipt = query({
+  args: {
+    apiKey: v.optional(v.string()),
+    actorEmail: v.string(),
+    key: v.string(),
+    operationId: v.string(),
+    clientRequestIdentity: v.string(),
+  },
+  handler: readContributorProfilePublicationHandler,
 });
 
 export const setContributorOrdering = mutation({
@@ -288,6 +307,7 @@ export const setContributorOrdering = mutation({
     key: v.string(),
     replicationOrder: v.optional(v.array(v.string())),
     expectedReplicationOrder: v.optional(v.array(v.string())),
+    expectedRevision: v.optional(v.string()),
     reportOrder: v.optional(v.array(v.string())),
   },
   handler: setContributorOrderingHandler,

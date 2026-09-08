@@ -19,13 +19,12 @@ const queryClientOptions = {
 };
 
 /**
- * Leaves the editor hint behind, from the one tree that actually knows the role.
+ * Leaves the editor hint behind from the authenticated editor data tree.
  *
- * This is the only tree with a session: `/dev` and `/review` mount it, the public tree does not.
- * So it is also the only place that can honestly answer "may this reader open the Theme Lab" —
- * and the appearance cog that most readers meet is rendered by the root layout's footer
- * (`src/app/layout.tsx:145`), a *sibling* of `{children}`, outside this provider on every route.
- * That cog reads the hint instead of asking, which is why it had nothing to show before.
+ * `/dev` and `/review` own this combined data-provider tree. The editor-host
+ * reading launcher has a separate, lazy session-only tree; it never needs the
+ * hint. Appearance controls outside these providers still read the hint rather
+ * than fetching a session on public hosts.
  *
  * Renders nothing. See `src/lib/auth/editorHint.ts` for why a separate flag rather than the session
  * token (every next-auth cookie is `httpOnly`), why middleware does not set it (JWT crypto and a
@@ -45,8 +44,7 @@ function EditorHint() {
       return;
     }
 
-    // Signing out, or signing in below editor, retracts the hint. This tree is the only one that
-    // ever learns either fact, so it is the only one that can.
+    // Signing out, or signing in below contributor, retracts the hint.
     clearEditorHint();
   }, [session.status, session.data]);
 

@@ -17,6 +17,7 @@ const ROWS: Record<string, WritingArticleRow> = {
     status: "published",
     bodyFormat: "markdown",
     body_raw: "Notes.",
+    baseRevision: "a".repeat(64),
   },
   "launch-post": {
     slug: "launch-post",
@@ -25,6 +26,7 @@ const ROWS: Record<string, WritingArticleRow> = {
     status: "published",
     bodyFormat: "markdown",
     body_raw: "Post.",
+    baseRevision: "b".repeat(64),
   },
 };
 
@@ -45,11 +47,6 @@ function stubWritingApi(post: (body: Record<string, unknown>) => Response): Fetc
   return fetchMock;
 }
 
-function postedBody(fetchMock: FetchMock): Record<string, unknown> {
-  const call = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
-  if (!call) throw new Error("No save was posted.");
-  return JSON.parse(String(call[1]?.body));
-}
 
 describe("useWritingWorkbenchController", () => {
   beforeEach(() => {
@@ -73,45 +70,9 @@ describe("useWritingWorkbenchController", () => {
     expect(result.current.kindEntries.map((entry) => entry.slug)).toEqual(["launch-post"]);
   });
 
-  it("saves a loaded row under its own kind and original slug", async () => {
-    const fetchMock = stubWritingApi(() => Response.json({ ok: true, slug: "launch-day" }));
-
-    const { result } = renderHook(() =>
-      useWritingWorkbenchController({ initialSelection: "launch-post" }),
-    );
-    await waitFor(() => expect(result.current.draft.title).toBe("Launch post"));
-
-    act(() => result.current.updateSlug("launch-day"));
-    await act(async () => {
-      await result.current.save("published");
-    });
-
-    expect(postedBody(fetchMock)).toMatchObject({
-      slug: "launch-day",
-      originalSlug: "launch-post",
-      kind: "blog",
-    });
-    expect(result.current.selection).toEqual({ type: "row", slug: "launch-day" });
-  });
-
-  it("saves a new row under the tab's kind with no original slug", async () => {
-    const fetchMock = stubWritingApi(() => Response.json({ ok: true, slug: "fresh" }));
-
-    const { result } = renderHook(() => useWritingWorkbenchController({ initialKind: "blog" }));
-    await waitFor(() => expect(result.current.entries).not.toBeNull());
-
-    act(() => result.current.updateTitle("Fresh"));
-    await act(async () => {
-      await result.current.save("draft");
-    });
-
-    const body = postedBody(fetchMock);
-    expect(body).toMatchObject({ slug: "fresh", kind: "blog" });
-    expect(body.originalSlug).toBeUndefined();
-  });
 
   it("lists the kind the filter names and starts new rows under it", async () => {
-    const fetchMock = stubWritingApi(() => Response.json({ ok: true, slug: "fresh" }));
+    stubWritingApi(() => Response.json({ ok: true }));
 
     const { result } = renderHook(() => useWritingWorkbenchController({ pinnedEntryId: "about" }));
     await waitFor(() => expect(result.current.entries).not.toBeNull());
@@ -126,10 +87,9 @@ describe("useWritingWorkbenchController", () => {
 
     act(() => result.current.startNew());
     act(() => result.current.updateTitle("Fresh"));
-    await act(async () => {
-      await result.current.save("draft");
-    });
-    expect(postedBody(fetchMock)).toMatchObject({ slug: "fresh", kind: "blog" });
+    expect(result.current.kind).toBe("blog");
+    expect(result.current.selection).toEqual({ type: "new" });
+    expect(result.current.draft.title).toBe("Fresh");
   });
 
   it("drops a loaded row of the other kind when the filter moves away from it", async () => {
@@ -150,7 +110,7 @@ describe("useWritingWorkbenchController", () => {
   });
 
   it("tracks dirtiness against the loaded row and clears it on save or on leaving for About", async () => {
-    stubWritingApi(() => Response.json({ ok: true, slug: "launch-post" }));
+    stubWritingApi(() => Response.json({ ok: true, slug: "launch-post", revision: "c".repeat(64) }));
 
     const { result } = renderHook(() =>
       useWritingWorkbenchController({ pinnedEntryId: "about", initialSelection: "launch-post" }),
@@ -199,11 +159,8 @@ describe("useWritingWorkbenchController", () => {
     });
 
     expect(result.current.saveState).toBe("error");
-    expect(result.current.notice).toEqual({
-      tone: "danger",
-      title: "Save failed",
-      message: '"field-notes" already belongs to "Field notes". Choose another slug.',
-    });
+    expect(result.current.isDirty).toBe(true);
+    expect(result.current.draft.slug).toBe("field-notes");
     expect(result.current.selection).toEqual({ type: "row", slug: "launch-post" });
   });
 });

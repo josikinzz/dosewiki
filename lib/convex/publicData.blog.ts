@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "./publicData.cache"
 import { cache } from "react";
 import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -18,25 +18,21 @@ import type { PublicEffectIndexPost } from "../../convex/lib/effectIndexArchiveR
  * a read is issued.
  */
 export const getPublicEffectIndexPosts = cache(
-  unstable_cache(
-    async (): Promise<PublicEffectIndexPost[]> =>
-      await getPublicDataReadAdapter().getPublicEffectIndexPosts(),
-    ["convex-public-effect-index-posts"],
-    {
-      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.blog],
-    },
-  ),
+  publicDataCache(async (): Promise<PublicEffectIndexPost[]> =>
+    await getPublicDataReadAdapter().getPublicEffectIndexPosts(),
+  ["convex-public-effect-index-posts"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.blog],
+  },),
 );
 
 export const getPublicEffectIndexPostBySlug = cache(
-  unstable_cache(
-    async (slug: string): Promise<PublicEffectIndexPost | null> =>
-      await getPublicDataReadAdapter().getPublicEffectIndexPostBySlug(slug),
-    ["convex-public-effect-index-post-by-slug"],
-    {
-      revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.blog],
-    },
-  ),
+  publicDataCache(async (slug: string): Promise<PublicEffectIndexPost | null> =>
+    await getPublicDataReadAdapter().getPublicEffectIndexPostBySlug(slug),
+  ["convex-public-effect-index-post-by-slug"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.blog],
+  },),
 );

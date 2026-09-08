@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import {
@@ -8,27 +9,11 @@ import {
   type SubstanceGalleryMatchProvenance,
 } from "../../src/data/substanceReplicationGallery";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replicationUrls";
+import { publicReadIndexReady } from "./publicReadIndexes";
 
-/**
- * The substance article's whole Replication Showcase in one round trip.
- *
- * The previous public shape asked the Next side to drain the slim matchable
- * corpus page by page (28 round trips for the live table) and then hydrate the
- * winners through `replications:getBySlugs`. Here the same pure policy from
- * `src/data/substanceReplicationGallery` runs beside the data: one indexed
- * substance read, one indexed curation read, one table scan of the
- * replication rows, and storage URL resolution for only the merged winners.
- *
- * The scan reads every replication document the way the curation portal's
- * `getCurationDetail` and `upsert` already do. It stays under Convex's
- * per-query read ceiling for the current table; the Next side keeps the paged
- * corpus path as its fallback if this query is missing or fails.
- *
- * Output rows match `replications:getBySlugs` exactly: a row that resolves no
- * main URL has no page and is dropped, and absent renditions are omitted
- * rather than sent as null, so the Next side's `ReplicationWithUrl` type holds
- * without a second projection. A missing or ambiguous substance is an empty
- * gallery, never an error.
+/** Indexed compact candidates run through the canonical policy before only
+ * winners are hydrated. Until a complete backfill is certified, the adapter
+ * uses the existing shared paged corpus instead of any per-slug table scan.
  */
 export type PublicSubstanceGalleryReplication = Omit<
   Doc<"replications">,
@@ -54,38 +39,57 @@ async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
   return matches.length === 1 ? matches[0] : null;
 }
 
+/** Canonical membership without hydrating media; shared by public reads and orders. */
+export async function getSubstanceGalleryMembers(
+  ctx: QueryCtx,
+  substance: Doc<"substanceIndex">,
+  gallery: Doc<"substanceGalleries"> | null,
+) {
+  if (gallery?.disabled) return [];
+  if (!(await publicReadIndexReady(ctx, "gallery"))) {
+    throw new ConvexError({ code: "SUBSTANCE_GALLERY_INDEX_NOT_READY" });
+  }
+  const candidateKeys = new Set([
+    `drug:${substance.slug}`,
+    "class:dissociatives", "class:deliriants", "effect:visual-disconnection",
+    ...(gallery?.curated_slugs ?? []).map((slug) => `slug:${slug}`),
+    ...(gallery?.removed_slugs ?? []).map((slug) => `slug:${slug}`),
+  ]);
+  const byId = new Map<string, Doc<"replicationGalleryCandidates">>();
+  for (const candidate_key of candidateKeys) {
+    const candidates = await ctx.db.query("replicationGalleryCandidates")
+      .withIndex("by_candidate", (q) => q.eq("candidate_key", candidate_key)).collect();
+    for (const row of candidates) byId.set(row.replication_id, row);
+  }
+  const rows = [...byId.values()].sort((a, b) =>
+    a.source_created - b.source_created || (a.replication_id < b.replication_id ? -1 : a.replication_id > b.replication_id ? 1 : 0));
+  const target = substanceGalleryTargetOf(substance);
+  const matches = target ? matchSubstanceGalleryReplications(rows, target).matches : [];
+  return mergeCuratedGallery(includeDirectlyAssociatedRows(rows, matches, gallery), gallery);
+}
+
 export async function getPublicGalleryBySubstanceHandler(
   ctx: QueryCtx,
   args: { substance_slug: string },
-): Promise<{ items: PublicSubstanceGalleryItem[] }> {
+): Promise<{ items: PublicSubstanceGalleryItem[]; carouselOrder?: string[] }> {
   const substance = await uniqueSubstanceBySlug(ctx, args.substance_slug);
   if (!substance) {
     return { items: [] };
   }
 
-  const [gallery, rows] = await Promise.all([
-    ctx.db
-      .query("substanceGalleries")
-      .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
-      .first(),
-    ctx.db.query("replications").collect(),
-  ]);
-
-  const target = substanceGalleryTargetOf(substance);
-  const matches = target
-    ? matchSubstanceGalleryReplications(rows, target).matches
-    : [];
-  const merged = mergeCuratedGallery(
-    includeDirectlyAssociatedRows(rows, matches, gallery),
-    gallery,
-  );
+  const gallery = await ctx.db.query("substanceGalleries")
+    .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug)).first();
+  if (gallery?.disabled) return { items: [] };
+  const merged = await getSubstanceGalleryMembers(ctx, substance, gallery);
   if (merged.length === 0) {
     return { items: [] };
   }
 
   const urls = memoizedStorageUrls(ctx);
   const resolved = await Promise.all(
-    merged.map(async ({ row, provenance }) => {
+    merged.map(async ({ row: candidate, provenance }) => {
+      const row = await ctx.db.get(candidate.replication_id);
+      if (!row) return null;
       const { url, thumbnail_url, preview_url, motion_url, motion_poster_url } =
         await resolveReplicationUrls(urls, row);
       if (!url) return null;
@@ -102,5 +106,5 @@ export async function getPublicGalleryBySubstanceHandler(
     }),
   );
 
-  return { items: resolved.filter((item) => item !== null) };
+  return { items: resolved.filter((item) => item !== null), carouselOrder: gallery?.carousel_order ?? [] };
 }

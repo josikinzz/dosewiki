@@ -10,6 +10,7 @@ dist-inline/
 !vendor/openchemlib/dist/**
 public/share/
 .next/
+.next-editor/
 .generated/
 # Anchored: unanchored `coverage/` matches a directory of that name at any
 # depth, which silently swallowed `src/features/coverage/` — untracked by Git
@@ -97,6 +98,7 @@ learning/
 .venv-molecules/
 __pycache__/
 /runs/legality/
+/runs/section-generation/
 
 # Runtime lock for the headless pi citation loop (held by a live process)
 .pi-loop.json.lock

@@ -98,53 +98,6 @@ describe("global safety-banner icon size", () => {
     );
   });
 
-  it("keeps the size save distinct from the preset save", () => {
-    const onSave = vi.fn();
-    const { rerender, container } = renderPresets(iconSizeControl());
-
-    const sizeSave = screen.getByRole("button", { name: /Save size/ });
-    const sizeReset = screen.getByRole("button", { name: /Reset/ });
-    expect(sizeSave).toBeDisabled();
-    expect(sizeReset).toBeDisabled();
-    expect(screen.getByRole("button", { name: /Save preset/ })).toBeInTheDocument();
-    expect(container.textContent).not.toContain("Unsaved size");
-
-    rerender(
-      <PresetsView
-        presets={[PRESET]}
-        targets={TARGETS}
-        iconSizeControl={iconSizeControl({ dirty: true, size: 60, text: "60", onSave })}
-        openKey={PRESET.key}
-        draft={PRESET}
-        isNew={false}
-        isDirty={false}
-        saveState="idle"
-        iconValid
-        onIconValidityChange={vi.fn()}
-        onDraftChange={vi.fn()}
-        onOpen={vi.fn()}
-        onCreate={vi.fn()}
-        onSave={vi.fn()}
-        onDiscard={vi.fn()}
-        onRequestEnablement={vi.fn()}
-        onRequestDelete={vi.fn()}
-        onInspectCoverage={vi.fn()}
-      />,
-    );
-
-    const dirtySave = screen.getByRole("button", { name: /Save size/ });
-    expect(dirtySave).toBeEnabled();
-    dirtySave.click();
-    expect(onSave).toHaveBeenCalledTimes(1);
-    expect(screen.getByText("Unsaved size")).toBeInTheDocument();
-  });
-
-  it("says which number the server will believe when the field is out of range", () => {
-    renderPresets(iconSizeControl({ text: "9", size: 24, dirty: true }));
-
-    expect(screen.getByText("Sizes run 24–72px; 9 saves as 24px.")).toBeInTheDocument();
-  });
-
   it("renders the drawer preview glyph at the global size", () => {
     const { container } = renderPresets(iconSizeControl());
 

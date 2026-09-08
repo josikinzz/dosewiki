@@ -54,6 +54,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
 /** Every intent a data-ops script can ask for, in the order they appear in the registry. */
 const ADMIN_INTENTS = [
   "editorArticleWrite",
+  "publicIntakeCreate",
   "promptMigrationWrite",
   "quoteMigrationWrite",
   "profileMediaWrite",

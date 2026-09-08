@@ -15,6 +15,8 @@ import { ArticleLayout } from "../components/ArticleLayout";
 import type { ContributorAvatarMap } from "../components/sections/ContributorsSection";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
+import ArticleContextBridge from "../editing/ArticleContextBridge.editor";
 
 interface SubstanceArticlePageProps {
   article: SubstanceArticle;
@@ -83,6 +85,25 @@ export function SubstanceArticlePage({
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
+      {fromSubstanceSlug ? (
+        <EditorLauncherTarget target={{
+          kind: "substance",
+          slug: fromSubstanceSlug,
+          name: article.identification.common_name || article.title,
+        }} />
+      ) : null}
+      <ArticleContextBridge
+        key={fromSubstanceSlug}
+        slug={fromSubstanceSlug}
+        article={article}
+        layoutProps={{
+          content, linkableSubstanceSlugs, linkableCategoryKeys, relatedTripReports,
+          tripReportsSection, hasRelatedTripReports, replicationShowcaseSection,
+          contributorAvatars, externalReagentData, warningBanners, warningBannerIconSize,
+          showBetaDisclaimer, dosageDisclaimer, toleranceDisclaimer, reviewStatusCopy,
+          expertReviewCredit, recentChanges,
+        }}
+      >
       <ArticleLayout
         article={article}
         content={content}
@@ -105,6 +126,7 @@ export function SubstanceArticlePage({
         expertReviewCredit={expertReviewCredit}
         recentChanges={recentChanges}
       />
+      </ArticleContextBridge>
     </main>
   );
 }

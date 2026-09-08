@@ -129,7 +129,7 @@ const SafetyBanner = React.forwardRef<HTMLDivElement, SafetyBannerProps>(
         {/* Flex only above 560px: a flex container is a BFC that shoves itself
             below the float wholesale, so mobile drops to block flow (space-y
             standing in for gap) to let line boxes wrap the glyph. */}
-        <div className="flex min-w-0 flex-col items-start gap-2 max-[560px]:block max-[560px]:space-y-2">{children}</div>
+        <div className="flex min-w-0 flex-col items-start gap-2 [overflow-wrap:anywhere] max-[560px]:block max-[560px]:space-y-2">{children}</div>
       </div>
     );
   },
@@ -159,7 +159,7 @@ const SafetyBannerTitle = React.forwardRef<HTMLParagraphElement, SafetyBannerTit
     <p
       ref={ref}
       className={cn(
-        "flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-display text-[15px] font-semibold leading-snug text-dose-text",
+        "flex min-w-0 max-w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 font-display text-[15px] font-semibold leading-snug text-dose-text",
         className,
       )}
       {...props}

@@ -1,92 +1,65 @@
 # Harm Potential Extraction Prompt
 
-You are given one file containing every collected source document for a single psychoactive
-substance. Copy the harm-related passages out of it, verbatim, into the excerpt file described
-under **Output format**. Output that file body and nothing else.
+Extract every harm-related passage from the supplied collected-source file for one psychoactive substance. Use only the supplied documents. Extraction preserves source text verbatim; it is not summarisation or article writing.
 
-This is mechanical copy-and-paste, not summarising. A script then checks your output by searching
-each extracted passage for a character-for-character match in the source; a passage that does not
-match exactly is rejected and the whole file fails.
+## 1. Identify sources and output mode
 
-## Hard rules
+In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the input begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Sources vary in number, length and quality.
 
-1. **Every line inside a source block is either copied from that source or a blank line.** No
-   headings you wrote, no labels, no quotation marks you added, no bolding you added, no bridging
-   sentences, no commentary.
-2. **Copy the passage exactly** — spelling, capitalisation, punctuation, markdown, inline links,
-   footnote markers. Numbers and units too: no conversion, rounding, or reformatting, so
-   `326 mg/kg` stays `326 mg/kg`.
-3. **Hedges are part of the text.** "may cause", "has been reported", "is assumed to", "anecdotal",
-   "though the evidence is limited", "[citation needed]" — copy them with the sentence they belong
-   to. Never restate a hedged claim as a definite one.
-4. **Extract only what the source says.** If the source states no LD50, the excerpt contains no
-   LD50. The same holds for every interaction, contraindication, threshold dose, death count, and
-   organ finding. Never supply a figure from your own knowledge, from a chemically related
-   substance, or from a different source block in the same file.
-5. **Keep passages under the source they came from.** Never move text between source blocks, merge
-   sources, reorder them, or omit one.
-6. **Extract complete units.** Whole paragraphs, list items, table rows, and sections including
-   their heading. Never stop mid-sentence. When a harm fact sits inside a paragraph about something
-   else, take the whole paragraph.
-7. **When unsure, include it.** A human reviews these excerpts. An extra passage costs nothing; a
-   missed one is invisible.
+Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-## What counts as harm potential content
+If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
 
-- Addiction, abuse potential, habit-forming, compulsive redosing
-- Dependence — physical or psychological — withdrawal and withdrawal timelines
-- LD50, lethal/toxic/fatal dose, overdose thresholds, deaths and death counts, overdose management
-- Organ and system toxicity: liver, kidney, cardiac, neurological, bladder, respiratory, vascular
-- Neurotoxicity, including disputed or unresolved neurotoxicity
-- Carcinogenicity, mutagenicity, genotoxicity, and the evidence behind such claims
-- Psychosis, HPPD, mania, precipitation of latent mental illness
-- Seizures and lowered seizure threshold
-- Dangerous interactions and combinations; contraindications; medications to avoid
-- Serotonin syndrome, hyperthermia, hyponatremia, respiratory depression
-- Adulterants, misidentification, and substitution risks
-- Antibiotic or antimicrobial activity
-- Harm reduction advice, dosing-interval warnings, route-specific risks
-- Explicit statements of **low** harm, safety, or absence of known toxicity — these count too
+Continue when every source boundary and the active output mode are identified.
 
-Qualifies: *"1B-LSD has no known toxic dose. However, higher doses increase the risk of adverse
-psychological reactions."* — an absence-of-toxicity statement is harm content.
+## 2. Identify all harm content
 
-Does not qualify on its own: *"Tolerance builds almost immediately after ingestion, and takes about
-5-7 days to reduce by half."* — that is tolerance timing. But if it sits inside a section headed
-"Dependence and abuse potential", extract the whole section including that paragraph. Rule 6 wins.
+Read every source for the following content:
 
-## Interaction lists, combination charts, and tables
+| Include | Context or boundary |
+| --- | --- |
+| Addiction, abuse potential, habit formation and compulsive redosing | Include physical or psychological dependence, withdrawal and withdrawal timelines. |
+| LD50, lethal, toxic or fatal doses, overdose thresholds, deaths, death counts and overdose management | Preserve species, administration route, value and unit wherever supplied. |
+| Organ and system toxicity | Include liver, kidney, cardiac, neurological, bladder, respiratory and vascular findings. |
+| Neurotoxicity | Include disputed and unresolved findings with their uncertainty. |
+| Carcinogenicity, mutagenicity and genotoxicity | Carry the evidence supporting or limiting each claim. |
+| Psychosis, HPPD, mania and precipitation of latent mental illness | Preserve the source's qualifications. |
+| Seizures and lowered seizure threshold | Preserve the source's qualifications. |
+| Dangerous interactions and combinations, contraindications and medications to avoid | Preserve complete combination lists, charts, tables and warnings as specified in step 3. |
+| Serotonin syndrome, hyperthermia, hyponatremia and respiratory depression | Include the surrounding harm context. |
+| Adulterants, misidentification and substitution risks | Include the source's risk descriptions. |
+| Antibiotic or antimicrobial activity | Include this content even when it is not framed as harm. |
+| Harm-reduction advice, dosing-interval warnings and route-specific risks | Preserve the advice's conditions and route distinctions. |
+| Explicit low-harm, safety or absence-of-known-toxicity statements | These qualify as harm content alongside adverse findings. |
 
-The highest-value content in this section, and the easiest to damage.
+Tolerance build or decay timing alone belongs to tolerance extraction. When it appears within a qualifying section such as Dependence and abuse potential, take the whole section, including its heading and tolerance paragraph.
 
-- Copy a markdown table whole: header row, `|---|---|` separator row, and every data row, byte for
-  byte, plus any caption or sentence directly above it that names what the table is.
-- Copy a bulleted combination list whole — every bullet, not a selection — with its bolded substance
-  names and its introductory warning paragraph.
-- Copy short structured lines as written, e.g. `**Avoid:** All other CNS depressants.`
-- Never turn a table into prose, a list into a table, or a multi-line entry into one line.
+If a harm fact sits inside a paragraph mainly about something else, take the entire paragraph. Include a passage when its relevance remains uncertain.
 
-## Input format
+Continue when every source has been examined and every qualifying or uncertain passage identified. A source that supplies no harm content is a valid result.
 
-```
-# <Substance Title> — Collected Sources
+## 3. Preserve complete evidence units
 
-## Source: TripSit Factsheets
+### Passages and source fidelity
 
-<full document text>
+- Copy complete paragraphs, list items, table rows and sections including their heading. Keep mixed-topic units whole and every sentence complete.
+- Preserve every character, including spelling, capitalisation, punctuation, markdown, inline links, footnote markers, numbers and units. Retain numerical precision and units without conversion, rounding or reformatting.
+- Keep hedges and evidence limitations attached to their claims, including reported, assumed or anecdotal status and citation-needed markers.
+- Use only claims made by the originating source. Never supply an LD50, interaction, contraindication, threshold, death count or organ finding from memory, a related substance or another source block.
+- In excerpt mode, every content line is copied from that source or is blank. Author only the metadata, source headings, separators and empty-source markers in step 4; add no headings, labels, quotation marks, formatting or commentary inside extracted content.
 
----
+### Interaction lists, combination charts and tables
 
-## Source: Wikipedia
+- Copy a markdown table whole: header row, separator row and every data row, with its original formatting. Include any caption or sentence directly above it that names the table.
+- Copy a bulleted combination list whole, with every bullet, bolded substance name and introductory warning paragraph.
+- Copy short structured lines as written, retaining their labels and values.
+- Keep each structure in its source format, with multi-line entries intact.
 
-<full document text>
+Continue when every selected unit retains its full content, attached warnings, uncertainty and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
 
----
-```
+## 4. Emit the active output format
 
-Source count varies from two to a dozen, and so do length and quality.
-
-## Output format
+When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Harm Potential Quotes
@@ -106,37 +79,30 @@ Source count varies from two to a dozen, and so do length and quality.
 ---
 ```
 
-- `<Substance Title>` is copied from the first line of the input. `<YYYY-MM-DD>` is today's date.
-- One `## Source:` heading per source in the input, in the input's order, with the source name
-  spelled exactly as the input spells it. Include sources that yielded nothing.
-- A source with no harm potential content gets exactly `*No harm potential content found.*` — that
-  italic line alone under its heading.
-- A source that was present but had no document text gets `*No content available for this source.*`
-- Every source block ends with a `---` rule.
-- No code fences around the output, no preamble, no closing commentary.
+Take the substance title from the input's first line, without its Collected Sources suffix. Use today's date as `YYYY-MM-DD`.
 
-## An empty result is a correct result
+Emit exactly one `## Source:` heading for every input source, with its exact name and original order. End every source block with `---`. A nonempty document with no qualifying content gets exactly `*No harm potential content found.*` alone under its heading. An empty document gets exactly `*No content available for this source.*`. An all-empty extraction is complete and successful; missing evidence stays absent.
 
-Many substances have sources that genuinely say nothing about harm. A file whose every source block
-reads `*No harm potential content found.*` is a correct, successful, complete result — return it and
-stop. The only real failure is text in the output that is not in the source. One invented sentence
-here becomes a published claim about a lethal dose or a drug interaction, so an empty file always
-beats a plausible one.
+## 5. Check completion
 
-## Schema field mapping
+Before responding, confirm:
 
-The downstream generator fills these fields from your excerpts. Extract with them in mind; do not
-sort, label, or restructure your output around them.
+- Every source has been examined and is represented once, in order, including empty results.
+- Every qualifying or uncertain passage is included as a complete unit, including low-harm statements and qualifying mixed-topic sections.
+- Every selected combination list and table is intact with its introductory warning or caption, names, rows and columns.
+- Species, route, numbers, units, conditions and uncertainty survive wherever supplied.
+- Every claim remains source-faithful and attached to its originating source.
+- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- Every downstream field below has been checked for available evidence. These mappings guide coverage; do not sort, label or restructure output around them.
 
-- `harm_potential.addiction.psychological` and `.physical_dependence` — each `{ level, description }`
-- `harm_potential.toxicity.lethal_dosage.ld50[]` — `{ species, route, value, unit }`, so species,
-  administration route, number, and unit all have to survive in the copied text
-- `harm_potential.toxicity.lethal_dosage.notes` — human lethal dose, fatalities, overdose thresholds
-- `harm_potential.toxicity.organ_toxicity[]` — `{ system, findings, mechanism, notes }`
-- `harm_potential.toxicity.carcinogenicity` — `{ level, evidence, description }`, evidence splitting
-  into human epidemiological, animal models with species, in vitro assay, and mechanistic
-- `harm_potential.toxicity.antibiotic_function` — `{ level, description }`
-- `harm_potential.toxicity.other` — anything toxicological that fits nowhere above
-- `harm_potential.psychosis` and `harm_potential.seizure` — each `{ level, description }`
-- `interactions.dangerous[]`, `.unsafe[]`, `.caution[]` — fed by the combination lists and charts,
-  which is why those have to arrive intact
+| Field | Evidence to preserve |
+| --- | --- |
+| `harm_potential.addiction.psychological` and `.physical_dependence` | Each `{ level, description }` |
+| `harm_potential.toxicity.lethal_dosage.ld50[]` | `{ species, route, value, unit }`, with all four elements retained where supplied |
+| `harm_potential.toxicity.lethal_dosage.notes` | Human lethal dose, fatalities and overdose thresholds |
+| `harm_potential.toxicity.organ_toxicity[]` | `{ system, findings, mechanism, notes }` |
+| `harm_potential.toxicity.carcinogenicity` | `{ level, evidence, description }`; evidence distinguishes human epidemiology, animal models with species, in vitro assays and mechanistic evidence |
+| `harm_potential.toxicity.antibiotic_function` | `{ level, description }` |
+| `harm_potential.toxicity.other` | Toxicological content fitting nowhere above |
+| `harm_potential.psychosis` and `harm_potential.seizure` | Each `{ level, description }` |
+| `interactions.dangerous[]`, `.unsafe[]`, `.caution[]` | Complete combination lists and charts, preserving their categories |

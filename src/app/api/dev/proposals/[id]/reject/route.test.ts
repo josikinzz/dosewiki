@@ -19,6 +19,7 @@ installProtectedRouteMocks();
 function post(body: unknown, id = "cp_123") {
   return new Request(`https://dose.wiki/api/dev/proposals/${id}/reject`, {
     method: "POST",
+    headers: { Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }

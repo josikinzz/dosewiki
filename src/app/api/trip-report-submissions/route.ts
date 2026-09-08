@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import {
-  getTripReportSubmissionStore,
+  getPublicTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError,
 } from "@/features/reports/submissions/tripReportSubmissionStore.server";
 import { TripReportSubmissionValidationError } from "@/features/reports/submissions/convexTripReportSubmissionStore";
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       maxBytes: MAX_SUBMISSION_PAYLOAD_BYTES,
     });
     const body = parseSubmissionBody(rawBody, request);
-    const store = await getTripReportSubmissionStore();
+    const store = await getPublicTripReportSubmissionStore();
     const result = await store.create(body);
 
     return NextResponse.json(

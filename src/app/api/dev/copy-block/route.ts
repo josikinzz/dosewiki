@@ -11,18 +11,21 @@
  * admin session, then calls Convex with the server's own token plus the
  * actor's email for the audit trail.
  *
- * Both verbs finish by revalidating `PUBLIC_CONVEX_CACHE_TAGS.copy` with
- * `expire: 0`, which is what makes an edit show up on the public pages
- * immediately instead of at the end of the 15-minute public-data window.
+ * Both verbs finish by publishing the `copy` content identity through the
+ * shared publication seam, which expires `PUBLIC_CONVEX_CACHE_TAGS.copy` here
+ * and delivers the same identity to the public deployments. That is what makes
+ * an edit show up on the public pages immediately instead of at the end of the
+ * 15-minute public-data window.
  * Deleting is not destructive: the server read helper falls back to the
  * checked-in default in `src/data/content/copyBlocks.json`, so a removed row
  * renders the original hardcoded prose.
  */
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { parseCopyIndexPublicationInput, type CopyIndexPublicationInput } from "../copyIndexPublicationInput";
 import {
   parseCopyBlockBody,
   requireCopyBlockKey,
@@ -32,12 +35,27 @@ import {
 
 export const runtime = "nodejs";
 
-export const POST = protectedRouteOperation<CopyBlockBody, ParsedCopyBlock>({
+export const GET = protectedRouteOperation({
+  auth: "editor", rateLimit: "diagnosticRead", capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to load shared copy source:", unexpectedErrorMessage: "The shared copy editing source could not be loaded.",
+  operation: async ({ request, actorEmail, convexWrite }) => {
+    const key = new URL(request.url).searchParams.get("key") ?? "";
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(key) || key.length > 200) throw new JsonBodyError(400, "A valid copy key is required.");
+    return NextResponse.json(await convexWrite!.client.query(api.copyBlocks.getForEditor, {
+      key, apiKey: convexWrite!.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite!.adminKey, actorEmail,
+    }));
+  },
+});
+
+export const POST = protectedRouteOperation<CopyBlockBody & { expected?: unknown; expectedRevision?: unknown; operationId?: unknown }, ParsedCopyBlock & { expected: unknown } & CopyIndexPublicationInput>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 64 * 1024,
-    parse: parseCopyBlockBody,
+    parse: (raw) => {
+      if (!Object.prototype.hasOwnProperty.call(raw, "expected")) throw new JsonBodyError(400, "A loaded copy baseline is required.");
+      return { ...parseCopyBlockBody(raw), expected: raw.expected, ...parseCopyIndexPublicationInput(raw) };
+    },
   },
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to save a copy block via Next route:",
@@ -61,25 +79,30 @@ export const POST = protectedRouteOperation<CopyBlockBody, ParsedCopyBlock>({
       label: body.label,
       group: body.group,
       updatedBy: actorEmail,
+      expected: body.expected,
+      expectedRevision: body.expectedRevision, operationId: body.operationId,
     });
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.copy, { expire: 0 });
+    await publishPublicCache({ targets: [{ kind: "copy" }], source: "manual" });
 
-    return NextResponse.json({ ok: true, key: result.key, updated: result.updated });
+    return NextResponse.json({ ok: true, key: result.key, updated: result.updated, revision: result.revision, replayed: result.replayed, unchanged: result.unchanged });
   },
 });
 
-export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
+export const DELETE = protectedRouteOperation<{ key?: unknown; expected?: unknown; expectedRevision?: unknown; operationId?: unknown }, { key: string; expected: unknown } & CopyIndexPublicationInput>({
   auth: "admin",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: 4 * 1024,
-    parse: (raw) => requireCopyBlockKey(raw?.key),
+    parse: (raw) => {
+      if (!Object.prototype.hasOwnProperty.call(raw, "expected")) throw new JsonBodyError(400, "A loaded copy baseline is required.");
+      return { key: requireCopyBlockKey(raw.key), expected: raw.expected, ...parseCopyIndexPublicationInput(raw) };
+    },
   },
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to reset a copy block via Next route:",
   unexpectedErrorMessage: "Unable to reset that copy block right now.",
-  operation: async ({ actorEmail, body: key, convexWrite }) => {
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -90,11 +113,13 @@ export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
     const result = await convexWrite.client.mutation(api.copyBlocks.remove, {
       apiKey,
       actorEmail,
-      key,
+      key: body.key,
+      expected: body.expected,
+      expectedRevision: body.expectedRevision, operationId: body.operationId,
     });
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.copy, { expire: 0 });
+    await publishPublicCache({ targets: [{ kind: "copy" }], source: "manual" });
 
-    return NextResponse.json({ ok: true, key: result.key, removed: result.removed });
+    return NextResponse.json({ ok: true, key: result.key, removed: result.removed, revision: result.revision, replayed: result.replayed, unchanged: result.unchanged });
   },
 });

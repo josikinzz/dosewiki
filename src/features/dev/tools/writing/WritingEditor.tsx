@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
+import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
+import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";
+import { toWritingBlogPost } from "@/features/blog/domain/writingBlogModel";
+import type { ArticleBylineAuthor } from "@/features/articles/domain/articleByline";
+import { NarrativeHistory } from "@/features/effects/editing/NarrativeHistory";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   EditorActionStatus,
@@ -24,12 +29,21 @@ import type { WritingWorkbenchController } from "./useWritingWorkbenchController
 
 const ADMIN_ONLY_REASON = "Admin role required";
 
+const WRITING_FIELD_LABELS: Record<keyof WritingDraft, string> = {
+  title: "Title", slug: "Slug", teaser: "Teaser", coverImageUrl: "Cover image URL",
+  body: "Body", bodyFormat: "Body format", tags: "Tags", authorProfileKeys: "Byline",
+  status: "Publication state", publicationDate: "Publication date",
+};
+
 type WritingEditorProps = {
   contributorProfiles: NormalizedUserProfile[];
   profilesLoading: boolean;
   controller: WritingWorkbenchController;
   /** Admin: the save publishes straight to the site. Without it the editor drafts but cannot save. */
   canApprove: boolean;
+  bylineAuthors?: ArticleBylineAuthor[];
+  /** A prose-first layout inside the contextual dialog; standalone workbench stays expanded. */
+  contextual?: boolean;
 };
 
 export function WritingEditor({
@@ -37,6 +51,8 @@ export function WritingEditor({
   profilesLoading,
   controller,
   canApprove,
+  bylineAuthors = [],
+  contextual = false,
 }: WritingEditorProps) {
   const {
     kind,
@@ -52,10 +68,31 @@ export function WritingEditor({
     setByline,
     save,
   } = controller;
+  const [reviewed, setReviewed] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
+  const [metadataOpen, setMetadataOpen] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const metadataId = useId();
+  const reviewRef = useRef<HTMLDivElement>(null);
+  const reviewButtonRef = useRef<HTMLButtonElement>(null);
+  const keepLocalEditsRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (discarding) keepLocalEditsRef.current?.focus();
+  }, [discarding]);
+  const fingerprint = JSON.stringify([draft, controller.baseline]);
+  const changes = (Object.keys(draft) as Array<keyof WritingDraft>).filter(key => JSON.stringify(draft[key]) !== JSON.stringify(controller.baseline[key]));
+  useEffect(() => {
+    if (reviewed === fingerprint) reviewRef.current?.focus();
+  }, [reviewed, fingerprint]);
+  const previewAuthors = draft.authorProfileKeys.map(key => {
+    const profile = contributorProfiles.find(item => item.key === key);
+    return bylineAuthors.find(item => item.key === key) ?? { key, name: profile?.displayName ?? key, href: `/contributors/${key.toLowerCase()}` };
+  });
+  const previewArticle = { ...controller.loadedRow, title: draft.title, slug: draft.slug, tags: draft.tags.split(",").map(tag => tag.trim()).filter(Boolean), body_raw: draft.body, body_ast: controller.parsedBody.ast, bodyFormat: draft.bodyFormat, shortDescription: draft.teaser, teaser: draft.teaser, coverImageUrl: draft.coverImageUrl, publicationDate: draft.publicationDate };
   // Blog posts lead with a cover image and a teaser; articles do not.
   const emphasiseCover = kind === "blog";
   // Writing rows publish with no review step, so the save is an admin action.
-  const saveEnabled = canSave && canApprove;
+  const saveEnabled = canSave && canApprove && controller.isDirty;
   const bylineOptions = useMemo(
     () =>
       contributorProfiles.map((profile) => ({
@@ -68,18 +105,10 @@ export function WritingEditor({
 
   return (
     <>
-      {notice ? <EditorNotice notice={notice} /> : null}
-      {readOnly ? (
-        <EditorNotice
-          notice={{
-            tone: "warning",
-            title: "Read-only",
-            message:
-              "This is an archived VCode article. This editor writes Markdown, so it will not rewrite the body it cannot speak.",
-          }}
-        />
-      ) : null}
+      {notice && !(controller.isDirty && notice.tone === "success") ? <EditorNotice notice={notice} /> : null}
+      {controller.parsedBody.error ? <EditorNotice notice={{ tone: "danger", message: controller.parsedBody.error }} /> : null}
 
+      {contextual ? <p role="status" className="theme-text-muted text-sm">{controller.isDirty ? "Unpublished local edits" : controller.baseline.status === "published" ? "Public document · no local changes" : "Unpublished document · no local changes"}</p> : null}
       <EditorField label="Title">
         {(control) => (
           <Input
@@ -91,6 +120,8 @@ export function WritingEditor({
         )}
       </EditorField>
 
+      {contextual ? <ExpandButton variant="inline" isExpanded={metadataOpen} onToggle={() => setMetadataOpen(value => !value)} ariaControls={metadataId} ariaLabel="Publication details and attribution" label="Publication details and attribution" /> : null}
+      <div id={metadataId} className={contextual ? "space-y-4" : "space-y-6"} hidden={contextual && !metadataOpen}>
       <EditorField
         label="Slug"
         description={
@@ -141,7 +172,7 @@ export function WritingEditor({
         {(control) => (
           <Textarea
             {...control}
-            className="font-mono leading-6"
+            className={contextual ? "leading-6" : "font-mono leading-6"}
             rows={2}
             value={draft.teaser}
             disabled={readOnly}
@@ -150,9 +181,11 @@ export function WritingEditor({
         )}
       </EditorField>
 
-      <EditorField label="Byline" description="Contributor profiles credited on the page. Search by name or profile key.">
+      <EditorField label="Byline" description={contributorProfiles.length === 0 && !profilesLoading ? "Contributor profile keys credited on the page, separated by commas." : "Contributor profiles credited on the page. Search by name or profile key."}>
         {(control) =>
-          profilesLoading ? (
+          contributorProfiles.length === 0 && !profilesLoading ? (
+            <Input {...control} value={draft.authorProfileKeys.join(", ")} disabled={readOnly} onChange={event => setByline(event.target.value.split(",").map(key => key.trim()).filter(Boolean))} placeholder="Contributor profile keys, comma separated" />
+          ) : profilesLoading ? (
             <p className="theme-text-faint text-sm">Loading contributors…</p>
           ) : (
             <SearchableMultiPicker
@@ -190,17 +223,18 @@ export function WritingEditor({
           />
         )}
       </EditorField>
+      </div>
 
       <EditorField
         label="Body"
-        description="Markdown. Headings become the article's contents rail."
+        description={`${draft.bodyFormat === "vcode" ? "VCode, preserved in its original format" : "Markdown"}. Headings become the article's contents rail.`}
         counter={`${draft.body.length} characters`}
       >
         {(control) => (
           <Textarea
             {...control}
             className="font-mono leading-6"
-            rows={20}
+            rows={contextual ? 10 : 20}
             value={draft.body}
             disabled={readOnly}
             onChange={(event) => updateDraft({ body: event.target.value })}
@@ -216,8 +250,8 @@ export function WritingEditor({
             value={draft.status}
             onChange={(value) => updateDraft({ status: value as WritingDraft["status"] })}
             options={[
-              { value: "draft", label: "Draft", disabled: !saveEnabled },
-              { value: "published", label: "Published", disabled: !saveEnabled },
+              { value: "draft", label: "Draft", disabled: readOnly || !canApprove },
+              { value: "published", label: "Published", disabled: readOnly || !canApprove },
             ]}
           />
           <Button
@@ -226,29 +260,43 @@ export function WritingEditor({
             size="sm"
             disabled={!saveEnabled}
             title={canApprove ? undefined : ADMIN_ONLY_REASON}
-            onClick={() => void save(draft.status)}
+            ref={reviewButtonRef}
+            onClick={() => setReviewed(fingerprint)}
           >
             <Icon icon="lucide:save" size={15} />
-            {draft.status === "published" ? "Save & publish" : "Save draft"}
+            Review changes
           </Button>
         </div>
-        {saveState === "idle" ? (
-          <EditorStatusPill tone={draft.status === "published" ? "success" : "warning"}>
-            {draft.status === "published" ? "Public" : "Draft, not public"}
+        {saveState === "idle" || (controller.isDirty && saveState !== "saving") ? (
+          <EditorStatusPill tone={controller.isDirty || controller.baseline.status !== "published" ? "warning" : "success"}>
+            {controller.isDirty ? "Unpublished local edits" : controller.baseline.status === "published" ? "Public" : "Unpublished"}
           </EditorStatusPill>
         ) : (
           <EditorActionStatus status={saveState} />
         )}
       </EditorToolbar>
+      {controller.uncertain ? <EditorNotice notice={{ tone: "warning", message: "Publication has not been confirmed. Editing and discard are locked until you explicitly reconcile the original operation.", actions: <Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button> }} /> : null}
+      <EditorToolbar>
+        <Button type="button" variant="outline" size="sm" disabled={!!controller.parsedBody.error} onClick={() => setPreview(value => !value)}>{preview ? "Close preview" : "Preview locally"}</Button>
+        <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.isDirty} onClick={() => setDiscarding(true)}>Discard local edits</Button>
+        <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.loadedRow} onClick={() => void controller.reconcile()}>Reload published baseline</Button>
+      </EditorToolbar>
+      {discarding ? <EditorSection headingLevel="h3" title="Discard local edits?" description="This restores the loaded document. Your local changes will be lost."><EditorToolbar><Button ref={keepLocalEditsRef} variant="outline" onClick={() => setDiscarding(false)}>Keep local edits</Button><Button variant="destructive" disabled={readOnly} onClick={() => { controller.discard(); setDiscarding(false); }}>Confirm discard</Button></EditorToolbar></EditorSection> : null}
+      {reviewed === fingerprint ? <div ref={reviewRef} tabIndex={-1} aria-label="Review document changes" className="min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"><EditorSection headingLevel="h3" title="Review document changes" description="Only these fields will change. This preview has not been published.">
+        {changes.map(key => <div key={key} className="min-w-0 space-y-2"><h4 className="font-semibold">{WRITING_FIELD_LABELS[key]}</h4><div className="grid gap-3 md:grid-cols-2"><div className="min-w-0"><p className="theme-text-muted text-sm">Published baseline</p><pre className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof controller.baseline[key] === "string" ? controller.baseline[key] : JSON.stringify(controller.baseline[key], null, 2)}</pre></div><div className="min-w-0"><p className="theme-text-muted text-sm">Local changes</p><pre className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof draft[key] === "string" ? draft[key] : JSON.stringify(draft[key], null, 2)}</pre></div></div></div>)}
+        <Button type="button" variant="accent" disabled={!saveEnabled} onClick={() => void save(draft.status)}>{draft.status === "published" ? "Confirm publication" : "Confirm save as unpublished"}</Button>
+        <Button type="button" variant="outline" onClick={() => { setReviewed(null); reviewButtonRef.current?.focus(); }}>Back to editing</Button>
+      </EditorSection></div> : null}
 
-      <EditorSection
+      {preview && !controller.parsedBody.error ? <EditorSection
         headingLevel="h3"
         icon="lucide:eye"
-        title="Preview"
-        description="Rendered with the same Markdown components the public page uses."
+        title="Local preview"
+        description="The public reading layout. Nothing here is published until you confirm."
       >
-        <PublicMarkdownBody content={draft.body} />
-      </EditorSection>
+        {kind === "blog" ? <WritingBlogPostPage post={toWritingBlogPost(previewArticle, previewAuthors)} /> : <EffectIndexArticlePage article={previewArticle} bylineAuthors={previewAuthors} />}
+      </EditorSection> : null}
+      <NarrativeHistory entries={controller.loadedRow?.history ?? []} />
     </>
   );
 }

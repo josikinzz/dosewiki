@@ -10,19 +10,10 @@ vi.mock("../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidatePath: cacheMocks.revalidatePath,
-  revalidateTag: cacheMocks.revalidateTag,
-}));
-
-vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { banners: "convex-public:banners" },
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -48,7 +39,7 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
 function saveRequest(body: unknown) {
   return new Request("https://dose.wiki/api/dev/warning-banner/display", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -132,11 +123,11 @@ describe("banner display route", () => {
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 
-  // A global size change stales every article showing any banner. The tag drops
-  // the shared preset list, but each article holds its own ISR entry under
-  // `revalidate = 3600`, so without the per-path sweep readers keep the old
-  // glyph size for up to an hour.
-  it("revalidates the banners tag and every article covered by an enabled preset", async () => {
+  // A global size change stales every article showing any banner. The banner
+  // identity drops the shared preset list, but each article holds its own ISR
+  // entry under `revalidate = 3600`, so without the per-article identities
+  // readers keep the old glyph size for up to an hour.
+  it("publishes the banner setting and every article covered by an enabled preset", async () => {
     convexMocks.mutation.mockResolvedValue({ iconSize: 30 });
     convexMocks.query.mockResolvedValue([
       { key: "opioid", enabled: true, enabledSlugs: ["heroin", "fentanyl"] },
@@ -147,16 +138,19 @@ describe("banner display route", () => {
 
     await POST(saveRequest({ iconSize: 30 }));
 
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
     expect(convexMocks.query).toHaveBeenCalledWith("warningBanners.listPresets", {});
-    expect(cacheMocks.revalidatePath.mock.calls.map(([path]) => path)).toEqual([
-      "/heroin",
-      "/fentanyl",
-      "/diazepam",
-    ]);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [
+        { kind: "banners" },
+        { kind: "article", slug: "heroin" },
+        { kind: "article", slug: "fentanyl" },
+        { kind: "article", slug: "diazepam" },
+      ],
+      source: "manual",
+    });
   });
 
-  it("still revalidates the tag when no preset is enabled", async () => {
+  it("still publishes the banner setting when no preset is enabled", async () => {
     convexMocks.mutation.mockResolvedValue({ iconSize: 44 });
     convexMocks.query.mockResolvedValue([
       { key: "draft", enabled: false, enabledSlugs: ["mescaline"] },
@@ -166,7 +160,9 @@ describe("banner display route", () => {
     const response = await POST(saveRequest({ iconSize: 44 }));
 
     expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "banners" }],
+      source: "manual",
+    });
   });
 });

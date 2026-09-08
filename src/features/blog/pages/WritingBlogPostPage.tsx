@@ -5,16 +5,14 @@ import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { icons } from "@/utils/iconNames";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import type { WritingBlogPost } from "../domain/writingBlogModel";
+import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
+import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
 
 interface WritingBlogPostPageProps {
   post: WritingBlogPost;
 }
 
-/**
- * One dose.wiki blog post. Bodies are Markdown by construction — the Blog tab
- * writes nothing else — so they render through the shared public Markdown prose
- * component, without heading ids: a post has no contents rail pointing into it.
- */
+/** One writing-system blog post, rendered in its stored language. */
 export function WritingBlogPostPage({ post }: WritingBlogPostPageProps) {
   return (
     <PublicContentShell width="narrow" focusTarget>
@@ -53,7 +51,7 @@ export function WritingBlogPostPage({ post }: WritingBlogPostPageProps) {
       ) : null}
 
       <article className="mt-8">
-        <PublicMarkdownBody content={post.body} />
+        {post.bodyFormat === "vcode" ? <VCodeRenderer content={normalizeVCodeContent(post.body_ast, post.body) ?? ""} citations={post.citations} /> : <PublicMarkdownBody content={post.body} />}
       </article>
 
       <p className="mt-12">

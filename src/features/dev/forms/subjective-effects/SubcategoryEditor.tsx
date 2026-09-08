@@ -3,7 +3,7 @@
  * Used within EffectCategoryCard and SenseCategoryCard.
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { EmptyStateSurface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorField } from "@/features/dev/components";
 import { EffectEntryEditor } from "./EffectEntryEditor";
+import { useGrowToContent } from "./useGrowToContent";
 import type { EffectEntry } from "@/schema";
 
 const SUBCATEGORY_MOVE_BUTTON_CLASS =
@@ -26,8 +27,8 @@ export interface SubcategoryEditorProps {
   effects: EffectEntry[];
   /** Whether the heading is editable (false for fixed subcategories) */
   editableHeading?: boolean;
-  /** Called when heading changes */
-  onHeadingChange?: (newKey: string) => void;
+  /** Change the stored key, or return a validation message without changing it. */
+  onHeadingChange?: (newKey: string) => string | undefined;
   /** Called when note changes */
   onNoteChange: (note: string) => void;
   /** Called when effects change */
@@ -64,6 +65,13 @@ export function SubcategoryEditor({
   idPrefix,
   index,
 }: SubcategoryEditorProps) {
+  const [heading, setHeading] = useState(subcategoryKey);
+  const [headingError, setHeadingError] = useState<string>();
+  useEffect(() => {
+    setHeading(subcategoryKey);
+  }, [subcategoryKey]);
+  const noteField = useGrowToContent();
+
   const handleAddEffect = useCallback(() => {
     onEffectsChange([...effects, { name: "", description: "" }]);
   }, [effects, onEffectsChange]);
@@ -124,19 +132,29 @@ export function SubcategoryEditor({
         )}
 
         {/* Heading and note */}
-        <div className="flex-1 space-y-3">
+        <div className="min-w-0 flex-1 space-y-3">
           <EditorField
             htmlFor={`${idPrefix}-subcat-${index}-heading`}
             label="Subcategory Name"
+            error={headingError}
+            errorLive
           >
             {editableHeading ? (
-              <Input
-                id={`${idPrefix}-subcat-${index}-heading`}
-                value={subcategoryKey}
-                onChange={(e) => onHeadingChange?.(e.target.value)}
-                placeholder="e.g., Enhancements, Distortions, General..."
-                className="font-medium"
-              />
+              (controlProps) => (
+                <Input
+                  {...controlProps}
+                  value={heading}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setHeading(next);
+                    const error = onHeadingChange?.(next);
+                    setHeadingError(error);
+                    event.target.setCustomValidity(error ?? "");
+                  }}
+                  placeholder="e.g., Enhancements, Distortions, General..."
+                  className="font-medium"
+                />
+              )
             ) : (
               <div
                 id={`${idPrefix}-subcat-${index}-heading`}
@@ -153,6 +171,7 @@ export function SubcategoryEditor({
           >
             <Textarea
               id={`${idPrefix}-subcat-${index}-note`}
+              ref={noteField.ref}
               value={note}
               onChange={(e) => onNoteChange(e.target.value)}
               placeholder="Brief qualitative description of effects in this subcategory..."

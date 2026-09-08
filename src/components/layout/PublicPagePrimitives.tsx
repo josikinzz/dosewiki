@@ -92,7 +92,7 @@ export function PublicSectionHeading({
   if (variant === "rule") {
     return (
       <div className={cn("flex flex-wrap items-center gap-4", className)}>
-        <div className="relative min-w-0 shrink-0">
+        <div className="relative min-w-0">
           <Heading
             className={cn(
               "theme-accent-heading relative flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight",

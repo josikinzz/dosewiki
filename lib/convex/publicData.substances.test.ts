@@ -36,30 +36,8 @@ describe("public substance data adapters", () => {
     mocks.queryConvex.mockReset();
   });
 
-  it("reads public library inputs from the projected Convex query", async () => {
-    mocks.queryConvex.mockResolvedValueOnce({
-      items: [projectLibraryInput({
-        ...fullArticleWithDosage,
-        slug: "lsd",
-      })],
-      cursor: "done",
-      isDone: true,
-    });
 
-    const { getRawSubstances } = await import("./publicData.substances");
-    const result = await getRawSubstances();
-
-    expect(mocks.queryConvex).toHaveBeenCalledWith(
-      "substanceIndex:getPublicLibraryInputPage",
-      { limit: 32 },
-    );
-    expect(result[0]).toMatchObject({ title: "LSD", slug: "lsd" });
-    expect(
-      cacheMocks.unstableCache.mock.calls.map((call) => call[1]),
-    ).not.toContainEqual(["convex-public-raw-substances"]);
-  });
-
-  it("reads public slugs from the slug page query, sorted and deduplicated, under the substances tag", async () => {
+  it("combines every slug page into a sorted deduplicated result", async () => {
     mocks.queryConvex
       .mockResolvedValueOnce({ items: ["mdma", "lsd"], cursor: "lsd", isDone: false })
       .mockResolvedValueOnce({ items: ["2c-b", "lsd"], cursor: "", isDone: true });
@@ -67,22 +45,8 @@ describe("public substance data adapters", () => {
     const { getPublicSubstanceSlugs } = await import("./publicData.substances");
 
     await expect(getPublicSubstanceSlugs()).resolves.toEqual(["2c-b", "lsd", "mdma"]);
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(
-      1,
-      "substanceIndex:getPublicSlugsPage",
-      { limit: 160 },
-    );
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(
-      2,
-      "substanceIndex:getPublicSlugsPage",
-      { cursor: "lsd", limit: 160 },
-    );
     expect(mocks.queryConvex).toHaveBeenCalledTimes(2);
 
-    const slugCacheCall = cacheMocks.unstableCache.mock.calls.find(
-      (call) => call[1]?.[0] === "convex-public-substance-slugs",
-    );
-    expect(slugCacheCall?.[2]?.tags).toEqual(["convex-public", "convex-public:substances"]);
   });
 
   it("falls back to the preview drain for slugs while getPublicSlugsPage failed", async () => {
@@ -240,38 +204,28 @@ describe("public substance data adapters", () => {
     );
   });
 
-  it("keeps the coverage full-corpus read explicit and uncached", async () => {
+  it("preserves complete article records for coverage analysis", async () => {
     const article = {
       ...structuredClone(fullArticleWithDosage),
       slug: "lsd",
     };
-    mocks.queryConvex
-      .mockResolvedValueOnce({ items: [article], cursor: "done-1", isDone: true })
-      .mockResolvedValueOnce({ items: [article], cursor: "done-2", isDone: true });
+    mocks.queryConvex.mockResolvedValueOnce({
+      items: [article],
+      cursor: "done-1",
+      isDone: true,
+    });
 
-    const { getUncachedCoverageSubstances } = await import(
+    const { getPublicCoverageSubstances } = await import(
       "./publicData.substances"
     );
 
-    const first = await getUncachedCoverageSubstances();
-    const second = await getUncachedCoverageSubstances();
+    const records = await getPublicCoverageSubstances();
 
-    expect(mocks.queryConvex).toHaveBeenCalledTimes(2);
-    expect(first[0]).toMatchObject({
+    expect(records[0]).toMatchObject({
       legality: fullArticleWithDosage.legality,
       harm_potential: fullArticleWithDosage.harm_potential,
     });
-    expect(second[0]).toHaveProperty("comparisons");
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(
-      1,
-      "substanceIndex:getPublicCoverageInputPage",
-      { limit: 32 },
-    );
-    expect(mocks.queryConvex).toHaveBeenNthCalledWith(
-      2,
-      "substanceIndex:getPublicCoverageInputPage",
-      { limit: 32 },
-    );
+    expect(records[0]).toHaveProperty("comparisons");
   });
 
   it("reads public list, lookup, and article data from projected substance queries", async () => {

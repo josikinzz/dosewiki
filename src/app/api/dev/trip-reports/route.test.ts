@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   query: vi.fn(),
   mutation: vi.fn(),
   getServerConvexWriteCapability: vi.fn(),
-  revalidatePath: vi.fn(),
+  publishPublicCache: vi.fn(async () => []),
 }));
 
 vi.mock("@/lib/auth/requireEditorSession", () => ({
@@ -25,7 +25,9 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
 }));
 
-vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: mocks.publishPublicCache,
+}));
 
 const editorSession = {
   ok: true as const,
@@ -58,7 +60,7 @@ beforeEach(() => {
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
   mocks.query.mockReset().mockResolvedValue([]);
   mocks.mutation.mockReset().mockResolvedValue({ updated: true, slug: "alpine-clarity" });
-  mocks.revalidatePath.mockReset();
+  mocks.publishPublicCache.mockClear();
   mocks.getServerConvexWriteCapability.mockReset().mockReturnValue({
     ok: true,
     capability: {
@@ -108,8 +110,8 @@ describe("dev trip report record route", () => {
   function postRequest(body: unknown): Request {
     return new Request("https://dose.wiki/api/dev/trip-reports/record", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+      body: JSON.stringify({ expectedRevision: "0".repeat(64), ...(body as Record<string, unknown>) }),
     });
   }
 
@@ -170,6 +172,32 @@ describe("dev trip report record route", () => {
 
     const [, args] = mocks.mutation.mock.calls[0];
     expect(args.profileKey).toBeUndefined();
+  });
+
+  it("publishes the saved report and the index that lists it", async () => {
+    const { POST } = await import("./record/route");
+    await POST(
+      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
+    );
+
+    expect(mocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "report", slug: "alpine-clarity" }, { kind: "report-lists" }],
+      source: "manual",
+    });
+  });
+
+  it("publishes the report index when an admin deletes a record", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }));
+    mocks.mutation.mockResolvedValue({ deleted: true });
+
+    const { POST } = await import("./record/route");
+    const response = await POST(postRequest({ mode: "delete", id: "report-1" }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "report-lists" }],
+      source: "manual",
+    });
   });
 
   it("relays a byline claim refusal as a 409 rather than a generic failure", async () => {

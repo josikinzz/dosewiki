@@ -7,8 +7,10 @@ import {
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
   isEditableArticleFieldPath,
 } from "./articleFieldWrites";
-import { appendArticleReference, removeArticleReference } from "./articleReferenceWrites";
 import { ingestSubstanceArticle, ingestSubstanceArticles } from "./substanceIngestion";
+import { contentHash } from "../../lib/proposals/contentHash";
+import { articleChangePatch, articleConflict, articleDocument, validateArticleChange } from "./articleLifecycleValidation";
+import { articleBaseHash, loadArticle, recordArticleRevision } from "./articleRevisionJournal";
 
 /**
  * Every handler here writes a published article directly, so all of them sit
@@ -66,10 +68,12 @@ export async function setArticleFieldHandler(
     slug: string;
     path: string;
     value: EditableFieldValue;
-    expected?: EditableFieldValue;
+    expected: EditableFieldValue;
+    baseHash: string;
+    changeId: string;
   },
 ) {
-  await requireRole(ctx, {
+  const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
@@ -89,16 +93,19 @@ export async function setArticleFieldHandler(
       message: `Field value exceeds ${EDITABLE_ARTICLE_FIELD_MAX_LENGTH} characters.`,
     });
   }
-  const article = await ctx.db
-    .query("substanceIndex")
-    .withIndex("by_slug", (query) => query.eq("slug", args.slug))
-    .first();
-  if (!article) {
-    throw new ConvexError({
-      code: "ARTICLE_NOT_FOUND",
-      message: `No substance found for slug "${args.slug}".`,
-    });
+  const article = await loadArticle(ctx, args.slug);
+  const before = articleDocument(article);
+  const prior = await ctx.db.query("articleRevisions").withIndex("by_actor_change", (q) => q.eq("actorEmail", actor.email).eq("changeId", args.changeId)).unique();
+  if (prior) {
+    const replay = applyEditableFieldWrite(prior.before as Record<string, unknown>, args.path, args.value, { expected: args.expected });
+    if (prior.slug !== args.slug || prior.baseHash !== args.baseHash || !replay.ok ||
+        contentHash({ ...prior.before, [replay.topLevelKey]: replay.topLevelValue }) !== contentHash(prior.after)) {
+      throw new ConvexError({ code: "ARTICLE_CHANGE_REUSED", message: "That change ID already names another edit." });
+    }
+    return { slug: args.slug, path: args.path, value: args.value, topLevelKey: replay.topLevelKey, topLevelValue: replay.topLevelValue, id: article.id, title: article.title, baseHash: prior.resultHash };
   }
+  if (args.baseHash !== await articleBaseHash(ctx, before)) articleConflict();
+  if (!args.changeId.trim()) throw new ConvexError({ code: "ARTICLE_CHANGE_ID", message: "A stable change ID is required." });
   const result = applyEditableFieldWrite(
     article as unknown as Record<string, unknown>,
     args.path,
@@ -111,9 +118,9 @@ export async function setArticleFieldHandler(
       message: result.reason,
     });
   }
-  await ctx.db.patch(article._id, {
-    [result.topLevelKey]: result.topLevelValue,
-  } as Partial<typeof article>);
+  const after = validateArticleChange(before, { ...before, [result.topLevelKey]: result.topLevelValue });
+  await ctx.db.patch(article._id, articleChangePatch(before, after));
+  const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: `Inline edit — ${args.path}` });
   return {
     slug: args.slug,
     path: args.path,
@@ -122,6 +129,7 @@ export async function setArticleFieldHandler(
     topLevelValue: result.topLevelValue,
     id: article.id,
     title: article.title,
+    baseHash: revision.baseHash,
   };
 }
 
@@ -173,94 +181,6 @@ export async function setIupacNameHandler(
   };
 }
 
-export async function appendArticleReferenceHandler(
-  ctx: MutationCtx,
-  args: EditorArgs & { slug: string; reference: unknown },
-) {
-  await requireRole(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "editorArticleWrite",
-  }, "admin");
-  const article = await ctx.db
-    .query("substanceIndex")
-    .withIndex("by_slug", (query) => query.eq("slug", args.slug))
-    .first();
-  if (!article) {
-    throw new ConvexError({
-      code: "ARTICLE_NOT_FOUND",
-      message: `No substance found for slug "${args.slug}".`,
-    });
-  }
-  const result = appendArticleReference(
-    article as unknown as Record<string, unknown>,
-    args.reference,
-  );
-  if (result.ok === false) {
-    throw new ConvexError({ code: "REFERENCE_WRITE_REJECTED", message: result.reason });
-  }
-  if (result.references) {
-    await ctx.db.patch(article._id, { references: result.references } as Partial<typeof article>);
-  }
-  return {
-    slug: args.slug,
-    created: result.created,
-    reference: result.reference,
-    id: article.id,
-    title: article.title,
-  };
-}
-
-export async function removeArticleReferenceHandler(
-  ctx: MutationCtx,
-  args: EditorArgs & { slug: string; referenceId: string },
-) {
-  await requireRole(ctx, {
-    apiKey: args.apiKey,
-    actorEmail: args.actorEmail,
-    adminIntent: "editorArticleWrite",
-  }, "admin");
-  const article = await ctx.db
-    .query("substanceIndex")
-    .withIndex("by_slug", (query) => query.eq("slug", args.slug))
-    .first();
-  if (!article) {
-    throw new ConvexError({
-      code: "ARTICLE_NOT_FOUND",
-      message: `No substance found for slug "${args.slug}".`,
-    });
-  }
-  const result = removeArticleReference(
-    article as unknown as Record<string, unknown>,
-    args.referenceId,
-  );
-  if (result.ok === false) {
-    throw new ConvexError({ code: "REFERENCE_WRITE_REJECTED", message: result.error });
-  }
-  if (result.removed === false) {
-    return {
-      ok: true as const,
-      slug: args.slug,
-      title: article.title,
-      id: article.id,
-      removed: false,
-      markersStripped: 0,
-      routeIdsStripped: 0,
-      referenceTitle: null,
-    };
-  }
-  await ctx.db.patch(article._id, result.patch as Partial<typeof article>);
-  return {
-    ok: true as const,
-    slug: args.slug,
-    title: article.title,
-    id: article.id,
-    removed: true,
-    markersStripped: result.markersStripped,
-    routeIdsStripped: result.routeIdsStripped,
-    referenceTitle: result.title,
-  };
-}
 
 export async function deleteSubstanceHandler(
   ctx: MutationCtx,

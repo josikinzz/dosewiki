@@ -63,6 +63,22 @@ describe("feature reachability", () => {
     ]);
   });
 
+  it("follows routed feature dependencies without activating disconnected cycles", async () => {
+    const root = await makeTmpRepo();
+    await touch(root, "src/app/page.tsx", 'import "@/features/shell";');
+    await touch(root, "src/features/shell/index.ts", 'import "@/features/shared";');
+    await touch(root, "src/features/shared/index.ts", 'import "@/features/leaf";');
+    await touch(root, "src/features/leaf/index.ts", "export const leaf = true;");
+    await touch(root, "src/features/cycle-a/index.ts", 'import "@/features/cycle-b";');
+    await touch(root, "src/features/cycle-b/index.ts", 'import "@/features/cycle-a";');
+
+    const report = createFeatureReachabilityReport({ repoRoot: root });
+    expect(report.features.filter((feature) => feature.status === "active").map((feature) => feature.name))
+      .toEqual(["leaf", "shared", "shell"]);
+    expect(collectFeatureReachabilityFailures(report).map((failure) => failure.feature))
+      .toEqual(["cycle-a", "cycle-b"]);
+  });
+
   it("keeps the current graph decision out of compiled source and dependency ownership", () => {
     const report = createFeatureReachabilityReport({ repoRoot: process.cwd() });
     const featureNames = report.features.map((feature) => feature.name);

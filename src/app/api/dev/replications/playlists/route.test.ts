@@ -58,7 +58,7 @@ const BASE = "https://dose.wiki/api/dev/replications/playlists";
 const post = (url: string, body: unknown) =>
   new Request(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: new URL(url).origin },
     body: JSON.stringify(body),
   });
 
@@ -212,7 +212,7 @@ describe("DELETE /api/dev/replications/playlists/[key]", () => {
     signIn("contributor", "bob@example.com");
     convexMocks.mutation.mockRejectedValue(notOwner());
 
-    const response = await DELETE(new Request(`${BASE}/adas-list`, { method: "DELETE" }));
+    const response = await DELETE(new Request(`${BASE}/adas-list`, { method: "DELETE", headers: { Origin: new URL(BASE).origin } }));
 
     expect(response.status).toBe(403);
     expect(convexMocks.mutation).toHaveBeenCalledWith("replicationPlaylists.remove", {
@@ -226,7 +226,7 @@ describe("DELETE /api/dev/replications/playlists/[key]", () => {
     signIn("contributor");
     convexMocks.mutation.mockResolvedValue({ status: "ok", key: "adas-list" });
 
-    const response = await DELETE(new Request(`${BASE}/adas-list`, { method: "DELETE" }));
+    const response = await DELETE(new Request(`${BASE}/adas-list`, { method: "DELETE", headers: { Origin: new URL(BASE).origin } }));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, key: "adas-list" });

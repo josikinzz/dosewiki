@@ -14,11 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Icon } from "@/components/common/Icon";
 import {
   countActiveTaxonomyFilters,
-  type GalleryMode,
   type GalleryTaxonomyFilterState,
 } from "@/features/effects/gallery/galleryModel";
 import { cn } from "@/lib/utils";
@@ -91,8 +89,6 @@ const CHIP_LABELS: Record<FilterKey, string> = {
 
 export interface ReplicationTaxonomyFiltersProps {
   filters: GalleryTaxonomyFilterState;
-  mode: GalleryMode;
-  onModeChange: (mode: GalleryMode) => void;
   onChange: (filters: GalleryTaxonomyFilterState) => void;
   onClear: () => void;
   drugOptions: ReadonlyArray<FilterOption>;
@@ -102,8 +98,6 @@ export interface ReplicationTaxonomyFiltersProps {
 
 export function ReplicationTaxonomyFilters({
   filters,
-  mode,
-  onModeChange,
   onChange,
   onClear,
   drugOptions,
@@ -149,11 +143,17 @@ export function ReplicationTaxonomyFilters({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
+        {/* Phones get a square icon button (the count rides the glyph's corner)
+            so the control bar fits one row; from `sm` up the label and inline
+            count return. The aria-label carries the count at every width. */}
         <Button
           type="button"
           variant="pill"
-          size="pill"
-          className={cn("shrink-0 gap-1.5", className)}
+          size="auto"
+          className={cn(
+            "relative h-10 w-10 shrink-0 gap-1.5 p-0 text-sm [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 sm:h-auto sm:w-auto sm:px-3.5 sm:py-1.5 sm:[@media(pointer:coarse)]:h-auto sm:[@media(pointer:coarse)]:w-auto sm:[@media(pointer:coarse)]:min-h-11",
+            className,
+          )}
           aria-label={
             activeCount > 0
               ? `Filters, ${activeCount} active`
@@ -163,7 +163,7 @@ export function ReplicationTaxonomyFilters({
           <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
           <span className="hidden sm:inline">Filters</span>
           {activeCount > 0 ? (
-            <span className="theme-badge-surface rounded-full px-1.5 text-[0.6875rem] font-semibold text-dose-accent-strong">
+            <span className="theme-badge-surface absolute right-1 top-1 min-w-4 rounded-full px-1 text-[0.625rem] font-semibold leading-4 text-dose-accent-strong sm:static sm:min-w-0 sm:px-1.5 sm:text-[0.6875rem] sm:leading-normal">
               {activeCount}
             </span>
           ) : null}
@@ -174,30 +174,6 @@ export function ReplicationTaxonomyFilters({
         collisionPadding={8}
         className="max-h-[min(var(--radix-popover-content-available-height),38rem)] w-[calc(100vw-1rem)] space-y-4 overflow-y-auto sm:w-80"
       >
-        <div className="sm:hidden">
-          <p className="theme-text-faint mb-2 text-xs font-medium uppercase tracking-[0.14em]">
-            Browse by
-          </p>
-          <ToggleGroup
-            type="single"
-            variant="pill"
-            value={mode}
-            onValueChange={(value) => {
-              if (!value) return;
-              setOpen(false);
-              onModeChange(value as GalleryMode);
-            }}
-            aria-label="Browse by"
-          >
-            <ToggleGroupItem value="artist" className="min-h-11 flex-1">
-              By artist
-            </ToggleGroupItem>
-            <ToggleGroupItem value="effect" className="min-h-11 flex-1">
-              By effect
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-
         {GENERAL_KEYS.map(renderSelect)}
 
         <fieldset className="space-y-4 rounded-xl border border-dose-divider p-3">

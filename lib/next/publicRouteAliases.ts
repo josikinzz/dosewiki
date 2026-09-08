@@ -47,11 +47,6 @@ const explicitEffectCategoryAliases = {
 
 export { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
-export function getCategoryRouteAliasParams(): { categoryKey: string }[] {
-  return Object.keys(explicitCategoryAliases).map((categoryKey) => ({
-    categoryKey,
-  }));
-}
 
 export function getEffectCategoryRouteAliasParams(): {
   categorySlug: string;

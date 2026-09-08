@@ -31,7 +31,7 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
 import { POST } from "./route";
 
 const request = () =>
-  new Request("https://dose.wiki/api/dev/replications/upload-url", { method: "POST" });
+  new Request("https://dose.wiki/api/dev/replications/upload-url", { method: "POST", headers: { Origin: "https://dose.wiki" } });
 
 describe("replication upload-url route", () => {
   beforeEach(() => {

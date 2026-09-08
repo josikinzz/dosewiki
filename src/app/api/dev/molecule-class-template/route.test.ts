@@ -26,10 +26,20 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: convexMocks.getServerConvexWriteCapability,
 }));
 
+const publishMocks = vi.hoisted(() => ({
+  publishPublicCache: vi.fn(async () => [
+    { target: "local", status: "accepted", attempts: 1 },
+  ]),
+}));
+
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
+}));
+
 function postRequest(path: string, body: unknown) {
   return new Request(`https://dose.wiki/api/dev/${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -92,5 +102,54 @@ describe("molecule class template routes", () => {
         classKey: "phenethylamines",
       }),
     );
+  });
+
+  it("publishes every applied member plus the class index", async () => {
+    convexMocks.mutation.mockImplementation(async (_reference, args: { slug: string }) => ({
+      applied: true,
+      slug: args.slug,
+      updated: true,
+    }));
+
+    const response = await APPLY_POST(
+      postRequest("molecule-class-template/apply", {
+        classKey: "phenethylamines",
+        members: [
+          { slug: "2c-b", molblock: "mol", svg: "<svg />" },
+          { slug: "mescaline", molblock: "mol", svg: "<svg />" },
+        ],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [
+        { kind: "molecule", slug: "2c-b" },
+        { kind: "molecule", slug: "mescaline" },
+        { kind: "chemical-class-lists" },
+      ],
+      source: "manual",
+    });
+    expect(await response.json()).toMatchObject({
+      publication: [{ target: "local", status: "accepted" }],
+    });
+  });
+
+  it("publishes nothing when every member was protected from the template", async () => {
+    convexMocks.mutation.mockImplementation(async (_reference, args: { slug: string }) => ({
+      applied: false,
+      slug: args.slug,
+      reason: "protected-hand-edit",
+    }));
+
+    const response = await APPLY_POST(
+      postRequest("molecule-class-template/apply", {
+        classKey: "phenethylamines",
+        members: [{ slug: "2c-b", molblock: "mol", svg: "<svg />" }],
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 });

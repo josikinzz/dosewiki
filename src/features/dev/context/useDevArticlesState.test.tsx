@@ -129,10 +129,9 @@ describe("useDevArticlesState", () => {
         result.current.hydrateArticles(new Map([["lsd", whole("lsd", "A whole article.")]]));
       });
 
-      // The edit outranks the fetch that raced it, but the baseline is still
-      // filled in so the save diff compares whole article against whole article.
+      // The edit and the source it was based on both outrank a late fetch.
       expect(result.current.articles[0].title).toBe("LSD (local)");
-      expect(result.current.getOriginalArticles()[0].summary).toBe("A whole article.");
+      expect(result.current.getOriginalArticles()[0].summary).toBe("");
     });
 
     it("ignores an empty batch", () => {

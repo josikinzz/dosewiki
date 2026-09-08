@@ -7,13 +7,17 @@
  *   - `dosage.routes[].notes` free text only where a number-anchored token matches
  *     (`4000 ug`, `100-200ug`); words like "drug" can never match.
  *
- * Every write goes through the allow-listed `substanceIndex:setArticleField` mutation
- * with the read value as `expected`, so concurrent edits are refused, never clobbered.
+ * Every article is published atomically through `articleLifecycle:write` against a
+ * fresh revision baseline, after refusing stale or reordered dosage plans.
  * Dry-run by default; live writes follow the shared data-ops ceremony.
  */
 import { ConvexHttpClient } from "convex/browser";
+import type { FunctionArgs } from "convex/server";
+import { isDeepStrictEqual } from "node:util";
 import { api } from "../../convex/_generated/api.js";
 import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
+import { contentHash } from "../../lib/proposals/contentHash";
+import { buildFieldPath, getArticleValueByPath, setArticleValueByPath } from "../../src/data/schema/fieldPath";
 import {
   createDataOpsRunContext,
   assertDataOpsWriteAllowed,
@@ -39,8 +43,6 @@ export type DoseUnitEdit = {
   expected: unknown;
 };
 
-type EditableFieldWriteValue = string | { unit: string; min: number; max: number };
-
 type ArticleLike = {
   slug?: string;
   title?: string;
@@ -61,14 +63,14 @@ export function planDoseUnitEdits(articles: ArticleLike[]): DoseUnitEdit[] {
     routes.forEach((route, routeIndex) => {
       const doseRanges = route.dose_ranges;
       if (doseRanges && typeof doseRanges === "object") {
-        for (const [tier, range] of Object.entries(doseRanges as Record<string, unknown>)) {
-          if (!range || typeof range !== "object") continue;
-          const unit = (range as Record<string, unknown>).unit;
+        for (const [tier, range] of Object.entries(doseRanges)) {
+          if (!range || typeof range !== "object" || !("unit" in range)) continue;
+          const unit = range.unit;
           if (typeof unit !== "string") continue;
           if (!UNIT_VARIANTS.has(unit.trim().toLowerCase())) continue;
           edits.push({
             slug,
-            path: `dosage.routes[${routeIndex}].dose_ranges.${tier}`,
+            path: buildFieldPath("dosage", "routes", routeIndex, "dose_ranges", tier),
             kind: "unit",
             before: unit,
             after: CANONICAL_MICROGRAM,
@@ -82,7 +84,7 @@ export function planDoseUnitEdits(articles: ArticleLike[]): DoseUnitEdit[] {
         if (rewritten !== notes) {
           edits.push({
             slug,
-            path: `dosage.routes[${routeIndex}].notes`,
+            path: buildFieldPath("dosage", "routes", routeIndex, "notes"),
             kind: "notes",
             before: notes,
             after: rewritten,
@@ -97,7 +99,10 @@ export function planDoseUnitEdits(articles: ArticleLike[]): DoseUnitEdit[] {
 
 function editValue(edit: DoseUnitEdit): unknown {
   if (edit.kind === "notes") return edit.after;
-  return { ...(edit.expected as Record<string, unknown>), unit: CANONICAL_MICROGRAM };
+  if (!edit.expected || typeof edit.expected !== "object" || Array.isArray(edit.expected)) {
+    throw new Error(`Invalid planned dose range: ${edit.slug} ${edit.path}`);
+  }
+  return { ...edit.expected, unit: CANONICAL_MICROGRAM };
 }
 
 function printPlan(edits: DoseUnitEdit[], logger: Pick<Console, "log">): void {
@@ -174,12 +179,12 @@ export async function runNormalizeDoseUnits(
   const lookup = await drainConvexPageQuery({
     client,
     query: api.substanceIndex.getLookupPage,
-  }) as Array<{ slug?: string }>;
+  });
   const articles: ArticleLike[] = [];
   for (const item of lookup) {
     if (!item?.slug) continue;
     const article = await client.query(api.substanceIndex.getBySlug, { slug: item.slug });
-    if (article) articles.push(article as ArticleLike);
+    if (article) articles.push(article);
   }
   logger.log(`Read ${articles.length} article(s) from ${readUrl}.`);
   const edits = planDoseUnitEdits(articles);
@@ -192,31 +197,66 @@ export async function runNormalizeDoseUnits(
 
   assertDataOpsWriteAllowed(context);
   const token = requireAdminIntentToken("editorArticleWrite", { env });
+  const bySlug = new Map<string, DoseUnitEdit[]>();
+  for (const edit of edits) {
+    const group = bySlug.get(edit.slug);
+    if (group) group.push(edit);
+    else bySlug.set(edit.slug, [edit]);
+  }
   const audit = writeAudit({
     operation: OPERATION,
     intent: "editorArticleWrite",
     slug: OPERATION,
-    mutations: edits.map(({ slug, path, kind }) => ({ slug, action: "set_article_field", path, kind })),
+    mutations: [...bySlug].map(([slug, plannedEdits]) => ({ slug, action: "publish", edits: plannedEdits })),
     repoRoot: context.repoRoot,
   });
   const results: unknown[] = [];
+  const operations: Array<Omit<FunctionArgs<typeof api.articleLifecycle.write>, "apiKey" | "actorEmail">> = [];
+  let completed = 0;
   try {
-    for (const edit of edits) {
-      results.push(
-        await client.mutation(api.substanceIndex.setArticleField, {
-          apiKey: token.token,
-          slug: edit.slug,
-          path: edit.path,
-          value: editValue(edit) as unknown as EditableFieldWriteValue,
-          expected: edit.expected as unknown as EditableFieldWriteValue,
-        }),
-      );
+    // Preflight the complete plan before any publication. The service token acts
+    // as the workstation admin; do not invent a delegated member identity.
+    const plannedArticles = new Map(articles.map((article) => [article.slug, article]));
+    for (const [slug, plannedEdits] of bySlug) {
+      const latest = await client.query(api.articleLifecycle.get, { apiKey: token.token, slug });
+      const planned = plannedArticles.get(slug);
+      if (!planned || !isDeepStrictEqual(latest.article.dosage, planned.dosage)) {
+        throw new Error(`Stale dose-unit plan for ${slug}: dosage changed or routes were reordered. Re-run the dry run.`);
+      }
+      let dosage = latest.article.dosage;
+      for (const edit of plannedEdits) {
+        if (!isDeepStrictEqual(getArticleValueByPath(latest.article, edit.path), edit.expected)) {
+          throw new Error(`Stale dose-unit plan for ${slug}: ${edit.path} no longer matches its planned value.`);
+        }
+        dosage = setArticleValueByPath(dosage, edit.path.slice("dosage.".length), editValue(edit));
+      }
+      const request = {
+        slug,
+        baseHash: latest.baseHash,
+        article: { ...latest.article, dosage },
+        summary: "Normalize microgram dose units and number-anchored route notes to µg.",
+      };
+      operations.push({
+        ...request,
+        action: "publish",
+        changeId: `${OPERATION}:${contentHash(request)}`,
+      });
+    }
+    // Persist the exact token-free requests before sending them, retaining stable
+    // change IDs and baselines for safe receipt lookup after an ambiguous failure.
+    updateAudit(audit.path, { status: "applying", operations });
+    for (const operation of operations) {
+      results.push(await client.mutation(api.articleLifecycle.write, { ...operation, apiKey: token.token }));
+      completed += bySlug.get(operation.slug)?.length ?? 0;
     }
     updateAudit(audit.path, { status: "completed", results });
   } catch (error) {
     updateAudit(audit.path, {
       status: "failed",
-      completed: results.length,
+      completed,
+      completedArticles: results.length,
+      results,
+      operations,
       error: error instanceof Error ? error.message : String(error),
     });
     throw error;

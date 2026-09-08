@@ -14,6 +14,7 @@ import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
+import type { ArtistCreditLinks } from "@/features/effects/vcode/artistCreditLinks";
 import type {
   CategoryDetail,
   DosageCategoryGroup,
@@ -40,6 +41,7 @@ interface CategoryPageProps {
   detail: CategoryDetail;
   effects?: CategoryEffect[];
   drugHrefPrefix?: string;
+  artistCreditLinks?: ArtistCreditLinks;
 }
 
 const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
@@ -52,7 +54,13 @@ const ASIDE_COPY_CLASS = "theme-text-faint type-detail-copy type-reading-measure
  * The effect title links to the full article. Uses long_summary for VCode
  * content; falls back to plain summary text - never the full description.
  */
-function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
+function EffectLongSummary({
+  effect,
+  artistCreditLinks,
+}: {
+  effect: CategoryEffect;
+  artistCreditLinks?: ArtistCreditLinks;
+}) {
   const longSummaryContent = normalizeVCodeContent(
     effect.long_summary_ast,
     effect.long_summary_raw,
@@ -82,6 +90,7 @@ function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
             content={longSummaryContent}
             citations={effect.citations}
             subarticles={effect.subarticles}
+            artistCreditLinks={artistCreditLinks}
           />
         </div>
       ) : (
@@ -98,9 +107,11 @@ function EffectLongSummary({ effect }: { effect: CategoryEffect }) {
 function EffectSection({
   section,
   effects,
+  artistCreditLinks,
 }: {
   section: DrugClassSection;
   effects: CategoryEffect[];
+  artistCreditLinks?: ArtistCreditLinks;
 }) {
   if (effects.length === 0) {
     return null;
@@ -116,7 +127,11 @@ function EffectSection({
       <p className={BODY_COPY_CLASS}>{section.description}</p>
       <div className="space-y-8">
         {effects.map((effect) => (
-          <EffectLongSummary key={effect._id ?? effect.slug} effect={effect} />
+          <EffectLongSummary
+            key={effect._id ?? effect.slug}
+            effect={effect}
+            artistCreditLinks={artistCreditLinks}
+          />
         ))}
       </div>
     </ArticleSection>
@@ -170,9 +185,11 @@ function EffectSectionPanel({
 function DrugClassArticleSection({
   content,
   sections,
+  artistCreditLinks,
 }: {
   content: DrugClassContent;
   sections: CategorySectionWithEffects[];
+  artistCreditLinks?: ArtistCreditLinks;
 }) {
   const fullSummarySections = sections.slice(0, INITIAL_DRUG_CLASS_SECTION_LIMIT);
   const linkPreviewSections = sections.slice(INITIAL_DRUG_CLASS_SECTION_LIMIT);
@@ -205,6 +222,7 @@ function DrugClassArticleSection({
           key={section.title}
           section={section}
           effects={sectionEffects}
+          artistCreditLinks={artistCreditLinks}
         />
       ))}
 
@@ -237,6 +255,7 @@ export function CategoryPage({
   detail,
   effects = [],
   drugHrefPrefix,
+  artistCreditLinks,
 }: CategoryPageProps) {
   const drugClassContent = getDrugClassContent(detail.definition.key);
   const sectionsWithEffects = resolveDrugClassSections(drugClassContent, effects);
@@ -293,6 +312,7 @@ export function CategoryPage({
           <DrugClassArticleSection
             content={drugClassContent}
             sections={sectionsWithEffects}
+            artistCreditLinks={artistCreditLinks}
           />
         )}
 

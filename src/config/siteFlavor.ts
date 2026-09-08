@@ -361,12 +361,12 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   aboutTitle: "About dose.wiki",
   about: {
     reuseNotice: {
-      leadIn: "Everything dose.wiki writes is dedicated to the public domain under",
+      leadIn: "dose.wiki's own writing, dataset schema, and normalization work are dedicated to the public domain under",
       linkLabel: "CC0",
       linkHref: "/docs/license",
       linkIsExternal: false,
       trailing:
-        ". Third-party material in the download keeps its own terms, and the license page lists them.",
+        ". Downloads also include third-party material with separate terms. See the license page before reusing it.",
     },
     // dose.wiki's About prose is editor-managed in Convex.
     missionMarkdown: null,
@@ -379,20 +379,20 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
         icon: "lucide:workflow",
         title: "How articles are made",
         description:
-          "The full content pipeline: sources, synthesis, human review, and citations.",
+          "Sources, AI drafting, human review, and citation checks for substance articles.",
       },
       {
         href: "/docs/code",
         icon: "lucide:code-2",
         title: "How dose.wiki is built",
         description:
-          "A tour of the codebase: architecture, the data layer, and the systems behind the site.",
+          "The codebase, data layer, and systems behind the site.",
       },
       {
         href: "/docs/license",
         icon: "lucide:scale",
         title: "License & reuse",
-        description: "What you can do with our content, dataset, code, and the parts we don't own.",
+        description: "Reuse terms for our writing, datasets, code, and third-party material.",
       },
     ],
     contact: {

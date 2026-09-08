@@ -8,7 +8,7 @@ import { projectEditorArticle } from "./substanceReadProjections";
 
 export type ProposalTargetKind = Doc<"changeProposals">["targets"][number]["kind"];
 
-/** A target as the caller names it: the base hash is only ever read from production. */
+/** A target derived from the proposed writes, never accepted as an apply instruction. */
 export type ProposalTargetRef = { kind: ProposalTargetKind; key: string };
 
 /** The proposal body as far as target derivation reads it. */
@@ -85,17 +85,22 @@ function contentOf(row: Record<string, unknown> | null): unknown {
   return content;
 }
 
+/** Keep existing proposal CAS identities while snapshots retain unprojected storage content. */
+export function proposalHashDocument(kind: ProposalTargetKind, document: unknown): unknown {
+  if (kind !== "article" || document === null) return document;
+  return contentOf(projectEditorArticle(document as Doc<"substanceIndex">) as Record<string, unknown>);
+}
+
 /**
- * The production document a target names, as it stands right now. Articles
- * read through the editor projection (what the shell loaded and diffed
- * against); layouts and site rows read as stored. A missing row reads as
- * `null`, so a proposal that creates something records "was absent". This is
- * both what `hashProposalTarget` hashes and what apply keeps as
- * `snapshotBefore`, so a revert writes back exactly what was hashed.
+ * The production document a target names. The default editor view preserves
+ * the CAS identity of existing proposals and loaded editor baselines. Stored
+ * views retain exact article data for diffs, journals, and guarded restoration.
+ * A missing row reads as null.
  */
 export async function readProposalTarget(
   ctx: QueryCtx | MutationCtx,
   target: ProposalTargetRef,
+  articleView: "editor" | "stored" = "editor",
 ): Promise<unknown> {
   switch (target.kind) {
     case "article": {
@@ -110,7 +115,8 @@ export async function readProposalTarget(
         });
       }
       const row = matches[0];
-      return row ? contentOf(projectEditorArticle(row) as Record<string, unknown>) : null;
+      const document = contentOf(row ?? null);
+      return articleView === "stored" ? document : proposalHashDocument("article", document);
     }
     case "indexLayout": {
       if (target.key !== "psychoactive" && target.key !== "chemical" && target.key !== "mechanism") {

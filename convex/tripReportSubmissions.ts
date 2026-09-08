@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import {
   assertAuthorNameClaimAdjudicated,
@@ -13,7 +14,6 @@ import {
   tripReportSubjectValidator,
   tripReportSubstanceValidator,
 } from "./tripReportContract";
-import { syncTripReportSubstanceRows } from "./lib/tripReportSubstanceIndex";
 import { findMembershipByEmail } from "./lib/tripReportOwnership";
 
 const statusValidator = v.union(
@@ -105,7 +105,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     // Public intake relays an unauthenticated submitter: the server acts as
     // itself, so no actor is delegated.
-    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "editorArticleWrite" }, "editor");
+    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "publicIntakeCreate" }, "editor");
 
     // The intake route relays an unauthenticated submitter, so the payload
     // cannot be trusted with contributor attribution or reader-facing links
@@ -344,7 +344,6 @@ export async function promoteHandler(
     ...payload,
     ...(owner ? { owner_email: owner.email } : {}),
   });
-  await syncTripReportSubstanceRows(ctx, reportId, payload.substances);
   const timestamp = new Date().toISOString();
   const patch = {
     status: "exported" as const,

@@ -44,6 +44,7 @@ describe("server Convex write capability", () => {
   beforeEach(() => {
     process.env = { ...ORIGINAL_ENV };
     delete process.env.CONVEX_ADMIN_KEY;
+    delete process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE;
     delete process.env.CONVEX_URL;
     delete process.env.VITE_CONVEX_URL;
     delete process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -105,6 +106,25 @@ describe("server Convex write capability", () => {
         issues: ["Missing CONVEX_ADMIN_KEY on the server.", "Missing Convex URL on the server."],
       });
     }
+  });
+
+  it("keeps public intake and editorial credentials separate in both directions", async () => {
+    const module = await loadModule();
+    process.env.CONVEX_URL = "https://glad-minnow-656.convex.cloud";
+    process.env.CONVEX_ADMIN_KEY = "editorial-secret";
+    expect(module.getPublicIntakeWriteCapability()).toBeNull();
+
+    delete process.env.CONVEX_ADMIN_KEY;
+    process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "intake-only-secret";
+    expect(module.getPublicIntakeWriteCapability()).not.toBeNull();
+    expect(module.getServerConvexWriteCapability()).toMatchObject({
+      ok: false,
+      failure: { missing: ["adminKey"] },
+    });
+
+    delete process.env.CONVEX_URL;
+    process.env.CONVEX_PUBLIC_READ_URL = "https://glad-minnow-656.convex.cloud";
+    expect(module.getPublicIntakeWriteCapability()).toBeNull();
   });
 
   it("returns a ready capability with health facts and caches the client by write URL", async () => {
@@ -182,6 +202,11 @@ describe("server Convex write capability", () => {
     const setField = makeFunctionReference<"mutation", { apiKey: string; actorEmail?: string; slug: string }, unknown>(
       "substanceIndex:setArticleField",
     );
+    const submitTripReport = makeFunctionReference<
+      "mutation",
+      { apiKey: string; submission: { id: string } },
+      unknown
+    >("tripReportSubmissions:create");
     const syncAction = makeFunctionReference<"action", { apiKey: string; actorEmail?: string }, unknown>(
       "replications:sync",
     );
@@ -206,6 +231,20 @@ describe("server Convex write capability", () => {
         client.mutation(setField, { apiKey: "admin-key", actorEmail: "   ", slug: "lsd" }),
       ).rejects.toThrow("Server Convex write without actorEmail: substanceIndex:setArticleField");
       expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+    it("permits only allowlisted public intake mutations to run as the server", async () => {
+      const client = await readyClient();
+      const args = { apiKey: "admin-key", submission: { id: "submission-1" } };
+
+      await expect(client.mutationAsService(submitTripReport, args)).resolves.toEqual({ updated: 1 });
+      await expect(
+        client.mutationAsService(setField, { apiKey: "admin-key", slug: "lsd" }),
+      ).rejects.toThrow(
+        "Server Convex service mutation is not allowlisted: substanceIndex:setArticleField",
+      );
+
+      expect(mocks.mutation).toHaveBeenCalledTimes(1);
+      expect(mocks.mutation).toHaveBeenCalledWith(submitTripReport, args, undefined);
     });
 
     it("passes a mutation that names its actor through with args and options intact", async () => {

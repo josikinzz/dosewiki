@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 import { PAGE_SOCIAL_CARD_KEYS } from "../../src/data/mappings/pageSocialCardUrl";
 import { renderPageSocialCardPng } from "./pageSocialCard";
 
+const replicationCounts = { total: 6634, artists: 1539, effects: 103, images: 5786, videos: 848 };
+
 describe("renderPageSocialCardPng", () => {
   it.each(PAGE_SOCIAL_CARD_KEYS)("renders the %s card as a populated square PNG", async (key) => {
-    const png = await renderPageSocialCardPng(key);
+    const png = await renderPageSocialCardPng(key, replicationCounts);
     const { data, info } = await sharp(png)
       .raw()
       .toBuffer({ resolveWithObject: true });
@@ -26,7 +28,7 @@ describe("renderPageSocialCardPng", () => {
   it.each(PAGE_SOCIAL_CARD_KEYS)(
     "brands the %s card in the top-left corner",
     async (key) => {
-      const png = await renderPageSocialCardPng(key);
+      const png = await renderPageSocialCardPng(key, replicationCounts);
       const { data, info } = await sharp(png)
         .extract({ left: 54, top: 45, width: 230, height: 58 })
         .raw()
@@ -52,7 +54,7 @@ describe("renderPageSocialCardPng", () => {
   );
 
   it("features the selected replication above its compact navigation", async () => {
-    const png = await renderPageSocialCardPng("replications");
+    const png = await renderPageSocialCardPng("replications", replicationCounts);
     const { data, info } = await sharp(png)
       .extract({ left: 108, top: 308, width: 984, height: 553 })
       .raw()

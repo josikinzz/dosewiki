@@ -91,28 +91,25 @@ describe("DevModePageChrome rail", () => {
       />,
     );
 
-    const siteTrigger = getByRole("button", { name: "Site" });
-    const menu = openMenu(siteTrigger);
-    const items = within(menu).getAllByRole("menuitem").map((item) => item.textContent);
-    expect(items).toEqual(
-      TOOL_TABS.filter((tab) => tab.group === "site").map((tab) => tab.label),
-    );
+    const intakeTrigger = getByRole("button", { name: "Intake" });
+    const menu = openMenu(intakeTrigger);
 
-    fireEvent.click(within(menu).getByRole("menuitem", { name: "Queue" }));
+    fireEvent.click(within(menu).getByRole("menuitem", { name: "Change Review" }));
     expect(onTabChange).toHaveBeenCalledWith("queue");
   });
 
   it("rolls group badges up onto the menu trigger and keeps full accessible names", () => {
-    badgeState.counts = { "trip-reports": 3, feedback: 12 };
+    badgeState.counts = { "trip-reports": 3, feedback: 12, proposals: 2 };
     try {
       const { nav } = renderChrome("articles", "admin");
 
-      const trigger = within(nav).getByRole("button", { name: "Intake, 15 awaiting review" });
-      expect(within(trigger).getByTitle("15 awaiting review").textContent).toBe("15");
+      const trigger = within(nav).getByRole("button", { name: "Intake, 17 awaiting review" });
+      expect(within(trigger).getByTitle("17 awaiting review").textContent).toBe("17");
 
       const menu = openMenu(trigger);
       const feedback = within(menu).getByRole("menuitem", { name: "Feedback, 12 awaiting review" });
       expect(within(feedback).getByTitle("12 awaiting review")).toBeTruthy();
+      expect(within(menu).getByRole("menuitem", { name: "Change Review, 2 awaiting review" })).toBeTruthy();
     } finally {
       badgeState.counts = {};
     }
@@ -131,8 +128,8 @@ describe("DevModePageChrome rail", () => {
   it("marks the menu trigger active when the current tool lives inside it", () => {
     const { nav } = renderChrome("queue", "admin");
 
-    const siteTrigger = within(nav).getByRole("button", { name: "Site" });
-    expect(siteTrigger.hasAttribute("data-active")).toBe(true);
+    const intakeTrigger = within(nav).getByRole("button", { name: "Intake" });
+    expect(intakeTrigger.hasAttribute("data-active")).toBe(true);
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
   });
 
@@ -183,11 +180,11 @@ describe("DevModePageChrome rail", () => {
   it("moves admin tools into the Locked menu with reasons for an editor", () => {
     const { nav, getByText } = renderChrome("articles", "editor");
 
-    // Content keeps only the editor-floor tools inline; Intake is entirely locked.
+    // Content keeps only the editor-floor tools inline; Intake includes Change Review.
     const content = within(nav).getByRole("group", { name: "Content" });
     const contentItems = Array.from(content.querySelectorAll("button, a")).map((el) => el.textContent?.trim());
     expect(contentItems).toEqual(["Substances", "Review", "Tags", "Index layout"]);
-    expect(within(nav).queryByRole("button", { name: "Intake" })).toBeNull();
+    expect(within(nav).getByRole("button", { name: "Intake" })).toBeTruthy();
     expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
 
     const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 7 locked" });
@@ -332,7 +329,7 @@ describe("DevModePageChrome phone sheet", () => {
 
     // Every tool is listed; locked ones carry their reason inline.
     for (const tab of SHELL_TABS) {
-      const row = within(menu).getByRole("button", { name: new RegExp(`^${tab.label}`) });
+      const row = within(menu).getByRole("button", { name: new RegExp(`^${tab.id === "queue" ? "My submissions" : tab.label}`) });
       expect(row.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
       if (!roleMeetsFloor("editor", tab.role)) {
         expect(row).toBeDisabled();
@@ -350,10 +347,10 @@ describe("DevModePageChrome phone sheet", () => {
 
   it("focuses and reveals the active row on open instead of the first row", () => {
     const { getByRole } = renderPhone("editor", "queue");
-    fireEvent.click(getByRole("button", { name: "Tools menu, current tool Queue" }));
+    fireEvent.click(getByRole("button", { name: "Tools menu, current tool My submissions" }));
 
     const sheet = getByRole("dialog");
-    const active = within(sheet).getByRole("button", { name: "Queue" });
+    const active = within(sheet).getByRole("button", { name: "My submissions" });
     expect(document.activeElement).toBe(active);
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
   });

@@ -18,18 +18,21 @@
  *    would be invisible everywhere. The save path derives the legacy field from
  *    `status` and sends both, which is what makes a published row actually
  *    appear.
- * 2. **Cache revalidation.** `PUBLIC_CONVEX_CACHE_TAGS.articles` is expired on
- *    every save, so a publish shows up on `/articles`, `/blog` and the route
- *    plan in seconds rather than at the end of the 15-minute public-data window.
- *    The tag covers both families: dose.wiki blog posts are `effectIndexArticles`
- *    rows and ride the article tag, not the archive's `blog` tag.
+ * 2. **Cache publication.** Every save publishes the `writing-articles`
+ *    identity through the shared seam, which expires
+ *    `PUBLIC_CONVEX_CACHE_TAGS.articles` here and delivers the same identity
+ *    to the public deployments, so a publish shows up on `/articles`, `/blog`
+ *    and the route plan in seconds rather than at the end of the 15-minute
+ *    public-data window. The tag covers both families: dose.wiki blog posts
+ *    are `effectIndexArticles` rows and ride the article tag, not the
+ *    archive's `blog` tag.
  */
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { contentHash } from "../../../../../lib/proposals/contentHash";
 
 export const runtime = "nodejs";
 
@@ -46,6 +49,9 @@ const MAX_AUTHORS = 12;
 type WritingArticleBody = {
   slug?: unknown;
   originalSlug?: unknown;
+  expectedRevision?: unknown;
+  operationId?: unknown;
+  bodyFormat?: unknown;
   kind?: unknown;
   status?: unknown;
   title?: unknown;
@@ -64,6 +70,9 @@ type ParsedWritingArticle = {
    * mutation renames that row instead of inserting a second one.
    */
   originalSlug?: string;
+  expectedRevision: string;
+  operationId: string;
+  bodyFormat: "vcode" | "markdown";
   kind: "article" | "blog";
   status: "draft" | "published";
   title: string;
@@ -118,6 +127,9 @@ function stringList(raw: unknown, label: string, maxItems: number): string[] {
 
 function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingArticle {
   const slug = requireSlug(raw.slug);
+  if (typeof raw.expectedRevision !== "string" || !/^[a-f0-9]{64}$/.test(raw.expectedRevision)) throw new JsonBodyError(400, "Reload this writing document before publishing.");
+  if (typeof raw.operationId !== "string" || !/^[a-f0-9-]{36}$/i.test(raw.operationId)) throw new JsonBodyError(400, "A valid publication operation is required.");
+  if (raw.bodyFormat !== "markdown" && raw.bodyFormat !== "vcode") throw new JsonBodyError(400, "The original writing format is required.");
 
   if (raw.kind !== "article" && raw.kind !== "blog") {
     throw new JsonBodyError(400, "A writing row must be an article or a blog post.");
@@ -150,6 +162,9 @@ function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingArticle 
 
   return {
     slug,
+    expectedRevision: raw.expectedRevision,
+    operationId: raw.operationId,
+    bodyFormat: raw.bodyFormat,
     originalSlug: originalSlug
       ? requireSlug(originalSlug, "The original slug must be a valid slug")
       : undefined,
@@ -205,7 +220,7 @@ export const GET = protectedRouteOperation<undefined, undefined>({
       actorEmail,
     });
 
-    return NextResponse.json({ ok: true, articles });
+    return NextResponse.json({ ok: true, articles, emptyRevision: contentHash(null) });
   },
 });
 
@@ -232,22 +247,25 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       actorEmail,
       slug: body.slug,
       originalSlug: body.originalSlug,
+      expectedRevision: body.expectedRevision,
+      operationId: body.operationId,
       title: body.title,
       kind: body.kind,
       status: body.status,
       // Kept in step with `status` on purpose; see the file header.
       publication_status: body.status === "published" ? "published" : "draft",
-      bodyFormat: "markdown",
+      bodyFormat: body.bodyFormat,
       body_raw: body.body,
       teaser: body.teaser,
+      shortDescription: body.teaser,
       coverImageUrl: body.coverImageUrl,
       tags: body.tags,
       authorProfileKeys: body.authorProfileKeys,
       publicationDate: body.publicationDate,
     });
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.articles, { expire: 0 });
+    await publishPublicCache({ targets: [{ kind: "writing-articles" }], source: "manual" });
 
-    return NextResponse.json({ ok: true, slug: result.slug, created: result.created });
+    return NextResponse.json({ ok: true, slug: result.slug, created: result.created, revision: result.revision });
   },
 });

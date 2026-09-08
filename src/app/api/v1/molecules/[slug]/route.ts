@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { api } from "../../../../../../convex/_generated/api";
 import {
   applyMoleculeColorway,
   type MoleculeColorway,
 } from "@/data/mappings/moleculePalette";
-import { getServerConvexReadClient } from "@server/convex/serverClient";
+import { getPublicMolecule } from "@server/convex/publicData.molecules";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import {
   applyPublicApiCors,
@@ -36,7 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const rawSlug = (await params).slug;
   const slug = rawSlug.endsWith(".svg") ? rawSlug.slice(0, -4) : rawSlug;
   const scheme = new URL(request.url).searchParams.get("scheme") ?? "dosewiki";
-  if (!SLUG_RE.test(slug) || !isMoleculeScheme(scheme)) {
+  if (slug.length > 128 || !SLUG_RE.test(slug) || !isMoleculeScheme(scheme)) {
     return NextResponse.json(publicApiError("invalid_request", "slug or scheme is invalid."), {
       status: 400,
       headers: getPublicApiResponseHeaders({ cache: false }),
@@ -46,8 +45,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   let svg: string | null = null;
   try {
-    const override = await getServerConvexReadClient().query(api.moleculeOverrides.getBySlug, { slug });
-    svg = override?.svg ?? null;
+    svg = (await getPublicMolecule(slug))?.svg ?? null;
   } catch (error) {
     console.error(`Failed to read DoseWiki public API molecule ${slug}:`, error);
     return NextResponse.json(publicApiError("service_unavailable", "Molecule data is temporarily unavailable."), {

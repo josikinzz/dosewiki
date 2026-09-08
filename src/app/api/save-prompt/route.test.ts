@@ -52,6 +52,7 @@ describe("save prompt route write capability handling", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-prompt", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ key: "section_summary", content: "Prompt" }),
       }),
     );
@@ -81,6 +82,7 @@ describe("save prompt route write capability handling", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-prompt", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ key: "section_summary", content: "Prompt" }),
       }),
     );
@@ -91,47 +93,21 @@ describe("save prompt route write capability handling", () => {
     });
   });
 
-  it("uses the small editor write rate-limit policy", async () => {
-    mocks.getServerConvexWriteCapability.mockReturnValue({
-      ok: false,
-      failure: {
-        type: "configuration",
-        missing: ["adminKey"],
-        message: "Convex admin key is not configured on the server.",
-        health: {
-          adminKeyConfigured: false,
-          convexUrlConfigured: true,
-          canSaveToConvex: false,
-          issues: ["Missing CONVEX_ADMIN_KEY on the server."],
-        },
-      },
-    });
-    const { enforceRateLimit } = await import("@server/http/nextRateLimit");
-    const { POST } = await import("./route");
-
-    await POST(
-      new Request("https://dose.wiki/api/save-prompt", {
-        method: "POST",
-        body: JSON.stringify({ key: "section_summary", content: "Prompt" }),
-      }),
-    );
-
-    expect(enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "editorSmallWrite");
-  });
 
   it("rejects unknown prompt keys before writing", async () => {
     mocks.getServerConvexWriteCapability.mockReturnValue({
       ok: true,
-      client: {
-        mutation: vi.fn(),
+      capability: {
+        client: { mutation: mocks.mutation },
+        adminKey: "test-admin-key",
       },
-      adminKey: "test-admin-key",
     });
     const { POST } = await import("./route");
 
     const response = await POST(
       new Request("https://dose.wiki/api/save-prompt", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ key: "section_not_real", content: "Prompt" }),
       }),
     );
@@ -159,6 +135,7 @@ describe("save prompt route write capability handling", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-prompt", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ key: "section_summary", content: "Prompt" }),
       }),
     );

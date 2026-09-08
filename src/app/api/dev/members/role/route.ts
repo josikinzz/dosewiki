@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 type RoleBody = MemberActionBody & { role?: unknown };
 type ParsedRole = { email: string; role: "editor" | "contributor" };
 
-export function parseRoleBody(raw: RoleBody): ParsedRole {
+function parseRoleBody(raw: RoleBody): ParsedRole {
   const { email } = parseMemberEmail(raw);
   if (raw.role !== "editor" && raw.role !== "contributor") {
     throw new JsonBodyError(400, "Role must be editor or contributor.");

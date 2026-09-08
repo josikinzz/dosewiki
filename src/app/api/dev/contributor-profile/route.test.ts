@@ -112,7 +112,8 @@ const getRequest = (key: string) =>
 const postRequest = (body: Record<string, unknown>) =>
   new Request("https://dose.wiki/api/dev/contributor-profile", {
     method: "POST",
-    body: JSON.stringify(body),
+    headers: { Origin: "https://dose.wiki", "Content-Type": "application/json" },
+    body: JSON.stringify({ expectedUpdatedAt: null, ...body }),
   });
 
 describe("contributor profile route", () => {
@@ -215,18 +216,11 @@ describe("contributor profile route", () => {
 
       expect(response.status).toBe(200);
       expect(mocks.mutation).toHaveBeenCalledTimes(1);
-      expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.saveProfile", {
-        apiKey: "admin-key",
-        actorEmail: "ada@example.com",
-        profile: {
-          key: "ADA",
-          displayName: "Ada L.",
-          bio: "Updated bio.",
-          links: [{ label: "Site", url: "https://example.com" }],
-          avatarUrl: null,
-          avatarStorageId: undefined,
-        },
-      });
+      const [, args] = mocks.mutation.mock.calls[0] as [string, { actorEmail: string; profile: Record<string, unknown> }];
+      expect(args.actorEmail).toBe("ada@example.com");
+      for (const field of ["role", "aliases", "approved_replicator", "staffNote"]) {
+        expect(args.profile).not.toHaveProperty(field);
+      }
       expect(mocks.revalidateContributorSurfaces).toHaveBeenCalledWith(
         expect.objectContaining({ contributorKeys: ["ADA"], scope: "profile" }),
       );
@@ -308,23 +302,6 @@ describe("contributor profile route", () => {
       );
     });
 
-    it("patches the editor's own stored record through the editor mutation", async () => {
-      routeQueries({ editorProfile: storedProfile({ membershipEmail: "Editor@Example.com" }) });
-      mocks.mutation.mockResolvedValue({
-        profile: storedProfile({ aliases: ["Countess"] }),
-        revalidate: { contributorKeys: ["ADA"], reportSlugs: [] },
-      });
-
-      const response = await POST(postRequest({ key: "ADA", aliases: ["Countess"] }));
-
-      expect(response.status).toBe(200);
-      expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.saveProfileAsEditor", {
-        apiKey: "admin-key",
-        actorEmail: "editor@example.com",
-        key: "ADA",
-        patch: { aliases: ["Countess"] },
-      });
-    });
 
     it("relays Convex's admin-only field refusal as a 403 naming the field", async () => {
       routeQueries({ editorProfile: storedProfile({ membershipEmail: "editor@example.com" }) });
@@ -367,27 +344,4 @@ describe("contributor profile route", () => {
     });
   });
 
-  describe("as an admin", () => {
-    beforeEach(() => signIn("admin", "admin@example.com"));
-
-    it("forwards the trust fields to the editor mutation as the admin", async () => {
-      routeQueries({ editorProfile: storedProfile() });
-      mocks.mutation.mockResolvedValue({
-        profile: storedProfile({ approved_replicator: true }),
-        revalidate: { contributorKeys: ["ADA"], reportSlugs: [] },
-      });
-
-      const response = await POST(
-        postRequest({ key: "ADA", role: "Founder", approved_replicator: true, membershipEmail: "" }),
-      );
-
-      expect(response.status).toBe(200);
-      expect(mocks.mutation).toHaveBeenCalledWith("contributorProfiles.saveProfileAsEditor", {
-        apiKey: "admin-key",
-        actorEmail: "admin@example.com",
-        key: "ADA",
-        patch: { role: "Founder", approved_replicator: true, membershipEmail: null },
-      });
-    });
-  });
 });

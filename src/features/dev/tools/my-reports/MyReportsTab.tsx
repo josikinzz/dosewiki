@@ -100,7 +100,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     setSaving(true);
     setNotice(null);
     try {
-      await saveOwnedReport(open.record.id, open.record.fields, open.draft);
+      await saveOwnedReport(open.record.id, open.record.fields, open.draft, open.record.revision);
       // The saved draft becomes the snapshot the next save is checked against.
       const record = await fetchOwnedRecord(open.record.id);
       setOpen({ record, draft: record.fields });

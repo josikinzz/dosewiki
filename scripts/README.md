@@ -195,6 +195,33 @@ mutation, and prints function names but no credential values.
 including the CI gate's current limits, are in
 [docs/agents/convex-credentials.md](../docs/agents/convex-credentials.md).
 
+### Isolated section regeneration (sectionmaxxing)
+
+`/sectionmaxxing` or `/goal continue the sectionmaxxing process till completion` resumes the
+[sectionmaxxing skill](../.agents/skills/sectionmaxxing/SKILL.md). It replaces existing summary,
+pharmacology, tolerance, harm-potential, and history/culture content on every
+URL-only or hidden article. It never regenerates legality or changes visibility.
+
+```sh
+npm run sectionmaxxing:setup
+npm run sectionmaxxing:worker -- preflight
+npm run sectionmaxxing -- --help
+```
+
+The campaign reads production Convex prompts, quotes, and stored sources.
+Independent tool-free workers use the existing OMP OpenAI OAuth account and
+exact Sol-low model, not OpenRouter. Their pinned SDK runtime and lockfile live
+under `tools/section-generation/runtime`; the app's Bun version is unchanged.
+Local campaign state and approved account selection live under ignored
+`runs/section-generation/`.
+
+See the skill's [execution reference](../.agents/skills/sectionmaxxing/reference/execution.md)
+for extraction, generation, recovery, and terminal-state commands, and its
+[publication reference](../.agents/skills/sectionmaxxing/reference/publication.md) for
+digest-bound approval and guarded writes. Fresh prose does not inherit old
+claim citations. Missing evidence is reported explicitly without deleting the
+existing section. `needs_review` is unfinished work, not completion.
+
 ### Batch Generation
 
 ```bash

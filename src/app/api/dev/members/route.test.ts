@@ -51,7 +51,7 @@ const ADMIN = { email: "admin@example.com", name: "Admin" };
 const post = (path: string, body: Record<string, unknown>) =>
   new Request(`https://dev.dose.wiki/api/dev/members/${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", Origin: "https://dev.dose.wiki" },
     body: JSON.stringify(body),
   });
 

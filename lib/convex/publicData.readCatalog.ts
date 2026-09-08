@@ -2,6 +2,7 @@ import type { IndexLayoutType } from "./publicData.shared";
 
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
 const PUBLIC_SUBSTANCE_PAGE_SIZE = 32;
+const PUBLIC_SUBSTANCE_DOCUMENT_PAGE_SIZE = 4;
 // Slug pages carry one string per article, so the item cap can sit far above
 // the preview page size; the query bounds itself by article bytes read.
 const PUBLIC_SUBSTANCE_SLUG_PAGE_SIZE = 160;
@@ -25,7 +26,10 @@ export const publicDataReadCatalog = {
   },
   publicSubstanceCoverageInput: {
     functionName: "substanceIndex:getPublicCoverageInputPage",
-    args: publicSubstancePageArgs,
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_SUBSTANCE_DOCUMENT_PAGE_SIZE,
+    }),
   },
   publicSubstanceMechanismRouteInput: {
     functionName: "substanceIndex:getPublicMechanismRouteInputPage",
@@ -73,7 +77,7 @@ export const publicDataReadCatalog = {
   publicSubstanceFullDocuments: {
     functionName: "substanceIndex:getFullDocumentPage",
     args: (cursor: string | null) => ({
-      paginationOpts: { cursor, numItems: PUBLIC_SUBSTANCE_PAGE_SIZE },
+      paginationOpts: { cursor, numItems: PUBLIC_SUBSTANCE_DOCUMENT_PAGE_SIZE },
     }),
   },
   publicEffectRecords: { functionName: "subjectiveEffects:getPublicPreviews", args: () => ({}) },
@@ -98,10 +102,6 @@ export const publicDataReadCatalog = {
   publicEffectIndexPostBySlug: {
     functionName: "effectIndexArchive:getPostBySlug",
     args: (slug: string) => ({ slug }),
-  },
-  publicReplicationsByEffect: {
-    functionName: "replications:getReplicationsByEffect",
-    args: (effectSlug: string) => ({ effect_slug: effectSlug }),
   },
   publicReplicationGalleryPage: {
     functionName: "replications:getPublicGalleryPage",

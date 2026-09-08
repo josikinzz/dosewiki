@@ -54,6 +54,14 @@ const createVideo = (
 ): HTMLVideoElement => {
   const video = document.createElement("video");
   video.src = src;
+  Object.defineProperties(video, {
+    duration: { configurable: true, value: 30 },
+    readyState: { configurable: true, value: HTMLMediaElement.HAVE_CURRENT_DATA },
+    buffered: {
+      configurable: true,
+      value: { length: 1, start: () => 0, end: () => 30 },
+    },
+  });
   Object.defineProperty(video, "currentTime", {
     configurable: true,
     writable: true,
@@ -97,12 +105,8 @@ const baseProps = (
   volume: 1,
   onMutedChange: vi.fn(),
   onVolumeChange: vi.fn(),
-  quality: "preview",
-  onQualityChange: vi.fn(),
   canRotate: false,
-  rotated: false,
   fullscreenSupported: false,
-  mediaAspect: 16 / 9,
   ...overrides,
 });
 
@@ -161,7 +165,7 @@ describe("ViewerTransport", () => {
     expect(
       screen.getByRole("region", { name: "Tracers loop media controls" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
     const volume = screen.getByRole("slider", { name: "Volume" });
     expect(volume).toHaveValue("0"); // muted presents as zero
@@ -174,7 +178,7 @@ describe("ViewerTransport", () => {
         {...baseProps(silent, { item: item({ has_audio: false }) })}
       />,
     );
-    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Unmute" }),
     ).not.toBeInTheDocument();
@@ -218,7 +222,9 @@ describe("ViewerTransport", () => {
     expect(video.play).toHaveBeenCalledOnce();
   });
 
-  it("retries a refused unmuted play muted, then a surface tap repays the sound IOU", async () => {
+  it.each(["toggleMuted", "togglePlayback"] as const)(
+    "keeps surface taps chrome-only and restores refused audio through %s",
+    async (restoreAudio) => {
     const video = createVideo();
     (video.play as Mock).mockImplementation(function (this: HTMLVideoElement) {
       return this.muted
@@ -253,16 +259,27 @@ describe("ViewerTransport", () => {
     });
     expect(stage).toHaveAttribute("data-controls-visible", "true");
 
-    // The tap repays the debt instead of toggling the chrome away.
+    // Tapping hides chrome without changing the muted fallback.
     act(() => handle!.surfaceTap());
+    expect(video.muted).toBe(true);
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
+
+    // Explicit playback and unmute own restoration without revealing chrome.
+    (video.play as Mock).mockResolvedValue(undefined);
+    if (restoreAudio === "togglePlayback") act(() => handle!.togglePlayback());
+    setPaused(video, true);
+    act(() => handle![restoreAudio]());
     expect(video.muted).toBe(false);
     expect(video.volume).toBe(1);
-    expect(stage).toHaveAttribute("data-controls-visible", "true");
-
-    // With no debt outstanding the same tap is a plain chrome toggle.
-    act(() => handle!.surfaceTap());
+    if (restoreAudio === "toggleMuted") {
+      expect(onMutedChange).toHaveBeenCalledWith(false);
+    } else {
+      expect(onMutedChange).not.toHaveBeenCalled();
+    }
     expect(stage).not.toHaveAttribute("data-controls-visible");
-  });
+    },
+  );
 
   it("adopts an already-playing bound element without any play event", () => {
     const video = createVideo();
@@ -271,117 +288,59 @@ describe("ViewerTransport", () => {
     expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
   });
 
-  it("continues a truncated preview into the full file on ended instead of looping it", () => {
-    const preview = item({
-      preview_url: "https://cdn.test/tracers-preview.mp4",
-    });
-    const video = createVideo("https://cdn.test/tracers-preview.mp4");
-    setDuration(video, 10);
-    setPaused(video, false);
-    const onQualityChange = vi.fn();
-    const { unmount } = render(
-      <ViewerTransport
-        {...baseProps(video, { item: preview, onQualityChange })}
-      />,
-    );
-
-    // A preview 20s short of the catalogued work must not loop.
-    fireEvent(video, new Event("loadedmetadata"));
-    expect(video.loop).toBe(false);
-
-    (video.play as Mock).mockClear();
-    fireEvent(video, new Event("ended"));
-    expect(video.src).toBe("https://cdn.test/tracers.mp4");
-    expect(onQualityChange).toHaveBeenCalledWith("full");
-    expect(video.currentTime).toBe(10); // picks up where the preview ended
-    expect(video.play).toHaveBeenCalledOnce();
-    unmount();
-
-    // A preview as long as the catalogued work loops like any other video.
-    const complete = createVideo("https://cdn.test/tracers-preview.mp4");
-    setDuration(complete, 30);
-    render(<ViewerTransport {...baseProps(complete, { item: preview })} />);
-    fireEvent(complete, new Event("loadedmetadata"));
-    expect(complete.loop).toBe(true);
-  });
-
-  it("sharpens a settled work to the full file after sustained playback", () => {
+  it("keeps the full source and playhead through sustained playback and ending", () => {
     vi.useFakeTimers();
-    const preview = item({
-      preview_url: "https://cdn.test/tracers-preview.mp4",
-    });
-    const video = createVideo("https://cdn.test/tracers-preview.mp4");
-    setDuration(video, 10);
+    const video = createVideo();
+    setDuration(video, 90);
     setPaused(video, false);
-    const onQualityChange = vi.fn();
+    video.currentTime = 25;
     render(
       <ViewerTransport
-        {...baseProps(video, { item: preview, onQualityChange })}
-      />,
-    );
-
-    // A fling moves on before the dwell elapses; nothing fires early.
-    act(() => vi.advanceTimersByTime(900));
-    expect(onQualityChange).not.toHaveBeenCalled();
-
-    act(() => vi.advanceTimersByTime(200));
-    expect(onQualityChange).toHaveBeenCalledWith("full");
-    expect(video.src).toBe("https://cdn.test/tracers.mp4");
-    vi.useRealTimers();
-  });
-
-  it("upgrades to the full file from the HQ button, preserving the playhead", () => {
-    const preview = item({
-      preview_url: "https://cdn.test/tracers-preview.mp4",
-    });
-    const video = createVideo("https://cdn.test/tracers-preview.mp4");
-    video.currentTime = 5;
-    const onQualityChange = vi.fn();
-    const { rerender, unmount } = render(
-      <ViewerTransport
-        {...baseProps(video, { item: preview, onQualityChange })}
-      />,
-    );
-
-    const hq = screen.getByRole("button", { name: "Play original quality" });
-    expect(hq).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(hq);
-    expect(onQualityChange).toHaveBeenCalledWith("full");
-    expect(video.src).toBe("https://cdn.test/tracers.mp4");
-    expect(video.currentTime).toBe(5);
-
-    // aria-pressed mirrors the owning overlay's quality prop.
-    rerender(
-      <ViewerTransport
         {...baseProps(video, {
-          item: preview,
-          onQualityChange,
-          quality: "full",
+          item: item({
+            duration: 90,
+            preview_url: "https://cdn.test/tracers-preview.mp4",
+          }),
         })}
       />,
     );
-    expect(
-      screen.getByRole("button", { name: "Switch to preview quality" }),
-    ).toHaveAttribute("aria-pressed", "true");
-    unmount();
 
-    // No distinct preview, no HQ escape.
-    render(<ViewerTransport {...baseProps(createVideo())} />);
-    expect(
-      screen.queryByRole("button", { name: "Play original quality" }),
-    ).not.toBeInTheDocument();
+    fireEvent(video, new Event("loadedmetadata"));
+    expect(video.loop).toBe(false);
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(video.src).toBe("https://cdn.test/tracers.mp4");
+    expect(video.currentTime).toBe(25);
+    expect(video.load).not.toHaveBeenCalled();
+
+    video.currentTime = 90;
+    fireEvent(video, new Event("ended"));
+    expect(video.src).toBe("https://cdn.test/tracers.mp4");
+    expect(video.currentTime).toBe(90);
+    expect(video.load).not.toHaveBeenCalled();
   });
 
-  it("escalates a seek past the truncated preview's end to the full file", () => {
-    const preview = item({
-      preview_url: "https://cdn.test/tracers-preview.mp4",
-    });
-    const video = createVideo("https://cdn.test/tracers-preview.mp4");
-    setDuration(video, 10);
-    const onQualityChange = vi.fn();
+  it("loops short full videos without consulting their preview duration", () => {
+    const video = createVideo();
+    setDuration(video, 30);
     render(
       <ViewerTransport
-        {...baseProps(video, { item: preview, onQualityChange })}
+        {...baseProps(video, {
+          item: item({ preview_url: "https://cdn.test/tracers-preview.mp4" }),
+        })}
+      />,
+    );
+    fireEvent(video, new Event("loadedmetadata"));
+    expect(video.loop).toBe(true);
+  });
+
+  it("seeks across the full work without replacing its source", () => {
+    const video = createVideo();
+    setDuration(video, 30);
+    render(
+      <ViewerTransport
+        {...baseProps(video, {
+          item: item({ preview_url: "https://cdn.test/tracers-preview.mp4" }),
+        })}
       />,
     );
 
@@ -398,12 +357,14 @@ describe("ViewerTransport", () => {
       toJSON: () => ({}),
     } as DOMRect);
 
-    // The advertised timeline is the catalogued 30s: x=90 targets 27s, far
-    // beyond the 10s preview — swap files rather than clamp.
+    // The complete work is available immediately, including beyond ten seconds.
     fireEvent.pointerDown(slider, { clientX: 90, button: 0, pointerId: 1 });
     expect(video.src).toBe("https://cdn.test/tracers.mp4");
-    expect(onQualityChange).toHaveBeenCalledWith("full");
+    expect(video.load).not.toHaveBeenCalled();
     expect(video.currentTime).toBeCloseTo(27, 5);
+    fireEvent.keyDown(slider, { key: "ArrowRight" });
+    expect(video.currentTime).toBe(30);
+    expect(video.src).toBe("https://cdn.test/tracers.mp4");
   });
 
   it("surfaces a retryable error card that re-runs the load inside the click", () => {
@@ -487,40 +448,111 @@ describe("ViewerTransport", () => {
     expect(stage).toHaveAttribute("data-controls-visible", "true");
   });
 
-  it("pins the chrome while paused and while keyboard focus is inside", () => {
+  it("keeps an explicit hide across next work, play, pause, and ended events", () => {
+    const video = createVideo();
+    let handle: ViewerTransportHandle | null = null;
+    const onTransportHandle = (next: ViewerTransportHandle | null) => {
+      handle = next;
+    };
+    const { rerender } = render(
+      <ViewerTransport {...baseProps(video, { onTransportHandle })} />,
+    );
+
+    // Paused media must be just as hideable as playing media.
+    act(() => handle!.toggleChrome());
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
+
+    const nextVideo = createVideo("https://cdn.test/next.mp4");
+    rerender(
+      <ViewerTransport
+        {...baseProps(nextVideo, {
+          item: item({ slug: "next-work", title: "Next work", url: nextVideo.src }),
+          onTransportHandle,
+        })}
+      />,
+    );
+    const stage = screen.getByRole("region", { name: "Next work media controls" });
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    act(() => handle!.togglePlayback());
+    setPaused(nextVideo, false);
+    fireEvent(nextVideo, new Event("play"));
+    fireEvent(nextVideo, new Event("playing"));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+    act(() => handle!.togglePlayback());
+    fireEvent(nextVideo, new Event("pause"));
+    fireEvent(nextVideo, new Event("ended"));
+    expect(stage).not.toHaveAttribute("data-controls-visible");
+
+    act(() => handle!.toggleChrome());
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "Seek" })).toBeInTheDocument();
+  });
+
+  it("returns focus to the viewer before hiding focused controls", () => {
+    let handle: ViewerTransportHandle | null = null;
+    render(
+      <div role="dialog" aria-label="Viewer" tabIndex={-1}>
+        <ViewerTransport
+          {...baseProps(createVideo(), {
+            onTransportHandle: (next) => { handle = next; },
+          })}
+        />
+      </div>,
+    );
+    const play = screen.getByRole("button", { name: "Pause" });
+    act(() => play.focus());
+    expect(play).toHaveFocus();
+    act(() => handle!.toggleChrome());
+    expect(screen.getByRole("dialog", { name: "Viewer" })).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
+  });
+
+  it("reveals error recovery without forgetting the hidden preference", () => {
     const video = createVideo();
     let handle: ViewerTransportHandle | null = null;
     render(
       <ViewerTransport
         {...baseProps(video, {
-          onTransportHandle: (next) => {
-            handle = next;
-          },
+          onTransportHandle: (next) => { handle = next; },
         })}
       />,
     );
-    const stage = screen.getByRole("region", {
-      name: "Tracers loop media controls",
-    });
-
-    // Paused video: an explicit hide is overridden by the pause pin.
     act(() => handle!.toggleChrome());
-    expect(stage).toHaveAttribute("data-controls-visible", "true");
-
-    // Playing: the pin lifts, so an explicit hide takes effect.
-    setPaused(video, false);
+    fireEvent(video, new Event("error"));
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     fireEvent(video, new Event("play"));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pause" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
+  });
+
+  it("reveals blocked playback recovery, then returns to the hidden preference", async () => {
+    const video = createVideo();
+    (video.play as Mock).mockRejectedValue(new DOMException("denied", "NotAllowedError"));
+    let handle: ViewerTransportHandle | null = null;
+    render(
+      <ViewerTransport
+        {...baseProps(video, {
+          onTransportHandle: (next) => { handle = next; },
+        })}
+      />,
+    );
     act(() => handle!.toggleChrome());
-    expect(stage).not.toHaveAttribute("data-controls-visible");
+    await act(async () => {});
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
 
-    // Tab landing on a control reveals the chrome and pins it while focused.
-    const play = screen.getByRole("button", { name: "Pause" });
-    fireEvent.focus(play);
-    expect(stage).toHaveAttribute("data-controls-visible", "true");
-
-    // Focus leaving keeps the chrome up: there is no idle fade to resume.
-    fireEvent.blur(play);
-    expect(stage).toHaveAttribute("data-controls-visible", "true");
+    (video.play as Mock).mockResolvedValue(undefined);
+    const play = screen.getByRole("button", { name: "Play" });
+    act(() => play.focus());
+    fireEvent.click(play);
+    fireEvent(video, new Event("play"));
+    expect(play).not.toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Pause" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
   });
 
   it("reports transport visibility changes to the overlay", () => {
@@ -571,8 +603,8 @@ describe("ViewerTransport", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("collects the work-level modes — HQ, rotate, info — in the dock", () => {
-    const video = createVideo("https://cdn.test/tracers-preview.mp4");
+  it("offers artwork rotation and information without a quality switch", () => {
+    const video = createVideo();
     render(
       <ViewerTransport
         {...baseProps(video, {
@@ -584,8 +616,8 @@ describe("ViewerTransport", () => {
       />,
     );
     expect(
-      screen.getByRole("button", { name: "Play original quality" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Play original quality" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Rotate to fill screen" }),
     ).toBeInTheDocument();
@@ -601,7 +633,6 @@ describe("ViewerTransport", () => {
       <ViewerTransport
         {...baseProps(video, {
           canRotate: true,
-          rotated: true,
           rotateMode: true,
           onRotateModeChange: vi.fn(),
         })}
@@ -625,5 +656,48 @@ describe("ViewerTransport", () => {
     // Horizontal pointer math still owns the seek: x=50 of 100 → 15s of 30.
     fireEvent.pointerDown(slider, { clientX: 50, button: 0, pointerId: 1 });
     expect(video.currentTime).toBeCloseTo(15, 5);
+  });
+
+  it("auto-starts a stalled startup with ordinary chrome hidden and Pause cancels it", () => {
+    vi.useFakeTimers();
+    const video = createVideo();
+    Object.defineProperty(video, "buffered", {
+      configurable: true,
+      value: { length: 0, start: () => 0, end: () => 0 },
+    });
+    let handle: ViewerTransportHandle | null = null;
+    render(<ViewerTransport {...baseProps(video, {
+      onTransportHandle: (next) => { handle = next; },
+    })} />);
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+    act(() => handle!.toggleChrome());
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(screen.queryByRole("slider", { name: "Seek" })).not.toBeInTheDocument();
+    expect(video.play).toHaveBeenCalledOnce();
+    act(() => handle!.togglePlayback());
+    fireEvent(video, new Event("progress"));
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(video.play).toHaveBeenCalledOnce();
+  });
+
+  it("does not resume the previous pooled work while its replacement node is being reported", () => {
+    const previous = createVideo();
+    previous.dataset.slug = "tracers-loop";
+    const { rerender } = render(<ViewerTransport {...baseProps(previous)} />);
+    (previous.play as Mock).mockClear();
+    setPaused(previous, false);
+    const nextItem = item({ slug: "next-work", url: "https://cdn.test/next.mp4" });
+    rerender(<ViewerTransport {...baseProps(previous, { item: nextItem })} />);
+    fireEvent(previous, new Event("canplay"));
+    fireEvent(previous, new Event("progress"));
+    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(previous.pause).toHaveBeenCalledOnce();
+    expect(previous.play).not.toHaveBeenCalled();
+
+    const next = createVideo(nextItem.replication.url);
+    next.dataset.slug = "next-work";
+    rerender(<ViewerTransport {...baseProps(next, { item: nextItem })} />);
+    expect(next.play).toHaveBeenCalledOnce();
+    expect(previous.play).not.toHaveBeenCalled();
   });
 });

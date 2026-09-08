@@ -1,7 +1,7 @@
 import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "../convex/_generated/server";
-import { assignOwnerHandler, listOwnedHandler, updateHandler } from "../convex/tripReports";
+import { assignOwnerHandler, getPortalRecord, listOwnedHandler, updateHandler } from "../convex/tripReports";
 import { create, promoteHandler } from "../convex/tripReportSubmissions";
 
 // Convex registered functions keep the original handler on `_handler`; there is
@@ -18,6 +18,12 @@ const SERVER_KEY = "test-admin-key";
 type Row = Record<string, unknown> & { _id: string };
 
 type FakeDb = { ctx: MutationCtx; rowsOf: (table: string) => Map<string, Row> };
+type Cursor = {
+  first: () => Promise<Row | null>;
+  unique: () => Promise<Row | null>;
+  collect: () => Promise<Row[]>;
+  order: (direction: "asc" | "desc") => Cursor;
+};
 
 /**
  * In-memory tables with the `withIndex(...).eq(field, value)` shape the
@@ -38,7 +44,7 @@ function createCtx(seed: Record<string, Row[]>): FakeDb {
     }
     return tables.get(table)!;
   };
-  const cursor = (matches: Row[]) => ({
+  const cursor = (matches: Row[]): Cursor => ({
     first: async () => matches[0] ?? null,
     unique: async () => {
       if (matches.length > 1) {
@@ -47,6 +53,7 @@ function createCtx(seed: Record<string, Row[]>): FakeDb {
       return matches[0] ?? null;
     },
     collect: async () => matches,
+    order: (direction) => cursor([...matches].sort((a, b) => (Number(a._creationTime ?? 0) - Number(b._creationTime ?? 0)) * (direction === "desc" ? -1 : 1))),
   });
   const query = (table: string) => ({
     ...cursor([...rowsOf(table).values()]),
@@ -54,16 +61,15 @@ function createCtx(seed: Record<string, Row[]>): FakeDb {
       _indexName: string,
       selector: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
     ) => {
-      let field = "";
-      let value: unknown;
-      selector({
-        eq: (name, candidate) => {
-          field = name;
-          value = candidate;
-          return {};
+      const filters: [string, unknown][] = [];
+      const index: { eq: (field: string, value: unknown) => unknown } = {
+        eq: (field: string, value: unknown) => {
+          filters.push([field, value]);
+          return index;
         },
-      });
-      return cursor([...rowsOf(table).values()].filter((row) => row[field] === value));
+      };
+      selector(index);
+      return cursor([...rowsOf(table).values()].filter((row) => filters.every(([field, value]) => row[field] === value)));
     },
   });
   const find = (id: string) => {
@@ -78,6 +84,7 @@ function createCtx(seed: Record<string, Row[]>): FakeDb {
     ctx: {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
+        normalizeId: (table: string, id: string) => rowsOf(table).has(id) || id.startsWith(`${table}:`) ? id : null,
         get: vi.fn(async (id: string) => find(id)?.existing ?? null),
         query: vi.fn(query),
         insert: vi.fn(async (table: string, doc: Record<string, unknown>) => {
@@ -206,14 +213,20 @@ describe("tripReportSubmissions.promote ownership", () => {
   });
 });
 
+async function readReportRevision(db: FakeDb, id = "r1"): Promise<string> {
+  const record = await handlerOf(getPortalRecord)(db.ctx, { ...as("admin@example.com"), id }) as { revision: string };
+  return record.revision;
+}
+
 describe("tripReports.update ownership", () => {
   let current: FakeDb;
 
-  const save = (actorEmail: string, updates: Record<string, unknown>, extra: Record<string, unknown> = {}) =>
+  const save = async (actorEmail: string, updates: Record<string, unknown>, extra: Record<string, unknown> = {}) =>
     updateHandler(current.ctx, {
       ...as(actorEmail),
       id: "r1" as never,
       expected: fields,
+      expectedRevision: await readReportRevision(current),
       updates: { ...fields, ...updates },
       ...extra,
     } as never);
@@ -225,14 +238,36 @@ describe("tripReports.update ownership", () => {
     });
   });
 
+  it("rejects a stale revision after an A-to-B-to-A correction cycle", async () => {
+    const expectedRevision = await readReportRevision(current);
+    await save("owner@example.com", { title: "Intermediate title" });
+    await save("owner@example.com", { title: fields.title }, { expected: { ...fields, title: "Intermediate title" } });
+
+    await expect(save("owner@example.com", { conclusion: "Stale correction" }, { expectedRevision })).rejects.toMatchObject({
+      data: { code: "REPORT_CONFLICT" },
+    });
+    expect(current.rowsOf("tripReports").get("r1")?.conclusion).toBeUndefined();
+    expect(current.rowsOf("contentRevisions").size).toBe(2);
+  });
+
+  it("rejects a stale correction after attribution changes without editable text changes", async () => {
+    const expectedRevision = await readReportRevision(current);
+    await current.ctx.db.patch("r1" as never, { subject: { ...fields.subject, profile_key: "REASSIGNED" } });
+
+    await expect(save("owner@example.com", { conclusion: "Stale correction" }, { expectedRevision })).rejects.toMatchObject({
+      data: { code: "REPORT_CONFLICT" },
+    });
+    expect(current.rowsOf("tripReports").get("r1")?.subject).toMatchObject({ profile_key: "REASSIGNED" });
+    expect(current.rowsOf("contentRevisions").size).toBe(0);
+  });
+
   it("lets the owner change content fields", async () => {
-    const result = await save("owner@example.com", {
+    await save("owner@example.com", {
       title: "Alpine clarity, revisited",
       conclusion: "Worth it.",
       tags: ["outdoors", "winter"],
     });
 
-    expect(result).toEqual({ updated: true, slug: "alpine-clarity" });
     const stored = current.rowsOf("tripReports").get("r1")!;
     expect(stored.title).toBe("Alpine clarity, revisited");
     expect(stored.conclusion).toBe("Worth it.");
@@ -276,7 +311,7 @@ describe("tripReports.update ownership", () => {
 
   it("holds an editor who owns a report to content fields", async () => {
     current = createCtx({
-      memberships: [editor],
+      memberships: [admin, editor],
       tripReports: [{ ...ownedReport, owner_email: "editor@example.com" }],
     });
 
@@ -381,12 +416,12 @@ describe("trip report attribution boundary", () => {
     };
     const seed = () => createCtx({ memberships: [admin], contributorProfiles: [profile], tripReports: [reviewed] });
     const expected = { ...fields, subject: { name: "nervewing" } };
-    const save = (db: FakeDb, args: Record<string, unknown>) =>
-      updateHandler(db.ctx, { ...as("admin@example.com"), id: "r1" as never, expected, updates: expected, ...args } as never);
+    const save = async (db: FakeDb, args: Record<string, unknown>) =>
+      updateHandler(db.ctx, { ...as("admin@example.com"), id: "r1" as never, expected, expectedRevision: await readReportRevision(db), updates: expected, ...args } as never);
 
-    await expect(save(seed(), { expected: { ...expected, title: "Something else" } })).rejects.toThrow(
-      /changed since it was opened; reload the portal before saving/,
-    );
+    await expect(save(seed(), { expected: { ...expected, title: "Something else" } })).rejects.toMatchObject({
+      data: { code: "REPORT_CONFLICT" },
+    });
 
     const unchanged = seed();
     await save(unchanged, { updates: { ...expected, title: "Retitled" } });

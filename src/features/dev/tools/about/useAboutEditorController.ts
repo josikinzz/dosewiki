@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { useCopyIndexSource } from "../useCopyIndexSource";
 
-import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { normalizeFounderKeys } from "@/data/content/about";
 import type {
   EditorActionStatusState,
@@ -11,9 +10,9 @@ import type {
 } from "@/features/dev/components";
 import { useEditorDocument } from "@/features/dev/context/editorDocumentSession";
 import { buildTextChangelog } from "@/utils/data/changelog";
-import { api } from "../../../../../convex/_generated/api";
-import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import type { AboutCopyNotice } from "./aboutEditorUtils";
+import { useCopyIndexOperation } from "../useCopyIndexOperation";
 
 const API_PATH = "/api/dev/about";
 const COPY_NOTICE_DURATION_MS = 2500;
@@ -24,12 +23,15 @@ type AboutConfigSource = {
   aboutMarkdown?: string | null;
   aboutSubtitle?: string | null;
   founderProfileKeys?: string[] | null;
+  revision?: number;
 } | null | undefined;
 
 export type AboutDocument = {
   markdown: string;
   subtitle: string;
   founderKeys: string[];
+  exists: boolean;
+  revision: number;
 };
 
 function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
@@ -37,12 +39,17 @@ function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
     markdown: aboutConfig?.aboutMarkdown ?? "",
     subtitle: aboutConfig?.aboutSubtitle ?? "",
     founderKeys: aboutConfig?.founderProfileKeys ?? [],
+    exists: aboutConfig != null,
+    revision: aboutConfig?.revision ?? 0,
   };
 }
 
 export interface AboutEditorController {
   /** False until the Convex About document has arrived. */
+  publicationUncertain: boolean;
   isLoaded: boolean;
+  loadError: string | null;
+  reloadSource: () => void;
   draft: AboutDocument;
   original: AboutDocument;
   isDirty: boolean;
@@ -68,6 +75,7 @@ export interface AboutEditorController {
 export interface AboutEditorControllerOptions {
   /** Admin: Save writes About; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
+  placeholderValues?: Record<string, string>;
 }
 
 /**
@@ -81,11 +89,12 @@ export interface AboutEditorControllerOptions {
  * `/api/dev/proposals` instead and the draft stays pending until an admin
  * approves it, since production has not changed yet.
  */
-export function useAboutEditorController({ canApprove }: AboutEditorControllerOptions): AboutEditorController {
-  const aboutConfig = useQuery(api.siteConfig.getAbout, {});
+export function useAboutEditorController({ canApprove, placeholderValues = {} }: AboutEditorControllerOptions): AboutEditorController {
+  const source = useCopyIndexSource<AboutConfigSource>(API_PATH);
+  const aboutConfig = source.data;
   const document = useEditorDocument(toAboutDocument(aboutConfig));
-  const { chemicalClassIndexGroups, dosageCategoryGroups, mechanismIndexGroups, substanceRecords } =
-    useLibrary();
+  const { serialize: publicationBody, acknowledge, uncertain: publicationUncertain } = useCopyIndexOperation();
+  const publicationSnapshot = useRef<{ draft: AboutDocument; original: AboutDocument } | null>(null);
 
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
@@ -103,27 +112,6 @@ export function useAboutEditorController({ canApprove }: AboutEditorControllerOp
     [draft.subtitle, original.subtitle],
   );
 
-  const placeholderValues = useMemo(
-    () => ({
-      compoundCount: substanceRecords.length.toLocaleString(),
-      psychoactiveClassCount: dosageCategoryGroups.length.toLocaleString(),
-      categoryCount: dosageCategoryGroups.length.toLocaleString(),
-      chemicalClassCount: chemicalClassIndexGroups.length.toLocaleString(),
-      mechanismClassCount: mechanismIndexGroups.length.toLocaleString(),
-      mechanismOfActionClassCount: mechanismIndexGroups.length.toLocaleString(),
-      // The dev shell loads no published-report or replication corpus (the
-      // Trip Report Portal and gallery fetch their own, tab-locally), so
-      // these preview counts stay at zero.
-      reportCount: "0",
-      replicationCount: "0",
-    }),
-    [
-      chemicalClassIndexGroups.length,
-      dosageCategoryGroups.length,
-      mechanismIndexGroups.length,
-      substanceRecords.length,
-    ],
-  );
 
   const showCopyNotice = useCallback((next: AboutCopyNotice) => {
     setCopyNotice(next);
@@ -206,25 +194,27 @@ export function useAboutEditorController({ canApprove }: AboutEditorControllerOp
   const save = useCallback(async () => {
     setSaveState("saving");
     setNotice(null);
+    const snapshot = canApprove && publicationUncertain && publicationSnapshot.current ? publicationSnapshot.current : { draft, original };
+    if (canApprove) publicationSnapshot.current = snapshot;
     const body = {
-      aboutMarkdown: draft.markdown,
-      aboutSubtitle: draft.subtitle,
-      founderProfileKeys: draft.founderKeys,
+      aboutMarkdown: snapshot.draft.markdown,
+      aboutSubtitle: snapshot.draft.subtitle,
+      founderProfileKeys: snapshot.draft.founderKeys,
     };
     try {
       if (!canApprove) {
         const { proposalId } = await submitToolProposal({
           payload: { about: body },
           summary: "Update the About page",
-          diff: buildFieldDiff([
-            { label: "About copy", before: original.markdown, after: draft.markdown },
-            { label: "About subtitle", before: original.subtitle, after: draft.subtitle },
-            {
-              label: "Founders",
-              before: original.founderKeys.join("\n"),
-              after: draft.founderKeys.join("\n"),
-            },
-          ]),
+          baselines: [{
+            kind: "about",
+            key: "about",
+            document: original.exists ? {
+              aboutMarkdown: original.markdown,
+              aboutSubtitle: original.subtitle,
+              founderProfileKeys: original.founderKeys,
+            } : null,
+          }],
         });
         setSaveState("saved");
         setNotice(proposalSubmittedNotice("The About page", proposalId));
@@ -234,23 +224,25 @@ export function useAboutEditorController({ canApprove }: AboutEditorControllerOp
       const response = await fetch(API_PATH, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: publicationBody({ ...body, expectedRevision: snapshot.original.revision, expected: snapshot.original.exists ? {
+          aboutMarkdown: snapshot.original.markdown, aboutSubtitle: snapshot.original.subtitle, founderProfileKeys: snapshot.original.founderKeys,
+        } : null }),
       });
       const payload = (await response.json()) as {
-        about?: { aboutMarkdown: string; aboutSubtitle: string; founderProfileKeys: string[] };
+        about?: { aboutMarkdown: string; aboutSubtitle: string; founderProfileKeys: string[]; revision?: number };
+        unchanged?: boolean; replayed?: boolean;
         error?: string;
       };
-      if (!response.ok) {
-        throw new Error(payload.error ?? "The About page could not be saved.");
-      }
+      acknowledge(response, payload);
       // Advance only the baseline: `draft` here is the snapshot that was sent,
       // and anything typed while the request was in flight must stay pending.
-      const saved = payload.about ? toAboutDocument(payload.about) : draft;
-      applyHydration(({ draft: current }) => ({ draft: current, original: saved }));
+      const saved = payload.about ? toAboutDocument(payload.about) : snapshot.draft;
+      publicationSnapshot.current = null;
+      applyHydration(({ draft: current }) => ({ draft: { ...current, revision: saved.revision, exists: saved.exists }, original: saved }));
       setSaveState("saved");
       setNotice({
         tone: "success",
-        message: "Saved. The public About page is rebuilding with it now.",
+        message: payload.unchanged ? "No publication was needed; the loaded content is unchanged." : payload.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : "Saved. The public About page is rebuilding with it now.",
       });
     } catch (error) {
       setSaveState("error");
@@ -265,10 +257,13 @@ export function useAboutEditorController({ canApprove }: AboutEditorControllerOp
               : "The proposal could not be submitted.",
       });
     }
-  }, [applyHydration, canApprove, draft, original]);
+  }, [applyHydration, canApprove, draft, original, publicationBody, acknowledge, publicationUncertain]);
 
   return {
     isLoaded: aboutConfig !== undefined,
+    loadError: source.error,
+    reloadSource: source.reload,
+    publicationUncertain,
     draft,
     original,
     isDirty,

@@ -7,12 +7,13 @@ import type { CopyBlockRow } from "./copyStudioUtils";
 const query = vi.hoisted(() => ({ rows: [] as CopyBlockRow[] }));
 
 vi.mock("convex/react", () => ({
-  useQuery: () => query.rows,
+  useQuery: (name: string, args?: { key: string } | "skip") => name === "copyBlocks.getAll" ? query.rows : args && args !== "skip" ? { document: query.rows.find((row) => row.key === args.key) ?? null, revision: 0 } : undefined,
 }));
 
 vi.mock("../../../../../convex/_generated/api", () => ({
-  api: { copyBlocks: { getAll: "copyBlocks.getAll" } },
+  api: { copyBlocks: { getAll: "copyBlocks.getAll", getForEditor: "copyBlocks.getForEditor" } },
 }));
+vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: (url: string | null) => ({ data: url ? { document: query.rows.find((row) => row.key === new URL(url, "https://dose.wiki").searchParams.get("key")) ?? null, revision: 0 } : undefined, error: null, reload: vi.fn() }) }));
 
 vi.mock("@/components/pages/PublicMarkdownBody", () => ({
   PublicMarkdownBody: ({ content }: { content: string }) => <div data-testid="preview">{content}</div>,
@@ -125,16 +126,18 @@ describe("CopyStudioTab", () => {
     query.rows = [STORED_REUSE_NOTICE];
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ ok: true, key: "about-reuse-notice", updated: false }),
+      json: async () => ({ ok: true, key: "about-reuse-notice", updated: false, revision: 1, replayed: false, unchanged: false }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
     render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
-    const saveButton = screen.getByRole("button", { name: "Save" });
+    const saveButton = screen.getByRole("button", { name: "Publish copy" });
     expect(saveButton).toBeDisabled();
 
     await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
     await userEvent.click(saveButton);
+    expect(fetchMock).not.toHaveBeenCalled();
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish shared copy?" })).getByRole("button", { name: "Publish copy" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -149,10 +152,10 @@ describe("CopyStudioTab", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     const [, removeInit] = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(removeInit.method).toBe("DELETE");
-    expect(JSON.parse(removeInit.body as string)).toEqual({ key: "about-reuse-notice" });
+    expect(JSON.parse(removeInit.body as string).key).toBe("about-reuse-notice");
   });
 
-  it("submits an editor's block as a proposal with a diff and links to the queue", async () => {
+  it("submits an editor's block and links to the queue", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, proposalId: "cp_abc123" }),
@@ -183,9 +186,25 @@ describe("CopyStudioTab", () => {
       body: `${before} Edited.`,
     });
     expect(body.summary).toMatch(/^Update copy "/);
-    expect(body.diff).toContain(`+${before} Edited.`);
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+  });
+
+  it("keeps edited copy and its loaded baseline when production changes", async () => {
+    query.rows = [STORED_REUSE_NOTICE];
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false, json: async () => ({ error: "Production changed. Your draft is preserved." }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { rerender } = render(<CopyStudioTab initialKey="about-reuse-notice" canApprove={false} />);
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Local.");
+    query.rows = [{ ...STORED_REUSE_NOTICE, body: "Remote replacement" }];
+    rerender(<CopyStudioTab initialKey="about-reuse-notice" canApprove={false} />);
+    await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+    expect(await screen.findByText("Production changed. Your draft is preserved.")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Copy" })).toHaveValue(`${STORED_REUSE_NOTICE.body} Local.`);
+    const input = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(input.baselines[0].document.body).toBe(STORED_REUSE_NOTICE.body);
   });
 });

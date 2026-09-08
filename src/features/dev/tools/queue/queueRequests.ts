@@ -14,7 +14,10 @@ export async function fetchProposals(status?: ProposalStatus): Promise<ProposalS
     network: "Network error while loading the queue.",
     failure: "Unable to load the queue.",
   });
-  return Array.isArray(payload.proposals) ? (payload.proposals as ProposalSummary[]) : [];
+  if (!Array.isArray(payload.proposals)) {
+    throw new Error("The server did not return the submission list. Refresh to try again.");
+  }
+  return payload.proposals as ProposalSummary[];
 }
 
 export async function fetchProposal(id: string): Promise<ProposalDetail> {
@@ -35,8 +38,11 @@ export async function postComment(id: string, text: string): Promise<ProposalCom
 
 export async function approveProposal(id: string): Promise<ApproveOutcome> {
   const payload = await postJson(id, "approve", {}, "Unable to approve that proposal.");
+  if (payload.status !== "applied" && payload.status !== "changes_requested") {
+    throw new Error("The server did not confirm approval. Refresh to check the submission before trying again.");
+  }
   return {
-    status: payload.status === "changes_requested" ? "changes_requested" : "applied",
+    status: payload.status,
     ...(typeof payload.conflictReason === "string" ? { conflictReason: payload.conflictReason } : {}),
   };
 }
@@ -78,9 +84,15 @@ async function requestJson(
     throw new Error(messages.network);
   }
 
-  const payload: Record<string, unknown> = await response.json().catch(() => ({}));
+  const payload: unknown = await response.json().catch(() => null);
+  const record = payload !== null && typeof payload === "object" && !Array.isArray(payload)
+    ? payload as Record<string, unknown>
+    : null;
   if (!response.ok) {
-    throw new Error(typeof payload.error === "string" ? payload.error : messages.failure);
+    throw new Error(typeof record?.error === "string" ? record.error : messages.failure);
   }
-  return payload;
+  if (!record) {
+    throw new Error("The server returned an unreadable response. Refresh to check the latest status.");
+  }
+  return record;
 }

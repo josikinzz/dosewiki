@@ -21,6 +21,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerMediaItem } from "../viewerModel";
 
@@ -95,7 +96,7 @@ function SortableRailItem({
         disabled={disabled}
         aria-label={`Reorder ${item.replication.title}`}
         title="Drag to reorder"
-        className="absolute -bottom-2 left-1/2 z-10 size-8 -translate-x-1/2 cursor-grab rounded-full border theme-media-thumbnail-border bg-black/90 theme-media-tile-creator  active:cursor-grabbing"
+        className={`absolute -bottom-2 left-1/2 z-10 size-8 -translate-x-1/2 cursor-grab rounded-full border theme-media-thumbnail-border bg-black/90 theme-media-tile-creator active:cursor-grabbing ${TOUCH_ICON}`}
         {...attributes}
         {...listeners}
       >

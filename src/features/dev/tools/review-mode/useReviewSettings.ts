@@ -268,12 +268,14 @@ export function useReviewNavigation({
   position,
   formDirty,
   clearTickError,
+  guardNavigation,
 }: {
   settings: ReviewSettingsState;
   visibleQueue: readonly ReviewQueueEntry[];
   position: number;
   formDirty: boolean;
   clearTickError: () => void;
+  guardNavigation: (proceed: () => void) => void;
 }) {
   const {
     currentSlugRef,
@@ -284,38 +286,18 @@ export function useReviewNavigation({
     pushLocation,
   } = settings;
 
-  // Read through a ref so the navigation callbacks stay referentially stable
-  // across a keystroke that only flips the dirty flag.
-  const formDirtyRef = useRef(formDirty);
-  formDirtyRef.current = formDirty;
-
-  /**
-   * The one guard on discarding unapplied form edits.
-   *
-   * It runs on the workbench's own controls, where the answer can still change
-   * what happens. It deliberately does *not* run on `popstate`: by the time
-   * that event fires the browser has already traversed, so a confirm there
-   * would be a question whose "cancel" cannot be honoured. Real unloads are
-   * covered by the `beforeunload` handler below instead.
-   */
-  const confirmLeavingArticle = useCallback(() => {
-    if (!formDirtyRef.current) return true;
-    return window.confirm(
-      "This article has unapplied form edits that will be discarded. Move on anyway?",
-    );
-  }, []);
 
   const navigateTo = useCallback(
     (slug: string) => {
       if (slug === currentSlugRef.current) return;
-      if (!confirmLeavingArticle()) return;
-      clearTickError();
-      setCurrentSlug(slug);
-      pushLocation(slug, viewModeRef.current);
-      // Land at the top of the next article — losing her place was the old sin.
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      guardNavigation(() => {
+        clearTickError();
+        setCurrentSlug(slug);
+        pushLocation(slug, viewModeRef.current);
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
     },
-    [clearTickError, confirmLeavingArticle, currentSlugRef, pushLocation, setCurrentSlug, viewModeRef],
+    [clearTickError, guardNavigation, currentSlugRef, pushLocation, setCurrentSlug, viewModeRef],
   );
 
   const goNext = useCallback(() => {
@@ -363,6 +345,9 @@ export function useReviewNavigation({
       // will render whatever route it names. Nothing here to reconcile.
       if (!target.slug) return;
       const index = target.index ?? 0;
+      if (formDirty && currentSlugRef.current) pushLocation(currentSlugRef.current, viewModeRef.current);
+      guardNavigation(() => {
+      if (formDirty) pushLocation(target.slug, target.view, { replace: true });
       const changedArticle = target.slug !== currentSlugRef.current;
       entryIndexRef.current = index;
       clearTickError();
@@ -380,10 +365,11 @@ export function useReviewNavigation({
       if (changedArticle) {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       }
+      });
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [clearTickError, currentSlugRef, entryIndexRef, setCurrentSlug, setSettings]);
+  }, [clearTickError, currentSlugRef, entryIndexRef, setCurrentSlug, setSettings, formDirty, pushLocation, guardNavigation, viewModeRef]);
 
   /**
    * The only guard a traverse or a tab close can still honour. `popstate`

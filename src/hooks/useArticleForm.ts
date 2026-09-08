@@ -24,8 +24,8 @@ const normalizeRouteName = (route: string | undefined) =>
   String(route ?? "").trim().toLowerCase();
 
 /**
- * True when the two arrays are already index-aligned, which is the invariant the
- * editor's positional `duration.routes.${index}` field paths depend on.
+ * True when the two arrays are already index-aligned for the editor's positional
+ * `duration.routes.${index}` field paths.
  */
 function routesAreAligned(
   dosage: DosageRouteValue[],
@@ -136,6 +136,7 @@ export type ArticleFormMethods = UseFormReturn<SubstanceArticle>;
 export type UseArticleFormOptions = {
   article?: SubstanceArticle;
   onMutate?: () => void;
+  preserveStructure?: boolean;
 };
 
 export type UseArticleFormReturn = {
@@ -152,6 +153,7 @@ export type UseArticleFormReturn = {
   addDosageRoute: () => void;
   removeDosageRoute: (index: number) => void;
   moveDosageRoute: (from: number, to: number) => void;
+  renameDosageRoute: (index: number, name: string) => void;
   addSourceCitation: () => void;
   removeSourceCitation: (index: number) => void;
   addReference: () => void;
@@ -167,44 +169,52 @@ export type UseArticleFormReturn = {
 export function useArticleForm({
   article,
   onMutate,
+  preserveStructure = false,
 }: UseArticleFormOptions = {}): UseArticleFormReturn {
   const onMutateRef = useRef(onMutate);
   onMutateRef.current = onMutate;
 
-  // Programmatic writes (reset on article change, duration-route sync) also
-  // fire the watch subscription; suppress mutate reporting around them so the
-  // dirty flag only reflects real edits. The flag is cleared in a post-render
-  // effect (below, after the field arrays) rather than synchronously: each
+  // Programmatic resets also fire the watch subscription; suppress mutate
+  // reporting around them so the dirty flag only reflects real edits. Clear the
+  // flag in a post-render effect (after the field arrays), not synchronously: each
   // useFieldArray re-emits a values notification from its own effect on the
   // render caused by reset()/replace(), and those trailing notifications must
   // stay suppressed too.
   const suppressMutateRef = useRef(false);
   const suppressClearSkipRef = useRef(0);
+  const suppressionGeneration = useRef(0);
   const runWithoutMutate = useCallback((operation: () => void) => {
+    const generation = ++suppressionGeneration.current;
     suppressMutateRef.current = true;
     // The clear effect below also runs in the effect flush that invoked this
     // helper (it is declared later in this hook); skip that first clear so the
     // suppression survives into the re-render the operation triggers.
     suppressClearSkipRef.current = 1;
     operation();
+    // A parent can reset again after this hook's clear effect. No further
+    // render is guaranteed after the skipped flush, so release that hold
+    // before the next user event rather than suppressing edits indefinitely.
+    queueMicrotask(() => {
+      if (suppressionGeneration.current !== generation) return;
+      suppressMutateRef.current = false;
+      suppressClearSkipRef.current = 0;
+    });
   }, []);
 
-  // Ensure article has at least one route and citation for form editing
+  // Pair once at hydration. A typed label is a rename, never a new pairing key.
   const getDefaultValues = useCallback((source?: SubstanceArticle): SubstanceArticle => {
     // Convex-sourced articles carry `_id` / `_creationTime`; keep those DB
     // internals out of the form values so YAML copy/download/save stay clean.
     const base = source ? stripUnderscoreKeys(source) : createEmptyArticle();
+    if (preserveStructure) return base;
     const empty = createEmptyArticle();
+    const paired = routesAreAligned(base.dosage.routes, base.duration.routes)
+      ? { dosage: base.dosage.routes, duration: base.duration.routes }
+      : pairRoutesByName(base.dosage.routes, base.duration.routes);
     return {
       ...base,
-      dosage: {
-        ...base.dosage,
-        routes: base.dosage.routes.length > 0 ? base.dosage.routes : [createEmptyDosageRoute()],
-      },
-      duration: {
-        ...base.duration,
-        routes: base.duration.routes.length > 0 ? base.duration.routes : [createEmptyDurationRoute()],
-      },
+      dosage: { ...base.dosage, routes: paired.dosage },
+      duration: { ...base.duration, routes: paired.duration },
       // Ensure history_culture has default values for form editing (optional field)
       history_culture: base.history_culture ?? empty.history_culture,
       editorial_review: base.editorial_review ?? empty.editorial_review,
@@ -212,15 +222,16 @@ export function useArticleForm({
       source_citations: Array.isArray(base.source_citations) ? base.source_citations : empty.source_citations,
       citations: Array.isArray(base.citations) ? base.citations : empty.citations,
     };
-  }, []);
+  }, [preserveStructure]);
 
   const methods = useForm<SubstanceArticle>({
-    resolver: zodResolver(substanceArticleSchema) as never,
+    // Validate without replacing the draft with Zod's stripped/defaulted output.
+    resolver: zodResolver(substanceArticleSchema, undefined, { raw: true }) as never,
     defaultValues: getDefaultValues(article),
     mode: "onBlur",
   });
 
-  const { control, watch, reset, getValues } = methods;
+  const { control, watch, reset, getValues, register } = methods;
 
   // Reset form when article prop changes (detected via id or title)
   const articleIdentifier = article?.id ?? article?.title ?? null;
@@ -266,37 +277,6 @@ export function useArticleForm({
     name: "history_culture.sections",
   });
 
-  // Reconcile dosage and duration routes whenever either side changes.
-  const watchedDosageRoutes = watch("dosage.routes");
-
-  useEffect(() => {
-    if (!watchedDosageRoutes) return;
-
-    const currentDurationRoutes = getValues("duration.routes");
-    const paired = pairRoutesByName(watchedDosageRoutes, currentDurationRoutes);
-
-    // The editor addresses duration fields positionally (`duration.routes.${i}`),
-    // so the arrays must stay index-aligned. Rewriting them on every render would
-    // fight the user's typing, so only write when the invariant is actually broken.
-    if (routesAreAligned(watchedDosageRoutes, currentDurationRoutes)) return;
-
-    runWithoutMutate(() => {
-      // Replace dosage first: a duration-only route gains an empty dosage
-      // counterpart here, which is what finally gives it a card in the editor.
-      if (paired.dosage.length !== watchedDosageRoutes.length) {
-        dosageRoutes.replace(paired.dosage);
-      }
-      durationRoutes.replace(paired.duration);
-    });
-  }, [
-    watchedDosageRoutes?.length,
-    watchedDosageRoutes?.map((r) => r.route).join(","),
-    dosageRoutes,
-    durationRoutes,
-    getValues,
-    runWithoutMutate,
-  ]);
-
   // Clear the programmatic-write suppression after every render. This effect
   // is declared after the useFieldArray hooks above so it runs after their
   // internal sync effects have re-emitted (still-suppressed) notifications.
@@ -322,18 +302,13 @@ export function useArticleForm({
   // Helpers
   const addDosageRoute = useCallback(() => {
     dosageRoutes.append(createEmptyDosageRoute());
-  }, [dosageRoutes]);
+    durationRoutes.append(createEmptyDurationRoute(), { shouldFocus: false });
+  }, [dosageRoutes, durationRoutes]);
 
   const removeDosageRoute = useCallback(
     (index: number) => {
-      if (dosageRoutes.fields.length <= 1) {
-        // Replace with empty instead of removing last one
-        dosageRoutes.replace([createEmptyDosageRoute()]);
-        durationRoutes.replace([createEmptyDurationRoute()]);
-      } else {
-        dosageRoutes.remove(index);
-        durationRoutes.remove(index);
-      }
+      dosageRoutes.remove(index);
+      durationRoutes.remove(index);
     },
     [dosageRoutes, durationRoutes]
   );
@@ -348,6 +323,19 @@ export function useArticleForm({
       durationRoutes.move(from, to);
     },
     [dosageRoutes, durationRoutes]
+  );
+
+  const renameDosageRoute = useCallback(
+    (index: number, name: string) => {
+      if (!getValues(`dosage.routes.${index}`) || !getValues(`duration.routes.${index}`)) return;
+      // Use the registered change path, as native inputs and Controllers do.
+      // setValue broadcasts ancestor field-array changes in RHF, replacing row
+      // identities even for a leaf write and detaching the focused input.
+      for (const path of [`dosage.routes.${index}.route`, `duration.routes.${index}.route`] as const) {
+        void register(path).onChange({ target: { name: path, value: name }, type: "change" });
+      }
+    },
+    [getValues, register],
   );
 
   const addSourceCitation = useCallback(() => {
@@ -397,21 +385,22 @@ export function useArticleForm({
   const applyDurationFromRoute = useCallback(
     (fromIndex: number, toIndex: number) => {
       const currentDurationRoutes = getValues("duration.routes");
-      if (fromIndex >= currentDurationRoutes.length || toIndex >= currentDurationRoutes.length) {
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= currentDurationRoutes.length || toIndex >= currentDurationRoutes.length) {
         return;
       }
 
       const sourceStages = currentDurationRoutes[fromIndex]?.stages;
       if (!sourceStages) return;
 
-      const updated = currentDurationRoutes.map((route, index) =>
-        index === toIndex
-          ? { ...route, stages: { ...sourceStages } }
-          : route
-      );
-      durationRoutes.replace(updated);
+      for (const stage of Object.keys(sourceStages) as Array<keyof typeof sourceStages>) {
+        const path = `duration.routes.${toIndex}.stages.${stage}` as const;
+        void register(path).onChange({
+          target: { name: path, value: structuredClone(sourceStages[stage]) },
+          type: "change",
+        });
+      }
     },
-    [durationRoutes, getValues]
+    [getValues, register]
   );
 
   const resetForm = useCallback(
@@ -435,6 +424,7 @@ export function useArticleForm({
     addDosageRoute,
     removeDosageRoute,
     moveDosageRoute,
+    renameDosageRoute,
     addSourceCitation,
     removeSourceCitation,
     addReference,

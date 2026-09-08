@@ -8,10 +8,12 @@ const workflowRoots = [
   path.join(repoRoot, "scripts"),
   path.join(repoRoot, "tools", "local-public-fixture"),
   path.join(repoRoot, "tools", "pi-citation-workflow"),
+  path.join(repoRoot, "tools", "section-generation"),
 ];
 
 function walkTestFiles(dir, files = []) {
   for (const entry of readdirSync(dir)) {
+    if (entry === "node_modules") continue;
     const fullPath = path.join(dir, entry);
     const relativePath = path.relative(repoRoot, fullPath);
 

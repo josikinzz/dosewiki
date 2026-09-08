@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 
 import { ArtistIdentityHeader } from "@/features/replications/artist/ArtistIdentityHeader";
 import { ArtistShowcase } from "@/features/replications/artist/ArtistShowcase";
+import ArtistProfileEditor from "@/features/replications/artist/ArtistProfile.editor";
 import {
   artistPagePublicLinks,
   buildArtistShowcaseGroup,
@@ -271,6 +272,7 @@ export default async function ReplicationArtistPage({
             videoCount: focus.group.videoCount,
           }}
         />
+        <ArtistProfileEditor profileKey={profile?.key ?? null} attributed={attributed} counts={{ count: focus.group.count, imageCount: focus.group.imageCount, videoCount: focus.group.videoCount }} verifiedReplicator={identity?.verified_replicator === true} />
         <ArtistShowcase
           label={collectionLabel}
           works={works}

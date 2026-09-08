@@ -1,40 +1,22 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import {
-  loadBlogIndexRoute,
   loadBlogPostRoute,
-  loadWritingBlogIndexRoute,
   loadWritingBlogPostRoute,
 } from "@server/next/routeLoaders.publications";
-import { isEffectIndex, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { isEffectIndex } from "@/config/siteFlavor";
 import { BlogPostPage } from "@/features/blog/pages/BlogPostPage";
 import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
+import WritingContextualEditor from "@/features/dev/tools/writing/WritingContextualEditor.editor";
 
 // Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
-// Kept at `false` deliberately, and measured: with `dynamicParams = true`, an unknown slug
-// is rendered on demand and Next serves the `notFound()` body at HTTP 200 — the same soft
-// 404 that made `/blog` indexable on the dose.wiki build. `false` makes every unprerendered
-// slug a real 404. The cost is that a build whose archive read degrades bakes no post
-// routes at all, so that degradation is logged loudly — see
-// `reportDegradedEffectIndexArchiveRead` in `lib/convex/publicData.reads.ts`.
-//
-// It holds for both publications served here: the Effect Index build prerenders the frozen
-// archive's slugs, the dose.wiki build prerenders its own `kind: "blog"` rows, and on either
-// build a slug belonging to the other publication is simply not in the list — so it 404s
-// hard rather than rendering the wrong corpus.
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  // Each flavor enumerates only its own posts. This is the prerender half of the
-  // separation the loaders enforce at read time.
-  if (isEffectIndex()) {
-    const result = await loadBlogIndexRoute();
-    return result.pageProps.posts.map((post) => ({ slug: post.slug }));
-  }
-
-  const result = await loadWritingBlogIndexRoute();
-  return result.pageProps.posts.map((post) => ({ slug: post.slug }));
+// Both flavors resolve their own published corpus on demand through the loaders.
+export function generateStaticParams() {
+  return [];
 }
 
 type BlogPostPageProps = {
@@ -50,11 +32,7 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
     : await loadWritingBlogPostRoute(slug);
 
   if (result.kind === "not-found") {
-    return buildPublicPageMetadata({
-      title: "Blog",
-      description: `Posts from ${SITE_FLAVOR_CONFIG.name}.`,
-      route: { family: "blogPost", params: { slug } },
-    });
+    notFound();
   }
 
   return buildPublicPageMetadata({
@@ -82,5 +60,18 @@ export default async function BlogPostRoute({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  return <WritingBlogPostPage {...result.pageProps} />;
+  return (
+    <>
+        <EditorLauncherTarget
+          target={{
+            kind: "writing",
+            slug: result.pageProps.post.slug,
+            name: result.pageProps.post.title,
+            writingKind: "blog",
+          }}
+        />
+      <WritingContextualEditor slug={result.pageProps.post.slug} writingKind="blog" bylineAuthors={result.pageProps.post.bylineAuthors} />
+      <WritingBlogPostPage {...result.pageProps} />
+    </>
+  );
 }

@@ -1,5 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
+import { useRef } from "react";
 import { pickString, pickStringArray, postJson } from "./apiMutationClient";
+import type { ProposalBaseline } from "../../lib/proposals/proposalBaseline";
 
 // ============================================================================
 // Types
@@ -11,6 +13,9 @@ export interface SaveToConvexPayload {
     type: "psychoactive" | "chemical" | "mechanism";
     version: number;
     categories: unknown[];
+    expected?: unknown;
+    expectedRevision?: number;
+    operationId?: string;
   }>;
   changelog?: {
     markdown: string;
@@ -91,7 +96,7 @@ export type ProposalPayload = SaveToConvexPayload & {
 export interface SubmitProposalPayload {
   payload: ProposalPayload;
   summary: string;
-  diff: string;
+  baselines: ProposalBaseline[];
   /** The returned proposal this submission rebases; the server supersedes it. */
   revisionOf?: string;
 }
@@ -284,8 +289,20 @@ async function submitProposal(input: SubmitProposalPayload): Promise<SubmitPropo
 // ============================================================================
 
 export function useSaveToConvexMutation() {
+  const pending = useRef(new Map<string, { identity: string; operationId: string }>());
   return useMutation({
-    mutationFn: saveToConvex,
+    mutationFn: (payload: SaveToConvexPayload) => {
+      const indexLayouts = payload.indexLayouts?.map((layout) => {
+        const identity = JSON.stringify(layout);
+        let operation = pending.current.get(layout.type);
+        if (operation?.identity !== identity) {
+          operation = { identity, operationId: crypto.randomUUID() };
+          pending.current.set(layout.type, operation);
+        }
+        return { ...layout, operationId: operation.operationId };
+      });
+      return saveToConvex({ ...payload, indexLayouts });
+    },
   });
 }
 

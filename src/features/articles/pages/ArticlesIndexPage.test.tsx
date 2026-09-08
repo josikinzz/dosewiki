@@ -10,10 +10,18 @@ const emptyState = {
 } as const;
 
 describe("ArticlesIndexPage", () => {
-  it("groups published articles under their subject headings", () => {
+  it("groups published articles under their subject headings in index order", () => {
     render(
       <ArticlesIndexPage
         articles={[
+          {
+            slug: "psychedelic-intensity-scale",
+            title: "Psychedelic Intensity Scale",
+            tags: ["intensity scale"],
+            shortDescription: "Seven levels from threshold to ego death.",
+            publicationDate: "2021-05-08",
+            body_raw: `[p]${"word ".repeat(1200)}[/p]`,
+          },
           {
             slug: "dmt",
             title: "DMT",
@@ -33,37 +41,51 @@ describe("ArticlesIndexPage", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Intensity & rating scales" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Dreaming & consciousness" }),
-    ).toBeInTheDocument();
+      screen
+        .getAllByRole("heading", { level: 2 })
+        .map((heading) => heading.textContent),
+    ).toEqual(["Drug guides", "Intensity & rating scales", "Dreaming & consciousness"]);
     expect(screen.getByRole("link", { name: /DMT/ })).toHaveAttribute(
       "href",
       "/articles/dmt",
     );
   });
 
-  it("renders a definitional page as a single-line row without reading time", () => {
+  it("renders every article as one row with title, blurb, and inline meta", () => {
     render(
       <ArticlesIndexPage
         articles={[
           {
+            slug: "dmt",
+            title: "DMT",
+            tags: ["intensity scale", "psychedelics"],
+            shortDescription: "A staged model of the DMT experience.",
+            publicationDate: "2021-05-08",
+            body_raw: `[p]${"word ".repeat(1200)}[/p]`,
+          },
+          {
             slug: "duration-terminology-explanation",
             title: "Duration Terminology Explanation",
             tags: [],
-            shortDescription: "What onset, come up, peak, and offset mean.",
             publicationDate: "2021-02-01",
-            body_raw: `[p]${"word ".repeat(226)}[/p]`,
+            body_raw: `[p]What onset, come up, peak, and offset mean. ${"word ".repeat(226)}[/p]`,
           },
         ]}
       />,
     );
 
-    expect(
-      screen.getByRole("link", { name: /Duration Terminology Explanation/ }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/min read/)).not.toBeInTheDocument();
+    const guide = screen.getByRole("link", { name: /DMT/ });
+    expect(guide.querySelector("h3")).toBeNull();
+    expect(guide).toHaveTextContent("A staged model of the DMT experience.");
+    expect(guide).toHaveTextContent("May 2021 · 5 min read");
+    // Tags stay on the article page; in the index the group heading says the
+    // subject, so a row carries no pills.
+    expect(guide).not.toHaveTextContent("intensity scale");
+    expect(guide).not.toHaveTextContent("psychedelics");
+
+    const definition = screen.getByRole("link", { name: /Duration Terminology Explanation/ });
+    expect(definition).toHaveTextContent("What onset, come up, peak, and offset mean.");
+    expect(definition).toHaveTextContent("February 2021 · 1 min read");
   });
 
   // Production currently has no imported articles, so the empty branch is the

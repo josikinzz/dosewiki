@@ -12,9 +12,9 @@
  * session first, then Convex with the server's token plus the actor's email.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -68,14 +68,13 @@ export const POST = protectedRouteOperation<BannerDisplayBody, number>({
       iconSize,
     });
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.banners, { expire: 0 });
-
     // Every article showing any banner is now stale, not just one of them: this
-    // is the single setting all of them read. The tag alone is not enough —
-    // `src/app/[slug]/page.tsx` is `revalidate = 3600, dynamicParams = false`,
-    // so each article holds its own ISR entry and readers would keep getting
-    // the old glyph size for up to an hour. Walk the enabled presets and
-    // revalidate the deduped union of the slugs they cover.
+    // is the single setting all of them read. The banner tag alone is not
+    // enough - `src/app/[slug]/page.tsx` is `revalidate = 3600,
+    // dynamicParams = false`, so each article holds its own ISR entry and
+    // readers would keep getting the old glyph size for up to an hour. Walk
+    // the enabled presets and publish the deduped union of the slugs they
+    // cover alongside the banner setting itself.
     const presets = (await convexWrite.client.query(api.warningBanners.listPresets, {})) as
       | { enabled?: unknown; enabledSlugs?: unknown }[]
       | null;
@@ -90,9 +89,10 @@ export const POST = protectedRouteOperation<BannerDisplayBody, number>({
         }
       }
     }
-    for (const slug of touched) {
-      revalidatePath(`/${slug}`);
-    }
+
+    const targets: PublicationTarget[] = [{ kind: "banners" }];
+    for (const slug of touched) targets.push({ kind: "article", slug });
+    await publishPublicCache({ targets, source: "manual" });
 
     return NextResponse.json({ ok: true, iconSize: result.iconSize });
   },

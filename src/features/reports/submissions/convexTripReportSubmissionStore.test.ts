@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+
 import { ConvexTripReportSubmissionStore } from "./convexTripReportSubmissionStore";
 import type { TripReportSubmissionInput } from "./tripReportSubmissions";
 
@@ -28,7 +29,7 @@ const validSubmission: TripReportSubmissionInput = {
 };
 
 function createClientRecorder() {
-  const calls: Array<{ kind: "mutation" | "query"; name: string; args: Record<string, unknown> }> = [];
+  const calls: Array<{ kind: "mutation" | "serviceMutation" | "query"; name: string; args: Record<string, unknown> }> = [];
   const insertedRow = {
     id: "submission-1",
     status: "submitted",
@@ -68,6 +69,10 @@ function createClientRecorder() {
             payload: promotionPayload,
           };
         }
+        return insertedRow;
+      }),
+      mutationAsService: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
+        calls.push({ kind: "serviceMutation", name: reference.name, args });
         return insertedRow;
       }),
       query: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
@@ -129,7 +134,7 @@ describe("ConvexTripReportSubmissionStore", () => {
     });
     expect(result.warnings).toEqual([]);
     expect(recorder.calls[0]).toMatchObject({
-      kind: "mutation",
+      kind: "serviceMutation",
       name: "tripReportSubmissions:create",
       args: {
         apiKey: "test-key",
@@ -292,3 +297,4 @@ describe("ConvexTripReportSubmissionStore", () => {
     ]);
   });
 });
+

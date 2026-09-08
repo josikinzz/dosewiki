@@ -49,13 +49,19 @@ export const smartLinkStory: StoryDef = {
       description:
         "Every next/link prop except prefetch, which SmartLink owns (viewport prefetch off, intent prefetch on).",
     },
+    {
+      name: "eager",
+      type: "boolean",
+      description:
+        "Keep next/link's viewport prefetching as well. For the few always-visible, high-value links — header nav, homepage tiles — whose count is small and fixed.",
+    },
   ],
   whenToUse: [
     "Public links in dense surfaces — index cards, article cross-references, report lists — where default viewport prefetching would speculatively fetch hundreds of routes.",
     "Anywhere that previously wrote <Link prefetch={false}>.",
+    "Always-visible hero navigation, with eager: viewport prefetch is worth paying there, and the pending feedback is what makes the click feel answered.",
   ],
   whenNotToUse: [
-    "The handful of always-visible, high-value links (header nav, home tiles) — keep next/link and its default viewport prefetch.",
     "External URLs or in-page anchors — plain <a> is enough; SmartLink only intent-prefetches internal paths.",
   ],
 };

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,6 +17,7 @@ export interface ConfirmRequest {
   title: string;
   description: ReactNode;
   confirmLabel: string;
+  cancelLabel?: string;
   destructive?: boolean;
   /** Rows a bulk write touches; the first eight are listed, the rest counted. */
   affected?: string[];
@@ -36,6 +37,7 @@ export interface ConfirmDialogProps {
  */
 export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
   const [busy, setBusy] = useState(false);
+  const returnFocus = useRef<HTMLElement | null>(null);
 
   const handleConfirm = async () => {
     if (!request || busy) return;
@@ -59,7 +61,19 @@ export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
         if (!open && !busy) onClose();
       }}
     >
-      <DialogContent className="max-w-md" showClose={false}>
+      <DialogContent
+        className="max-w-md"
+        showClose={false}
+        onOpenAutoFocus={() => {
+          returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          if (returnFocus.current?.isConnected) {
+            event.preventDefault();
+            returnFocus.current.focus({ preventScroll: true });
+          }
+        }}
+      >
         {request ? (
           <>
             <DialogHeader>
@@ -83,7 +97,7 @@ export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
             ) : null}
             <DialogFooter className="gap-2">
               <Button type="button" variant="outline" disabled={busy} onClick={onClose}>
-                Cancel
+                {request.cancelLabel ?? "Cancel"}
               </Button>
               <Button
                 type="button"

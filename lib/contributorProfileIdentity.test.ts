@@ -9,9 +9,15 @@ import {
   profileMatchesName,
   resolveOwnedProfileKey,
   sanitizeContributorRole,
+  sanitizeContributorLinks,
 } from "./contributorProfileIdentity";
 
 describe("contributor profile identity", () => {
+  it("retains six valid profile links and drops overflow without counting invalid links", () => {
+    const links = Array.from({ length: 7 }, (_, i) => ({ label: `Link ${i}`, url: `https://example.com/${i}` }));
+    expect(sanitizeContributorLinks([{ label: "Invalid", url: "javascript:alert(1)" }, ...links])).toEqual(links.slice(0, 6));
+  });
+
   it("derives profile keys from credential email local parts", () => {
     expect(deriveProfileKeyFromEmail("editor@example.com")).toBe("EDITOR");
     expect(deriveProfileKeyFromEmail(" local.user+github@example.com ")).toBe("LOCALUSERGITHUB");

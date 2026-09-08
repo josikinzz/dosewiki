@@ -225,7 +225,11 @@ async function main() {
   // The plan was checked against `readUrl`; check it once more against the
   // write target, immediately before writing, so a profile edited in between
   // still fails closed.
-  const live = planProfilePatches(entries, await readProfiles(writeClient, entries.map((entry) => entry.key)));
+  const liveProfiles = new Map(await Promise.all(entries.map(async (entry) => [
+    entry.key,
+    await writeClient.query(api.contributorProfiles.getEditorProfile, { apiKey, key: entry.key }),
+  ])));
+  const live = planProfilePatches(entries, liveProfiles);
   if (live.some((row) => row.action === "missing" || row.action === "drifted")) {
     throw new Error("A profile changed between planning and writing; re-run to re-plan.");
   }
@@ -234,6 +238,8 @@ async function main() {
     const result = await writeClient.mutation(api.contributorProfiles.saveProfileAsEditor, {
       apiKey,
       key: row.key,
+      expectedUpdatedAt: liveProfiles.get(row.key)?.updatedAt ?? null,
+      operationId: crypto.randomUUID(),
       patch: row.patch,
     });
     const readBack = result?.profile;

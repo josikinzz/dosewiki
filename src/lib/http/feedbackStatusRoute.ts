@@ -5,7 +5,7 @@ import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export type FeedbackStatusRouteContext = {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type StatusBody = {

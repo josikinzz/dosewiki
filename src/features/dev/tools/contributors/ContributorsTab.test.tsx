@@ -51,11 +51,18 @@ const storedProfile = (key: string, displayName: string): EditorContributorProfi
 
 /** Records the route serves, keyed by the profile key the tab asks for. */
 function stubProfileApi(records: Record<string, EditorContributorProfile>) {
-  const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
-    const key = new URL(String(input), "https://dose.wiki").searchParams.get("key") ?? "";
+  const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const update = init?.method === "POST"
+      ? JSON.parse(String(init.body)) as Partial<EditorContributorProfile>
+      : null;
+    const key = update?.key ?? new URL(String(input), "https://dose.wiki").searchParams.get("key") ?? "";
     const profile = records[key];
     if (!profile) {
       return Response.json({ error: `No contributor profile for "${key}".` }, { status: 404 });
+    }
+    if (update) {
+      records[key] = { ...profile, ...update };
+      return Response.json({ ok: true });
     }
     return Response.json({ ok: true, profile, works: [], reports: [] });
   });
@@ -208,13 +215,14 @@ describe("ContributorsTab", () => {
       );
     });
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
-    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
-      key: "JOSIE",
-      displayName: "Josie K.",
-      bio: "A bio.",
-      avatarUrl: null,
-      links: [],
-    });
+    const body = JSON.parse(String(post?.[1]?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({ key: "JOSIE", displayName: "Josie K." });
+    for (const field of [
+      "aliases", "role", "membershipEmail", "exclude_from_gallery", "archival",
+      "approved_replicator", "staffNote", "replicationOrder", "reportOrder",
+    ]) {
+      expect(body).not.toHaveProperty(field);
+    }
   });
 
   it("shows an editor the trust fields disabled with the reason, and never sends them", async () => {
@@ -251,14 +259,14 @@ describe("ContributorsTab", () => {
       );
     });
     const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
-    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
-      key: "JOSIE",
-      displayName: "Josie K.",
-      bio: "A bio.",
-      avatarUrl: null,
-      links: [],
-      aliases: [],
-    });
+    const body = JSON.parse(String(post?.[1]?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({ key: "JOSIE", displayName: "Josie K." });
+    for (const field of [
+      "role", "membershipEmail", "exclude_from_gallery", "archival",
+      "approved_replicator", "staffNote",
+    ]) {
+      expect(body).not.toHaveProperty(field);
+    }
   });
 
   it("lets an admin edit the trust fields and sends them", async () => {

@@ -19,6 +19,9 @@ export type IndexLayoutPayload = {
   type: "psychoactive" | "chemical" | "mechanism";
   version: number;
   categories: ManualCategoryDefinition[];
+  expected?: unknown;
+  expectedRevision?: number;
+  operationId?: string;
 };
 
 export type ArticleDebugSummary = {
@@ -56,6 +59,7 @@ export type ArticleWriteOutcome = {
   previous: ArticleSnapshot | null;
   next: ArticleSnapshot | null;
   affectedPaths: string[];
+  publicRevision?: string;
 };
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

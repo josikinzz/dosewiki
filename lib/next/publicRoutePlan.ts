@@ -1,6 +1,5 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { CATEGORY_SLUG_TO_TAGS } from "../../src/data/effectCategoryDefinitions";
 import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRouteDerivation";
@@ -11,8 +10,6 @@ import {
 import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
-  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_CONVEX_CACHE_TAGS,
   getPublicCategoryLayout,
   getPublicContributorDirectory,
   getPublicEffectIndexArticles,
@@ -386,7 +383,8 @@ export function getPublicRouteSitemapPaths(plan: PublicRoutePlan) {
   return unique([...plan.staticPaths, ...dynamicPaths]);
 }
 
-const getCachedPublicRoutePlan = unstable_cache(
+// Request-only composition: an outer persistent entry bypasses corpus page caches.
+export const getPublicRoutePlan = cache(
   async () => {
     const [
       substances,
@@ -422,20 +420,5 @@ const getCachedPublicRoutePlan = unstable_cache(
       mechanismRouteInput,
     });
   },
-  ["convex-public-route-plan-v4"],
-  {
-    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-    tags: [
-      PUBLIC_CONVEX_CACHE_TAGS.all,
-      PUBLIC_CONVEX_CACHE_TAGS.substances,
-      PUBLIC_CONVEX_CACHE_TAGS.layouts,
-      PUBLIC_CONVEX_CACHE_TAGS.effects,
-      PUBLIC_CONVEX_CACHE_TAGS.replications,
-      PUBLIC_CONVEX_CACHE_TAGS.articles,
-      PUBLIC_CONVEX_CACHE_TAGS.reports,
-      PUBLIC_CONVEX_CACHE_TAGS.contributors,
-    ],
-  },
 );
 
-export const getPublicRoutePlan = cache(getCachedPublicRoutePlan);

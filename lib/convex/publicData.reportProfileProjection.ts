@@ -65,10 +65,10 @@ export const resolveReportContributorProfile = (
  * contributor's name would have re-acquired their identity at read time.
  */
 const resolveAttributedProfile = (
-  report: Pick<TripReportRecord, "subject"> & { attribution_review?: unknown },
+  report: Pick<TripReportRecord, "subject"> & { attribution_review?: unknown; attribution_locked?: boolean },
   profiles: readonly NormalizedUserProfile[],
 ): NormalizedUserProfile | null => {
-  if (!report.attribution_review) {
+  if (!report.attribution_locked && !report.attribution_review) {
     return resolveReportContributorProfile(profiles, report.subject.name);
   }
 
@@ -162,13 +162,16 @@ export const projectPublicReportDetail = <T extends TripReportRecord | TripRepor
   profiles: readonly NormalizedUserProfile[],
 ): T => {
   const matchedProfile = resolveAttributedProfile(report, profiles);
+  const publicReport = { ...report, attribution_locked: report.attribution_locked || !!report.attribution_review };
+  delete (publicReport as T & { owner_email?: string }).owner_email;
+  delete publicReport.attribution_review;
 
   if (!matchedProfile) {
-    return report;
+    return publicReport;
   }
 
   return {
-    ...report,
+    ...publicReport,
     subject: {
       ...report.subject,
       profile_key: matchedProfile.key,

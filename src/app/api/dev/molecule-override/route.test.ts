@@ -35,15 +35,21 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   getServerConvexWriteCapability: mocks.getServerConvexWriteCapability,
 }));
 
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
+
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
+}));
+
 const postRequest = (body: Record<string, unknown>) =>
   new Request("https://dose.wiki/api/dev/molecule-override", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 
 const deleteRequest = (slug: string) =>
-  new Request(`https://dose.wiki/api/dev/molecule-override?slug=${slug}`, { method: "DELETE" });
+  new Request(`https://dose.wiki/api/dev/molecule-override?slug=${slug}`, { method: "DELETE", headers: { Origin: "https://dose.wiki" } });
 
 describe("molecule override route", () => {
   beforeEach(() => {
@@ -58,6 +64,7 @@ describe("molecule override route", () => {
       ok: true,
       capability: { client: { query: mocks.query, mutation: mocks.mutation }, adminKey: "admin-key" },
     });
+    publishMocks.publishPublicCache.mockClear();
   });
 
   it("loads a selected substance depiction through the authenticated admin deployment", async () => {
@@ -86,5 +93,40 @@ describe("molecule override route", () => {
     expect(responses.map((response) => response.status)).toEqual([403, 403, 403]);
     expect(mocks.query).not.toHaveBeenCalled();
     expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("publishes the saved depiction so both public deployments redraw it", async () => {
+    mocks.mutation.mockResolvedValue({ updated: true });
+    const response = await POST(postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />" }));
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "molecule", slug: "2c-b" }],
+      source: "manual",
+    });
+  });
+
+  it("publishes the class index alongside a class depiction", async () => {
+    mocks.mutation.mockResolvedValue({ updated: true });
+    const response = await POST(
+      postRequest({ slug: "class:tryptamines", molblock: "mol", svg: "<svg />" }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "molecule", slug: "class:tryptamines" }, { kind: "chemical-class-lists" }],
+      source: "manual",
+    });
+  });
+
+  it("publishes the depiction it removed", async () => {
+    mocks.mutation.mockResolvedValue({ deleted: true });
+    const response = await DELETE(deleteRequest("2c-b"));
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "molecule", slug: "2c-b" }],
+      source: "manual",
+    });
   });
 });

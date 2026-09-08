@@ -4,7 +4,12 @@ import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
+import { resolveEffectCategoryIcon } from "@/features/effects/pages/effectsIndexConfig";
 import { CaptionedImage } from "@/features/effects/vcode/components/CaptionedImage";
+import {
+  resolveArtistCreditLink,
+  type ArtistCreditLinks,
+} from "@/features/effects/vcode/artistCreditLinks";
 import type { PublicEffectArticle } from "@server/convex/publicData";
 
 import { PsychoactiveEffectLongSummary } from "./PsychoactiveEffectLongSummary";
@@ -20,12 +25,23 @@ interface PsychoactiveSummarySection extends PsychoactiveSummarySectionDefinitio
 interface PsychoactiveSummaryPageProps {
   definition: PsychoactiveSummaryDefinition;
   sections: PsychoactiveSummarySection[];
+  artistCreditLinks?: ArtistCreditLinks;
 }
 
 export function PsychoactiveSummaryPage({
   definition,
   sections,
+  artistCreditLinks,
 }: PsychoactiveSummaryPageProps) {
+  const heroCredit = resolveArtistCreditLink(
+    artistCreditLinks,
+    definition.image?.artist,
+  );
+  // Definition keys are "<class>" or "<class>-<facet>" ("deliriant",
+  // "psychedelic-visual"), and the per-class image variants an article embed
+  // carries are keyed on the class alone.
+  const [mediaVariantKey] = definition.key.split("-");
+
   return (
     <PublicContentShell width="standard" focusTarget>
       <PageHeader title={definition.title} icon={definition.icon} />
@@ -37,6 +53,8 @@ export function PsychoactiveSummaryPage({
               src={definition.image.src}
               width={definition.image.width}
               artist={definition.image.artist}
+              artistHref={heroCredit?.href}
+              artistHrefExternal={heroCredit?.external}
               title={definition.image.title}
               caption={definition.image.title}
               align={definition.image.align}
@@ -67,7 +85,7 @@ export function PsychoactiveSummaryPage({
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, "-")
               .replace(/^-|-$/g, "")}
-            icon={section.icon}
+            icon={resolveEffectCategoryIcon(section.title) ?? section.icon ?? "lucide:layout-list"}
             heading={section.title}
             spacing="effect"
           >
@@ -82,6 +100,8 @@ export function PsychoactiveSummaryPage({
                   <PsychoactiveEffectLongSummary
                     key={effect.slug}
                     effect={effect}
+                    artistCreditLinks={artistCreditLinks}
+                    mediaVariantKey={mediaVariantKey}
                   />
                 ))}
               </div>

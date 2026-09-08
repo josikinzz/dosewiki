@@ -115,8 +115,9 @@ describe("ViewerThumbnailRail", () => {
       <ViewerThumbnailRail {...baseProps({ selectedIndex: 150 })} />,
     );
 
-    const selected = screen.getByRole("button", { name: "Show Work 150" });
+    const selected = screen.getByRole("button", { name: /Show Work 150,/ });
     expect(selected).toHaveAttribute("aria-current", "true");
+    expect(selected).toHaveTextContent("151");
 
     // Two disjoint runs (0..8 scroll, 142..158 selected) → 26 buttons and
     // two exact-width spacers between/after them.
@@ -135,7 +136,7 @@ describe("ViewerThumbnailRail", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Show Work 145" }));
+    fireEvent.click(screen.getByRole("button", { name: /Show Work 145,/ }));
     expect(onSelect).toHaveBeenCalledWith(145);
   });
 
@@ -145,7 +146,6 @@ describe("ViewerThumbnailRail", () => {
     const nav = screen.getByRole("navigation", { hidden: true });
     expect(nav).toHaveAttribute("aria-hidden", "true");
     expect(nav).toHaveAttribute("inert");
-    expect(nav.className).toContain("opacity-0");
   });
 
   it("slides the window with scroll position", async () => {
@@ -155,7 +155,7 @@ describe("ViewerThumbnailRail", () => {
     if (!list) return;
 
     expect(
-      screen.queryByRole("button", { name: "Show Work 100" }),
+      screen.queryByRole("button", { name: /Show Work 100,/ }),
     ).not.toBeInTheDocument();
 
     // 100 slots deep with a 400px viewport → visible 100..107, overscan 92..115.
@@ -166,13 +166,13 @@ describe("ViewerThumbnailRail", () => {
     });
 
     expect(
-      screen.getByRole("button", { name: "Show Work 100" }),
+      screen.getByRole("button", { name: /Show Work 100,/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Show Work 115" }),
+      screen.getByRole("button", { name: /Show Work 115,/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Show Work 50" }),
+      screen.queryByRole("button", { name: /Show Work 50,/ }),
     ).not.toBeInTheDocument();
   });
 
@@ -184,7 +184,7 @@ describe("ViewerThumbnailRail", () => {
     expect(list).not.toBeNull();
     if (!list) return;
 
-    fireEvent.focus(screen.getByRole("button", { name: "Show Work 5" }));
+    fireEvent.focus(screen.getByRole("button", { name: /Show Work 5,/ }));
 
     mockListMetrics(list, { scrollLeft: 100 * SLOT, clientWidth: 400 });
     await act(async () => {
@@ -195,10 +195,10 @@ describe("ViewerThumbnailRail", () => {
     // The focus union (5 ± 8) survives; unfocused neighbors outside every
     // window do not.
     expect(
-      screen.getByRole("button", { name: "Show Work 5" }),
+      screen.getByRole("button", { name: /Show Work 5,/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Show Work 30" }),
+      screen.queryByRole("button", { name: /Show Work 30,/ }),
     ).not.toBeInTheDocument();
   });
 });

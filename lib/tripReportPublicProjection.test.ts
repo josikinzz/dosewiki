@@ -1,0 +1,38 @@
+import { describe, expect, it } from "vitest";
+import type { Doc } from "../convex/_generated/dataModel";
+import { publicTripReport } from "../convex/lib/tripReportPublicProjection";
+
+function publishedReport(): Doc<"tripReports"> {
+  return {
+    _id: "report-fixture" as Doc<"tripReports">["_id"],
+    _creationTime: 1,
+    slug: "redacted-report",
+    title: "Redacted report",
+    owner_email: "private-owner@example.com",
+    subject: { name: "Published byline", avatar_url: "https://example.com/avatar.png", pdf_url: "https://example.com/report.pdf" },
+    substances: [{ name: "Example" }],
+    introduction: "Original introduction.\n",
+    onset: [{ time: "T+0:10", description: "First entry." }, { description: "Second entry." }],
+    peak: [],
+    offset: [],
+    tags: ["fixture"],
+    license: "author-retained",
+    attribution_review: { reviewed_by: "private-editor@example.com", reviewed_at: "2026-09-05T00:00:00.000Z", decision: "declined" },
+  };
+}
+
+describe("public trip report privacy", () => {
+  it("keeps published content and explicit byline policy without owner or moderation identity", () => {
+    const stored = publishedReport();
+    const visible = publicTripReport(stored);
+    expect(visible).not.toHaveProperty("owner_email");
+    expect(visible).not.toHaveProperty("attribution_review");
+    expect(JSON.stringify(visible)).not.toContain("private-owner@example.com");
+    expect(JSON.stringify(visible)).not.toContain("private-editor@example.com");
+    expect(visible.attribution_locked).toBe(true);
+    expect(visible.subject).toEqual(stored.subject);
+    expect(visible.onset).toEqual(stored.onset);
+    expect(visible.introduction).toBe("Original introduction.\n");
+    expect(visible.license).toBe("author-retained");
+  });
+});

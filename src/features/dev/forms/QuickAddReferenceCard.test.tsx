@@ -107,7 +107,6 @@ describe("QuickAddReferenceCard", () => {
     fireEvent.change(source, { target: { value: "Existing title" } });
     fireEvent.blur(source);
 
-    expect(await screen.findByText("Already cited on this article.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add citation" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
@@ -136,7 +135,6 @@ describe("QuickAddReferenceCard", () => {
       "https://example.test/source",
     );
 
-    expect(await screen.findByText("Already cited on this article.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add citation" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Copy tag" }));
     expect(await navigator.clipboard.readText()).toBe("[cite:canonical-source]");

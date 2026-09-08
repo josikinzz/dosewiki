@@ -1,223 +1,81 @@
-/**
- * Card-based editor for country legality records.
- * Displays each country as an editable card with status, notes, and flag.
- */
-
-import { useCallback } from "react";
+import { useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { AppImage } from "@/components/common/AppImage";
-import { Icon } from "@/components/common/Icon";
-
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { EmptyStateSurface } from "@/components/ui/surface";
-import { EditorField } from "@/features/dev/components";
-import { EntryCard } from "@/features/dev/forms/EntryCard";
-import { useEntryKeys } from "@/features/dev/forms/useEntryKeys";
-import { getCountryCode, getAllCountryNames } from "@/utils/data/countryCodes";
-import type { SubstanceArticle, CountryLegality } from "@/schema";
+import { EditorField, EditorFieldRow, EditorSelect } from "@/features/dev/components";
+import { EntryCard } from "../EntryCard";
+import { CANONICAL_LEGAL_STATUSES, CANONICAL_STATUS_LABELS } from "@/schema/substance/legalStatuses";
+import type { CountryLegality, SubstanceArticle } from "@/schema";
 
-// Transform countries object to array for field array
-type CountryEntry = {
-  country: string;
-  status: string;
-  notes: string;
-  canonicalStatus?: CountryLegality["canonicalStatus"];
-  instrument?: string;
-  designation?: string;
-};
-
-function objectToArray(countries: Record<string, CountryLegality>): CountryEntry[] {
-  return Object.entries(countries || {}).map(([country, info]) => ({
-    country,
-    status: info.status || "",
-    notes: info.notes || "",
-    canonicalStatus: info.canonicalStatus,
-    instrument: info.instrument,
-    designation: info.designation,
-  }));
-}
-
-function arrayToObject(entries: CountryEntry[]): Record<string, CountryLegality> {
-  const result: Record<string, CountryLegality> = {};
-  for (const entry of entries) {
-    if (entry.country.trim()) {
-      result[entry.country.trim()] = {
-        status: entry.status || "",
-        notes: entry.notes || "",
-        ...(entry.canonicalStatus ? { canonicalStatus: entry.canonicalStatus } : {}),
-        ...(entry.instrument ? { instrument: entry.instrument } : {}),
-        ...(entry.designation ? { designation: entry.designation } : {}),
-      };
-    }
-  }
-  return result;
-}
-
-interface CountryCardProps {
-  index: number;
-  country: string;
-  status: string;
-  notes: string;
-  onRemove: () => void;
-  onUpdate: (field: keyof CountryEntry, value: string) => void;
-}
-
-function CountryCard({ index, country, status, notes, onRemove, onUpdate }: CountryCardProps) {
-  const countryCode = getCountryCode(country);
-  const countryId = `country-legality-${index}-country`;
-  const statusId = `country-legality-${index}-status`;
-  const notesId = `country-legality-${index}-notes`;
-
-  return (
-    <EntryCard
-      title={
-        <span className="flex items-center gap-2">
-          {countryCode ? (
-            <AppImage
-              src={`/flags/${countryCode}.svg`}
-              alt={`${country} flag`}
-              width={24}
-              height={24}
-              className="h-6 w-6 rounded-full ring-1 ring-[var(--theme-border-subtle)] shadow-[var(--theme-elevation-swatch)]"
-            />
-          ) : null}
-          {country || "New country"}
-        </span>
-      }
-      onRemove={onRemove}
-      removeLabel={`Remove ${country || "country"}`}
-    >
-      {/* Country name */}
-      <EditorField htmlFor={countryId} label="Country">
-        <Input
-          id={countryId}
-          value={country}
-          onChange={(e) => onUpdate("country", e.target.value)}
-          placeholder="e.g., United States"
-          inputSize="sm"
-          list={`country-list-${index}`}
-        />
-        <datalist id={`country-list-${index}`}>
-          {getAllCountryNames().map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
-      </EditorField>
-
-      {/* Status */}
-      <EditorField htmlFor={statusId} label="Status">
-        <Input
-          id={statusId}
-          value={status}
-          onChange={(e) => onUpdate("status", e.target.value)}
-          placeholder="e.g., Schedule I, Class A, Illegal"
-          inputSize="sm"
-        />
-      </EditorField>
-
-      {/* Notes */}
-      <EditorField
-        htmlFor={notesId}
-        label={
-          <span>
-            Notes <span className="theme-text-faint">(optional)</span>
-          </span>
-        }
-      >
-        <Textarea
-          id={notesId}
-          value={notes}
-          onChange={(e) => onUpdate("notes", e.target.value)}
-          placeholder="Additional details, exceptions, or context..."
-          rows={2}
-          className="text-sm resize-none"
-        />
-      </EditorField>
-    </EntryCard>
-  );
-}
-
-export interface CountryLegalityCardEditorProps {
-  className?: string;
-}
+export interface CountryLegalityCardEditorProps { className?: string }
 
 export function CountryLegalityCardEditor({ className }: CountryLegalityCardEditorProps) {
   const { watch, setValue } = useFormContext<SubstanceArticle>();
-
-  // Watch the countries object
-  const countriesObj = watch("legality.countries") || {};
-
-  // Convert to array for editing
-  const entries = objectToArray(countriesObj);
-  const { keys, appendKey, removeKey } = useEntryKeys(entries.length);
-
-  const updateEntries = useCallback(
-    (newEntries: CountryEntry[]) => {
-      setValue("legality.countries", arrayToObject(newEntries), { shouldDirty: true });
-    },
-    [setValue]
-  );
-
-  const handleAdd = useCallback(() => {
-    appendKey();
-    updateEntries([...entries, { country: "", status: "", notes: "" }]);
-  }, [appendKey, entries, updateEntries]);
-
-  const handleRemove = useCallback(
-    (index: number) => {
-      removeKey(index);
-      updateEntries(entries.filter((_, i) => i !== index));
-    },
-    [entries, removeKey, updateEntries]
-  );
-
-  const handleUpdate = useCallback(
-    (index: number, field: keyof CountryEntry, value: string) => {
-      const newEntries = [...entries];
-      newEntries[index] = { ...newEntries[index], [field]: value };
-      updateEntries(newEntries);
-    },
-    [entries, updateEntries]
-  );
-
+  const countries = watch("legality.countries") ?? {};
+  const id = useId();
+  const [newCountry, setNewCountry] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const update = (country: string, patch: Partial<CountryLegality>) => {
+    setValue("legality.countries", { ...countries, [country]: { ...countries[country], ...patch } }, { shouldDirty: true });
+  };
+  const addCountry = () => {
+    const name = newCountry.trim();
+    if (!name) { setError("Enter a country name."); return; }
+    if (["__proto__", "constructor", "prototype"].includes(name)) { setError("Enter a valid country name."); return; }
+    const existing = Object.keys(countries).find((key) => key.toLowerCase() === name.toLowerCase());
+    if (existing) { setError(`${existing} already has an entry. Edit that country above.`); return; }
+    setValue("legality.countries", { ...countries, [name]: { status: "", notes: "" } }, { shouldDirty: true });
+    setNewCountry("");
+    setError(null);
+  };
   return (
     <div className={className}>
-      {/* Country cards grid */}
-      {entries.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-          {entries.map((entry, index) => (
-            <CountryCard
-              key={keys[index]}
-              index={index}
-              country={entry.country}
-              status={entry.status}
-              notes={entry.notes}
-              onRemove={() => handleRemove(index)}
-              onUpdate={(field, value) => handleUpdate(index, field, value)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Add button */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleAdd}
-        className="w-full border-dashed"
-      >
-        <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
-        Add Country
-      </Button>
-
-      {entries.length === 0 && (
-        <EmptyStateSurface padding="sm" radius="lg" className="mt-3 text-xs">
-          No countries added yet. Click &ldquo;Add Country&rdquo; to begin.
-        </EmptyStateSurface>
-      )}
+      <p className="theme-text-muted mb-4 max-w-prose text-sm">Country identity is fixed. Review status, legal instrument, public notes, and cited sources together. Keep research and internal review notes out of public prose.</p>
+      <div className="space-y-4">
+        {Object.entries(countries).map(([country, entry], index) => (
+          <EntryCard key={country} title={country} bodyClassName="space-y-4" removeLabel={`Remove ${country}`} onRemove={() => {
+            if (!window.confirm(`Remove ${country} and its legal status, instrument, and public notes from this draft?`)) return;
+            const next = { ...countries };
+            delete next[country];
+            setValue("legality.countries", next, { shouldDirty: true });
+          }}>
+            <EditorFieldRow layout="twoColumn">
+              <EditorField label="Canonical legal status" htmlFor={`${id}-canonical-${index}`} description="Sets the public status badge when selected.">
+                {(props) => <EditorSelect {...props} value={entry.canonicalStatus ?? ""} onChange={(event) => update(country, { canonicalStatus: event.target.value as CountryLegality["canonicalStatus"] })}>
+                  <option value="">Select status</option>
+                  {CANONICAL_LEGAL_STATUSES.map((status) => <option key={status} value={status}>{CANONICAL_STATUS_LABELS[status]}</option>)}
+                </EditorSelect>}
+              </EditorField>
+              <EditorField label="Status text" htmlFor={`${id}-status-${index}`} description="Used for the badge only when no canonical status is selected.">
+                {(props) => <Input {...props} value={entry.status ?? ""} onChange={(event) => update(country, { status: event.target.value })} />}
+              </EditorField>
+            </EditorFieldRow>
+            <EditorFieldRow layout="twoColumn">
+              <EditorField label="Legal instrument" htmlFor={`${id}-instrument-${index}`}>
+                <Input id={`${id}-instrument-${index}`} value={entry.instrument ?? ""} onChange={(event) => update(country, { instrument: event.target.value })} placeholder="Name of the statute, regulation, or convention" />
+              </EditorField>
+              <EditorField label="Schedule or designation" htmlFor={`${id}-designation-${index}`}>
+                <Input id={`${id}-designation-${index}`} value={entry.designation ?? ""} onChange={(event) => update(country, { designation: event.target.value })} placeholder="Schedule, list, or statutory designation" />
+              </EditorField>
+            </EditorFieldRow>
+            <EditorField label="Public notes and source markers" htmlFor={`${id}-notes-${index}`}>
+              <Textarea id={`${id}-notes-${index}`} value={entry.notes ?? ""} onChange={(event) => update(country, { notes: event.target.value })} placeholder="Encyclopedic notes with [cite:reference-id] primary legal sources" />
+            </EditorField>
+          </EntryCard>
+        ))}
+      </div>
+      <EditorFieldRow layout="actionTrailing" className="mt-4">
+        <EditorField label="New country" htmlFor={`${id}-new-country`} error={error} errorLive>
+          {(props) => <Input {...props} value={newCountry} onChange={(event) => { setNewCountry(event.target.value); setError(null); }} onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              addCountry();
+            }
+          }} />}
+        </EditorField>
+        <Button type="button" variant="outline" onClick={addCountry}>Add country</Button>
+      </EditorFieldRow>
     </div>
   );
 }

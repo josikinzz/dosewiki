@@ -3,7 +3,7 @@
  * Displays "15-30 minutes" format but stores { min, max, unit }.
  */
 
-import { useCallback, useState, type ChangeEvent, type FocusEvent } from "react";
+import { useCallback, useId, useState, type ChangeEvent, type FocusEvent } from "react";
 import { Controller, useFormContext, type FieldPath, type ControllerRenderProps } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
@@ -40,37 +40,70 @@ function DurationStageInnerInput({
   placeholder: string;
   className?: string;
 }) {
-  // Local state for the string representation
-  const [localValue, setLocalValue] = useState(() =>
-    durationStageTransformer.toForm(field.value)
-  );
+  const [draft, setDraft] = useState<string | null>(null);
+  const localValue = draft ?? durationStageTransformer.toForm(field.value);
+  const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setLocalValue(e.target.value);
+    setDraft(e.target.value);
+    setError(null);
+    e.target.setCustomValidity("");
   }, []);
 
   const handleBlur = useCallback(
-    (_event: FocusEvent<HTMLInputElement>) => {
+    (event: FocusEvent<HTMLInputElement>) => {
+      if (draft === null || localValue === durationStageTransformer.toForm(field.value)) {
+        setDraft(null);
+        field.onBlur();
+        return;
+      }
       const parsed = durationStageTransformer.toSchema(localValue);
-      // Update the form with the parsed value, or reset to empty
-      const schemaValue: DurationStage = parsed ?? { min: null, max: null, unit: "" };
+      if (!parsed && localValue.trim() !== "") {
+        setError("Not a duration range. Use a form like 15-30 minutes, or clear the field.");
+        event.target.setCustomValidity("Not a duration range. Use a form like 15-30 minutes, or clear the field.");
+        field.onBlur();
+        return;
+      }
+      if (parsed?.min != null && parsed.max != null && parsed.min > parsed.max) {
+        const message = "The minimum must not exceed the maximum. Correct the range bounds.";
+        setError(message);
+        event.target.setCustomValidity(message);
+        field.onBlur();
+        return;
+      }
+      const schemaValue: DurationStage = {
+        ...field.value,
+        ...(parsed ?? { min: null, max: null, unit: "" }),
+      };
+      setError(null);
       field.onChange(schemaValue);
       field.onBlur();
-      // Re-format the display value
-      setLocalValue(durationStageTransformer.toForm(schemaValue));
+      setDraft(null);
     },
-    [localValue, field]
+    [draft, localValue, field]
   );
 
   return (
-    <Input
-      id={id}
-      value={localValue}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      placeholder={placeholder}
-      className={className}
-    />
+    <>
+      <Input
+        id={id}
+        name={field.name}
+        ref={field.ref}
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        className={className}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+      />
+      {error ? (
+        <p id={errorId} role="alert" className="theme-danger-text mt-1 text-xs leading-tight">
+          {error}
+        </p>
+      ) : null}
+    </>
   );
 }
 

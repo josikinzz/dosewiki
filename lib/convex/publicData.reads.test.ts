@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ConvexError } from "convex/values";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 import {
   createConvexPublicDataReadAdapter,
@@ -13,63 +14,6 @@ import type { SubstanceRecord } from "./publicData.shared";
 vi.mock("server-only", () => ({}));
 
 describe("public data read adapter", () => {
-  it("maps DoseWiki public reads to the Convex public query catalog", async () => {
-    const queryCalls: Array<[string, Record<string, unknown>]> = [];
-    const query = async <Result, Args extends Record<string, unknown>>(name: string, args: Args): Promise<Result> => {
-      queryCalls.push([name, args]);
-      if (name === "substanceIndex:getPublicBySlug") {
-        return {
-          id: 1,
-          title: "LSD",
-          slug: "lsd",
-          priority: "high",
-          index_categories: [],
-        } as Result;
-      }
-      if (
-        name === "substanceIndex:getPublicAboutPreviewCandidates" ||
-        name.endsWith("Page")
-      ) {
-        return {
-          items: [],
-          cursor: "done",
-          isDone: true,
-        } as Result;
-      }
-      return [] as Result;
-    };
-    const adapter = createConvexPublicDataReadAdapter(query);
-
-    await adapter.getPublicSubstanceBySlug("lsd");
-    await adapter.getPublicMechanismRouteInput();
-    await adapter.getPublicAboutPreviewSubstances();
-    await adapter.getPublicTripReportsByContributor("AUTHOR", ["Author", "Alias"]);
-    await adapter.getPublicReplicationsByEffect("visual-drifting");
-    await adapter.getPublicGalleryReplicationPage("opaque-cursor", 48);
-    await adapter.getPublicIndexLayoutByType("psychoactive");
-
-    expect(queryCalls[0]).toEqual(["substanceIndex:getPublicBySlug", { slug: "lsd" }]);
-    expect(queryCalls[1]).toEqual([
-      "substanceIndex:getPublicMechanismRouteInputPage",
-      { limit: 32 },
-    ]);
-    expect(queryCalls[2]).toEqual([
-      "substanceIndex:getPublicAboutPreviewCandidates",
-      { limit: 64 },
-    ]);
-    expect(queryCalls[3]).toEqual(["tripReports:getByContributor", {
-      profileKey: "AUTHOR",
-      authorNames: ["Author", "Alias"],
-    }]);
-    expect(queryCalls[4]).toEqual(["replications:getReplicationsByEffect", {
-      effect_slug: "visual-drifting",
-    }]);
-    expect(queryCalls[5]).toEqual([
-      "replications:getPublicGalleryPage",
-      { cursor: "opaque-cursor", limit: 48 },
-    ]);
-    expect(queryCalls[6]).toEqual(["indexLayouts:getByType", { type: "psychoactive" }]);
-  });
 
   it("owns public effect preview projection and ordering", () => {
     expect(
@@ -432,6 +376,25 @@ describe("public data read adapter", () => {
     ]);
   });
 
+  it("rejects archive failures instead of turning them into cacheable absence", async () => {
+    const failure = new Error("Server Error");
+    const adapter = createConvexPublicDataReadAdapter(async () => {
+      throw failure;
+    });
+
+    await expect(adapter.getPublicEffectIndexPosts()).rejects.toBe(failure);
+    await expect(adapter.getPublicEffectIndexPostBySlug("new-post")).rejects.toBe(failure);
+  });
+
+  it("preserves authoritative empty archive and missing-post responses", async () => {
+    const adapter = createConvexPublicDataReadAdapter(async <Result>(name: string): Promise<Result> =>
+      (name === "effectIndexArchive:listPosts" ? [] : null) as Result,
+    );
+
+    await expect(adapter.getPublicEffectIndexPosts()).resolves.toEqual([]);
+    await expect(adapter.getPublicEffectIndexPostBySlug("missing")).resolves.toBeNull();
+  });
+
   it("does not use stale-deployment fallbacks for ordinary Convex query failures", async () => {
     const queryCalls: Array<[string, Record<string, unknown>]> = [];
     const query = async <Result, Args extends Record<string, unknown>>(name: string, args: Args): Promise<Result> => {
@@ -493,4 +456,16 @@ describe("public data read adapter", () => {
 
     expect(catalogFunctionNames.filter((name) => forbiddenFunctionNames.includes(name))).toEqual([]);
   });
+});
+
+it("maps gallery index readiness to fallback without hiding unrelated errors", async () => {
+  const notReady = createConvexPublicDataReadAdapter(async () => {
+    throw new ConvexError({ code: "SUBSTANCE_GALLERY_INDEX_NOT_READY" });
+  });
+  expect(await notReady.getPublicSubstanceGallery("lsd")).toBeNull();
+
+  const failed = createConvexPublicDataReadAdapter(async () => {
+    throw new ConvexError({ code: "DATABASE_FAILURE" });
+  });
+  await expect(failed.getPublicSubstanceGallery("lsd")).rejects.toThrow();
 });

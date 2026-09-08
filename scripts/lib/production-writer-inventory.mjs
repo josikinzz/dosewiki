@@ -1,6 +1,7 @@
 export const productionWriterClassifications = Object.freeze({
   productionBoundary: Object.freeze([
     "scripts/admin/convex-admin.mjs",
+    "scripts/articles/repair-markdown-shortcode-bodies.mjs",
     "scripts/auth/seed-admin-accounts.mjs",
     "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
     "scripts/citations/apply-reference-author-repairs.mjs",
@@ -20,6 +21,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/contributors/upload-replication-index-profile-avatars.ts",
     "scripts/convex/merge-duplicate-article-content.mjs",
     "scripts/effects/repair-legacy-article-media.mjs",
+    "scripts/effects/repoint-recovered-article-embeds.mjs",
     "scripts/effects/upgrade-article-media.mjs",
     "scripts/effects/upgrade-embed-resolutions.mjs",
     "scripts/migrate/migrate-binding-sites.mjs",

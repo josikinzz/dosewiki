@@ -7,6 +7,10 @@ import {
   sha256Text,
 } from "../../lib/generatedPublication/canonical.mjs";
 import { GENERATED_PUBLICATION_PROFILE_FIELDS } from "../../lib/generatedPublication/profiles.mjs";
+import {
+  REGENERATION_ARTIFACT_KIND,
+  regenerationPublicationErrors,
+} from "../../lib/generatedPublication/regeneration.mjs";
 import { validateSubstanceArticleContract } from "../../src/schema/substance/contract";
 
 export const GENERATED_PUBLICATION_HASH_VERSION = "section-cas-v1" as const;
@@ -149,6 +153,15 @@ export type ReviewedPublicationProposal = {
   targetDeploymentFingerprint: string;
   artifactDigestVersion: typeof REVIEWED_ARTIFACT_DIGEST_VERSION;
   artifactDigest: string;
+  sourceArtifactKind?: string;
+  regenerationAudit?: {
+    version: string;
+    section: string;
+    promptHash: string;
+    excerptHash: string;
+    model: string;
+    thinking: string;
+  };
   review: {
     status: "approved";
     reviewedBy: string;
@@ -270,7 +283,13 @@ export function validateReviewedPublicationProposal(
       computedArtifactDigest,
     });
   }
-  assertCitationMarkersPreserved(ownedFields, proposal.baseArticle, proposal.proposedArticle);
+  const regenerationErrors = regenerationPublicationErrors(proposal);
+  if (regenerationErrors.length) {
+    fail("INVALID_REGENERATION_PROPOSAL", regenerationErrors.join("; "));
+  }
+  if (proposal.sourceArtifactKind !== REGENERATION_ARTIFACT_KIND) {
+    assertCitationMarkersPreserved(ownedFields, proposal.baseArticle, proposal.proposedArticle);
+  }
 
   return { ownedFields, changedFields, expectedOwnedHash, proposedOwnedHash, artifactDigest };
 }
@@ -335,11 +354,13 @@ export async function publishReviewedSectionTransaction({
     if (existingOperation.payloadDigest !== payloadDigest) {
       fail("IDEMPOTENCY_KEY_REUSED", "proposalId was already used with a different payload.");
     }
-    return {
-      status: "already_applied" as const,
-      proposalId: proposal.proposalId,
-      currentHash: existingOperation.nextHash,
-    };
+    if (proposal.sourceArtifactKind !== REGENERATION_ARTIFACT_KIND) {
+      return {
+        status: "already_applied" as const,
+        proposalId: proposal.proposalId,
+        currentHash: existingOperation.nextHash,
+      };
+    }
   }
 
   const articles = await db
@@ -352,6 +373,17 @@ export async function publishReviewedSectionTransaction({
     });
   }
   const liveArticle = cleanArticle(articles[0]);
+  if (proposal.sourceArtifactKind === REGENERATION_ARTIFACT_KIND) {
+    const errors = regenerationPublicationErrors(proposal, { liveArticle });
+    if (errors.length) fail("INVALID_REGENERATION_PROPOSAL", errors.join("; "));
+  }
+  if (existingOperation) {
+    return {
+      status: "already_applied" as const,
+      proposalId: proposal.proposalId,
+      currentHash: existingOperation.nextHash,
+    };
+  }
   const currentHash = computeOwnedSectionHash(proposal.profile, liveArticle);
   if (currentHash === validated.proposedOwnedHash) {
     return {

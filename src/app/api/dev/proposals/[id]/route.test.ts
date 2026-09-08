@@ -23,6 +23,14 @@ const PROPOSAL = {
   summary: "Update LSD",
   targets: [{ kind: "article", key: "lsd", baseHash: "h1" }],
   liveHashes: [{ kind: "article", key: "lsd", hash: "h1" }],
+  proposerName: "Ada",
+  isAuthor: true,
+  createdAt: "2026-09-01T00:00:00.000Z",
+  updatedAt: "2026-09-01T00:00:00.000Z",
+  diff: "# article: lsd / summary\n\n- Before\n+ After",
+  comments: [],
+  commentCount: 0,
+  payload: { articles: [{ title: "LSD", summary: "After" }] },
 };
 
 function createClient(proposal: unknown = PROPOSAL) {
@@ -45,6 +53,7 @@ function createClient(proposal: unknown = PROPOSAL) {
 function commentRequest(id: string, body: unknown) {
   return new Request(`https://dose.wiki/api/dev/proposals/${id}/comment`, {
     method: "POST",
+    headers: { Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -69,6 +78,72 @@ describe("dev proposal detail and comment routes", () => {
     });
   });
 
+  it("does not forward historical audit identities, contact metadata, snapshots or client changelogs", async () => {
+    const privateEmail = "private-contributor@example.com";
+    const article = { title: "LSD", summary: "Published contact: research@example.org" };
+    grantWriteCapability(createClient({
+      ...PROPOSAL,
+      proposerName: privateEmail,
+      proposedBy: "editor@example.com",
+      isAuthor: false,
+      reviewedBy: privateEmail,
+      reviewerName: `Reviewer <${privateEmail}>`,
+      comments: [{ by: privateEmail, authorName: privateEmail, at: "now", text: "Checked" }],
+      payload: {
+        articles: [{ ...article, submittedBy: { email: privateEmail }, contact: { email: privateEmail } }],
+        changelog: { submittedBy: privateEmail, markdown: privateEmail, articles: [] },
+        contactEmail: privateEmail,
+      },
+      snapshotBefore: [{ document: { submittedBy: privateEmail } }],
+      unknownAuditField: privateEmail,
+      diff: `${PROPOSAL.diff}\n\n# article: lsd / submittedBy.email\n\n+ ${privateEmail}\n`,
+    }), { intentToken: "article-token" });
+    const { GET } = await import("./route");
+
+    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(JSON.stringify(body)).not.toContain(privateEmail);
+    expect(JSON.stringify(body)).not.toContain("editor@example.com");
+    expect(body.proposal).toMatchObject({
+      proposerName: "Contributor", reviewerName: "Reviewer", isAuthor: true,
+      comments: [{ authorName: "Contributor", at: "now", text: "Checked" }],
+      payload: { articles: [article] },
+    });
+    expect(body.proposal).not.toHaveProperty("snapshotBefore");
+    expect(body.proposal).not.toHaveProperty("unknownAuditField");
+    expect(body.proposal.payload).not.toHaveProperty("changelog");
+    expect(body.proposal.diff.trim()).toBe(PROPOSAL.diff);
+  });
+
+  it("removes private envelopes from whole-document historical diffs without removing article prose", async () => {
+    const article = {
+      title: "LSD",
+      summary: "Published contact: research@example.org",
+      submittedBy: { email: "private@example.com" },
+    };
+    const diff = `# article: lsd\n\n-null\n${JSON.stringify(article, null, 2).split("\n").map((line) => `+${line}`).join("\n")}\n`;
+    grantWriteCapability(createClient({ ...PROPOSAL, diff }), { intentToken: "article-token" });
+    const { GET } = await import("./route");
+    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.proposal.diff).not.toContain("private@example.com");
+    expect(body.proposal.diff).not.toContain("submittedBy");
+    expect(body.proposal.diff).toContain(article.summary);
+  });
+
+  it("withholds a partial comparison when a truncated historical object still contains private metadata", async () => {
+    const diff = `${PROPOSAL.diff}\n\n# article: new-article\n\n+{\n+  "submittedBy": "private@example.com",\n`;
+    grantWriteCapability(createClient({ ...PROPOSAL, diff }), { intentToken: "article-token" });
+    const { GET } = await import("./route");
+    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.proposal).toMatchObject({ comparisonMode: "unavailable", diff: "" });
+    expect(JSON.stringify(body)).not.toContain("private@example.com");
+  });
+
   it("answers 404 when Convex knows no such proposal", async () => {
     grantWriteCapability(createClient(null), { intentToken: "article-token" });
     const { GET } = await import("./route");
@@ -87,7 +162,7 @@ describe("dev proposal detail and comment routes", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       ok: true,
-      comment: { by: "editor@example.com", at: "2026-09-03T00:00:00.000Z", text: "Looks right." },
+      comment: { authorName: "Contributor", at: "2026-09-03T00:00:00.000Z", text: "Looks right." },
     });
     expect(client.mutation).toHaveBeenCalledWith("changeProposals.comment", {
       apiKey: "article-token",

@@ -86,6 +86,7 @@ export type SubstanceGalleryMatchableRow = {
   /** Corpus-wide suppression: junk or a combination belongs on no drug article. */
   showcase_excluded?: boolean;
   replication_status?: "replication" | "not-replication" | "unclear" | "unreviewed" | "source-corrupt";
+  publication_state?: "published" | "duplicate-suppressed";
 };
 
 export type SubstanceGalleryTarget = {
@@ -111,6 +112,7 @@ export type SubstanceGalleryCuration = {
   curated_slugs?: readonly string[];
   removed_slugs?: readonly string[];
   carousel_order?: readonly string[];
+  disabled?: boolean;
 };
 
 /** One item of the public per-substance read, URL-resolved for rendering. */
@@ -122,6 +124,7 @@ export type SubstanceGalleryItem = {
 /** The public `getPublicReplicationsForSubstance` payload. */
 export type PublicSubstanceGallery = {
   items: SubstanceGalleryItem[];
+  carouselOrder?: readonly string[];
 };
 
 const substanceGalleryTargetSource = z.object({
@@ -459,6 +462,7 @@ export function mergeCuratedGallery<Row extends SubstanceGalleryMatchableRow>(
   matchedItems: readonly SubstanceGalleryMatch<Row>[],
   curation: SubstanceGalleryCuration | null | undefined,
 ): SubstanceGalleryMatch<Row>[] {
+  if (curation?.disabled) return [];
   const removed = new Set(curation?.removed_slugs ?? []);
   const bySlug = new Map<string, SubstanceGalleryMatch<Row>>();
   for (const item of matchedItems) {

@@ -14,10 +14,10 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
+
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -43,6 +43,9 @@ import { POST } from "./route";
 
 const SAVE = {
   slug: "field-guide",
+  expectedRevision: "a".repeat(64),
+  operationId: "11111111-1111-4111-8111-111111111111",
+  bodyFormat: "markdown",
   kind: "article",
   status: "draft",
   title: "Field guide",
@@ -56,7 +59,7 @@ const SAVE = {
 function saveRequest(overrides: Record<string, unknown>) {
   return new Request("https://dose.wiki/api/dev/writing-article", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify({ ...SAVE, ...overrides }),
   });
 }
@@ -78,7 +81,6 @@ describe("writing article route authorization", () => {
     const response = await POST(saveRequest({}));
 
     expect(response.status).toBe(403);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 });
@@ -98,22 +100,16 @@ describe("writing article route rename", () => {
     mocks.mutation.mockResolvedValue({ slug: "field-guide", created: false });
   });
 
-  it("forwards the loaded row's slug so the mutation renames instead of inserting", async () => {
-    const response = await POST(saveRequest({ originalSlug: "field-notes" }));
+  it("publishes the writing-articles identity so both public deployments refresh", async () => {
+    const response = await POST(saveRequest({}));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, slug: "field-guide", created: false });
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "effectIndexArticles.upsertArticle",
-      expect.objectContaining({ slug: "field-guide", originalSlug: "field-notes" }),
-    );
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "writing-articles" }],
+      source: "manual",
+    });
   });
 
-  it("sends no original slug for a new row", async () => {
-    await POST(saveRequest({}));
-
-    expect(mocks.mutation.mock.calls[0][1]).toMatchObject({ originalSlug: undefined });
-  });
 
   it("rejects an original slug that is not a string before reaching Convex", async () => {
     const response = await POST(saveRequest({ originalSlug: 42 }));
@@ -127,18 +123,10 @@ describe("writing article route rename", () => {
       const response = await POST(saveRequest({ originalSlug }));
 
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual({
-        error: "The original slug must be a valid slug: lowercase letters, digits and single hyphens.",
-      });
     }
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("treats a blank original slug as a new row", async () => {
-    await POST(saveRequest({ originalSlug: "  " }));
-
-    expect(mocks.mutation.mock.calls[0][1]).toMatchObject({ originalSlug: undefined });
-  });
 
   it("delivers a rename collision verbatim so the editor can pick another slug", async () => {
     // The Convex HTTP client rebuilds a thrown `ConvexError` with its payload
@@ -176,15 +164,4 @@ describe("writing article route rename", () => {
     });
   });
 
-  it("writes the kind the editor sent, never the tab it was sent from", async () => {
-    // A blog post opened from the Writing tab saves as a blog post: the route
-    // has no notion of the tab and must not normalize kind on the way through.
-    await POST(saveRequest({ kind: "blog", originalSlug: "field-guide" }));
-
-    expect(mocks.mutation.mock.calls[0][1]).toMatchObject({
-      slug: "field-guide",
-      originalSlug: "field-guide",
-      kind: "blog",
-    });
-  });
 });

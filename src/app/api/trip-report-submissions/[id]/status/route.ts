@@ -16,7 +16,7 @@ import { enforceRateLimit } from "@server/http/nextRateLimit";
 export const runtime = "nodejs";
 
 type StatusRouteContext = {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type StatusBody = {

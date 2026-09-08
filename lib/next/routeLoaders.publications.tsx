@@ -57,6 +57,7 @@ async function resolveArticleBylineAuthors(
       key: profile.key,
       name: profile.displayName,
       href: getPublicRoutePath({ family: "contributor", params: { profileKey: profile.key } }),
+      ...(profile.avatarUrl ? { avatarSrc: profile.avatarUrl } : {}),
     });
   }
 

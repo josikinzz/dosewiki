@@ -52,8 +52,8 @@ interface ReviewCommandBarProps {
   toggleMoleculePanel: () => void;
   toggleCitationPanel: () => void;
   toggleInlineEdit: () => void;
-  /** Admin: inline editing writes the published article, so only an admin may arm it. */
-  canApprove: boolean;
+  /** Editor floor: inline edits update only the private local article preview. */
+  canEditArticle: boolean;
   helpOpen: boolean;
   setHelpOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -89,7 +89,7 @@ export function ReviewCommandBar({
   toggleMoleculePanel,
   toggleCitationPanel,
   toggleInlineEdit,
-  canApprove,
+  canEditArticle,
   helpOpen,
   setHelpOpen,
 }: ReviewCommandBarProps) {
@@ -175,12 +175,12 @@ export function ReviewCommandBar({
     articleLinks !== REVIEW_SETTINGS_DEFAULTS.articleLinks ||
     (REVIEW_FLAGS_UI &&
       (flagLabels.length > 0 || flagSeverity !== null || flagGroupBy !== "none"));
-  // Inline editing turns body text into inputs that write to Convex on blur.
+  // Inline editing turns body text into local draft inputs, never public autosave.
   // A mode that changes what a click *does* cannot live only inside a popover,
   // so it owns a pill beside M and C whose warning tone announces it while it
   // is on. The pill stays keycap-compact in both states: a label-width toggle
   // would push the 2xl tier past the row's 1500px cap and stack the view tabs.
-  const inlineEditActive = inlineEdit && viewMode === "webpage" && canApprove;
+  const inlineEditActive = inlineEdit && viewMode === "webpage" && canEditArticle;
 
   const settingsPanel = (
     <ReviewQueueSettingsPanel
@@ -415,12 +415,12 @@ export function ReviewCommandBar({
             size="pill"
             className={TOUCH_PILL}
             onClick={toggleInlineEdit}
-            disabled={!current || viewMode !== "webpage" || !canApprove}
+            disabled={!current || viewMode !== "webpage" || !canEditArticle}
             aria-pressed={inlineEditActive}
             aria-label="Inline editing"
             title={
-              !canApprove
-                ? "Admin role required"
+              !canEditArticle
+                ? "Editor role required"
                 : viewMode !== "webpage"
                   ? "Inline editing applies to the Webpage view"
                   : inlineEditActive

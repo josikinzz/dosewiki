@@ -199,6 +199,26 @@ export function createFeatureReachabilityReport({
       ...classification,
     };
   });
+  // Shared feature code can be reached through another routed feature.
+  // Seed only real route importers so a disconnected cycle never becomes active.
+  const reachable = new Set(features.filter((feature) => feature.status === "active").map((feature) => feature.name));
+  let advanced = true;
+  while (advanced) {
+    advanced = false;
+    for (const feature of features) {
+      if (reachable.has(feature.name)) continue;
+      const parent = feature.nonRouteImporters
+        .map((importer) => /^src\/features\/([^/]+)\//.exec(importer)?.[1])
+        .find((name) => name && reachable.has(name));
+      if (!parent) continue;
+      reachable.add(feature.name);
+      feature.status = "active";
+      feature.reason = `Imported by route-reachable feature ${parent}.`;
+      feature.dormantMetadata = null;
+      advanced = true;
+    }
+  }
+
 
   return {
     policyPath,

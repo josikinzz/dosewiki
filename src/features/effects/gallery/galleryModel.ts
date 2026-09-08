@@ -11,6 +11,7 @@ import type {
 } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
 import { replicationMediaRank } from "@/features/replications/mediaRank";
+import { depictsEffect } from "@/types/replications";
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
@@ -358,9 +359,7 @@ export function matchesTaxonomyFilters(
   return (
     (filters.viewing === "all" || replication.viewing_mode_tags?.includes(filters.viewing) === true) &&
     (filters.artistType === "all" || replication.artist_type_tags?.includes(filters.artistType) === true) &&
-    (filters.effect === "all" ||
-      replication.effect_slug === filters.effect ||
-      replication.effect_tags?.includes(filters.effect) === true) &&
+    (filters.effect === "all" || depictsEffect(replication, filters.effect)) &&
     (filters.drug === "all" || replication.title_drugs?.some((drug) => drug.slug === filters.drug) === true) &&
     (filters.drugClass === "all" || replication.drug_classes?.includes(filters.drugClass) === true) &&
     (filters.family === "all" || replication.content_family === filters.family)
@@ -563,6 +562,44 @@ export function groupByArtist(
     if (a.count !== b.count) return b.count - a.count;
     return a.label.localeCompare(b.label);
   });
+}
+
+/**
+ * The subset of `contributorDirectory` that `groupByArtist` can actually
+ * consult for these works: one entry per claiming profile of a credit line
+ * present in `replications`.
+ *
+ * The complete directory carries one entry per credited artist in the whole
+ * corpus — a few thousand rows, and on production the largest single thing in
+ * the gallery index's RSC payload. The prerendered rails show a couple of
+ * dozen artists, so the initial render needs a couple of dozen entries; the
+ * rest only become reachable once the explorer has fetched the complete
+ * corpus, which now carries the complete directory alongside it.
+ *
+ * Resolution mirrors `groupByArtist` exactly — same withheld filter, same
+ * unattributed exclusion, same alias-aware matcher — so grouping the same
+ * works against the pruned directory produces identical groups.
+ */
+export function selectContributorDirectoryForWorks(
+  replications: PublicGalleryReplicationPreview[],
+  contributorDirectory: ContributorDirectory,
+): ContributorDirectory {
+  const claimedKeys = new Set<string>();
+  const resolvedCredits = new Set<string>();
+  for (const replication of replications) {
+    if (isWithheldFromArtistViews(replication)) continue;
+    const credit = artistIdentity(replication.artist);
+    if (credit.key === UNATTRIBUTED_KEY || resolvedCredits.has(credit.key)) {
+      continue;
+    }
+    resolvedCredits.add(credit.key);
+    const profile = findContributorProfileByAuthorName(
+      contributorDirectory,
+      credit.label,
+    );
+    if (profile) claimedKeys.add(profile.key);
+  }
+  return contributorDirectory.filter((entry) => claimedKeys.has(entry.key));
 }
 
 export function groupByEffect(

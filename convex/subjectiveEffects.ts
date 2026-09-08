@@ -1,5 +1,6 @@
-import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { query } from "./_generated/server";
+import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import {
   matchesSubjectiveEffectCategory,
@@ -7,6 +8,43 @@ import {
   projectPublicEffectPreview,
   subjectiveEffectCategoryTags,
 } from "./lib/subjectiveEffectReadProjections";
+import { contentHash } from "../lib/proposals/contentHash";
+import { prepareEffectDraft } from "../src/features/effects/editing/effectEditorModel";
+import { currentNarrativeRevision, narrativeRevision, recordNarrativeMaintenance, recordNarrativeRevision } from "./lib/narrativeRevisions";
+
+export const getForEditor = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), slug: v.string() },
+  handler: async (ctx, args) => {
+    await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "admin");
+    const effect = await ctx.db.query("subjectiveEffects").withIndex("by_slug", q => q.eq("slug", args.slug)).first();
+    if (!effect) return null;
+    const history = await ctx.db.query("narrativeRevisions").withIndex("by_document", q => q.eq("kind", "effect").eq("documentId", effect._id)).order("desc").take(5);
+    return { effect, baseRevision: narrativeRevision(effect, history[0]?.operationId ?? null), history: history.map(({ createdAt, actorEmail, revision, before, after }) => ({ createdAt, actorEmail, revision, before, after })) };
+  },
+});
+
+export const publishFromEditor = mutation({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), slug: v.string(), expectedRevision: v.string(), operationId: v.string(), draft: v.any() },
+  handler: async (ctx, args) => {
+    const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" }, "admin");
+    if (!/^[a-f0-9-]{36}$/i.test(args.operationId)) throw new ConvexError({ code: "INVALID_EFFECT", message: "A valid publication operation is required." });
+    const applied = await ctx.db.query("narrativeRevisions").withIndex("by_operation", q => q.eq("kind", "effect").eq("operationId", args.operationId)).first();
+    if (applied) {
+      if (applied.actorEmail !== actor.email || applied.key !== args.slug || applied.baseRevision !== args.expectedRevision || applied.requestHash !== contentHash(args.draft)) throw new ConvexError({ code: "FIELD_CONFLICT", message: "Operation identity does not match this effect." });
+      return { revision: applied.revision };
+    }
+    const existing = await ctx.db.query("subjectiveEffects").withIndex("by_slug", q => q.eq("slug", args.slug)).first();
+    if (!existing) throw new ConvexError({ code: "ARTICLE_NOT_FOUND", message: "Effect not found." });
+    if (await currentNarrativeRevision(ctx, "effect", existing) !== args.expectedRevision) throw new ConvexError({ code: "FIELD_CONFLICT", message: "This effect changed. Reload and reconcile your local edits before publishing." });
+    let updates;
+    try { updates = prepareEffectDraft(args.draft, existing); }
+    catch (error) { throw new ConvexError({ code: "INVALID_EFFECT", message: error instanceof Error ? error.message : "Invalid effect document." }); }
+    await ctx.db.patch(existing._id, updates);
+    const after = (await ctx.db.get(existing._id))!;
+    const revision = await recordNarrativeRevision(ctx, { kind: "effect", key: args.slug, operationId: args.operationId, requestHash: contentHash(args.draft), baseRevision: args.expectedRevision, actor, before: existing, after });
+    return { revision };
+  },
+});
 
 /**
  * Subjective effect functions.
@@ -236,8 +274,8 @@ export const bulkImport = internalMutation({
       errors: [] as string[],
     };
 
+    // Let a failure abort the transaction: content and history must commit together.
     for (const effect of args.effects) {
-      try {
         // Check if effect with this slug already exists
         const existing = await ctx.db
           .query("subjectiveEffects")
@@ -246,14 +284,13 @@ export const bulkImport = internalMutation({
 
         if (existing) {
           await ctx.db.patch(existing._id, effect);
+          await recordNarrativeMaintenance(ctx, { kind: "effect", key: effect.slug, actor: { email: "internal:subjectiveEffects.bulkImport", role: "admin" }, before: existing, after: (await ctx.db.get(existing._id))! });
           results.updated++;
         } else {
-          await ctx.db.insert("subjectiveEffects", effect);
+          const id = await ctx.db.insert("subjectiveEffects", effect);
+          await recordNarrativeMaintenance(ctx, { kind: "effect", key: effect.slug, actor: { email: "internal:subjectiveEffects.bulkImport", role: "admin" }, before: null, after: (await ctx.db.get(id))! });
           results.created++;
         }
-      } catch (error) {
-        results.errors.push(`Effect ${effect.slug}: ${error}`);
-      }
     }
 
     return results;
@@ -309,7 +346,7 @@ export const repairLegacyMedia = mutation({
     replacementSocialMediaImage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
+    const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const effect = await ctx.db
       .query("subjectiveEffects")
@@ -332,6 +369,7 @@ export const repairLegacyMedia = mutation({
         social_media_image: args.replacementSocialMediaImage,
       });
     }
+    await recordNarrativeMaintenance(ctx, { kind: "effect", key: args.slug, actor, before: effect, after: (await ctx.db.get(effect._id))! });
 
     return { repaired: true, changedFields: args.changes.length };
   },
@@ -393,7 +431,7 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
+    const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const existing = await ctx.db
       .query("subjectiveEffects")
@@ -405,6 +443,7 @@ export const update = mutation({
     }
 
     await ctx.db.patch(existing._id, args.updates);
+    await recordNarrativeMaintenance(ctx, { kind: "effect", key: args.slug, actor, before: existing, after: (await ctx.db.get(existing._id))! });
     return { success: true };
   },
 });

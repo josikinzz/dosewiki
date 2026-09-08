@@ -22,6 +22,7 @@ export interface EditorNoticeMessage {
 export interface EditorNoticeProps {
   notice: EditorNoticeMessage;
   className?: string;
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 const noticeVariantByTone = {
@@ -40,7 +41,7 @@ const noticeIconByTone: Record<EditorNoticeTone, IconName> = {
   danger: "lucide:circle-alert",
 };
 
-export function EditorNotice({ notice, className }: EditorNoticeProps) {
+export function EditorNotice({ notice, className, headingLevel }: EditorNoticeProps) {
   const tone = notice.tone ?? "neutral";
   const live = notice.live ?? tone === "danger";
 
@@ -53,7 +54,7 @@ export function EditorNotice({ notice, className }: EditorNoticeProps) {
     >
       <Icon icon={notice.icon ?? noticeIconByTone[tone]} size={16} />
       <div className={cn("min-w-0", notice.actions ? "pr-24" : undefined)}>
-        {notice.title ? <AlertTitle>{notice.title}</AlertTitle> : null}
+        {notice.title ? <AlertTitle role={headingLevel ? "heading" : undefined} aria-level={headingLevel}>{notice.title}</AlertTitle> : null}
         <AlertDescription>{notice.message}</AlertDescription>
       </div>
       {notice.actions ? (

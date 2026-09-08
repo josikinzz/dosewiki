@@ -19,11 +19,8 @@ import {
   PRO_THEME_STYLESHEET_HREF,
   PRO_THEME_STYLESHEET_LINK_ID,
 } from "@/theme/appearanceSheets";
-import { ThemeProvider } from "@/context/ThemeContext";
-import { ThemeLabLazy } from "@/features/theme-lab/ThemeLabLazy";
+import { DocumentRuntime } from "./_components/DocumentRuntime";
 import { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
-import { RouteChrome, RouteFooter } from "./_components/RouteChrome";
-import { ApprovedPublicAnalytics } from "./_components/ApprovedPublicAnalytics";
 import "@site-styles";
 
 // One appearance policy feeds all three resolvers, so they cannot disagree: the server
@@ -32,7 +29,6 @@ import "@site-styles";
 const initialAppearance = getInitialAppearance();
 const initialThemeMetaColor = getAppearanceMetaColor(initialAppearance);
 const themeBootstrap = buildThemeBootstrapScript();
-const isVisualStyleLocked = !SITE_FLAVOR_CONFIG.showVisualStyleToggle;
 // The chroma sheet is inert without html[data-chroma], and only the bootstrap's chromaWrite
 // block — emitted when at least one colour picker is unlocked — ever sets that attribute.
 // Effect Index locks both pickers, so its build skips the <link> rather than shipping 70 KB
@@ -163,29 +159,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">
           {zodJitlessBootstrap}
         </Script>
-        <ApprovedPublicAnalytics />
-        <span data-nosnippet>
-          <a
-            href="#main-content"
-            className="theme-skip-link theme-focus-ring sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none"
-          >
-            Skip to main content
-          </a>
-        </span>
-        <ThemeProvider
-          initialColorScheme={initialAppearance.colorScheme}
-          initialVisualStyle={initialAppearance.visualStyle}
-          isVisualStyleLocked={isVisualStyleLocked}
-        >
-          <RouteChrome />
-          <div className="app-content relative">
-            <div className="flex-1">
-              {children}
-            </div>
-            <RouteFooter />
-          </div>
-          {SITE_FLAVOR === "dosewiki" ? <ThemeLabLazy /> : null}
-        </ThemeProvider>
+        <DocumentRuntime>{children}</DocumentRuntime>
       </body>
     </html>
   );

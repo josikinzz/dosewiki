@@ -225,17 +225,16 @@ export const replication = v.object({
   /**
    * Subjective effects this asset also depicts, as effect slugs.
    *
-   * `effect_slug` answers "which effect owns this row" — one effect, the one
-   * whose gallery and permalink the row belongs to. This column answers the
-   * different question "what else is visible in it", which a single owning
+   * `effect_slug` identifies the owning effect for grouping and the permalink.
+   * This column answers the additional question "what else is visible in it",
+   * which a single owning
    * slug cannot express: one image can show geometry, drifting, and colour
    * enhancement at once.
    *
    * Optional and additive: every existing row is correct with the column
-   * absent, and absence means "not tagged yet", never "depicts nothing". No
-   * public surface reads it yet — it is written and edited from the `/dev`
-   * Replication Studio so the corpus can be tagged before anything is built
-   * on top of the tags.
+   * absent, and absence means "not tagged yet", never "depicts nothing".
+   * The public gallery filter, effect article collections and public API match
+   * owning effect OR these explicit tags. No ancestor membership is inferred.
    */
   effect_tags: v.optional(v.array(v.string())),
   /** SHA-256 of the immutable acquisition source, when the insert plan has it. */
@@ -269,19 +268,15 @@ export const replication = v.object({
   ...replicationRightsFields,
 });
 
-// Per-substance curation of the article's Replication Showcase. Matching
-// proposes candidates, while this row is the publish gate and the stored
-// association delta: `curated_slugs` is the ordered set the article shows and
-// `removed_slugs` is the unordered set explicitly excluded from this article.
-// Either list may preserve a direct association without an effect-derived
-// match. Both hold `replications.slug` values, are pruned on write against the
-// showcase-eligible corpus, and may never overlap. A substance with no row
-// publishes no replication showcase.
+// Per-substance association/exclusion deltas and an exact editorial order.
+// Uncurated substances use automatic matches. `disabled` suppresses all sources,
+// including future matches, without destroying the stored membership or order.
 export const substanceGallery = v.object({
   substance_slug: v.string(),
   curated_slugs: v.array(v.string()),
   removed_slugs: v.array(v.string()),
   carousel_order: v.optional(v.array(v.string())),
+  disabled: v.optional(v.boolean()),
   updated_at: v.string(),               // ISO timestamp
   updated_by: v.optional(v.string()),
   archived_at: v.optional(v.string()),  // set instead of deleting; hidden everywhere until restored

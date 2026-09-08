@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 
 const mocks = vi.hoisted(() => ({
   getToken: vi.fn(),
@@ -10,6 +11,7 @@ vi.mock("next-auth/jwt", () => ({
 }));
 
 function makeRequest(path: string): NextRequest {
+  vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "true");
   return new NextRequest(
     new Request(`https://dosewiki-admin.vercel.app${path}`, {
       headers: { host: "dosewiki-admin.vercel.app" },
@@ -21,6 +23,7 @@ function makePublicRequest(
   path: string,
   headers: Record<string, string> = {},
 ): NextRequest {
+  vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "false");
   return new NextRequest(
     new Request(`https://dose.wiki${path}`, {
       headers: { host: "dose.wiki", ...headers },
@@ -30,12 +33,107 @@ function makePublicRequest(
 
 describe("middleware role policy adapter", () => {
   beforeEach(() => {
-    mocks.getToken.mockReset();
+    mocks.getToken.mockReset().mockResolvedValue({ email: "editor@example.com", role: "editor" });
   });
 
+  it.each(["dev.dose.wiki", "dosewiki-admin.vercel.app"])("gates anonymous documents and RSC on %s while preserving the destination", async (host) => {
+    mocks.getToken.mockResolvedValue(null);
+    const { middleware } = await import("./middleware");
+    makeRequest("/");
+    const url = `https://${host}/replications?viewer=infinite-torus-space&type=video`;
+    const document = await middleware(new NextRequest(url, { headers: { host } }));
+    const destination = new URL(document.headers.get("location")!);
+    expect(destination.pathname).toBe("/sign-in");
+    expect(destination.searchParams.get("callbackUrl")).toBe("/replications?viewer=infinite-torus-space&type=video");
+    const rsc = await middleware(new NextRequest(url, { headers: { host, rsc: "1" } }));
+    expect(rsc.status).toBe(401);
+    expect(await rsc.json()).toEqual({ error: "Authentication required" });
+    expect(rsc.headers.get("cache-control")).toContain("private, no-store");
+  });
+
+  it("lets only the exact revalidation POST reach its route-level token gate without a session", async () => {
+    mocks.getToken.mockResolvedValue(null);
+    // Load through the same resettable module boundary as the flavor-policy cases below.
+    const { middleware } = await import("./middleware");
+    makeRequest("/");
+    const host = "dev.dose.wiki";
+    const response = await middleware(new NextRequest(
+      `https://${host}/api/dev/revalidate-article`,
+      { method: "POST", headers: { host } },
+    ));
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.get("cache-control")).toContain("private, no-store");
+    for (const [path, method] of [
+      ["/api/dev/revalidate-article", "GET"],
+      ["/api/dev/revalidate-article/extra", "POST"],
+      ["/api/dev/other", "POST"],
+    ]) {
+      expect((await middleware(new NextRequest(
+        `https://${host}${path}`, { method, headers: { host } },
+      ))).status).toBe(401);
+    }
+  });
+
+  it("does not expose article revalidation on public builds or unlisted editor hosts", async () => {
+    mocks.getToken.mockResolvedValue(null);
+    // Load through the same resettable module boundary as the flavor-policy cases below.
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const publicResponse = await middleware(new NextRequest(
+      "https://dose.wiki/api/dev/revalidate-article",
+      { method: "POST", headers: { host: "dose.wiki" } },
+    ));
+    expect(publicResponse.headers.get("location")).toBe("https://dose.wiki/");
+    makeRequest("/");
+    const closedResponse = await middleware(new NextRequest(
+      "https://unknown-preview.vercel.app/api/dev/revalidate-article",
+      { method: "POST", headers: { host: "unknown-preview.vercel.app" } },
+    ));
+    expect(closedResponse.status).toBe(503);
+  });
+
+  it("does not treat a dynamic editor path with an asset extension as sign-in bootstrap", async () => {
+    mocks.getToken.mockResolvedValue(null);
+    const { middleware } = await import("./middleware");
+    const response = await middleware(makeRequest("/dev/articles.js"));
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/sign-in");
+    expect((await middleware(makeRequest("/_next/static/chunks/auth.js"))).status).toBe(200);
+  });
+
+  it("denies viewer data navigation but keeps account bootstrap reachable", async () => {
+    mocks.getToken.mockResolvedValue({ email: "viewer@example.com", role: "viewer" });
+    const { middleware } = await import("./middleware");
+    const request = makeRequest("/fentanyl");
+    request.headers.set("rsc", "1");
+    expect((await middleware(request)).status).toBe(403);
+    for (const pathname of ["/sign-in", "/api/auth/session", "/api/auth/callback/credentials", "/api/auth/signout", "/invite", "/reset-password"]) {
+      expect((await middleware(makeRequest(pathname))).status).toBe(200);
+    }
+  });
+
+
+  it("never serves an editor artifact through a public or unlisted deployment alias", async () => {
+    const { middleware } = await import("./middleware");
+    makeRequest("/");
+    for (const host of ["dose.wiki", "dose.wiki.", "www.dose.wiki", "effectindex.com", "unknown-preview.vercel.app"]) {
+      const response = await middleware(new NextRequest(`https://${host}/_next/static/chunks/editor.js`, { headers: { host } }));
+      expect(response.status).toBe(503);
+    }
+  });
+
+  it("keeps editor APIs and handoffs off public-build preview aliases too", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "public-preview.vercel.app";
+    const response = await middleware(new NextRequest(`https://${host}/dev/articles`, { headers: { host } }));
+    expect(response.headers.get("location")).toBe("https://dev.dose.wiki/dev/articles");
+    const apiResponse = await middleware(new NextRequest(`https://${host}/api/auth/session`, { headers: { host } }));
+    expect(apiResponse.headers.get("location")).toBe(`https://${host}/`);
+  });
   it("redirects anonymous /dev requests to sign in", async () => {
     mocks.getToken.mockResolvedValue(null);
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/dev"));
 
@@ -47,7 +145,7 @@ describe("middleware role policy adapter", () => {
 
   it("protects the legacy Theme Lab workbench route", async () => {
     mocks.getToken.mockResolvedValue(null);
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/dev/themes"));
 
@@ -60,7 +158,7 @@ describe("middleware role policy adapter", () => {
 
   it("enforces the admin browser policy on protected-route redirects", async () => {
     mocks.getToken.mockResolvedValue(null);
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/dev"));
     const csp = response.headers.get("content-security-policy") ?? "";
@@ -81,7 +179,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("uses the nonce-free inline policy on public documents", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/fentanyl"));
     const csp = response.headers.get("content-security-policy") ?? "";
@@ -97,7 +195,7 @@ describe("middleware role policy adapter", () => {
 
   it("redirects anonymous profile requests to sign in", async () => {
     mocks.getToken.mockResolvedValue(null);
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/dev/profile"));
 
@@ -115,7 +213,7 @@ describe("middleware role policy adapter", () => {
         email: "member@example.com",
         role: "contributor",
       });
-      const { middleware } = await import("../middleware");
+      const { middleware } = await import("./middleware");
 
       const response = await middleware(makeRequest(path));
 
@@ -133,7 +231,7 @@ describe("middleware role policy adapter", () => {
       email: "viewer@example.com",
       role: "viewer",
     });
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest(path));
 
@@ -148,7 +246,7 @@ describe("middleware role policy adapter", () => {
       email: "editor@example.com",
       role: "editor",
     });
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/dev"));
 
@@ -160,7 +258,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("serves public dose.wiki article routes at their permanent paths", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/fentanyl"));
 
@@ -171,7 +269,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("allows an imported replication detail route through for on-demand generation", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest(
@@ -184,7 +282,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("rewrites an unknown replication slug to the real not-found route", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest(
@@ -198,7 +296,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("rewrites a viewer deep-link document to the per-slug gallery route", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/replications?viewer=infinite-torus-space&type=video"),
@@ -210,7 +308,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("leaves client-side gallery navigations on the static route", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/replications?viewer=infinite-torus-space", { rsc: "1" }),
@@ -220,7 +318,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("ignores a viewer value outside the slug grammar", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/replications?viewer=%25%24"),
@@ -230,7 +328,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("hides the viewer rewrite target from direct requests", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/replications/viewer/infinite-torus-space"),
@@ -242,7 +340,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("rewrites an unknown root slug instead of serving a soft substance 404", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/definitely-not-a-real-substance-zzzz"),
@@ -254,7 +352,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("serves the launched homepage at the public root", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/"));
 
@@ -264,7 +362,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("redirects old preview substance aliases directly to their canonical path", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/preview/psilocybin"));
 
@@ -275,7 +373,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("redirects old preview search paths directly to canonical search URLs", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/preview/search/lsd"));
 
@@ -286,7 +384,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("redirects the old preview homepage to the launched root", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/preview/home"));
 
@@ -295,7 +393,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("preserves queries while retiring preview section addresses", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/preview/substances?tab=common"),
@@ -308,7 +406,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("hands a public-host editor link to the editor origin", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/dev/articles"));
 
@@ -320,7 +418,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("preserves the query across editor handoff", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/sign-in?callbackUrl=%2Fdev"),
@@ -332,7 +430,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("hands off old preview editor addresses while dropping the prefix", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/preview/dev/articles"),
@@ -345,7 +443,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("redirects old preview addresses to direct routes on the editor host", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/preview/dev/articles"));
 
@@ -353,11 +451,10 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBe(
       "https://dosewiki-admin.vercel.app/dev/articles",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
   it("keeps credentialed APIs off the public origin", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/api/dev/articles"));
 
@@ -365,7 +462,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("serves public client APIs directly without a document CSP", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/api/search-suggestions?q=mdma"),
@@ -377,7 +474,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("serves the versioned public API directly", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makePublicRequest("/api/v1/substances?limit=25"),
@@ -395,7 +492,7 @@ describe("middleware role policy adapter", () => {
     "/llms.txt",
     "/SubstanceIndex.json",
   ])("serves launched public endpoint %s directly", async (path) => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest(path));
 
@@ -406,7 +503,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("rejects an unknown root slug that is not a file", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/not-a-substance"));
 
@@ -414,7 +511,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it.each(["/invite", "/reset-password"])("serves the account page %s on the editor host", async (path) => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest(path));
 
@@ -423,7 +520,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("does not override database-backed SVG route content policies", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/api/molecules/2c-b"));
 
@@ -432,7 +529,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("covers the public analytics proxy with self without an invalid path source", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const publicResponse = await middleware(makePublicRequest("/"));
     const adminResponse = await middleware(makeRequest("/fentanyl"));
@@ -443,7 +540,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("serves public static assets directly", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/icon-512.png"));
 
@@ -451,18 +548,19 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
-  it("allows full public article routes on the admin Vercel host", async () => {
-    const { middleware } = await import("../middleware");
+  it("allows authenticated article reads on the editor host without shared caching", async () => {
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/fentanyl"));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
-    expect(mocks.getToken).not.toHaveBeenCalled();
+    expect(response.headers.get("cache-control")).toContain("private, no-store");
+    expect(response.headers.get("vercel-cdn-cache-control")).toBe("no-store");
   });
 
   it("redirects high-volume substance aliases on the full app host", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/psilocybin"));
 
@@ -470,11 +568,10 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBe(
       "https://dosewiki-admin.vercel.app/psilocybin-mushrooms",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
   it("emits a real 301 for retired Artist Page keys", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makeRequest("/replications/artist/anonymous"),
@@ -484,11 +581,10 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBe(
       "https://dosewiki-admin.vercel.app/replications/artist/unknown",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
   it("forwards the retired StingrayZ Artist Page to Symmetric Vision", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(
       makeRequest("/replications/artist/stingrayz"),
@@ -501,7 +597,7 @@ describe("middleware role policy adapter", () => {
   });
 
   it("redirects legacy search path queries to noindex search URLs on the full app host", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const response = await middleware(makeRequest("/search/lsd%20dosage"));
 
@@ -509,17 +605,16 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("location")).toBe(
       "https://dosewiki-admin.vercel.app/search?q=lsd+dosage",
     );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 });
 
 describe("middleware header memoization", () => {
   beforeEach(() => {
-    mocks.getToken.mockReset();
+    mocks.getToken.mockReset().mockResolvedValue({ email: "editor@example.com", role: "editor" });
   });
 
   it("serves identical public security headers across repeated requests to a host", async () => {
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const first = await middleware(makeRequest("/fentanyl"));
     const second = await middleware(makeRequest("/about"));
@@ -534,12 +629,55 @@ describe("middleware header memoization", () => {
     );
   });
 
+  it.each([
+    ["/about", "/embed/replications?kind=effect&slug=visual-drifting"],
+    ["/embed/replications?kind=effect&slug=visual-drifting", "/about"],
+  ])("isolates cached frame policies when %s precedes %s", async (firstPath, secondPath) => {
+    vi.resetModules();
+    // Reload the module to exercise each ordering with an empty header cache.
+    const { middleware } = await import("./middleware");
+    for (const path of [firstPath, secondPath, firstPath]) {
+      const response = await middleware(makePublicRequest(path));
+      const isEmbed = path.startsWith("/embed/replications?");
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+      expect(response.headers.get("content-security-policy")).toContain(
+        isEmbed
+          ? "frame-ancestors 'self' https://osmanthus.io https://www.osmanthus.io http://localhost:3000 http://127.0.0.1:3000"
+          : "frame-ancestors 'none'",
+      );
+      expect(response.headers.get("x-frame-options")).toBe(isEmbed ? null : "DENY");
+      if (isEmbed) {
+        expect(response.headers.get("x-robots-tag")).toContain("noindex");
+        expect(response.headers.get("permissions-policy")).toContain("fullscreen=(self)");
+      } else {
+        expect(response.headers.get("x-robots-tag")).toBeNull();
+        expect(response.headers.get("permissions-policy")).not.toContain("fullscreen=");
+      }
+    }
+  });
+
+  it("does not frame editor documents or compatibility and neighboring embed paths", async () => {
+    // Share the resettable middleware module boundary used by the cache cases above.
+    const { middleware } = await import("./middleware");
+    for (const path of ["/embed/replications/other", "/embed/other", "/preview/embed/replications"]) {
+      const response = await middleware(makePublicRequest(path));
+      expect(response.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
+      expect(response.headers.get("x-frame-options")).toBe("DENY");
+    }
+    mocks.getToken.mockResolvedValue(null);
+    const response = await middleware(makeRequest("/embed/replications?parentOrigin=https://osmanthus.io"));
+    expect(new URL(response.headers.get("location")!).pathname).toBe("/sign-in");
+    expect(response.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
+    expect(response.headers.get("cache-control")).toContain("private, no-store");
+  });
+
   it("issues a fresh nonce per /dev request despite the public header cache", async () => {
     mocks.getToken.mockResolvedValue({
       email: "editor@example.com",
       role: "editor",
     });
-    const { middleware } = await import("../middleware");
+    const { middleware } = await import("./middleware");
 
     const first = await middleware(makeRequest("/dev"));
     const second = await middleware(makeRequest("/dev"));
@@ -558,9 +696,9 @@ describe("middleware header memoization", () => {
 });
 
 describe("middleware matcher", () => {
-  async function loadMatcher(): Promise<RegExp> {
-    const { config } = await import("../middleware");
-    return new RegExp(`^${config.matcher[0]}$`);
+  async function matches(path: string): Promise<boolean> {
+    const { config } = await import("./middleware");
+    return unstable_doesMiddlewareMatch({ config, nextConfig: {}, url: `https://dev.dose.wiki${path}` });
   }
 
   it.each([
@@ -579,10 +717,12 @@ describe("middleware matcher", () => {
     "/SubstanceIndex.json",
     "/open-data/SubstanceIndex.json",
   ])("still routes %s through middleware", async (path) => {
-    expect((await loadMatcher()).test(path)).toBe(true);
+    expect(await matches(path)).toBe(true);
   });
 
   it.each([
+    "/_next/static/chunks/editor.js",
+    "/_next/data/build/fentanyl.json",
     "/favicon.ico",
     "/favicon.svg",
     "/icon-512.png",
@@ -593,8 +733,8 @@ describe("middleware matcher", () => {
     "/flags/us/california.svg",
     "/supporters/mindstate-design-labs.webp",
     "/audio/Auditory Hallucinations - DMT Drone.mp3",
-  ])("excludes the static asset %s", async (path) => {
-    expect((await loadMatcher()).test(path)).toBe(false);
+  ])("keeps the static asset %s inside the delivery gate", async (path) => {
+    expect(await matches(path)).toBe(true);
   });
 });
 
@@ -605,8 +745,8 @@ describe("retired preview addresses are dose.wiki-only", () => {
 
     try {
       // The flavor is read at module init, so the import has to follow the stub.
-      const { middleware } = await import("../middleware");
-      const response = await middleware(makeRequest("/preview/substances"));
+      const { middleware } = await import("./middleware");
+      const response = await middleware(makePublicRequest("/preview/substances"));
 
       // Not rewritten and not redirected: Effect Index is launched, so the prefix is
       // simply an unknown path that its route tree answers for itself.
@@ -630,11 +770,11 @@ describe("the editor shell is dose.wiki-only", () => {
 
       try {
         // The flavor is read at module init, so the import has to follow the stub.
-        const { middleware } = await import("../middleware");
-        const response = await middleware(makeRequest(path));
+        const { middleware } = await import("./middleware");
+        const response = await middleware(makePublicRequest(path));
 
         expect(response.headers.get("x-middleware-rewrite")).toBe(
-          "https://dosewiki-admin.vercel.app/_flavor-gated/not-found",
+          "https://dose.wiki/_flavor-gated/not-found",
         );
         expect(response.headers.get("location")).toBeNull();
         expect(mocks.getToken).not.toHaveBeenCalled();

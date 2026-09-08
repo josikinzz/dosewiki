@@ -74,6 +74,9 @@ export default async function SubstancePage({ params }: SubstancePageProps) {
 
   return (
     <>
+      {result.publicRevision && (
+        <meta name="dosewiki-public-revision" content={result.publicRevision} />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd }}

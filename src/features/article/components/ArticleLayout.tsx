@@ -31,6 +31,8 @@ import { reportMatchesSubstance } from "@/features/reports/domain/tripReportInde
 import { ReviewStatusBanner } from "./sections/ReviewStatusBanner";
 import { SubstanceWarningBanners } from "./sections/SubstanceWarningBanners";
 import { TableOfContentsSection } from "./sections/TableOfContentsSection";
+import ArticleSectionEditor from "../editing/ArticleSectionEditor.editor";
+import WarningContextualEditor from "../editing/WarningContextualEditor.editor";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -116,7 +118,7 @@ interface DeferredSectionProps {
 }
 
 function DeferredSection({ children }: DeferredSectionProps) {
-  return <div className="theme-article-section-bleed">{children}</div>;
+  return <div className="theme-article-section-bleed space-y-2">{children}</div>;
 }
 
 /**
@@ -252,6 +254,12 @@ export function ArticleLayout({
           the list is empty; spacing comes from StickyTocLayout's `gap-8`. */}
       {warningBannerNotice}
       <SubstanceWarningBanners banners={warningBanners} iconSize={warningBannerIconSize} />
+      <div className="flex flex-wrap items-center gap-2 empty:hidden">
+        {fromSubstanceSlug && <WarningContextualEditor slug={fromSubstanceSlug} iconSize={warningBannerIconSize} />}
+        <ArticleSectionEditor section="summary" missing={!article.summary} labeled />
+        <ArticleSectionEditor section="identification" labeled />
+        <ArticleSectionEditor section="classification" labeled />
+      </div>
 
       <HeroSection
         article={article}
@@ -265,13 +273,23 @@ export function ArticleLayout({
       <div className={articleMovementsClassName}>
           {/* Movement 1 — Practical use: what to take, what it feels like, how to verify it */}
           <div className={articleMovementClassName}>
+            <DeferredSection>
+            <ArticleSectionEditor section="dosage" missing={!article.dosage.routes.length && !article.duration.routes.length} />
             <DosageDurationSection article={article} dosageDisclaimer={dosageDisclaimer} />
+            </DeferredSection>
+            <DeferredSection>
+              <div className="flex flex-wrap items-center gap-2 empty:hidden">
+            <ArticleSectionEditor section="subjective_effects" missing={!article.subjective_effects} />
+                <ArticleSectionEditor section="comparisons" missing={!article.comparisons?.length} labeled />
+              </div>
             <SubjectiveEffectsSection
               article={article}
               attributionHref={subjectiveEffectsAttributionHref}
               replicationShowcaseSection={replicationShowcaseSection}
             />
+            </DeferredSection>
             <DeferredSection>
+              <ArticleSectionEditor section="reagent_testing" missing={!Object.keys(article.reagent_testing ?? {}).length} />
               <ReagentSection
                 article={article}
                 chemistryPresentation={chemistryPresentation}
@@ -284,15 +302,18 @@ export function ArticleLayout({
           {/* Movement 2 — Pharmacology: how it works in the body */}
           <div className={articleMovementClassName}>
             <DeferredSection>
+              <ArticleSectionEditor section="pharmacology" />
               <PharmacologySection article={article} />
             </DeferredSection>
             <DeferredSection>
+              <ArticleSectionEditor section="interactions" />
               <InteractionsSection
                 article={article}
                 linkableSubstanceSlugs={linkableSubstanceSlugs}
               />
             </DeferredSection>
             <DeferredSection>
+              <ArticleSectionEditor section="tolerance" />
               <ToleranceSection article={article} disclaimer={toleranceDisclaimer} />
             </DeferredSection>
           </div>
@@ -300,9 +321,11 @@ export function ArticleLayout({
           {/* Movement 3 — Context: risk, story, lived experience, and law */}
           <div className={articleMovementClassName}>
             <DeferredSection>
+              <ArticleSectionEditor section="harm_potential" />
               <HarmPotentialSection article={article} />
             </DeferredSection>
             <DeferredSection>
+              <ArticleSectionEditor section="history_culture" missing={!article.history_culture} />
               <HistoryCultureSection article={article} />
             </DeferredSection>
             <DeferredSection>
@@ -314,6 +337,7 @@ export function ArticleLayout({
               )}
             </DeferredSection>
             <DeferredSection>
+              <ArticleSectionEditor section="legality" missing={!Object.keys(article.legality.countries ?? {}).length} />
               <LegalitySection article={article} />
             </DeferredSection>
           </div>
@@ -321,6 +345,7 @@ export function ArticleLayout({
           {/* Movement 4 — References */}
           <div className={articleMovementClassName}>
             <DeferredSection>
+              <ArticleSectionEditor section="references" missing={!article.references?.length} />
               <CitationsSection article={article} />
             </DeferredSection>
           </div>

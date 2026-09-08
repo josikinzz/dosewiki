@@ -44,7 +44,7 @@ describe("test env route", () => {
     process.env.AUTH_SECRET = "auth-secret-value";
     const { POST } = await import("./route");
 
-    const response = await POST(new Request("https://dose.wiki/api/test-env", { method: "POST" }));
+    const response = await POST(new Request("https://dose.wiki/api/test-env", { method: "POST", headers: { Origin: "https://dose.wiki" } }));
     const body = await response.json();
     const serialized = JSON.stringify(body);
 
@@ -71,7 +71,7 @@ describe("test env route", () => {
     process.env.CONVEX_URL = "https://write.convex.cloud";
     const { POST } = await import("./route");
 
-    const response = await POST(new Request("https://dose.wiki/api/test-env", { method: "POST" }));
+    const response = await POST(new Request("https://dose.wiki/api/test-env", { method: "POST", headers: { Origin: "https://dose.wiki" } }));
     const body = await response.json();
 
     expect(response.status).toBe(404);

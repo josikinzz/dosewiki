@@ -4,7 +4,10 @@ import {
   ConvexTripReportSubmissionStore,
   type TripReportSubmissionStore,
 } from "./convexTripReportSubmissionStore";
-import { getServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
+import {
+  getPublicIntakeWriteCapability,
+  getServerConvexWriteCapability,
+} from "@server/convex/serverWriteCapability";
 
 export class TripReportSubmissionStorageConfigurationError extends Error {
   constructor(message = "Trip report submission storage is not configured.") {
@@ -15,6 +18,22 @@ export class TripReportSubmissionStorageConfigurationError extends Error {
 
 let store: TripReportSubmissionStore | null = null;
 let storeCacheKey: string | null = null;
+
+export async function getPublicTripReportSubmissionStore(): Promise<
+  Pick<TripReportSubmissionStore, "create">
+> {
+  const capability = getPublicIntakeWriteCapability();
+  if (!capability) {
+    throw new TripReportSubmissionStorageConfigurationError(
+      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE to enable public trip report submissions.",
+    );
+  }
+
+  return new ConvexTripReportSubmissionStore({
+    client: capability.client,
+    apiKey: capability.apiKey,
+  });
+}
 
 export async function getTripReportSubmissionStore(): Promise<TripReportSubmissionStore> {
   const writeCapability = getServerConvexWriteCapability();

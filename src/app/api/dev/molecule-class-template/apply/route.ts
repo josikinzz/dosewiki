@@ -8,11 +8,13 @@
  */
 import { Buffer } from "node:buffer";
 import { makeFunctionReference } from "convex/server";
-import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { PUBLIC_CONVEX_CACHE_TAGS, publicMoleculeTag } from "@server/convex/publicData.cache";
 import { TEMPLATE_APPLY_MEMBER_LIMIT } from "@/features/dev/tools/molecule-editor/templateApplicationPayload";
 
 export const runtime = "nodejs";
@@ -212,13 +214,18 @@ export const POST = protectedRouteOperation<ApplyTemplateBody, ParsedApplyTempla
     const appliedSlugs = results
       .filter((result) => result.status === "applied")
       .map((result) => result.slug);
-    for (const slug of appliedSlugs) revalidatePath(`/${slug}`);
+    // Each applied member is a published depiction of its own, so its
+    // persisted leaf and its owner page expire with the shared override index.
+    const targets: PublicationTarget[] = appliedSlugs.map((slug) => ({ kind: "molecule", slug }));
     if (appliedSlugs.length > 0) {
-      revalidatePath(`/chemical-classes/${body.classKey}`);
       // A substance can appear on the selected class, descendant/ancestor
-      // rollups, and an unrelated class through multi-class membership.
-      revalidatePath("/chemical-classes", "layout");
+      // rollups, and an unrelated class through multi-class membership, so the
+      // class index layout goes rather than the one class page.
+      targets.push({ kind: "chemical-class-lists" });
     }
+    const publication = targets.length > 0
+      ? await publishPublicCache({ targets, source: "manual" })
+      : [];
 
     return NextResponse.json({
       ok: true,
@@ -231,6 +238,7 @@ export const POST = protectedRouteOperation<ApplyTemplateBody, ParsedApplyTempla
         ).length,
         errors: results.filter((result) => result.status === "error").length,
       },
+      publication,
       updatedBy,
       memberLimit: TEMPLATE_APPLY_MEMBER_LIMIT,
     });

@@ -3,23 +3,39 @@
  * save route and the change-proposal apply and revert routes all land here so
  * an applied proposal ships exactly the way a direct save does.
  *
- * `expire: 0` makes the write visible on the next request instead of at the
- * end of the public-data cache window.
+ * Each saved path is translated into the content identity the shared
+ * publication contract understands, which expires this deployment's caches
+ * immediately and delivers the same identities to the public deployments,
+ * whose caches this project cannot reach directly. A path with no known
+ * identity keeps the previous behavior: a local global expiry, undelivered,
+ * because the receiver refuses identities it cannot map.
+ *
+ * Delivery receipts are returned rather than thrown. The Convex write has
+ * already committed by the time this runs, so a refused or unreachable public
+ * deployment is a reportable partial publication, never a save failure.
  */
-import { revalidatePath, revalidateTag } from "next/cache";
-import {
-  invalidatePublicDerivedDataCache,
-  type PublicDerivedDataCacheInvalidation,
-} from "@server/convex/publicLibrary";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publicationTargetForSavedPath } from "@server/next/publicCacheContract";
+import type { PublicationSource, PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
+import type { PublicationReceipt, SavedArticleRevision } from "@server/next/publicationDispatch";
 
-export function revalidateSavedPaths(
+export async function revalidateSavedPaths(
   paths: readonly string[],
-  source: PublicDerivedDataCacheInvalidation["source"],
-): void {
+  source: PublicationSource,
+  savedRevisions: readonly SavedArticleRevision[] = [],
+): Promise<PublicationReceipt[]> {
+  if (!paths.length) return [];
+  const targets: PublicationTarget[] = [];
+  const unknownPaths: string[] = [];
+  // Every editorial write also moves the changelog, except a manual refresh
+  // that replays an existing revision.
+  if (source !== "manual") targets.push({ kind: "changelog" });
+
   for (const path of paths) {
-    revalidatePath(path);
+    const target = publicationTargetForSavedPath(path);
+    if (target) targets.push(target);
+    else unknownPaths.push(path);
   }
-  invalidatePublicDerivedDataCache({ source });
-  revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.all, { expire: 0 });
+
+  return publishPublicCache({ targets, source, unknownPaths, savedRevisions });
 }

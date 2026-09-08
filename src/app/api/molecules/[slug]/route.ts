@@ -2,25 +2,26 @@
  * Public image endpoint for canonical Convex molecule depictions.
  *
  * The substance page points here when that slug has a `moleculeOverrides` row,
- * with a `?v=<updatedAt>` cache-buster. Missing rows and index-query failures
- * mean the article renders without a depiction.
+ * with a `?v=<updatedAt>` revision. Missing rows mean no depiction; lookup
+ * failures remain transient errors rather than cached absence.
  *
  * The Convex deployment is shared by both publications, so the stored SVG is always in the
  * dose.wiki brand palette and the Effect Index colourway is applied here, at serve time —
  * it cannot live in the data without breaking the other site.
  */
 import { NextResponse } from "next/server";
-import { api } from "../../../../../convex/_generated/api";
 import {
   applyMoleculeColorway,
   resolveMoleculeColorway,
 } from "@/data/mappings/moleculePalette";
-import { getServerConvexReadClient } from "@server/convex/serverClient";
+import { getPublicMolecule, type PublicMolecule } from "@server/convex/publicData.molecules";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,127}$/;
+const VERSION_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+const NO_STORE = { "Cache-Control": "no-store" };
 
 export async function GET(
   request: Request,
@@ -33,31 +34,44 @@ export async function GET(
 
   const { slug } = await params;
   if (!SLUG_RE.test(slug)) {
-    return NextResponse.json({ error: "Invalid molecule slug." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid molecule slug." }, { status: 400, headers: NO_STORE });
   }
 
-  let override: { svg: string } | null = null;
-  try {
-    override = await getServerConvexReadClient().query(api.moleculeOverrides.getBySlug, { slug });
-  } catch {
-    return NextResponse.json({ error: "Molecule lookup failed." }, { status: 502 });
-  }
-
-  if (!override) {
-    return NextResponse.json({ error: "No override for this molecule." }, { status: 404 });
-  }
-
-  // Every colorway is a distinct cache key. A versioned URL is safe to freeze
-  // because each Convex save changes `v`; direct unversioned hits stay fresh.
   const searchParams = new URL(request.url).searchParams;
-  const isVersioned = searchParams.has("v");
+  const version = searchParams.get("v");
+  if (version !== null && (
+    !VERSION_RE.test(version)
+    || new Date(version).toJSON() !== version
+    || searchParams.getAll("v").length !== 1
+  )) {
+    return NextResponse.json({ error: "Invalid molecule version." }, { status: 400, headers: NO_STORE });
+  }
+
+  let molecule: PublicMolecule | null;
+  try {
+    molecule = await getPublicMolecule(slug);
+  } catch {
+    return NextResponse.json({ error: "Molecule lookup failed." }, { status: 502, headers: NO_STORE });
+  }
+
+  if (molecule === null) {
+    return NextResponse.json({ error: "No override for this molecule." }, { status: 404, headers: NO_STORE });
+  }
+
+  // Old revisions are not retained. Never put today's bytes under yesterday's
+  // immutable URL, including when the metadata and image caches refresh apart.
+  if (version !== null && version !== molecule.updatedAt) {
+    return NextResponse.json({ error: "Molecule version unavailable." }, { status: 404, headers: NO_STORE });
+  }
+
+  // The colorway query remains part of each representation's URL identity.
   const colorway = resolveMoleculeColorway(searchParams.get("colorway"));
 
-  return new NextResponse(applyMoleculeColorway(override.svg, colorway), {
+  return new NextResponse(applyMoleculeColorway(molecule.svg, colorway), {
     status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control": isVersioned
+      "Cache-Control": version !== null
         ? "public, max-age=31536000, s-maxage=31536000, immutable"
         : "public, max-age=0, s-maxage=60, must-revalidate",
       // Editor-authored SVG served same-origin: sandbox so scripts never run

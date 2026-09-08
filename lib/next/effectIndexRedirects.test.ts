@@ -1,9 +1,15 @@
-import { describe, expect, it } from "vitest";
-import nextConfig from "../../next.config";
+import { beforeAll, describe, expect, it } from "vitest";
+import type { NextConfig } from "next";
+import configureNext from "../../next.config";
 import {
   EFFECT_INDEX_DISCORD_INVITE_URL,
   effectIndexLegacyRedirects,
 } from "./effectIndexLegacyRedirects";
+
+let nextConfig: NextConfig;
+beforeAll(async () => {
+  nextConfig = await configureNext();
+});
 
 describe("Effect Index legacy redirects", () => {
   it("preserves every imported Effect Index redirect, including subarticle selectors", async () => {

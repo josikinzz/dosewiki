@@ -105,4 +105,36 @@ describe("EffectArticlePage", () => {
     );
     expect(screen.getByText("Josie Kins").closest("a")).toBeNull();
   });
+
+  it("offers the dissociative scale under the overview only for disconnective effects", () => {
+    const { unmount } = render(
+      <EffectArticlePage
+        article={article}
+        linkableSubstanceSlugs={[]}
+        linkableEffectSlugs={[]}
+      />,
+    );
+
+    // Patterning is a visual effect: no scale grades it.
+    expect(
+      screen.queryByRole("link", { name: /Dissociative Intensity Scale/ }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    render(
+      <EffectArticlePage
+        article={{ ...article, hero: { ...article.hero, guideClass: "dissociative" } }}
+        linkableSubstanceSlugs={[]}
+        linkableEffectSlugs={[]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: /Dissociative Intensity Scale/ }),
+    ).toHaveAttribute("href", "/articles/dissociative-intensity-scale");
+    // A guide covers one substance end to end, so an effect page never offers
+    // it: that is the DXM article's own page, not reading for every
+    // dissociative effect.
+    expect(screen.queryByRole("link", { name: /DXM/ })).not.toBeInTheDocument();
+  });
 });

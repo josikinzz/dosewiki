@@ -413,6 +413,7 @@ export function ThemeProvider({
   isAccentLocked = !SITE_FLAVOR_CONFIG.showAccentPicker,
   isSurfaceLocked = !SITE_FLAVOR_CONFIG.showSurfacePicker,
   isFontLocked = !SITE_FLAVOR_CONFIG.showFontToggle,
+  isColorSchemePersistent = true,
 }: {
   children: ReactNode;
   /** What the server rendered, so the first client render matches the painted markup. */
@@ -425,6 +426,8 @@ export function ThemeProvider({
   isSurfaceLocked?: boolean;
   /** Pins the type axis: the font setters become no-ops and its key is never read or written. */
   isFontLocked?: boolean;
+  /** Embedded hosts may adapt their document without changing the reader's saved scheme. */
+  isColorSchemePersistent?: boolean;
 }) {
   /**
    * The saved axis value — possibly "system" — and the OS scheme it resolves
@@ -504,7 +507,7 @@ export function ThemeProvider({
     // attribute as their preference would silently pin them to one scheme.
     let storedPreference: ColorSchemePreference | null = null;
     try {
-      const stored = window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY);
+      const stored = isColorSchemePersistent ? window.localStorage.getItem(COLOR_SCHEME_STORAGE_KEY) : null;
       if (isColorSchemePreference(stored)) {
         storedPreference = stored;
       }
@@ -514,7 +517,7 @@ export function ThemeProvider({
 
     if (storedPreference) {
       setColorSchemePreferenceState(storedPreference);
-    } else {
+    } else if (isColorSchemePersistent) {
       const paintedColorScheme = resolvePaintedAxis(
         "theme",
         COLOR_SCHEME_STORAGE_KEY,
@@ -593,7 +596,7 @@ export function ThemeProvider({
     }
 
     setHydrated(true);
-  }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked]);
+  }, [isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked, isColorSchemePersistent]);
 
   /**
    * The OS scheme, tracked for as long as the provider lives. One media query
@@ -626,12 +629,12 @@ export function ThemeProvider({
     }
 
     applyAppearanceToDocument({ colorScheme, visualStyle });
-    persistPreference(COLOR_SCHEME_STORAGE_KEY, colorSchemePreference);
+    if (isColorSchemePersistent) persistPreference(COLOR_SCHEME_STORAGE_KEY, colorSchemePreference);
 
     if (!isVisualStyleLocked) {
       persistPreference(VISUAL_STYLE_STORAGE_KEY, visualStyle);
     }
-  }, [hydrated, colorScheme, colorSchemePreference, visualStyle, isVisualStyleLocked]);
+  }, [hydrated, colorScheme, colorSchemePreference, visualStyle, isVisualStyleLocked, isColorSchemePersistent]);
 
   /**
    * The type axis: applied and persisted synchronously per change, like scheme and style.

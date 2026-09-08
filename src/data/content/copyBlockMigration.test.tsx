@@ -38,7 +38,6 @@ import {
   REPLICATIONS_INTRO_FALLBACK,
   REPLICATIONS_INTRO_KEY,
 } from "@/features/replications/replicationsInfoCopy";
-import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 
 /**
  * The copy migration's central promise: until a block is seeded and edited, a
@@ -113,11 +112,6 @@ describe("copy block defaults", () => {
     ]);
   });
 
-  it("match the Effect Index About mission the flavor config still holds", () => {
-    expect(bodyOf("about-mission-effect-index")).toBe(
-      SITE_FLAVOR_CONFIGS.effectindex.about.missionMarkdown,
-    );
-  });
 
   it("match the SEI intro fallbacks they replaced", () => {
     expect(bodyOf("effects-index-intro-lead")).toBe(SEI_INTRO_COPY_FALLBACK.lead);

@@ -7,19 +7,6 @@ vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  unstableCache: vi.fn(
-    <T extends (...args: never[]) => unknown>(
-      fn: T,
-      _keyParts?: string[],
-      _options?: { tags?: string[] },
-    ) => fn,
-  ),
-}));
-
-vi.mock("next/cache", () => ({
-  unstable_cache: cacheMocks.unstableCache,
-}));
 
 const mocks = vi.hoisted(() => ({
   getRawSubstances: vi.fn(),
@@ -64,7 +51,28 @@ vi.mock("../../src/data/builders/search", async (importOriginal) => {
   };
 });
 
-const createRecord = (name: string, slug: string, aliases: string[] = []) => ({
+type TestSubstanceRecord = {
+  name: string;
+  slug: string;
+  aliases: string[];
+  chemicalClasses: string[];
+  psychoactiveClasses: string[];
+  mechanisms: string[];
+  content: {
+    categories: string[];
+    heroBadges: string[];
+    infoSections: string[];
+    subtitle: string;
+  };
+};
+
+type TestEffectSummary = {
+  name: string;
+  slug: string;
+  total: number;
+};
+
+const createRecord = (name: string, slug: string, aliases: string[] = []): TestSubstanceRecord => ({
   name,
   slug,
   aliases,
@@ -79,7 +87,10 @@ const createRecord = (name: string, slug: string, aliases: string[] = []) => ({
   },
 });
 
-const createLibrary = (records: ReturnType<typeof createRecord>[]) => ({
+const createLibrary = (
+  records: TestSubstanceRecord[],
+  effectSummaries: TestEffectSummary[] = [],
+) => ({
   articles: [],
   allSubstanceRecords: records,
   substanceRecords: records,
@@ -89,7 +100,7 @@ const createLibrary = (records: ReturnType<typeof createRecord>[]) => ({
   dosageCategoryGroups: [],
   chemicalClassIndexGroups: [],
   mechanismIndexGroups: [],
-  effectSummaries: [],
+  effectSummaries,
   mechanismSummaries: [],
   findCategoryByKey: () => undefined,
   normalizeCategoryKey: (value: string) => value.toLowerCase(),
@@ -106,11 +117,46 @@ const createLibrary = (records: ReturnType<typeof createRecord>[]) => ({
   buildCategoryGroupsForRecords: () => [],
 });
 
+const TRACERS_SUMMARY = [{ name: "Tracers", slug: "tracers", total: 1 }];
+
+const createEffectArticle = (overrides: Record<string, unknown> = {}) => ({
+  slug: "tracers",
+  name: "Tracers",
+  summary: "Trailing afterimages behind moving objects.",
+  tags: ["visual"],
+  featured: false,
+  description_raw: "Tracer bodies stretch behind the hand.",
+  ...overrides,
+});
+
+const createReport = (overrides: Record<string, unknown> = {}) => ({
+  title: "A careful DMT evening",
+  slug: "careful-dmt-evening",
+  author: "Ada Lovelace",
+  featured: true,
+  substanceNames: ["DMT"],
+  substances: [{ name: "DMT" }],
+  introduction: "Dimethyltryptamine report notes.",
+  tripDate: "2026-04-20",
+  authorProfileKey: "ADA",
+  ...overrides,
+});
+
+const createProfile = (overrides: Record<string, unknown> = {}) => ({
+  key: "ADA",
+  displayName: "Ada Lovelace",
+  aliases: ["analytical engine"],
+  bio: "Contributor focused on cartography.",
+  links: [],
+  avatarUrl: null,
+  hasCustomBio: true,
+  ...overrides,
+});
+
 describe("publicLibrary search index cache", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.useRealTimers();
-    cacheMocks.unstableCache.mockClear();
     mocks.getRawSubstances.mockReset();
     mocks.getIndexLayoutByType.mockReset();
     mocks.buildLibrary.mockReset();
@@ -164,45 +210,6 @@ describe("publicLibrary search index cache", () => {
     expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(1);
   });
 
-  it("data-caches only the JSON-safe search manifest and suggestion wrappers", async () => {
-    mocks.buildLibrary.mockReturnValue(createLibrary([]));
-
-    const { getPublicSearchManifest, getPublicSearchIndex, getPublicLibrary } =
-      await import("./publicLibrary");
-
-    await getPublicSearchManifest();
-    await getPublicSearchIndex();
-    await getPublicLibrary();
-
-    expect(
-      cacheMocks.unstableCache.mock.calls.map((call) => call[1]),
-    ).toEqual([
-      ["convex-public-search-manifest"],
-      ["convex-public-search-suggestions"],
-    ]);
-    expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
-      expect.any(Function),
-      ["convex-public-search-manifest"],
-      expect.objectContaining({
-        tags: expect.arrayContaining([
-          "convex-public",
-          "convex-public:substances",
-          "convex-public:effects",
-        ]),
-      }),
-    );
-    expect(cacheMocks.unstableCache).toHaveBeenCalledWith(
-      expect.any(Function),
-      ["convex-public-search-suggestions"],
-      expect.objectContaining({
-        tags: expect.arrayContaining([
-          "convex-public",
-          "convex-public:substances",
-          "convex-public:effects",
-        ]),
-      }),
-    );
-  });
 
   it("serves suggestions as normalized JSON-safe projections", async () => {
     mocks.buildLibrary.mockReturnValue(
@@ -268,30 +275,8 @@ describe("publicLibrary search index cache", () => {
 
   it("includes report and profile records in the cached public search index", async () => {
     mocks.buildLibrary.mockReturnValue(createLibrary([]));
-    mocks.getPublicReports.mockResolvedValue([
-      {
-        title: "A careful DMT evening",
-        slug: "careful-dmt-evening",
-        author: "Ada Lovelace",
-        featured: true,
-        substanceNames: ["DMT"],
-        substances: [{ name: "DMT" }],
-        introduction: "Dimethyltryptamine report notes.",
-        tripDate: "2026-04-20",
-        authorProfileKey: "ADA",
-      },
-    ]);
-    mocks.getPublicContributorProfiles.mockResolvedValue([
-      {
-        key: "ADA",
-        displayName: "Ada Lovelace",
-        aliases: ["analytical engine"],
-        bio: "Contributor focused on trip reports.",
-        links: [],
-        avatarUrl: null,
-        hasCustomBio: true,
-      },
-    ]);
+    mocks.getPublicReports.mockResolvedValue([createReport()]);
+    mocks.getPublicContributorProfiles.mockResolvedValue([createProfile()]);
 
     const { getPublicSearchMatches } = await import("./publicLibrary");
 
@@ -305,5 +290,108 @@ describe("publicLibrary search index cache", () => {
         profiles: [expect.objectContaining({ key: "ADA" })],
       }),
     );
+  });
+
+  it("rebuilds the search index for a same-count effect article edit", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([], TRACERS_SUMMARY));
+    mocks.getPublicEffectArticles.mockResolvedValue([createEffectArticle()]);
+
+    const { getPublicSearchMatches } = await import("./publicLibrary");
+
+    await expect(getPublicSearchMatches("afterimages", 5)).resolves.toMatchObject([
+      { label: "Tracers", type: "effect" },
+    ]);
+
+    mocks.getPublicEffectArticles.mockResolvedValue([
+      createEffectArticle({ summary: "Persistent smearing halos." }),
+    ]);
+
+    await expect(getPublicSearchMatches("halos", 5)).resolves.toMatchObject([
+      { label: "Tracers", type: "effect" },
+    ]);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(2);
+  });
+
+  it("rebuilds the search index for a same-count report edit", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([]));
+    mocks.getPublicReports.mockResolvedValue([createReport()]);
+
+    const { getPublicSearchMatches } = await import("./publicLibrary");
+
+    await expect(getPublicSearchMatches("careful", 5)).resolves.toMatchObject([
+      { label: "A careful DMT evening", type: "report" },
+    ]);
+
+    mocks.getPublicReports.mockResolvedValue([
+      createReport({ title: "A cautious DMT evening" }),
+    ]);
+
+    await expect(getPublicSearchMatches("cautious", 5)).resolves.toMatchObject([
+      { label: "A cautious DMT evening", type: "report" },
+    ]);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(2);
+  });
+
+  it("rebuilds the search index for a same-count contributor profile edit", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([]));
+    mocks.getPublicContributorProfiles.mockResolvedValue([createProfile()]);
+
+    const { getPublicSearchMatches } = await import("./publicLibrary");
+
+    await expect(getPublicSearchMatches("cartography", 5)).resolves.toMatchObject([
+      { label: "Ada Lovelace", type: "profile" },
+    ]);
+
+    mocks.getPublicContributorProfiles.mockResolvedValue([
+      createProfile({ bio: "Contributor focused on dosimetry." }),
+    ]);
+
+    await expect(getPublicSearchMatches("dosimetry", 5)).resolves.toMatchObject([
+      { label: "Ada Lovelace", type: "profile" },
+    ]);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(2);
+  });
+
+  it("reuses the cached index when equal corpora arrive as fresh rows", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([], TRACERS_SUMMARY));
+    // Fresh objects per read: reuse must come from row content, not identity.
+    mocks.getPublicEffectArticles.mockImplementation(async () => [createEffectArticle()]);
+    mocks.getPublicReports.mockImplementation(async () => [createReport()]);
+    mocks.getPublicContributorProfiles.mockImplementation(async () => [createProfile()]);
+
+    const { getPublicSearchIndex } = await import("./publicLibrary");
+
+    const first = await getPublicSearchIndex();
+
+    await expect(getPublicSearchIndex()).resolves.toBe(first);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(1);
+  });
+
+  it("separates equal-length corpora that differ only in row content", async () => {
+    mocks.buildLibrary.mockReturnValue(createLibrary([], TRACERS_SUMMARY));
+    mocks.getPublicEffectArticles.mockResolvedValue([createEffectArticle()]);
+    mocks.getPublicReports.mockResolvedValue([createReport()]);
+    mocks.getPublicContributorProfiles.mockResolvedValue([createProfile()]);
+
+    const { getPublicSearchIndex } = await import("./publicLibrary");
+
+    const first = await getPublicSearchIndex();
+
+    // Every array keeps its length and every field keeps its byte count.
+    mocks.getPublicEffectArticles.mockResolvedValue([
+      createEffectArticle({ tags: ["haptic"] }),
+    ]);
+    mocks.getPublicReports.mockResolvedValue([
+      createReport({ author: "Ida Lovelace" }),
+    ]);
+    mocks.getPublicContributorProfiles.mockResolvedValue([
+      createProfile({ displayName: "Ida Lovelace" }),
+    ]);
+
+    const second = await getPublicSearchIndex();
+
+    expect(second).not.toBe(first);
+    expect(second.metadata.inputHash).not.toBe(first.metadata.inputHash);
+    expect(mocks.buildSearchIndex).toHaveBeenCalledTimes(2);
   });
 });

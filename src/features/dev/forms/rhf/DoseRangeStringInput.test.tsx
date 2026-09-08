@@ -53,6 +53,15 @@ describe("DoseRangeStringInput", () => {
     expect(field).toHaveValue("15-30 mg");
   });
 
+  it("preserves an empty range's stored unit when it is focused and blurred without editing", async () => {
+    const user = userEvent.setup();
+    const initial = { min: null, max: null, unit: "mg" };
+    const { field, latest } = renderInput(initial);
+    await user.click(field);
+    await user.click(screen.getByRole("button", { name: "elsewhere" }));
+    expect(latest()).toEqual(initial);
+  });
+
   it("accepts the tilde form the article renders for a threshold", async () => {
     const user = userEvent.setup();
     const { field, latest } = renderInput({ min: null, max: null, unit: "" });

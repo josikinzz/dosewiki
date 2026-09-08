@@ -7,8 +7,8 @@ import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
+import { CopyBlockFields } from "./CopyBlockFields";
 import {
   DiffPreview,
 } from "@/features/dev/components/DiffPreview";
@@ -33,7 +33,9 @@ import { buildTextChangelog } from "@/utils/data/changelog";
 import { viewToPath } from "@/utils/routing";
 import { api } from "../../../../../convex/_generated/api";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
-import { buildFieldDiff, proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { useCopyIndexOperation } from "../useCopyIndexOperation";
+import { useCopyIndexSource } from "../useCopyIndexSource";
 import {
   blockCurrentText,
   buildCopyStudioBlocks,
@@ -94,6 +96,11 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const [draft, setDraft] = useState<CopyStudioDraft>({ body: "", items: [] });
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
+  const [loadedBlock, setLoadedBlock] = useState<CopyStudioBlock | null>(null);
+  const [baselineRow, setBaselineRow] = useState<CopyBlockRow | null>(null);
+  const [baselineRevision, setBaselineRevision] = useState(0);
+  const { serialize: publicationBody, acknowledge, uncertain } = useCopyIndexOperation();
+  const awaitingWrite = useRef<CopyStudioBlock | null>(null);
 
   // The group tab follows the selected block until the editor picks a group
   // themselves, so a deep link lands on the block's own group.
@@ -118,17 +125,31 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     () => blocks.find((block) => block.key === activeKey) ?? groupBlocks[0] ?? null,
     [blocks, groupBlocks, activeKey],
   );
+  const detailSource = useCopyIndexSource<{ document: CopyBlockRow | null; revision: number }>(activeBlock ? `/api/dev/copy-block?key=${encodeURIComponent(activeBlock.key)}` : null);
+  const selectedSnapshot = detailSource.data;
 
-  // The draft follows the selected block, and re-seeds whenever that block's
-  // published value changes underneath it (a save landing, another editor's
-  // write arriving over the live query).
+  // Live production updates must never replace an unsaved draft or its baseline.
   useEffect(() => {
-    if (!activeBlock) {
+    if (!activeBlock || rows === undefined || selectedSnapshot === undefined) {
       return;
     }
+    const authoritative = buildCopyStudioBlocks(selectedSnapshot.document ? [selectedSnapshot.document] : []).find((block) => block.key === activeBlock.key);
+    if (!authoritative || blockCurrentText(authoritative) !== blockCurrentText(activeBlock)) return;
+    if (awaitingWrite.current?.key === activeBlock.key) {
+      if (blockCurrentText(awaitingWrite.current) !== blockCurrentText(activeBlock)) return;
+      awaitingWrite.current = null;
+    }
+    if (loadedBlock === activeBlock) {
+      if (!isDraftDirty(activeBlock, draft)) setBaselineRevision(selectedSnapshot.revision);
+      return;
+    }
+    if (loadedBlock?.key === activeBlock.key && isDraftDirty(loadedBlock, draft)) return;
+    setLoadedBlock(activeBlock);
+    setBaselineRow(selectedSnapshot.document);
+    setBaselineRevision(selectedSnapshot.revision);
     setDraft(draftFromBlock(activeBlock));
     setSaveState("idle");
-  }, [activeBlock?.key, activeBlock?.current.body, activeBlock?.current.items.join("\u0000")]);
+  }, [activeBlock, rows, loadedBlock, draft, selectedSnapshot]);
 
   // The address names the open block so a reload or a shared link lands on it.
   // Only a change writes: the address the editor arrived on is left alone.
@@ -140,10 +161,11 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "copy-studio", slug: key }));
   }, [activeBlock?.key]);
 
-  const isDirty = activeBlock ? isDraftDirty(activeBlock, draft) : false;
+  const isDirty = loadedBlock ? isDraftDirty(loadedBlock, draft) : false;
   const canReset = activeBlock ? canResetToDefault(activeBlock, draft) : false;
 
   const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, {
+    canDiscard: !uncertain && saveState !== "saving",
     title: activeBlock ? `Discard changes to “${activeBlock.label}”?` : undefined,
     description: `This block has edits that are not ${canApprove ? "saved" : "submitted"} yet. Discarding them cannot be undone.`,
   });
@@ -186,7 +208,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   useScrollToDetail(detailRef, activeKey || null, STACKED_BELOW_XL_QUERY);
 
   const draftText = activeBlock ? draftToText(activeBlock.kind, draft) : "";
-  const currentText = activeBlock ? blockCurrentText(activeBlock) : "";
+  const currentText = loadedBlock ? blockCurrentText(loadedBlock) : "";
   const placeholders = useMemo(() => countPlaceholders(draftText), [draftText]);
   const previewText = useMemo(
     () => resolveCopyPlaceholders(draftText, COPY_PREVIEW_PLACEHOLDER_VALUES),
@@ -202,7 +224,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   }, [activeBlock, currentText, draftText, isDirty]);
 
   const handleSave = useCallback(async () => {
-    if (!activeBlock) {
+    if (!activeBlock || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
       return;
     }
 
@@ -225,7 +247,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         const { proposalId } = await submitToolProposal({
           payload: { copyBlocks: [block] },
           summary: `Update copy "${activeBlock.label}"`,
-          diff: buildFieldDiff([{ label: activeBlock.label, before: currentText, after: draftText }]),
+          baselines: [{ kind: "copyBlock", key: activeBlock.key, document: baselineRow }],
         });
         setSaveState("saved");
         setNotice(proposalSubmittedNotice(`“${activeBlock.label}”`, proposalId));
@@ -235,18 +257,26 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       const response = await fetch("/api/dev/copy-block", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(block),
+        body: publicationBody({ ...block, expected: baselineRow, expectedRevision: baselineRevision }),
       });
 
       const payload = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        throw new Error(payload.error ?? "The copy block could not be saved.");
-      }
+      const receipt = acknowledge(response, payload);
+      const savedBlock: CopyStudioBlock = {
+        ...activeBlock,
+        current: { body: "body" in block ? block.body : "", items: "items" in block ? block.items : [] },
+        source: "convex",
+      };
+      awaitingWrite.current = savedBlock;
+      setLoadedBlock(savedBlock);
+      setBaselineRow({ ...block, revision: receipt.revision });
+      setBaselineRevision(receipt.revision);
+      detailSource.reload();
 
       setSaveState("saved");
       setNotice({
         tone: "success",
-        message: `Saved “${activeBlock.label}”. The public pages reading this key are live with it now.`,
+        message: receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : `Saved “${activeBlock.label}”. The public pages reading this key are live with it now.`,
       });
     } catch (error) {
       setSaveState("error");
@@ -261,7 +291,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
               : "The proposal could not be submitted.",
       });
     }
-  }, [activeBlock, canApprove, currentText, draft, draftText]);
+  }, [activeBlock, baselineRow, baselineRevision, canApprove, currentText, draft, draftText, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload]);
 
   /** Reset drops the draft back to the checked-in default without saving. */
   const handleResetDraft = useCallback(() => {
@@ -280,7 +310,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
 
   /** Revert deletes the stored row, so the public read serves the default. */
   const handleRevertToDefault = useCallback(async () => {
-    if (!activeBlock || activeBlock.source !== "convex") {
+    if (!activeBlock || activeBlock.source !== "convex" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
       return;
     }
 
@@ -291,18 +321,18 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       const response = await fetch("/api/dev/copy-block", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: activeBlock.key }),
+        body: publicationBody({ key: activeBlock.key, expected: baselineRow, expectedRevision: baselineRevision }),
       });
 
       const payload = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        throw new Error(payload.error ?? "The copy block could not be reverted.");
-      }
+      const receipt = acknowledge(response, payload);
+      setBaselineRevision(receipt.revision);
+      awaitingWrite.current = null; setBaselineRow(null); detailSource.reload();
 
       setSaveState("saved");
       setNotice({
         tone: "success",
-        message: "Stored copy removed. This key now serves its checked-in default.",
+        message: receipt.unchanged ? "No stored copy needed removal." : receipt.replayed ? "Your earlier removal receipt is confirmed. Later public edits may exist." : "Stored copy removed. This key now serves its checked-in default.",
       });
     } catch (error) {
       setSaveState("error");
@@ -312,7 +342,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         message: error instanceof Error ? error.message : "The copy block could not be reverted.",
       });
     }
-  }, [activeBlock]);
+  }, [activeBlock, baselineRow, baselineRevision, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload]);
 
   if (rows === undefined) {
     return (
@@ -423,71 +453,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                   />
                 ) : null}
 
-                <EditorField
-                  label={activeBlock.kind === "list" ? "Items" : "Copy"}
-                  description={
-                    activeBlock.kind === "markdown"
-                      ? "Markdown. Links, emphasis, and paragraph breaks render on the public page."
-                      : activeBlock.kind === "list"
-                        ? "One entry per row. Blank rows are dropped on save."
-                        : "Plain text. Markdown is not rendered for this block."
-                  }
-                  counter={
-                    activeBlock.kind === "list"
-                      ? `${draft.items.filter((item) => item.trim()).length} items`
-                      : `${draft.body.length} characters`
-                  }
-                >
-                  {(fieldProps) => activeBlock.kind === "list" ? (
-                    <div className="space-y-2">
-                      {draft.items.map((item, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Input
-                            aria-label={`Item ${index + 1}`}
-                            value={item}
-                            onChange={(event) => {
-                              const next = [...draft.items];
-                              next[index] = event.target.value;
-                              setDraft({ ...draft, items: next });
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0 [@media(pointer:coarse)]:min-w-11"
-                            aria-label={`Remove item ${index + 1}`}
-                            onClick={() =>
-                              setDraft({
-                                ...draft,
-                                items: draft.items.filter((_, position) => position !== index),
-                              })
-                            }
-                          >
-                            <Icon icon="lucide:trash-2" size={15} />
-                          </Button>
-                        </div>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setDraft({ ...draft, items: [...draft.items, ""] })}
-                      >
-                        <Icon icon="lucide:plus" size={15} />
-                        Add item
-                      </Button>
-                    </div>
-                  ) : (
-                    <Textarea
-                      {...fieldProps}
-                      className="leading-6"
-                      rows={activeBlock.kind === "markdown" ? 12 : 4}
-                      value={draft.body}
-                      onChange={(event) => setDraft({ ...draft, body: event.target.value })}
-                    />
-                  )}
-                </EditorField>
+                <fieldset disabled={uncertain || saveState === "saving" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key}><CopyBlockFields kind={activeBlock.kind} draft={draft} onChange={setDraft} /></fieldset>
+                {detailSource.error && <><p role="alert">{detailSource.error}</p><Button onClick={detailSource.reload}>Retry loading source</Button></>}
+                {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before leaving this block.</p>}
 
                 <EditorToolbar variant="split">
                   <div className="flex flex-wrap items-center gap-2">
@@ -495,17 +463,22 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                       type="button"
                       variant="accent"
                       size="sm"
-                      disabled={!isDirty || saveState === "saving"}
-                      onClick={() => void handleSave()}
+                      disabled={!isDirty || saveState === "saving" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key}
+                      onClick={() => canApprove ? confirm({
+                        title: "Publish shared copy?",
+                        description: `Every public rendering of “${activeBlock.key}” will change. Review the pending diff and preview before confirming.`,
+                        confirmLabel: "Publish copy",
+                        onConfirm: handleSave,
+                      }) : void handleSave()}
                     >
                       <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
-                      {canApprove ? "Save" : "Submit for review"}
+                      {canApprove ? "Publish copy" : "Submit for review"}
                     </Button>
                     <Button
                       type="button"
                       variant="secondary"
                       size="sm"
-                      disabled={!canReset}
+                      disabled={!canReset || uncertain || saveState === "saving"}
                       onClick={handleResetDraft}
                     >
                       <Icon icon="lucide:rotate-ccw" size={15} />
@@ -562,9 +535,9 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                   headingLevel="h3"
                   icon="lucide:eye"
                   title="Preview"
-                  description="Rendered with the same Markdown components the public pages use."
+                  description="Uses this block's public Markdown, plain-text, or list contract."
                 >
-                  <PublicMarkdownBody content={previewText} />
+                  {activeBlock.kind === "markdown" ? <PublicMarkdownBody content={previewText} /> : activeBlock.kind === "list" ? <ul>{draft.items.map((item, index) => <li key={index}>{resolveCopyPlaceholders(item, COPY_PREVIEW_PLACEHOLDER_VALUES)}</li>)}</ul> : <p className="whitespace-pre-wrap">{previewText}</p>}
                 </EditorSection>
 
                 <EditorSection

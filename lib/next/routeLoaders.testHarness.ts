@@ -65,10 +65,7 @@ const publicMolecules = vi.hoisted(() => ({
 }));
 
 const staticParams = vi.hoisted(() => ({
-  getStaticCategoryParams: vi.fn(),
   getStaticEffectCategoryParams: vi.fn(),
-  getStaticMechanismParams: vi.fn(),
-  getStaticMechanismQualifierParams: vi.fn(),
 }));
 
 /**

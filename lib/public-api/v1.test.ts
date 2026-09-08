@@ -87,6 +87,9 @@ describe("public API v1 contract helpers", () => {
     expect(projected).not.toHaveProperty("storage_id");
     expect(JSON.stringify(projected)).not.toContain("private note");
     expect(projected.rights.status).toBe("permission-granted");
+    // Presence distinguishes known-empty assignments from an older API that
+    // omitted secondary vocabulary entirely.
+    expect(projected.effect_tags).toEqual([]);
     expect(projected.created_at).toBe("2026-01-01");
     expect(projected.date_info?.value).toBe("2020");
   });

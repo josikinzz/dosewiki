@@ -95,7 +95,16 @@ function PendingBeacon({ anchorRef }: { anchorRef: React.RefObject<HTMLAnchorEle
  * SmartLink
  * ------------------------------------------------------------------------- */
 
-export type SmartLinkProps = Omit<ComponentProps<typeof Link>, "prefetch">;
+export type SmartLinkProps = Omit<ComponentProps<typeof Link>, "prefetch"> & {
+  /**
+   * Keep `next/link`'s viewport prefetching instead of waiting for hover or
+   * focus. For the handful of always-visible, high-value links whose count is
+   * fixed and small — the header nav, the homepage tile grid — the speculative
+   * fetch is worth paying on sight, and a touch user who taps without ever
+   * hovering still gets a warm cache.
+   */
+  eager?: boolean;
+};
 
 function canIntentPrefetch(href: SmartLinkProps["href"]): href is string {
   if (typeof href !== "string" || !href.startsWith("/")) return false;
@@ -123,11 +132,12 @@ function canIntentPrefetch(href: SmartLinkProps["href"]): href is string {
  * chrome's `NavigationProgress` bar appears.
  *
  * For the handful of always-visible, high-value links (header nav, home
- * tiles), keep plain `next/link` and its default viewport prefetch.
+ * tiles), pass `eager` to keep viewport prefetching.
  */
 export function SmartLink({
   href,
   children,
+  eager = false,
   onPointerEnter,
   onFocus,
   ref,
@@ -177,7 +187,7 @@ export function SmartLink({
     <Link
       {...rest}
       href={href}
-      prefetch={false}
+      prefetch={eager ? undefined : false}
       ref={setAnchor}
       onPointerEnter={handlePointerEnter}
       onFocus={handleFocus}

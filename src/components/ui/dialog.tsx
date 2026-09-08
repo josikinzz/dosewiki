@@ -34,9 +34,10 @@ const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     showClose?: boolean
+    container?: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Portal>["container"]
   }
->(({ className, children, showClose = true, ...props }, ref) => (
-  <DialogPortal>
+>(({ className, children, showClose = true, container, ...props }, ref) => (
+  <DialogPortal container={container}>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}

@@ -456,6 +456,9 @@ export default async function DocsLicensePage() {
           <p className={`${PROSE_CLASS} mt-4`}>
             <DocsInline>{copy.text("docs-license-s3-intro")}</DocsInline>
           </p>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-license-s3-dedication")}</DocsInline>
+          </p>
 
           <ContentCard className="mt-6" padding="md">
             <div className={CARD_LABEL_CLASS}>{copy.text("docs-license-s3-covered-label")}</div>
@@ -874,6 +877,9 @@ SOFTWARE.`}</pre>
             className="mt-3 scroll-mt-24"
           >
             <p className={PROSE_CLASS}>
+              <DocsInline>{copy.text("docs-license-s8-replication-purpose")}</DocsInline>
+            </p>
+            <p className={`${PROSE_CLASS} mt-3`}>
               <DocsInline>{copy.text("docs-license-s8-replication-policy")}</DocsInline>
             </p>
             <p className={`${PROSE_CLASS} mt-3`}>

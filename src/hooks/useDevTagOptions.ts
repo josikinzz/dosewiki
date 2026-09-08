@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { SubstanceArticle } from "@/schema";
 
 import type { TagOption } from "../data/config/tagOptions";
 import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/data/tagRegistry";
@@ -22,10 +23,7 @@ const mapUsagesToOptions = (registry: TagRegistry, field: TagField): TagOption[]
   }));
 };
 
-export function useDevTagOptions(): DevTagOptionsResult {
-  const { articles } = useDevMode();
-
-  return useMemo(() => {
+export function buildDevTagOptions(articles: SubstanceArticle[]): DevTagOptionsResult {
     const registry = buildTagRegistry(articles);
     const indexCategoryAccumulator = new Map<string, { label: string; count: number }>();
 
@@ -65,5 +63,9 @@ export function useDevTagOptions(): DevTagOptionsResult {
       mechanismOfAction: mapUsagesToOptions(registry, "mechanism_of_action"),
       indexCategories,
     };
-  }, [articles]);
+}
+
+export function useDevTagOptions(): DevTagOptionsResult {
+  const { articles } = useDevMode();
+  return useMemo(() => buildDevTagOptions(articles as SubstanceArticle[]), [articles]);
 }

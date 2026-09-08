@@ -94,8 +94,8 @@ export function RiskLevelSelect({
 }) {
   return (
     <Select
-      value={value ?? ""}
-      onValueChange={(nextValue) => onChange(nextValue === "" ? null : (nextValue as RiskLevel))}
+      value={value ?? "none"}
+      onValueChange={(nextValue) => onChange(nextValue === "none" ? null : (nextValue as RiskLevel))}
     >
       <SelectTrigger id={id} className="w-full">
         <SelectValue placeholder="Select level" />
@@ -124,11 +124,12 @@ function LD50EntryEditor({
   onChange: (updated: LD50Entry) => void;
   onRemove: () => void;
 }) {
+  const title = [entry.species, entry.route].filter(Boolean).join(" · ") || `LD50 entry ${index + 1}`;
   return (
     <EntryCard
-      title={`Entry ${index + 1}`}
+      title={title}
       onRemove={onRemove}
-      removeLabel={`Remove entry ${index + 1}`}
+      removeLabel={`Remove ${title}`}
     >
       <EditorFieldRow layout="twoColumn" className="sm:grid-cols-4">
         <EditorField htmlFor={`${entryKey}-species`} label="Species">
@@ -169,6 +170,7 @@ function LD50EntryEditor({
           <Input
             id={`${entryKey}-value`}
             type="number"
+            step="any"
             inputSize="sm"
             value={entry.value ?? ""}
             onChange={(event) => onChange({
@@ -213,13 +215,16 @@ export function LD50ArrayEditor({
   };
 
   const handleRemove = (index: number) => {
+    const entry = entries[index];
+    const populated = entry.species.trim() || entry.route.trim() || entry.value != null || (entry.unit.trim() && entry.unit !== "mg/kg");
+    if (populated && typeof window !== "undefined" && !window.confirm(`Remove LD50 entry ${index + 1}? This cannot be undone.`)) return;
     removeKey(index);
     onChange(entries.filter((_, entryIndex) => entryIndex !== index));
   };
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="theme-text-muted text-sm font-medium leading-5">LD50 Data</p>
         <Button
           type="button"
@@ -228,11 +233,11 @@ export function LD50ArrayEditor({
           onClick={handleAdd}
         >
           <Icon icon="lucide:plus" size={14} className="mr-1" />
-          Add Entry
+          Add LD50 entry
         </Button>
       </div>
       {entries.length === 0 ? (
-        <p className="theme-text-faint text-xs italic py-2">No LD50 data. Click "Add Entry" to add.</p>
+        <p className="theme-text-faint text-xs italic py-2">No LD50 data. Add an LD50 entry to begin.</p>
       ) : (
         <div className="space-y-2">
           {entries.map((entry, index) => (
@@ -293,7 +298,7 @@ function OrganToxicityEntryEditor({
       <EditorField htmlFor={`${entryKey}-findings`} label="Findings">
         <Textarea
           id={`${entryKey}-findings`}
-          className="min-h-[60px] text-sm"
+          className="min-h-[60px]"
           value={entry.findings}
           onChange={(event) => onChange({ ...entry, findings: event.target.value })}
           placeholder="Observable symptoms, clinical findings, diagnoses..."
@@ -303,7 +308,7 @@ function OrganToxicityEntryEditor({
       <EditorField htmlFor={`${entryKey}-mechanism`} label="Mechanism">
         <Textarea
           id={`${entryKey}-mechanism`}
-          className="min-h-[50px] text-sm"
+          className="min-h-[50px]"
           value={entry.mechanism}
           onChange={(event) => onChange({ ...entry, mechanism: event.target.value })}
           placeholder="Biochemical pathways, cellular processes (leave empty if unknown)..."
@@ -313,7 +318,7 @@ function OrganToxicityEntryEditor({
       <EditorField htmlFor={`${entryKey}-notes`} label="Notes">
         <Textarea
           id={`${entryKey}-notes`}
-          className="min-h-[50px] text-sm"
+          className="min-h-[50px]"
           value={entry.notes}
           onChange={(event) => onChange({ ...entry, notes: event.target.value })}
           placeholder="Prevalence, reversibility, risk factors, case counts..."
@@ -344,13 +349,16 @@ export function OrganToxicityArrayEditor({
   };
 
   const handleRemove = (index: number) => {
+    const entry = entries[index];
+    const populated = entry.system.trim() || entry.findings.trim() || entry.mechanism.trim() || entry.notes.trim();
+    if (populated && typeof window !== "undefined" && !window.confirm(`Remove ${entry.system.trim() || `organ toxicity entry ${index + 1}`}? This cannot be undone.`)) return;
     removeKey(index);
     onChange(entries.filter((_, entryIndex) => entryIndex !== index));
   };
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="theme-text-muted text-sm font-medium leading-5">Organ Toxicity</p>
         <Button
           type="button"
@@ -359,11 +367,11 @@ export function OrganToxicityArrayEditor({
           onClick={handleAdd}
         >
           <Icon icon="lucide:plus" size={14} className="mr-1" />
-          Add Entry
+          Add organ entry
         </Button>
       </div>
       {entries.length === 0 ? (
-        <p className="theme-text-faint text-xs italic py-2">No organ toxicity data. Click "Add Entry" to add.</p>
+        <p className="theme-text-faint text-xs italic py-2">No organ toxicity data. Add an organ entry to begin.</p>
       ) : (
         <div className="space-y-3">
           {entries.map((entry, index) => (

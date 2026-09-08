@@ -5,9 +5,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["scripts/**/*.{test,spec}.{mjs,js,ts,tsx}"],
+    include: ["scripts/**/*.{test,spec}.{mjs,js,ts,tsx}", "tools/section-generation/**/*.{test,spec}.{mjs,js,ts,tsx}"],
     exclude: [
       "node_modules/**",
+      "**/node_modules/**",
       "dist/**",
       "dist-inline/**",
       "scripts/deprecated/**",

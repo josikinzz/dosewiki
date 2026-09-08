@@ -14,7 +14,7 @@
  */
 
 export const MAX_BIO_LENGTH = 4000;
-export const MAX_LINKS = 3;
+export { MAX_CONTRIBUTOR_PROFILE_LINKS as MAX_LINKS } from "@server/contributorProfileIdentity";
 export const MAX_AVATAR_BYTES = 1024 * 1024 * 2; // 2 MiB
 export const ALLOWED_AVATAR_MIME_TYPES: ReadonlySet<string> = new Set([
   "image/png",
@@ -59,6 +59,7 @@ export type EditorContributorProfile = {
   avatarStorageId: string | null;
   storedAvatarUrl: string | null;
   replicationOrder: string[];
+  orderingRevision?: string;
   reportOrder: string[];
   exclude_from_gallery: boolean;
   archival: boolean;

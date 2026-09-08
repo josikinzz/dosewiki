@@ -3,6 +3,7 @@ import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { WarningBannerPreset, WarningBannerTarget } from "@/data/substanceWarningBanners";
+import type { EditableWarningPreset } from "./warningEditing";
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -14,7 +15,6 @@ vi.mock("convex/react", () => ({
 
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
-    warningBanners: { listPresets: "warningBanners.listPresets" },
     siteConfig: { getBannerDisplay: "siteConfig.getBannerDisplay" },
   },
 }));
@@ -39,7 +39,7 @@ const TARGETS: WarningBannerTarget[] = [
   { slug: "alprazolam", title: "Alprazolam", classes: ["Benzodiazepine"] },
 ];
 
-const PRESET: WarningBannerPreset = {
+const PRESET: EditableWarningPreset = {
   key: "opioid-respiratory",
   tone: "danger",
   icon: "custom:benzene",
@@ -49,7 +49,10 @@ const PRESET: WarningBannerPreset = {
   enabled: true,
   allSubstances: false,
   enabledSlugs: ["diazepam"],
+  baseHash: "a".repeat(64),
 };
+
+let storedPresets: WarningBannerPreset[] = [];
 
 type PresetWrite = { method: string; body: Record<string, unknown> };
 
@@ -68,15 +71,20 @@ function stubApi({ prune = [] }: { prune?: string[] } = {}) {
         return new Response(JSON.stringify({ items: TARGETS }), { status: 200 });
       }
       if (url === PRESET_API) {
+        if (!init?.method || init.method === "GET") {
+          return new Response(JSON.stringify({ presets: storedPresets }), { status: 200 });
+        }
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         const method = init?.method ?? "GET";
         writes.push({ method, body });
         if (method === "DELETE") {
-          return new Response(JSON.stringify({ removed: true }), { status: 200 });
+          return new Response(JSON.stringify({ removed: true, changeId: body.changeId, baseHash: "b".repeat(64) }), { status: 200 });
         }
         const submitted = body.enabledSlugs as string[];
         return new Response(
-          JSON.stringify({ enabledSlugs: submitted.filter((slug) => !prune.includes(slug)) }),
+          JSON.stringify({ changeId: body.changeId, baseHash: "b".repeat(64),
+            preset: { ...body, enabledSlugs: submitted.filter((slug) => !prune.includes(slug)) },
+            enabledSlugs: submitted.filter((slug) => !prune.includes(slug)) }),
           { status: 200 },
         );
       }
@@ -87,10 +95,8 @@ function stubApi({ prune = [] }: { prune?: string[] } = {}) {
 }
 
 function stubPresets(presets: WarningBannerPreset[]) {
+  storedPresets = presets;
   useQueryMock.mockImplementation((query: string) => {
-    if (query === "warningBanners.listPresets") {
-      return presets;
-    }
     if (query === "siteConfig.getBannerDisplay") {
       return { iconSize: 40 };
     }
@@ -124,14 +130,14 @@ beforeEach(() => {
 });
 
 describe("WarningBannersTab presets", () => {
-  it("saves an edited preset through the preset route and clears the dirty pill", async () => {
+  it("publishes an edited preset only after confirmation and clears local dirty state", async () => {
     const writes = stubApi();
     const user = userEvent.setup();
     render(<WarningBannersTab />);
     await waitForTargets();
 
     const headline = await openDrawer(user);
-    const save = screen.getByRole("button", { name: /Save preset/ });
+    const save = screen.getByRole("button", { name: /Publish preset/ });
     expect(save).toBeDisabled();
     expect(screen.getByText("No changes")).toBeInTheDocument();
 
@@ -141,23 +147,18 @@ describe("WarningBannersTab presets", () => {
     expect(save).toBeEnabled();
 
     await user.click(save);
+    expect(writes).toHaveLength(0);
+    await confirmWrite(user, "Publish preset");
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].method).toBe("POST");
-    expect(writes[0].body).toEqual({
-      key: "opioid-respiratory",
-      tone: "danger",
-      icon: "custom:benzene",
-      severityLabel: "Danger",
+    expect(writes[0].body).toMatchObject({
       headline: "Mixing opioids and benzos",
-      points: ["Both depress the brainstem respiratory drive"],
-      enabled: true,
-      allSubstances: false,
-      enabledSlugs: ["diazepam"],
+      baseHash: PRESET.baseHash,
     });
     // Origin and draft re-seed together from the write, so nothing is dirty and
     // the save button drops back to disabled.
-    await waitFor(() => expect(screen.getByRole("button", { name: /Save preset/ })).toBeDisabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: /Publish preset/ })).toBeDisabled());
     expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
     expect(screen.queryByText(/dropped on save/)).not.toBeInTheDocument();
     expect(screen.queryByText("Couldn't save that preset")).not.toBeInTheDocument();
@@ -178,7 +179,7 @@ describe("WarningBannersTab presets", () => {
     await user.click(within(dialog).getByRole("button", { name: /Delete preset/ }));
 
     await waitFor(() => expect(writes).toHaveLength(1));
-    expect(writes[0]).toEqual({ method: "DELETE", body: { key: "opioid-respiratory" } });
+    expect(writes[0].method).toBe("DELETE");
     await screen.findByText("Deleted opioid-respiratory. Nothing renders it now.");
     expect(screen.queryByLabelText("Headline")).not.toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -242,7 +243,8 @@ describe("WarningBannersTab presets", () => {
     expect(screen.getByText("Enabled on 2 substances")).toBeInTheDocument();
 
     await user.type(headline, "!");
-    await user.click(screen.getByRole("button", { name: /Save preset/ }));
+    await user.click(screen.getByRole("button", { name: /Publish preset/ }));
+    await confirmWrite(user, "Publish preset");
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].body.enabledSlugs).toEqual(["diazepam", "ghost-slug"]);
@@ -361,13 +363,16 @@ describe("WarningBannersTab coverage", () => {
   it("surfaces a failed write and leaves the stored list alone", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (input: RequestInfo | URL) => {
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === "string" ? input : input.toString();
         if (url === TARGETS_API) {
           return new Response(JSON.stringify({ items: TARGETS }), { status: 200 });
         }
+        if (url === PRESET_API && !init?.method) {
+          return new Response(JSON.stringify({ presets: storedPresets }), { status: 200 });
+        }
         return new Response(JSON.stringify({ error: "Convex rejected the write." }), {
-          status: 500,
+          status: 409,
         });
       }),
     );

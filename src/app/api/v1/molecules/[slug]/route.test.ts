@@ -4,6 +4,11 @@ import { GET } from "./route";
 const mocks = vi.hoisted(() => ({ query: vi.fn(), enforceRateLimit: vi.fn() }));
 vi.mock("@server/convex/serverClient", () => ({ getServerConvexReadClient: () => ({ query: mocks.query }) }));
 vi.mock("@server/http/nextRateLimit", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
+// The route reads through the persistent public leaf; assert the Convex
+// boundary by running the leaf's callback inline.
+vi.mock("next/cache", () => ({
+  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+}));
 
 describe("public molecule SVG API", () => {
   beforeEach(() => {

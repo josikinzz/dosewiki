@@ -5,6 +5,8 @@ import type {
 } from "@/features/effects/gallery/galleryModel";
 import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
 import type { EffectCategoryLink } from "@/features/effects/pages/replicationSubject";
+import type { ShowcaseWork } from "../components/showcaseWork";
+import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 
 /**
  * Canonical collection model shared by gallery, article, and artist sources.
@@ -97,6 +99,36 @@ export interface ReplicationViewerPosition {
 }
 
 export type ReplicationViewerDirection = -1 | 1;
+
+/** One projection for every canonical showcase host, including embeds. */
+export function viewerItemFromShowcaseWork(work: ShowcaseWork): ReplicationViewerMediaItem {
+  return {
+    replication: {
+      slug: work.slug,
+      title: work.title,
+      artist: hasKnownCreator(work.artistName) ? work.artistName!.trim() : "Unattributed",
+      type: work.type,
+      format: work.format ?? (work.type === "video" ? "mp4" : "image"),
+      url: work.url,
+      thumbnail_url: work.thumbnailUrl,
+      preview_url: work.previewUrl,
+      motion_url: work.motionUrl,
+      motion_poster_url: work.motionPosterUrl,
+      width: work.width,
+      height: work.height,
+      duration: work.duration,
+      has_audio: work.hasAudio,
+    },
+    effectName: work.effectName,
+    effectSlug: work.effectSlug,
+    effectCategories: [],
+    artistProfileHref:
+      hasKnownCreator(work.artistName) && !work.artistHrefExternal
+        ? work.artistHref
+        : null,
+    avatarUrl: work.avatarUrl ?? null,
+  };
+}
 
 /** Locate a work in a normalized collection. */
 export function findViewerPosition(

@@ -12,10 +12,10 @@ vi.mock("../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
-vi.mock("next/cache", () => ({
-  revalidatePath: cacheMocks.revalidatePath,
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -51,7 +51,7 @@ const snapshot = {
 function editorialRequest(body: Record<string, unknown>) {
   return new Request("https://dose.wiki/api/dev/replications/editorial", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -90,7 +90,7 @@ describe("replication editorial route", () => {
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(mocks.mutation).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
   it("refuses an editor's bulk edit with 403 before touching Convex", async () => {
@@ -102,7 +102,7 @@ describe("replication editorial route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("applies an admin's single edit and refreshes both effect pages", async () => {
+  it("applies an admin's single edit and publishes both effect pages", async () => {
     mocks.mutation.mockResolvedValue({ success: true, slug: "drifting-replication" });
 
     const response = await POST(
@@ -122,8 +122,14 @@ describe("replication editorial route", () => {
         id: "replication-id",
       }),
     );
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/effects/drifting");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/effects/visual-acuity-enhancement");
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [
+        { kind: "replication-collections" },
+        { kind: "effect", slug: "drifting" },
+        { kind: "effect", slug: "visual-acuity-enhancement" },
+      ],
+      source: "manual",
+    });
   });
 
   it("applies an admin's bulk edit", async () => {
@@ -137,6 +143,10 @@ describe("replication editorial route", () => {
       "replications.bulkUpdateEditorialFields",
       expect.objectContaining({ ids: ["replication-id"], artist: "Renamed Artist" }),
     );
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "replication-collections" }],
+      source: "manual",
+    });
   });
 
   it("rejects a body with neither mode before reaching Convex", async () => {

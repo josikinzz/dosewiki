@@ -2,11 +2,9 @@
  * On-demand cache refresh for public article pages, callable by the citation
  * campaign's server-side scripts.
  *
- * Article pages regenerate on a 1-hour ISR window (`src/app/[slug]/page.tsx`),
- * so a Convex write from `scripts/citations/verdict-apply.mjs --write` would
- * otherwise stay invisible on dose.wiki for up to an hour. Editor routes solve
- * this with `revalidatePath` + the shared substances tag after each write;
- * this route exposes that exact pair to trusted scripts.
+ * Article Data Cache leaves can lower the route's declared one-hour interval
+ * to 15 minutes. This route immediately expires the affected article,
+ * showcase, history and shared listing projections after a script write.
  *
  * Auth is deliberately not a session: the caller is a headless data-ops script
  * that already holds the `citationEvidenceWrite` admin-intent token it uses
@@ -19,14 +17,14 @@
  *   POST /api/dev/revalidate-article
  *   Authorization: Bearer <citationEvidenceWrite token>
  *   { "slug": "2c-b" } or { "slugs": ["2c-b", "dxm"] }
- *   → { ok: true, revalidated: ["/2c-b", "/dxm"] }
+ *   → { ok: true, revalidated: ["/2c-b", "/dxm"], publication: [...] }
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { validateAdminIntentToken } from "../../../../../convex/lib/adminIntentTokens";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { queryConvex } from "@server/convex/serverClient";
 
 export const runtime = "nodejs";
 
@@ -109,15 +107,19 @@ export async function POST(request: Request) {
     const body = await readJsonBody<RevalidateArticleBody>(request, { maxBytes: MAX_BODY_BYTES });
     const slugs = parseSlugs(body);
 
-    // Mirrors the editor write routes exactly: the page path plus the shared
-    // substances tag, expired immediately so the next request re-renders.
+    const savedRevisions = await Promise.all(slugs.map(async (slug) => {
+      const article = await queryConvex<{ publicRevision?: string } | null, { slug: string }>(
+        "substanceIndex:getPublicBySlug", { slug },
+      );
+      if (article && !/^[a-f0-9]{64}$/.test(article.publicRevision ?? "")) {
+        throw new Error("The public article revision is unavailable.");
+      }
+      return { slug, revision: article?.publicRevision ?? null };
+    }));
     const revalidated = slugs.map((slug) => `/${slug}`);
-    for (const path of revalidated) {
-      revalidatePath(path);
-    }
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    const publication = await revalidateSavedPaths(revalidated, "manual", savedRevisions);
 
-    return NextResponse.json({ ok: true, revalidated });
+    return NextResponse.json({ ok: true, revalidated, publication });
   } catch (error) {
     if (error instanceof JsonBodyError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

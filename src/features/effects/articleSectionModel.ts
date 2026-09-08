@@ -3,6 +3,8 @@ import type { PublicTableOfContentsItem } from "@/components/common/PublicTableO
 import type { EffectDetail } from "@/data/builders/library";
 import type { AudioReplicationMetadata } from "@/types/replications";
 import { icons } from "@/utils/iconNames";
+import { effectMatchesCategorySlug } from "@/data/effectCategoryDefinitions";
+import type { GuideClass } from "@/features/articles/domain/articleGuides";
 import type { VCodeContent } from "./vcode/types";
 import { normalizeVCodeContent, unwrapTopLevelQuotes } from "./vcode/normalize";
 
@@ -42,7 +44,15 @@ export type EffectArticleReplicationState =
 
 export interface EffectArticleHeroModel {
   name: string;
+  summary?: string;
   icon: IconName;
+  /**
+   * The psychoactive class whose long-form guides grade this effect, set only
+   * for the disconnective family: those effects are what the dissociative
+   * intensity scale measures, so the article can offer the scale as a next
+   * read. Absent for every other effect, and then no guide line renders.
+   */
+  guideClass?: GuideClass;
 }
 
 interface EffectArticleBaseSectionModel {
@@ -256,7 +266,12 @@ export function buildEffectArticleModel({
   return {
     hero: {
       name: effect.name,
+      summary: effect.summary,
       icon: getEffectArticleIcon(effect.tags),
+      // The disconnective family is the one the dissociative scale grades.
+      ...(effectMatchesCategorySlug(effect, "disconnective-effects")
+        ? { guideClass: "dissociative" as const }
+        : {}),
     },
     sections,
   };

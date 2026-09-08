@@ -31,6 +31,7 @@ export type SingleEditDraft = {
   effect_slug: string | null;
   credit_line: string | null;
   effect_tags: string[];
+  source_url?: string | null;
 };
 
 export type BulkEdit = {
@@ -66,6 +67,7 @@ function draftOf(row: StudioRow): SingleEditDraft {
     effect_slug: row.effect_slug,
     credit_line: row.credit_line,
     effect_tags: [...row.effect_tags],
+    source_url: row.source_url ?? null,
   };
 }
 
@@ -97,25 +99,39 @@ function RolePills({
   );
 }
 
-function SingleEditor({
+export function ReplicationSingleEditor({
   row,
   effects,
   artists,
   busy,
   onSave,
+  onDraftChange,
+  showSource = false,
+  saveLabel = "Save",
+  value,
 }: {
   row: StudioRow;
   effects: readonly StudioEffectOption[];
   artists: readonly string[];
   busy: boolean;
   onSave: (row: StudioRow, draft: SingleEditDraft) => void;
+  onDraftChange?: (draft: SingleEditDraft, dirty: boolean) => void;
+  showSource?: boolean;
+  saveLabel?: string;
+  value?: SingleEditDraft;
 }) {
-  const [draft, setDraft] = useState<SingleEditDraft>(() => draftOf(row));
+  const [localDraft, setLocalDraft] = useState<SingleEditDraft>(() => draftOf(row));
+  const draft = value ?? localDraft;
+  const setDraft = (next: SingleEditDraft) => {
+    setLocalDraft(next);
+    onDraftChange?.(next, JSON.stringify(next) !== JSON.stringify(draftOf(row)));
+  };
 
   // A new selection is a new subject, not an edit of the current one.
   useEffect(() => {
-    setDraft(draftOf(row));
+    setLocalDraft(draftOf(row));
   }, [row]);
+
 
   const effectOptions = useMemo(
     () => [
@@ -180,6 +196,7 @@ function SingleEditor({
 
       <EditorField
         label="Subjective effect tags"
+        htmlFor="studio-tags"
         description="Everything else this asset depicts. Stored on the row; no public surface reads them yet."
       >
         <EffectTagInput
@@ -200,9 +217,15 @@ function SingleEditor({
         />
       </EditorField>
 
+      {showSource ? (
+        <EditorField label="Source URL" htmlFor="studio-source">
+          <Input id="studio-source" type="url" value={draft.source_url ?? ""} onChange={(event) => setDraft({ ...draft, source_url: event.target.value || null })} />
+        </EditorField>
+      ) : null}
+
       <div className="flex items-center gap-2">
         <Button type="button" variant="accent" disabled={busy} onClick={() => onSave(row, draft)}>
-          Save
+          {saveLabel}
         </Button>
         <Button type="button" variant="ghost" disabled={busy} onClick={() => setDraft(draftOf(row))}>
           Revert
@@ -371,7 +394,7 @@ export function ReplicationEditorDrawer({
           </div>
         ) : selected.length === 1 ? (
           <div className="space-y-5">
-            <SingleEditor
+            <ReplicationSingleEditor
               key={selected[0].id}
               row={selected[0]}
               effects={effects}

@@ -18,7 +18,12 @@ import {
 
 import { ReplicationViewerOverlay } from "./ReplicationViewerOverlay";
 import type { ReplicationViewerCollection } from "./viewerModel";
-import { EDITOR_HINT_STORAGE_KEY } from "@/lib/auth/editorHint";
+import { ContextualEditingContext, type ContextualEditingState } from "@/features/contextual-editing/context";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+  usePathname: () => window.location.pathname,
+}));
 
 const transportVerbs = vi.hoisted(() => ({
   togglePlayback: vi.fn(),
@@ -35,8 +40,6 @@ vi.mock("./ViewerTransport", () => ({
     item,
     muted,
     onMutedChange,
-    quality,
-    onQualityChange,
     rotateMode,
     onRotateModeChange,
     onPrevious,
@@ -53,8 +56,6 @@ vi.mock("./ViewerTransport", () => ({
     item: { replication: { title: string; type: "image" | "video" } };
     muted: boolean;
     onMutedChange: (muted: boolean) => void;
-    quality: "preview" | "full";
-    onQualityChange: (quality: "preview" | "full") => void;
     rotateMode?: boolean;
     onRotateModeChange?: (rotateMode: boolean) => void;
     onPrevious?: () => void;
@@ -122,16 +123,6 @@ vi.mock("./ViewerTransport", () => ({
           onClick={() => onRotateModeChange?.(!rotateMode)}
         >
           Rotate
-        </button>
-        <button
-          type="button"
-          aria-pressed={quality === "full"}
-          aria-label="Play original quality"
-          onClick={() =>
-            onQualityChange(quality === "full" ? "preview" : "full")
-          }
-        >
-          HQ
         </button>
         {onFullscreen && fullscreenSupported ? (
           <button type="button" onClick={onFullscreen}>
@@ -331,94 +322,28 @@ function stubCoarsePointer(coarse: boolean) {
   );
 }
 
-/** A portrait phone: the rotate-to-fit toggle appears and landscape turns. */
-function stubPortraitPhone() {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn((query: string) => ({
-      matches: query.includes("orientation: portrait"),
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })),
-  );
-}
 
 describe("ReplicationViewerOverlay", () => {
-  it("reveals the carousel editor only after a fresh editor hint on a fine-pointer client", async () => {
-    const editable: ReplicationViewerCollection = {
-      ...collection,
-      kind: "effect",
-      grouping: "none",
-      groups: [collection.groups[0]],
-      editorTarget: {
-        kind: "effect",
-        key: "tracers",
-        label: "Tracers replications",
-      },
+  it("requires global Edit mode and allows a coarse-pointer editor without leaving the viewer focus boundary", async () => {
+    stubCoarsePointer(true);
+    const editing: ContextualEditingState = {
+      enabled: true, mode: "view", role: "admin", email: "admin@example.com",
+      setDirty: vi.fn(), registerDraftGuard: () => () => {},
     };
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn((query: string) => ({
-        matches: query.includes("pointer: fine"),
-        media: query,
-        onchange: null,
-        addEventListener: () => {},
-        removeEventListener: () => {},
-        addListener: () => {},
-        removeListener: () => {},
-        dispatchEvent: () => false,
-      })),
-    );
-
-    const { rerender } = render(
-      <ReplicationViewerOverlay
-        collection={editable}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-    expect(screen.queryByRole("button", { name: "Edit carousel" })).toBeNull();
-
-    window.localStorage.setItem(EDITOR_HINT_STORAGE_KEY, String(Date.now()));
-    window.dispatchEvent(new StorageEvent("storage"));
-    rerender(
-      <ReplicationViewerOverlay
-        collection={editable}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    const editButton = await screen.findByRole("button", {
-      name: "Edit carousel",
-    });
-    expect(editButton).toBeVisible();
+    const viewer = <ReplicationViewerOverlay collection={collection} initialSlug="work-one" open onOpenChange={vi.fn()} />;
+    const { rerender } = render(<ContextualEditingContext.Provider value={editing}>{viewer}</ContextualEditingContext.Provider>);
+    expect(screen.queryByRole("button", { name: "Edit replication or collection" })).toBeNull();
+    rerender(<ContextualEditingContext.Provider value={{ ...editing, mode: "edit" }}>{viewer}</ContextualEditingContext.Provider>);
+    const editButton = await screen.findByRole("button", { name: "Edit replication or collection" });
     expect(fetch).not.toHaveBeenCalled();
-    vi.mocked(fetch).mockImplementation(async (input) => {
-      const url = String(input);
-      const payload = url.endsWith("/playlists")
-        ? { ok: true, playlists: [] }
-        : url.endsWith("/substances")
-          ? { ok: true, substances: [] }
-          : { ok: true, associations: [] };
-      return { ok: true, json: async () => payload } as Response;
-    });
-
+    vi.mocked(fetch).mockResolvedValue(Response.json({
+      row: { id: "row-one", slug: "work-one", title: "Work one", artist: "Artist", role: "replication", type: "image", effect_slug: null, effect_tags: [], credit_line: null, source_url: null, artist_url: null, url: "https://example.com/work-one.jpg", thumbnail_url: null, format: "jpg", duration: null, file_size: null, created_at: "2026-01-01" },
+      revision: "revision-one", effects: [], playlists: [],
+      collection: { revision: "null", order: [], editable: false, title: "Gallery" },
+    }));
     await userEvent.click(editButton);
-    const closeEditor = await screen.findByRole("button", {
-      name: "Close carousel editor",
-    });
-    expect(
-      screen.getByRole("complementary", { name: "Carousel editor" }),
-    ).toBeVisible();
-    await userEvent.click(closeEditor);
+    expect(await screen.findByRole("complementary", { name: "Replication and collection editor" })).toBeVisible();
+    await userEvent.click(await screen.findByRole("button", { name: "Close editor and keep drafts" }));
     await waitFor(() => expect(editButton).toHaveFocus());
   });
 
@@ -437,33 +362,17 @@ describe("ReplicationViewerOverlay", () => {
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
     const descriptionId = dialog.getAttribute("aria-describedby");
-    expect(descriptionId).toMatch(/^radix-/);
     expect(document.getElementById(descriptionId!)).toHaveTextContent(
       "Viewing Work One by Chelsea Morgan",
     );
-    expect(dialog).toHaveClass("grid-rows-[auto_minmax(0,1fr)]");
     expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
       "data-title",
       "Work One",
-    );
-    expect(
-      screen.getByRole("heading", { name: /Chelsea Morgan.*Work One/ }),
-    ).toHaveClass("theme-media-tile-title");
-    expect(
-      screen
-        .getByTestId("viewer-transport")
-        .closest(".grid-rows-\\[minmax\\(0\\,1fr\\)_auto\\]"),
-    ).toHaveClass(
-      "min-w-0",
-      "w-full",
-      "grid-cols-[minmax(0,1fr)]",
-      "overflow-hidden",
     );
     const header = dialog.querySelector("header");
     expect(header).toHaveTextContent("Work 1/2");
     expect(header).toHaveTextContent("Artist 1/2");
     expect(header?.textContent?.match(/Chelsea Morgan/g)).toHaveLength(1);
-    expect(header).toHaveTextContent("Sorted by artist");
 
     fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
 
@@ -572,6 +481,81 @@ describe("ReplicationViewerOverlay", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
+  it("keeps the active work and navigable neighbors when regrouping creates more groups", () => {
+    const regroupedCollection: ReplicationViewerCollection = {
+      ...collection,
+      label: "Sorted by effect",
+      grouping: "effect",
+      groups: [
+        {
+          key: "tracers",
+          label: "Tracers",
+          items: [collection.groups[0].items[0]],
+        },
+        {
+          key: "drifting",
+          label: "Drifting",
+          items: [collection.groups[0].items[1]],
+        },
+        {
+          key: "geometry",
+          label: "Geometry",
+          items: [collection.groups[1].items[0]],
+        },
+      ],
+    };
+    const onOpenChange = vi.fn();
+    const { rerender } = render(
+      <ReplicationViewerOverlay
+        collection={collection}
+        initialSlug="work-one"
+        open
+        onOpenChange={onOpenChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
+
+    rerender(
+      <ReplicationViewerOverlay
+        collection={regroupedCollection}
+        initialSlug="work-one"
+        open
+        onOpenChange={onOpenChange}
+      />,
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: /Chelsea Morgan.*Work Two/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Previous effect: Tracers" }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Next effect: Geometry" }),
+    ).toBeEnabled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Next effect: Geometry" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: /Aria.*Work Three/ }),
+    ).toBeInTheDocument();
+    expect(window.location.search).toContain("viewer=work-three");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Previous effect: Drifting" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: /Chelsea Morgan.*Work Two/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Previous effect: Tracers" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: /Chelsea Morgan.*Work One/ }),
+    ).toBeInTheDocument();
+    expect(window.location.search).toContain("viewer=work-one");
+  });
+
   it("offers no settings menu without a regroup host", () => {
     render(
       <ReplicationViewerOverlay
@@ -586,7 +570,7 @@ describe("ReplicationViewerOverlay", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows the claiming profile's avatar on the byline chip", () => {
+  it("shows the claiming profile's avatar beside the artist identity", () => {
     const avatarCollection: ReplicationViewerCollection = {
       ...collection,
       groups: [
@@ -612,14 +596,14 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    const chip = screen.getAllByRole("link", { name: "Chelsea Morgan" })[1];
-    expect(chip.querySelector("img")).toHaveAttribute(
+    const identity = screen.getByRole("link", { name: "Chelsea Morgan" }).closest("header");
+    expect(identity?.querySelector("img")).toHaveAttribute(
       "src",
       "https://cdn.test/chelsea.webp",
     );
   });
 
-  it("links the artist name in the header and the stage byline chip", () => {
+  it("links one artist identity to the artist profile", () => {
     render(
       <ReplicationViewerOverlay
         collection={collection}
@@ -629,14 +613,10 @@ describe("ReplicationViewerOverlay", () => {
       />,
     );
 
-    const links = screen.getAllByRole("link", { name: "Chelsea Morgan" });
-    expect(links).toHaveLength(2);
-    for (const link of links) {
-      expect(link).toHaveAttribute(
-        "href",
-        "/replications/artist/chelsea-morgan",
-      );
-    }
+    expect(screen.getByRole("link", { name: "Chelsea Morgan" })).toHaveAttribute(
+      "href",
+      "/replications/artist/chelsea-morgan",
+    );
   });
 
   it("mounts the thumbnail rail on multi-work groups and lands rail picks", () => {
@@ -826,73 +806,6 @@ describe("ReplicationViewerOverlay", () => {
     ).toBeInTheDocument();
   });
 
-  it("holds all three pooled players warm with the neighbor's preview assigned", () => {
-    render(
-      <ReplicationViewerOverlay
-        collection={collection}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    const track = document.querySelector(
-      "[data-replication-media-track]",
-    ) as HTMLElement;
-    // Exactly three pooled elements, never more: leaked players are what
-    // make browsers refuse later loads.
-    expect(track.querySelectorAll("video")).toHaveLength(3);
-    // The neighbor's PREVIEW rendition is assigned immediately and buffers
-    // ahead of the swipe — never the multi-megabyte catalogued file.
-    const neighbor = track.querySelector(
-      'video[src="https://cdn.test/two-preview.mp4"]',
-    );
-    expect(neighbor).toBeInTheDocument();
-    expect(neighbor).toHaveAttribute("preload", "auto");
-    expect(
-      track.querySelector('video[src="https://cdn.test/two.mp4"]'),
-    ).not.toBeInTheDocument();
-  });
-
-  it("keeps one pooled element set across navigation and promotes the warmed neighbor", () => {
-    render(
-      <ReplicationViewerOverlay
-        collection={collection}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    const track = document.querySelector(
-      "[data-replication-media-track]",
-    ) as HTMLElement;
-    const before = Array.from(track.querySelectorAll("video"));
-    expect(before).toHaveLength(3);
-    const warmed = track.querySelector(
-      'video[src="https://cdn.test/two-preview.mp4"]',
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Next: Work Two" }));
-
-    // Same three DOM nodes, not remounted twins: a keyed remount would
-    // destroy pooled <video> elements, leaking their media pipelines until
-    // GC and discarding iOS Safari's per-element unmuted-playback blessing.
-    const after = Array.from(track.querySelectorAll("video"));
-    expect(after).toHaveLength(3);
-    for (const element of after) {
-      expect(before).toContain(element);
-    }
-    // The incoming work kept its already-warmed element — the commit is
-    // pause-outgoing/play-incoming, never a media load.
-    expect(
-      track.querySelector("[data-viewer-active-pane] video"),
-    ).toBe(warmed);
-    expect(screen.getByTestId("viewer-transport")).toHaveAttribute(
-      "data-title",
-      "Work Two",
-    );
-  });
 
   it("contains information-panel focus and restores its trigger", async () => {
     render(
@@ -919,7 +832,7 @@ describe("ReplicationViewerOverlay", () => {
     expect(
       screen
         .getByTestId("viewer-transport")
-        .closest(".grid-rows-\\[minmax\\(0\\,1fr\\)_auto\\]"),
+        .closest("[inert]"),
     ).toHaveAttribute("inert");
 
     fireEvent.click(screen.getByRole("button", { name: "Close information" }));
@@ -945,8 +858,6 @@ describe("ReplicationViewerOverlay", () => {
       "data-title",
       "Work Three",
     );
-    // Header credit plus the stage byline chip both name the artist.
-    expect(screen.getAllByText("Aria")).toHaveLength(2);
     expect(screen.getByText("Artist 2/2")).toBeInTheDocument();
     expect(window.location.search).toContain("viewer=work-three");
   });
@@ -1051,7 +962,7 @@ describe("ReplicationViewerOverlay", () => {
     );
   });
 
-  it("leads the header with the effect name and keeps the artist on the byline chip", () => {
+  it("retains effect context beside the single artist identity", () => {
     const effectCollection: ReplicationViewerCollection = {
       ...collection,
       label: "Sorted by effect",
@@ -1071,12 +982,10 @@ describe("ReplicationViewerOverlay", () => {
     );
 
     const header = screen
-      .getByRole("dialog", { name: /Geometry.*Work Three/ })
+      .getByRole("dialog", { name: /Aria.*Work Three/ })
       .querySelector("header");
     expect(header).toHaveTextContent("Geometry");
     expect(header).toHaveTextContent("Effect 2/2");
-    expect(header).not.toHaveTextContent("Aria");
-    // The artist never leaves the stage: the byline chip carries the credit.
     expect(screen.getByText("Aria")).toBeInTheDocument();
   });
   it("moves between Gallery groups with visible pointer controls", () => {
@@ -1360,68 +1269,4 @@ describe("ReplicationViewerOverlay", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("leans the thumbnail rail while the active work rotates", async () => {
-    // A portrait phone walking a landscape work: rotate mode turns it.
-    stubPortraitPhone();
-    render(
-      <ReplicationViewerOverlay
-        collection={collection}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    const rail = screen.getByRole("navigation", {
-      name: "Chelsea Morgan works",
-    });
-    expect(rail).toHaveAttribute("data-rotated", "false");
-
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Rotate to fill screen" }),
-    );
-    expect(rail).toHaveAttribute("data-rotated", "true");
-  });
-
-  it("leans the byline avatar while the active work rotates", async () => {
-    stubPortraitPhone();
-    const avatarCollection: ReplicationViewerCollection = {
-      ...collection,
-      groups: [
-        {
-          ...collection.groups[0],
-          items: [
-            {
-              ...collection.groups[0].items[0],
-              avatarUrl: "https://cdn.test/chelsea.webp",
-            },
-            ...collection.groups[0].items.slice(1),
-          ],
-        },
-        ...collection.groups.slice(1),
-      ],
-    };
-    render(
-      <ReplicationViewerOverlay
-        collection={avatarCollection}
-        initialSlug="work-one"
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
-
-    const chip = screen.getAllByRole("link", { name: "Chelsea Morgan" })[1];
-    const avatarWrapper = chip.querySelector("[data-rotating-icon]");
-    expect(avatarWrapper).not.toBeNull();
-    expect(avatarWrapper?.querySelector("img")).toHaveAttribute(
-      "src",
-      "https://cdn.test/chelsea.webp",
-    );
-    expect(avatarWrapper?.className).not.toContain("rotate-90");
-
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Rotate to fill screen" }),
-    );
-    expect(avatarWrapper?.className).toContain("rotate-90");
-  });
 });

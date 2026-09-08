@@ -44,7 +44,7 @@ export function ChemistryFieldsRHF({
       >
         <Textarea
           id={`${idPrefix}-pharmacology-pharmacodynamics`}
-          className="min-h-[80px]"
+          className="min-h-28 md:min-h-[80px]"
           {...register("pharmacology.pharmacodynamics")}
           placeholder="Plain-language pharmacodynamics overview"
         />
@@ -83,14 +83,17 @@ export function ChemistryFieldsRHF({
                 </FormEditorField>
                 <FormEditorField
                   htmlFor={`${idPrefix}-tag-${index}`}
-                  label="Mechanism Tag"
+                  label="Mechanism"
                   name={`pharmacology.binding_sites.${index}.tag`}
+                  description="Action at the target, such as agonism or inhibition."
                 >
-                  <Input
-                    id={`${idPrefix}-tag-${index}`}
-                    {...register(`pharmacology.binding_sites.${index}.tag`)}
-                    placeholder="e.g. 5-HT2A receptor agonist"
-                  />
+                  {(field) => (
+                    <Input
+                      {...field}
+                      {...register(`pharmacology.binding_sites.${index}.tag`)}
+                      placeholder="e.g. 5-HT2A receptor agonist"
+                    />
+                  )}
                 </FormEditorField>
                 <FormEditorField
                   htmlFor={`${idPrefix}-affinity-${index}`}
@@ -107,12 +110,15 @@ export function ChemistryFieldsRHF({
                   htmlFor={`${idPrefix}-efficacy-${index}`}
                   label="Efficacy / Notes"
                   name={`pharmacology.binding_sites.${index}.efficacy`}
+                  description="Response details, qualifiers, or other notes."
                 >
-                  <Input
-                    id={`${idPrefix}-efficacy-${index}`}
-                    {...register(`pharmacology.binding_sites.${index}.efficacy`)}
-                    placeholder="e.g. partial agonist"
-                  />
+                  {(field) => (
+                    <Input
+                      {...field}
+                      {...register(`pharmacology.binding_sites.${index}.efficacy`)}
+                      placeholder="e.g. partial agonist"
+                    />
+                  )}
                 </FormEditorField>
               </EditorFieldRow>
             </EntryCard>
@@ -142,7 +148,7 @@ export function ChemistryFieldsRHF({
         >
           <Textarea
             id={`${idPrefix}-pharmacokinetics`}
-            className="min-h-[80px]"
+            className="min-h-28 md:min-h-[80px]"
             {...register("pharmacology.pharmacokinetics")}
             placeholder="Describe metabolic pathway (e.g., CYP2D6, CYP3A4 hepatic metabolism)"
           />
@@ -151,15 +157,18 @@ export function ChemistryFieldsRHF({
           name="pharmacology.metabolites"
           label="Active Metabolites"
           placeholder="Add metabolite"
+          helperText="Type a metabolite name and press Enter to add."
+          emptyStateText="Type a metabolite name to add it."
           options={[]}
           addButtonLabel="Add metabolite"
-          openStrategy="focus"
+          openStrategy="button"
         />
       </EditorFieldRow>
       
       {/* Extended pharmacokinetics - stored but not displayed in public section */}
       <CollapsibleSubsection
         title="Extended Pharmacokinetics"
+        pairedIndicator
         icon={<Icon icon="lucide:timer" className="h-5 w-5" size={20} />}
         description="These fields are stored for data completeness but not currently displayed in the public article."
       >

@@ -289,6 +289,7 @@
       "evidence-border": "var(--theme-evidence-border)",
       "ring": "var(--theme-ring-soft)",
       "success": "var(--theme-success-text)",
+      "success-strong": "var(--theme-success-text-strong)",
       "warning": "var(--theme-warning-text)",
       "warning-bg": "var(--theme-warning-bg)",
       "warning-bg-strong": "var(--theme-warning-bg-strong)",
@@ -296,6 +297,7 @@
       "warning-border-strong": "var(--theme-warning-border-strong)",
       "warning-strong": "var(--theme-warning-text-strong)",
       "danger": "var(--theme-danger-text)",
+      "danger-strong": "var(--theme-danger-text-strong)",
       "danger-badge": "var(--theme-semantic-danger-badge-text)",
       "unsafe-badge": "var(--theme-semantic-unsafe-badge-text)",
       "caution-badge": "var(--theme-semantic-caution-badge-text)"

@@ -63,7 +63,7 @@ function requireConfirmation(raw: unknown, expected: string, label: string): voi
   }
 }
 
-export function parseDangerBody(raw: DangerBody): ParsedDanger {
+function parseDangerBody(raw: DangerBody): ParsedDanger {
   const action = raw.action;
 
   if (action === "merge") {
@@ -124,7 +124,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
         discardSourceContent: body.discardSourceContent,
       });
 
-      revalidateContributorSurfaces({
+      await revalidateContributorSurfaces({
         contributorKeys: result.revalidate?.contributorKeys ?? [body.fromKey, body.toKey],
         scope: "attribution",
       });
@@ -147,7 +147,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
         confirmDelete: true,
       });
 
-      revalidateContributorSurfaces({
+      await revalidateContributorSurfaces({
         contributorKeys: [result.key, ...result.aliasesRemoved],
         scope: "attribution",
       });
@@ -171,7 +171,7 @@ export const POST = protectedRouteOperation<DangerBody, ParsedDanger>({
       },
     );
 
-    revalidateContributorSurfaces({
+    await revalidateContributorSurfaces({
       contributorKeys: result.revalidate?.contributorKeys ?? [body.contributorKey],
       scope: "attribution",
     });

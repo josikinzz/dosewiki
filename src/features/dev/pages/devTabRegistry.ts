@@ -9,6 +9,7 @@
  */
 
 import type { RoleFloor } from "@/lib/auth/roles";
+import { DEV_ROUTE_FILTERS, type DevRouteFilter } from "@/utils/devHref";
 
 export type DevToolGroup = "content" | "intake" | "site";
 
@@ -45,11 +46,7 @@ type DevTabDescriptorOf<Id extends string> = {
    * extra route segments that open the tab with that value preset, the way a
    * retired tab's address keeps working after it folds into this one.
    */
-  filter?: {
-    param: string;
-    values: readonly string[];
-    segments?: Readonly<Record<string, string>>;
-  };
+  filter?: DevRouteFilter;
 };
 
 const NO_DATA: ReadonlySet<DevTabDataNeed> = new Set();
@@ -113,7 +110,7 @@ const REGISTRY = [
     destination: SHELL,
     badge: "feedback",
     // Site feedback folded in as the source filter; `/dev/site-feedback` still opens that queue.
-    filter: { param: "source", values: ["article", "site"], segments: { "site-feedback": "site" } },
+    filter: DEV_ROUTE_FILTERS["article-feedback"],
   },
   {
     id: "tag-editor",
@@ -168,7 +165,7 @@ const REGISTRY = [
     saveFamily: "immediate",
     destination: SHELL,
     // Blog folded in as the kind filter; `/dev/blog/<slug>` still opens the post.
-    filter: { param: "kind", values: ["article", "blog"], segments: { blog: "blog" } },
+    filter: DEV_ROUTE_FILTERS.writing,
   },
   {
     id: "copy-studio",
@@ -182,8 +179,8 @@ const REGISTRY = [
   },
   {
     id: "queue",
-    label: "Queue",
-    group: "site",
+    label: "Change Review",
+    group: "intake",
     aliases: ["proposals"],
     // Every editor reads the review queue and comments; approve, reject and
     // revert are admin buttons inside the tab. The corpus drains behind it so
@@ -207,7 +204,7 @@ const REGISTRY = [
     saveFamily: "immediate",
     destination: SHELL,
     // Profile folded in as the self scope; `/dev/profile` still lands there.
-    filter: { param: "scope", values: ["all", "me"], segments: { profile: "me", profiles: "me" } },
+    filter: DEV_ROUTE_FILTERS.contributors,
   },
   {
     id: "playlists",

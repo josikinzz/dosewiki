@@ -1,10 +1,13 @@
 export const PUBLIC_HOSTS: Record<string, true> = {
   "dose.wiki": true,
   "www.dose.wiki": true,
+  "effectindex.com": true,
+  "www.effectindex.com": true,
 };
 
 export function normalizeHost(host: string | null | undefined): string {
-  return host?.split(":")[0]?.toLowerCase() ?? "";
+  const value = host?.trim().toLowerCase() ?? "";
+  return value.startsWith("[") ? value.slice(0, value.indexOf("]") + 1) : value.split(":")[0].replace(/\.$/, "");
 }
 
 export function isPublicHost(host: string | null | undefined): boolean {

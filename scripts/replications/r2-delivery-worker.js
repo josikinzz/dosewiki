@@ -17,6 +17,9 @@
  * - Byte ranges are honored (video seeking); responses carry Accept-Ranges.
  * - Objects are immutable, so hits are `public, max-age=31536000, immutable`
  *   and conditional requests answer 304 via the object's etag.
+ * - A private `_withdrawals/<media-key>` marker blocks GET, HEAD, conditional,
+ *   and range delivery with 410 before looking up media bytes. Marker lookup
+ *   failures fail closed with 503. Markers are never cached or publicly served.
  * - `Content-Disposition: inline` — media renders, never downloads.
  * - No credential exists here: the bucket binding is capability, not secret.
  */
@@ -36,6 +39,20 @@ const CONTENT_TYPE_BY_EXTENSION = {
 };
 
 const IMMUTABLE_CACHE = "public, max-age=31536000, immutable";
+const WITHDRAWAL_PREFIX = "_withdrawals/";
+
+function withheldResponse(status) {
+  return new Response(null, {
+    status,
+    headers: {
+      "cache-control": "no-store",
+      "cdn-cache-control": "no-store",
+      "cloudflare-cdn-cache-control": "no-store",
+      "access-control-allow-origin": "*",
+      ...(status === 503 ? { "retry-after": "30" } : {}),
+    },
+  });
+}
 
 function objectHeaders(object, key) {
   const headers = new Headers();
@@ -65,6 +82,17 @@ export default {
     const match = R2_KEY_PATTERN.exec(key);
     if (!match || !match[2].startsWith(match[1])) {
       return new Response("Not Found", { status: 404 });
+    }
+
+    // Keep this outside application state and ahead of every media read. R2
+    // marker presence is authoritative even for old URLs in cached manifests.
+    // Do not add a negative cache: it would extend the withdrawal deadline.
+    try {
+      if (await env.BUCKET.head(`${WITHDRAWAL_PREFIX}${key}`)) {
+        return withheldResponse(410);
+      }
+    } catch {
+      return withheldResponse(503);
     }
 
     if (request.method === "HEAD") {

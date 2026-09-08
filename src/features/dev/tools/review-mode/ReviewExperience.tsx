@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { useSession } from "next-auth/react";
 
@@ -9,11 +9,11 @@ import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
-import { EditorNotice } from "@/features/dev/components";
-import { canApprove as roleCanApprove, resolveSessionRole } from "@/lib/auth/roles";
+import { EditorNotice, useDirtyGuard } from "@/features/dev/components";
+import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
+import { canDraft, resolveSessionRole } from "@/lib/auth/roles";
 import type { SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
-import { useSubstanceEditorDraftController } from "../substance-editor/useSubstanceEditorDraftController";
 import type { SubstanceEditorTabProps } from "../substance-editor/types";
 import { applyReviewArticleOverlay } from "./reviewArticleOverlay";
 import { ReviewArticleView } from "./ReviewArticleView";
@@ -25,7 +25,6 @@ import { STATUS_DOT } from "./ReviewSubstancePicker";
 import { useReviewQueue } from "./useReviewQueue";
 import { useReviewNavigation, useReviewSettings } from "./useReviewSettings";
 import {
-  useReviewFieldWrites,
   useReviewOverlays,
   useReviewStatusWrites,
 } from "./useReviewWrites";
@@ -61,14 +60,11 @@ type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "renderCommitPanel"> 
  * the chrome in `ReviewCommandBar` and `ReviewArticleView`.
  */
 export const ReviewExperience = memo(function ReviewExperience({
-  renderCommitPanel,
   initialSlug,
 }: ReviewExperienceProps) {
   const {
     articles,
-    applyArticlesTransform,
     articleHydration,
-    sourceArticles,
     articlesRefreshConflict,
   } = useDevMode();
 
@@ -79,12 +75,11 @@ export const ReviewExperience = memo(function ReviewExperience({
   const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
 
-  // Ticks and flags are editor work; the inline field write and the citation
-  // palette's add/remove land on the published article and stay admin-only.
+  // Editors can draft in context; publication is separately admin-gated.
   const session = useSession();
-  const canApprove =
+  const canEditArticle =
     session.status === "authenticated" &&
-    roleCanApprove(resolveSessionRole({ role: session.data?.user?.role }));
+    canDraft(resolveSessionRole({ role: session.data?.user?.role }));
 
   const settings = useReviewSettings({ initialSlug });
   const {
@@ -149,23 +144,15 @@ export const ReviewExperience = memo(function ReviewExperience({
   // because selecting anything inside it should close it.
   const [helpOpen, setHelpOpen] = useState(false);
 
-  // Direct review writes land in Convex without dirtying the shared editor
-  // working set. Rebuild their combined post-write article here so the public
-  // preview, citation diagnostics, and editor form all see the same state.
-  const currentFieldEdits = current ? overlays.fieldEdits[current.slug] : undefined;
-  const currentSavedReferences = current ? overlays.savedReferences[current.slug] : undefined;
-  const currentRemovedReferenceIds = current ? overlays.removedReferenceIds[current.slug] : undefined;
+  // Human Reviewed status is independent of the private article draft.
   const currentOverride = current ? overlays.overrides[current.slug] : undefined;
   const articleForView = useMemo(
     () => article
       ? applyReviewArticleOverlay(article, {
-          fieldEdits: currentFieldEdits,
-          savedReferences: currentSavedReferences,
-          removedReferenceIds: currentRemovedReferenceIds,
           editorialReview: resolveOverriddenEditorialReview(article, currentOverride),
         })
       : article,
-    [article, currentFieldEdits, currentOverride, currentSavedReferences, currentRemovedReferenceIds],
+    [article, currentOverride],
   );
 
   // The public route resolves the Convex depiction server-side; this surface is
@@ -178,52 +165,11 @@ export const ReviewExperience = memo(function ReviewExperience({
   const moleculeOverrideUrl =
     current && moleculeMeta ? moleculeOverrideImageUrl(current.slug, moleculeMeta.updatedAt) : null;
 
-  // The editor form hydrates from the working set, which never receives the
-  // inline edit. Handing it the overlaid article instead is what stops an
-  // "Apply to draft" from writing the pre-edit value back over Convex.
-  const articlesForDraft = useMemo(() => {
-    if (!article || !articleForView || articleForView === article) {
-      return typedArticles;
-    }
-    const overlaid = articleForView;
-    return typedArticles.map((candidate) =>
-      candidate === article ? overlaid : candidate,
-    );
-  }, [article, articleForView, typedArticles]);
 
-  const applyDraftArticlesTransform = useCallback(
-    (transform: (previous: SubstanceArticle[]) => SubstanceArticle[]) => {
-      applyArticlesTransform((previous) =>
-        transform(previous as SubstanceArticle[]),
-      );
-    },
-    [applyArticlesTransform],
-  );
-  // The slim row is a SubstanceArticle-shaped shell, so handing the controller
-  // the slug before the body lands would seed the form from it and mount a
-  // blank editor for the render in which hydration flips. Held at null until
-  // then: the controller resets on the slug change and seeds once, from the
-  // whole article.
-  const draft = useSubstanceEditorDraftController({
-    articles: articlesForDraft,
-    applyArticlesTransform: applyDraftArticlesTransform,
-    selectedSubstanceSlug: currentArticleHydrated ? (current?.slug ?? null) : null,
-    substances,
-  });
-
-  const articleEditContext = useReviewFieldWrites({
-    viewSlug: current?.slug ?? null,
-    article,
-    sourceArticles,
-    draft,
-    setFieldEdits: overlays.setFieldEdits,
-  });
 
   const status = useReviewStatusWrites({
     current,
-    viewSlug: current?.slug ?? null,
     typedArticles,
-    draft,
     queueGroups,
     reviewedCount,
     setOverrides: overlays.setOverrides,
@@ -231,12 +177,26 @@ export const ReviewExperience = memo(function ReviewExperience({
   const { lastTick, milestone, celebration, toggleReviewed, toggleFlagged, undoLastTick } =
     status;
 
+  const [articleDirty, setArticleDirty] = useState(false);
+  const [operationLocked, setOperationLocked] = useState(false);
+  const articleDraftGuard = useRef<DraftNavigationGuard | null>(null);
+  const articleNavigation = useDirtyGuard(articleDirty, {
+    title: "Keep your article edits?",
+    description: "Save a private draft, discard local edits, or stay with this article.",
+    onSave: operationLocked ? undefined : async () => {
+      if (!articleDraftGuard.current?.save) throw new Error("The article draft is unavailable.");
+      await articleDraftGuard.current.save();
+    },
+    onDiscard: () => articleDraftGuard.current?.discard(),
+    canDiscard: !operationLocked,
+  });
   const { navigateTo, goNext, goPrev, canGoPrev, canGoNext } = useReviewNavigation({
     settings,
     visibleQueue,
     position,
-    formDirty: draft.formDirty,
+    formDirty: articleDirty,
     clearTickError: status.clearTickError,
+    guardNavigation: articleNavigation.guard,
   });
 
   const toggleMoleculePanel = useCallback(() => {
@@ -246,16 +206,17 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   const toggleCitationPanel = useCallback(() => {
     if (!currentSlugRef.current) return;
+    if (!citationPanelOpen) updateSettings({ inlineEdit: true });
     setCitationPanelOpen((open) => !open);
-  }, [currentSlugRef]);
+  }, [currentSlugRef, citationPanelOpen, updateSettings]);
 
   // Scoped to the webpage view — the only place the mode does anything — so
   // neither the key nor the bar button can arm it invisibly from the editor.
-  // Admin-only for the same reason the pill is disabled: the write is direct.
+  // Both editor and admin roles may arm local editing.
   const toggleInlineEdit = useCallback(() => {
-    if (viewModeRef.current !== "webpage" || !canApprove) return;
-    updateSettings({ inlineEdit: !inlineEdit });
-  }, [canApprove, inlineEdit, updateSettings, viewModeRef]);
+    if (viewModeRef.current !== "webpage" || !canEditArticle) return;
+    articleNavigation.guard(() => updateSettings({ inlineEdit: !inlineEdit }));
+  }, [canEditArticle, inlineEdit, updateSettings, viewModeRef, articleNavigation.guard]);
 
   /**
    * Swallow link activations inside the rendered article while the
@@ -370,7 +331,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       </p>
 
       <ReviewCommandBar
-        settings={settings}
+        settings={{ ...settings, changeViewMode: (view) => articleNavigation.guard(() => settings.changeViewMode(view)) }}
         queue={queueState}
         status={status}
         navigateTo={navigateTo}
@@ -383,11 +344,12 @@ export const ReviewExperience = memo(function ReviewExperience({
         toggleMoleculePanel={toggleMoleculePanel}
         toggleCitationPanel={toggleCitationPanel}
         toggleInlineEdit={toggleInlineEdit}
-        canApprove={canApprove}
+        canEditArticle={canEditArticle}
         helpOpen={helpOpen}
         setHelpOpen={setHelpOpen}
       />
 
+      {articleNavigation.dialog}
       <ReviewArticleView
         allReviewed={allReviewed}
         total={queue.length}
@@ -402,17 +364,16 @@ export const ReviewExperience = memo(function ReviewExperience({
         closeMoleculePanel={() => setMoleculePanelOpen(false)}
         citationPanelOpen={citationPanelOpen}
         closeCitationPanel={() => setCitationPanelOpen(false)}
-        rememberSavedReference={overlays.rememberSavedReference}
-        rememberRemovedReference={overlays.rememberRemovedReference}
         viewMode={viewMode}
         articleLinks={articleLinks}
         blockArticleLinks={blockArticleLinks}
         articlesRefreshConflict={articlesRefreshConflict !== null}
         inlineEdit={inlineEdit}
-        canApprove={canApprove}
-        articleEditContext={articleEditContext}
-        draft={draft}
-        renderCommitPanel={renderCommitPanel}
+        workbenchRole={resolveSessionRole(session.data?.user ?? {})}
+        workbenchEmail={session.data?.user?.email ?? null}
+        onDirtyChange={setArticleDirty}
+        draftGuardRef={articleDraftGuard}
+        onOperationLockChange={setOperationLocked}
       />
 
       {/* A finished psychoactive category: confetti plus the medallion card.

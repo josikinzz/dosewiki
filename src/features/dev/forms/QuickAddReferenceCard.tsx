@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
 
 import { Badge } from "@/components/ui/badge";
@@ -61,9 +61,10 @@ export async function copyCitationTag(id: string): Promise<boolean> {
 
 export type QuickAddReferenceCardProps = {
   references: UseFieldArrayReturn<SubstanceArticle, "references">;
+  embedded?: boolean;
 };
 
-export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps) {
+export function QuickAddReferenceCard({ references, embedded = false }: QuickAddReferenceCardProps) {
   const { watch } = useFormContext<SubstanceArticle>();
   const existingReferences = watch("references") ?? [];
   const [source, setSource] = useState("");
@@ -75,6 +76,21 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
   const [note, setNote] = useState("");
   const [addedId, setAddedId] = useState("");
   const [copied, setCopied] = useState(false);
+  const metadataRequest = useRef(0);
+  useEffect(() => () => { metadataRequest.current += 1; }, []);
+
+  const changeSource = (value: string) => {
+    metadataRequest.current += 1;
+    setSource(value);
+    setTitle("");
+    setAuthors("");
+    setYear("");
+    setUrl("");
+    setNote("");
+    setAddedId("");
+    setCopied(false);
+    setIsLoading(false);
+  };
 
   const detection = detectQuickAddReference(source, title);
   const existingReference = detection
@@ -89,6 +105,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
   };
 
   const detectAndAutofill = async () => {
+    const request = ++metadataRequest.current;
     const nextDetection = detectQuickAddReference(source, title);
     setAddedId("");
     setCopied(false);
@@ -108,18 +125,18 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
     setIsLoading(true);
     try {
       const metadata = await fetchReferenceMetadata(nextDetection);
-      if (metadata) applyMetadata(metadata);
+      if (metadata && request === metadataRequest.current) applyMetadata(metadata);
     } catch {
-      setNote("Metadata could not be loaded. You can complete the fields manually.");
+      if (request === metadataRequest.current) setNote("Metadata could not be loaded. You can complete the fields manually.");
     } finally {
-      setIsLoading(false);
+      if (request === metadataRequest.current) setIsLoading(false);
     }
   };
 
   const handleAdd = () => {
     const nextDetection = detectQuickAddReference(source, title);
     const referenceTitle = title.trim() || nextDetection?.title?.trim() || "";
-    if (!nextDetection || !referenceTitle || existingReference) return;
+    if (!nextDetection || !referenceTitle || existingReference || isLoading) return;
 
     const reference: Reference = buildQuickAddReference({
       detection: nextDetection,
@@ -128,13 +145,13 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
       year: parseReferenceYear(year),
       url,
     });
-    references.append(reference);
+    references.append(reference, { shouldFocus: !embedded });
     setAddedId(nextDetection.id);
     setNote("");
   };
 
   const handleSourceKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.nativeEvent.isComposing) {
       event.preventDefault();
       handleAdd();
     }
@@ -143,25 +160,29 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
   const handleCopy = async (id: string) => {
     const didCopy = await copyCitationTag(id);
     setCopied(didCopy);
+    if (!didCopy) setNote(`Copy was unavailable. Select and copy this marker: [cite:${id}]`);
   };
 
   return (
     <EntryCard title="Quick-add citation" bodyClassName="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        {detection ? <Badge variant="secondary">{detection.label}</Badge> : null}
-        {detection ? <Badge variant="outline">{existingReference?.id ?? detection.id}</Badge> : null}
-      </div>
+      {detection ? <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="max-w-full whitespace-normal">
+          {embedded && detection.kind === "title" ? "Title entered · source details need review" : detection.label}
+        </Badge>
+        <Badge variant="outline" className="max-w-full whitespace-normal [overflow-wrap:anywhere]">{existingReference?.id ?? detection.id}</Badge>
+      </div> : null}
 
       <div className="space-y-1">
-        <Label htmlFor="quick-reference-source">DOI, PubMed, ISBN, URL, or title</Label>
+        <Label htmlFor="quick-reference-source" className={embedded ? "theme-text-secondary text-sm normal-case tracking-normal" : undefined}>DOI, PubMed, ISBN, URL, or title</Label>
         <Input
           id="quick-reference-source"
           value={source}
-          onChange={(event) => setSource(event.target.value)}
+          onChange={(event) => changeSource(event.target.value)}
           onBlur={() => void detectAndAutofill()}
           onKeyDown={handleSourceKeyDown}
           placeholder="10.1000/example, PMID: 12345, or a source title"
         />
+        {embedded ? <p className="theme-text-muted text-xs">Adding a source does not verify a claim. Review its details, then place its citation marker beside the text it supports.</p> : null}
       </div>
 
       {detection ? (
@@ -172,6 +193,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
               <Input
                 id="quick-reference-title"
                 value={title}
+                disabled={isLoading}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Article or source title"
                 required
@@ -181,6 +203,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
               <Label htmlFor="quick-reference-authors">Authors</Label>
               <Input
                 id="quick-reference-authors"
+                disabled={isLoading}
                 value={authors}
                 onChange={(event) => setAuthors(event.target.value)}
                 placeholder="Author One, Author Two"
@@ -192,6 +215,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
             <div className="space-y-1">
               <Label htmlFor="quick-reference-year">Year</Label>
               <Input
+                disabled={isLoading}
                 id="quick-reference-year"
                 value={year}
                 onChange={(event) => setYear(event.target.value)}
@@ -201,6 +225,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
             <div className="space-y-1">
               <Label htmlFor="quick-reference-url">URL</Label>
               <Input
+                disabled={isLoading}
                 id="quick-reference-url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
@@ -216,7 +241,7 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
 
       {existingReference && detection && !addedId ? (
         <div className="flex flex-wrap items-center gap-2">
-          <p className="theme-text-muted text-xs" role="status">Already cited on this article.</p>
+          <p className="theme-text-muted text-xs" role="status">This source is already in the reference list.</p>
           <Button type="button" variant="outline" size="sm" onClick={() => void handleCopy(existingReference.id)}>
             {copied ? "Copied" : "Copy tag"}
           </Button>
@@ -224,8 +249,9 @@ export function QuickAddReferenceCard({ references }: QuickAddReferenceCardProps
       ) : null}
 
       {addedId ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="success" className="normal-case tracking-normal text-sm">{`[cite:${addedId}]`}</Badge>
+        <div className="flex flex-wrap items-center gap-2" role="status" aria-live="polite">
+          <p className="theme-text-muted text-sm">Reference added locally. Review its source details before using it.</p>
+          <Badge variant="success" className="max-w-full whitespace-normal normal-case tracking-normal text-sm [overflow-wrap:anywhere]">{`[cite:${addedId}]`}</Badge>
           <Button type="button" variant="outline" size="sm" onClick={() => void handleCopy(addedId)}>
             {copied ? "Copied" : "Copy tag"}
           </Button>

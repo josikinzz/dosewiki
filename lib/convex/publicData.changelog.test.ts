@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type * as ChangeLogModule from "../../src/data/changelog/changeLog";
+
+// Dynamic imports deliberately reload the server module after resetModules so
+// each case exercises a fresh request/cache boundary with its Convex fixture.
 
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
@@ -15,6 +19,21 @@ const mocks = vi.hoisted(() => ({
 vi.mock("./serverClient", () => ({
   queryConvex: mocks.queryConvex,
 }));
+
+vi.mock("../../src/data/changelog/changeLog", async (importOriginal) => {
+  const actual = await importOriginal<typeof ChangeLogModule>();
+  return {
+    ...actual,
+    initialChangeLogEntries: [{
+      id: "static-private-history",
+      createdAt: "2025-01-01T00:00:00.000Z",
+      commit: { sha: "", url: "", message: "Clarify duration (approved by reviewer@example.test)" },
+      markdown: "- old duration\n+ corrected duration\nReviewed by reviewer@example.test",
+      submittedBy: "STATIC_PRIVACY",
+      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
+    }],
+  };
+});
 
 const row = (overrides: Record<string, unknown> = {}) => ({
   entryId: "20260101-000000-abcdef00",
@@ -70,5 +89,72 @@ describe("public profile history diff cap", () => {
     // The marker accounts for every dropped line.
     const omitted = Number(/@@ diff truncated: (\d+) more lines @@$/.exec(entry.markdown)?.[1]);
     expect(kept.split("\n").length + omitted).toBe(2000);
+  });
+});
+
+describe("public history email privacy", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    mocks.queryConvex.mockReset();
+  });
+
+  const privateRow = () => row({
+    message: "Clarify duration (proposed by writer@example.test, approved by reviewer@example.test)",
+    markdown: "- old duration\n+ corrected duration\nReverted by reviewer@example.test",
+    submittedBy: "writer@example.test",
+  });
+
+  it("sanitizes a live profile history even against an older Convex deployment", async () => {
+    mocks.queryConvex.mockResolvedValueOnce([privateRow()]);
+    const { getPublicProfileHistory } = await import("./publicData.changelog");
+    const entries = await getPublicProfileHistory({ key: "TESTKEY", aliases: [] });
+
+    expect(entries.map((entry) => entry.id)).toEqual([row().entryId]);
+    expect(JSON.stringify(entries)).not.toContain("@example.test");
+    expect(entries[0].markdown).toContain("- old duration\n+ corrected duration");
+    expect(entries[0].submittedBy).toBe("TESTKEY");
+  });
+
+  it("sanitizes the static profile backfill as well as live rows", async () => {
+    mocks.queryConvex.mockResolvedValueOnce([]);
+    const { getPublicProfileHistory } = await import("./publicData.changelog");
+    const entries = await getPublicProfileHistory({ key: "STATIC_PRIVACY", aliases: [] });
+
+    expect(entries.map((entry) => entry.id)).toEqual(["static-private-history"]);
+    expect(JSON.stringify(entries)).not.toContain("@example.test");
+    expect(entries[0].markdown).toContain("- old duration\n+ corrected duration");
+  });
+
+  it("keeps historical article and site-wide changes without leaking actor metadata", async () => {
+    mocks.queryConvex.mockResolvedValue([privateRow()]);
+    const { getPublicArticleHistory, getPublicRecentChanges } = await import("./publicData.changelog");
+    const histories = [
+      await getPublicArticleHistory("lsd", []),
+      await getPublicRecentChanges([]),
+    ];
+
+    for (const entries of histories) {
+      expect(entries.map((entry) => entry.id)).toEqual([row().entryId]);
+      expect(JSON.stringify(entries)).not.toContain("@example.test");
+      expect(entries[0].diff).toContain("- old duration\n+ corrected duration");
+      expect(entries[0].detail).toContain("Clarify duration");
+    }
+  });
+
+  it("uses a public profile name or a neutral label, never an unresolved login stamp", async () => {
+    mocks.queryConvex.mockResolvedValue([row({ submittedBy: "PRIVATE_LOGIN" })]);
+    const { getPublicRecentChanges } = await import("./publicData.changelog");
+    const [unknown] = await getPublicRecentChanges([]);
+    expect(unknown.contributor).toEqual({ name: "Contributor", href: null, avatarUrl: null });
+    const [known] = await getPublicRecentChanges([
+      { key: "PUBLIC_NAME", displayName: "Public Name", aliases: ["private_login"] },
+    ]);
+    expect(known.contributor).toEqual({
+      name: "Public Name", href: "/contributors/public_name", avatarUrl: null,
+    });
+    const [unsafe] = await getPublicRecentChanges([
+      { key: "PRIVATE_LOGIN", displayName: "writer@example.test", aliases: [] },
+    ]);
+    expect(unsafe.contributor).toEqual({ name: "Contributor", href: null, avatarUrl: null });
   });
 });

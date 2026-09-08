@@ -1,16 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
+import type * as NextCache from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { POST } from "./route";
 
 vi.mock("server-only", () => ({}));
 
 vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
+  ...(await importOriginal<typeof NextCache>()),
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
 
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: vi.fn(async () => null),
+}));
+
+vi.mock("@server/convex/serverClient", () => ({
+  queryConvex: vi.fn(async () => ({ publicRevision: "a".repeat(64) })),
 }));
 
 const TOKEN = "citation-write-secret";
@@ -28,7 +36,7 @@ function revalidateRequest(body: unknown, token: string | null = TOKEN) {
 
 describe("revalidate-article route", () => {
   beforeEach(() => {
-    vi.resetModules();
+    
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
     process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE = TOKEN;
@@ -36,8 +44,8 @@ describe("revalidate-article route", () => {
   });
 
   it("rejects a missing token without touching the cache", async () => {
-    const { POST } = await import("./route");
-    const { revalidatePath, revalidateTag } = await import("next/cache");
+    
+    
 
     const response = await POST(revalidateRequest({ slug: "2c-b" }, null));
 
@@ -47,8 +55,8 @@ describe("revalidate-article route", () => {
   });
 
   it("rejects a wrong token without touching the cache", async () => {
-    const { POST } = await import("./route");
-    const { revalidatePath, revalidateTag } = await import("next/cache");
+    
+    
 
     const response = await POST(revalidateRequest({ slug: "2c-b" }, "wrong-secret"));
 
@@ -61,7 +69,7 @@ describe("revalidate-article route", () => {
   it("accepts the legacy admin key when no scoped token is configured", async () => {
     delete process.env.CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE;
     process.env.CONVEX_ADMIN_KEY = "legacy-secret";
-    const { POST } = await import("./route");
+    
 
     const response = await POST(revalidateRequest({ slug: "2c-b" }, "legacy-secret"));
 
@@ -69,8 +77,8 @@ describe("revalidate-article route", () => {
   });
 
   it("rejects an invalid slug before any cache call", async () => {
-    const { POST } = await import("./route");
-    const { revalidatePath, revalidateTag } = await import("next/cache");
+    
+    
 
     for (const slug of ["../etc", "2C-B", "", "a b", 7]) {
       const response = await POST(revalidateRequest({ slug }));
@@ -81,8 +89,8 @@ describe("revalidate-article route", () => {
   });
 
   it("rejects a bad slug hiding inside an otherwise valid batch", async () => {
-    const { POST } = await import("./route");
-    const { revalidatePath } = await import("next/cache");
+    
+    
 
     const response = await POST(revalidateRequest({ slugs: ["2c-b", "/etc/passwd"] }));
 
@@ -91,7 +99,7 @@ describe("revalidate-article route", () => {
   });
 
   it("rejects an empty request body", async () => {
-    const { POST } = await import("./route");
+    
 
     const response = await POST(revalidateRequest({}));
 
@@ -99,43 +107,44 @@ describe("revalidate-article route", () => {
     expect(await response.json()).toEqual({ error: "Provide slug or slugs." });
   });
 
-  it("revalidates the page path and expires the shared substances tag, like the editor write routes", async () => {
-    const { POST } = await import("./route");
-    const { revalidatePath, revalidateTag } = await import("next/cache");
-    const { PUBLIC_CONVEX_CACHE_TAGS } = await import("@server/convex/publicData");
-
+  it("reports pending publication with the current revision when delivery is unconfigured", async () => {
+    delete process.env.PUBLIC_CACHE_PUBLISH_SECRET;
+    
     const response = await POST(revalidateRequest({ slug: "2c-b" }));
-
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, revalidated: ["/2c-b"] });
-    expect(revalidatePath).toHaveBeenCalledTimes(1);
-    expect(revalidatePath).toHaveBeenCalledWith("/2c-b");
-    expect(revalidateTag).toHaveBeenCalledTimes(1);
-    expect(revalidateTag).toHaveBeenCalledWith(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    const body = await response.json();
+    expect(body).toMatchObject({ ok: true, revalidated: ["/2c-b"] });
+    expect(body.publication).toContainEqual(expect.objectContaining({
+      status: "unconfigured",
+      savedRevisions: [{ slug: "2c-b", revision: "a".repeat(64) }],
+      verification: "pending",
+    }));
   });
 
-  it("dedupes a multi-slug batch and expires the tag once", async () => {
-    const { POST } = await import("./route");
-    const { revalidatePath, revalidateTag } = await import("next/cache");
-
+  it("deduplicates identities in the operator's publication receipt", async () => {
+    delete process.env.PUBLIC_CACHE_PUBLISH_SECRET;
+    
     const response = await POST(
       revalidateRequest({ slug: "2c-b", slugs: ["dxm", "2c-b", "dxm"] }),
     );
-
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, revalidated: ["/2c-b", "/dxm"] });
-    expect(revalidatePath).toHaveBeenCalledTimes(2);
-    expect(revalidatePath).toHaveBeenNthCalledWith(1, "/2c-b");
-    expect(revalidatePath).toHaveBeenNthCalledWith(2, "/dxm");
-    expect(revalidateTag).toHaveBeenCalledTimes(1);
+    const body = await response.json();
+    expect(body.revalidated).toEqual(["/2c-b", "/dxm"]);
+    expect(body.publication).toContainEqual(expect.objectContaining({
+      status: "unconfigured",
+      savedRevisions: [
+        { slug: "2c-b", revision: "a".repeat(64) },
+        { slug: "dxm", revision: "a".repeat(64) },
+      ],
+    }));
   });
 
   it("honours the rate limiter before auth", async () => {
-    const { enforceRateLimit } = await import("@server/http/nextRateLimit");
+    
     vi.mocked(enforceRateLimit).mockResolvedValue(
       NextResponse.json({ error: "Too many requests." }, { status: 429 }),
     );
-    const { POST } = await import("./route");
+    
 
     const response = await POST(revalidateRequest({ slug: "2c-b" }));
 

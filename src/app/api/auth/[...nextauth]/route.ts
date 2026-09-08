@@ -2,8 +2,8 @@ import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@auth";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { safeAuthRedirect } from "@/lib/auth/returnPath";
 
-const handler = NextAuth(authOptions);
 
 /**
  * Password-guessing brake for the credentials provider.
@@ -27,6 +27,23 @@ type NextAuthRouteContext = {
   params: Promise<{ nextauth: string[] }>;
 };
 
+function handleAuthRequest(request: Request, context: NextAuthRouteContext) {
+  // NEXTAUTH_URL is one canonical origin, but both approved editor aliases own
+  // host-only cookies. Keep a callback on the request's origin rather than silently
+  // crossing to the other alias and losing the session just created.
+  const origin = new URL(request.url).origin;
+  const handler = NextAuth({
+    ...authOptions,
+    callbacks: {
+      ...authOptions.callbacks,
+      async redirect({ url }) {
+        return safeAuthRedirect(url, origin);
+      },
+    },
+  });
+  return handler(request, context);
+}
+
 export async function POST(request: Request, context: NextAuthRouteContext) {
   if (new URL(request.url).pathname === CREDENTIALS_CALLBACK_PATHNAME) {
     const limited = await enforceRateLimit(request, "authCredentialAttempt");
@@ -45,7 +62,9 @@ export async function POST(request: Request, context: NextAuthRouteContext) {
 
   // `context` must be forwarded verbatim: NextAuth's returned handler
   // dispatches on `res.params` to pick the app-router branch.
-  return handler(request, context);
+  return handleAuthRequest(request, context);
 }
 
-export { handler as GET };
+export async function GET(request: Request, context: NextAuthRouteContext) {
+  return handleAuthRequest(request, context);
+}

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
-import type * as NextCache from "next/cache";
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
 vi.mock("server-only", () => ({}));
 
@@ -13,15 +13,8 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const nextCacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
-
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof NextCache>()),
-  revalidatePath: nextCacheMocks.revalidatePath,
-  revalidateTag: nextCacheMocks.revalidateTag,
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -54,8 +47,8 @@ const SAVE = {
 function saveRequest(body: Record<string, unknown>) {
   return new Request("https://dose.wiki/api/dev/about", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+    body: JSON.stringify({ expected: null, expectedRevision: 0, operationId: "about-fixture-operation", ...body }),
   });
 }
 
@@ -71,7 +64,7 @@ describe("about route", () => {
       ok: true,
       capability: { client: { mutation: mocks.mutation }, adminKey: "admin-key" },
     });
-    mocks.mutation.mockResolvedValue({ updated: true, id: "about-id" });
+    mocks.mutation.mockResolvedValue({ updated: true, id: "about-id", revision: 1, replayed: false, unchanged: false });
   });
 
   it("refuses an editor saving About with 403 before touching Convex", async () => {
@@ -82,31 +75,27 @@ describe("about route", () => {
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(mocks.mutation).not.toHaveBeenCalled();
-    expect(nextCacheMocks.revalidateTag).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
-  it("saves the whole document through siteConfig.saveAbout and expires the About cache", async () => {
+  it("saves the whole document through siteConfig.saveAbout and publishes the About identity", async () => {
     const response = await POST(saveRequest(SAVE));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       ok: true,
+      revision: 1, replayed: false, unchanged: false,
       about: {
         aboutMarkdown: SAVE.aboutMarkdown,
         aboutSubtitle: SAVE.aboutSubtitle,
         founderProfileKeys: ["JOSIE", "SAM"],
+        revision: 1,
       },
     });
-    expect(mocks.mutation).toHaveBeenCalledWith("siteConfig.saveAbout", {
-      apiKey: "admin-key",
-      actorEmail: "admin@example.com",
-      aboutMarkdown: SAVE.aboutMarkdown,
-      aboutSubtitle: SAVE.aboutSubtitle,
-      founderProfileKeys: ["JOSIE", "SAM"],
-      updatedBy: "admin@example.com",
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "about" }],
+      source: "manual",
     });
-    expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/about");
-    expect(nextCacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:about", { expire: 0 });
   });
 
   it("rejects a document missing its page copy before reaching Convex", async () => {
@@ -140,9 +129,6 @@ describe("about route", () => {
     const response = await POST(saveRequest({ ...SAVE, founderProfileKeys: ["kay-two", "rho2"] }));
 
     expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "siteConfig.saveAbout",
-      expect.objectContaining({ founderProfileKeys: ["KAY-TWO", "RHO2"] }),
-    );
+    expect((await response.json()).about.founderProfileKeys).toEqual(["KAY-TWO", "RHO2"]);
   });
 });

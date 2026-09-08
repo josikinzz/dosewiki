@@ -34,12 +34,20 @@ export type ServerConvexDeploymentMetadata = {
 };
 
 /**
- * The Convex client handed to Next routes. Same `query`/`mutation`/`action`
- * surface as `ConvexHttpClient`, except that every write must name the actor it
- * runs as: a mutation or action whose args carry no non-empty `actorEmail`
- * throws before anything is sent. A server-key call with no actor resolves to
- * admin inside `requireRole`, which is right for workstation scripts and never
- * right for a route acting on behalf of a signed-in user.
+ * Mutations where the server is the actor because the public caller has no
+ * authenticated identity to delegate. Keep this allowlist narrow so ordinary
+ * route writes cannot bypass the actor gate.
+ */
+const SERVICE_MUTATION_NAMES: Record<string, true> = {
+  "articleFeedback:create": true,
+  "siteFeedback:create": true,
+  "tripReportSubmissions:create": true,
+};
+
+/**
+ * The Convex client handed to Next routes. Regular mutations and actions must
+ * name the actor they run as. Public intake uses `mutationAsService`, which is
+ * restricted to the fixed actorless mutation allowlist above.
  */
 export class ServerConvexWriteClient {
   constructor(private readonly inner: ConvexHttpClient) {}
@@ -59,6 +67,14 @@ export class ServerConvexWriteClient {
     return await this.inner.mutation(mutation, ...args);
   }
 
+  async mutationAsService<Mutation extends FunctionReference<"mutation">>(
+    mutation: Mutation,
+    ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
+  ): Promise<FunctionReturnType<Mutation>> {
+    assertServiceMutation(mutation);
+    return await this.inner.mutation(mutation, ...args);
+  }
+
   async action<Action extends FunctionReference<"action">>(
     action: Action,
     ...args: OptionalRestArgs<Action>
@@ -74,6 +90,13 @@ function assertNamesActor(reference: FunctionReference<"mutation" | "action">, a
 
   if (typeof actorEmail !== "string" || actorEmail.trim().length === 0) {
     throw new Error(`Server Convex write without actorEmail: ${getFunctionName(reference)}`);
+  }
+}
+
+function assertServiceMutation(reference: FunctionReference<"mutation">): void {
+  const name = getFunctionName(reference);
+  if (!SERVICE_MUTATION_NAMES[name]) {
+    throw new Error(`Server Convex service mutation is not allowlisted: ${name}`);
   }
 }
 
@@ -193,6 +216,18 @@ function getCachedWriteClient(writeUrl: string): ServerConvexWriteClient {
   }
 
   return cachedWriteClient;
+}
+
+/** Public form intake cannot borrow an editorial credential or inspect private queues. */
+export function getPublicIntakeWriteCapability(): {
+  client: ServerConvexWriteClient;
+  apiKey: string;
+  writeUrl: string;
+} | null {
+  const apiKey = process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE;
+  const writeUrl = getPrivilegedWriteTarget().selectedUrl;
+  if (!hasNonEmptyValue(apiKey) || !writeUrl) return null;
+  return { client: getCachedWriteClient(writeUrl), apiKey, writeUrl };
 }
 
 function buildConfigurationFailure(

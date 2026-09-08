@@ -46,6 +46,8 @@ export type ContributorsControllerOptions = {
   sessionProfileKey: string;
   /** The route's `?scope=` value, validated by the registry; anything else opens on all. */
   initialScope?: string;
+  /** One contextual record, without fetching or navigating the directory. */
+  contextualKey?: string;
 };
 
 export type ContributorSaveState = EditorActionStatusState | "idle";
@@ -74,6 +76,7 @@ export function useContributorsController({
   canApprove,
   sessionProfileKey,
   initialScope,
+  contextualKey,
 }: ContributorsControllerOptions) {
   const routeScope: ContributorScope = initialScope === "me" ? "me" : "all";
   const [chosenScope, setChosenScope] = useState<ContributorScope>(routeScope);
@@ -89,6 +92,7 @@ export function useContributorsController({
   const [aliasDraft, setAliasDraft] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [avatarRemoved, setAvatarRemoved] = useState(false);
   const [profileSaveState, setProfileSaveState] = useState<ContributorSaveState>("idle");
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [workOrder, setWorkOrder] = useState<string[]>([]);
@@ -96,6 +100,8 @@ export function useContributorsController({
   const [workSaveState, setWorkSaveState] = useState<ContributorSaveState>("idle");
   const [reportSaveState, setReportSaveState] = useState<ContributorSaveState>("idle");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingPublication = useRef<string | null>(null);
+  const [publicationUncertain, setPublicationUncertain] = useState(false);
 
   const directory = useMemo(
     () => [...profiles].sort((left, right) => left.displayName.localeCompare(right.displayName)),
@@ -119,17 +125,18 @@ export function useContributorsController({
     [directory, scope, search, selfKey],
   );
   const resolvedKey = useMemo(() => {
+    if (contextualKey) return contextualKey;
     if (scope === "me") return selfKey;
     if (directory.some((profile) => profile.key === selectedKey)) return selectedKey;
     return visibleProfiles[0]?.key ?? "";
-  }, [directory, scope, selectedKey, selfKey, visibleProfiles]);
+  }, [contextualKey, directory, scope, selectedKey, selfKey, visibleProfiles]);
 
   // The scope the URL currently says. Only a change writes: the address the
   // user arrived on (`/dev/profile`, `/dev/contributors?scope=me`) is left
   // alone, and a non-editor's forced scope never rewrites anything.
   const urlScopeRef = useRef(routeScope);
   useEffect(() => {
-    if (!canEdit || scope === urlScopeRef.current) return;
+    if (contextualKey || !canEdit || scope === urlScopeRef.current) return;
     urlScopeRef.current = scope;
     window.history.replaceState(
       null,
@@ -140,7 +147,7 @@ export function useContributorsController({
         filter: scope === "all" ? undefined : scope,
       }),
     );
-  }, [canEdit, scope]);
+  }, [canEdit, contextualKey, scope]);
 
   useEffect(() => {
     if (!resolvedKey) {
@@ -154,7 +161,7 @@ export function useContributorsController({
     void (async () => {
       try {
         const response = await fetch(
-          `/api/dev/contributor-profile?key=${encodeURIComponent(resolvedKey)}`,
+          `/api/dev/contributor-profile?key=${encodeURIComponent(resolvedKey)}${contextualKey ? "&contextual=true" : ""}`,
         );
         const payload = (await response.json()) as {
           error?: string;
@@ -176,6 +183,7 @@ export function useContributorsController({
         setWorkOrder([...payload.profile.replicationOrder]);
         setReportOrder([...payload.profile.reportOrder]);
         setAvatarFile(null);
+        setAvatarRemoved(false);
         setAliasDraft("");
         setProfileSaveState("idle");
         setWorkSaveState("idle");
@@ -195,7 +203,7 @@ export function useContributorsController({
     return () => {
       cancelled = true;
     };
-  }, [reloadToken, resolvedKey]);
+  }, [contextualKey, reloadToken, resolvedKey]);
 
   useEffect(() => {
     if (!avatarFile) {
@@ -209,6 +217,7 @@ export function useContributorsController({
 
   const updateForm = useCallback((patch: Partial<ContributorFormState>) => {
     setForm((previous) => (previous ? { ...previous, ...patch } : previous));
+    if (patch.avatarUrl) setAvatarRemoved(false);
     setProfileSaveState("idle");
   }, []);
 
@@ -226,36 +235,53 @@ export function useContributorsController({
       return;
     }
     setAvatarFile(file);
+    setAvatarRemoved(false);
     setNotice({
       tone: "info",
       message: "Avatar ready. Save the profile to publish it.",
     });
   }, []);
 
+  const removeAvatar = useCallback(() => {
+    setAvatarFile(null);
+    setAvatarRemoved(true);
+    setForm((previous) => previous ? { ...previous, avatarUrl: "" } : previous);
+    setProfileSaveState("idle");
+  }, []);
+
   const saveProfile = useCallback(async () => {
-    if (!detail || !form) return;
+    if (!detail || !form || profileSaveState === "saving") return;
     setProfileSaveState("saving");
     setNotice(null);
     try {
       const avatarUpload = avatarFile
         ? await createAvatarUploadPayload(avatarFile, browserAvatarFileAdapter)
         : undefined;
+      pendingPublication.current ??= JSON.stringify({
+        key: detail.profile.key,
+        expectedUpdatedAt: detail.profile.updatedAt ?? null,
+        operationId: crypto.randomUUID(),
+        ...(canEdit && !contextualKey ? buildContributorPatch(form, { canApprove }) : buildOwnContributorPatch(form)),
+        // A bio-only edit must not clear an existing uploaded avatar.
+        avatarUrl: avatarUpload ? undefined : avatarRemoved ? null :
+          form.avatarUrl === (detail.profile.avatarUrl ?? "") ? undefined : (form.avatarUrl.trim() || null),
+        ...(avatarUpload ? { avatarUpload } : {}),
+      });
       const response = await fetch("/api/dev/contributor-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: detail.profile.key,
-          // A body carries only the fields its role may set: Convex refuses
-          // an editor's save that names a trust field, and the route drops
-          // everything but the self-serve fields for a contributor.
-          ...(canEdit
-            ? buildContributorPatch(form, { canApprove })
-            : buildOwnContributorPatch(form)),
-          ...(avatarUpload ? { avatarUpload } : {}),
-        }),
+        body: pendingPublication.current,
       });
       const payload = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(payload.error ?? "The profile could not be saved.");
+      if (!response.ok) {
+        if (response.status < 500) {
+          pendingPublication.current = null;
+          setPublicationUncertain(false);
+        }
+        throw new Error(payload.error ?? "The profile could not be saved.");
+      }
+      pendingPublication.current = null;
+      setPublicationUncertain(false);
       setProfileSaveState("saved");
       setNotice({
         tone: "success",
@@ -263,6 +289,7 @@ export function useContributorsController({
       });
       setReloadToken((token) => token + 1);
     } catch (error) {
+      if (pendingPublication.current) setPublicationUncertain(true);
       setProfileSaveState("error");
       setNotice({
         tone: "danger",
@@ -270,7 +297,7 @@ export function useContributorsController({
         message: error instanceof Error ? error.message : "The profile could not be saved.",
       });
     }
-  }, [avatarFile, canApprove, canEdit, detail, form]);
+  }, [avatarFile, avatarRemoved, canApprove, canEdit, contextualKey, detail, form, profileSaveState]);
 
   const saveOrdering = useCallback(
     async (which: "works" | "reports") => {
@@ -284,6 +311,7 @@ export function useContributorsController({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             key: detail.profile.key,
+            expectedRevision: detail.profile.orderingRevision,
             ...(which === "works" ? { replicationOrder: workOrder } : { reportOrder }),
           }),
         });
@@ -344,7 +372,7 @@ export function useContributorsController({
     [detail?.reports],
   );
   const isProfileDirty =
-    detail && form ? isContributorFormDirty(detail.profile, form, avatarFile !== null) : false;
+    detail && form ? isContributorFormDirty(detail.profile, form, avatarFile !== null || avatarRemoved) : false;
   // Anything a row change or scope flip would throw away: the profile draft
   // and either unsaved order.
   const hasUnsavedChanges =
@@ -364,7 +392,10 @@ export function useContributorsController({
     if (!detail) return;
     setForm(toContributorForm(detail.profile));
     setAvatarFile(null);
+    setAvatarRemoved(false);
     setProfileSaveState("idle");
+    pendingPublication.current = null;
+    setPublicationUncertain(false);
   }, [detail]);
   const changeWorkOrder = useCallback((next: string[]) => {
     setWorkOrder(next);
@@ -418,10 +449,13 @@ export function useContributorsController({
     avatarFile,
     setAvatarFile,
     avatarPreviewUrl,
+    avatarRemoved,
+    removeAvatar,
     fileInputRef,
     handleAvatarFileChange,
     profileSaveState,
     saveProfile,
+    publicationUncertain,
     discardProfile,
     notice,
     workOrder,

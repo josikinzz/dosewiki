@@ -3,7 +3,11 @@ import {
   CATEGORY_SLUG_TO_TAG_GROUPS,
   getEffectCategoryDefinition,
 } from "@/data/effectCategoryDefinitions";
-import { PARENT_CATEGORIES, type ParentCategoryConfig } from "./effectsIndexConfig";
+import {
+  PARENT_CATEGORIES,
+  resolveEffectCategoryIcon,
+  type ParentCategoryConfig,
+} from "./effectsIndexConfig";
 
 export interface EffectCategoryGroupEffect {
   slug: string;
@@ -122,7 +126,7 @@ export function buildEffectCategoryGroups({
       return {
         id: `group-${subcategory.key}`,
         title: subcategory.title,
-        icon: definition?.icon ?? parent.icon,
+        icon: resolveEffectCategoryIcon(subcategorySlug ?? "") ?? definition?.icon ?? parent.icon,
         categorySlug: subcategorySlug,
         description: (subcategorySlug && descriptions?.[subcategorySlug]) || definition?.description,
         effects: matched,

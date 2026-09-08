@@ -33,7 +33,7 @@ export function LinkManager({
     >
       {links.length === 0 && (
         <p className="theme-text-muted text-sm leading-6">
-          No links yet. Add up to three trusted resources or social profiles.
+          No links yet. Add up to {MAX_LINKS} trusted resources or social profiles.
         </p>
       )}
 

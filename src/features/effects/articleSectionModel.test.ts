@@ -55,7 +55,6 @@ describe("effect article section model", () => {
       replications: { kind: "server", galleryOrder: ["first-replication"] },
     });
 
-    expect(model.hero).toEqual({ name: "Patterning", icon: "lucide:eye" });
     expect(model.sections.map(section => section.kind)).toEqual([
       "overview",
       "analysis",
@@ -73,6 +72,16 @@ describe("effect article section model", () => {
     const model = buildEffectArticleModel({ effect: minimalEffect });
 
     expect(model.sections.map(section => section.kind)).toEqual(["overview"]);
+  });
+
+  it("marks disconnective effects with the class whose scale grades them", () => {
+    expect(buildEffectArticleModel({ effect: minimalEffect }).hero.guideClass).toBeUndefined();
+
+    const disconnective = buildEffectArticleModel({
+      effect: { ...minimalEffect, tags: ["Visual", "Disconnective"] },
+    });
+
+    expect(disconnective.hero.guideClass).toBe("dissociative");
   });
 
   it("prefers AST content over raw content", () => {

@@ -35,7 +35,7 @@ const KIND_OPTIONS: { value: WritingKind; label: string }[] = [
 ];
 
 const KIND_DESCRIPTION: Record<WritingKind, string> = {
-  article: "Articles published to /articles, written in Markdown. Drafts stay off the public site entirely.",
+  article: "Articles published to /articles, preserving Markdown or VCode. Unpublished rows stay off the public site.",
   blog: "Posts published to /blog on dose.wiki. Cover image and teaser lead the index card.",
 };
 
@@ -68,7 +68,7 @@ interface WritingTabProps {
 /**
  * The Writing tab: one rail of the site's written pages with a kind filter
  * (articles under `/articles`, blog posts under `/blog`), About pinned first,
- * and a Markdown editor with the same preview renderer the public page uses.
+ * and one format-preserving editor shared with the public-page contextual panel.
  *
  * The kind filter and the open record live in the URL (`/dev/writing?kind=blog`,
  * `/dev/writing/<slug>`, `/dev/writing/about`) so a reload keeps them and a
@@ -130,12 +130,14 @@ export function WritingTab({
   // About keeps its own draft; leaving it drops that draft the way leaving a
   // row drops the writing draft, so both feed the one discard guard.
   const [aboutDirty, setAboutDirty] = useState(false);
+  const [aboutCanDiscard, setAboutCanDiscard] = useState(true);
   const pinned = selection.type === "pinned";
   const unsaved = pinned ? aboutDirty : isDirty;
   const openTitle = pinned ? "About" : draft.title.trim() || "Untitled";
   const { guard, dialog } = useDirtyGuard(unsaved, {
     title: `Discard changes to ${openTitle}?`,
     description: "Nothing here is saved until you save it. Leaving now loses what you changed.",
+    canDiscard: pinned ? aboutCanDiscard : !controller.uncertain && controller.saveState !== "saving",
   });
   const unsavedPill = <EditorStatusPill tone="warning">Unsaved</EditorStatusPill>;
 
@@ -243,6 +245,7 @@ export function WritingTab({
                 profilesLoading={profilesLoading}
                 canApprove={canApprove}
                 onDirtyChange={setAboutDirty}
+                onCanDiscardChange={setAboutCanDiscard}
               />
             ) : isLoadingRow ? (
               <p className="theme-text-faint text-sm">Loading…</p>

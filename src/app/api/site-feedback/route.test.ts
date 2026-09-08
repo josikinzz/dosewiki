@@ -9,7 +9,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   storeCreate: vi.fn(),
-  getSiteFeedbackStore: vi.fn(),
+  getPublicSiteFeedbackStore: vi.fn(),
 }));
 
 vi.mock("@/features/site-feedback/siteFeedbackStore.server", () => {
@@ -21,7 +21,7 @@ vi.mock("@/features/site-feedback/siteFeedbackStore.server", () => {
   }
 
   return {
-    getSiteFeedbackStore: mocks.getSiteFeedbackStore,
+    getPublicSiteFeedbackStore: mocks.getPublicSiteFeedbackStore,
     getSiteFeedbackIpHashSecret: () => "hash-secret",
     SiteFeedbackStorageConfigurationError: class SiteFeedbackStorageConfigurationError extends Error {},
     SiteFeedbackValidationError,
@@ -55,8 +55,8 @@ describe("site feedback public route", () => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     mocks.storeCreate.mockReset();
-    mocks.getSiteFeedbackStore.mockReset();
-    mocks.getSiteFeedbackStore.mockResolvedValue({
+    mocks.getPublicSiteFeedbackStore.mockReset();
+    mocks.getPublicSiteFeedbackStore.mockResolvedValue({
       create: mocks.storeCreate,
     });
     mocks.storeCreate.mockResolvedValue({

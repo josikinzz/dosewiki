@@ -6,6 +6,7 @@ import {
   type PropsWithChildren,
 } from "react";
 import { Icon } from "@/components/common/Icon";
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { EditorStatusPill } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,10 @@ export interface CollapsibleEditorCardProps extends PropsWithChildren {
   hasError?: boolean;
   /** Smaller header/body spacing for nested subsections. */
   density?: "default" | "compact";
+  /** Use the reading surface's redundant disclosure cue and touch target. */
+  pairedIndicator?: boolean;
+  /** Preserve local input buffers while the section is collapsed. */
+  keepMounted?: boolean;
   /**
    * Heading tag wrapping the disclosure trigger. Defaults to `h3` — these cards
    * sit inside an already-headed editor tab, so `h2` would duplicate that tier.
@@ -56,6 +61,8 @@ export function CollapsibleEditorCard({
   hasError = false,
   defaultExpanded = false,
   density = "default",
+  pairedIndicator = false,
+  keepMounted = false,
   headingLevel: Heading = "h3",
   className,
   children,
@@ -88,8 +95,10 @@ export function CollapsibleEditorCard({
           data-invalid={hasError || undefined}
           className={cn(
             "theme-editor-disclosure-trigger",
-            "-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-lg px-2 text-left",
+            "flex items-center gap-3 rounded-lg px-2 text-left",
+            pairedIndicator ? "w-full" : "-mx-2 w-[calc(100%+1rem)]",
             isCompact ? "py-2" : "py-2.5",
+            pairedIndicator && "min-h-11",
           )}
         >
           <span className="flex min-w-0 items-center gap-2.5">
@@ -132,16 +141,21 @@ export function CollapsibleEditorCard({
             aria-hidden
             className="h-px min-w-6 flex-1 bg-[image:var(--theme-horizontal-divider-image)]"
           />
-          <Icon
-            icon={visiblyExpanded ? "lucide:chevron-down" : "lucide:chevron-right"}
-            size={chevronSize}
-            className="theme-icon-muted shrink-0"
-          />
+          {pairedIndicator ? (
+            <ExpandIndicator isExpanded={visiblyExpanded} className="theme-icon-muted shrink-0" />
+          ) : (
+            <Icon
+              icon={visiblyExpanded ? "lucide:chevron-down" : "lucide:chevron-right"}
+              size={chevronSize}
+              className="theme-icon-muted shrink-0"
+            />
+          )}
         </button>
       </Heading>
-      {visiblyExpanded ? (
+      {visiblyExpanded || keepMounted ? (
         <div
           id={panelId}
+          hidden={!visiblyExpanded}
           role="region"
           aria-labelledby={triggerId}
           className={cn(isCompact ? "space-y-4 pt-3" : "space-y-6 pt-4")}

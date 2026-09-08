@@ -5,10 +5,14 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
 import { publicHref } from "@/utils/publicHref";
 import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
+import type { ArtistCreditLinks } from "@/features/effects/vcode/artistCreditLinks";
 import type { PublicEffectArticle } from "@server/convex/publicData";
 
 interface PsychoactiveEffectLongSummaryProps {
   effect: PublicEffectArticle;
+  artistCreditLinks?: ArtistCreditLinks;
+  /** The drug class this summary page speaks for. */
+  mediaVariantKey?: string;
 }
 
 /**
@@ -17,6 +21,8 @@ interface PsychoactiveEffectLongSummaryProps {
  */
 export function PsychoactiveEffectLongSummary({
   effect,
+  artistCreditLinks,
+  mediaVariantKey,
 }: PsychoactiveEffectLongSummaryProps) {
   const href = publicHref.effect(effect.slug);
   const longSummaryContent = normalizeVCodeContent(
@@ -52,6 +58,8 @@ export function PsychoactiveEffectLongSummary({
             content={longSummaryContent}
             citations={effect.citations}
             subarticles={effect.subarticles}
+            artistCreditLinks={artistCreditLinks}
+            mediaVariantKey={mediaVariantKey}
           />
         </div>
       ) : null}

@@ -45,6 +45,8 @@ export const TagMultiSelect = ({
 }: TagMultiSelectProps) => {
   const inputId = useId();
   const listboxId = `${inputId}-listbox`;
+  const labelId = `${inputId}-label`;
+  const helperId = `${inputId}-help`;
   const {
     containerRef,
     inputRef,
@@ -82,8 +84,8 @@ export const TagMultiSelect = ({
   const computedAddButtonLabel = addButtonLabel ?? `Add ${label}`;
 
   return (
-    <div className={className} ref={containerRef}>
-      <label htmlFor={inputId} className="theme-text-secondary mb-1 flex items-center gap-1.5 text-sm font-medium">
+    <div className={`min-w-0 ${className ?? ""}`} ref={containerRef}>
+      <label id={labelId} htmlFor={inputId} className="theme-text-secondary mb-1 flex items-center gap-1.5 text-sm font-medium">
         {icon}
         {label}
       </label>
@@ -93,7 +95,7 @@ export const TagMultiSelect = ({
         }`}
       >
         <div className="flex items-center gap-2">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <TagMultiSelectSelectedTags
               value={value}
               compact={compact}
@@ -117,6 +119,7 @@ export const TagMultiSelect = ({
               aria-expanded={isOpen}
               aria-haspopup="listbox"
               aria-controls={listboxId}
+              aria-describedby={helperId}
               aria-activedescendant={
                 isOpen && highlightedIndex !== null && highlightedIndex >= 0 && highlightedIndex < menuItems.length
                   ? `${listboxId}-item-${highlightedIndex}`
@@ -141,6 +144,7 @@ export const TagMultiSelect = ({
         </div>
         <TagMultiSelectMenu
           listboxId={listboxId}
+          labelId={labelId}
           isOpen={isOpen}
           menuItems={menuItems}
           highlightedIndex={highlightedIndex}
@@ -149,14 +153,13 @@ export const TagMultiSelect = ({
           shouldShowInlineCreateButton={shouldShowInlineCreateButton}
           shouldShowInlineEmptyState={shouldShowInlineEmptyState}
           disabled={disabled}
-          openStrategy={openStrategy}
           onCreate={() => handleAddTag(normalizedQuery)}
           onOptionMouseDown={handleOptionMouseDown}
           onOptionClick={handleOptionClick}
           onHighlight={setHighlightedIndex}
         />
       </div>
-      <p className="theme-text-faint mt-2 text-xs">{helper}</p>
+      <p id={helperId} className="theme-text-faint mt-2 text-xs">{helper}</p>
     </div>
   );
 };

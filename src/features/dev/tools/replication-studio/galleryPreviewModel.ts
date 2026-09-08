@@ -2,11 +2,9 @@
  * Bridge between the curation portal's in-memory match rows and the public
  * Replication Showcase stage.
  *
- * The portal edits an order; the article renders it. Rather than approximate
- * that render with thumbnails, the portal mounts the real stage — which means
- * something has to speak `ShowcaseWork`. This adapter mirrors
- * `buildShowcaseWorks` field for field so what the editor sees is what the
- * article draws.
+ * This adapter supplies the public stage's `ShowcaseWork` shape. Studio rows
+ * lack the published taxonomy needed for canonical opening curation, so this
+ * previews media and credits, not the public playlist's final opening order.
  */
 
 import {
@@ -18,10 +16,9 @@ import type { GalleryMatch } from "./substanceGalleryPortalModel";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
 
 /**
- * Adapt in-memory portal matches to the exact contract the public stage
- * consumes: the same audio-first media rank the public builder applies leads,
- * and the caller's effective order (curated head, then auto tail) survives
- * within each rank.
+ * Adapt in-memory portal matches to the public stage's display contract.
+ * The studio retains its media rank and the caller's effective order within
+ * each rank; public opening curation is applied by the canonical loaders.
  *
  * Parity with `buildShowcaseWorks`: audio drops out because the stage cannot
  * draw it, the byline comes from the shared credit helper, and an effect slug

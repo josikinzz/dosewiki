@@ -292,8 +292,10 @@ describe("replication media Convex adapter", () => {
   it("wraps Convex mutations and upload responses", async () => {
     const client = {
       mutation: vi.fn(async (_mutation, args) => ({ mutation: _mutation, args })),
+      query: vi.fn(async () => ({ revision: "loaded-revision" })),
     };
     const api = {
+      replicationContextualEditing: { collectionDetail: "collectionDetail" },
       replications: {
         generateUploadUrl: "generateUploadUrl",
         insertReplication: "insertReplication",
@@ -356,11 +358,13 @@ describe("replication media Convex adapter", () => {
       apiKey: "admin-key",
       effect_slug: "drifting",
       replication_slugs: ["one"],
+      expectedRevision: "loaded-revision",
     });
-    expect(client.mutation).toHaveBeenCalledWith("updateSubjectiveEffect", {
+    expect(client.mutation).toHaveBeenCalledWith("updateGalleryOrder", {
       apiKey: "admin-key",
-      slug: "stale",
-      updates: { gallery_order: [] },
+      effect_slug: "stale",
+      replication_slugs: [],
+      expectedRevision: "loaded-revision",
     });
     expect(fetchFn).toHaveBeenCalledWith("https://upload.example", {
       method: "POST",

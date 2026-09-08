@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from "react";
+import { useId, useState, type KeyboardEvent } from "react";
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 
 import { Icon } from "@/components/common/Icon";
@@ -22,6 +22,8 @@ export function ReferenceIdListInput({
 }: ReferenceIdListInputProps) {
   const { control } = useFormContext<SubstanceArticle>();
   const [inputValue, setInputValue] = useState("");
+  const inputId = useId();
+  const helperId = `${inputId}-help`;
 
   return (
     <Controller
@@ -53,7 +55,7 @@ export function ReferenceIdListInput({
 
         return (
           <div className="space-y-2">
-            <label className="theme-text-secondary text-sm font-medium">{label}</label>
+            <label htmlFor={inputId} className="theme-text-secondary text-sm font-medium">{label}</label>
             {values.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {values.map((value) => (
@@ -69,6 +71,8 @@ export function ReferenceIdListInput({
             ) : null}
             <div className="flex gap-2">
               <Input
+                id={inputId}
+                aria-describedby={helperText ? helperId : undefined}
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
                 onKeyDown={handleKeyDown}
@@ -78,7 +82,7 @@ export function ReferenceIdListInput({
                 <Icon icon="lucide:plus" size={16} className="h-4 w-4" />
               </Button>
             </div>
-            {helperText ? <p className="theme-text-faint text-xs">{helperText}</p> : null}
+            {helperText ? <p id={helperId} className="theme-text-faint text-xs">{helperText}</p> : null}
           </div>
         );
       }}

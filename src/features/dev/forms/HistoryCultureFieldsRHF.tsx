@@ -4,7 +4,7 @@
  * and nested subsections for sections like "Notable Individuals".
  */
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 
@@ -21,17 +21,21 @@ import type { SubstanceArticle } from "@/schema";
 
 export type HistoryCultureFieldsRHFProps = {
   idPrefix: string;
+  embedded?: boolean;
 };
 
 /** Nested subsections field array component for a single section */
 function SubsectionsFieldArray({
   sectionIndex,
   idPrefix,
+  embedded,
 }: {
   sectionIndex: number;
   idPrefix: string;
+  embedded: boolean;
 }) {
-  const { register, control } = useFormContext<SubstanceArticle>();
+  const { register, control, getValues, setFocus } = useFormContext<SubstanceArticle>();
+  const addSubsectionRef = useRef<HTMLButtonElement>(null);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -39,26 +43,43 @@ function SubsectionsFieldArray({
   });
 
   const handleAddSubsection = useCallback(() => {
-    append({ heading: "", content: "", date_range: undefined });
+    append({ heading: "", content: "", date_range: { start: "", end: "" } });
   }, [append]);
+
+  const handleRemoveSubsection = useCallback((subIndex: number) => {
+    const subsection = getValues(`history_culture.sections.${sectionIndex}.subsections.${subIndex}`);
+    const populated = subsection?.heading?.trim() || subsection?.content?.trim()
+      || subsection?.date_range?.start?.trim() || subsection?.date_range?.end?.trim();
+    const heading = subsection?.heading?.trim() || `Subsection ${subIndex + 1}`;
+    if (populated && typeof window !== "undefined" && !window.confirm(`Remove "${heading}"? This cannot be undone.`)) return;
+    remove(subIndex);
+    requestAnimationFrame(() => {
+      if (fields.length > 1) {
+        setFocus(`history_culture.sections.${sectionIndex}.subsections.${Math.min(subIndex, fields.length - 2)}.heading`);
+      } else {
+        addSubsectionRef.current?.focus();
+      }
+    });
+  }, [fields.length, getValues, remove, sectionIndex, setFocus]);
 
   if (fields.length === 0) {
     return (
       <Button
+        ref={addSubsectionRef}
         type="button"
         variant="ghost"
         size="sm"
         onClick={handleAddSubsection}
-        className="theme-text-faint mt-2 text-xs"
+        className={embedded ? "theme-text-muted mt-2" : "theme-text-faint mt-2 text-xs"}
       >
         <Icon icon="lucide:plus" className="h-3 w-3 mr-1" size={12} />
-        Add subsection (for notable individuals, etc.)
+        {embedded ? "Add subsection" : "Add subsection (for notable individuals, etc.)"}
       </Button>
     );
   }
 
   return (
-    <div className="mt-3 pl-4 border-l-2 border-[var(--theme-border-subtle)] space-y-3">
+    <div className={embedded ? "mt-3 space-y-3 border-l border-dose-border pl-3" : "mt-3 pl-4 border-l-2 border-dose-border space-y-3"}>
       <div className="theme-text-faint text-xs font-medium">Subsections</div>
       {fields.map((field, subIndex) => (
         <Surface
@@ -68,8 +89,8 @@ function SubsectionsFieldArray({
           radius="lg"
           className="space-y-2"
         >
-          <div className="flex items-start gap-2">
-            <div className="flex-1 space-y-2">
+          <div className={embedded ? "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2" : "flex items-start gap-2"}>
+            <div className={embedded ? "col-span-2 row-start-2 min-w-0 space-y-2" : "min-w-0 flex-1 space-y-2"}>
               <FormEditorField
                 name={`history_culture.sections.${sectionIndex}.subsections.${subIndex}.heading`}
                 htmlFor={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-heading`}
@@ -116,7 +137,7 @@ function SubsectionsFieldArray({
               >
                 <Textarea
                   id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-content`}
-                  className="min-h-[80px] text-sm"
+                  className="min-h-[80px]"
                   {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.content`)}
                   placeholder="Subsection content..."
                 />
@@ -126,17 +147,18 @@ function SubsectionsFieldArray({
               type="button"
               variant="ghostDestructive"
               size="icon"
-              onClick={() => remove(subIndex)}
-              className={`h-8 w-8 ${TOUCH_ICON}`}
+              onClick={() => handleRemoveSubsection(subIndex)}
+              className={`h-8 w-8 ${TOUCH_ICON} ${embedded ? "col-start-2 row-start-1 justify-self-end" : ""}`}
               title="Remove subsection"
               aria-label={`Remove subsection ${subIndex + 1}`}
             >
-              <Icon icon="lucide:x" className="h-3 w-3" size={12} />
+              <Icon icon="lucide:trash-2" className="h-3 w-3" size={12} />
             </Button>
           </div>
         </Surface>
       ))}
       <Button
+        ref={addSubsectionRef}
         type="button"
         variant="ghost"
         size="sm"
@@ -150,8 +172,9 @@ function SubsectionsFieldArray({
   );
 }
 
-export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFProps) {
-  const { register, control, watch, getValues } = useFormContext<SubstanceArticle>();
+export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryCultureFieldsRHFProps) {
+  const { register, control, watch, getValues, setFocus } = useFormContext<SubstanceArticle>();
+  const addSectionRef = useRef<HTMLButtonElement>(null);
 
   const { fields, append, remove, move } = useFieldArray({
     control,
@@ -161,7 +184,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
   const contentValue = watch("history_culture.content") ?? "";
 
   const handleAddSection = useCallback(() => {
-    append({ heading: "", content: "", date_range: undefined, subsections: [] });
+    append({ heading: "", content: "", date_range: { start: "", end: "" }, subsections: [] });
   }, [append]);
 
   /**
@@ -182,33 +205,43 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
       return;
     }
     remove(index);
-  }, [getValues, remove]);
+    requestAnimationFrame(() => {
+      if (fields.length > 1) {
+        setFocus(`history_culture.sections.${Math.min(index, fields.length - 2)}.heading`);
+      } else {
+        addSectionRef.current?.focus();
+      }
+    });
+  }, [fields.length, getValues, remove, setFocus]);
 
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0) {
       move(index, index - 1);
+      requestAnimationFrame(() => setFocus(`history_culture.sections.${index - 1}.heading`));
     }
-  }, [move]);
+  }, [move, setFocus]);
 
   const handleMoveDown = useCallback((index: number) => {
     if (index < fields.length - 1) {
       move(index, index + 1);
+      requestAnimationFrame(() => setFocus(`history_culture.sections.${index + 1}.heading`));
     }
-  }, [move, fields.length]);
+  }, [move, fields.length, setFocus]);
 
   return (
     <section className="space-y-6">
       {/* Main freeform content */}
       <FormEditorField
         htmlFor={`${idPrefix}-history-content`}
-        label="Content"
+        label={embedded ? "Overview (optional)" : "Content"}
+        description={embedded ? "Write an overview, add named sections below, or use both. Each section can contain subsections." : undefined}
         name="history_culture.content"
       >
         <Textarea
           id={`${idPrefix}-history-content`}
-          className="min-h-[150px]"
+          className={embedded ? "min-h-[100px]" : "min-h-[150px]"}
           {...register("history_culture.content")}
-          placeholder="Freeform history and culture content. Use this alone for simpler substances, or leave empty and use subsections below for more detailed histories."
+          placeholder="Write an overview of the history and culture."
         />
         <CharacterCount value={contentValue} />
       </FormEditorField>
@@ -223,9 +256,10 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
             radius="lg"
             className="space-y-3"
           >
-            <div className="flex items-start gap-3">
-              {/* Drag handle / reorder buttons */}
-              <div className="flex flex-col gap-1 pt-1">
+            <div className={embedded ? "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3" : "flex items-start gap-3"}>
+              {/* Section order controls */}
+              <div className={embedded ? "flex flex-wrap items-center gap-1" : "flex flex-col gap-1 pt-1"}>
+                {embedded && <span className="theme-text-muted mr-2 text-sm">Section {index + 1}</span>}
                 <Button
                   type="button"
                   variant="iconGhost"
@@ -251,7 +285,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
               </div>
 
               {/* Section content */}
-              <div className="flex-1 space-y-3">
+              <div className={embedded ? "col-span-2 row-start-2 min-w-0 space-y-3" : "min-w-0 flex-1 space-y-3"}>
                 <FormEditorField
                   name={`history_culture.sections.${index}.heading`}
                   htmlFor={`${idPrefix}-section-${index}-heading`}
@@ -295,7 +329,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                 <FormEditorField
                   name={`history_culture.sections.${index}.content`}
                   htmlFor={`${idPrefix}-section-${index}-content`}
-                  label="Content"
+                  label={embedded ? "Section content" : "Content"}
                 >
                   <Textarea
                     id={`${idPrefix}-section-${index}-content`}
@@ -306,7 +340,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                 </FormEditorField>
 
                 {/* Nested subsections */}
-                <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} />
+                <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} embedded={embedded} />
               </div>
 
               {/* Delete button */}
@@ -317,6 +351,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                 onClick={() => handleRemoveSection(index)}
                 title="Remove section"
                 aria-label={`Remove section ${index + 1}`}
+                className={embedded ? "col-start-2 row-start-1 justify-self-end" : undefined}
               >
                 <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
               </Button>
@@ -326,6 +361,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
 
         {/* Add section button */}
         <Button
+          ref={addSectionRef}
           type="button"
           variant="outline"
           onClick={handleAddSection}

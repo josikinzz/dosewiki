@@ -14,7 +14,7 @@ import { MEMBER_BODY_MAX_BYTES, parseMemberEmail, type MemberActionBody } from "
 
 export const runtime = "nodejs";
 
-export const RESET_PAGE_PATH = "/reset-password";
+const RESET_PAGE_PATH = "/reset-password";
 
 export const POST = protectedRouteOperation<MemberActionBody, { email: string }>({
   auth: "admin",

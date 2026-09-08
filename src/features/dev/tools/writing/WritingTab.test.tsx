@@ -28,6 +28,7 @@ const ROWS: Record<string, WritingArticleRow> = {
     status: "published",
     bodyFormat: "markdown",
     body_raw: "Notes.",
+    baseRevision: "a".repeat(64),
   },
   "archive-page": {
     slug: "archive-page",
@@ -36,6 +37,7 @@ const ROWS: Record<string, WritingArticleRow> = {
     status: "published",
     bodyFormat: "vcode",
     body_raw: "[legacy]",
+    baseRevision: "b".repeat(64),
   },
   "launch-post": {
     slug: "launch-post",
@@ -44,6 +46,7 @@ const ROWS: Record<string, WritingArticleRow> = {
     status: "draft",
     bodyFormat: "markdown",
     body_raw: "Post.",
+    baseRevision: "c".repeat(64),
   },
 };
 
@@ -198,28 +201,18 @@ describe("WritingTab", () => {
     expect(screen.getByLabelText("Cover image URL")).toBeInTheDocument();
   });
 
-  it("disables the publication state control whenever save is disabled", async () => {
+  it("allows local VCode editing and blocks review of malformed markup", async () => {
     const user = userEvent.setup();
-    renderTab();
-    await screen.findByText("Field notes");
-
-    // A new draft without a title cannot be saved.
-    await user.click(screen.getByRole("button", { name: "New" }));
-    expect(publicationState().getByRole("button", { name: "Draft" })).toBeDisabled();
-    expect(publicationState().getByRole("button", { name: "Published" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
-
-    await user.type(screen.getByLabelText("Title"), "Fresh");
-    expect(publicationState().getByRole("button", { name: "Published" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Save draft" })).toBeEnabled();
-
-    // A legacy VCode row is read-only here. The typed draft is discarded on the way.
-    await user.click(screen.getByRole("button", { name: /Archive page/ }));
-    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
+    renderTab({ initialSlug: "archive-page" });
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Archive page"));
-    expect(screen.getByRole("button", { name: "Save & publish" })).toBeDisabled();
-    expect(publicationState().getByRole("button", { name: "Draft" })).toBeDisabled();
-    expect(publicationState().getByRole("button", { name: "Published" })).toBeDisabled();
+    await user.clear(screen.getByLabelText("Body"));
+    await user.paste("[p]Unclosed");
+    expect(screen.getByRole("button", { name: "Review changes" })).toBeDisabled();
+    await user.paste("[/p]");
+    expect(screen.getByRole("button", { name: "Review changes" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Confirm publication" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Review changes" }));
+    expect(screen.getByRole("button", { name: "Confirm publication" })).toBeEnabled();
   });
 
   it("keeps the save inert for an editor with the admin reason, while the draft stays editable", async () => {
@@ -233,9 +226,8 @@ describe("WritingTab", () => {
 
     // The same draft an admin could save: title present, not read-only.
     expect(screen.getByLabelText("Title")).toHaveValue("Fresh");
-    const save = screen.getByRole("button", { name: "Save draft" });
+    const save = screen.getByRole("button", { name: "Review changes" });
     expect(save).toBeDisabled();
-    expect(save).toHaveAttribute("title", "Admin role required");
     expect(publicationState().getByRole("button", { name: "Published" })).toBeDisabled();
     expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
   });

@@ -6,7 +6,7 @@ import {
   ArticleFeedbackStorageConfigurationError,
   ArticleFeedbackValidationError,
   getArticleFeedbackIpHashSecret,
-  getArticleFeedbackStore,
+  getPublicArticleFeedbackStore,
 } from "@/features/article/feedback/articleFeedbackStore.server";
 import { enforceRateLimit, getClientIp } from "@server/http/nextRateLimit";
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       maxBytes: MAX_FEEDBACK_PAYLOAD_BYTES,
     });
     const body = parseFeedbackBody(rawBody, request);
-    const store = await getArticleFeedbackStore();
+    const store = await getPublicArticleFeedbackStore();
     const row = await store.create(body, {
       ip: getClientIp(request),
       ip_hash_secret: getArticleFeedbackIpHashSecret(),

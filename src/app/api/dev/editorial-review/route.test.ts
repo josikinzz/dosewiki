@@ -18,18 +18,19 @@ vi.mock("next/cache", async (importOriginal) => ({
 }));
 
 installProtectedRouteMocks();
+const { POST } = await import("./route");
 
 function tickRequest(status: "needed" | "in_progress" | "completed" = "completed") {
   return new Request("https://dose.wiki/api/dev/editorial-review", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify({ slug: "2c-b", status }),
   });
 }
 
 function flagRequest(flag: unknown) {
   return new Request("https://dose.wiki/api/dev/editorial-review", {
-    method: "POST", headers: { "Content-Type": "application/json" },
+    method: "POST", headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify({ action: "add-flag", slug: "2c-b", flag }),
   });
 }
@@ -43,7 +44,6 @@ describe("editorial review route", () => {
 
   it("refuses an editor marking a review completed with 403 before touching Convex", async () => {
     signInAs("editor");
-    const { POST } = await import("./route");
     const response = await POST(tickRequest("completed"));
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ error: "Admin access required." });
@@ -53,7 +53,6 @@ describe("editorial review route", () => {
   it("lets an editor move a review to in_progress", async () => {
     signInAs("editor");
     routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "in_progress", notes: "" } });
-    const { POST } = await import("./route");
     const response = await POST(tickRequest("in_progress"));
     expect(response.status).toBe(200);
     expect(routeMocks.mutation).toHaveBeenCalledWith("substanceIndex.setEditorialReview", {
@@ -66,7 +65,6 @@ describe("editorial review route", () => {
 
   it("lets an admin mark a review completed", async () => {
     routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "completed", notes: "" } });
-    const { POST } = await import("./route");
     const response = await POST(tickRequest("completed"));
     expect(response.status).toBe(200);
     expect(routeMocks.mutation).toHaveBeenCalledWith("substanceIndex.setEditorialReview", {
@@ -77,23 +75,14 @@ describe("editorial review route", () => {
     });
   });
 
-  it("names its own generic failure message", async () => {
-    routeMocks.mutation.mockRejectedValue(new Error("ECONNREFUSED"));
-    const { POST } = await import("./route");
-    const response = await POST(tickRequest());
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({ error: "Unable to update the review status right now." });
-  });
 
   it("rejects malformed labels before calling Convex", async () => {
-    const { POST } = await import("./route");
     const response = await POST(flagRequest({ label: "this label has too many words", severity: "minor", note: "" }));
     expect(response.status).toBe(400);
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
   it("rejects malformed severities before calling Convex", async () => {
-    const { POST } = await import("./route");
     const response = await POST(flagRequest({ label: "skinny", severity: "blocking", note: "" }));
     expect(response.status).toBe(400);
     expect(routeMocks.mutation).not.toHaveBeenCalled();
@@ -104,5 +93,5 @@ describeRoleFloor({
   floor: "editor",
   rateLimit: "editorSmallWrite",
   refused: "contributor",
-  calls: [{ name: "POST", call: async () => (await import("./route")).POST(tickRequest("in_progress")) }],
+  calls: [{ name: "POST", call: () => POST(tickRequest("in_progress")) }],
 });

@@ -54,7 +54,20 @@ function mapDefaultError(error: unknown): NextResponse | null {
 export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>(
   options: ProtectedRouteOperationOptions<RawBody, ParsedBody>,
 ) {
-  return async function handleProtectedRouteOperation(request: Request) {
+  const handle = async (request: Request): Promise<NextResponse> => {
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {
+      const origin = request.headers.get("origin");
+      const fetchSite = request.headers.get("sec-fetch-site");
+      // Origin is browser-controlled. Never trust forwarded host headers to
+      // turn a foreign origin into an allowed cookie-authenticated mutation.
+      if ((origin !== new URL(request.url).origin) ||
+          (fetchSite !== null && fetchSite !== "same-origin")) {
+        return NextResponse.json(
+          { error: "This change must be sent from the same site. Reload the editor and try again.", code: "ORIGIN_REQUIRED" },
+          { status: 403 },
+        );
+      }
+    }
     const rateLimited = await enforceRateLimit(request, options.rateLimit);
     if (rateLimited) {
       return rateLimited;
@@ -127,5 +140,11 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         { status: 500 },
       );
     }
+  };
+  return async function handleProtectedRouteOperation(request: Request) {
+    const response = await handle(request);
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("Vary", [...new Set([...(response.headers.get("Vary") ?? "").split(",").map((value) => value.trim()).filter(Boolean), "Cookie"])].join(", "));
+    return response;
   };
 }

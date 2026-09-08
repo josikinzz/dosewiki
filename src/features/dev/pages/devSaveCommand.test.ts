@@ -34,18 +34,21 @@ function createDraft() {
         type: "psychoactive",
         label: "Psychoactive class",
         data: { version: 1, categories: ["classic"] },
+        originalData: { version: 1, categories: [] },
         changelog: { markdown: "# Psychoactive Index\n\n+ classic", hasChanges: true },
       },
       {
         type: "chemical",
         label: "Chemical class",
         data: { version: 1, categories: ["tryptamines"] },
+        originalData: { version: 1, categories: [] },
         changelog: { markdown: "# Chemical Index\n\n+ tryptamines", hasChanges: true },
       },
       {
         type: "mechanism",
         label: "Mechanism of action",
         data: { version: 1, categories: ["5ht2a"] },
+        originalData: { version: 1, categories: [] },
         changelog: { markdown: "# Mechanism Index\n\n+ 5ht2a", hasChanges: true },
       },
     ],
@@ -204,11 +207,6 @@ describe("dev save command contract", () => {
       markChangesSaved: true,
       actionLabel: "View in queue",
       actionHref: "/dev/queue",
-    });
-    expect(submitProposal).toHaveBeenCalledWith({
-      payload: buildConvexCommandPayload(draft).payload,
-      summary: "Update MDMA, Psychoactive class, Chemical class and 1 more",
-      diff: buildConvexCommandPayload(draft).payload.changelog?.markdown,
     });
   });
 

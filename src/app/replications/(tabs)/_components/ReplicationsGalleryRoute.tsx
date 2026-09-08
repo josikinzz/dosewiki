@@ -9,6 +9,7 @@ import {
   isDisplayable,
   isWithheldFromArtistViews,
   RAIL_PREVIEW_LIMIT,
+  selectContributorDirectoryForWorks,
 } from "@/features/effects/gallery/galleryModel";
 import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
@@ -158,7 +159,10 @@ export async function ReplicationsGalleryRoute({
         artistGroupTotal={artistGroups.length}
         corpusStats={corpusStats}
         effects={galleryEffects}
-        contributorDirectory={contributorDirectory}
+        contributorDirectory={selectContributorDirectoryForWorks(
+          initialReplications,
+          contributorDirectory,
+        )}
         rightsFootnote={false}
       />
     </>

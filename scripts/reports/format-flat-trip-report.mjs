@@ -147,7 +147,7 @@ async function main() {
   // The portal record is the snapshot the mutation re-derives for its
   // optimistic-concurrency check, so `expected` is byte-identical by
   // construction rather than by a second local normalizer.
-  const portal = await client.query(api.tripReports.getPortalRecord, { apiKey, id: stored._id });
+  const portal = await client.query(api.tripReports.getPortalRecord, { apiKey, slug });
   const expected = portal.fields;
 
   const updates = {
@@ -162,7 +162,7 @@ async function main() {
     tags: expected.tags,
   };
 
-  await client.mutation(api.tripReports.update, { apiKey, id: stored._id, expected, updates });
+  await client.mutation(api.tripReports.update, { apiKey, id: portal.id, expected, expectedRevision: portal.revision, updates, operationId: crypto.randomUUID() });
 
   // Re-read and re-prove. A write that succeeded is not yet evidence that
   // storage still spells the author's text.

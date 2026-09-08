@@ -23,6 +23,7 @@ export type OwnedReportRecord = {
   slug: string;
   ownerEmail?: string;
   fields: TripReportEditableFields;
+  revision: string;
 };
 
 const MINE_API = "/api/dev/trip-reports/mine";
@@ -52,13 +53,14 @@ export async function saveOwnedReport(
   id: string,
   expected: TripReportEditableFields,
   updates: TripReportEditableFields,
+  expectedRevision: string,
 ): Promise<string> {
   const payload = await requestJson(
     RECORD_API,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "save", id, expected, updates }),
+      body: JSON.stringify({ mode: "save", id, expected, expectedRevision, updates, operationId: crypto.randomUUID() }),
     },
     { network: "Network error while saving the report.", failure: "Unable to save that report." },
   );

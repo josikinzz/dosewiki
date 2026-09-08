@@ -1,30 +1,24 @@
 "use client";
 
 /**
- * Queue: `/dev/queue`. Every change proposal editors have submitted, grouped
- * by status, with one proposal open for review: its diff, the targets it pins
- * (flagged when production has drifted from them), the discussion, and, for
- * admins, the approve, reject and revert actions that post to the review
- * routes, each behind the shared confirm dialog naming the targets it touches.
- * Editors read and comment; the admin buttons never render for them.
- * A proposal still open to its proposer offers "Load into editor", which
- * seeds the substances working set from it so the next submit supersedes it.
+ * Shared master-detail submission view: admins review the global queue;
+ * editors follow their own submissions. Server routes enforce that scope.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ChangelogDiff } from "@/components/changelog/ChangelogDiff";
+import { ProseDiff } from "@/components/changelog/ProseDiff";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  DiffSurface,
   EditorActionGroup,
   EditorField,
   EditorListItem,
   EditorNotice,
-  EditorPanel,
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
@@ -61,8 +55,6 @@ import {
 type QueueTabProps = {
   /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
   canApprove: boolean;
-  /** The signed-in email; a proposer may load their own open proposal back into the editor. */
-  actorEmail?: string | null;
   /** The substance corpus has drained: a rebase can seed over production rows. */
   libraryReady: boolean;
   /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
@@ -82,29 +74,37 @@ const TARGET_KIND_LABELS: Record<ProposalDetail["targets"][number]["kind"], stri
   copyBlock: "Copy block",
 };
 
-const targetCount = (count: number) => `${count} ${count === 1 ? "target" : "targets"}`;
+const targetCount = (count: number) => `${count} ${count === 1 ? "item" : "items"}`;
 
-/** The dialog's affected rows: kind, key and whether production moved under it. */
-const affectedRows = (targets: readonly TargetDrift[]) =>
-  targets.map((target) => `${TARGET_KIND_LABELS[target.kind]} ${target.key}${target.drifted ? " (drifted)" : ""}`);
+const affectedRows = (targets: readonly TargetDrift[], showChanges = true) =>
+  targets.map((target) => `${TARGET_KIND_LABELS[target.kind]} ${target.key}${showChanges && target.drifted ? " (changed since submission)" : ""}`);
 
-export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEditor }: QueueTabProps) {
+export function QueueTab({ canApprove, libraryReady, onLoadIntoEditor }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const [pending, setPending] = useState<"approve" | "reject" | "revert" | "comment" | "load" | null>(null);
-  const [commentText, setCommentText] = useState("");
-  const [rejectNote, setRejectNote] = useState("");
-  /** The latest detail request; an earlier answer arriving late is dropped. */
+  const [drafts, setDrafts] = useState<Record<string, { comment: string; rejection: string }>>({});
+  const [listLoading, setListLoading] = useState(true);
+  const actionInFlight = useRef(false);
+  /** Older requests must never replace the currently selected detail or list. */
   const detailVersion = useRef(0);
+  const listVersion = useRef(0);
 
   const loadList = useCallback(async () => {
+    const version = ++listVersion.current;
+    setListLoading(true);
     setListError(null);
     try {
-      setProposals(await fetchProposals());
+      const rows = await fetchProposals();
+      if (version === listVersion.current) setProposals(rows);
     } catch (error) {
-      setListError(error instanceof Error ? error.message : "Unable to load the queue.");
+      if (version === listVersion.current) {
+        setListError(error instanceof Error ? error.message : "Unable to load submissions.");
+      }
+    } finally {
+      if (version === listVersion.current) setListLoading(false);
     }
   }, []);
 
@@ -124,21 +124,35 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
   }, []);
 
   useEffect(() => {
+    setProposals(null);
+    setDetail({ status: "idle" });
+    setDrafts({});
+    setNotice(null);
     void loadList();
-  }, [loadList]);
+    return () => {
+      ++listVersion.current;
+      ++detailVersion.current;
+    };
+  }, [loadList, canApprove]);
 
   const selectedId = detail.status === "idle" ? null : detail.id;
+  const commentText = selectedId ? drafts[selectedId]?.comment ?? "" : "";
+  const rejectNote = selectedId ? drafts[selectedId]?.rejection ?? "" : "";
+  const updateDraft = (id: string, field: "comment" | "rejection", value: string) => {
+    setDrafts((current) => ({
+      ...current,
+      [id]: { ...(current[id] ?? { comment: "", rejection: "" }), [field]: value },
+    }));
+  };
   // Below the lg split the list stacks above the review pane.
   const detailRef = useRef<HTMLDivElement | null>(null);
   useScrollToDetail(detailRef, selectedId);
 
   const select = (id: string) => {
-    if (id === selectedId) {
+    if (id === selectedId || actionInFlight.current) {
       return;
     }
     setNotice(null);
-    setCommentText("");
-    setRejectNote("");
     void loadDetail(id);
   };
 
@@ -147,9 +161,10 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
     kind: NonNullable<typeof pending>,
     action: (id: string) => Promise<EditorNoticeMessage>,
   ) => {
-    if (!selectedId || pending) {
+    if (!selectedId || actionInFlight.current) {
       return;
     }
+    actionInFlight.current = true;
     setPending(kind);
     setNotice(null);
     try {
@@ -161,6 +176,7 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
     } catch (error) {
       setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The action did not go through." });
     } finally {
+      actionInFlight.current = false;
       setPending(null);
     }
   };
@@ -169,33 +185,28 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
     run("approve", async (id) => {
       const outcome = await approveProposal(id);
       return outcome.status === "applied"
-        ? { tone: "success", message: "Approved and applied to production." }
+        ? { tone: "success", message: "Approved and published." }
         : {
             tone: "warning",
             title: "Not applied: changes requested",
-            message: outcome.conflictReason ?? "Production moved under this proposal; the proposer needs to rebase it.",
+            message: outcome.conflictReason ?? "The live content changed after submission. Update the proposal against the latest version and submit it again.",
           };
     });
 
   const reject = () =>
     run("reject", async (id) => {
       await rejectProposal(id, rejectNote.trim());
-      setRejectNote("");
+      updateDraft(id, "rejection", "");
       return { tone: "success", message: "Proposal rejected." };
     });
 
   const revert = () =>
     run("revert", async (id) => {
       await revertProposal(id);
-      return { tone: "success", message: "Reverted: production is back to the snapshot taken before apply." };
+      return { tone: "success", message: "Reverted. The content from before this proposal was published has been restored." };
     });
 
-  /**
-   * Every decision is a production write with no undo toast, so each one
-   * opens the shared confirm dialog naming the targets it touches. Approve
-   * also states how many targets drifted, the fact that decides whether it
-   * applies at all.
-   */
+  /** Publication and decisions require confirmation naming their exact scope. */
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const confirmApprove = () => {
@@ -205,13 +216,13 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
     const targets = targetDrift(detail.proposal);
     const drifted = targets.filter((target) => target.drifted).length;
     const count = targets.length;
-    const driftedShare = drifted === count ? (count === 1 ? "It" : "All of them") : `${drifted} of them`;
+    const driftedShare = `${drifted} ${drifted === 1 ? "has" : "have"}`;
     confirm({
       title: "Apply to production?",
       description:
         drifted > 0
-          ? `${targetCount(count)} ${count === 1 ? "changes" : "change"} on the public site. ${driftedShare} drifted since the proposal was pinned: if production still differs when you confirm, nothing is applied and the proposal goes back to the proposer as Changes requested.`
-          : `${targetCount(count)} ${count === 1 ? "changes" : "change"} on the public site the moment you confirm. Every target still matches production. Revert stays available afterwards.`,
+          ? `${targetCount(count)} would change on the public site. ${driftedShare} changed since submission. If the live content still differs, nothing will be published and the proposal will be returned for revision.`
+          : `${targetCount(count)} will change on the public site. The server checks every item again before publishing; either all changes are published or none are. Revert is only available while this content remains unchanged.`,
       confirmLabel: "Apply to production",
       affected: affectedRows(targets),
       onConfirm: approve,
@@ -239,10 +250,10 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
     const count = targets.length;
     confirm({
       title: "Revert production?",
-      description: `${targetCount(count)} ${count === 1 ? "goes" : "go"} back to the snapshot taken before this proposal was applied. Anything saved to ${count === 1 ? "that target" : "those targets"} since then is lost.`,
+      description: `${targetCount(count)} will return to the content from before this proposal was published. If any of that content has changed since publication, the server blocks the entire revert. Newer edits will not be overwritten.`,
       confirmLabel: "Revert production",
       destructive: true,
-      affected: affectedRows(targets),
+      affected: affectedRows(targets, false),
       onConfirm: revert,
     });
   };
@@ -250,46 +261,51 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
   const comment = () =>
     run("comment", async (id) => {
       await postComment(id, commentText.trim());
-      setCommentText("");
+      updateDraft(id, "comment", "");
       return { tone: "success", message: "Comment posted." };
     });
 
-  /**
-   * Rebase: re-read the row so the seed is what the server holds now, hand it
-   * to the shell, and let the shell move to the editor. Unlike the review
-   * actions nothing here refetches: on success this tab is left behind.
-   */
+  /** Re-read before handing the saved proposal to the substances editor. */
   const loadIntoEditor = async () => {
-    if (!selectedId || pending) {
+    if (!selectedId || actionInFlight.current) {
       return;
     }
+    actionInFlight.current = true;
     setPending("load");
     setNotice(null);
     try {
       const proposal = await fetchProposal(selectedId);
-      if (!canLoadIntoEditor(proposal, { actorEmail, canApprove })) {
+      if (!canLoadIntoEditor(proposal, { canApprove })) {
         throw new Error(`A ${STATUS_LABELS[proposal.status].toLowerCase()} proposal can no longer be loaded.`);
       }
       await onLoadIntoEditor(proposalSeedOf(proposal));
     } catch (error) {
       setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The proposal did not load." });
     } finally {
+      actionInFlight.current = false;
       setPending(null);
     }
   };
 
-  const groups = groupProposals(proposals ?? []);
+  const groups = groupProposals(proposals ?? []).filter((group) => group.rows.length > 0);
+  const firstHistoryGroup = groups.find((group) => group.id === "applied" || group.id === "closed")?.id;
+  const pendingCount = proposals?.filter((row) => row.status === "submitted" || row.status === "changes_requested").length ?? 0;
 
   return (
     <div className="space-y-8">
       <EditorSection
         icon="lucide:git-pull-request"
-        title="Queue"
-        description="Staged saves waiting on an admin. Approve applies the proposal to production once you confirm; production that moved since the proposal was pinned is flagged on each target."
+        title={canApprove ? "Change Review" : "My submissions"}
+        description={canApprove
+          ? "Review editor submissions, discuss changes, and decide what to publish. Each proposal is published in full or not at all."
+          : "Follow your submissions, read feedback, and revise changes before publication. Only your submissions appear here; an admin makes the publication decision."}
         actions={
-          <Button type="button" variant="ghost" size="sm" onClick={() => void loadList()} disabled={proposals === null && !listError}>
+          <Button type="button" variant="ghost" size="sm" onClick={() => {
+            void loadList();
+            if (selectedId) void loadDetail(selectedId);
+          }} disabled={listLoading || pending !== null}>
             <Icon icon="lucide:refresh-cw" size={14} />
-            Refresh
+            {listLoading ? "Refreshing..." : "Refresh"}
           </Button>
         }
       >
@@ -297,11 +313,11 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
           <StateCard
             tone="danger"
             icon="lucide:circle-alert"
-            title="The queue did not load"
+            title="Submissions could not be refreshed"
             description={listError}
             compact
             actions={
-              <Button type="button" variant="accent" size="sm" onClick={() => void loadList()}>
+              <Button type="button" variant="accent" size="sm" onClick={() => void loadList()} disabled={listLoading || pending !== null}>
                 Try again
               </Button>
             }
@@ -312,8 +328,8 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
         <EditorSection
           icon="lucide:list"
-          title="Proposals"
-          description={proposals ? `${proposals.length} loaded` : listError ? "Not loaded" : "Loading"}
+          title="Submissions"
+          description={proposals ? `${pendingCount} awaiting review or revision · ${proposals.length - pendingCount} in history` : listError ? "Not loaded" : "Loading"}
           delay={0.05}
         >
           {proposals === null && !listError ? (
@@ -323,66 +339,76 @@ export function QueueTab({ canApprove, actorEmail, libraryReady, onLoadIntoEdito
           ) : null}
           {proposals && proposals.length === 0 ? (
             <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted space-y-3 text-sm">
-              <p className="theme-text-primary font-medium">Nothing has been proposed yet.</p>
-              <p>Proposals are created when a staged change is submitted for review, most often from the Substances editor.</p>
+              <p className="theme-text-primary font-medium">{canApprove ? "No submissions to review." : "You have not submitted any changes yet."}</p>
+              <p>Submit a staged change from an editor to start a review. Nothing is published until an admin approves it.</p>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <a href={viewToPath({ type: "dev", tab: "articles" })}>Open the Substances editor</a>
               </Button>
             </EmptyStateSurface>
           ) : null}
-          {proposals && proposals.length > 0 ? groups.map((group) => (
+          {proposals && proposals.length > 0 && pendingCount === 0 ? (
+            <p className="theme-text-muted text-sm">No submissions are awaiting review or revision.</p>
+          ) : null}
+          {groups.map((group) => (
             <section key={group.id} aria-label={group.label} data-testid={`queue-group-${group.id}`} className="space-y-2">
-              <h3 className="theme-text-faint flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em]">
+              {group.id === firstHistoryGroup ? (
+                <h3 className="theme-text-primary border-t border-divider pt-5 text-base font-semibold">History</h3>
+              ) : null}
+              <h4 className="theme-text-muted flex items-center justify-between text-sm font-medium">
                 <span>{group.label}</span>
                 <span data-testid={`queue-group-${group.id}-count`}>{group.rows.length}</span>
-              </h3>
-              {group.rows.length === 0 ? (
-                <p className="theme-text-faint px-3 text-xs">None</p>
-              ) : (
-                group.rows.map((row) => (
-                  <EditorListItem
-                    key={row._id}
-                    active={row._id === selectedId}
-                    onSelect={() => select(row._id)}
-                    title={row.summary}
-                    subtitle={`${row.proposedBy} · ${formatProposalDate(row.createdAt)}`}
-                    badge={<StatusPill status={row.status} />}
-                  />
-                ))
-              )}
+              </h4>
+              {group.rows.map((row) => (
+                <EditorListItem
+                  key={row._id}
+                  active={row._id === selectedId}
+                  disabled={pending !== null}
+                  onSelect={() => select(row._id)}
+                  title={row.summary}
+                  subtitle={`${canApprove ? `${row.proposerName} · ` : ""}${formatProposalDate(row.createdAt)} · ${targetCount(row.targets.length)}${row.commentCount ? ` · ${row.commentCount} ${row.commentCount === 1 ? "comment" : "comments"}` : ""}`}
+                  badge={<StatusPill status={row.status} />}
+                />
+              ))}
             </section>
-          )) : null}
+          ))}
         </EditorSection>
 
         <div ref={detailRef} className="scroll-mt-6">
         <EditorSection
           icon="lucide:file-search"
-          title="Review"
-          description={detail.status === "ready" ? detail.proposal.summary : "No proposal selected"}
+          title={canApprove ? "Review" : "Submission details"}
+          description={detail.status === "ready" ? detail.proposal.summary : detail.status === "idle" ? "No submission selected" : undefined}
           delay={0.1}
         >
+          {notice ? <EditorNotice notice={{ ...notice, live: true }} /> : null}
+          {pending ? <p role="status" className="theme-text-muted text-sm">Please wait for this action to finish before selecting another submission.</p> : null}
           {detail.status === "idle" ? (
             <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted text-sm">
-              Select a proposal to review.
+              {canApprove ? "Select a submission to inspect its changes and make a decision." : "Select a submission to see its status, feedback, and revision options."}
             </EmptyStateSurface>
           ) : detail.status === "loading" ? (
             <EditorStatusPill tone="info" loading live>
               Loading proposal...
             </EditorStatusPill>
           ) : detail.status === "error" ? (
-            <EditorNotice notice={{ tone: "danger", title: "The proposal did not load", message: detail.message }} />
+            <EditorNotice notice={{
+              tone: "danger",
+              title: "The submission did not load",
+              message: detail.message,
+              actions: <Button type="button" variant="outline" size="sm" disabled={pending !== null} onClick={() => void loadDetail(detail.id)}>Try again</Button>,
+            }} />
           ) : (
             <ProposalReview
               proposal={detail.proposal}
               canApprove={canApprove}
-              canLoad={canLoadIntoEditor(detail.proposal, { actorEmail, canApprove })}
+              isAuthor={detail.proposal.isAuthor}
+              canLoad={canLoadIntoEditor(detail.proposal, { canApprove })}
               libraryReady={libraryReady}
               pending={pending}
-              notice={notice}
               commentText={commentText}
               rejectNote={rejectNote}
-              onCommentTextChange={setCommentText}
-              onRejectNoteChange={setRejectNote}
+              onCommentTextChange={(value) => updateDraft(detail.id, "comment", value)}
+              onRejectNoteChange={(value) => updateDraft(detail.id, "rejection", value)}
               onComment={comment}
               onApprove={confirmApprove}
               onReject={confirmReject}
@@ -405,11 +431,11 @@ function StatusPill({ status }: { status: ProposalStatus }) {
 type ProposalReviewProps = {
   proposal: ProposalDetail;
   canApprove: boolean;
+  isAuthor: boolean;
   /** The viewer may rebase this proposal (proposer or admin, and it is still open). */
   canLoad: boolean;
   libraryReady: boolean;
   pending: "approve" | "reject" | "revert" | "comment" | "load" | null;
-  notice: EditorNoticeMessage | null;
   commentText: string;
   rejectNote: string;
   onCommentTextChange: (value: string) => void;
@@ -419,15 +445,19 @@ type ProposalReviewProps = {
   onReject: () => void;
   onRevert: () => void;
   onLoadIntoEditor: () => void;
+  loadLabel?: string;
+  loadDescription?: string;
+  allowRevert?: boolean;
+  readOnly?: boolean;
 };
 
-function ProposalReview({
+export function ProposalReview({
   proposal,
   canApprove,
+  isAuthor,
   canLoad,
   libraryReady,
   pending,
-  notice,
   commentText,
   rejectNote,
   onCommentTextChange,
@@ -437,82 +467,169 @@ function ProposalReview({
   onReject,
   onRevert,
   onLoadIntoEditor,
+  loadLabel = "Load into editor",
+  loadDescription = "Load these changes into the Substances editor, check them against the latest content, then submit a revision. The new submission replaces this one.",
+  allowRevert = true,
+  readOnly = false,
 }: ProposalReviewProps) {
   const targets = targetDrift(proposal);
   const actions = reviewActionsFor(proposal.status);
-  const busy = pending !== null;
+  const busy = pending !== null || readOnly;
+  const open = proposal.status === "submitted" || proposal.status === "changes_requested";
+  const nextStep = {
+    submitted: canApprove
+      ? isAuthor
+        ? "Not published. Another admin must review and approve your submission."
+        : "Not published. Review every change below, then approve the whole proposal or reject it with a note."
+      : "Not published. An admin will review your submission. You can discuss it here or revise it while you wait.",
+    changes_requested: canApprove && !isAuthor
+      ? "Not published. The author needs to update this proposal against the latest live content and submit a revision before it can be approved."
+      : "Not published. Read the feedback, update your changes against the latest live content, and submit again for review.",
+    applied: canApprove
+      ? "Published at the time shown below. Revert restores the previous content only if no newer edits have changed these items."
+      : "Your changes were published at the time shown below. To make further changes, start a new submission from the relevant editor.",
+    rejected: "Not published. This submission is closed. Use the feedback to prepare a new submission in the relevant editor; this one cannot be reopened.",
+    superseded: "This submission was replaced by a newer revision. Select that revision in the list to follow its review.",
+    reverted: "This publication was undone. Further changes need a new submission from the relevant editor.",
+  }[proposal.status];
+  const otherEditors = proposal.targets.filter((target) => target.kind === "about" || target.kind === "copyBlock");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 [overflow-wrap:anywhere]">
+      <p className="theme-text-secondary text-sm leading-6">{nextStep}</p>
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
         <dt className="theme-text-faint">Status</dt>
         <dd>
           <StatusPill status={proposal.status} />
         </dd>
         <dt className="theme-text-faint">Proposed by</dt>
-        <dd className="theme-text-primary">{proposal.proposedBy}</dd>
-        <dt className="theme-text-faint">Created</dt>
+        <dd className="theme-text-primary">{proposal.proposerName}</dd>
+        <dt className="theme-text-faint">Submitted</dt>
         <dd className="theme-text-primary">{formatProposalDate(proposal.createdAt)}</dd>
-        {proposal.reviewedBy ? (
+        {proposal.reviewerName ? (
           <>
             <dt className="theme-text-faint">Reviewed</dt>
             <dd className="theme-text-primary">
-              {proposal.reviewedBy} · {formatProposalDate(proposal.reviewedAt)}
-              {proposal.reviewNotes ? <span className="theme-text-secondary block whitespace-pre-line">{proposal.reviewNotes}</span> : null}
+              {proposal.reviewerName} · {formatProposalDate(proposal.reviewedAt)}
             </dd>
           </>
         ) : null}
         {proposal.appliedAt ? (
           <>
-            <dt className="theme-text-faint">Applied</dt>
+            <dt className="theme-text-faint">Published</dt>
             <dd className="theme-text-primary">{formatProposalDate(proposal.appliedAt)}</dd>
+          </>
+        ) : null}
+        {proposal.revertedAt ? (
+          <>
+            <dt className="theme-text-faint">Reverted</dt>
+            <dd className="theme-text-primary">{formatProposalDate(proposal.revertedAt)}</dd>
           </>
         ) : null}
       </dl>
 
+      {proposal.reviewNotes ? (
+        <section className="space-y-2">
+          <h4 className="theme-accent-heading text-sm font-semibold">Review feedback</h4>
+          <p className="theme-text-secondary whitespace-pre-line text-sm leading-6">{proposal.reviewNotes}</p>
+        </section>
+      ) : null}
       {proposal.status === "changes_requested" && proposal.conflictReason ? (
-        <EditorNotice notice={{ tone: "warning", title: "Changes requested", message: proposal.conflictReason, live: true }} />
+        <EditorNotice notice={{ tone: "warning", title: "Why a revision was requested", message: proposal.conflictReason, live: true }} />
       ) : null}
 
       {canLoad ? (
-        <EditorPanel variant="toolbar" className="p-3">
-          <EditorToolbar label="Rebase" variant="split">
-            <EditorActionGroup label="Rebase">
+          <EditorToolbar label="Revise submission" variant="split">
+            <EditorActionGroup label="Revise submission">
               <Button type="button" variant="accent" size="sm" disabled={busy || !libraryReady} onClick={onLoadIntoEditor}>
-                {pending === "load" ? "Loading..." : "Load into editor"}
+                {pending === "load" ? "Loading..." : loadLabel}
               </Button>
               <span className="theme-text-faint text-sm">
                 {libraryReady
-                  ? "Seeds the substances editor with this proposal over current production; the next submit supersedes it."
+                  ? loadDescription
                   : "Waiting for the substance library to load."}
               </span>
             </EditorActionGroup>
           </EditorToolbar>
-        </EditorPanel>
+      ) : null}
+      {otherEditors.length > 0 && (open || proposal.status === "rejected" || proposal.status === "reverted") ? (
+        <section className="space-y-3">
+          <h4 className="theme-accent-heading text-sm font-semibold">Prepare a new submission</h4>
+          <p className="theme-text-secondary text-sm leading-6">
+            About and Copy changes cannot be loaded from this view. Open the relevant editor, use the changes and feedback below to update its current content, and submit a new proposal. It will not automatically replace this submission.
+          </p>
+          <EditorActionGroup label="Open the relevant editor">
+            {otherEditors.map((target) => (
+              <Button key={`${target.kind}:${target.key}`} asChild variant="outline" size="sm">
+                <a href={target.kind === "about"
+                  ? viewToPath({ type: "dev", tab: "writing", slug: "about" })
+                  : viewToPath({ type: "dev", tab: "copy-studio", slug: target.key })}>
+                  {target.kind === "about" ? "Open About editor" : `Open Copy editor: ${target.key}`}
+                </a>
+              </Button>
+            ))}
+          </EditorActionGroup>
+        </section>
       ) : null}
 
       <section className="space-y-2">
-        <h4 className="theme-accent-heading text-sm font-semibold">Targets</h4>
+        <h4 className="theme-accent-heading text-sm font-semibold">Content affected</h4>
         <ul className="space-y-1.5">
+          {open ? <li className="theme-text-muted text-sm">Current live content compared with the version recorded at submission:</li> : null}
           {targets.map((target) => (
             <li key={`${target.kind}:${target.key}`} className="flex flex-wrap items-center gap-2 text-sm" data-testid="proposal-target">
               <span className="theme-text-faint">{TARGET_KIND_LABELS[target.kind]}</span>
-              <span className="theme-text-primary font-mono text-xs">{target.key}</span>
-              {target.drifted ? (
+              <span className="theme-text-primary">{target.key}</span>
+              {open ? target.drifted ? (
                 <EditorStatusPill tone="caution" icon="lucide:triangle-alert">
-                  Drifted
+                  Currently differs from submission
                 </EditorStatusPill>
               ) : (
                 <EditorStatusPill tone="success" icon="lucide:check">
-                  Matches production
+                  Currently matches submission
                 </EditorStatusPill>
-              )}
+              ) : null}
             </li>
           ))}
         </ul>
       </section>
 
-      <DiffSurface title="Diff" diffText={proposal.diff} maxHeight={480} emptyText="No diff was stored with this proposal." />
+      <section className="space-y-2">
+        {proposal.comparisonMode === "unavailable" ? (
+          <EditorNotice notice={{
+            tone: "warning",
+            title: "Historical comparison unavailable",
+            message: proposal.comparisonNote ?? "This older submission has no verifiable comparison. Prepare a new submission from the current editor before approval.",
+          }} />
+        ) : (
+          <p className="theme-text-muted text-sm">
+            {proposal.comparisonMode === "applied"
+              ? "Published changes, compared with the snapshot taken before publication."
+              : proposal.comparisonMode === "submitted"
+                ? "Submitted changes, captured by the server when this proposal was created."
+                : proposal.comparisonMode === "verified_live" ? "Changes compared with the verified submission baseline." : "Recorded change comparison."}
+          </p>
+        )}
+        <h4 className="theme-accent-heading text-sm font-semibold">What changed</h4>
+        {proposal.diff.trim() ? /^[-+]\s*(?:"(?:[^"\\]|\\.)+"\s*:|[{}[\]])/m.test(proposal.diff) ? (
+          <ChangelogDiff
+            markdown={proposal.diff}
+            id={`proposal-diff-${proposal._id}`}
+            keyPrefix={proposal._id}
+            className="rounded-xl border border-dose-border"
+          />
+        ) : (
+          <ProseDiff
+            markdown={proposal.diff}
+            id={`proposal-diff-${proposal._id}`}
+            className="theme-public-card-subtle rounded-xl border px-4 py-3"
+          />
+        ) : (
+          <p className="theme-text-faint text-sm">
+            No text comparison is available. Do not approve until the full change can be reviewed.
+          </p>
+        )}
+      </section>
 
       <section className="space-y-3">
         <h4 className="theme-accent-heading text-sm font-semibold">Discussion</h4>
@@ -521,9 +638,9 @@ function ProposalReview({
         ) : (
           <ol className="space-y-2">
             {proposal.comments.map((entry, index) => (
-              <li key={`${entry.at}-${index}`} className="rounded-xl bg-subtle px-3 py-2 text-sm">
+              <li key={`${entry.at}-${index}`} className="border-b border-divider pb-3 text-sm">
                 <p className="theme-text-faint text-xs">
-                  {entry.by} · {formatProposalDate(entry.at)}
+                  {entry.authorName} · {formatProposalDate(entry.at)}
                 </p>
                 <p className="theme-text-secondary mt-1 whitespace-pre-line leading-6">{entry.text}</p>
               </li>
@@ -537,7 +654,7 @@ function ProposalReview({
             value={commentText}
             disabled={busy}
             onChange={(event) => onCommentTextChange(event.target.value)}
-            placeholder="A question for the proposer, or what you checked."
+            placeholder={canApprove ? "Ask a question or explain what you checked." : "Ask about feedback or explain your changes."}
           />
         </EditorField>
         <Button type="button" variant="outline" size="sm" disabled={busy || commentText.trim().length === 0} onClick={onComment}>
@@ -545,8 +662,10 @@ function ProposalReview({
         </Button>
       </section>
 
-      {canApprove ? (
-        <div className="space-y-3">
+      {canApprove && (actions.approve || actions.reject || actions.revert) ? (
+        <section className="space-y-3">
+          <h4 className="theme-accent-heading text-sm font-semibold">Decision</h4>
+          {actions.approve && isAuthor ? <p className="theme-text-muted text-sm">Another admin must approve your submission. You cannot approve your own changes.</p> : null}
           {actions.reject ? (
             <EditorField htmlFor="queue-reject-note" label="Rejection note" description="Required to reject. The proposer sees it.">
               <Textarea
@@ -555,15 +674,14 @@ function ProposalReview({
                 value={rejectNote}
                 disabled={busy}
                 onChange={(event) => onRejectNoteChange(event.target.value)}
-                placeholder="Why this should not land as proposed."
+                placeholder="Explain why these changes should not be published."
               />
             </EditorField>
           ) : null}
-          <EditorPanel variant="toolbar" className="p-3">
             <EditorToolbar label="Proposal review actions" variant="split">
               <EditorActionGroup label="Review decision">
                 {actions.approve ? (
-                  <Button type="button" variant="success" disabled={busy} onClick={onApprove}>
+                  <Button type="button" variant="success" disabled={busy || isAuthor || !proposal.diff.trim()} onClick={onApprove}>
                     {pending === "approve" ? "Applying..." : "Approve and apply"}
                   </Button>
                 ) : null}
@@ -572,21 +690,16 @@ function ProposalReview({
                     {pending === "reject" ? "Rejecting..." : "Reject"}
                   </Button>
                 ) : null}
-                {actions.revert ? (
+                {actions.revert && allowRevert ? (
                   <Button type="button" variant="destructive" disabled={busy} onClick={onRevert}>
                     {pending === "revert" ? "Reverting..." : "Revert"}
                   </Button>
                 ) : null}
-                {!actions.approve && !actions.reject && !actions.revert ? (
-                  <span className="theme-text-faint text-sm">No action applies to a {STATUS_LABELS[proposal.status].toLowerCase()} proposal.</span>
-                ) : null}
               </EditorActionGroup>
             </EditorToolbar>
-          </EditorPanel>
-        </div>
+        </section>
       ) : null}
 
-      {notice ? <EditorNotice notice={notice} /> : null}
     </div>
   );
 }

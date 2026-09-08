@@ -33,7 +33,7 @@ const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
 const MAX_BIO_LENGTH = 4000;
 const MAX_DISPLAY_NAME_LENGTH = 120;
 const MAX_ROLE_LENGTH = 80;
-export const MAX_CONTRIBUTOR_PROFILE_LINKS = 3;
+export const MAX_CONTRIBUTOR_PROFILE_LINKS = 6;
 const MAX_LINK_LABEL_LENGTH = 60;
 
 export function normalizeProfileKey(value: string | null | undefined): string {

@@ -21,8 +21,14 @@ type ArticleSectionSpacing = "article" | "effect" | "none";
 // a fraction of the time when sections outside the viewport skip style,
 // layout, and paint. "none" wraps inline groups that may sit inside other
 // containment scopes, so it stays undeferred.
+//
+// "article" carries no top padding: ArticleLayout's movement containers own
+// inter-section spacing, and a section-level `pt` there stacked on top of the
+// flex gap, producing a dead band before every heading. `scroll-mt` absorbs
+// the sticky header (and the mobile TOC strip) for anchor navigation, so it
+// stays generous even though the padding is gone.
 const articleSectionSpacingClasses = {
-  article: "space-y-6 pt-12 scroll-mt-6 theme-offscreen-defer",
+  article: "space-y-6 scroll-mt-20 theme-offscreen-defer",
   effect: "space-y-6 pt-6 scroll-mt-24 theme-offscreen-defer",
   none: "",
 } satisfies Record<ArticleSectionSpacing, string>;

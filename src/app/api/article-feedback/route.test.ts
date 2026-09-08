@@ -9,7 +9,7 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   storeCreate: vi.fn(),
-  getArticleFeedbackStore: vi.fn(),
+  getPublicArticleFeedbackStore: vi.fn(),
 }));
 
 vi.mock("@/features/article/feedback/articleFeedbackStore.server", () => {
@@ -21,7 +21,7 @@ vi.mock("@/features/article/feedback/articleFeedbackStore.server", () => {
   }
 
   return {
-    getArticleFeedbackStore: mocks.getArticleFeedbackStore,
+    getPublicArticleFeedbackStore: mocks.getPublicArticleFeedbackStore,
     getArticleFeedbackIpHashSecret: () => "hash-secret",
     ArticleFeedbackStorageConfigurationError: class ArticleFeedbackStorageConfigurationError extends Error {},
     ArticleFeedbackValidationError,
@@ -43,8 +43,8 @@ describe("article feedback public route", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.storeCreate.mockReset();
-    mocks.getArticleFeedbackStore.mockReset();
-    mocks.getArticleFeedbackStore.mockResolvedValue({
+    mocks.getPublicArticleFeedbackStore.mockReset();
+    mocks.getPublicArticleFeedbackStore.mockResolvedValue({
       create: mocks.storeCreate,
     });
     mocks.storeCreate.mockResolvedValue({

@@ -18,8 +18,9 @@ vi.mock("convex/react", () => ({
 }));
 
 vi.mock("../../../../../convex/_generated/api", () => ({
-  api: { siteConfig: { getAbout: "siteConfig.getAbout" } },
+  api: { siteConfig: { getAboutForEditor: "siteConfig.getAboutForEditor" } },
 }));
+vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: () => ({ data: useQueryMock(), error: null, reload: vi.fn() }) }));
 
 vi.mock("@/data/SubstanceIndexProvider", () => ({
   useLibrary: () => ({
@@ -78,10 +79,12 @@ describe("AboutEditorTab", () => {
       ok: true,
       json: async () => ({
         ok: true,
+        revision: 1, replayed: false, unchanged: false,
         about: {
           aboutMarkdown: "We index {{compoundCount}} compounds. Edited.",
           aboutSubtitle: "An open library.",
           founderProfileKeys: ["JOSIE"],
+          revision: 1,
         },
       }),
     });
@@ -97,18 +100,9 @@ describe("AboutEditorTab", () => {
     expect(saveButton).toBeEnabled();
 
     await userEvent.click(saveButton);
+    expect(fetchMock).not.toHaveBeenCalled();
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/dev/about", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aboutMarkdown: "We index {{compoundCount}} compounds. Edited.",
-          aboutSubtitle: "An open library.",
-          founderProfileKeys: ["JOSIE"],
-        }),
-      });
-    });
     expect(await screen.findByText("Saved. The public About page is rebuilding with it now.")).toBeTruthy();
     expect(screen.getByText("No pending changes.")).toBeTruthy();
     expect(saveButton).toBeDisabled();
@@ -163,6 +157,7 @@ describe("AboutEditorTab", () => {
 
     await userEvent.type(markdown, " Edited.");
     await userEvent.click(saveButton);
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     await userEvent.type(markdown, " Later.");
@@ -171,10 +166,12 @@ describe("AboutEditorTab", () => {
       ok: true,
       json: async () => ({
         ok: true,
+        revision: 1, replayed: false, unchanged: false,
         about: {
           aboutMarkdown: "We index {{compoundCount}} compounds. Edited.",
           aboutSubtitle: "An open library.",
           founderProfileKeys: ["JOSIE"],
+          revision: 1,
         },
       }),
     });
@@ -198,12 +195,13 @@ describe("AboutEditorTab", () => {
     render(<AboutEditorTab availableProfiles={[]} canApprove />);
     await userEvent.type(screen.getByLabelText("Meta description source"), "!");
     await userEvent.click(screen.getByRole("button", { name: "Save About page" }));
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
 
     expect(await screen.findByText("The subtitle must be 2000 characters or fewer.")).toBeTruthy();
     expect(screen.getByText("1 section changed")).toBeTruthy();
   });
 
-  it("submits an editor's document as a proposal with a field diff and keeps the draft pending", async () => {
+  it("submits an editor's document and keeps the draft pending", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, proposalId: "cp_abc123" }),
@@ -234,14 +232,26 @@ describe("AboutEditorTab", () => {
       },
       summary: "Update the About page",
     });
-    expect(body.diff).toContain("# About copy");
-    expect(body.diff).toContain("-We index {{compoundCount}} compounds.");
-    expect(body.diff).toContain("+We index {{compoundCount}} compounds. Edited.");
-    expect(body.diff).not.toContain("# About subtitle");
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
     // Production is untouched, so the edit is still pending against it.
     expect(screen.getByText("1 section changed")).toBeTruthy();
+  });
+
+  it("preserves a stale draft and its loaded baseline across a production refresh and rejection", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false, json: async () => ({ error: "Production changed. Your draft is preserved." }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { rerender } = render(<AboutEditorTab availableProfiles={[]} canApprove={false} />);
+    await userEvent.type(screen.getByLabelText("Markdown source"), " Local.");
+    useQueryMock.mockReturnValue({ ...ABOUT, aboutMarkdown: "Remote replacement" });
+    rerender(<AboutEditorTab availableProfiles={[]} canApprove={false} />);
+    await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
+    expect(await screen.findByText("Production changed. Your draft is preserved.")).toBeTruthy();
+    expect(screen.getByLabelText("Markdown source")).toHaveValue(`${ABOUT.aboutMarkdown} Local.`);
+    const input = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(input.baselines[0].document.aboutMarkdown).toBe(ABOUT.aboutMarkdown);
   });
 });

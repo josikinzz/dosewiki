@@ -18,8 +18,11 @@ import {
   effectMatchesCategorySlug,
   getEffectCategoryDefinition,
 } from "@/data/effectCategoryDefinitions";
+import { GuideLinkLine } from "@/features/articles/components/GuideLinkLine";
+import { ARTICLE_GUIDES_BY_CLASS } from "@/features/articles/domain/articleGuides";
 import { publicHref } from "@/utils/publicHref";
 import { buildEffectCategoryGroups } from "./effectCategoryGroups";
+import { resolveEffectCategoryIcon } from "./effectsIndexConfig";
 
 /**
  * Minimal effect type for category display.
@@ -75,7 +78,8 @@ export function EffectCategoryPage({
 }: EffectCategoryPageProps) {
   const definition = getEffectCategoryDefinition(categorySlug);
   const title = definition?.name ?? titleFromSlug(categorySlug);
-  const icon: IconName = definition?.icon ?? "lucide:tag";
+  const icon: IconName =
+    resolveEffectCategoryIcon(categorySlug) ?? definition?.icon ?? "lucide:tag";
   // Editable copy wins; the checked-in definition is the fallback, and the copy
   // defaults hold that same prose, so an un-seeded read is a no-op.
   const paragraphs = toParagraphs(
@@ -148,6 +152,12 @@ export function EffectCategoryPage({
               <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
+          {/* The disconnective family is what the dissociative intensity scale
+              grades, so the category page offers the scale beside its own
+              definition rather than leaving the reader to find it. */}
+          {categorySlug === "disconnective-effects" ? (
+            <GuideLinkLine scale={ARTICLE_GUIDES_BY_CLASS.dissociative.scale} />
+          ) : null}
           <p className="type-detail-copy theme-text-faint">
             {filteredEffects.length} effect
             {filteredEffects.length === 1 ? "" : "s"}

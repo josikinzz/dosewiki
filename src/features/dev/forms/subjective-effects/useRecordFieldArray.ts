@@ -5,7 +5,7 @@
  * to enable useFieldArray-like operations on object-based schema fields.
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { SubstanceArticle, EffectSubcategory } from "@/schema";
 
@@ -24,26 +24,39 @@ type SubcategoryRecordPath =
   | `subjective_effects.sensory.${SensoryCategory}.subcategories`;
 
 function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
-  const { setValue, getValues } = useFormContext<SubstanceArticle>();
+  const { control, setValue, getValues } = useFormContext<SubstanceArticle>();
+  const fieldIds = useRef<Map<string, number> | null>(null);
+  const nextFieldId = useRef(0);
+  fieldIds.current ??= new Map();
 
-  const recordValue = useWatch({ name: fieldPath }) as
-    | Record<string, EffectSubcategory>
-    | undefined;
+  // Compare ordered entries: record equality alone ignores a move's key order.
+  const entries = useWatch({
+    control,
+    name: fieldPath,
+    compute: (recordValue) => Object.entries(recordValue ?? {}),
+  });
 
-  const fields = useMemo((): SubcategoryWithKey[] => {
-    if (!recordValue || typeof recordValue !== "object") return [];
-    return Object.entries(recordValue).map(([key, value]) => ({
-      key,
-      ...value,
-    }));
-  }, [recordValue]);
+  const fields = useMemo((): (SubcategoryWithKey & { id: number })[] => {
+    return entries.map(([key, value]) => {
+      const ids = fieldIds.current!;
+      if (!ids.has(key)) ids.set(key, nextFieldId.current++);
+      return { key, ...value, id: ids.get(key)! };
+    });
+  }, [entries]);
 
   const append = useCallback(
-    (item: SubcategoryWithKey) => {
+    () => {
       const current = getValues(fieldPath) ?? {};
+      let number = Object.keys(current).length + 1;
+      // `hasOwnProperty` rather than `Object.hasOwn`, which this project's `lib`
+      // target does not carry.
+      while (Object.prototype.hasOwnProperty.call(current, `New Subcategory ${number}`)) {
+        number += 1;
+      }
+      const key = `New Subcategory ${number}`;
       const newRecord = {
         ...current,
-        [item.key]: { note: item.note, effects: item.effects },
+        [key]: { note: "", effects: [] },
       };
       setValue(fieldPath, newRecord, { shouldDirty: true });
     },
@@ -54,6 +67,7 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
     (key: string) => {
       const current = getValues(fieldPath) ?? {};
       const { [key]: _, ...rest } = current;
+      fieldIds.current!.delete(key);
       setValue(fieldPath, rest, { shouldDirty: true });
     },
     [fieldPath, getValues, setValue],
@@ -64,6 +78,13 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
       if (oldKey === newKey) return;
       const current = getValues(fieldPath) ?? {};
       if (!current[oldKey]) return;
+      if (!newKey.trim()) return "Enter a subcategory name.";
+      if (Object.prototype.hasOwnProperty.call(current, newKey)) {
+        return "A subcategory with this name already exists. Choose a different name.";
+      }
+      const id = fieldIds.current!.get(oldKey);
+      if (id !== undefined) fieldIds.current!.set(newKey, id);
+      fieldIds.current!.delete(oldKey);
 
       const entries = Object.entries(current);
       const newEntries = entries.map(([key, value]) =>
@@ -83,6 +104,9 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
 
       const [removed] = entries.splice(fromIndex, 1);
       entries.splice(toIndex, 0, removed);
+      // RHF treats records with reordered keys as equal. Replace this one record
+      // in the same event so the final value, not just the display, keeps the order.
+      setValue(fieldPath, {});
       setValue(fieldPath, Object.fromEntries(entries), { shouldDirty: true });
     },
     [fieldPath, getValues, setValue],

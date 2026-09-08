@@ -7,6 +7,8 @@ import {
   projectReviewedArticleCredit,
   projectReviewedArticleForEmails,
 } from "./substanceReadProjections";
+import { publicReadIndexReady } from "./publicReadIndexes";
+import { reviewedArticlesPage, REVIEWED_ARTICLES_CURSOR_PREFIX } from "./reviewedArticleIndexReads";
 
 export async function getSubstanceByIdHandler(ctx: QueryCtx, args: { id: number }) {
   return await ctx.db
@@ -77,6 +79,12 @@ export async function getPublicReviewedArticlesPageHandler(
   if (!reviewerEmails || reviewerEmails.size === 0) {
     return { items: [], cursor: "", isDone: true };
   }
+  // A cursor issued by the legacy source pager finishes on that pager even
+  // when readiness changes between requests. Fresh reads use only the index.
+  if ((!args.cursor || args.cursor.startsWith(REVIEWED_ARTICLES_CURSOR_PREFIX))
+    && await publicReadIndexReady(ctx, "reviews")) {
+    return reviewedArticlesPage(ctx, reviewerEmails, args);
+  }
   const result = await ctx.db.query("substanceIndex").paginate({
     cursor: args.cursor ?? null,
     numItems: args.numItems,
@@ -119,6 +127,21 @@ export async function getPublicReviewedArticleCreditsPageHandler(
         emailToProfileKey.set(email, profile.key);
       }
     }
+  }
+  const prefix = "review-credits-v1:";
+  if ((!args.cursor || args.cursor.startsWith(prefix)) && await publicReadIndexReady(ctx, "reviews")) {
+    const result = await ctx.db.query("reviewedArticles").paginate({
+      cursor: args.cursor ? args.cursor.slice(prefix.length) : null,
+      numItems: args.numItems,
+    });
+    return {
+      items: result.page.flatMap((row) => {
+        const profileKey = emailToProfileKey.get(row.reviewer_email);
+        return profileKey ? [{ slug: row.slug, profileKey }] : [];
+      }),
+      cursor: prefix + result.continueCursor,
+      isDone: result.isDone,
+    };
   }
   const result = await ctx.db.query("substanceIndex").paginate({
     cursor: args.cursor ?? null,

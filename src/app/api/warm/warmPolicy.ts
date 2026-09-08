@@ -6,6 +6,7 @@ import { priorityScore } from "@server/convex/publicData.shared";
 import type { PublicSubstanceLookupEntry } from "@server/convex/publicData.shared";
 import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 import { getPublicRoutePath } from "@server/next/publicSite";
+import { isEditorHost } from "@server/next/publicHostPolicy";
 
 export type WarmAuthEnv = {
   CRON_SECRET?: string;
@@ -46,34 +47,27 @@ export function authorizeWarmRequest(
 export type WarmTargetPriority = PublicSubstanceLookupEntry["priority"];
 
 /**
- * Warm one run's worth of URLs every tick without ever re-crawling the same
- * head of the list: the low tier starts at a different offset each tick.
+ * Rotate explicitly requested deployment warming without a permanent low-tier
+ * sweep. Scheduled runs target only the bounded highest-priority set.
  */
-export const WARM_TICK_MS = 15 * 60 * 1000;
+export const WARM_TICK_MS = 60 * 60 * 1000;
 export const WARM_ROTATION_STEP = 120;
 
 /**
- * The substance article URLs to warm, coldest first, on the given public
- * origin. Alias slugs are skipped: they answer with a redirect at the edge
- * and have no page of their own.
- *
- * The `low` tier goes first because it is the only tier that is never
- * pre-rendered, so it is the only tier a reader can find cold after a deploy;
- * the pre-rendered tiers follow, most important first, to refresh pages whose
- * hourly ISR window has lapsed. A 45-second run reaches roughly
- * `WARM_ROTATION_STEP` cold pages, so the low tier is rotated by `rotateBy`
- * (the route derives it from the cron tick) and consecutive runs sweep the
- * whole tail instead of re-warming the same head of it.
+ * Alias slugs only redirect. Scheduled warming skips low and normal priority;
+ * explicit deployment warming can include and rotate the low tier.
  */
 export function planWarmTargets(
   entries: readonly Pick<PublicSubstanceLookupEntry, "slug" | "priority">[],
   siteUrl: string,
-  options: { includeLow?: boolean; rotateBy?: number } = {},
+  options: { includeLow?: boolean; rotateBy?: number; highOnly?: boolean; maxUrls?: number } = {},
 ): string[] {
+  if (isEditorHost(new URL(siteUrl).hostname)) return [];
   const seen = new Set<string>();
   const warmable = entries.filter(({ slug, priority }) => {
     if (!slug || getSubstanceRouteAlias(slug)) return false;
     if (!options.includeLow && priority === "low") return false;
+    if (options.highOnly && priority !== "high") return false;
     if (seen.has(slug)) return false;
     seen.add(slug);
     return true;
@@ -93,9 +87,11 @@ export function planWarmTargets(
     })
     .map(({ entry }) => entry);
 
-  return [...rotatedCold, ...prerendered].map((entry) =>
-    new URL(getPublicRoutePath({ family: "substance", params: { slug: entry.slug } }), siteUrl).toString(),
-  );
+  return [...rotatedCold, ...prerendered]
+    .slice(0, options.maxUrls ?? 120)
+    .map((entry) =>
+      new URL(getPublicRoutePath({ family: "substance", params: { slug: entry.slug } }), siteUrl).toString(),
+    );
 }
 
 /** The low-tier offset for a run starting at `now`: one step per cron tick. */
@@ -113,6 +109,7 @@ export function parseWarmSearchParams(searchParams: URLSearchParams): {
   budgetMs: number;
   includeLow: boolean;
   rotate: number | null;
+  maxUrls: number;
 } {
   const clamp = (raw: string | null, fallback: number, min: number, max: number) => {
     const value = Number(raw);
@@ -122,10 +119,9 @@ export function parseWarmSearchParams(searchParams: URLSearchParams): {
   return {
     concurrency: clamp(searchParams.get("concurrency"), 4, 1, 8),
     budgetMs: clamp(searchParams.get("budgetMs"), 45_000, 1_000, 50_000),
-    // The low tier is the only tier that is never pre-rendered, so a cron run
-    // that skipped it would warm nothing a reader can still find cold. Pass
-    // `includeLow=0` to limit a manual run to the pre-rendered tiers.
-    includeLow: searchParams.get("includeLow") !== "0",
+    // Low-tier warming is a deliberate deployment action, never a cron default.
+    includeLow: searchParams.get("includeLow") === "1",
+    maxUrls: clamp(searchParams.get("maxUrls"), 40, 1, 120),
     rotate: searchParams.has("rotate") ? clamp(searchParams.get("rotate"), 0, 0, 1_000_000) : null,
   };
 }

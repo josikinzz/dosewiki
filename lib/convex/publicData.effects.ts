@@ -1,13 +1,14 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache, publicEffectTag } from "./publicData.cache";
 import { cache } from "react";
 import { contributorMatchNames, profileMatchesName } from "../contributorProfileIdentity";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
-import { isPublishableReplication, type GalleryReplication, type ReplicationWithUrl } from "../../src/types/replications";
+import { isPublishableReplication, depictsEffect, type GalleryReplication, type ReplicationWithUrl } from "../../src/types/replications";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
+import { getPublicReplicationsBySlugs } from "./publicData.replicationDetails";
 import {
   type PublicEffectArticle,
   type PublicEffectPreview,
@@ -18,16 +19,8 @@ const PUBLIC_REPLICATION_PAGE_LIMIT = 64;
 const PUBLIC_REPLICATION_MAX_PAGES = 512;
 const PUBLIC_REPLICATION_MAX_ROWS = 20_000;
 
-/**
- * Bounded chunk size for the by-effect replication cache. The largest effects
- * ("drifting", "geometry") carry 1,600+ full records — 3–4 MB as one value,
- * past Next's 2 MB data-cache entry limit, so a single-entry cache silently
- * never persisted and every build worker and ISR render refetched the whole
- * list from Convex. 200 records ≈ 0.5 MB leaves 4× headroom.
- */
-const PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE = 200;
 
-export const getPublicEffects = cache(unstable_cache(async (): Promise<PublicEffectPreview[]> => {
+export const getPublicEffects = cache(publicDataCache(async (): Promise<PublicEffectPreview[]> => {
   return await getPublicDataReadAdapter().getPublicEffects();
 }, ["convex-public-effect-previews"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -38,21 +31,21 @@ export const getFeaturedEffects = cache(async (limit = 8) => {
   return (await getPublicEffects()).slice(0, limit);
 });
 
-export const getPublicEffectBySlug = cache(unstable_cache(async (slug: string): Promise<SubjectiveEffectDetailRecord | null> => {
+export const getPublicEffectBySlug = cache(publicDataCache(async (slug: string): Promise<SubjectiveEffectDetailRecord | null> => {
   return await getPublicDataReadAdapter().getPublicEffectBySlug(slug);
 }, ["convex-public-effect-by-slug"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects],
+  tags: (slug) => [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects, publicEffectTag(slug)],
 }));
 
-export const getPublicEffectArticles = cache(unstable_cache(async (): Promise<PublicEffectArticle[]> => {
+export const getPublicEffectArticles = cache(publicDataCache(async (): Promise<PublicEffectArticle[]> => {
   return await getPublicDataReadAdapter().getPublicEffectArticles();
 }, ["convex-public-effect-articles"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.effects],
 }));
 
-export const getEffectsByCategory = cache(unstable_cache(async (category: string): Promise<PublicEffectPreview[]> => {
+export const getEffectsByCategory = cache(publicDataCache(async (category: string): Promise<PublicEffectPreview[]> => {
   return await getPublicDataReadAdapter().getPublicEffectsByCategory(category);
 }, ["convex-public-effects-by-category"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -151,55 +144,28 @@ export const getEffectArticlesByContributor = cache(async (
  * for `role` and `type` in the same place.
  */
 /**
- * One gated Convex fetch per request, shared by every chunk read below via
- * React's request cache. Convex has no paged by-effect query, so chunking
- * happens here: a cold render fetches the list once and persists it as
- * bounded chunk entries, each safely under the 2 MB data-cache limit (see the
- * corpus-page doctrine on `getPublicReplicationCorpusPage`). This fetch is
- * React `cache()` only, never `unstable_cache`, so the chunk caches that call
- * it are top-level entries Next actually persists.
+ * Exact depicted-effect membership, shared with the gallery filter: owner OR
+ * explicit additional tag, never ancestors or artist-display exclusions.
+ * Keep this request-scoped: persisting the assembled collection would bypass
+ * the bounded corpus-page and detail-batch caches below it.
  */
-const fetchPublishableReplicationsByEffect = cache(async (
-  effectSlug: string,
-): Promise<ReplicationWithUrl[]> => {
-  return (await getPublicDataReadAdapter().getPublicReplicationsByEffect(effectSlug)).filter(
-    isPublishableReplication,
-  );
-});
-
-const getPublicReplicationsByEffectChunk = cache(unstable_cache(async (
-  effectSlug: string,
-  chunkIndex: number,
-): Promise<{ items: ReplicationWithUrl[]; chunkCount: number }> => {
-  const rows = await fetchPublishableReplicationsByEffect(effectSlug);
-  return {
-    items: rows.slice(
-      chunkIndex * PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE,
-      (chunkIndex + 1) * PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE,
-    ),
-    chunkCount: Math.max(
-      1,
-      Math.ceil(rows.length / PUBLIC_REPLICATIONS_BY_EFFECT_CHUNK_SIZE),
-    ),
-  };
-}, ["convex-public-replications-by-effect-chunk-v1"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
-}));
-
 export const getPublicReplicationsByEffect = cache(async (
   effectSlug: string,
 ): Promise<ReplicationWithUrl[]> => {
-  const first = await getPublicReplicationsByEffectChunk(effectSlug, 0);
-  if (first.chunkCount === 1) {
-    return first.items;
+  const slugs = new Set<string>();
+  for (const row of await getPublicReplications()) {
+    if (depictsEffect(row, effectSlug)) slugs.add(row.slug);
   }
-  const rest = await Promise.all(
-    Array.from({ length: first.chunkCount - 1 }, (_, index) =>
-      getPublicReplicationsByEffectChunk(effectSlug, index + 1),
-    ),
-  );
-  return first.items.concat(...rest.map((chunk) => chunk.items));
+  const details = await getPublicReplicationsBySlugs([...slugs]);
+  const bySlug = new Map(details.map((row) => [row.slug, row]));
+  // Hydration can return a different order or newer taxonomy/publication state.
+  // Preserve corpus order while withholding stale associations and missing rows.
+  const collection: ReplicationWithUrl[] = [];
+  for (const slug of slugs) {
+    const row = bySlug.get(slug);
+    if (row && depictsEffect(row, effectSlug)) collection.push(row);
+  }
+  return collection;
 });
 
 /**
@@ -216,7 +182,7 @@ export const getPublicReplicationsByEffect = cache(async (
  * from inside another `unstable_cache` callback, so any persisted wrapper above
  * this drain would turn every one of its misses into a full Convex re-drain.
  */
-const getPublicReplicationCorpusPage = cache(unstable_cache(async (
+const getPublicReplicationCorpusPage = cache(publicDataCache(async (
   cursor?: string,
 ) => {
   return await getPublicDataReadAdapter().getPublicGalleryReplicationPage(
@@ -264,7 +230,7 @@ export const getPublicReplications = cache(async (): Promise<GalleryReplication[
   );
 });
 
-export const getPublicReplicationBySlug = cache(unstable_cache(async (slug: string): Promise<ReplicationWithUrl | null> => {
+export const getPublicReplicationBySlug = cache(publicDataCache(async (slug: string): Promise<ReplicationWithUrl | null> => {
   return await getPublicDataReadAdapter().getPublicReplicationBySlug(slug);
 }, ["convex-public-replication-by-slug"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,

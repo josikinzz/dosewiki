@@ -8,6 +8,7 @@ import {
 } from "./lib/auth/convexMemberships";
 import { UNMATCHABLE_PASSWORD_HASH, verifyPassword } from "./lib/auth/passwords";
 import { authSecret } from "./lib/auth/runtimePolicy";
+import { safeAuthRedirect } from "./src/lib/auth/returnPath";
 
 type AuthorizedMember = {
   id: string;
@@ -66,6 +67,9 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      return safeAuthRedirect(url, baseUrl);
+    },
     async jwt({ token, user }) {
       const email = user?.email ?? token.email;
 

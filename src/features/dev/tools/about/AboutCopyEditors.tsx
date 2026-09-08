@@ -1,7 +1,8 @@
-import { type ChangeEvent } from "react";
+import { useId, useState, type ChangeEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import {
   ActionNotice,
   EditorField,
@@ -39,6 +40,7 @@ type AboutCopyEditorsProps = {
   subtitleLength: number;
   subtitleTextareaRef: React.RefObject<HTMLTextAreaElement | null>;
   copyNotice?: AboutCopyNotice | null;
+  contextual?: boolean;
 };
 
 function CopyResultNotice({
@@ -74,13 +76,17 @@ export function AboutCopyEditors({
   subtitleLength,
   subtitleTextareaRef,
   copyNotice,
+  contextual = false,
 }: AboutCopyEditorsProps) {
+  const [tokensOpen, setTokensOpen] = useState(false);
+  const tokensId = useId();
   return (
     <>
       <EditorSection
+        headingLevel={contextual ? "h3" : "h2"}
         icon="lucide:file-text"
-        title="Page copy"
-        description="Edit the Markdown behind the public About page's Mission tab. Formatting updates render in the live preview below. Use the tokens listed underneath to reference live dataset counts."
+        title="About copy"
+        description="Edit one Markdown document. Text before the section headings appears in Introduction. Use ## Sources and review for the sources section and ## Project history for the history above contributor cards. Check the rendered preview before publishing."
         actions={(
           <EditorStatusPill tone={isMarkdownDirty ? "warning" : "success"}>
             {isMarkdownDirty ? "Changed" : "Clean"}
@@ -88,7 +94,8 @@ export function AboutCopyEditors({
         )}
       >
         <div className="space-y-6">
-          <div className="flex flex-wrap gap-2 text-[11px] theme-text-muted">
+          {contextual ? <ExpandButton variant="inline" isExpanded={tokensOpen} onToggle={() => setTokensOpen(value => !value)} ariaControls={tokensId} ariaLabel="Live count placeholders" label="Live count placeholders" /> : null}
+          <div id={tokensId} className={contextual && !tokensOpen ? "hidden" : "flex flex-wrap gap-2 text-[11px] theme-text-muted"}>
             {PLACEHOLDER_TOKENS.map((token) => (
               <TagToken
                 key={token.key}
@@ -102,14 +109,14 @@ export function AboutCopyEditors({
               />
             ))}
           </div>
-          <EditorField label="Markdown source" htmlFor="about-markdown-editor">
-            <Textarea
-              id="about-markdown-editor"
+          <EditorField label="Markdown source" htmlFor="about-markdown-editor" description={contextual ? "Markdown formatting and live count placeholders render in Local preview." : undefined}>
+            {(control) => <Textarea
+              {...control}
               ref={textareaRef}
-              className="min-h-[240px] resize-none whitespace-pre-wrap font-mono"
+              className={contextual ? "min-h-[240px] resize-y whitespace-pre-wrap font-mono" : "min-h-[240px] resize-none whitespace-pre-wrap font-mono"}
               value={aboutMarkdown}
               onChange={onMarkdownChange}
-            />
+            />}
           </EditorField>
           <EditorToolbar label="About markdown actions" variant="compact" className="text-xs">
             <Button type="button" variant="secondary" size="sm" onClick={onCopyMarkdown}>
@@ -124,7 +131,7 @@ export function AboutCopyEditors({
               disabled={!isMarkdownDirty}
             >
               <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
-              Reset to source
+              Reset About copy
             </Button>
             <CopyResultNotice copyNotice={copyNotice} target="markdown" />
           </EditorToolbar>
@@ -132,27 +139,28 @@ export function AboutCopyEditors({
       </EditorSection>
 
       <EditorSection
+        headingLevel={contextual ? "h3" : "h2"}
         icon="lucide:type"
-        title="Meta description"
-        description="Used as the About page's search and meta description; it is not displayed on the page itself. Supports the same placeholder tokens listed above."
+        title="Subtitle and meta description"
+        description="Appears beneath the About heading and in search metadata. Supports the same placeholder tokens."
         actions={(
           <>
             <EditorStatusPill tone={isSubtitleDirty ? "warning" : "success"}>
               {isSubtitleDirty ? "Changed" : "Clean"}
             </EditorStatusPill>
-            <EditorStatusPill tone="neutral">{`${subtitleLength.toLocaleString()} characters`}</EditorStatusPill>
+            <EditorStatusPill tone="neutral">{`${subtitleLength.toLocaleString()} ${contextual ? "source characters" : "characters"}`}</EditorStatusPill>
           </>
         )}
       >
         <div className="space-y-6">
-          <EditorField label="Meta description source" htmlFor="about-subtitle-editor">
-            <Textarea
-              id="about-subtitle-editor"
+          <EditorField label={contextual ? "Subtitle and meta description source" : "Meta description source"} htmlFor="about-subtitle-editor" description={contextual ? `${subtitleLength.toLocaleString()} source characters. Live count placeholders resolve in the public subtitle and search description.` : undefined}>
+            {(control) => <Textarea
+              {...control}
               ref={subtitleTextareaRef}
-              className="min-h-[80px] resize-none whitespace-pre-wrap font-mono"
+              className={contextual ? "min-h-[80px] resize-y whitespace-pre-wrap" : "min-h-[80px] resize-none whitespace-pre-wrap font-mono"}
               value={aboutSubtitle}
               onChange={onSubtitleChange}
-            />
+            />}
           </EditorField>
           <EditorToolbar label="Meta description actions" variant="compact" className="text-xs">
             <Button type="button" variant="secondary" size="sm" onClick={onCopySubtitle}>

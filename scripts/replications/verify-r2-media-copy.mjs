@@ -69,6 +69,9 @@ export function validateDeliveryHeaders(headers, object, label) {
   }
   const acceptRanges = headers.get("accept-ranges");
   if (acceptRanges !== "bytes") throw new Error(`${label} lacks byte ranges for ${object.key}`);
+  if (headers.get("access-control-allow-origin") !== "*") {
+    throw new Error(`${label} lacks public cross-origin delivery for ${object.key}`);
+  }
   return {
     content_type: contentType,
     cache_control: cacheControl,

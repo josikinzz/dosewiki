@@ -4,6 +4,7 @@ import { buildSiteUrl, PUBLIC_SITE, type PublicSiteIdentity } from "./publicSite
 import { getPublicHref, type PublicHrefIntent } from "@/utils/publicHref";
 import { PREVIEW_PATH_PREFIX } from "@/utils/previewPath";
 import type { DevRouteDecision } from "@/lib/auth/roles";
+import { safeAuthReturnPath } from "@/lib/auth/returnPath";
 export {
   getRouteLoadingModel,
   getRouteLoadingLabel,
@@ -81,11 +82,7 @@ export function getProtectedRouteRedirectTarget(decision: DevRouteDecision): Pro
 }
 
 export function getSignInCallbackUrl(callbackUrl: string | undefined): string {
-  if (!callbackUrl?.startsWith("/") || callbackUrl.startsWith("//") || callbackUrl.includes("\\")) {
-    return STATUS_PAGE_PATHS.dev;
-  }
-
-  return callbackUrl;
+  return safeAuthReturnPath(callbackUrl);
 }
 
 export function getUnauthorizedFrom(from: string | undefined): string {

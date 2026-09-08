@@ -120,7 +120,9 @@ describe("PlaylistsTab", () => {
     expect(screen.getByText("A replication slug is lowercase words joined by hyphens.")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Move alpha up" }));
-    await user.click(screen.getByRole("button", { name: "Create playlist" }));
+    await user.click(screen.getByRole("button", { name: "Review playlist changes" }));
+    expect(calls).toEqual([]);
+    await user.click(screen.getByRole("button", { name: "Confirm playlist publication" }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({

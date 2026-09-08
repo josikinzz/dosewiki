@@ -133,13 +133,17 @@ describe("replications prerendered default view", () => {
     pageMocks.getPublicEffects.mockResolvedValueOnce([
       { slug: "geometry", name: "Geometry" },
     ]);
+    // Only the profile claiming a credit on a prerendered rail belongs in the
+    // inlined directory; everyone else arrives with the complete corpus.
+    const railProfile = {
+      key: "video",
+      displayName: "Video Artist",
+      aliases: [],
+      avatarUrl: "https://media.example/video-avatar.webp",
+    };
     const directory = [
-      {
-        key: "first",
-        displayName: "First Artist",
-        aliases: [],
-        avatarUrl: "https://media.example/first-avatar.webp",
-      },
+      railProfile,
+      { key: "offscreen", displayName: "Offscreen Artist", aliases: [] },
     ];
     pageMocks.getPublicContributorDirectory.mockResolvedValueOnce(directory);
 
@@ -157,7 +161,7 @@ describe("replications prerendered default view", () => {
         images: 3,
         videos: 1,
       },
-      contributorDirectory: directory,
+      contributorDirectory: [railProfile],
     });
     expect(
       explorer.props.initialArtistRails.map(

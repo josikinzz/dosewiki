@@ -43,20 +43,26 @@ function DoseRangeInnerInput({
   placeholder: string;
   className?: string;
 }) {
-  // Local state for the string representation
-  const [localValue, setLocalValue] = useState(() =>
-    doseRangeTransformer.toForm(field.value)
-  );
+  // Keep only an in-flight edit locally; otherwise display the current form
+  // value, including resets and paired-route operations.
+  const [draft, setDraft] = useState<string | null>(null);
+  const localValue = draft ?? doseRangeTransformer.toForm(field.value);
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setLocalValue(e.target.value);
+    setDraft(e.target.value);
     setError(null);
+    e.target.setCustomValidity("");
   }, []);
 
   const handleBlur = useCallback(
-    (_event: FocusEvent<HTMLInputElement>) => {
+    (event: FocusEvent<HTMLInputElement>) => {
+      if (draft === null || localValue === doseRangeTransformer.toForm(field.value)) {
+        setDraft(null);
+        field.onBlur();
+        return;
+      }
       const parsed = doseRangeTransformer.toSchema(localValue);
 
       if (!parsed) {
@@ -65,32 +71,41 @@ function DoseRangeInnerInput({
         // that nobody meant to touch. Surface it and leave the value alone —
         // the typed text stays on screen so the correction is one keystroke.
         if (localValue.trim() === "") {
-          const cleared: DoseRange = { min: null, max: null, unit: "" };
+          const cleared: DoseRange = { ...field.value, min: null, max: null, unit: "" };
           setError(null);
           field.onChange(cleared);
           field.onBlur();
-          setLocalValue(doseRangeTransformer.toForm(cleared));
+          setDraft(null);
           return;
         }
         setError(UNPARSEABLE_MESSAGE);
+        event.target.setCustomValidity(UNPARSEABLE_MESSAGE);
         // Touched state still advances; only the value is withheld.
+        field.onBlur();
+        return;
+      }
+      if (parsed.min != null && parsed.max != null && parsed.min > parsed.max) {
+        const message = "The minimum must not exceed the maximum. Correct the range bounds.";
+        setError(message);
+        event.target.setCustomValidity(message);
         field.onBlur();
         return;
       }
 
       setError(null);
-      field.onChange(parsed);
+      field.onChange({ ...field.value, ...parsed });
       field.onBlur();
-      // Re-format the display value
-      setLocalValue(doseRangeTransformer.toForm(parsed));
+      setDraft(null);
     },
-    [localValue, field]
+    [draft, localValue, field]
   );
 
   return (
     <>
       <Input
         id={id}
+        name={field.name}
+        ref={field.ref}
         value={localValue}
         onChange={handleChange}
         onBlur={handleBlur}

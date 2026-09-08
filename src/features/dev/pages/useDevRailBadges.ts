@@ -46,6 +46,7 @@ const INITIAL_SNAPSHOT: BadgeSnapshot = {
  * so a tool can tell the rail that a count it painted is stale.
  */
 let snapshot: BadgeSnapshot = INITIAL_SNAPSHOT;
+let activeOwner: string | null = null;
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -71,11 +72,12 @@ export function invalidateDevRailBadge(badge: DevRailBadge) {
 }
 
 export function resetDevRailBadgesForTests() {
+  activeOwner = null;
   snapshot = INITIAL_SNAPSHOT;
   emit();
 }
 
-async function loadCount(badge: DevRailBadge, generation: number) {
+async function loadCount(badge: DevRailBadge, generation: number, owner: string) {
   const source = BADGE_SOURCES[badge];
   try {
     const response = await fetch(source.url);
@@ -86,7 +88,7 @@ async function loadCount(badge: DevRailBadge, generation: number) {
     const payload = await response.json();
     const count = payload[source.field];
     // An invalidation raced this answer: the refetch it triggered wins.
-    if (typeof count !== "number" || snapshot[badge].generation !== generation) {
+    if (typeof count !== "number" || activeOwner !== owner || snapshot[badge].generation !== generation) {
       return;
     }
 
@@ -108,27 +110,52 @@ async function loadCount(badge: DevRailBadge, generation: number) {
  * This lives beside the shell rather than inside any tool so the rail does not
  * pull a tool's bundle into first paint.
  */
-export function useDevRailBadges(role: AppRole | null): DevRailBadgeCounts {
+export function useDevRailBadges(role: AppRole | null, actorEmail?: string | null): DevRailBadgeCounts {
   const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
   // Generations this mount has already asked for; a remount asks again.
   const requestedRef = useRef<Partial<Record<DevRailBadge, number>>>({});
+  const owner = `${role ?? "signed-out"}:${actorEmail ?? ""}`;
 
   useEffect(() => {
+    if (activeOwner !== owner) {
+      activeOwner = owner;
+      snapshot = INITIAL_SNAPSHOT;
+      requestedRef.current = {};
+      emit();
+    }
     for (const badge of BADGES) {
       if (!roleMeetsFloor(role, BADGE_FLOORS[badge])) {
         continue;
       }
-      const { generation } = current[badge];
+      const { generation } = snapshot[badge];
       if (requestedRef.current[badge] === generation) {
         continue;
       }
       requestedRef.current[badge] = generation;
-      void loadCount(badge, generation);
+      void loadCount(badge, generation, owner);
     }
-  }, [role, current]);
+  }, [role, current, owner]);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "hidden") return;
+      for (const badge of BADGES) {
+        if (roleMeetsFloor(role, BADGE_FLOORS[badge])) invalidateDevRailBadge(badge);
+      }
+    };
+    const interval = window.setInterval(refresh, 60_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [role, owner]);
 
   const counts: Partial<Record<DevRailBadge, number>> = {};
   for (const badge of BADGES) {
+    if (activeOwner !== owner || !roleMeetsFloor(role, BADGE_FLOORS[badge])) continue;
     const { count } = current[badge];
     if (count !== null && count > 0) {
       counts[badge] = count;

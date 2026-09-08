@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadPsychoactiveSummaryRoute } from "@server/next/routeLoaders.substances";
-import { getStaticPsychoactiveSummaryParams } from "@server/next/staticParams";
 import { PsychoactiveSummaryPage } from "@/features/psychoactive-summaries/PsychoactiveSummaryPage";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return await getStaticPsychoactiveSummaryParams();
+// Keep the build bounded; published keys enter the ISR cache on first request.
+export function generateStaticParams() {
+  return [];
 }
 
 type PsychoactiveSummaryRoutePageProps = {

@@ -55,6 +55,7 @@ describe("citation evidence status route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({
           slug: "lsd",
           claimKey: "summary:0",
@@ -86,6 +87,7 @@ describe("citation evidence status route", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", claimKey: "summary:0", status: "approved" }),
       }),
     );
@@ -101,6 +103,7 @@ describe("citation evidence status route", () => {
     const rejected = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({
           slug: "lsd",
           claimKey: "summary:0",
@@ -122,6 +125,7 @@ describe("citation evidence status route", () => {
     const restored = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", claimKeys: ["summary:0"], status: "supported" }),
       }),
     );
@@ -142,6 +146,7 @@ describe("citation evidence status route", () => {
     const unknown = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", claimKey: "summary:0", status: "archived" }),
       }),
     );
@@ -153,6 +158,7 @@ describe("citation evidence status route", () => {
     const oversized = await POST(
       new Request("https://dose.wiki/api/citation-evidence/status", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({
           slug: "lsd",
           claimKey: "summary:0",

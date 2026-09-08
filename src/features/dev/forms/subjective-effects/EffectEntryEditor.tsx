@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { EditorField } from "@/features/dev/components";
+import { useGrowToContent } from "./useGrowToContent";
 
 export interface EffectEntryEditorProps {
   /** The effect name */
@@ -35,25 +37,32 @@ export function EffectEntryEditor({
   idPrefix,
   index,
 }: EffectEntryEditorProps) {
+  const descriptionField = useGrowToContent();
+
   return (
     <div className="group relative flex gap-2 rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-frosted-control-on-panel-bg)] p-3 transition hover:border-[var(--theme-frosted-panel-hover-border)]">
       {/* Effect name and description */}
-      <div className="flex-1 space-y-2">
-        <Input
-          id={`${idPrefix}-effect-${index}-name`}
-          value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          placeholder="Effect name (e.g., Euphoria)"
-          className="text-sm font-medium"
-        />
-        <Textarea
-          id={`${idPrefix}-effect-${index}-desc`}
-          value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Optional description of how this effect manifests..."
-          className="min-h-[60px] resize-none text-sm"
-          rows={2}
-        />
+      <div className="min-w-0 flex-1 space-y-3">
+        <EditorField htmlFor={`${idPrefix}-effect-${index}-name`} label="Effect name">
+          <Input
+            id={`${idPrefix}-effect-${index}-name`}
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            placeholder="Effect name (e.g., Euphoria)"
+            className="font-medium"
+          />
+        </EditorField>
+        <EditorField htmlFor={`${idPrefix}-effect-${index}-desc`} label="Description (optional)">
+          <Textarea
+            id={`${idPrefix}-effect-${index}-desc`}
+            ref={descriptionField.ref}
+            value={description}
+            onChange={(e) => onDescriptionChange(e.target.value)}
+            placeholder="Optional description of how this effect manifests..."
+            className="min-h-[60px] resize-none"
+            rows={2}
+          />
+        </EditorField>
       </div>
 
       {/* Delete button */}

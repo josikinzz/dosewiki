@@ -77,6 +77,8 @@ export const getColumnForCount = (
 export interface ManualIndexConfig {
   version: number;
   categories: ManualCategoryDefinition[];
+  /** Monotonic stored publication revision; absent on checked-in layout defaults. */
+  revision?: number;
 }
 
 export interface NormalizedManualCategorySection extends ManualCategorySection {

@@ -35,6 +35,9 @@ type UseDevModeSaveActionsArgs = {
   chemicalIndexManual: unknown;
   mechanismIndexManual: unknown;
   getOriginalArticles: () => SubstanceArticle[];
+  getOriginalPsychoactiveIndexManual: () => unknown;
+  getOriginalChemicalIndexManual: () => unknown;
+  getOriginalMechanismIndexManual: () => unknown;
   markChangesSaved: () => void;
   /** An Auth.js session is present; saves refuse to start without one. */
   isSignedIn: boolean;
@@ -133,6 +136,9 @@ export function useDevModeSaveActions({
   chemicalIndexManual,
   mechanismIndexManual,
   getOriginalArticles,
+  getOriginalPsychoactiveIndexManual,
+  getOriginalChemicalIndexManual,
+  getOriginalMechanismIndexManual,
   markChangesSaved,
   isSignedIn,
   canDraft,
@@ -211,18 +217,21 @@ export function useDevModeSaveActions({
             type: "psychoactive",
             label: "Psychoactive class",
             data: psychoactiveIndexManual,
+            originalData: getOriginalPsychoactiveIndexManual(),
             changelog: psychoactiveManualChangelog,
           },
           {
             type: "chemical",
             label: "Chemical class",
             data: chemicalIndexManual,
+            originalData: getOriginalChemicalIndexManual(),
             changelog: chemicalManualChangelog,
           },
           {
             type: "mechanism",
             label: "Mechanism of action",
             data: mechanismIndexManual,
+            originalData: getOriginalMechanismIndexManual(),
             changelog: mechanismManualChangelog,
           },
         ],
@@ -235,6 +244,9 @@ export function useDevModeSaveActions({
       chemicalManualChangelog,
       datasetChangelog,
       getOriginalArticles,
+      getOriginalPsychoactiveIndexManual,
+      getOriginalChemicalIndexManual,
+      getOriginalMechanismIndexManual,
       hasPendingChanges,
       mechanismIndexManual,
       mechanismManualChangelog,

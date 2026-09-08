@@ -22,11 +22,11 @@ import {
 
 /**
  * The two lazily fetchable showcase collections, shared verbatim between the
- * streamed article sections and `/api/replications/showcase`. Articles
- * serialize only the compact strip (`SHOWCASE_WORK_CAP` works); the expanded
- * viewer's long tail comes back through the route, so both callers MUST walk
- * one code path or a deep link could resolve against a differently ordered
- * collection than the strip was cut from.
+ * streamed article sections, `/api/replications/showcase`, and the publisher
+ * `/embed/replications` player. Articles serialize only the compact strip
+ * (`SHOWCASE_WORK_CAP` works); the viewer's long tail comes through the route.
+ * All callers share the opening policy in `showcaseModel`, so a deep link or
+ * embedded playlist cannot disagree with the article's ordering.
  *
  * Every read below is the same request-deduped public-data call the article
  * render performs, backed by top-level `unstable_cache` leaves (the substance
@@ -78,6 +78,7 @@ export const getSubstanceShowcaseWorks = cache(
       (artistName) =>
         findContributorProfileByAuthorName(contributorProfiles, artistName)
           ?.avatarUrl ?? null,
+      gallery.carouselOrder,
     );
     return { works, collectionLabel: `${article.title} replications` };
   },
@@ -85,10 +86,8 @@ export const getSubstanceShowcaseWorks = cache(
 
 /**
  * The effect article's complete ordered collection: every public row for the
- * effect, curated by the record's own `gallery_order` — the same field
- * `getEffectArticleReplicationState` reads to gate the section — and
- * flattened by `buildEffectShowcaseWorks`. Null when the slug names no
- * effect.
+ * effect, with authoritative `gallery_order` followed by automatically ordered
+ * uncurated works. Article, viewer, and embed all consume this same sequence.
  */
 export const getEffectShowcaseWorks = cache(
   async (
@@ -98,14 +97,15 @@ export const getEffectShowcaseWorks = cache(
       getPublicEffectBySlug(effectSlug),
       getPublicReplicationsByEffect(effectSlug),
     ]);
-    if (!effect) return null;
+    // Explicitly tagged collections can exist before an editorial effect article.
+    if (!effect && replications.length === 0) return null;
     return {
       works: buildEffectShowcaseWorks(replications, {
         effectSlug,
-        effectName: effect.name,
-        galleryOrder: effect.gallery_order,
+        effectName: effect?.name,
+        galleryOrder: effect?.gallery_order,
       }),
-      effectName: effect.name,
+      effectName: effect?.name,
     };
   },
 );

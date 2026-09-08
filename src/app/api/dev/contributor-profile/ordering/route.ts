@@ -29,12 +29,14 @@ type OrderingBody = {
   key?: unknown;
   replicationOrder?: unknown;
   reportOrder?: unknown;
+  expectedRevision?: unknown;
 };
 
 type ParsedOrdering = {
   key: string;
   replicationOrder?: string[];
   reportOrder?: string[];
+  expectedRevision?: string;
 };
 
 function parseOrder(raw: unknown, label: string): string[] | undefined {
@@ -56,7 +58,7 @@ function parseOrder(raw: unknown, label: string): string[] | undefined {
   });
 }
 
-export function parseOrderingBody(raw: OrderingBody): ParsedOrdering {
+function parseOrderingBody(raw: OrderingBody): ParsedOrdering {
   const key = typeof raw.key === "string" ? raw.key.trim() : "";
   if (!key) {
     throw new JsonBodyError(400, "A contributor profile key is required.");
@@ -64,6 +66,7 @@ export function parseOrderingBody(raw: OrderingBody): ParsedOrdering {
 
   const replicationOrder = parseOrder(raw.replicationOrder, "The works order");
   const reportOrder = parseOrder(raw.reportOrder, "The reports order");
+  if (replicationOrder !== undefined && (typeof raw.expectedRevision !== "string" || !/^[a-f0-9]{64}$/.test(raw.expectedRevision))) throw new JsonBodyError(400, "Reload the stored works order before saving.");
 
   if (replicationOrder === undefined && reportOrder === undefined) {
     throw new JsonBodyError(400, "Send at least one ordering to save.");
@@ -71,6 +74,7 @@ export function parseOrderingBody(raw: OrderingBody): ParsedOrdering {
 
   return {
     key,
+    expectedRevision: typeof raw.expectedRevision === "string" ? raw.expectedRevision : undefined,
     ...(replicationOrder === undefined ? {} : { replicationOrder }),
     ...(reportOrder === undefined ? {} : { reportOrder }),
   };
@@ -110,6 +114,7 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
         apiKey,
         actorEmail,
         key: body.key,
+        expectedRevision: body.expectedRevision,
         ...(body.replicationOrder === undefined
           ? {}
           : { replicationOrder: body.replicationOrder }),
@@ -117,7 +122,7 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
       },
     );
 
-    revalidateContributorSurfaces({
+    await revalidateContributorSurfaces({
       contributorKeys: result.revalidate?.contributorKeys ?? [result.key],
       scope: "ordering",
     });

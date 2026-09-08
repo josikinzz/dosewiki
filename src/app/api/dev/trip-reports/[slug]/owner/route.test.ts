@@ -35,7 +35,7 @@ function forwarded(data: unknown) {
 function postOwner(slug: string, body: unknown): Request {
   return new Request(`https://dose.wiki/api/dev/trip-reports/${slug}/owner`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }

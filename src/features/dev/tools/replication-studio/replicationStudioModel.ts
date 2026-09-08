@@ -31,6 +31,7 @@ export type StudioRow = {
     matched_title_text: string;
   }[];
   credit_line: string | null;
+  source_url?: string | null;
   rights_status?: string | null;
   url: string | null;
   thumbnail_url: string | null;

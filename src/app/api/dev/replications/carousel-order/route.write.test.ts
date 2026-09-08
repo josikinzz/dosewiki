@@ -19,17 +19,9 @@ vi.mock("../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidatePath: cacheMocks.revalidatePath,
-  revalidateTag: cacheMocks.revalidateTag,
-}));
-vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications" },
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -54,8 +46,8 @@ function orderRequest(body: unknown) {
     "https://dosewiki-admin.vercel.app/api/dev/replications/carousel-order",
     {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
+      headers: { "content-type": "application/json", Origin: "https://dosewiki-admin.vercel.app" },
+      body: JSON.stringify({ expectedRevision: "a".repeat(64), ...(body as Record<string, unknown>) }),
     },
   );
 }
@@ -101,7 +93,7 @@ describe("carousel order PATCH", () => {
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(convexMocks.mutation).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
   it("writes an effect gallery order with a stale-write baseline", async () => {
@@ -125,9 +117,13 @@ describe("carousel order PATCH", () => {
         effect_slug: "tracers",
         replication_slugs: ["still", "video"],
         expected_replication_slugs: ["video", "still"],
+        expectedRevision: "a".repeat(64),
       },
     );
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/effects/tracers");
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "effect", slug: "tracers" }, { kind: "replication-collections" }],
+      source: "manual",
+    });
   });
   it("fails closed on a public host before Convex", async () => {
     authMocks.requireRoleSession.mockRejectedValue(
@@ -137,7 +133,7 @@ describe("carousel order PATCH", () => {
     const response = await PATCH(
       new Request("https://dose.wiki/api/dev/replications/carousel-order", {
         method: "PATCH",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", Origin: "https://dose.wiki" },
         body: JSON.stringify({
           targetKind: "effect",
           targetKey: "tracers",
@@ -188,9 +184,16 @@ describe("carousel order PATCH", () => {
         expectedUpdatedAt: "2026-08-25T10:00:00.000Z",
       }),
     );
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith(
-      "public-replications",
-      { expire: 0 },
-    );
+    expect(publishMocks.publishPublicCache).toHaveBeenNthCalledWith(1, {
+      targets: [
+        { kind: "contributor", slug: "chelsea-morgan" },
+        { kind: "replication-collections" },
+      ],
+      source: "manual",
+    });
+    expect(publishMocks.publishPublicCache).toHaveBeenNthCalledWith(2, {
+      targets: [{ kind: "article", slug: "ketamine" }, { kind: "replication-collections" }],
+      source: "manual",
+    });
   });
 });

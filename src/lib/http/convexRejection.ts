@@ -50,25 +50,33 @@ const DEFAULT_REJECTION_STATUS = 400;
  * what that means over the wire. An unrecognized code is a 400 — a deliberate
  * refusal the client should not simply retry.
  */
-const REJECTION_STATUS_BY_CODE = new Map<string, number>([
-  // The stored value moved under the editor. Distinct from a bad request
-  // because the fix is "reload and retry", not "send something else".
-  ["FIELD_CONFLICT", 409],
-  ["ARTICLE_NOT_FOUND", 404],
-  ["FLAG_NOT_FOUND", 404],
-  ["UNAUTHORIZED", 403],
-  ["FORBIDDEN", 403],
-  // The actor may write this kind of record but not this one: someone else's
-  // playlist or trip report. Same HTTP meaning as FORBIDDEN, distinct code so
-  // the client can say "not yours" rather than "not allowed".
-  ["NOT_OWNER", 403],
-  ["PROPOSAL_NOT_FOUND", 404],
-  // The proposal is no longer in a state the action applies to (already
-  // applied, rejected, or superseded), or production moved under it: the
-  // queue is stale, reload it.
-  ["PROPOSAL_STATUS_INVALID", 409],
-  ["REVERT_CONFLICT", 409],
-]);
+const REJECTION_STATUS_BY_CODE: Record<string, number> = {
+  // Conflicts require reconciling the current record, not resending stale data.
+  FIELD_CONFLICT: 409,
+  ARTICLE_CONFLICT: 409,
+  EDIT_CONFLICT: 409,
+  EDIT_OPERATION_REUSED: 409,
+  PROFILE_CONFLICT: 409,
+  PROFILE_OPERATION_REUSED: 409,
+  REPORT_OPERATION_REUSED: 409,
+  REPORT_CONFLICT: 409,
+  CONFLICT: 409,
+  REPLICATION_CHANGE_REUSED: 409,
+  REPLICATION_NOT_FOUND: 404,
+  COLLECTION_NOT_FOUND: 404,
+  ARTICLE_CHANGE_REUSED: 409,
+  ARTICLE_REVISION_MISSING: 404,
+  ARTICLE_NOT_FOUND: 404,
+  FLAG_NOT_FOUND: 404,
+  UNAUTHORIZED: 403,
+  FORBIDDEN: 403,
+  NOT_OWNER: 403,
+  PROPOSAL_NOT_FOUND: 404,
+  PROPOSAL_STATUS_INVALID: 409,
+  PROPOSAL_BASELINE_STALE: 409,
+  PROPOSAL_SELF_APPROVAL: 403,
+  REVERT_CONFLICT: 409,
+};
 
 export type ConvexRejection = {
   /** Stable, machine-readable reason. Safe to branch on. */
@@ -135,7 +143,7 @@ export function classifyConvexRejection(error: unknown): ConvexRejection | null 
   return {
     code,
     message,
-    status: REJECTION_STATUS_BY_CODE.get(code) ?? DEFAULT_REJECTION_STATUS,
+    status: Object.prototype.hasOwnProperty.call(REJECTION_STATUS_BY_CODE, code) ? REJECTION_STATUS_BY_CODE[code] : DEFAULT_REJECTION_STATUS,
   };
 }
 

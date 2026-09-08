@@ -13,6 +13,11 @@ vi.mock("@server/convex/serverClient", () => ({
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
 }));
+// The route reads through the persistent public leaf; assert the Convex
+// boundary by running the leaf's callback inline.
+vi.mock("next/cache", () => ({
+  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
+}));
 
 describeMoleculeImageRoute(
   "substance molecule image route",
@@ -22,11 +27,6 @@ describeMoleculeImageRoute(
     convexSlugFor: (slug) => slug,
     valid: "lsd",
     invalid: "LSD Tabs",
-    errors: {
-      invalid: "Invalid molecule slug.",
-      lookupFailed: "Molecule lookup failed.",
-      missing: "No override for this molecule.",
-    },
   },
   mocks,
   () => GET,

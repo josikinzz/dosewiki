@@ -26,7 +26,7 @@ vi.mock("../../../../save-to-convex/revalidateSavedPaths", () => ({
 installProtectedRouteMocks();
 
 function post(id = "cp_123") {
-  return new Request(`https://dose.wiki/api/dev/proposals/${id}/approve`, { method: "POST" });
+  return new Request(`https://dose.wiki/api/dev/proposals/${id}/approve`, { method: "POST", headers: { Origin: "https://dose.wiki" } });
 }
 
 function useClient(mutation: Mock) {

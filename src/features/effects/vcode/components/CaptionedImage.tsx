@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 
+import { SmartLink } from "@/components/common/SmartLink";
 import { AppImage } from "@/components/common/AppImage";
 import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,10 @@ interface CaptionedImageProps {
   src?: string;
   width?: string;
   artist?: string;
+  /** Where the credit links; plain text when absent. */
+  artistHref?: string;
+  /** True when `artistHref` leaves the site (the artist's own page). */
+  artistHrefExternal?: boolean;
   title?: string;
   caption?: string;
   align?: "left" | "right" | "center";
@@ -55,6 +60,8 @@ export function CaptionedImage({
   src,
   width,
   artist,
+  artistHref,
+  artistHrefExternal = false,
   title,
   caption,
   align = "center",
@@ -90,6 +97,9 @@ export function CaptionedImage({
       // `max-w-full` governs the collapsed mobile layout.
       ({ "--vcode-float-max": maxWidth } as CSSProperties);
 
+  // Motion replications are served as ordinary media URLs, so the extension is
+  // the only signal that this embed is a clip rather than a still.
+  const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(imageSrc);
   const hasCaptionContent = caption || artist;
 
   return (
@@ -106,13 +116,29 @@ export function CaptionedImage({
           border && "ring-1 ring-[var(--theme-frosted-panel-border)]",
         )}
       >
-        <AppImage
-          src={imageSrc}
-          alt={title || caption || "Effect replication"}
-          width={1200}
-          height={900}
-          className="w-full h-auto"
-        />
+        {isVideo ? (
+          // Effect Index's animated embeds were gfycat loops: silent, looping,
+          // autoplaying motion is the content, so a play button would hide it.
+          // `poster` stays unset — the first frame is the poster.
+          <video
+            src={imageSrc}
+            className="w-full h-auto"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            aria-label={title || caption || "Effect replication"}
+          />
+        ) : (
+          <AppImage
+            src={imageSrc}
+            alt={title || caption || "Effect replication"}
+            width={1200}
+            height={900}
+            className="w-full h-auto"
+          />
+        )}
         {hasCaptionContent && (
           <figcaption className="effect-vcode-caption px-3 py-2">
             {caption && (
@@ -122,7 +148,28 @@ export function CaptionedImage({
             )}
             {artist && (
               <div className="theme-text-faint mt-0.5 text-[11px]">
-                by {artist}
+                by{" "}
+                {artistHref ? (
+                  artistHrefExternal ? (
+                    <a
+                      href={artistHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-current/40 underline-offset-2 transition-opacity hover:opacity-80"
+                    >
+                      {artist}
+                    </a>
+                  ) : (
+                    <SmartLink
+                      href={artistHref}
+                      className="underline decoration-current/40 underline-offset-2 transition-opacity hover:opacity-80"
+                    >
+                      {artist}
+                    </SmartLink>
+                  )
+                ) : (
+                  artist
+                )}
               </div>
             )}
           </figcaption>

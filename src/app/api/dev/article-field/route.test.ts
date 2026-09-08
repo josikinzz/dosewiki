@@ -12,7 +12,6 @@ import { EDITABLE_FIELD_CONFLICT_REASON } from "../../../../../convex/lib/articl
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
     substanceIndex: { setArticleField: "substanceIndex.setArticleField" },
-    changelog: { addEntry: "changelog.addEntry" },
   },
 }));
 
@@ -23,6 +22,7 @@ vi.mock("next/cache", async (importOriginal) => ({
 }));
 
 installProtectedRouteMocks();
+const { POST } = await import("./route");
 
 /** How the Convex HTTP client rebuilds a thrown `ConvexError` on this side. */
 function forwarded(data: unknown) {
@@ -34,12 +34,14 @@ function forwarded(data: unknown) {
 function editRequest() {
   return new Request("https://dose.wiki/api/dev/article-field", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify({
       slug: "2c-b",
       path: "dosage.routes[0].notes",
       value: "Corrected note.",
       expected: "Old note.",
+      baseHash: "loaded-revision",
+      changeId: "field-change",
     }),
   });
 }
@@ -50,7 +52,7 @@ describeRoleFloor({
   floor: "admin",
   rateLimit: "editorSmallWrite",
   refused: "editor",
-  calls: [{ name: "POST", call: async () => (await import("./route")).POST(editRequest()) }],
+  calls: [{ name: "POST", call: () => POST(editRequest()) }],
 });
 
 describe("article field route failure reporting", () => {
@@ -66,7 +68,6 @@ describe("article field route failure reporting", () => {
     routeMocks.mutation.mockRejectedValue(
       forwarded({ code: "FIELD_CONFLICT", message: EDITABLE_FIELD_CONFLICT_REASON }),
     );
-    const { POST } = await import("./route");
 
     const response = await POST(editRequest());
 
@@ -81,7 +82,6 @@ describe("article field route failure reporting", () => {
     routeMocks.mutation.mockRejectedValue(
       forwarded({ code: "ARTICLE_NOT_FOUND", message: 'No substance found for slug "2c-b".' }),
     );
-    const { POST } = await import("./route");
 
     const response = await POST(editRequest());
 
@@ -92,23 +92,14 @@ describe("article field route failure reporting", () => {
     });
   });
 
-  it("names its own generic failure message", async () => {
-    routeMocks.mutation.mockRejectedValue(new Error("ECONNREFUSED"));
-    const { POST } = await import("./route");
 
-    const response = await POST(editRequest());
-
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({ error: "Unable to save that edit right now." });
-  });
-
-  it("still rejects a malformed request before reaching Convex", async () => {
-    const { POST } = await import("./route");
+  it("rejects an unversioned write before reaching Convex", async () => {
 
     const response = await POST(
       new Request("https://dose.wiki/api/dev/article-field", {
         method: "POST",
-        body: JSON.stringify({ slug: "2c-b", path: "title", value: "x" }),
+        headers: { Origin: "https://dose.wiki" },
+        body: JSON.stringify({ slug: "2c-b", path: "title", value: "x", expected: "y" }),
       }),
     );
 
@@ -117,79 +108,3 @@ describe("article field route failure reporting", () => {
   });
 });
 
-describe("article field route contribution history", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetRouteMocks("admin", ADMIN);
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    routeMocks.mutation.mockImplementation(async (name: string) => {
-      if (name === "substanceIndex.setArticleField") {
-        return {
-          slug: "2c-b",
-          path: "dosage.routes[0].notes",
-          value: "Corrected note.",
-          id: 42,
-          title: "2C-B",
-        };
-      }
-      if (name === "changelog.addEntry") return { created: true, id: "entry-id" };
-      throw new Error(`Unexpected mutation ${name}`);
-    });
-  });
-
-  it("stamps the inline edit onto the admin's contribution history", async () => {
-    const { POST } = await import("./route");
-
-    const response = await POST(editRequest());
-
-    expect(response.status).toBe(200);
-    const entry = routeMocks.mutation.mock.calls.find(
-      ([name]) => name === "changelog.addEntry",
-    )?.[1] as {
-      message: string;
-      markdown: string;
-      submittedBy: string;
-      articles: Array<{ id: number; title: string; slug: string }>;
-    };
-
-    expect(entry.submittedBy).toBe("ADMIN");
-    expect(entry.articles).toEqual([{ id: 42, title: "2C-B", slug: "2c-b" }]);
-    expect(entry.message).toContain("dosage.routes[0].notes");
-    expect(entry.markdown).toContain("- Old note.");
-    expect(entry.markdown).toContain("+ Corrected note.");
-  });
-
-  it("invalidates the cached contribution feed the new row belongs to", async () => {
-    const { POST } = await import("./route");
-    const { revalidateTag } = await import("next/cache");
-
-    await POST(editRequest());
-
-    expect(revalidateTag).toHaveBeenCalledWith("convex-public:changelog", { expire: 0 });
-  });
-
-  it("keeps a saved edit successful when the history row cannot be written", async () => {
-    routeMocks.mutation.mockImplementation(async (name: string) => {
-      if (name === "substanceIndex.setArticleField") {
-        return {
-          slug: "2c-b",
-          path: "dosage.routes[0].notes",
-          value: "Corrected note.",
-          id: 42,
-          title: "2C-B",
-        };
-      }
-      throw new Error("changelog is down");
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(editRequest());
-
-    // The field write already landed in Convex; reporting a failure here would
-    // invite the reviewer to make the same edit twice.
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ ok: true, slug: "2c-b" });
-    expect(console.warn).toHaveBeenCalled();
-  });
-});

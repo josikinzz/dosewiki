@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Error state for the Studio's primary read.
+ * Error boundary for rendering the Studio and its live display settings.
  *
- * `useQuery(api.warningBanners.listPresets)` throws during render when Convex
+ * `useQuery(api.siteConfig.getBannerDisplay)` throws during render when Convex
  * cannot answer — an outage, or a deployment where the function is not present
  * yet. Without a boundary that throw escapes to the `/dev` route's error UI and
  * the whole shell reads "Something went wrong", which loses the tab chrome, the

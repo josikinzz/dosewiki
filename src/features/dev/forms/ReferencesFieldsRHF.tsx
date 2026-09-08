@@ -19,6 +19,7 @@ import { useArticleFormContext } from "./ArticleFormContext";
 import { FormEditorField } from "./FormEditorField";
 import { EntryCard } from "./EntryCard";
 import { EditorCitationDiagnosticsPanel } from "./EditorCitationDiagnosticsPanel";
+import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
 import { copyCitationTag, QuickAddReferenceCard } from "./QuickAddReferenceCard";
 import {
   REFERENCE_QUALITY_OPTIONS,
@@ -51,17 +52,21 @@ function ReferenceEntryCard({
   copiedReferenceId,
   onCopyTag,
   onRemove,
+  embedded,
 }: {
   index: number;
   control: Control<SubstanceArticle>;
   copiedReferenceId: string | null;
   onCopyTag: (id: string) => void;
   onRemove: (id: string) => void;
+  embedded: boolean;
 }) {
   const { register } = useFormContext<SubstanceArticle>();
   const referenceId = useWatch({ control, name: `references.${index}.id` as const });
+  const referenceTitle = useWatch({ control, name: `references.${index}.title` as const });
+  const [establishedId] = useState(referenceId);
 
-  return (
+  const content = (
     <EntryCard
       bodyClassName="space-y-4"
       icon={<Icon icon="lucide:file-stack" size={16} />}
@@ -92,11 +97,14 @@ function ReferenceEntryCard({
           htmlFor={`reference-id-${index}`}
           label="Stable ID"
           name={`references.${index}.id` as const}
+          description={embedded ? establishedId ? "This identity is fixed to preserve existing citation markers. Edit the source details instead." : "Choose a unique ID before saving. Citation markers will use this identity." : undefined}
         >
           <Input
             id={`reference-id-${index}`}
             {...register(`references.${index}.id` as const)}
             placeholder="pmid-12345"
+            readOnly={embedded && Boolean(establishedId)}
+            aria-describedby={embedded ? `reference-id-${index}-description` : undefined}
           />
         </FormEditorField>
         <FormEditorField
@@ -117,6 +125,7 @@ function ReferenceEntryCard({
           htmlFor={`reference-type-${index}`}
           label="Reference Type"
           name={`references.${index}.type` as const}
+          description={embedded ? "The publication format, such as a journal article or book." : undefined}
         >
           <Controller
             control={control}
@@ -125,8 +134,9 @@ function ReferenceEntryCard({
               <EditorSelect
                 value={controllerField.value}
                 id={`reference-type-${index}`}
+                aria-describedby={embedded ? `reference-type-${index}-description` : undefined}
                 onChange={(event) => controllerField.onChange(event.target.value)}
-                options={REFERENCE_TYPE_OPTIONS.map((option) => ({ value: option, label: option }))}
+                options={REFERENCE_TYPE_OPTIONS.map((option) => ({ value: option, label: embedded ? option[0].toUpperCase() + option.slice(1).replace(/_/g, " ") : option }))}
               />
             )}
           />
@@ -135,6 +145,7 @@ function ReferenceEntryCard({
           htmlFor={`reference-source-type-${index}`}
           label="Source Type"
           name={`references.${index}.sourceType` as const}
+          description={embedded ? "Who produced the source, distinct from the claim it supports." : undefined}
         >
           <Controller
             control={control}
@@ -143,16 +154,18 @@ function ReferenceEntryCard({
               <EditorSelect
                 value={controllerField.value}
                 id={`reference-source-type-${index}`}
+                aria-describedby={embedded ? `reference-source-type-${index}-description` : undefined}
                 onChange={(event) => controllerField.onChange(event.target.value)}
-                options={REFERENCE_SOURCE_TYPE_OPTIONS.map((option) => ({ value: option, label: option }))}
+                options={REFERENCE_SOURCE_TYPE_OPTIONS.map((option) => ({ value: option, label: embedded ? option[0].toUpperCase() + option.slice(1).replace(/_/g, " ") : option }))}
               />
             )}
           />
         </FormEditorField>
         <FormEditorField
           htmlFor={`reference-quality-${index}`}
-          label="Quality"
+          label={embedded ? "Source quality (editorial)" : "Quality"}
           name={`references.${index}.quality` as const}
+          description={embedded ? "An editorial source rating, not verification of a claim." : undefined}
         >
           <Controller
             control={control}
@@ -161,8 +174,9 @@ function ReferenceEntryCard({
               <EditorSelect
                 value={controllerField.value}
                 id={`reference-quality-${index}`}
+                aria-describedby={embedded ? `reference-quality-${index}-description` : undefined}
                 onChange={(event) => controllerField.onChange(event.target.value)}
-                options={REFERENCE_QUALITY_OPTIONS.map((option) => ({ value: option, label: option }))}
+                options={REFERENCE_QUALITY_OPTIONS.map((option) => ({ value: option, label: embedded ? option[0].toUpperCase() + option.slice(1) : option }))}
               />
             )}
           />
@@ -371,8 +385,9 @@ function ReferenceEntryCard({
 
       <FormEditorField
         htmlFor={`reference-apa-text-${index}`}
-        label="APA text override"
+        label={embedded ? "APA display override (optional)" : "APA text override"}
         name={`references.${index}.apaText` as const}
+        description={embedded ? "Used by APA-formatted displays. Wikipedia-style references still use the structured metadata." : undefined}
       >
         <Controller
           control={control}
@@ -381,21 +396,35 @@ function ReferenceEntryCard({
             <Textarea
               id={`reference-apa-text-${index}`}
               value={controllerField.value ?? ""}
+              aria-describedby={embedded ? `reference-apa-text-${index}-description` : undefined}
               onChange={(event) => controllerField.onChange(normalizeOptionalReferenceText(event.target.value))}
               className="min-h-[88px]"
-              placeholder="Optional: provide the exact reference text to render publicly."
+              placeholder={embedded ? "Optional APA-formatted reference text" : "Optional: provide the exact reference text to render publicly."}
             />
           )}
         />
       </FormEditorField>
     </EntryCard>
   );
+  return embedded ? (
+    <CollapsibleEditorCard
+      title={referenceTitle || `New reference ${index + 1}`}
+      description={referenceId || "Complete the source details and choose a stable ID."}
+      density="compact"
+      defaultExpanded={!establishedId}
+      pairedIndicator
+      keepMounted
+    >
+      {content}
+    </CollapsibleEditorCard>
+  ) : content;
 }
 
-export function ReferencesFieldsRHF() {
+export function ReferencesFieldsRHF({ embedded = false }: { embedded?: boolean } = {}) {
   const { control, getValues, setValue } = useFormContext<SubstanceArticle>();
   const { references, addReference, removeReference } = useArticleFormContext();
   const [copiedReferenceId, setCopiedReferenceId] = useState<string | null>(null);
+  const [copyError, setCopyError] = useState("");
 
   /**
    * A reference is the resolution target for every `[cite:id]` token and route
@@ -459,29 +488,32 @@ export function ReferencesFieldsRHF() {
 
   const copyReferenceTag = (id: string) => {
     void (async () => {
+      setCopyError("");
       if (await copyCitationTag(id)) {
         setCopiedReferenceId(id);
         window.setTimeout(() => setCopiedReferenceId((current) => current === id ? null : current), 1600);
       }
+      else setCopyError(`Copy was unavailable. Select and copy this marker: [cite:${id}]`);
     })();
   };
 
   return (
     <section className="space-y-4" aria-label="Structured references">
-      <div className="theme-text-secondary space-y-1 text-sm">
+      <div className="theme-text-secondary max-w-prose space-y-1 text-sm">
         <p className="theme-accent-heading flex items-center gap-2 font-medium">
           <Icon icon="lucide:info" size={16} className="theme-icon-accent shrink-0" />
           Structured references are the primary citation model.
         </p>
-        <p>
+        {embedded ? <p>Keep each source’s ID unchanged so its citation markers continue to resolve. Adding a reference does not verify the claims that cite it.</p> : <p>
           Stable reference IDs here are what inline <code>[cite:reference-id]</code> tokens and route
           <code> reference_ids</code> resolve against.
-        </p>
+        </p>}
       </div>
 
-      <QuickAddReferenceCard references={references} />
+      <QuickAddReferenceCard references={references} embedded={embedded} />
 
-      <ReferencesCitationDiagnostics control={control} />
+      {!embedded ? <ReferencesCitationDiagnostics control={control} /> : null}
+      {copyError ? <p role="status" className="theme-text-muted text-sm [overflow-wrap:anywhere]">{copyError}</p> : null}
 
       <div className="space-y-3">
         {references.fields.map((field, index) => (
@@ -492,6 +524,7 @@ export function ReferencesFieldsRHF() {
             copiedReferenceId={copiedReferenceId}
             onCopyTag={copyReferenceTag}
             onRemove={(id) => confirmRemoveReference(index, id)}
+            embedded={embedded}
           />
         ))}
       </div>
@@ -499,6 +532,7 @@ export function ReferencesFieldsRHF() {
       <Button type="button" variant="outline" className="w-full border-dashed" onClick={addReference}>
         Add structured reference
       </Button>
+      {embedded ? <ReferencesCitationDiagnostics control={control} /> : null}
     </section>
   );
 }

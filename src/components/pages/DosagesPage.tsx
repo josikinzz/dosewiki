@@ -9,6 +9,8 @@ import {
   type PublicSegmentedTabItem,
 } from "@/components/layout/PublicSegmentedTabs";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
+import IndexItem from "@/features/dev/tools/index-layout/IndexItem.editor";
+import IndexCategory from "@/features/dev/tools/index-layout/IndexCategory.editor";
 import { CategoryIntro } from "@/components/pages/CategoryIntro";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
 import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
@@ -264,6 +266,8 @@ export function DosagesPage({
 
   return (
     <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">
+      <IndexItem />
+      <IndexCategory groups={psychoactiveGroups} />
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div>
           <PageHeader

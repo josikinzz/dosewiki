@@ -180,6 +180,12 @@ export const dropdownMenuStory: StoryDef = {
   ],
   props: [
     {
+      name: "DropdownMenuContent.container",
+      type: "HTMLElement | null",
+      default: "document.body",
+      description: "Portal destination. Keep menus inside a fullscreen element or modal outlet when the trigger lives there.",
+    },
+    {
       name: "DropdownMenuContent.sideOffset",
       type: "number",
       default: "4",

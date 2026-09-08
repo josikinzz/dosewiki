@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDevRouteDecision } from "@/lib/auth/roles";
+import { safeAuthRedirect } from "@/lib/auth/returnPath";
 import {
   buildRobotsPolicy,
   getLegacyRedirectTarget,
@@ -86,8 +87,23 @@ describe("status and redirect policy", () => {
     "//example.com/phishing",
     "/\\example.com/phishing",
     "javascript:alert(1)",
+    "/%2fexample.com/phishing",
+    "/%255cexample.com/phishing",
+    "/%09/example.com",
+    "/sign-in?callbackUrl=%2Fsign-in",
+    "/ignored/../sign-in",
+    "/api/auth/callback/credentials",
   ])("rejects the unsafe sign-in callback %s", (callbackUrl) => {
     expect(getSignInCallbackUrl(callbackUrl)).toBe(STATUS_PAGE_PATHS.dev);
+  });
+
+  it("preserves content query state only on the authenticated origin", () => {
+    const path = "/replications?viewer=infinite-torus-space&type=video#details";
+    expect(getSignInCallbackUrl(path)).toBe(path);
+    expect(safeAuthRedirect(path, "https://dev.dose.wiki")).toBe(`https://dev.dose.wiki${path}`);
+    expect(safeAuthRedirect(`https://dev.dose.wiki${path}`, "https://dev.dose.wiki")).toBe(`https://dev.dose.wiki${path}`);
+    expect(safeAuthRedirect("https://dose.wiki/dev", "https://dev.dose.wiki")).toBe("https://dev.dose.wiki/dev");
+    expect(safeAuthRedirect("//attacker.example/path", "https://dev.dose.wiki")).toBe("https://dev.dose.wiki/dev");
   });
 
   it("keeps every no-index route in robots disallow policy", () => {

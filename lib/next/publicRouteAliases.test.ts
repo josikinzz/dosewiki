@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import REPLICATION_SLUG_ALIASES from "../../src/data/config/replicationSlugAliases.json";
 import {
   getCategoryRouteAlias,
-  getCategoryRouteAliasParams,
   getEffectCategoryRouteAlias,
   getEffectCategoryRouteAliasParams,
   getReplicationRouteAlias,
@@ -34,8 +33,6 @@ describe("public route aliases", () => {
   });
 
   it("exposes taxonomy alias params so closed taxonomy routes can redirect", () => {
-    expect(getCategoryRouteAliasParams()).toContainEqual({ categoryKey: "psychedelics" });
-    expect(getCategoryRouteAliasParams()).toContainEqual({ categoryKey: "nootropics" });
     expect(getEffectCategoryRouteAliasParams()).toContainEqual({ categorySlug: "visual" });
   });
 

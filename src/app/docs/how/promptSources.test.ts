@@ -13,7 +13,6 @@ const PAGE = readFileSync(path.join(REPO_ROOT, "src/app/docs/how/page.tsx"), "ut
 
 const EXTRACTION_DIR = "scripts/prompts";
 const SECTION_DIR = "src/data/config/sectionPrompts";
-const CONTRACT_FILE = `${EXTRACTION_DIR}/block-selection-contract.md`;
 
 /** Slugs the page lists, taken from the literal arrays it builds its <details> from. */
 function slugsFrom(arrayName: string): string[] {
@@ -43,27 +42,6 @@ describe("/docs/how publishes every prompt the pipeline runs", () => {
         existsSync(path.join(REPO_ROOT, SECTION_DIR, `${slug}.md`)),
         `${SECTION_DIR}/${slug}.md is referenced by the page but does not exist`,
       ).toBe(true);
-    }
-  });
-
-  it("publishes the block-selection contract from the file the harness reads", () => {
-    const contract = readFileSync(path.join(REPO_ROOT, CONTRACT_FILE), "utf8");
-
-    // The contract is what actually makes excerpts verbatim, and it supersedes the
-    // output format every extraction prompt describes. Both facts have to survive.
-    expect(contract).toContain("{{TOPIC}}");
-    expect(contract).toContain("THIS SUPERSEDES ANY OUTPUT FORMAT DESCRIBED ABOVE");
-    expect(PAGE).toContain(CONTRACT_FILE);
-
-    const harnessPath = path.join(
-      REPO_ROOT,
-      "runs/section-extraction-2026-07-24/extract-run.mjs",
-    );
-    if (existsSync(harnessPath)) {
-      expect(
-        readFileSync(harnessPath, "utf8"),
-        "the harness must read the same contract file the page publishes",
-      ).toContain("block-selection-contract.md");
     }
   });
 

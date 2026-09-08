@@ -1,11 +1,21 @@
 # Dependencies and generated output
 node_modules/
 .next/
+.next-editor/
 dist/
 # The repository-owned OpenChemLib package resolves from committed browser
 # artifacts during Vercel's no-Java/GWT install and build.
 !vendor/openchemlib/dist/
 !vendor/openchemlib/dist/**
+# Local compiler tools and intermediates are not runtime fork artifacts.
+vendor/openchemlib/.tools/
+vendor/openchemlib/gwt-unitCache/
+vendor/openchemlib/war/
+vendor/openchemlib/lib/java/
+# Social cards are served from committed R2 manifests, not workstation renders.
+public/images/social/substances/*.jpg
+public/images/social/pages/*.jpg
+public/images/social/entities/**/*.jpg
 dist-inline/
 # Anchored: unanchored `coverage/` matches a directory of that name at any
 # depth, which excluded src/features/coverage and src/app/about/coverage from
@@ -23,6 +33,12 @@ src/data/.lineage/
 .codex/
 .venv-molecules/
 .impeccable.md
+.omp/
+.impeccable/
+.test-evidence/
+.unslop/
+.agents/
+**/.lakebed/
 
 # Environment and logs
 .env
@@ -43,6 +59,10 @@ output/
 outputs/
 quotes/
 runs/
+recovery/
+# Workstation audit records can contain private operation data.
+scripts/data/audit-logs/
+scripts/data/backups/
 # Keep scripts/ in the upload. Vercel's ignore implementation did not honor
 # nested negations reliably, which omitted scripts/deploy/vercel-build.mjs and
 # made otherwise valid deployments fail before the build could start.

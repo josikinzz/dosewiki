@@ -2,11 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+
 vi.mock("convex/server", () => ({
   makeFunctionReference: (name: string) => ({ name }),
 }));
 
-import { ConvexSiteFeedbackStore } from "./siteFeedbackStore.server";
+import {
+  ConvexSiteFeedbackStore,
+} from "./siteFeedbackStore.server";
 
 describe("ConvexSiteFeedbackStore", () => {
   it("names the signed-in actor on a triage transition and never on reads", async () => {
@@ -18,6 +21,7 @@ describe("ConvexSiteFeedbackStore", () => {
           calls.push({ kind: "mutation", name: reference.name, args });
           return { id: "feedback-1", status: args.status };
         }),
+        mutationAsService: vi.fn(),
         query: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
           calls.push({ kind: "query", name: reference.name, args });
           return reference.name === "siteFeedback:countByStatus" ? 3 : [];
@@ -51,4 +55,42 @@ describe("ConvexSiteFeedbackStore", () => {
       },
     ]);
   });
+
+  it("uses the explicit server-service path for unauthenticated public intake", async () => {
+    const mutation = vi.fn();
+    const mutationAsService = vi.fn(
+      async (_reference: { name: string }, args: Record<string, unknown>) => args.feedback,
+    );
+    const store = new ConvexSiteFeedbackStore({
+      apiKey: "test-key",
+      idFactory: () => "feedback-1",
+      now: () => new Date("2026-09-04T12:00:00.000Z"),
+      client: {
+        mutation,
+        mutationAsService,
+        query: vi.fn(),
+      },
+    });
+
+    await expect(
+      store.create({
+        category: "technical",
+        urgency: "low",
+        details: "Diagnostic feedback.",
+      }),
+    ).resolves.toMatchObject({ id: "feedback-1", status: "new" });
+
+    expect(mutation).not.toHaveBeenCalled();
+    expect(mutationAsService).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "siteFeedback:create" }),
+      {
+        apiKey: "test-key",
+        feedback: expect.objectContaining({
+          id: "feedback-1",
+          details: "Diagnostic feedback.",
+        }),
+      },
+    );
+  });
 });
+

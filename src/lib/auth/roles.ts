@@ -1,3 +1,5 @@
+import { safeAuthReturnPath } from "./returnPath";
+
 export const APP_ROLES = ["admin", "editor", "contributor", "viewer"] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
@@ -66,7 +68,7 @@ export function getDevRouteDecision(input: {
   role?: unknown;
   floor?: RoleFloor;
 }): DevRouteDecision {
-  const callbackUrl = `${input.pathname}${input.search ?? ""}`;
+  const callbackUrl = safeAuthReturnPath(`${input.pathname}${input.search ?? ""}`);
 
   if (!canUseSelfProfileRoute({ email: input.email })) {
     return {

@@ -1,4 +1,6 @@
 import { slugify } from "@/utils/slug";
+import type { VCodeContent } from "@/features/effects/vcode/types";
+import type { NarrativeHistoryEntry } from "@/features/effects/editing/NarrativeHistory";
 
 export type WritingKind = "article" | "blog";
 export type WritingStatus = "draft" | "published";
@@ -22,6 +24,11 @@ export interface WritingArticleRow {
   kind?: WritingKind;
   status?: WritingStatus;
   bodyFormat?: "vcode" | "markdown";
+  body_ast?: VCodeContent;
+  baseRevision: string;
+  citations?: Array<{ url: string; text: string }>;
+  shortDescription?: string;
+  history?: NarrativeHistoryEntry[];
   body_raw?: string;
   teaser?: string;
   coverImageUrl?: string;
@@ -35,6 +42,7 @@ export interface WritingDraft {
   teaser: string;
   coverImageUrl: string;
   body: string;
+  bodyFormat: "vcode" | "markdown";
   tags: string;
   authorProfileKeys: string[];
   status: WritingStatus;
@@ -53,6 +61,7 @@ export function emptyWritingDraft(): WritingDraft {
     teaser: "",
     coverImageUrl: "",
     body: "",
+    bodyFormat: "markdown",
     tags: "",
     authorProfileKeys: [],
     status: "draft",
@@ -64,9 +73,10 @@ export function draftFromRow(row: WritingArticleRow): WritingDraft {
   return {
     slug: row.slug,
     title: row.title,
-    teaser: row.teaser ?? "",
+    teaser: row.teaser ?? row.shortDescription ?? "",
     coverImageUrl: row.coverImageUrl ?? "",
     body: row.body_raw ?? "",
+    bodyFormat: row.bodyFormat ?? "vcode",
     tags: (row.tags ?? []).join(", "),
     authorProfileKeys: [...(row.authorProfileKeys ?? [])],
     status: row.status ?? "published",
@@ -82,6 +92,7 @@ export function isSameDraft(a: WritingDraft, b: WritingDraft): boolean {
     a.teaser === b.teaser &&
     a.coverImageUrl === b.coverImageUrl &&
     a.body === b.body &&
+    a.bodyFormat === b.bodyFormat &&
     a.tags === b.tags &&
     a.status === b.status &&
     a.publicationDate === b.publicationDate &&
@@ -97,14 +108,6 @@ export function parseTagList(value: string): string[] {
     .filter(Boolean);
 }
 
-/**
- * A legacy Effect Index row is VCode, and this editor writes Markdown. Opening
- * one here would offer to rewrite its body in a language it is not written in,
- * so the tab shows it as read-only instead of pretending otherwise.
- */
-export function isEditableHere(row: WritingArticleRow): boolean {
-  return (row.bodyFormat ?? "vcode") === "markdown";
-}
 
 export type SlugAvailability =
   | { state: "empty" }

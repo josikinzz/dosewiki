@@ -42,6 +42,7 @@ export {
   getFeaturedSubstances,
   getPublicAboutPreviewSubstances,
   getPublicCategoryLayout,
+  getPublicCoverageSubstances,
   getPublicFullSubstanceDocuments,
   getPublicMechanismRouteInput,
   getPublicSubstanceBySlug,
@@ -51,7 +52,6 @@ export {
   getRawSubstances,
   getReviewedArticleCredits,
   getReviewedArticlesByContributor,
-  getUncachedCoverageSubstances,
 } from "./publicData.substances";
 
 export {
@@ -65,6 +65,8 @@ export {
   getPublicReplications,
   getPublicReplicationsByEffect,
 } from "./publicData.effects";
+
+export { getPublicReplicationsBySlugs } from "./publicData.replicationDetails";
 
 export {
   getPublishedEffectIndexArticles,
@@ -83,7 +85,6 @@ export {
   getPublicGalleryReplicationBySlug,
   getPublicGalleryReplications,
   getPublicReplicationsForSubstance,
-  getPublicReplicationsBySlugs,
   getReplicationsByContributor,
   type PublicSubstanceGallery,
   type SubstanceGalleryItem,

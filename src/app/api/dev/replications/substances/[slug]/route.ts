@@ -19,16 +19,15 @@
  * or `null` when it loaded no curation row at all. Omitting it saves
  * unconditionally. When it disagrees with the stored row Convex writes nothing
  * and reports the current server state, which this route relays as a 409 —
- * and, having written nothing, does not revalidate.
+ * and, having written nothing, publishes nothing.
  *
- * A successful save revalidates the public replications tag with `expire: 0`
- * and the substance article route, so the article's showcase reflects the new
- * order immediately instead of at the end of the public-data cache window.
+ * A successful save publishes the substance article and the shared replication
+ * collections, so the article's showcase reflects the new order on the public
+ * deployments immediately instead of at the end of the public-data cache window.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { GALLERY_CURATION_SLUG_CAP } from "@/data/substanceReplicationGallery";
@@ -215,7 +214,7 @@ export const POST = protectedRouteOperation<CurationBody, ParsedCurationBody>({
     });
 
     if (result.status === "conflict") {
-      // Nothing was written, so nothing is stale downstream: no revalidation.
+      // Nothing was written, so nothing is stale downstream: no publication.
       return NextResponse.json(
         {
           error:
@@ -226,8 +225,10 @@ export const POST = protectedRouteOperation<CurationBody, ParsedCurationBody>({
       );
     }
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
-    revalidatePath(`/${slug}`);
+    await publishPublicCache({
+      targets: [{ kind: "article", slug }, { kind: "replication-collections" }],
+      source: "manual",
+    });
 
     return NextResponse.json({
       ok: true,
@@ -238,5 +239,38 @@ export const POST = protectedRouteOperation<CurationBody, ParsedCurationBody>({
       updated_at: result.updated_at,
       updated_by: result.updated_by,
     });
+  },
+});
+
+/** Eligibility is separate from membership edits and always revision-guarded. */
+export const PATCH = protectedRouteOperation<
+  { disabled?: unknown; expectedRevision?: unknown },
+  { disabled: boolean; expectedRevision: string }
+>({
+  auth: "admin",
+  rateLimit: "editorSmallWrite",
+  body: {
+    maxBytes: 1024,
+    parse: (raw) => {
+      if (typeof raw?.disabled !== "boolean" || typeof raw.expectedRevision !== "string" || !/^[a-f0-9]{64}$/.test(raw.expectedRevision)) {
+        throw new JsonBodyError(400, "A disabled decision and the current collection revision are required.");
+      }
+      return { disabled: raw.disabled, expectedRevision: raw.expectedRevision };
+    },
+  },
+  capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to change substance gallery eligibility:",
+  operation: async ({ request, actorEmail, body, convexWrite }) => {
+    if (!convexWrite) throw new Error("Convex write capability is required.");
+    const slug = substanceSlugOf(request);
+    const result = await convexWrite.client.mutation(api.substanceGalleries.setDisabled, {
+      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+      actorEmail, substance_slug: slug, ...body,
+    });
+    await publishPublicCache({
+      targets: [{ kind: "article", slug }, { kind: "replication-collections" }],
+      source: "manual",
+    });
+    return NextResponse.json(result);
   },
 });

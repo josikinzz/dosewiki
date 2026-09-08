@@ -98,9 +98,9 @@ function projectedLinks(links: ProjectionLink[]): StoredLink[] {
   return links.map((link) => ({ label: link.kind, url: link.url }));
 }
 
-function assertLinkPlan(key: string, links: StoredLink[], evidenceOnlyLinks: ProjectionLink[]) {
-  if (links.length > MAX_CONTRIBUTOR_PROFILE_LINKS) {
-    throw new Error(`Profile ${key} exceeds the ${MAX_CONTRIBUTOR_PROFILE_LINKS}-link product limit.`);
+function assertLinkPlan(key: string, links: StoredLink[], evidenceOnlyLinks: ProjectionLink[], limit: number) {
+  if (links.length > limit) {
+    throw new Error(`Profile ${key} exceeds the ${limit}-link reviewed plan limit.`);
   }
   for (const link of evidenceOnlyLinks) {
     if (!link.notImportedReason) {
@@ -139,7 +139,8 @@ export function buildContributorProfileImportPayload(args: {
   if (args.operationId !== args.projection.campaignId) {
     throw new Error("Contributor import operationId must match the reviewed projection campaignId.");
   }
-  if (args.projection.counts.profileLinkLimit !== MAX_CONTRIBUTOR_PROFILE_LINKS) {
+  const linkLimit = args.projection.counts.profileLinkLimit;
+  if (!Number.isInteger(linkLimit) || linkLimit < 1 || linkLimit > MAX_CONTRIBUTOR_PROFILE_LINKS) {
     throw new Error("Contributor projection and application link limits disagree.");
   }
   const liveById = new Map(args.liveProfiles.map((profile) => [profile._id, profile]));
@@ -167,7 +168,7 @@ export function buildContributorProfileImportPayload(args: {
       throw new Error(`Existing links drifted for ${projected.key}.`);
     }
     const desiredLinks = [...live.links, ...projectedLinks(projected.addLinks)];
-    assertLinkPlan(projected.key, desiredLinks, projected.evidenceOnlyLinks);
+    assertLinkPlan(projected.key, desiredLinks, projected.evidenceOnlyLinks, linkLimit);
     const expected = profileState(live);
     const desired = profileState({ ...live, links: desiredLinks }, args.avatarBindings?.[projected.key]);
     entries.push({
@@ -185,7 +186,7 @@ export function buildContributorProfileImportPayload(args: {
       throw new Error(`Unexpected create-profile operation for ${projected.key}.`);
     }
     const links = projectedLinks(projected.links);
-    assertLinkPlan(projected.key, links, projected.evidenceOnlyLinks);
+    assertLinkPlan(projected.key, links, projected.evidenceOnlyLinks, linkLimit);
     const profile = profileState({
       key: projected.key,
       displayName: projected.displayName,

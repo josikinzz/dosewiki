@@ -47,7 +47,7 @@ type CorpusPayload = {
 
 type LoadState = { status: "loading" } | { status: "ready" } | { status: "error"; message: string };
 
-type ReportDetail = { id: string; fields: TripReportEditableFields };
+type ReportDetail = { id: string; fields: TripReportEditableFields; revision: string };
 
 type DetailState =
   | { status: "idle" }
@@ -111,16 +111,17 @@ export function useTripReportPortalController() {
 
       const payload = await response.json();
       const fields = payload?.report?.fields as TripReportEditableFields | undefined;
+      const revision = payload?.report?.revision;
       if (openReportRef.current !== id) {
         return;
       }
 
-      if (!fields) {
+      if (!fields || typeof revision !== "string") {
         setDetailState({ status: "error", message: "That report came back empty." });
         return;
       }
 
-      setDetail({ id, fields });
+      setDetail({ id, fields, revision });
       setDraft(structuredClone(fields));
       setDetailState({ status: "idle" });
     } catch {
@@ -313,7 +314,7 @@ export function useTripReportPortalController() {
   }, [closeEditor]);
 
   async function saveReport(request: EditorSaveRequest) {
-    if (!selected || !selected.fields) {
+    if (!selected || !selected.fields || !detail || detail.id !== selected.id) {
       return;
     }
 
@@ -327,6 +328,8 @@ export function useTripReportPortalController() {
           mode: "save",
           id: selected.id,
           expected: selected.fields,
+          expectedRevision: detail.revision,
+          operationId: crypto.randomUUID(),
           updates: request.updates,
           ...(request.profileKey !== undefined ? { profile_key: request.profileKey } : {}),
           ...(request.confirmAuthorNameClaim ? { confirm_author_name_claim: true } : {}),

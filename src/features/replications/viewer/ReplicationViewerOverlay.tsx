@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { focusRingClassName } from "@/components/ui/surface";
+import { EditorLauncherOutlet } from "@/features/editor-launcher/EditorLauncherOutlet";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -36,16 +38,17 @@ import {
 } from "./ViewerMediaTrack";
 import { ViewerThumbnailRail } from "./ViewerThumbnailRail";
 import { useStageFit } from "./useStageFit";
+import { slideMotionSource } from "./qualityLadder";
 import { RotatingIcon } from "./RotatingIcon";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
-import { ReplicationViewerEditorGate } from "./editor/ReplicationViewerEditorGate";
+import ReplicationViewerEditorGate from "./editor/ReplicationViewerEditorGate.editor";
 import {
   findViewerPosition,
+  moveViewerGroup,
   moveViewerWork,
   type ReplicationViewerCollection,
   type ReplicationViewerPosition,
 } from "./viewerModel";
-import { type SlideQuality } from "./qualityLadder";
 import {
   GESTURE_HINT_STORAGE_KEY,
   VIEWER_ROTATE_STORAGE_KEY,
@@ -68,9 +71,11 @@ import {
  * and unlayered theme CSS beats layered utilities — only layered important
  * utilities keep this surface borderless, shadowless, pure black in every
  * theme. `--theme-elevation-none` is the audited flat-shadow token.
+ * Full-viewport surfaces must not inherit the centered dialog's slide/zoom:
+ * those keyframes displace and shrink the entire viewer during startup.
  */
 const VIEWER_DIALOG_CLASS =
-  "theme-media-tile-title fixed inset-0 z-[70] max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] duration-150 sm:rounded-none";
+  "theme-media-tile-title fixed inset-0 z-[70] h-dvh w-full max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] !animate-none sm:rounded-none";
 /**
  * The side the incoming work enters from after a non-swipe navigation
  * (group jumps, rail taps, editor activation). Horizontal work changes ride
@@ -78,9 +83,6 @@ const VIEWER_DIALOG_CLASS =
  */
 
 const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
-  top: "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-6 motion-safe:duration-200",
-  bottom:
-    "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-200",
   fade: "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
 };
 
@@ -120,6 +122,12 @@ export interface ReplicationViewerOverlayProps {
   initialSlug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** A host-owned history boundary, such as an exact-origin embedded viewer. */
+  historyAdapter?: ViewerHistoryAdapter;
+  /** Re-apply a host selection even when its slug equals the original launch. */
+  selectionRevision?: number;
+  /** Public embedded documents never mount editorial launchers or gates. */
+  editorEnabled?: boolean;
   /**
    * Regroup the walked collection around the work the reader is looking at.
    * Provided only by hosts whose collection supports both groupings (the
@@ -134,6 +142,9 @@ export function ReplicationViewerOverlay({
   open,
   onOpenChange,
   onRegroup,
+  historyAdapter,
+  selectionRevision,
+  editorEnabled = true,
 }: ReplicationViewerOverlayProps) {
   const [collection, setCollection] = useState(sourceCollection);
   const [position, setPosition] = useState<ReplicationViewerPosition | null>(
@@ -155,14 +166,16 @@ export function ReplicationViewerOverlay({
   const [chromeVisible, setChromeVisible] = useState(true);
   /** Gesture-safe playback verbs registered by the transport chrome. */
   const transportHandleRef = useRef<ViewerTransportHandle | null>(null);
-  /** The track's slide/bless verbs, for keyboard and arrow navigation. */
+  /** The track's two-axis navigation verbs, shared by keys and controls. */
   const trackRef = useRef<ViewerTrackHandle>(null);
   /** The pooled element on the active pane; null while a still is up. */
   const [activeVideo, setActiveVideo] = useState<HTMLVideoElement | null>(
     null,
   );
-  /** The one work this session explicitly escalated to its full file. */
-  const [hqSlug, setHqSlug] = useState<string | null>(null);
+  const [bufferHealth, setBufferHealth] = useState<{
+    mediaKey: string;
+    healthy: boolean;
+  } | null>(null);
   const [entryMotion, setEntryMotion] = useState<EntryMotion | null>(null);
   const [gestureHint, setGestureHint] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -201,7 +214,7 @@ export function ReplicationViewerOverlay({
       ? (previousSessionHolder?.collection.groups[previousPosition.groupIndex]
           ?.items[previousPosition.itemIndex]?.replication.slug ?? initialSlug)
       : initialSlug;
-    const history: ViewerHistoryAdapter = {
+    const history: ViewerHistoryAdapter = historyAdapter ?? {
       push: (url) =>
         window.history.pushState(
           { ...window.history.state, replicationViewer: true },
@@ -236,8 +249,25 @@ export function ReplicationViewerOverlay({
   const group = position ? collection.groups[position.groupIndex] : null;
   const active = group && position ? group.items[position.itemIndex] : null;
   const activeSlug = active ? active.replication.slug : null;
+  const activeSlugRef = useRef(activeSlug);
+  activeSlugRef.current = activeSlug;
+  const handleBufferHealthChange = useCallback(
+    (mediaKey: string, healthy: boolean) => {
+      if (mediaKey !== activeSlugRef.current) return;
+      setBufferHealth((previous) =>
+        previous?.mediaKey === mediaKey && previous.healthy === healthy
+          ? previous
+          : { mediaKey, healthy },
+      );
+    },
+    [],
+  );
+  const allowNeighborPreload =
+    active !== null &&
+    (slideMotionSource(active.replication) === null ||
+      (bufferHealth?.mediaKey === activeSlug && bufferHealth.healthy));
 
-  const { canRotate, rotated, probeAspect, mediaAspect, aspectSettled } =
+  const { canRotate, rotated, probeAspect } =
     useStageFit({
       mediaKey: activeSlug ?? "",
       type: active?.replication.type ?? "image",
@@ -271,7 +301,7 @@ export function ReplicationViewerOverlay({
 
   useEffect(() => {
     session.syncFromUrl(initialSlug);
-  }, [initialSlug]);
+  }, [initialSlug, selectionRevision]);
 
   // Sound and rotate mode are session preferences, the way the phone feeds
   // treat them: each open starts from the stored choices instead of
@@ -281,7 +311,6 @@ export function ReplicationViewerOverlay({
       setVolume(1);
       setInfoOpen(false);
       setSettingsOpen(false);
-      setHqSlug(null);
       setActiveVideo(null);
       setEditorOpen(false);
       setReorderMode(false);
@@ -328,13 +357,6 @@ export function ReplicationViewerOverlay({
       transportHandleRef.current = handle;
     },
     [],
-  );
-
-  const handleQualityChange = useCallback(
-    (quality: SlideQuality) => {
-      setHqSlug(quality === "full" ? (activeSlug ?? null) : null);
-    },
-    [activeSlug],
   );
 
   useEffect(() => {
@@ -469,14 +491,21 @@ export function ReplicationViewerOverlay({
     ? moveViewerWork(collection, position, -1)
     : null;
   const nextWork = position ? moveViewerWork(collection, position, 1) : null;
+  // A regroup rebuilds the session before its collection reaches render state.
+  // Keep previews on the rendered snapshot until that handoff, then resume
+  // the session's remembered work within each neighboring group.
   const previousGroup =
-    position && position.groupIndex > 0
-      ? { groupIndex: position.groupIndex - 1, itemIndex: 0 }
-      : null;
+    collection === sourceCollection
+      ? session.adjacentGroup(-1)
+      : position
+        ? moveViewerGroup(collection, position, -1)
+        : null;
   const nextGroup =
-    position && position.groupIndex + 1 < collection.groups.length
-      ? { groupIndex: position.groupIndex + 1, itemIndex: 0 }
-      : null;
+    collection === sourceCollection
+      ? session.adjacentGroup(1)
+      : position
+        ? moveViewerGroup(collection, position, 1)
+        : null;
 
   /**
    * One work over, with the track's slide animation when it can run it.
@@ -486,6 +515,10 @@ export function ReplicationViewerOverlay({
    */
   const slideWork = useCallback((direction: 1 | -1) => {
     trackRef.current?.slide(direction);
+  }, []);
+
+  const slideGroup = useCallback((direction: 1 | -1) => {
+    trackRef.current?.slideGroup(direction);
   }, []);
 
   /** A completed track commit: the pool already rotated; land the position. */
@@ -513,7 +546,7 @@ export function ReplicationViewerOverlay({
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || historyAdapter) return;
     const onPopState = () => {
       const slug = parseReplicationViewerSlug(
         new URLSearchParams(window.location.search),
@@ -526,7 +559,7 @@ export function ReplicationViewerOverlay({
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [onOpenChange, open, session]);
+  }, [historyAdapter, onOpenChange, open, session]);
 
   useEffect(() => {
     if (!infoOpen || !active) return;
@@ -547,17 +580,22 @@ export function ReplicationViewerOverlay({
   const close = useCallback(() => {
     const finish = () => {
       const viewerStateActive =
-        window.history.state?.replicationViewer === true;
+        historyAdapter?.viewerStateActive() ?? window.history.state?.replicationViewer === true;
       session.close();
       if (!viewerStateActive) onOpenChange(false);
     };
+    const beforeClose = new CustomEvent("replication-viewer-before-close", {
+      cancelable: true,
+      detail: { proceed: finish },
+    });
+    if (!document.dispatchEvent(beforeClose)) return;
 
     if (document.fullscreenElement && document.exitFullscreen) {
       void document.exitFullscreen().finally(finish);
     } else {
       finish();
     }
-  }, [onOpenChange, session]);
+  }, [historyAdapter, onOpenChange, session]);
 
   const fullscreenSupported =
     typeof document !== "undefined" &&
@@ -587,6 +625,7 @@ export function ReplicationViewerOverlay({
       // Keydown targets the focused element or body — but never assume:
       // a non-element target (window in tests) simply has no guard to hit.
       const target = event.target instanceof HTMLElement ? event.target : null;
+      if (target && (editorPanelHost?.contains(target) || editorRailHost?.contains(target))) return;
       if (
         target?.isContentEditable ||
         (target && /^(INPUT|TEXTAREA|SELECT|VIDEO|AUDIO)$/.test(target.tagName))
@@ -643,12 +682,14 @@ export function ReplicationViewerOverlay({
         return;
       }
       event.preventDefault();
-      commitGroup(direction);
+      slideGroup(direction);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
-    commitGroup,
+    slideGroup,
+    editorPanelHost,
+    editorRailHost,
     fullscreenSupported,
     infoOpen,
     nextGroup,
@@ -680,6 +721,23 @@ export function ReplicationViewerOverlay({
     return () => window.clearTimeout(timer);
   }, [open]);
 
+  // Panels pin the interface; otherwise the reader's explicit choice wins.
+  const chromeHidden =
+    !chromeVisible && !settingsOpen && !infoOpen && !editorOpen && !reorderMode;
+  useLayoutEffect(() => {
+    const dialog = contentRef.current;
+    const focused = document.activeElement;
+    if (
+      chromeHidden &&
+      dialog &&
+      focused instanceof HTMLElement &&
+      dialog.contains(focused) &&
+      focused.closest("header, nav")
+    ) {
+      dialog.focus({ preventScroll: true });
+    }
+  }, [chromeHidden]);
+
   if (!active || !position || !group) return null;
   const artistLabel = hasKnownCreator(active.replication.artist)
     ? active.replication.artist.trim()
@@ -695,30 +753,8 @@ export function ReplicationViewerOverlay({
         ? "Effect"
         : "Group";
 
-  // True immersive state: when the stage's transport idles away, the whole
-  // frame follows — header, thumbnail rail, and byline fade with it. Any
-  // open panel (settings, info, editor, reorder) pins the chrome: those
-  // surfaces are being used, not watched through.
-  const chromeHidden =
-    !chromeVisible && !settingsOpen && !infoOpen && !editorOpen && !reorderMode;
 
-  // Rotate-to-fit geometry for the active media element inside the track:
-  // the element alone turns 90° and swaps its box to the stage's cross
-  // dimensions (container-query units resolve against the media region), so
-  // a landscape work fills the portrait screen edge-to-edge while chrome,
-  // gestures, and text stay upright. A work with no catalogued dimensions
-  // starts on a guessed aspect: hold it invisible (opacity only — decode
-  // and autoplay keep running) until its orientation settles.
-  const orientationPending = canRotate && rotateMode && !aspectSettled;
-  const activeMediaClassName = cn(
-    "transition-transform duration-200 motion-reduce:transition-none",
-    rotated
-      ? "left-1/2 top-1/2 h-[100cqw] w-[100cqh] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90"
-      : "inset-0 h-full w-full",
-    orientationPending && "opacity-0",
-  );
-  const activeQuality: SlideQuality =
-    hqSlug !== null && hqSlug === activeSlug ? "full" : "preview";
+  const showRail = group.items.length > 1 && !reorderMode;
   const positionKey = `${group.key}|${active.replication.slug}`;
 
   return (
@@ -728,6 +764,20 @@ export function ReplicationViewerOverlay({
         if (!nextOpen) close();
       }}
     >
+      {open && editorEnabled ? (
+        <EditorLauncherTarget
+          priority="overlay"
+          target={
+            sourceCollection.editorTarget?.kind === "substance"
+              ? {
+                  kind: "replications",
+                  slug: sourceCollection.editorTarget.key,
+                  name: sourceCollection.editorTarget.label,
+                }
+              : { kind: "generic", name: sourceCollection.label }
+          }
+        />
+      ) : null}
       <DialogContent
         ref={contentRef}
         aria-modal="true"
@@ -751,6 +801,12 @@ export function ReplicationViewerOverlay({
           contentRef.current?.focus();
         }}
         onEscapeKeyDown={(event) => {
+          if (editorOpen) {
+            event.preventDefault();
+            setEditorOpen(false);
+            setReorderMode(false);
+            return;
+          }
           if (settingsOpen) {
             event.preventDefault();
             setSettingsOpen(false);
@@ -793,14 +849,13 @@ export function ReplicationViewerOverlay({
           heading.focus({ preventScroll: true });
         }}
         onPointerDownCapture={() => {
-          // Any gesture in the dialog blesses the pooled elements while the
-          // user activation is live, and retires the onboarding chip.
+          // Any gesture retires the onboarding chip.
           setGestureHint(false);
-          trackRef.current?.blessPool();
         }}
         tabIndex={-1}
-        className={VIEWER_DIALOG_CLASS}
+        className={`${VIEWER_DIALOG_CLASS}${editorOpen ? " [&_[data-editor-launcher]]:hidden" : ""}`}
       >
+        {open && editorEnabled ? <EditorLauncherOutlet /> : null}
         <DialogDescription className="sr-only">
           Viewing {active.replication.title} by {artistLabel}. {collection.label}.
           Work {position.itemIndex + 1} of {group.items.length}.
@@ -809,50 +864,53 @@ export function ReplicationViewerOverlay({
           inert={infoOpen || chromeHidden || undefined}
           aria-hidden={infoOpen || chromeHidden || undefined}
           className={cn(
-            "theme-media-thumbnail-border relative z-10 flex min-w-0 items-center gap-2 border-b bg-black py-1.5 pl-3 pr-2 pt-[max(0.375rem,env(safe-area-inset-top))] transition-opacity duration-200 motion-reduce:transition-none sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2",
+            "theme-media-thumbnail-border absolute inset-x-0 top-0 z-10 flex min-w-0 flex-wrap items-center gap-2 bg-black/75 py-1.5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pt-[max(0.375rem,env(safe-area-inset-top))] transition-opacity duration-200 motion-reduce:transition-none sm:min-h-16 sm:gap-3 sm:px-6 sm:py-2",
             chromeHidden && "opacity-0",
           )}
         >
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
-            <DialogTitle className="theme-media-tile-title flex min-w-0 items-baseline gap-1.5 font-display text-sm font-semibold sm:flex-1 sm:text-base">
-              {/* The group identity leads: the artist when walking artists,
-                  the subjective effect when walking effects — the byline chip
-                  on the stage always carries the artist either way. The work
-                  title is the quieter second element. */}
-              {collection.grouping === "effect" ? (
-                <span className="max-w-[11rem] shrink-0 truncate sm:max-w-[16rem]">
-                  {group.label}
-                </span>
-              ) : artistProfileHref ? (
-                <Link
-                  href={artistProfileHref}
-                  className={cn(
-                    "max-w-[11rem] shrink-0 truncate underline decoration-current/40 underline-offset-2 transition-opacity hover:opacity-80 sm:max-w-[16rem]",
-                    focusRingClassName,
-                  )}
-                >
-                  {artistLabel}
-                </Link>
-              ) : (
-                <span className="max-w-[11rem] shrink-0 truncate">
-                  {artistLabel}
-                </span>
-              )}
-              <span aria-hidden className="theme-media-tile-creator">
-                ·
-              </span>
-              <span className="theme-media-tile-creator min-w-0 truncate text-xs font-normal sm:text-sm">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {active.avatarUrl ? (
+              <RotatingIcon rotated={rotated} className="shrink-0">
+                <AppImage
+                  src={active.avatarUrl}
+                  alt=""
+                  width={36}
+                  height={36}
+                  unoptimized
+                  className="size-8 shrink-0 rounded-full object-cover sm:size-9"
+                />
+              </RotatingIcon>
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="theme-media-tile-title truncate text-sm font-semibold sm:text-base">
+                {artistProfileHref ? (
+                  <Link
+                    href={artistProfileHref}
+                    className={cn(
+                      "underline decoration-current/40 underline-offset-2 transition-opacity hover:opacity-80",
+                      focusRingClassName,
+                    )}
+                  >
+                    {artistLabel}
+                  </Link>
+                ) : artistLabel}
+                <span className="sr-only">, {active.replication.title}</span>
+              </DialogTitle>
+              <p className="theme-media-tile-creator truncate text-xs">
                 {active.replication.title}
-              </span>
-            </DialogTitle>
+              </p>
             <p
               aria-hidden="true"
               className="theme-media-tile-creator flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-[11px] tabular-nums sm:text-xs"
             >
-              <span className="max-w-[9rem] truncate sm:max-w-[16rem]">
-                {collection.label}
-              </span>
-              <span aria-hidden>·</span>
+              {collection.grouping === "effect" ? (
+                <>
+                  <span className="max-w-[9rem] truncate sm:max-w-[16rem]">
+                    {group.label}
+                  </span>
+                  <span aria-hidden>·</span>
+                </>
+              ) : null}
               <span className="shrink-0">
                 Work {position.itemIndex + 1}/{group.items.length}
               </span>
@@ -866,9 +924,10 @@ export function ReplicationViewerOverlay({
                 </>
               ) : null}
             </p>
+            </div>
           </div>
           {collection.groups.length > 1 ? (
-            <div className="flex flex-none items-center gap-1">
+            <div className="sr-only flex flex-none items-center gap-1 focus-within:not-sr-only sm:not-sr-only">
               <button
                 type="button"
                 aria-label={
@@ -877,7 +936,7 @@ export function ReplicationViewerOverlay({
                     : `First ${groupUnit.toLowerCase()}`
                 }
                 disabled={!previousGroup}
-                onClick={() => commitGroup(-1)}
+                onClick={() => slideGroup(-1)}
                 className={cn(
                   "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-10 sm:rounded-md",
                   focusRingClassName,
@@ -893,7 +952,7 @@ export function ReplicationViewerOverlay({
                     : `Final ${groupUnit.toLowerCase()}`
                 }
                 disabled={!nextGroup}
-                onClick={() => commitGroup(1)}
+                onClick={() => slideGroup(1)}
                 className={cn(
                   "theme-media-control-raised grid size-11 place-items-center rounded-lg disabled:cursor-not-allowed disabled:opacity-30 sm:size-10 sm:rounded-md",
                   focusRingClassName,
@@ -925,7 +984,15 @@ export function ReplicationViewerOverlay({
                 <div
                   role="menu"
                   aria-label="Viewer settings"
-                  className="theme-media-settings-menu theme-media-tile-title absolute right-0 top-full z-[80] mt-2 min-w-36 overflow-hidden rounded-xl border p-1"
+                  className={cn(
+                    "theme-media-settings-menu theme-media-tile-title absolute right-0 top-full z-[80] mt-2 min-w-36 origin-top-right overflow-y-auto rounded-xl border p-1 transition-transform duration-200 motion-reduce:transition-none",
+                    rotated
+                      ? "max-h-[calc(100vw-6rem)]"
+                      : "max-h-[calc(100dvh-6rem)]",
+                  )}
+                  style={{
+                    transform: rotated ? "rotate(90deg) translateX(100%)" : "none",
+                  }}
                 >
                   <p className="px-2 py-1.5 text-xs font-semibold">Sort by</p>
                   {(["artist", "effect"] as const).map((grouping) => (
@@ -946,16 +1013,14 @@ export function ReplicationViewerOverlay({
                         focusRingClassName,
                       )}
                     >
-                      <RotatingIcon rotated={rotated}>
-                        <span
-                          aria-hidden
-                          className="grid size-2 place-items-center rounded-full border border-current"
-                        >
-                          {collection.grouping === grouping ? (
-                            <span className="size-1 rounded-full bg-current" />
-                          ) : null}
-                        </span>
-                      </RotatingIcon>
+                      <span
+                        aria-hidden
+                        className="grid size-2 place-items-center rounded-full border border-current"
+                      >
+                        {collection.grouping === grouping ? (
+                          <span className="size-1 rounded-full bg-current" />
+                        ) : null}
+                      </span>
                       {grouping === "artist" ? "Artist" : "Effect"}
                     </button>
                   ))}
@@ -991,7 +1056,7 @@ export function ReplicationViewerOverlay({
               ) : null}
             </div>
           ) : null}
-          <ReplicationViewerEditorGate
+          {editorEnabled ? <ReplicationViewerEditorGate
             collection={collection}
             activeSlug={active.replication.slug}
             panelHost={editorPanelHost}
@@ -1001,7 +1066,7 @@ export function ReplicationViewerOverlay({
             onReorderModeChange={setReorderMode}
             onActivateSlug={activateEditorSlug}
             onOrderChange={applyEditorOrder}
-          />
+          /> : null}
           <button
             type="button"
             onClick={close}
@@ -1020,18 +1085,23 @@ export function ReplicationViewerOverlay({
 
         <div
           className={cn(
-            "grid min-h-0 min-w-0 overflow-hidden transition-[grid-template-columns] duration-200 motion-reduce:transition-none",
+            "relative grid min-h-0 min-w-0 overflow-hidden transition-[grid-template-columns] duration-200 motion-reduce:transition-none",
             editorOpen
-              ? "grid-cols-[minmax(0,1fr)_22rem]"
+              ? "grid-cols-[minmax(0,1fr)] grid-rows-[minmax(8rem,1fr)_minmax(0,1fr)] [&:has([data-publication-review])]:grid-rows-[8rem_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_22rem] md:grid-rows-1 md:[&:has([data-publication-review])]:grid-rows-1"
               : "grid-cols-[minmax(0,1fr)]",
           )}
         >
           <div
             inert={infoOpen || undefined}
             aria-hidden={infoOpen || undefined}
-            className="grid min-h-0 min-w-0 w-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden"
+            className={cn(
+              "relative min-h-0 min-w-0 h-full w-full overflow-hidden",
+              showRail
+                ? "[--viewer-rail-height:calc(3.375rem+max(0.375rem,env(safe-area-inset-bottom)))] sm:[--viewer-rail-height:4.5rem] [@media(max-height:500px)]:[--viewer-rail-height:0px]"
+                : "[--viewer-rail-height:0px]",
+            )}
           >
-            <div className="relative min-h-0 min-w-0 overflow-hidden bg-black [container-type:size]">
+            <div className="relative h-full min-h-0 min-w-0 overflow-hidden bg-black [container-type:size]">
               <div ref={trackPaneRef} className="h-full w-full">
                 <ViewerMediaTrack
                   ref={trackRef}
@@ -1041,9 +1111,19 @@ export function ReplicationViewerOverlay({
                   activeItem={active}
                   nextItem={nextWork ? group.items[nextWork.itemIndex] : null}
                   positionKey={positionKey}
-                  activeQuality={activeQuality}
+                  previousGroupItem={
+                    previousGroup
+                      ? collection.groups[previousGroup.groupIndex].items[previousGroup.itemIndex]
+                      : null
+                  }
+                  nextGroupItem={
+                    nextGroup
+                      ? collection.groups[nextGroup.groupIndex].items[nextGroup.itemIndex]
+                      : null
+                  }
                   autoplayAllowed
-                  activeMediaClassName={activeMediaClassName}
+                  allowNeighborPreload={allowNeighborPreload}
+                  rotateMode={rotateMode}
                   onActiveVideoChange={setActiveVideo}
                   onNavigateWork={commitWork}
                   onNavigateGroup={commitGroup}
@@ -1059,15 +1139,13 @@ export function ReplicationViewerOverlay({
                 volume={volume}
                 onMutedChange={handleMutedChange}
                 onVolumeChange={setVolume}
-                quality={activeQuality}
-                onQualityChange={handleQualityChange}
                 onPrevious={previousWork ? () => slideWork(-1) : undefined}
                 onNext={nextWork ? () => slideWork(1) : undefined}
                 rotateMode={rotateMode}
+                rotated={rotated}
+                onBufferHealthChange={handleBufferHealthChange}
                 onRotateModeChange={handleRotateModeChange}
                 canRotate={canRotate}
-                rotated={rotated}
-                mediaAspect={mediaAspect}
                 onTransportVisibleChange={setChromeVisible}
                 onTransportHandle={handleTransportHandle}
                 onInfo={openInfo}
@@ -1157,55 +1235,10 @@ export function ReplicationViewerOverlay({
                   </div>
                 </div>
               ) : null}
-              <div
-                inert={chromeHidden || undefined}
-                aria-hidden={chromeHidden || undefined}
-                className={cn(
-                  "absolute right-2 top-2 z-10 flex justify-end transition-opacity duration-200 motion-reduce:transition-none",
-                  chromeHidden && "opacity-0",
-                )}
-              >
-                {/* The byline rides the artwork like a broadcast bug: whatever
-                  the walk is sorted by, the creator stays one tap away. */}
-                {artistProfileHref ? (
-                  <Link
-                    href={artistProfileHref}
-                    className={cn(
-                      "theme-media-tile-title pointer-events-auto flex items-center gap-2 rounded-full bg-black/65 text-sm font-semibold backdrop-blur-sm transition-opacity hover:opacity-85 sm:gap-2.5 sm:text-base",
-                      active.avatarUrl
-                        ? "py-1 pl-1 pr-3 sm:pr-3.5"
-                        : "px-3.5 py-2 sm:px-4 sm:py-2.5",
-                      focusRingClassName,
-                    )}
-                  >
-                    {active.avatarUrl ? (
-                      <RotatingIcon rotated={rotated} className="shrink-0">
-                        <AppImage
-                          src={active.avatarUrl}
-                          alt=""
-                          width={72}
-                          height={72}
-                          unoptimized
-                          className="size-7 rounded-full object-cover sm:size-9"
-                        />
-                      </RotatingIcon>
-                    ) : null}
-                    <span className="max-w-[12rem] truncate sm:max-w-[16rem]">
-                      {artistLabel}
-                    </span>
-                  </Link>
-                ) : (
-                  <span className="theme-media-tile-title pointer-events-auto flex items-center rounded-full bg-black/65 px-3.5 py-2 text-sm font-semibold backdrop-blur-sm sm:px-4 sm:py-2.5 sm:text-base">
-                    <span className="max-w-[12rem] truncate sm:max-w-[16rem]">
-                      {artistLabel}
-                    </span>
-                  </span>
-                )}
-              </div>
               <div ref={setEditorRailHost} />
             </div>
 
-            {group.items.length > 1 && !reorderMode ? (
+            {showRail ? (
               <ViewerThumbnailRail
                 items={group.items}
                 selectedIndex={position.itemIndex}
@@ -1225,8 +1258,8 @@ export function ReplicationViewerOverlay({
           {editorOpen ? (
             <aside
               ref={setEditorPanelHost}
-              className="theme-media-thumbnail-border min-h-0 min-w-0 overflow-hidden border-l bg-black"
-              aria-label="Carousel editor"
+              className="theme-media-thumbnail-border theme-text-primary min-h-0 min-w-0 overflow-y-auto border-t bg-dose-body md:mt-20 md:border-t-0 md:border-l"
+              aria-label="Replication and collection editor"
             />
           ) : null}
         </div>

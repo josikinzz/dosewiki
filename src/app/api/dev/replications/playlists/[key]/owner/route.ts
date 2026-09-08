@@ -27,7 +27,7 @@ function playlistKeyOf(request: Request): string {
 type OwnerBody = { ownerEmail?: unknown };
 type ParsedOwner = { ownerEmail: string | null };
 
-export function parseOwnerBody(raw: OwnerBody): ParsedOwner {
+function parseOwnerBody(raw: OwnerBody): ParsedOwner {
   if (raw?.ownerEmail === null || raw?.ownerEmail === "") {
     return { ownerEmail: null };
   }

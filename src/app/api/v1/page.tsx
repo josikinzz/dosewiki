@@ -43,6 +43,11 @@ const endpoints = [
   },
   {
     method: "GET",
+    path: "/api/v1/substances/{slug}/replications",
+    description: "The canonical substance article replication collection with cursor paging, public association context, and media rights.",
+  },
+  {
+    method: "GET",
     path: "/api/v1/replications",
     description: "Cursor-paginated public image and video replications. Filter by effect or media type.",
   },

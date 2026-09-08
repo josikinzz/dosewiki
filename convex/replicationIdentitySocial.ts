@@ -1,7 +1,8 @@
 import { type Infer, v } from "convex/values";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { internalQuery, query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRegisteredDelegatedEditorWrite } from "./lib/auth";
 import { isValidR2Key, replicationMediaBaseUrl } from "./lib/replicationUrls";
 import { normalizeProfileAliases } from "../lib/contributorProfileIdentity";
@@ -1064,8 +1065,7 @@ export const preflightProfileBindingAuthenticated = query({
     await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
     try {
       await assertPinnedProfileBindingSnapshot(ctx, args.entry);
-      const digest = await canonicalDigest({ snapshot_digest: args.entry.snapshot_digest, snapshot_profile_count: args.entry.snapshot_profile_count, artist_id: args.entry.artist_id, decision: args.entry.decision, profile_key: args.entry.profile_key ?? null });
-      return { matches: true, digest };
+      return { matches: true, digest: await canonicalDigest({ snapshot_digest: args.entry.snapshot_digest, snapshot_profile_count: args.entry.snapshot_profile_count, artist_id: args.entry.artist_id, decision: args.entry.decision, profile_key: args.entry.profile_key ?? null }) };
     } catch (error) {
       return { matches: false, digest: "", error: error instanceof Error ? error.message : "Profile binding preflight failed." };
     }

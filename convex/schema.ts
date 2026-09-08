@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { publicReadIndexTables } from "./lib/publicReadIndexSchema";
 import {
   articleFeedback,
   articleSource,
@@ -139,6 +140,8 @@ const changeProposal = v.object({
   payload: v.any(),
   summary: v.string(),
   diff: v.string(),
+  /** Present only when submit generated this diff from a verified server baseline. */
+  diffVersion: v.optional(v.literal(1)),
   revisionOf: v.optional(v.id("changeProposals")),
   reviewedBy: v.optional(v.string()),
   reviewedAt: v.optional(v.string()),
@@ -302,12 +305,117 @@ const warningBannerPreset = v.object({
 });
 
 export default defineSchema({
+  ...publicReadIndexTables,
+  publicCachePublications: defineTable({
+    key: v.string(),
+    target: v.object({ kind: v.string(), slug: v.optional(v.string()) }),
+    revision: v.optional(v.union(v.string(), v.null())),
+    generation: v.number(),
+    pending: v.boolean(),
+    committedAt: v.number(),
+    nextAttemptAt: v.number(),
+    attempts: v.number(),
+    receipts: v.array(v.any()),
+  }).index("by_key", ["key"]).index("by_due", ["pending", "nextAttemptAt"]),
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])
     .index("by_article_id", ["id"])
     .index("by_slug", ["slug"])
     .index("by_priority", ["priority"]),
+
+  articleDrafts: defineTable({
+    slug: v.string(),
+    ownerEmail: v.string(),
+    article: v.optional(substanceArticle),
+    baseHash: v.string(),
+    version: v.number(),
+    updatedAt: v.string(),
+    revisionOf: v.optional(v.id("changeProposals")),
+  }).index("by_owner_slug", ["ownerEmail", "slug"]),
+
+  articleProposalTargets: defineTable({
+    slug: v.string(),
+    ownerEmail: v.string(),
+    proposalId: v.id("changeProposals"),
+    createdAt: v.string(),
+  }).index("by_slug_created", ["slug", "createdAt"])
+    .index("by_owner_slug_created", ["ownerEmail", "slug", "createdAt"])
+    .index("by_proposal_slug", ["proposalId", "slug"]),
+
+  articleRevisions: defineTable({
+    slug: v.string(),
+    changeId: v.string(),
+    actorEmail: v.string(),
+    actorRole: v.string(),
+    before: substanceArticle,
+    after: substanceArticle,
+    baseHash: v.string(),
+    resultHash: v.string(),
+    summary: v.string(),
+    createdAt: v.string(),
+    restoredFrom: v.optional(v.id("articleRevisions")),
+  }).index("by_slug", ["slug"])
+    .index("by_actor_change", ["actorEmail", "changeId"]),
+
+  articleDraftReceipts: defineTable({
+    ownerEmail: v.string(),
+    changeId: v.string(),
+    fingerprint: v.string(),
+    result: v.any(),
+  }).index("by_owner_change", ["ownerEmail", "changeId"]),
+
+  replicationEditReceipts: defineTable({
+    requestId: v.string(),
+    actorEmail: v.string(),
+    actorRole: v.string(),
+    operation: v.union(v.literal("canonical-metadata"), v.literal("collection-curation")),
+    expectedRevision: v.string(),
+    publications: v.array(v.string()),
+    target: v.string(),
+    before: v.any(),
+    after: v.any(),
+    createdAt: v.string(),
+  }).index("by_actor_request", ["actorEmail", "requestId"])
+    .index("by_target", ["target"]),
+
+  narrativeRevisions: defineTable({
+    kind: v.union(v.literal("effect"), v.literal("writing")),
+    key: v.string(),
+    documentId: v.string(),
+    operationId: v.string(),
+    actorEmail: v.string(),
+    actorRole: v.string(),
+    before: v.any(),
+    after: v.any(),
+    baseRevision: v.string(),
+    revision: v.string(),
+    createdAt: v.string(),
+    requestHash: v.optional(v.string()),
+    publications: v.optional(v.array(v.string())),
+  }).index("by_target", ["kind", "key"])
+    .index("by_document", ["kind", "documentId"])
+    .index("by_operation", ["kind", "operationId"]),
+
+  warningBannerRevisions: defineTable({
+    key: v.string(),
+    changeId: v.string(),
+    requestHash: v.string(),
+    actorEmail: v.string(),
+    actorRole: v.string(),
+    scope: v.union(v.literal("assignment"), v.literal("preset")),
+    slug: v.optional(v.string()),
+    operation: v.union(v.literal("publish"), v.literal("remove"), v.literal("restore")),
+    before: v.any(),
+    after: v.any(),
+    baseHash: v.string(),
+    resultHash: v.string(),
+    createdAt: v.string(),
+    affectedSlugs: v.array(v.string()),
+    allSubstances: v.boolean(),
+    publications: v.array(v.string()),
+  }).index("by_key", ["key"])
+    .index("by_change", ["changeId"]),
 
   // Point-in-time ProtestKit snapshot keyed by canonical DoseWiki slug.
   reagentTests: defineTable(reagentTestDocumentValidator)
@@ -544,15 +652,26 @@ export default defineSchema({
       v.literal("contributorProfiles"),
       v.literal("replicationPlaylists"),
       v.literal("tripReports"),
+      v.literal("copyBlocks"),
+      v.literal("siteConfig"),
+      v.literal("indexLayouts"),
     ),
     key: v.string(),
-    action: v.union(v.literal("update"), v.literal("remove"), v.literal("merge")),
+    action: v.union(v.literal("update"), v.literal("remove"), v.literal("merge"), v.literal("create")),
     before: v.any(),
     actorEmail: v.string(),
     actorRole: v.string(),
     createdAt: v.string(),
+    after: v.optional(v.any()),
+    operationId: v.optional(v.string()),
+    revision: v.optional(v.string()),
+    publications: v.optional(v.array(v.string())),
+    requestIdentity: v.optional(v.string()),
+    clientRequestIdentity: v.optional(v.string()),
+    requestHash: v.optional(v.string()),
   })
     .index("by_table_key", ["table", "key"])
+    .index("by_operation", ["table", "key", "operationId"])
     .index("by_created_at", ["createdAt"]),
 
   memberships: defineTable(membership)
@@ -705,5 +824,6 @@ export default defineSchema({
   changeProposals: defineTable(changeProposal)
     .index("by_status", ["status"])
     .index("by_proposed_by", ["proposedBy"])
+    .index("by_proposed_by_status", ["proposedBy", "status"])
     .index("by_created_at", ["createdAt"]),
 });

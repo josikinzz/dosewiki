@@ -28,6 +28,7 @@ export interface EffectCategoryCardProps {
   optional?: boolean;
   /** Field path for the category note (shown at top of section) */
   noteFieldPath?: "subjective_effects.notes.physical" | "subjective_effects.notes.cognitive";
+  pairedIndicator?: boolean;
 }
 
 export function EffectCategoryCard({
@@ -37,15 +38,11 @@ export function EffectCategoryCard({
   idPrefix,
   optional = false,
   noteFieldPath,
+  pairedIndicator = false,
 }: EffectCategoryCardProps) {
   const { register } = useFormContext<SubstanceArticle>();
 
   const { fields, append, remove, updateKey, move } = useRecordFieldArray(fieldPath);
-
-  const handleAddSubcategory = useCallback(() => {
-    const newKey = `New Subcategory ${fields.length + 1}`;
-    append({ key: newKey, note: "", effects: [] });
-  }, [fields.length, append]);
 
   const noteId = `${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}-note`;
   const childIdPrefix = `${idPrefix}-${title.toLowerCase().replace(/\s+/g, "-")}`;
@@ -56,6 +53,7 @@ export function EffectCategoryCard({
       icon={<Icon icon={icon} size={16} />}
       count={fields.length}
       density="compact"
+      pairedIndicator={pairedIndicator}
       badge={
         optional ? (
           <span className="theme-text-faint text-xs">(optional)</span>
@@ -80,7 +78,7 @@ export function EffectCategoryCard({
           <div className="space-y-4">
             {fields.map((field, index) => (
               <SubcategoryEditorWrapper
-                key={field.key}
+                key={field.id}
                 fieldPath={fieldPath}
                 subcategoryKey={field.key}
                 index={index}
@@ -106,7 +104,7 @@ export function EffectCategoryCard({
         <Button
           type="button"
           variant="outline"
-          onClick={handleAddSubcategory}
+          onClick={append}
           className="w-full border-dashed"
         >
           <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
@@ -130,7 +128,7 @@ interface SubcategoryEditorWrapperProps {
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  onKeyChange: (newKey: string) => void;
+  onKeyChange: (newKey: string) => string | undefined;
 }
 
 function SubcategoryEditorWrapper({

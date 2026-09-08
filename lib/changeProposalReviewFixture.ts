@@ -36,37 +36,38 @@ export function createCtx(seed: Record<string, Row[]>) {
   };
 
   const results = (matches: Row[]) => ({
-    order: () => results(matches),
+    order: (direction: "asc" | "desc" = "asc") => results([...matches].sort((left, right) => (Number(left._creationTime ?? 0) - Number(right._creationTime ?? 0)) * (direction === "desc" ? -1 : 1))),
     take: async (count: number) => matches.slice(0, count),
     first: async () => matches[0] ?? null,
     unique: async () => matches[0] ?? null,
     collect: async () => matches,
   });
+  type IndexFilter = { eq: (field: string, value: unknown) => IndexFilter };
   const query = (table: string) => ({
     ...results([...rowsOf(table).values()]),
     withIndex: (
       _indexName: string,
-      selector?: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
+      selector?: (query: IndexFilter) => unknown,
     ) => {
-      let field = "";
-      let value: unknown;
-      selector?.({
+      const filters: Array<[string, unknown]> = [];
+      const filter: IndexFilter = {
         eq: (name, candidate) => {
-          field = name;
-          value = candidate;
-          return {};
+          filters.push([name, candidate]);
+          return filter;
         },
-      });
-      return results([...rowsOf(table).values()].filter((row) => field === "" || row[field] === value));
+      };
+      selector?.(filter);
+      return results([...rowsOf(table).values()].filter((row) => filters.every(([field, value]) => row[field] === value)));
     },
   });
 
   const db = {
+    normalizeId: (table: string, id: string) => rowsOf(table).has(id) || id.startsWith(`${table}:`) ? id : null,
     query: vi.fn(query),
     get: vi.fn(async (id: string) => rowById(id)?.row ?? null),
     insert: vi.fn(async (table: string, doc: Record<string, unknown>) => {
       const _id = `${table}:${nextId++}`;
-      rowsOf(table).set(_id, { _id, ...doc });
+      rowsOf(table).set(_id, { _id, _creationTime: nextId, ...doc });
       return _id;
     }),
     patch: vi.fn(async (id: string, patch: Record<string, unknown>) => {
@@ -75,7 +76,7 @@ export function createCtx(seed: Record<string, Row[]>) {
     }),
     replace: vi.fn(async (id: string, doc: Record<string, unknown>) => {
       const hit = rowById(id);
-      if (hit) hit.rows.set(id, { _id: id, ...doc });
+      if (hit) hit.rows.set(id, { _id: id, _creationTime: hit.row._creationTime, ...doc });
     }),
     delete: vi.fn(async (id: string) => {
       rowById(id)?.rows.delete(id);

@@ -49,7 +49,7 @@ const ADMIN_ONLY_REASON = "Admin only: an editor can see this but not change it.
 const STICKY_SAVE_BAR_CLASS =
   "sticky bottom-0 z-10 rounded-xl border border-[color:var(--editor-toolbar-separator)] bg-[var(--editor-panel-bg)]/95 p-3 backdrop-blur";
 
-export function ContributorProfileEditor({ controller }: { controller: ContributorsController }) {
+export function ContributorProfileEditor({ controller, contextual = false, onReview }: { controller: ContributorsController; contextual?: boolean; onReview?: () => void }) {
   const {
     canEdit,
     canApprove,
@@ -62,6 +62,8 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
     setAvatarFile,
     avatarPreviewUrl,
     fileInputRef,
+    avatarRemoved,
+    removeAvatar,
     handleAvatarFileChange,
     profileSaveState,
     saveProfile,
@@ -109,15 +111,20 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
         >
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="contributor-display-name">Display name</Label>
+              <Label htmlFor="contributor-display-name">Display name{contextual ? " (required)" : ""}</Label>
               <Input
                 id="contributor-display-name"
+                required={contextual || undefined}
+                aria-invalid={contextual && !form.displayName.trim() ? true : undefined}
+                aria-describedby={contextual && !form.displayName.trim() ? "contributor-display-name-error" : undefined}
+                variant={contextual && !form.displayName.trim() ? "error" : "default"}
                 value={form.displayName}
                 onChange={(event) => updateForm({ displayName: event.target.value })}
                 placeholder="Contributor name"
               />
+              {contextual && !form.displayName.trim() ? <p id="contributor-display-name-error" role="status" className="text-xs text-dose-danger">Enter a display name to preview publication.</p> : null}
             </div>
-            {canEdit ? (
+            {canEdit && !contextual ? (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="contributor-role">Role</Label>
@@ -161,11 +168,11 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
 
         <AvatarUpload
           avatarPreviewSource={
-            avatarPreviewUrl ?? (trimmedAvatarUrl || detail.profile.storedAvatarUrl || null)
+            avatarRemoved ? null : avatarPreviewUrl ?? (trimmedAvatarUrl || detail.profile.storedAvatarUrl || null)
           }
           avatarInitials={initialsFor(form.displayName, detail.profile.key)}
           avatarSelectionSummary={
-            avatarFile
+            avatarRemoved ? "Avatar will be removed" : avatarFile
               ? `${avatarFile.name} • ${formatFileSize(avatarFile.size)}`
               : detail.profile.storedAvatarUrl || trimmedAvatarUrl
                 ? "Using current image"
@@ -175,10 +182,7 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
           trimmedAvatarUrl={trimmedAvatarUrl}
           onUploadClick={() => fileInputRef.current?.click()}
           onClearSelection={() => setAvatarFile(null)}
-          onRemoveAvatar={() => {
-            setAvatarFile(null);
-            updateForm({ avatarUrl: "" });
-          }}
+          onRemoveAvatar={removeAvatar}
           fileInputRef={fileInputRef}
           onFileChange={handleAvatarFileChange}
           avatarUrl={form.avatarUrl}
@@ -218,7 +222,7 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
           )}
         />
 
-        {canEdit ? (
+        {canEdit && !contextual ? (
           <>
             <EditorSection
               headingLevel="h3"
@@ -391,10 +395,10 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
                 form.bio.length > MAX_BIO_LENGTH ||
                 !form.displayName.trim()
               }
-              onClick={() => void saveProfile()}
+              onClick={() => onReview ? onReview() : void saveProfile()}
             >
               <Icon icon="lucide:save" size={15} />
-              Save profile
+              {onReview ? "Preview publication" : "Save profile"}
             </Button>
             <Button
               type="button"
@@ -417,7 +421,7 @@ export function ContributorProfileEditor({ controller }: { controller: Contribut
         </EditorToolbar>
       </div>
 
-      {canEdit ? (
+      {canEdit && !contextual ? (
         <>
           <OrderingPanel
             icon="lucide:image"

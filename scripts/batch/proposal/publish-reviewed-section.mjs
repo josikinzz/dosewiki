@@ -15,6 +15,10 @@ import {
 import { citationEvidenceGateErrors } from "../../../lib/citations/citationSafety.mjs";
 import { publicationFieldsForProfile } from "../../../lib/generatedPublication/profiles.mjs";
 import {
+  REGENERATION_ARTIFACT_KIND,
+  regenerationPublicationErrors,
+} from "../../../lib/generatedPublication/regeneration.mjs";
+import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
   getFlagValue,
@@ -231,6 +235,7 @@ export function buildReviewedPublicationEnvelope({ proposal, artifactDigest, rev
     artifactDigest,
     ...(proposal.sourceArtifactKind ? { sourceArtifactKind: proposal.sourceArtifactKind } : {}),
     ...(proposal.correctionAudit ? { correctionAudit: proposal.correctionAudit } : {}),
+    ...(proposal.regenerationAudit !== undefined ? { regenerationAudit: proposal.regenerationAudit } : {}),
     ...(proposal.markerChanges ? { markerChanges: proposal.markerChanges } : {}),
     ...(proposal.claimEvidence ? { claimEvidence: proposal.claimEvidence } : {}),
     review: {
@@ -293,6 +298,8 @@ function publicationCasState(liveArticle, proposal) {
 }
 
 export function reviewedPublicationTrustGate(proposal) {
+  const regenerationErrors = regenerationPublicationErrors(proposal);
+  if (regenerationErrors.length) return { accepted: false, errors: regenerationErrors };
   if (proposal.sourceArtifactKind !== "reviewed_content_correction") {
     return { accepted: true, errors: [] };
   }
@@ -315,6 +322,13 @@ export async function publishReviewedPublication({
 } = {}) {
   const options = parseReviewedPublicationArgs(argv);
   const verified = loadAndVerifyPublicationArtifact({ proposalPath: options.proposalPath, repoRoot });
+  const trustGate = reviewedPublicationTrustGate(verified.proposal);
+  if (!trustGate.accepted && (
+    verified.proposal.sourceArtifactKind === REGENERATION_ARTIFACT_KIND ||
+    verified.proposal.regenerationAudit !== undefined
+  )) {
+    throw new Error(`Publication regeneration trust gate failed: ${trustGate.errors.join("; ")}`);
+  }
   const context = createPublicationContext({
     argv,
     env,
@@ -335,9 +349,12 @@ export async function publishReviewedPublication({
   if (!liveArticle) {
     throw new Error(`No live target article found for ${verified.proposal.slug}.`);
   }
+  if (verified.proposal.sourceArtifactKind === REGENERATION_ARTIFACT_KIND) {
+    const errors = regenerationPublicationErrors(verified.proposal, { liveArticle });
+    if (errors.length) throw new Error(`Publication regeneration trust gate failed: ${errors.join("; ")}`);
+  }
 
   const casState = publicationCasState(liveArticle, verified.proposal);
-  const trustGate = reviewedPublicationTrustGate(verified.proposal);
   const reviewReady = options.write;
   let reviewedProposal = null;
   if (reviewReady) {

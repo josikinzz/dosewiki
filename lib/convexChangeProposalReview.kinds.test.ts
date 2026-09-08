@@ -124,7 +124,7 @@ describe("changeProposalReview apply and revert for copy blocks", () => {
 
     const result = await approveAndApplyHandler(ctx, asAdmin);
 
-    expect(result).toEqual({ status: "applied", revalidatePaths: [] });
+    expect(result).toEqual({ status: "applied", revalidatePaths: ["/copy-blocks"] });
     expect(rowsOf("copyBlocks").get("cb1")).toMatchObject({
       key: "home-hero",
       body: "Proposed welcome.",
@@ -171,7 +171,7 @@ describe("changeProposalReview apply and revert for copy blocks", () => {
 
     const result = await revertHandler(ctx, asAdmin);
 
-    expect(result).toEqual({ status: "reverted", revalidatePaths: [] });
+    expect(result).toEqual({ status: "reverted", revalidatePaths: ["/copy-blocks"] });
     expect(rowsOf("copyBlocks").size).toBe(1);
     expect(rowsOf("copyBlocks").get("cb1")).toMatchObject({
       key: "home-hero",

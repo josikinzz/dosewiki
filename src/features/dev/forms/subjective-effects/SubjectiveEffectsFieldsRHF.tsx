@@ -27,9 +27,10 @@ const SENSORY_SENSES: Array<{ sense: SenseType; label: string; icon?: IconName }
 
 export interface SubjectiveEffectsFieldsRHFProps {
   idPrefix: string;
+  pairedIndicator?: boolean;
 }
 
-export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFieldsRHFProps) {
+export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }: SubjectiveEffectsFieldsRHFProps) {
   const { register } = useFormContext<SubstanceArticle>();
 
   return (
@@ -59,6 +60,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
         title="Physical Effects"
         icon="lucide:hand"
         idPrefix={idPrefix}
+        pairedIndicator={pairedIndicator}
         noteFieldPath="subjective_effects.notes.physical"
       />
 
@@ -68,11 +70,12 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
         title="Cognitive Effects"
         icon="fluent:thinking-24-regular"
         idPrefix={idPrefix}
+        pairedIndicator={pairedIndicator}
         noteFieldPath="subjective_effects.notes.cognitive"
       />
 
       {/* Sensory Effects (collapsible container with 6 senses) */}
-      <CollapsibleSubsection title="Sensory Effects" icon={<Icon icon="lucide:eye" className="h-5 w-5" size={20} />}>
+      <CollapsibleSubsection title="Sensory Effects" pairedIndicator={pairedIndicator} icon={<Icon icon="lucide:eye" className="h-5 w-5" size={20} />}>
         {/* Sensory Note at top of section */}
         <FormEditorField
           htmlFor={`${idPrefix}-notes-sensory`}
@@ -94,6 +97,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
             label={label}
             icon={icon}
             idPrefix={idPrefix}
+            pairedIndicator={pairedIndicator}
           />
         ))}
       </CollapsibleSubsection>
@@ -104,11 +108,12 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
         title="Progressive Stages"
         icon="lucide:list-ordered"
         idPrefix={idPrefix}
+        pairedIndicator={pairedIndicator}
         optional
       />
 
       {/* Attribution */}
-      <AttributionEditor idPrefix={idPrefix} />
+      <AttributionEditor idPrefix={idPrefix} pairedIndicator={pairedIndicator} />
     </section>
   );
 }

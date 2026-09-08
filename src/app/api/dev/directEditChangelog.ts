@@ -13,9 +13,8 @@
  * committed to Convex by the time this runs, so a failed history row is logged
  * and swallowed rather than turned into a failed edit.
  */
-import { revalidateTag } from "next/cache";
 import { api } from "../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { deriveSubmittedBy } from "../save-to-convex/saveToConvexUtils";
 import type { ServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
 
@@ -94,9 +93,13 @@ export async function recordDirectEditChangelog({
       submittedBy: deriveSubmittedBy(session.user.email, session.user.name),
       articles: [article],
     });
-    // The contributor profile reads its history through this tag, and stale is
-    // exactly the complaint this entry exists to answer.
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.changelog, { expire: 0 });
+    // The contributor profile reads its history through the changelog, and
+    // stale is exactly the complaint this entry exists to answer. The article
+    // identity carries its own history leaf alongside the changelog index.
+    await publishPublicCache({
+      targets: [{ kind: "changelog" }, { kind: "article", slug: article.slug }],
+      source: "manual",
+    });
   } catch (error) {
     // The article write already landed. Losing its history row is worth a log,
     // never an error response that invites the reviewer to edit again.

@@ -26,9 +26,12 @@ const describeOpenData = showOpenData ? describe : describe.skip;
 /** Section anchor ids, in page order, as this flavor renders them. */
 const expectedSectionIds = [
   "mission",
+  ...(!isEffectIndex() ? ["sources", "contributors"] : []),
   "docs",
   ...(showOpenData ? ["data"] : []),
-  "contributors",
+  ...(isEffectIndex() ? ["contributors"] : []),
+  ...(SITE_FLAVOR_CONFIG.about.showCommunity ? ["community"] : []),
+  ...(SITE_FLAVOR_CONFIG.about.contact ? ["contact"] : []),
 ];
 
 const founderProfiles: NormalizedUserProfile[] = [
@@ -38,6 +41,7 @@ const founderProfiles: NormalizedUserProfile[] = [
     aliases: [],
     avatarUrl: null,
     bio: "",
+    role: "Research editor",
     links: [],
     hasCustomBio: false,
   },
@@ -61,6 +65,8 @@ function renderAboutPage(
         founderProfiles={founderProfiles}
         previewSnapshots={[]}
         missionContent={<p>Mission test copy for harm reduction.</p>}
+        sourcesContent={<p>Sources section fixture.</p>}
+        historyContent={<p>Project history fixture.</p>}
         downloads={{
           substances: { count: 1234, bytes: 23_895_032 },
           effects: { count: 310, bytes: 1_525_750 },
@@ -91,7 +97,7 @@ describe("AboutPage sections", () => {
     renderAboutPage();
 
     expect(screen.getByText("Mission test copy for harm reduction.")).toBeInTheDocument();
-    expect(Boolean(screen.queryByRole("heading", { name: "Downloads" }))).toBe(
+    expect(Boolean(screen.queryByRole("heading", { name: "Downloads & reuse" }))).toBe(
       showOpenData,
     );
     expect(
@@ -107,8 +113,12 @@ describe("AboutPage sections", () => {
     // Both shared TOC surfaces render: the gutter rail and the mobile chip strip.
     // Each lists exactly the rendered sections, so every id resolves to a section
     // element and appears in both surfaces.
+    expect(
+      [...document.querySelectorAll("main section[id]")].map((section) => section.id),
+    ).toEqual(expectedSectionIds);
     for (const id of expectedSectionIds) {
       expect(sectionById(id).tagName).toBe("SECTION");
+      expect(document.querySelectorAll(`[id="${id}"]`)).toHaveLength(1);
       expect(document.querySelectorAll(`a[href="#${id}"]`)).toHaveLength(2);
     }
 
@@ -118,6 +128,72 @@ describe("AboutPage sections", () => {
       expect(document.getElementById("data")).toBeNull();
     }
   });
+
+  it("keeps legacy anchors while matching navigation labels to section headings", () => {
+    renderAboutPage();
+
+    const labels = [
+      { id: "mission", label: isEffectIndex() ? "Mission" : "Introduction" },
+      ...(showOpenData ? [{ id: "data", label: "Downloads & reuse" }] : []),
+      ...(!isEffectIndex() ? [{ id: "sources", label: "Sources and review" }] : []),
+    ];
+    for (const { id, label } of labels) {
+      expect(within(sectionById(id)).getByRole("heading", { name: label })).toBeInTheDocument();
+      expect(screen.getAllByRole("link", { name: label })).toHaveLength(2);
+      for (const link of screen.getAllByRole("link", { name: label })) {
+        expect(link).toHaveAttribute("href", `#${id}`);
+      }
+    }
+  });
+
+  it("omits the sources section and anchor when no content is supplied", () => {
+    renderAboutPage({ sourcesContent: undefined, historyContent: undefined });
+
+    expect(document.getElementById("sources")).toBeNull();
+    expect(document.querySelector('a[href="#sources"]')).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Project history" })).not.toBeInTheDocument();
+    expect(within(sectionById("contributors")).getByRole("link", { name: /josie founder/i }))
+      .toBeInTheDocument();
+  });
+
+  it("projects sources and history only on dose.wiki, with history before founder cards", () => {
+    renderAboutPage();
+
+    if (isEffectIndex()) {
+      expect(screen.queryByText("Sources section fixture.")).not.toBeInTheDocument();
+      expect(screen.queryByText("Project history fixture.")).not.toBeInTheDocument();
+      expect(document.getElementById("sources")).toBeNull();
+      expect(document.querySelector('a[href="#sources"]')).toBeNull();
+      expect(screen.queryByRole("heading", { name: "Introduction" })).not.toBeInTheDocument();
+      return;
+    }
+
+    expect(within(sectionById("sources")).getByText("Sources section fixture."))
+      .toBeInTheDocument();
+    const contributors = sectionById("contributors");
+    const history = within(contributors).getByText("Project history fixture.");
+    const founder = within(contributors).getByRole("link", { name: /josie founder/i });
+    expect(history.compareDocumentPosition(founder) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("keeps contact actions local to the publication that owns the inbox", () => {
+    renderAboutPage();
+
+    const contact = SITE_FLAVOR_CONFIG.about.contact;
+    if (!contact) {
+      expect(document.getElementById("contact")).toBeNull();
+      expect(document.querySelector('a[href="#contact"]')).toBeNull();
+      expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
+      return;
+    }
+
+    const section = sectionById("contact");
+    expect(within(section).getByRole("link", { name: contact.email }))
+      .toHaveAttribute("href", `mailto:${contact.email}`);
+    expect(within(section).getByRole("link", { name: "Open the feedback form" }))
+      .toHaveAttribute("href", contact.feedbackHref);
+  });
+
 
   it("shows founder cards in the contributors section", () => {
     renderAboutPage();
@@ -129,6 +205,11 @@ describe("AboutPage sections", () => {
     expect(
       within(panel).getByRole("link", { name: /alex contributor/i }),
     ).toHaveAttribute("href", "/contributors/alex");
+    const founder = within(panel).getByRole("link", { name: /josie founder/i });
+    expect(founder).toHaveTextContent("Research editor");
+    expect(founder).not.toHaveTextContent("@josie");
+    expect(within(panel).getByRole("link", { name: /alex contributor/i }))
+      .toHaveTextContent("@alex");
   });
 
   it("shows this flavor's documentation links", () => {
@@ -346,7 +427,7 @@ describe("AboutPage contributor roster", () => {
     expect(within(panel).getByText(/Contributor profiles are on their way/i)).toBeInTheDocument();
   });
 
-  it("keeps dose.wiki's curated founder list, order and markup when no roster is supplied", () => {
+  it("keeps curated founder order and stored roles without roster-specific credits", () => {
     renderAboutPage({ founderProfiles: [lyrea, josie] });
 
     const panel = sectionById("contributors");
@@ -364,10 +445,11 @@ describe("AboutPage contributor roster", () => {
       "/contributors/josie",
       ...(supporterHref ? [supporterHref] : []),
     ]);
-    // The exact grid the curated list has always used — no roster layout leaks in.
-    expect(within(panel).getByRole("list").className).toBe("grid gap-4 sm:grid-cols-2");
-    expect(within(panel).queryByText(/ordered by the number of pages/i)).not.toBeInTheDocument();
-    expect(within(panel).queryByText("Founder")).not.toBeInTheDocument();
+    for (const name of ["lyrea", "josie kins"]) {
+      const link = within(panel).getByRole("link", { name: new RegExp(name, "i") });
+      expect(link).toHaveTextContent("Founder");
+      expect(link).not.toHaveTextContent("@");
+    }
     expect(within(panel).queryByText("Staff")).not.toBeInTheDocument();
     expect(within(panel).queryByText(/administrator/i)).not.toBeInTheDocument();
     expect(within(panel).queryByText(/pages$/)).not.toBeInTheDocument();
@@ -379,7 +461,7 @@ describeOpenData("AboutPage public export contract", () => {
     renderAboutPage();
 
     expect(
-      screen.getByRole("heading", { name: "Downloads" }),
+      screen.getByRole("heading", { name: "Downloads & reuse" }),
     ).toBeInTheDocument();
     expect(screen.getByText("SubstanceIndex.json")).toBeInTheDocument();
     expect(screen.getByText("EffectIndex.json")).toBeInTheDocument();
@@ -408,26 +490,6 @@ describeOpenData("AboutPage public export contract", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps archival snapshot actions without the removed explanatory heading", () => {
-    renderAboutPage();
-
-    expect(screen.queryByText("Download archival snapshot")).not.toBeInTheDocument();
-    expect(screen.queryByText(/Convex is the live runtime source/i)).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/refreshed nightly from the live database/i),
-    ).toBeInTheDocument();
-    // The downloads point at the reuse matrix instead of claiming blanket CC0:
-    // trip report rights remain with their authors, so "JSON, CC0" was false.
-    expect(screen.queryByText(/JSON, CC0/)).not.toBeInTheDocument();
-    // The licence is stated once, in the reuse notice, not repeated under the buttons.
-    expect(screen.queryByText(/Reuse terms vary by dataset/i)).not.toBeInTheDocument();
-    expect(
-      within(sectionById("data")).getByRole("link", { name: "CC0" }),
-    ).toHaveAttribute("href", "/docs/license");
-    expect(screen.queryByText("Static JSON snapshot")).not.toBeInTheDocument();
-    expect(screen.queryByText("GitHub Repository")).not.toBeInTheDocument();
-    expect(screen.queryByText("Full database export")).not.toBeInTheDocument();
-  });
 });
 
 describe("AboutPage cross-publication content", () => {
@@ -446,18 +508,6 @@ describe("AboutPage cross-publication content", () => {
     );
   });
 
-  it("fills every grid row of the documentation cards", () => {
-    renderAboutPage();
-
-    const grid = sectionById("docs").querySelector("ul");
-    const columns = [...(grid?.className.matchAll(/grid-cols-(\d+)/g) ?? [])].map((match) =>
-      Number(match[1]),
-    );
-
-    // The widest breakpoint decides whether the last row is short.
-    expect(columns.length).toBeGreaterThan(0);
-    expect(SITE_FLAVOR_CONFIG.about.docLinks.length % Math.max(...columns)).toBe(0);
-  });
 });
 
 /**

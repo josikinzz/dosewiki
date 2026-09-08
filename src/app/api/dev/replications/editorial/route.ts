@@ -13,7 +13,8 @@
  * enforces the same floor.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -189,9 +190,13 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
         updates: body.updates,
       });
 
+      // Moving a replication between effects leaves both galleries stale, so
+      // the old and the new owner are published together.
+      const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
       for (const slug of new Set([body.expected.effect_slug, body.updates.effect_slug])) {
-        if (slug) revalidatePath(`/effects/${slug}`);
+        if (slug) targets.push({ kind: "effect", slug });
       }
+      await publishPublicCache({ targets, source: "manual" });
 
       return NextResponse.json({ ok: true, updated: 1, slugs: [result.slug] });
     }
@@ -207,9 +212,9 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       showcase_excluded: body.showcaseExcluded,
     });
 
-    if (body.effectSlug) {
-      revalidatePath(`/effects/${body.effectSlug}`);
-    }
+    const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
+    if (body.effectSlug) targets.push({ kind: "effect", slug: body.effectSlug });
+    await publishPublicCache({ targets, source: "manual" });
 
     return NextResponse.json({ ok: true, updated: result.updated, slugs: result.slugs });
   },

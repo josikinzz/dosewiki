@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,8 @@ const WHERE_IT_RENDERS: Record<Exclude<WarningBannerPresetState, "live">, string
 const SITEWIDE_HINT_THRESHOLD = Math.ceil(WARNING_BANNER_LIMITS.maxEnabledSlugs / 2);
 
 type PresetDrawerProps = {
+  /** Contextual copy editing deliberately excludes coverage and deletion. */
+  contextual?: boolean;
   draft: WarningBannerPreset;
   isNew: boolean;
   isDirty: boolean;
@@ -64,12 +66,13 @@ type PresetDrawerProps = {
   onDraftChange: (draft: WarningBannerPreset) => void;
   onSave: () => void;
   onDiscard: () => void;
-  onRequestEnablement: (preset: WarningBannerPreset, change: EnablementChange) => void;
-  onRequestDelete: (preset: WarningBannerPreset) => void;
-  onInspectCoverage: (slug: string) => void;
+  onRequestEnablement?: (preset: WarningBannerPreset, change: EnablementChange) => void;
+  onRequestDelete?: (preset: WarningBannerPreset) => void;
+  onInspectCoverage?: (slug: string) => void;
 };
 
 export function PresetDrawer({
+  contextual = false,
   draft,
   isNew,
   isDirty,
@@ -87,6 +90,7 @@ export function PresetDrawer({
 }: PresetDrawerProps) {
   const [query, setQuery] = useState("");
   const [staged, setStaged] = useState<Set<string>>(new Set());
+  const validationId = useId();
 
   // Staging is per preset: carrying ticks from one drawer into the next would
   // be a way to enable a class of substances on a preset nobody was looking at.
@@ -112,7 +116,19 @@ export function PresetDrawer({
   const overSlugBudget = draft.enabledSlugs.length > WARNING_BANNER_LIMITS.maxEnabledSlugs;
   const longList =
     !draft.allSubstances && draft.enabledSlugs.length >= SITEWIDE_HINT_THRESHOLD;
-  const canWrite = keyValid && iconValid && !overSlugBudget && saveState !== "saving";
+  const headlineError = draft.headline.length > WARNING_BANNER_LIMITS.headlineMaxLength
+    ? `The headline is ${draft.headline.length} characters; the limit is ${WARNING_BANNER_LIMITS.headlineMaxLength}.`
+    : contextual && !draft.headline.trim() ? "Add a headline before publishing." : null;
+  const pointsError = points.length > WARNING_BANNER_LIMITS.maxPoints
+    ? `That is ${points.length} lines; the limit is ${WARNING_BANNER_LIMITS.maxPoints}.`
+    : contextual && points.some((point) => point.length > WARNING_BANNER_LIMITS.pointMaxLength)
+      ? `Shorten each line to ${WARNING_BANNER_LIMITS.pointMaxLength} characters or fewer.` : null;
+  const severityError = contextual && !draft.severityLabel.trim()
+    ? "Add a severity label before publishing."
+    : contextual && draft.severityLabel.length > WARNING_BANNER_LIMITS.severityLabelMaxLength
+      ? `Shorten the severity label to ${WARNING_BANNER_LIMITS.severityLabelMaxLength} characters or fewer.` : null;
+  const contentInvalid = Boolean(headlineError || pointsError || severityError);
+  const canWrite = keyValid && iconValid && !overSlugBudget && saveState !== "saving" && (!contextual || !contentInvalid);
 
   /**
    * Every enablement button writes the whole draft, unsaved copy edits included:
@@ -122,7 +138,7 @@ export function PresetDrawer({
    * these buttons on the same key and icon checks as Save for that reason. The
    * controller confirms before it writes.
    */
-  const request = (change: EnablementChange) => onRequestEnablement(draft, change);
+  const request = (change: EnablementChange) => onRequestEnablement?.(draft, change);
 
   return (
     <div className="space-y-7">
@@ -179,18 +195,14 @@ export function PresetDrawer({
         <EditorField
           label="Headline"
           counter={`${draft.headline.length}/${WARNING_BANNER_LIMITS.headlineMaxLength}`}
-          error={
-            draft.headline.length > WARNING_BANNER_LIMITS.headlineMaxLength
-              ? `The headline is ${draft.headline.length} characters; the limit is ${WARNING_BANNER_LIMITS.headlineMaxLength}.`
-              : null
-          }
+          error={headlineError}
         >
           {(controlProps) => (
             <Input
               {...controlProps}
               value={draft.headline}
               inputSize="sm"
-              className="text-[15px]"
+              className={contextual ? undefined : "text-[15px]"}
               placeholder="Opioids and benzodiazepines stop breathing together"
               onChange={(event) => onDraftChange({ ...draft, headline: event.target.value })}
             />
@@ -201,11 +213,7 @@ export function PresetDrawer({
           label="Mechanism"
           description="One per line. Lines are paragraphs; start a line with - or * to make it a bullet. Adjectives are not warnings."
           counter={`${points.length}/${WARNING_BANNER_LIMITS.maxPoints}`}
-          error={
-            points.length > WARNING_BANNER_LIMITS.maxPoints
-              ? `That is ${points.length} lines; the limit is ${WARNING_BANNER_LIMITS.maxPoints}.`
-              : null
-          }
+          error={pointsError}
         >
           {(controlProps) => (
             <Textarea
@@ -227,6 +235,7 @@ export function PresetDrawer({
           <EditorField
             label="Severity label"
             counter={`${draft.severityLabel.length}/${WARNING_BANNER_LIMITS.severityLabelMaxLength}`}
+            error={severityError}
           >
             {(controlProps) => (
               <Input
@@ -263,6 +272,18 @@ export function PresetDrawer({
           onValidityChange={onIconValidityChange}
         />
 
+        {contextual ? (
+          <p className="theme-text-secondary text-sm">
+            Shared wording · {draft.allSubstances ? "all current and future substance articles" : `${draft.enabledSlugs.length} assigned article${draft.enabledSlugs.length === 1 ? "" : "s"}`} · dose.wiki and Effect Index.
+            {!draft.enabled ? " This preset remains disabled." : null}
+          </p>
+        ) : null}
+        {contextual && contentInvalid ? (
+          <p id={validationId} role="status" className="text-dose-danger text-sm">
+            Fix the highlighted fields before publishing. Your local changes are kept.
+          </p>
+        ) : null}
+
         <EditorToolbar variant="split">
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -270,10 +291,11 @@ export function PresetDrawer({
               variant="accent"
               size="sm"
               disabled={!isDirty || !canWrite}
+              aria-describedby={contextual && contentInvalid ? validationId : undefined}
               onClick={onSave}
             >
               <Icon icon="lucide:save" size={15} />
-              Save preset
+              {contextual ? "Publish shared preset" : "Publish preset"}
             </Button>
             <Button
               type="button"
@@ -285,7 +307,7 @@ export function PresetDrawer({
               <Icon icon="lucide:rotate-ccw" size={15} />
               Discard changes
             </Button>
-            {!isNew ? (
+            {!isNew && !contextual && onRequestDelete ? (
               <Button
                 type="button"
                 variant="ghostDestructive"
@@ -314,7 +336,7 @@ export function PresetDrawer({
         ) : null}
       </EditorSection>
 
-      <EditorSection headingLevel="h3" icon="lucide:power" title="Where it shows">
+      {!contextual ? <EditorSection headingLevel="h3" icon="lucide:power" title="Where it shows">
         <EditorCheckbox
           checked={draft.enabled}
           label="Enabled"
@@ -496,13 +518,13 @@ export function PresetDrawer({
               type="button"
               variant="textLink"
               size="auto"
-              onClick={() => onInspectCoverage(draft.enabledSlugs[0])}
+              onClick={() => onInspectCoverage?.(draft.enabledSlugs[0])}
             >
               {`See what a reader sees on ${draft.enabledSlugs[0]}`}
             </Button>
           ) : null}
         </div>
-      </EditorSection>
+      </EditorSection> : null}
     </div>
   );
 }

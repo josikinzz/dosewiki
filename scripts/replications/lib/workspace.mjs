@@ -537,20 +537,23 @@ export function createConvexReplicationMediaAdapter({ client, api, apiKey, fetch
     },
 
     async updateGalleryOrder({ effect_slug, replication_slugs }) {
+      const baseline = await client.query(api.replicationContextualEditing.collectionDetail, {
+        apiKey, targetKind: "effect", targetKey: effect_slug,
+      });
       return await client.mutation(api.replications.updateGalleryOrder, {
         apiKey,
         effect_slug,
         replication_slugs,
+        expectedRevision: baseline.revision,
       });
     },
 
     async clearGalleryOrder(effectSlug) {
-      return await client.mutation(api.subjectiveEffects.update, {
-        apiKey,
-        slug: effectSlug,
-        updates: {
-          gallery_order: [],
-        },
+      const baseline = await client.query(api.replicationContextualEditing.collectionDetail, {
+        apiKey, targetKind: "effect", targetKey: effectSlug,
+      });
+      return await client.mutation(api.replications.updateGalleryOrder, {
+        apiKey, effect_slug: effectSlug, replication_slugs: [], expectedRevision: baseline.revision,
       });
     },
   };

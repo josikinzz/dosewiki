@@ -4,7 +4,7 @@ import { CaptionedImage } from "./components/CaptionedImage";
 import { Columns, Column } from "./components/Columns";
 import { EffectListPanel } from "./components/EffectListPanel";
 import { ExtLink } from "./components/ExtLink";
-import { HeaderedTextbox } from "./components/HeaderedTextbox";
+import { HeaderedTextbox, type HeaderedTextboxPresentation } from "./components/HeaderedTextbox";
 import { IntLink } from "./components/IntLink";
 import { List, ListItem } from "./components/List";
 import { Paragraph } from "./components/Paragraph";
@@ -18,6 +18,11 @@ import { flattenVCodeHeadingText, formatHeaderedTextboxTitle } from "./headings"
 import { extractVCodePanelSections } from "./panelModel";
 import type { VCodeNode } from "./types";
 import { cn } from "@/lib/utils";
+import {
+  resolveArtistCreditLink,
+  type ArtistCreditLinks,
+} from "./artistCreditLinks";
+import { selectImageRoute } from "./imageRoutes";
 
 export type VCodeRendererContext = {
   citations: Array<{ url: string; text: string; from?: string }>;
@@ -30,6 +35,19 @@ export type VCodeRendererContext = {
    * used, so ids agree on repeated titles.
    */
   assignHeadingId?: (text: string) => string | undefined;
+  headeredTextboxPresentation?: HeaderedTextboxPresentation;
+  headeredTextboxHeadingLevel?: 2 | 3;
+  /**
+   * Credit-line destinations for embedded replication images. Supplied only
+   * by surfaces that load the gallery corpus; absent leaves bylines plain.
+   */
+  artistCreditLinks?: ArtistCreditLinks;
+  /**
+   * The drug class this surface speaks for ("deliriant", "psychedelic"). Set
+   * only by per-class summary pages; it selects an embed's `imageRoutes`
+   * variant where one exists.
+   */
+  mediaVariantKey?: string;
 };
 
 export type VCodeNodeRenderer = (
@@ -307,6 +325,8 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
         header={node.properties.header}
         labelBackground={node.properties.labelBackground}
         headerBackground={node.properties.headerBackground}
+        presentation={context.headeredTextboxPresentation}
+        headingLevel={context.headeredTextboxHeadingLevel}
       >
         {context.renderChildren(node.children)}
       </HeaderedTextbox>
@@ -366,19 +386,33 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     );
   },
   markdown: (node, index, context) => renderMarkdownText(node.properties.text ?? "", index, context),
-  "captioned-image": (node, index) => (
-    <CaptionedImage
-      key={index}
-      src={node.properties.src}
-      width={node.properties.width}
-      artist={node.properties.artist}
-      title={node.properties.title}
-      caption={node.properties.caption}
-      align={node.properties.align as "left" | "right" | "center"}
-      border={node.properties.border === "true"}
-      top={node.properties.top === "true"}
-    />
-  ),
+  "captioned-image": (node, index, context) => {
+    // A summary page for one drug class draws that class's variant of the
+    // embed when the article carries one; every other surface keeps the
+    // embed's own media.
+    const variant = selectImageRoute(
+      node.properties.imageRoutes,
+      context.mediaVariantKey,
+    );
+    const artist = variant?.artist ?? node.properties.artist;
+    const credit = resolveArtistCreditLink(context.artistCreditLinks, artist);
+
+    return (
+      <CaptionedImage
+        key={index}
+        src={variant?.src ?? node.properties.src}
+        width={node.properties.width}
+        artist={artist}
+        artistHref={credit?.href}
+        artistHrefExternal={credit?.external}
+        title={variant?.title ?? node.properties.title}
+        caption={variant?.caption ?? node.properties.caption}
+        align={node.properties.align as "left" | "right" | "center"}
+        border={node.properties.border === "true"}
+        top={node.properties.top === "true"}
+      />
+    );
+  },
   quote: (node, index, context) => (
     <Quote key={index} author={node.properties.author} source={node.properties.source}>
       {context.renderChildren(node.children)}

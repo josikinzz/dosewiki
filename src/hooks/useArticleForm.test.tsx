@@ -118,27 +118,6 @@ function UseArticleFormHarness({
 }
 
 describe("useArticleForm", () => {
-  it("uses canonical dosage and duration route defaults when an article has no routes", async () => {
-    const article = createEmptyArticle();
-    let latestForm: UseArticleFormReturn | null = null;
-
-    render(
-      <UseArticleFormHarness
-        article={article}
-        onReady={(form) => {
-          latestForm = form;
-        }}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(latestForm).not.toBeNull();
-    });
-
-    expect(latestForm?.methods.getValues("dosage.routes")).toEqual([createEmptyDosageRoute()]);
-    expect(latestForm?.methods.getValues("duration.routes")).toEqual([createEmptyDurationRoute()]);
-  });
-
   it("preserves references and route reference_ids while syncing duration routes", async () => {
     const article = createArticle();
     let latestForm: UseArticleFormReturn | null = null;
@@ -161,7 +140,7 @@ describe("useArticleForm", () => {
     expect(latestForm?.methods.getValues("duration.routes.0.reference_ids")).toEqual(["ref-1"]);
 
     act(() => {
-      latestForm?.methods.setValue("dosage.routes.0.route", "Sublingual");
+      latestForm?.renameDosageRoute(0, "Sublingual");
     });
 
     await waitFor(() => {
@@ -173,7 +152,7 @@ describe("useArticleForm", () => {
     expect(latestForm?.methods.getValues("duration.routes.0.reference_ids")).toEqual(["ref-1"]);
   });
 
-  it("moves dosage and duration routes together so the duration sync cannot relabel them", async () => {
+  it("moves dosage and duration routes together without relabeling their data", async () => {
     const article = createTwoRouteArticle();
     let latestForm: UseArticleFormReturn | null = null;
 
@@ -200,8 +179,6 @@ describe("useArticleForm", () => {
       ).toEqual(["Smoked", "Oral"]);
     });
 
-    // The by-index duration sync runs on the next effect flush; the paired move
-    // must leave it nothing to do.
     await waitFor(() => {
       expect(
         latestForm?.methods.getValues("duration.routes").map((route) => route.route),

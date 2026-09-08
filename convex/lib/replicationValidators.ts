@@ -213,6 +213,7 @@ export const updateGalleryOrderArgs = v.object({
   effect_slug: v.string(),
   replication_slugs: v.array(v.string()),
   expected_replication_slugs: v.optional(v.array(v.string())),
+  expectedRevision: v.string(),
 });
 
 export const renameSlugArgs = v.object({

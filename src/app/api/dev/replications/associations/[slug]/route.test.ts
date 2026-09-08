@@ -15,19 +15,10 @@ vi.mock("../../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidatePath: cacheMocks.revalidatePath,
-  revalidateTag: cacheMocks.revalidateTag,
-}));
-
-vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications" },
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({
@@ -79,7 +70,7 @@ function readRequest(slug = "tracers-hand") {
 function saveRequest(body: unknown, slug = "tracers-hand") {
   return new Request(`https://dose.wiki/api/dev/replications/associations/${slug}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -89,7 +80,7 @@ function patchRequest(body: unknown, slug = "tracers-hand") {
     `https://dosewiki-admin.vercel.app/api/dev/replications/associations/${slug}`,
     {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "https://dosewiki-admin.vercel.app" },
       body: JSON.stringify(body),
     },
   );
@@ -148,7 +139,7 @@ describe("replication associations route auth", () => {
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("editor");
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(convexMocks.mutation).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 });
 
@@ -213,7 +204,7 @@ describe("replication associations GET", () => {
 });
 
 describe("replication associations PATCH", () => {
-  it("assigns one replication directly and revalidates its article", async () => {
+  it("assigns one replication directly and publishes its article", async () => {
     const association = {
       slug: "ketamine",
       title: "Ketamine",
@@ -242,11 +233,10 @@ describe("replication associations PATCH", () => {
         assigned: true,
       },
     );
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith(
-      "public-replications",
-      { expire: 0 },
-    );
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/ketamine");
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "article", slug: "ketamine" }, { kind: "replication-collections" }],
+      source: "manual",
+    });
   });
 
   it("rejects a malformed direct-association payload before Convex", async () => {
@@ -260,7 +250,7 @@ describe("replication associations PATCH", () => {
 });
 
 describe("replication associations POST", () => {
-  it("adds an exclusion, then revalidates the tag and the written article", async () => {
+  it("adds an exclusion, then publishes the written article", async () => {
     convexMocks.mutation.mockResolvedValue({ updated: ["lsd"], droppedCuratedPositions: [] });
     const { POST } = await import("./route");
 
@@ -282,8 +272,10 @@ describe("replication associations POST", () => {
         updatedBy: "admin@example.com",
       },
     );
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/lsd");
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "replication-collections" }, { kind: "article", slug: "lsd" }],
+      source: "manual",
+    });
   });
 
   it("removes an exclusion by submitting the set without it", async () => {
@@ -299,7 +291,10 @@ describe("replication associations POST", () => {
       droppedCuratedPositions: [],
     });
     expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({ excludedSubstanceSlugs: [] });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/dmt");
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "replication-collections" }, { kind: "article", slug: "dmt" }],
+      source: "manual",
+    });
   });
 
   it("relays a dropped curated position so the editor is told the pin went", async () => {
@@ -331,15 +326,14 @@ describe("replication associations POST", () => {
     });
   });
 
-  it("revalidates nothing when the save wrote nothing", async () => {
+  it("publishes nothing when the save wrote nothing", async () => {
     convexMocks.mutation.mockResolvedValue({ updated: [], droppedCuratedPositions: [] });
     const { POST } = await import("./route");
 
     const response = await POST(saveRequest({ excludedSubstanceSlugs: [] }));
 
     expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
   it("rejects a malformed slug list before reaching Convex", async () => {

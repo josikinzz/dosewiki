@@ -6,43 +6,29 @@ import { Controller, useFormContext } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { EditorFieldRow } from "@/features/dev/components";
 
 import { FormEditorField } from "./FormEditorField";
 import { CollapsibleSubsection, FieldGroup } from "./FormHelpers";
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "@/data/config/tagOptions";
-import type { SubstanceArticle, SubstancePriority } from "@/schema";
+import type { SubstanceArticle } from "@/schema";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import { ArticleDisplayNameInput, ArticlePrioritySelect } from "./ArticleDisplayFields";
 
-const PRIORITY_OPTIONS = [
-  { value: "high", label: "High", description: "Featured in listings" },
-  { value: "normal", label: "Normal", description: "Standard visibility" },
-  { value: "low", label: "Low", description: "Direct URL only" },
-  { value: "hide_for_now", label: "Hide for now", description: "Temporarily direct URL only" },
-] as const satisfies ReadonlyArray<{
-  value: SubstancePriority;
-  label: string;
-  description: string;
-}>;
 
 export type OverviewFieldsRHFProps = {
   idPrefix: string;
   categoryOptions: TagOption[];
   indexCategoryOptions: TagOption[];
+  identificationOnly?: boolean;
 };
 
 export function OverviewFieldsRHF({
   idPrefix,
   categoryOptions: _categoryOptions,
   indexCategoryOptions,
+  identificationOnly = false,
 }: OverviewFieldsRHFProps) {
   const { register, watch, setValue, control, getValues } = useFormContext<SubstanceArticle>();
 
@@ -59,6 +45,7 @@ export function OverviewFieldsRHF({
   return (
     <section className="space-y-6">
       {/* Article metadata - first for quick reference */}
+      {!identificationOnly && (
       <FieldGroup label="Article Metadata">
         <EditorFieldRow layout="twoColumn">
           <FormEditorField
@@ -95,26 +82,13 @@ export function OverviewFieldsRHF({
               name="priority"
               control={control}
               render={({ field }) => (
-                <Select value={field.value ?? "normal"} onValueChange={field.onChange}>
-                  <SelectTrigger id={`${idPrefix}-priority`}>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRIORITY_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        <div className="flex flex-col items-start">
-                          <span className="font-medium">{opt.label}</span>
-                          <span className="theme-text-faint text-xs">{opt.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ArticlePrioritySelect id={`${idPrefix}-priority`} value={field.value ?? "normal"} onChange={field.onChange} />
               )}
             />
           </FormEditorField>
         </EditorFieldRow>
       </FieldGroup>
+      )}
 
       {/* Primary identification - matches HeroSection visual order */}
       <FormEditorField
@@ -122,12 +96,7 @@ export function OverviewFieldsRHF({
         label="Display Name / Title"
         name="title"
       >
-        <Input
-          id={`${idPrefix}-display-title`}
-          value={displayTitle}
-          onChange={handleDisplayTitleChange}
-          placeholder="Primary article title"
-        />
+        <ArticleDisplayNameInput id={`${idPrefix}-display-title`} value={displayTitle} onChange={handleDisplayTitleChange} />
       </FormEditorField>
 
       <FormEditorField
@@ -175,6 +144,7 @@ export function OverviewFieldsRHF({
         />
       </FormEditorField>
 
+      {!identificationOnly && (
       <ControlledTagMultiSelect
         name="index_categories"
         label="Index Categories"
@@ -183,12 +153,14 @@ export function OverviewFieldsRHF({
         openStrategy="button"
         icon={<Icon icon="lucide:tag" className="theme-icon-accent h-3.5 w-3.5" size={14} />}
       />
+      )}
 
       {/* Chemical identification - expandable details in hero */}
       <CollapsibleSubsection
         title={chemistryGroupLabel}
         icon={<Icon icon="lucide:fingerprint" size={20} />}
         description="These fields appear in the expandable 'See more' section of the hero."
+        pairedIndicator={identificationOnly}
       >
         <EditorFieldRow layout="twoColumn" className="lg:grid-cols-3">
           <FormEditorField htmlFor={`${idPrefix}-iupac-name`} label="IUPAC name" name="identification.iupac_name">
@@ -224,7 +196,7 @@ export function OverviewFieldsRHF({
               id={`${idPrefix}-smiles`}
               {...register("identification.smiles")}
               placeholder="e.g., CCN(CC)C(=O)..."
-              className="font-mono text-sm"
+              className={identificationOnly ? "font-mono text-[16px] md:text-sm" : "font-mono text-sm"}
             />
           </FormEditorField>
           <FormEditorField htmlFor={`${idPrefix}-inchi-key`} label="InChI Key" name="identification.inchi_key">
@@ -232,7 +204,7 @@ export function OverviewFieldsRHF({
               id={`${idPrefix}-inchi-key`}
               {...register("identification.inchi_key")}
               placeholder="e.g., VYFYYTLLBUKUHU-..."
-              className="font-mono text-sm"
+              className={identificationOnly ? "font-mono text-[16px] md:text-sm" : "font-mono text-sm"}
             />
           </FormEditorField>
         </EditorFieldRow>

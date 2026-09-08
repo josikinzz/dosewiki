@@ -1,3 +1,4 @@
+import { replicationRevision } from "./replicationEditJournal";
 import type { QueryCtx } from "../_generated/server";
 import { requireRole } from "./auth";
 import {
@@ -96,6 +97,7 @@ export async function getEditorContributorProfileHandler(
     avatarR2Key: stored.avatarR2Key ?? null,
     storedAvatarUrl,
     replicationOrder: normalizeOrderSlugs(stored.replicationOrder),
+    orderingRevision: await replicationRevision(ctx, existing, `artist:${key}`),
     reportOrder: normalizeOrderSlugs(stored.reportOrder),
     exclude_from_gallery: stored.exclude_from_gallery === true,
     archival: stored.archival === true,

@@ -54,6 +54,7 @@ const publishedReport = {
 const publishedReportRecord = {
   id: "report-1",
   slug: "alpine-clarity",
+  revision: "0".repeat(64),
   fields: {
     title: "Alpine clarity",
     subject: { name: "nervewing", trip_date: "2024-02-02" },
@@ -78,7 +79,8 @@ const promotionPayload = {
   tags: ["psychedelic"],
 };
 
-function stubCorpus(submissions: unknown[], reports: unknown[] = [publishedReport]) {
+function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [publishedReport]) {
+  const storedSubmissions = submissions.map((row) => ({ ...row, review_notes: "" }));
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -94,8 +96,22 @@ function stubCorpus(submissions: unknown[], reports: unknown[] = [publishedRepor
         return Response.json({ ok: true, reports, contributors: [{ key: "NERVEWING", displayName: "nervewing" }] });
       }
 
+      if (url.endsWith("/status") && init?.method === "POST") {
+        const segments = url.split("/");
+        const id = segments[segments.length - 2];
+        const row = storedSubmissions.find((entry) => entry.id === id);
+        if (!row) return Response.json({ error: "Not found" }, { status: 404 });
+        const decision = JSON.parse(String(init.body)) as { status: string; notes: string };
+        row.status = decision.status;
+        row.review_notes = decision.notes;
+        return Response.json({ ok: true, submission: row });
+      }
+
       if (url.includes("/queue")) {
-        return Response.json({ ok: true, submissions });
+        const scoped = url.includes("scope=needs-review")
+          ? storedSubmissions.filter((row) => row.status === "submitted" || row.status === "reviewing")
+          : storedSubmissions;
+        return Response.json({ ok: true, submissions: scoped });
       }
 
       return Response.json({ error: "unexpected" }, { status: 500 });
@@ -155,9 +171,13 @@ describe("TripReportPortalTab", () => {
     expect(screen.getByRole("button", { name: /^Published/ })).toHaveTextContent("1");
   });
 
-  it("stores the decision note typed before Accept, or a plain outcome when empty", async () => {
+  it("persists the decision note with an accepted submission", async () => {
     const user = userEvent.setup();
     render(<TripReportPortalTab />);
+
+    // The controller paints its cached corpus before fetching. Wait for this
+    // fixture rather than querying all 300 cached rows from the preceding case.
+    await screen.findByText("2 reports · 2 authors · 2 substances");
 
     await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
 
@@ -167,7 +187,8 @@ describe("TripReportPortalTab", () => {
       ),
     ).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText("Decision note"), "Sober sitter present.");
+    await user.click(screen.getByLabelText("Decision note"));
+    await user.paste("  Sober sitter present.  ");
     await user.click(screen.getByRole("button", { name: "Accept" }));
 
     await waitFor(() =>
@@ -179,16 +200,18 @@ describe("TripReportPortalTab", () => {
         }),
       ),
     );
+    expect(await screen.findByText("Sober sitter present.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
   });
 
-  it("asks before Reject or Mark as spam writes, and records the plain outcome", async () => {
+  it("requires confirmation before removing a submission from the review queue", async () => {
     const user = userEvent.setup();
     render(<TripReportPortalTab />);
 
     await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
     await user.click(await screen.findByRole("button", { name: "Mark as spam" }));
 
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("dialog", { name: "Mark as spam?" });
     expect(fetch).not.toHaveBeenCalledWith(
       "/api/trip-report-submissions/submission-1/status",
       expect.anything(),
@@ -202,17 +225,17 @@ describe("TripReportPortalTab", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Reject" }));
-    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Reject" }));
+    const rejectionDialog = await screen.findByRole("dialog", { name: "Reject this submission?" });
+    await user.click(await within(rejectionDialog).findByRole("button", { name: "Reject" }));
 
-    await waitFor(() =>
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/trip-report-submissions/submission-1/status",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ status: "rejected", notes: "Rejected" }),
-        }),
-      ),
-    );
+    await waitFor(() => {
+      const post = vi.mocked(fetch).mock.calls.find(([url]) =>
+        String(url) === "/api/trip-report-submissions/submission-1/status",
+      );
+      expect(post).toBeDefined();
+      expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ status: "rejected" });
+      expect(screen.queryByRole("option", { name: /Careful low dose museum walk/ })).not.toBeInTheDocument();
+    });
   });
 
   it("steps between queued rows from the review header without closing", async () => {

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getPublicGalleryReplications } from "@server/convex/publicData";
+import {
+  getPublicContributorDirectory,
+  getPublicGalleryReplications,
+} from "@server/convex/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
 export const runtime = "nodejs";
@@ -22,6 +25,13 @@ const CACHE_CONTROL =
  * (`getPublicGalleryReplications`), so the origin cost is one in-memory join;
  * the CDN holds the response for the same hourly window as the page itself.
  *
+ * The complete contributor directory rides along: it is one entry per credited
+ * artist in the corpus, so it is only usable once the corpus itself is here,
+ * and shipping it in the index page's RSC payload cost ~430 kB on every visit
+ * (and on every homepage prefetch) to serve the couple of dozen artists the
+ * prerendered rails show. The page now inlines only those, and the explorer
+ * adopts this copy when the corpus lands.
+ *
  * This intentionally returns the same slim projection as the initial RSC
  * props, rather than the public v1 representation. The public endpoint keeps
  * its established pagination and response contract untouched.
@@ -33,9 +43,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const replications = await getPublicGalleryReplications();
+    const [replications, contributorDirectory] = await Promise.all([
+      getPublicGalleryReplications(),
+      getPublicContributorDirectory(),
+    ]);
     return NextResponse.json(
-      { data: replications },
+      { data: replications, contributorDirectory },
       { headers: { "Cache-Control": CACHE_CONTROL } },
     );
   } catch (error) {

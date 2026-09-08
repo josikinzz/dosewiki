@@ -30,14 +30,15 @@
  * route at `/api/dev/replications/substances` is static, and a `[slug]` in that
  * segment reads as a substance address everywhere else in this tree.
  *
- * A successful save revalidates the public replications tag with `expire: 0` and
- * each written substance article, so the showcases it left or joined reflect the
- * change immediately instead of at the end of the public-data cache window.
+ * A successful save publishes each written substance article and the shared
+ * replication collections, so the showcases this replication left or joined
+ * reflect the change on the public deployments immediately instead of at the
+ * end of the public-data cache window.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
 import { api } from "../../../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { replicationViewerEditorRoute } from "@server/next/replicationViewerEditorPolicy";
@@ -210,8 +211,13 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
         assigned: body.assigned,
       },
     );
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
-    revalidatePath(`/${body.substanceSlug}`);
+    await publishPublicCache({
+      targets: [
+        { kind: "article", slug: body.substanceSlug },
+        { kind: "replication-collections" },
+      ],
+      source: "manual",
+    });
     return NextResponse.json({ ok: true, association: result.association });
   },
 }));
@@ -242,13 +248,14 @@ export const POST = protectedRouteOperation<ExclusionBody, ParsedExclusionBody>(
       },
     );
 
-    // Only substances whose row actually changed are revalidated; a save that
+    // Only substances whose row actually changed are published; a save that
     // wrote nothing leaves every cache entry still true.
     if (result.updated.length > 0) {
-      revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+      const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
       for (const substanceSlug of result.updated) {
-        revalidatePath(`/${substanceSlug}`);
+        targets.push({ kind: "article", slug: substanceSlug });
       }
+      await publishPublicCache({ targets, source: "manual" });
     }
 
     return NextResponse.json({

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getRouteLoaderMocks } from "./routeLoaders.testHarness";
 import {
-  categoryRouteDescriptor,
   loadCategoryRoute,
   loadEffectCategoryRoute,
   loadMechanismQualifierRoute,
@@ -10,7 +9,7 @@ import {
   type TaxonomyRouteDescriptor,
 } from "./routeLoaders.taxonomy";
 
-const { publicData, publicLibrary, staticParams } = getRouteLoaderMocks();
+const { publicData, publicLibrary } = getRouteLoaderMocks();
 
 describe("taxonomy route loaders", () => {
   beforeEach(() => {
@@ -241,14 +240,6 @@ describe("taxonomy route loaders", () => {
     });
   });
 
-  it("includes canonical and alias params in category static params", async () => {
-    staticParams.getStaticCategoryParams.mockResolvedValueOnce([{ categoryKey: "psychedelic" }]);
-
-    const params = await loadTaxonomyStaticParams(categoryRouteDescriptor);
-
-    expect(params[0]).toEqual({ categoryKey: "psychedelic" });
-    expect(params).toContainEqual({ categoryKey: "psychedelics" });
-  });
 
   it("defaults static params to an empty list when the descriptor omits them", async () => {
     await expect(loadTaxonomyStaticParams(createGenericDescriptor(null))).resolves.toEqual([]);

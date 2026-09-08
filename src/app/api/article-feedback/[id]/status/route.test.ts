@@ -33,7 +33,7 @@ function statusRequest(body: unknown): Request {
   });
 }
 
-const context = { params: { id: "feedback-1" } };
+const context = { params: Promise.resolve({ id: "feedback-1" }) };
 
 /** Shared rules live in src/lib/http/feedbackStatusRoute.test.ts; this file pins the article identity. */
 describe("article feedback status route", () => {

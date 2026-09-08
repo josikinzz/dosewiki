@@ -99,15 +99,22 @@ describe("InviteRedeemForm", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("explains when the account exists but sign-in failed", async () => {
+  it.each(["refused", "network"] as const)("offers sign-in without redeeming again after account creation when login fails: %s", async (failure) => {
     vi.mocked(fetch).mockResolvedValueOnce(Response.json({ ok: true, username: "ada" }));
-    authMocks.signIn.mockResolvedValueOnce({ ok: false, error: "CredentialsSignin", url: null });
+    if (failure === "network") {
+      authMocks.signIn.mockRejectedValueOnce(new Error("Network unavailable"));
+    } else {
+      authMocks.signIn.mockResolvedValueOnce({ ok: false, error: "CredentialsSignin", url: null });
+    }
     const user = userEvent.setup();
     render(<InviteRedeemForm initialCode={CODE} destination="/dev" />);
 
     await fillAccountFields(user);
     await user.click(screen.getByRole("button", { name: "Create account" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Your account was created but sign-in did not complete.");
+    expect(await screen.findByRole("link", { name: "Continue to sign in" })).toHaveAttribute("href", "/sign-in");
+    expect(screen.queryByRole("button", { name: "Create account" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Invite code")).toBeDisabled();
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

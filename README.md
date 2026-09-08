@@ -98,6 +98,26 @@ const { data } = await response.json();
 
 DoseWiki content is for harm-reduction education and is not medical advice. Review the [license and reuse terms](https://dose.wiki/docs/license) and preserve source attribution.
 
+### Canonical replication UI integration
+
+DoseWiki owns the public replication carousel and immersive viewer used by
+Osmanthus. `/embed/replications` renders the same `ReplicationShowcase` and
+`ReplicationViewerOverlay` components as this site, backed by the same public
+collection services, without public-page chrome, analytics, or editorial tools.
+Osmanthus embeds this document rather than copying player code, so UI updates
+follow DoseWiki releases. The public build's artifact audit must continue to
+exclude editorial browser modules.
+The canonical loaders retain complete playlist membership while preferring
+reviewed welcoming openings and open-eye motion, with known unsettling content
+later. Effect editorial pins remain authoritative within that boundary. Explicit
+effect-tag collections can play before their editorial article exists; see the
+ordering and limitations in [HANDOFF.md](HANDOFF.md).
+
+The versioned message protocol, collection parameters, origin allowlist, and
+publisher-first release sequence are documented in [HANDOFF.md](HANDOFF.md).
+Only this exact route is frameable; other pages retain their existing policy.
+The endpoint is implemented locally; this change does not itself deploy it.
+
 ## Editor Surface
 
 Sign in at `/sign-in`; the protected editor is mounted at `/dev` with tab and item deep links.
@@ -161,7 +181,9 @@ Production writes use an intent-scoped admin token or the documented `CONVEX_ADM
 
 `NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
 
-`dose.wiki`, `www.dose.wiki`, `dev.dose.wiki`, and `dosewiki-admin.vercel.app` share one `dosewiki-admin` production build. The first two are public and crawlable. The editor hosts remain closed to crawlers; public-host `/dev`, `/review`, and sign-in links hand off to `dev.dose.wiki`. Retired `/preview` addresses permanently redirect to ordinary App Paths.
+`dose.wiki` and `www.dose.wiki` use the public-only `dosewiki-public` build. `dev.dose.wiki` and `dosewiki-admin.vercel.app` use the separate, application-authenticated `dosewiki-admin` editor build and remain closed to crawlers. Public-host `/dev`, `/review`, and sign-in links hand off to `dev.dose.wiki`. Retired `/preview` addresses permanently redirect to ordinary App Paths.
+
+`PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the public projects, whose caches the editor project cannot expire directly. Set the shared secret on all three Vercel projects and production Convex; set the comma-separated public origin list on the editor project and production Convex only. Targets outside the public host allowlist are ignored. The receiver accepts signed content identities only and derives its own paths and tags, so the secret grants cache expiry and no editorial capability. Committed changes enter a durable Convex outbox that retries incomplete delivery. Article receipts distinguish accepted invalidation from a verified revision in canonical public HTML. Missing configuration is reported as `unconfigured`, not successful publication; the existing revalidation intervals remain a fallback. See [deployment routing](docs/agents/deployment.md) for recovery and release evidence.
 
 Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 
@@ -191,6 +213,12 @@ Batch generation uses OpenRouter and requires `OPENROUTER_API_KEY`. Scry access 
 Convex-changing commands must use an explicit `TARGET_CONVEX_URL` for `glad-minnow-656`, a matching expected-deployment argument where supported, and the command's write confirmation. Read [Convex credentials](docs/agents/convex-credentials.md) before running them.
 
 For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow [citation workbench guidance](docs/agents/citation-workbench.md) and [production rollout](docs/citation-production-rollout.md).
+
+For isolated Sol-low regeneration of existing URL-only and hidden article
+sections, use `/sectionmaxxing` or `/goal continue the sectionmaxxing process till completion` and the
+[sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). `npm run sectionmaxxing -- --help`
+lists its resumable, production-read-only campaign commands. Legality is
+excluded; publishing replacements remains a separately approved operation.
 
 ## Further Reading
 

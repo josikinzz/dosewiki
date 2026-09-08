@@ -13,9 +13,10 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidatePath: vi.fn(),
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
+
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -49,6 +50,7 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
 beforeEach(() => {
   vi.resetModules();
   authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+  publishMocks.publishPublicCache.mockClear();
   mocks.query.mockReset();
   mocks.mutation.mockReset();
   mocks.getServerConvexWriteCapability.mockReset();
@@ -117,7 +119,7 @@ describe("replication create route", () => {
   const createRequest = () =>
     new Request("https://dose.wiki/api/dev/replications", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
       body: JSON.stringify({
         slug: "new-asset",
         title: "New asset",
@@ -138,7 +140,7 @@ describe("replication create route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("inserts the asset for an admin", async () => {
+  it("inserts the asset for an admin and publishes the replication collections", async () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
@@ -151,5 +153,38 @@ describe("replication create route", () => {
       "replications.insertMediaAsset",
       expect.objectContaining({ slug: "new-asset", actorEmail: "admin@example.com" }),
     );
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "replication-collections" }],
+      source: "manual",
+    });
+  });
+
+  it("publishes the owning effect alongside the collections when the asset has one", async () => {
+    authMocks.requireRoleSession.mockImplementation(
+      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
+    );
+    const { POST } = await import("./route");
+
+    const response = await POST(
+      new Request("https://dose.wiki/api/dev/replications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+        body: JSON.stringify({
+          slug: "new-asset",
+          title: "New asset",
+          artist: "Archive Artist",
+          type: "image",
+          format: "webp",
+          storageId: "storage-id",
+          effectSlug: "tracers",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "replication-collections" }, { kind: "effect", slug: "tracers" }],
+      source: "manual",
+    });
   });
 });

@@ -1,20 +1,9 @@
-/**
- * Admin write endpoint for the review portal's inline click-to-edit.
- *
- * The edit lands on the published article with no review step, so it is
- * admin-only; an editor's fixes travel as change proposals instead.
- *
- * Writes exactly one allow-listed string field on one article via
- * `substanceIndex.setArticleField`. The full editor save flow (whole-article
- * diff, commit message) stays reserved for content edits; fixing a typo in a
- * dosage note while flipping through the queue should not cost a commit — but
- * it is still a contribution, so it records its own single-article changelog
- * entry and shows up on the editor's profile like any other edit.
- *
- *   POST /api/dev/article-field   { slug, path, value, expected }  → one field
+/** Admin-only, whole-revision-guarded single-field publication.
+ * The content and attributed revision commit in one Convex transaction.
+ * Retrying the same changeId reconciles a lost response without another write.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
 import { api } from "../../../../../convex/_generated/api";
 import {
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
@@ -23,15 +12,10 @@ import {
   type EditableFieldKind,
   type EditableFieldValue,
 } from "../../../../../convex/lib/articleFieldWrites";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+
 import { isFieldPathDiagnostic, parseFieldPath } from "@/data/schema/fieldPath";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import {
-  buildDirectEditDiff,
-  recordDirectEditChangelog,
-} from "../directEditChangelog";
-
 export const runtime = "nodejs";
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
@@ -41,6 +25,8 @@ type SetArticleFieldBody = {
   path?: unknown;
   value?: unknown;
   expected?: unknown;
+  baseHash?: unknown;
+  changeId?: unknown;
 };
 
 type ParsedSetArticleField = {
@@ -48,6 +34,8 @@ type ParsedSetArticleField = {
   path: string;
   value: EditableFieldValue;
   expected: EditableFieldValue;
+  baseHash: string;
+  changeId: string;
 };
 
 /** Validates one side of the exchange against the path's declared kind. */
@@ -107,15 +95,12 @@ function parseSetArticleFieldBody(body: SetArticleFieldBody): ParsedSetArticleFi
     "The field's expected current value",
   );
 
-  return { slug, path: parsed.normalized, value, expected };
+  if (typeof body.baseHash !== "string" || !body.baseHash || typeof body.changeId !== "string" || !body.changeId) {
+    throw new JsonBodyError(400, "The loaded article revision and a stable change ID are required.");
+  }
+  return { slug, path: parsed.normalized, value, expected, baseHash: body.baseHash, changeId: body.changeId };
 }
 
-/** A field value as the contribution diff shows it. */
-function describeFieldValue(value: EditableFieldValue): string {
-  if (typeof value === "string") return value;
-  const bounds = [value.min, value.max].filter((bound) => bound !== null).join("–");
-  return `${bounds} ${value.unit}`.trim();
-}
 
 export const POST = protectedRouteOperation<SetArticleFieldBody, ParsedSetArticleField>({
   auth: "admin",
@@ -127,7 +112,7 @@ export const POST = protectedRouteOperation<SetArticleFieldBody, ParsedSetArticl
   capabilities: [{ type: "convexWrite" }],
   unexpectedErrorLabel: "Failed to write an article field via Next route:",
   unexpectedErrorMessage: "Unable to save that edit right now.",
-  operation: async ({ actorEmail, auth, body, convexWrite }) => {
+  operation: async ({ actorEmail, body, convexWrite }) => {
     if (!convexWrite) {
       throw new Error("Convex write capability is required.");
     }
@@ -142,31 +127,19 @@ export const POST = protectedRouteOperation<SetArticleFieldBody, ParsedSetArticl
       path: body.path,
       value: body.value,
       expected: body.expected,
+      baseHash: body.baseHash,
+      changeId: body.changeId,
     });
 
-    await recordDirectEditChangelog({
-      convexWrite,
-      actorEmail,
-      session: auth.session,
-      article: { id: result.id ?? 0, title: result.title, slug: result.slug },
-      message: `Inline edit — ${result.path}`,
-      markdown: buildDirectEditDiff(
-        result.title,
-        result.path,
-        describeFieldValue(body.expected),
-        describeFieldValue(body.value),
-      ),
-    });
 
-    // The edit changes public article content, so the article's own cached
-    // projections must refresh alongside the shared substances tag.
-    revalidatePath(`/${body.slug}`);
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.substances, { expire: 0 });
+    // Refresh this article's leaves and the shared listing projections immediately.
+    await revalidateSavedPaths([`/${body.slug}`], "manual");
     return NextResponse.json({
       ok: true,
       slug: result.slug,
       path: result.path,
       value: result.value,
+      baseHash: result.baseHash,
     });
   },
 });

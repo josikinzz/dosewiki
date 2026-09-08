@@ -140,13 +140,19 @@ const MARKDOWN_FENCE_PATTERN = /^(?:```|~~~)/;
  * title produce the same anchor, and a repeated title takes the same `-2`
  * suffix on both paths. Fenced code is skipped, because `# comment` inside a
  * code block renders as code, not as a heading.
+ *
+ * `assignId` lets a caller that renders the body in pieces, each piece with
+ * its own renderer, thread one assigner through every piece so the ids here
+ * still match the ids those renderers emit.
  */
-export function extractMarkdownHeadings(markdown: string | undefined): VCodeHeading[] {
+export function extractMarkdownHeadings(
+  markdown: string | undefined,
+  assignId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
+): VCodeHeading[] {
   if (!markdown) {
     return [];
   }
 
-  const assignId = createVCodeHeadingIdAssigner();
   const headings: VCodeHeading[] = [];
   let inFence = false;
 
@@ -182,15 +188,18 @@ export function extractMarkdownHeadings(markdown: string | undefined): VCodeHead
 /**
  * Every heading a VCode body renders, in document order, with the anchor id
  * `VCodeRenderer` emits for it. Raw string bodies are parsed first, so an
- * article that only carries `body_raw` still yields its headings.
+ * article that only carries `body_raw` still yields its headings. `assignId`
+ * is shared across pieces the same way as in {@link extractMarkdownHeadings}.
  */
-export function extractVCodeHeadings(content: VCodeContent | undefined): VCodeHeading[] {
+export function extractVCodeHeadings(
+  content: VCodeContent | undefined,
+  assignId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
+): VCodeHeading[] {
   if (content == null) {
     return [];
   }
 
   const normalized = normalizeVCodeContent(content, undefined) ?? content;
-  const assignId = createVCodeHeadingIdAssigner();
   const headings: VCodeHeading[] = [];
 
   const push = (level: number, text: string) => {

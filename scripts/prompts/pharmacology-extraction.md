@@ -1,57 +1,70 @@
 # Pharmacology Extraction Prompt
 
-You copy pharmacology passages out of a source file, word for word, into a structured excerpt file.
+Extract every pharmacodynamics or pharmacokinetics passage from the supplied collected-source file for one substance. Use only the supplied documents. Extraction preserves source text verbatim; it is not summarisation, synthesis or rewriting.
 
-## Task
+## 1. Identify sources and output mode
 
-Read every source document in the staged file below. For each source, copy out every passage that
-describes **pharmacodynamics** (what the substance does to the body) or **pharmacokinetics** (what
-the body does to the substance). Emit them in the output format specified below.
+In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Source count, length and quality vary.
 
-This is a copy-paste job. It is not summarisation, synthesis, or rewriting.
+Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-Hard rules, applied to every passage you emit:
+If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
 
-1. **Verbatim.** Every extracted passage must appear character-for-character in the staged source
-   file. A script checks this by substring match and rejects the file if any passage drifts. Never
-   paraphrase, condense, merge sentences, fix typos, or normalise spacing, symbols, or units. The
-   only text you author is the headings, the `---` rules, and the markers defined below.
-2. **Complete units.** Copy whole paragraphs, whole list blocks, whole table rows. Never cut a
-   sentence in half. When a pharmacology fact sits inside a paragraph that is otherwise about
-   something else, copy the whole paragraph.
-3. **Markdown as-is.** Keep the source's headings, bullets, bold, links, and table pipes exactly as
-   written.
-4. **Over-include.** If you are unsure whether a passage counts, include it. A human reads this
-   file afterward. An extra passage costs nothing; a missed one is invisible.
+Continue when every source boundary and the active output mode are identified.
 
-## Input
+## 2. Find and classify every pharmacology passage
 
-The staged source file has this shape:
+Read each source end to end. Relevant material may appear under Pharmacology, Chemistry, Mechanism of Action, Absorption, Metabolism, Effects or Summary, or in infobox tables and image captions.
 
-```
-# <Substance Title> — Collected Sources
+### Pharmacodynamics: target action and mechanism
 
-## Source: TripSit Factsheets
+Include passages covering:
 
-<full document text>
+- Receptor or transporter agonism, antagonism, partial agonism, inverse agonism or allosteric modulation.
+- Binding affinity and potency: Ki, Kd, pKi, EC50, IC50, Emax and intrinsic activity.
+- Selectivity between receptor subtypes and binding comparisons across targets.
+- Neurotransmitter release and reuptake inhibition, including serotonin, dopamine, norepinephrine, GABA, glutamate and acetylcholine.
+- Ion channel effects, second messengers and downstream signalling.
+- Mechanisms described as unknown, disputed or assumed from structural similarity.
+- Statements that the substance does not act at a target.
 
----
+### Pharmacokinetics: absorption, distribution, metabolism and elimination
 
-## Source: Wikipedia
+Include passages covering:
 
-<full document text>
+- Bioavailability, with administration route where stated.
+- Absorption rate, onset of plasma levels, Cmax, Tmax, AUC and food effects.
+- Volume of distribution, protein binding and blood-brain barrier passage.
+- Metabolic sites, CYP enzymes, first-pass metabolism, phase I/II pathways, deacetylation, hydrolysis, and enzyme induction or inhibition.
+- Metabolite names, active or inactive status, and prodrug conversion.
+- Distribution, elimination and terminal half-lives, and clearance rate.
+- Elimination routes, recovery percentages in urine, feces or bile, and detection windows.
 
----
-```
+Complete the same source review whether or not PK is found. Absent pharmacokinetic data is a normal result, including alongside rich pharmacodynamics. Once the supplied sources have been reviewed, leave unsupported PK absent. Do not infer it from structure, a related compound or reported effect duration, or seek material beyond the supplied file.
 
-Sources vary from two to a dozen, and from a paragraph to many pages. Pharmacology content is not
-confined to a section named "Pharmacology" — it also turns up under Chemistry, Mechanism of Action,
-Absorption, Metabolism, Effects, Summary, infobox tables, and image captions. Read each source end
-to end.
+### Relevance boundary
 
-## Output format
+On their own, dose ranges, effect duration and onset times, subjective effects, legal status, synthesis routes, molecular weight, melting point, LD50, overdose case reports, tolerance schedules and drug-interaction warnings do not qualify. Plasma-level timing qualifies under PK; effect timing alone does not.
 
-Emit exactly this, and nothing else — no code fences, no preamble, no closing commentary:
+If a pharmacology fact appears inside a paragraph mainly about another topic, include the whole paragraph. Include a passage when its pharmacological relevance remains uncertain.
+
+Continue when every source has been reviewed and each qualifying or uncertain passage identified. A source with no qualifying pharmacology is a valid result.
+
+## 3. Preserve complete units and attached context
+
+- Copy whole paragraphs, whole list blocks and whole table rows. Preserve source headings, bullets, bold, links and table pipes. A mixed-topic paragraph stays whole.
+- Copy every character exactly, including typos, spacing, punctuation, symbols and units. Preserve numerical precision, leading zeroes, range order, micro signs and subscript styling without conversion or rounding.
+- Carry the context attached to each value: target receptor, species, assay, study citation and cell-line notes. Include the introductory lines that establish this context.
+- Keep administration route names attached to half-life and bioavailability values wherever stated, including oral, insufflated, sublingual, smoked, vaporised, intravenous, intramuscular and rectal routes.
+- Copy a selected table whole: header, separator and every data row, with every column intact. Include its introductory sentence. A selected sentence introducing a table also requires the table beneath it. Retain the original table format.
+- Preserve hedges and limitations with their claims, including assumptions based on structural similarity. Keep each claim under its own source; never supply a mechanism from memory or transfer a claim from a related substance.
+- In excerpt mode, author only the metadata, headings, separators and markers defined in step 4. All extracted text remains source text, without added explanation or merged sentences.
+
+Continue when every selected unit is intact, with its attached context and original provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
+
+## 4. Emit the active output format
+
+When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Pharmacology Quotes
@@ -71,131 +84,29 @@ Emit exactly this, and nothing else — no code fences, no preamble, no closing 
 ---
 ```
 
-- Take `<Substance Title>` from the staged file's first line, and join it to `Pharmacology Quotes`
-  with a plain hyphen `-`, not the em dash the staged file uses.
-- `<YYYY-MM-DD>` is today's date.
-- Emit **one `## Source:` block per source in the staged file, in the staged file's order, using its
-  exact source name** — including sources that yielded nothing. Never merge, reorder, rename, or
-  drop a source.
-- A source you read that had no pharmacology content gets `*No pharmacology content found.*` on its
-  own line under its heading.
-- A source whose document body was empty gets `*No content available for this source.*`
-- Every source block ends with a `---` rule.
+Take the substance title from the staged file's first line, without its Collected Sources suffix. Join it to `Pharmacology Quotes` with a plain hyphen `-`. Use today's date as `YYYY-MM-DD`.
 
-## What counts: pharmacodynamics
+Emit exactly one `## Source:` heading for every input source, with its exact name and original order. End every source block with `---`. A nonempty document with no qualifying content gets exactly `*No pharmacology content found.*` alone under its heading. An empty document gets exactly `*No content available for this source.*`. An all-empty extraction is complete and successful.
 
-Receptor and target action, and the mechanism behind the effects.
+## 5. Check completion
 
-- Receptor or transporter agonism, antagonism, partial agonism, inverse agonism, allosteric
-  modulation ("5-HT2A agonist", "NMDA receptor antagonist")
-- Binding affinity and potency values: Ki, Kd, pKi, EC50, IC50, Emax, intrinsic activity
-- Selectivity between receptor subtypes, and comparisons of binding across targets
-- Neurotransmitter release and reuptake inhibition (serotonin, dopamine, norepinephrine, GABA,
-  glutamate, acetylcholine)
-- Ion channel effects, second messenger and downstream signalling
-- Statements that the mechanism is unknown, disputed, or assumed from structural similarity
-- Statements that the substance does **not** act at some target
+Before responding, confirm:
 
-## What counts: pharmacokinetics
-
-Absorption, distribution, metabolism, and elimination.
-
-- Bioavailability, by route where the source gives a route
-- Absorption rate, onset of plasma levels, Cmax, Tmax, AUC, food effects
-- Distribution: volume of distribution, protein binding, blood-brain barrier passage
-- Metabolism: hepatic or other site, CYP enzymes, first-pass metabolism, phase I/II pathways,
-  deacetylation, hydrolysis, enzyme induction or inhibition
-- Metabolite names, and whether each is active or inactive; prodrug conversion
-- Half-life of every kind (distribution, elimination, terminal), clearance rate
-- Elimination route and recovery percentages (urine, feces, bile), detection windows
-
-**Pharmacokinetics is usually absent, and that is the expected result.** Most research chemicals
-have never been studied in humans, so there is no PK data to find. Rich pharmacodynamics plus zero
-pharmacokinetics is a normal, correct outcome. When the sources say nothing about absorption,
-metabolism, or half-life, emit nothing for that half — do not search harder, do not reason from a
-related compound, and do not infer PK from chemical structure or from reported duration of effects.
-
-## What does not count on its own
-
-Dose ranges, durations and onset times, subjective effect descriptions, legal status, synthesis
-routes, molecular weight and melting point, LD50 and overdose case reports, tolerance schedules,
-and drug-interaction warnings.
-
-Worked examples:
-
-- `A common oral dose is 15–25 mg, with effects lasting 6–8 hours.` — **skip.** Dose and duration.
-- `Ketamine absorption is very rapid and the bioavailability is around 93%.` — **extract.** PK.
-- `In one study, it showed 12- to 20-fold selectivity for the serotonin 5-HT2A receptor (Ki = 0.5 nM)
-  over the serotonin 5-HT2B and 5-HT2C receptors (Ki = 10 and 6.2 nM, respectively).` — **extract.** PD.
-- A paragraph about a legal ban that ends `...because it is metabolised to amphetamine.` —
-  **extract the whole paragraph.** The metabolism claim is qualifying content, and rule 2 carries
-  the sentences around it.
-
-## Numbers, assays, and tables
-
-Affinity values, half-lives, and bioavailability percentages are the highest-value content in this
-file and the easiest to corrupt.
-
-- **Copy every number exactly as written.** Never convert nM to µM, never convert hours to minutes,
-  never round, never add or drop a leading zero, never re-order a range. `0.0130 μM` stays
-  `0.0130 μM`. Preserve the source's own micro sign, spacing, and subscript styling.
-- **Carry the context the source attaches.** A Ki without its target receptor is useless, and so is
-  one without its species and assay. When a value block is introduced by a study citation, a cell
-  line, or a species note, copy those lines too:
-
-  ```
-  (Rickli, 2015)
-
-  - Receptor/transporter interactions using HEK-293 cells (all are human form unless otherwise noted)
-  - 5-HT2A
-  - Affinity (Ki) (antagonist): 0.0130 μM
-  - EC50: 0.20 μM
-  ```
-
-  The citation line and the cell-line line are part of the extraction, not decoration.
-
-- **Tables come across whole.** Receptor binding data usually arrives as a markdown table. Copy the
-  header row, the separator row, and every data row, with the pipes intact. Do not convert a table
-  to prose or to a list, do not drop columns you think are uninformative, and do not stop partway
-  down a long table.
-- **A sentence that introduces a table brings the table with it.** When the source reads
-  `In a study comparing various aryl-substituted methcathinone analogs in rat brain synaptosomes,
-  the following values were found.` followed by a table, extract the sentence **and** the table
-  beneath it. Extracting the lead-in alone produces a dangling reference to data that is not there.
-
-## Empty results are correct results
-
-Many substances have no published pharmacology at all. A file where every source block reads
-`*No pharmacology content found.*` is a complete, successful extraction.
-
-The one real failure is inventing content. Do not supply a mechanism you know from elsewhere, do
-not carry a claim over from a chemically similar substance named in the sources, and do not upgrade
-a hedge into a fact. If a source hedges — "presumably", "thought to", "based on structural
-similarity", "may be assumed" — copy the hedge along with the claim.
-
-## Schema field mapping
-
-The downstream generator fills these fields from your excerpts. Use this to check your coverage
-before you finish; do not label or reorganise your output by field.
+- Every source has been reviewed end to end and is represented once, in order.
+- Every qualifying or uncertain pharmacology passage is included as a complete unit.
+- Every selected table has its header, separator, all rows and columns, and introductory context.
+- Values retain their targets, assay/species context and routes wherever supplied; all wording and hedges remain source-faithful.
+- Unsupported PD or PK remains absent.
+- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- Every downstream field below has been checked for available evidence. These fields guide coverage, not output labels or reorganisation.
 
 | Field | Half | What feeds it |
-|---|---|---|
+| --- | --- | --- |
 | `pharmacodynamics` | PD | Mechanism prose: receptor and transporter action, functional mechanism |
-| `binding_sites` | PD | Per-target rows — target name, mechanism role, `affinity` (Ki/EC50), `efficacy` (Emax, intrinsic activity) |
-| `pharmacokinetics` | PK | Absorption, distribution, metabolism, elimination prose |
+| `binding_sites` | PD | Per-target rows: target name, mechanism role, `affinity` (Ki/EC50), `efficacy` (Emax, intrinsic activity) |
+| `pharmacokinetics` | PK | Absorption, distribution, metabolism and elimination prose |
 | `metabolites` | PK | Named metabolic products, marked active or inactive |
-| `half_life`, `route_half_life`, `route_half_life_notes` | PK | Half-life values, per route where stated, plus their qualifying context |
-| `bioavailability_notes`, `route_bioavailability`, `route_bioavailability_notes` | PK | Bioavailability percentages, per route where stated, plus absorption context |
+| `half_life`, `route_half_life`, `route_half_life_notes` | PK | Half-life values, per route where stated, with qualifying context |
+| `bioavailability_notes`, `route_bioavailability`, `route_bioavailability_notes` | PK | Bioavailability percentages, per route where stated, with absorption context |
 | `protein_binding` | PK | Plasma protein binding percentage |
 | `volume_of_distribution` | PK | Vd value |
-
-Route-specific numbers matter: when a source gives bioavailability or half-life for a named route
-(oral, insufflated, sublingual, smoked, vaporised, intravenous, intramuscular, rectal), keep the
-route name in the extracted text.
-
-## Before you output
-
-- Every source in the staged file has exactly one `## Source:` block, in the original order, ending
-  with `---`.
-- Every passage can be found character-for-character in the staged file.
-- Every table you copied has its header row and all of its data rows.

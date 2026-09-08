@@ -12,6 +12,7 @@ import {
   loadAndVerifyPublicationArtifact,
   proposalIdForArtifact,
   publishReviewedPublication,
+  reviewedPublicationTrustGate,
 } from "./publish-reviewed-section.mjs";
 import {
   computeReviewedArtifactDigest,
@@ -34,7 +35,7 @@ const convexApi = {
   },
 };
 
-function makeArtifact() {
+function makeArtifact(customize = (value) => value) {
   const root = mkdtempSync(resolve(tmpdir(), "dosewiki-reviewed-publication-"));
   temporaryDirectories.push(root);
   writeFileSync(resolve(root, "package.json"), "{}\n");
@@ -54,7 +55,7 @@ function makeArtifact() {
   const rawResponsePath = resolve(artifactDirectory, "openrouter-response.txt");
   writeFileSync(rawResponsePath, rawResponse);
 
-  const proposalWithoutDigest = {
+  const proposalWithoutDigest = customize({
     schemaVersion: "section-proposal-v1",
     status: "ready_for_review",
     slug: "2c-b",
@@ -72,7 +73,7 @@ function makeArtifact() {
     proposedOwnedHash: computeSectionCasHash("summary", ["summary"], proposedArticle),
     guard: { accepted: true },
     artifactDigestVersion: REVIEWED_ARTIFACT_DIGEST_VERSION,
-  };
+  });
   const artifactDigest = computeReviewedArtifactDigest(proposalWithoutDigest);
   const proposal = {
     ...proposalWithoutDigest,
@@ -88,6 +89,33 @@ function makeArtifact() {
   chmodSync(proposalPath, 0o444);
 
   return { root, proposal, proposalPath, rawResponsePath };
+}
+
+function makeRegenerationArtifact(customize = (value) => value) {
+  return makeArtifact((original) => {
+    const baseArticle = {
+      ...original.baseArticle, priority: "low", index_categories: [],
+      summary: "Old claim [cite:old-source]",
+      references: [{ id: "old-source", title: "Retained source" }],
+      legality: { countries: {}, international: ["Retained legality"] },
+      editorial_review: { status: "completed", notes: "Retained review" },
+    };
+    const value = customize({
+      ...original, baseArticle,
+      proposedArticle: { ...baseArticle, summary: "Fresh uncited narrative" },
+      sourceArtifactKind: "excerpt_section_regeneration",
+      regenerationAudit: {
+        version: "excerpt-section-regeneration-v1", section: "summary",
+        promptHash: "c".repeat(64), excerptHash: "d".repeat(64),
+        model: "openai-codex/gpt-5.6-sol", thinking: "low",
+      },
+    });
+    return {
+      ...value,
+      expectedOwnedHash: computeSectionCasHash(value.profile, [value.profile], value.baseArticle),
+      proposedOwnedHash: computeSectionCasHash(value.profile, [value.profile], value.proposedArticle),
+    };
+  });
 }
 
 function makeClient(initialArticle) {
@@ -262,5 +290,99 @@ describe("reviewed section publication command", () => {
       review: { artifactDigest: proposal.artifactDigest },
     });
     expect(proposal).not.toHaveProperty("review");
+  });
+});
+
+describe("reviewed regeneration publication command", () => {
+  it("digest-binds and forwards the exact audit into a transient review envelope", () => {
+    const { proposal } = makeRegenerationArtifact();
+    const reviewed = buildReviewedPublicationEnvelope({
+      proposal, artifactDigest: proposal.artifactDigest,
+      reviewedBy: "Editor Example", reviewedAt: "2026-07-15T15:00:00.000Z",
+    });
+    expect(reviewed.sourceArtifactKind).toBe("excerpt_section_regeneration");
+    expect(reviewed.regenerationAudit).toEqual(proposal.regenerationAudit);
+    expect(computeReviewedArtifactDigest(reviewed)).toBe(proposal.artifactDigest);
+    expect(reviewedPublicationTrustGate(reviewed)).toEqual({ accepted: true, errors: [] });
+    reviewed.regenerationAudit = { ...reviewed.regenerationAudit, excerptHash: "e".repeat(64) };
+    expect(computeReviewedArtifactDigest(reviewed)).not.toBe(proposal.artifactDigest);
+  });
+
+  it.each([
+    ["version", "forged"], ["model", "openai/gpt-5"],
+    ["thinking", "high"], ["promptHash", "bad"], ["excerptHash", "bad"],
+    ["section", "legality"],
+  ])("fails a malformed %s audit during dry-run before any client is created", async (field, value) => {
+    const { root, proposalPath } = makeRegenerationArtifact((proposal) => ({
+      ...proposal, regenerationAudit: { ...proposal.regenerationAudit, [field]: value },
+    }));
+    const Client = vi.fn();
+    await expect(publishReviewedPublication({
+      argv: [`--proposal=${relative(root, proposalPath)}`, "--target-url=https://target-test.convex.cloud", "--dry-run"],
+      env: {}, repoRoot: root, Client, convexApi, logger: { log: vi.fn() },
+    })).rejects.toThrow(/regeneration trust gate failed/);
+    expect(Client).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    (proposal) => ({ ...proposal, sourceArtifactKind: "generated_section" }),
+    (proposal) => ({ ...proposal, regenerationAudit: undefined }),
+    (proposal) => ({ ...proposal, regenerationAudit: { ...proposal.regenerationAudit, extra: true } }),
+    (proposal) => ({ ...proposal, proposedArticle: { ...proposal.proposedArticle, summary: "Changed [cite:old-source]" } }),
+    (proposal) => ({ ...proposal, proposedArticle: { ...proposal.proposedArticle, summary: "Changed [cite:new-source]" } }),
+    (proposal) => ({ ...proposal, proposedArticle: { ...proposal.proposedArticle, legality: {} } }),
+    (proposal) => ({
+      ...proposal,
+      baseArticle: { ...proposal.baseArticle, priority: "normal" },
+      proposedArticle: { ...proposal.proposedArticle, priority: "normal" },
+    }),
+  ])("blocks forged kinds, audits, markers, unowned edits, and public targets locally", (customize) => {
+    const { proposal } = makeRegenerationArtifact(customize);
+    expect(reviewedPublicationTrustGate(proposal).accepted).toBe(false);
+  });
+
+  it("rejects digest tampering in the immutable regeneration artifact", () => {
+    const { root, proposal, proposalPath } = makeRegenerationArtifact();
+    chmodSync(proposalPath, 0o644);
+    writeFileSync(proposalPath, JSON.stringify({
+      ...proposal, regenerationAudit: { ...proposal.regenerationAudit, promptHash: "e".repeat(64) },
+    }));
+    expect(() => loadAndVerifyPublicationArtifact({ proposalPath, repoRoot: root })).toThrow(/artifactDigest/);
+  });
+
+  it.each([false, true])("checks live eligibility before accepting matching content=%s", async (matches) => {
+    const { root, proposal, proposalPath } = makeRegenerationArtifact();
+    const { FakeClient, mutation } = makeClient({
+      ...(matches ? proposal.proposedArticle : proposal.baseArticle),
+      priority: "normal", index_categories: [],
+    });
+    await expect(publishReviewedPublication({
+      argv: [`--proposal=${relative(root, proposalPath)}`, "--target-url=https://target-test.convex.cloud", "--dry-run"],
+      env: {}, repoRoot: root, Client: FakeClient, convexApi, logger: { log: vi.fn() },
+    })).rejects.toThrow(/Live article is no longer eligible/);
+    expect(mutation).not.toHaveBeenCalled();
+  });
+
+  it("publishes an eligible fresh section only through the explicit reviewed ceremony", async () => {
+    const { root, proposal, proposalPath } = makeRegenerationArtifact();
+    const { FakeClient, mutation } = makeClient(proposal.baseArticle);
+    const result = await publishReviewedPublication({
+      argv: [
+        `--proposal=${relative(root, proposalPath)}`, "--target-url=https://target-test.convex.cloud",
+        "--write", "--confirm-reviewed-publication", "--confirm-write=publish-reviewed-section",
+        "--expected-deployment=target-test", "--actor-email=editor@example.com",
+        "--reviewed-by=Editor Example", "--reviewed-at=2026-07-15T15:00:00.000Z",
+        `--approve-artifact=${proposal.artifactDigest}`,
+      ],
+      env: { CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      repoRoot: root, Client: FakeClient, convexApi, logger: { log: vi.fn() },
+    });
+    expect(result.status).toBe("updated");
+    expect(mutation).toHaveBeenCalledWith(convexApi.substanceIndex.publishReviewedSection, expect.objectContaining({
+      proposal: expect.objectContaining({
+        regenerationAudit: proposal.regenerationAudit, sourceArtifactKind: "excerpt_section_regeneration",
+        approvedPaths: ["summary"], proposedArticle: proposal.proposedArticle,
+      }),
+    }));
   });
 });

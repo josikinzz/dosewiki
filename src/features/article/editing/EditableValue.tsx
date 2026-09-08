@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -14,6 +15,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
+import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import {
   isArticleFieldConflict,
@@ -123,6 +125,11 @@ export function EditableValue<T extends EditableValueInput = string>({
   const [draft, setDraft] = useState(text);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
+  const fieldId = useId();
+  const editorRef = useRef<HTMLElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const restoreFocusRef = useRef(false);
   // Set only by a rejection the write layer coded as a conflict, and only when
   // the surface could name the value that landed. While it is held the field
   // writes against `stored` instead of `value`: the prop is the copy that was
@@ -137,11 +144,25 @@ export function EditableValue<T extends EditableValueInput = string>({
   }, [isEditing, text]);
 
   const finish = useCallback(() => {
+    restoreFocusRef.current =
+      document.activeElement === document.body ||
+      !!editorRef.current?.contains(document.activeElement);
     setIsEditing(false);
     setIsPending(false);
     setConflict(null);
   }, []);
 
+  const focusTriggerOnMount = useCallback((node: HTMLElement | null) => {
+    if (!node || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    node.focus();
+  }, []);
+
+  useEffect(() => {
+    if (isEditing && !isPending && error && document.activeElement === document.body) {
+      textareaRef.current?.focus();
+    }
+  }, [error, isEditing, isPending]);
   // What the store is believed to hold right now, and how it reads. Equal to
   // the rendered value until a conflict retargets the field at the value that
   // landed underneath it.
@@ -165,6 +186,7 @@ export function EditableValue<T extends EditableValueInput = string>({
       }
       setIsPending(true);
       setError(null);
+      setStatus("Applying to preview…");
       editing
         // Same runtime object either way; see `EditableValueInput`.
         .commit(
@@ -173,14 +195,16 @@ export function EditableValue<T extends EditableValueInput = string>({
           baseValue as EditableFieldValue,
         )
         .then(() => {
+          setStatus("Applied to local preview.");
           finish();
         })
         .catch((reason: unknown) => {
           // The draft is deliberately left alone here, and `isEditing` with it:
           // a refused write must cost the reviewer the save, never the typing.
           setIsPending(false);
+          setStatus("");
           setError(
-            reason instanceof Error ? reason.message : "Unable to save that edit.",
+            reason instanceof Error ? reason.message : "Unable to apply this edit locally.",
           );
 
           if (!isArticleFieldConflict(reason)) {
@@ -219,10 +243,27 @@ export function EditableValue<T extends EditableValueInput = string>({
       toText,
     ],
   );
+  useEffect(() => {
+    if (!editing?.registerDraft || !isEditing || draft === baseText) return;
+    return editing.registerDraft(path, {
+      save: async () => {
+        const parsed = parse ? parse(draft) : (draft as T);
+        if (parsed === null) throw new Error(parseErrorLabel ?? `${label ?? path}: correct this value before saving.`);
+        await editing.commit(path, parsed as EditableFieldValue, baseValue as EditableFieldValue);
+        finish();
+      },
+      discard: () => {
+        cancelledRef.current = true;
+        setDraft(text);
+        finish();
+      },
+    });
+  }, [editing?.registerDraft, editing?.commit, isEditing, draft, baseText, baseValue, parse, parseErrorLabel, label, path, text, finish]);
 
   // A callback ref rather than `autoFocus`: the field only mounts in response
   // to a deliberate activation, and the caret belongs at the end of the value.
   const focusOnMount = useCallback((node: HTMLTextAreaElement | null) => {
+    textareaRef.current = node;
     if (!node) return;
     node.focus();
     node.setSelectionRange(node.value.length, node.value.length);
@@ -231,10 +272,17 @@ export function EditableValue<T extends EditableValueInput = string>({
   const startEditing = useCallback(() => {
     cancelledRef.current = false;
     setDraft(text);
+    setStatus("");
     setError(null);
     setConflict(null);
     setIsEditing(true);
   }, [text]);
+  const cancelEditing = () => {
+    cancelledRef.current = true;
+    setError(null);
+    setStatus("Edit cancelled.");
+    finish();
+  };
 
   if (!editing) {
     return <>{children}</>;
@@ -242,13 +290,28 @@ export function EditableValue<T extends EditableValueInput = string>({
 
   const fieldLabel = label ?? path;
   const Wrapper = as;
+  const statusMessage = <span role="status" className="sr-only">{status}</span>;
 
   if (isEditing) {
     return (
-      <Wrapper className={cn("block", className)} data-editable-path={path}>
+      <>
+      <Wrapper
+        ref={(node) => { editorRef.current = node; }}
+        className={cn(className, "block min-w-0 text-base font-normal leading-normal tracking-normal [font-family:var(--font-family-body)] md:text-sm")}
+        data-editable-path={path}
+        aria-busy={isPending}
+        onBlur={(event) => {
+          if (event.currentTarget.contains(event.relatedTarget)) return;
+          if (cancelledRef.current || isPending || conflict) return;
+          commitDraft(draft);
+        }}
+      >
         <Textarea
           ref={focusOnMount}
           aria-label={`Edit ${fieldLabel}`}
+          aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}${draft.includes("[cite:") ? ` ${fieldId}-citations` : ""}`}
+          aria-invalid={!!error}
+          variant={error ? "error" : "default"}
           textareaSize="sm"
           rows={rowsFor(draft)}
           value={draft}
@@ -262,35 +325,64 @@ export function EditableValue<T extends EditableValueInput = string>({
             if (event.key === "Escape") {
               event.preventDefault();
               event.stopPropagation();
-              cancelledRef.current = true;
-              setError(null);
-              finish();
+              cancelEditing();
               return;
             }
+            if (event.nativeEvent.isComposing) return;
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
               commitDraft(draft);
             }
           }}
-          onBlur={() => {
-            if (cancelledRef.current || isPending) return;
-            // A held conflict makes blur too cheap a gesture: the retry would
-            // write over whatever landed underneath, and on a phone a blur is
-            // one stray tap outside the box. Overwriting somebody else's value
-            // stays an explicit choice — the button below, or Enter.
-            if (conflict) return;
-            commitDraft(draft);
-          }}
+          // Focus moving to the field's own actions is not a blur-apply.
+          // The wrapper handles only focus leaving the complete editor.
         />
-        <span className="theme-text-faint mt-1 block text-[11px] leading-tight">
+        <span id={`${fieldId}-hint`} className="theme-text-faint mt-1 block text-sm leading-snug">
           {isPending
-            ? "Saving…"
-            : "Enter saves · Shift+Enter new line · Esc cancels"}
+            ? "Applying to preview…"
+            : "Enter applies locally · Shift+Enter new line · Esc cancels"}
+          {!isPending ? " · Leaving the field also applies locally" : null}
+        </span>
+        {draft.includes("[cite:") ? (
+          <span id={`${fieldId}-citations`} className="theme-text-faint mt-1 block text-sm leading-snug">
+            Keep [cite:…] markers with the text they support.
+          </span>
+        ) : null}
+        <span className="mt-2 flex flex-wrap gap-2">
+          {!conflict ? (
+            <Button
+              type="button"
+              variant="glass"
+              size="quiet"
+              disabled={isPending}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={(event) => {
+                event.stopPropagation();
+                commitDraft(draft);
+              }}
+            >
+              Apply locally
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="pill"
+            size="quiet"
+            disabled={isPending}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.stopPropagation();
+              cancelEditing();
+            }}
+          >
+            Cancel
+          </Button>
         </span>
         {error ? (
           <span
+            id={`${fieldId}-error`}
             role="alert"
-            className="theme-danger-text mt-1 block text-[11px] leading-tight"
+            className="theme-danger-text mt-1 block text-sm leading-snug"
           >
             {error}
           </span>
@@ -308,12 +400,12 @@ export function EditableValue<T extends EditableValueInput = string>({
             className="mt-2"
           >
             <span className="block">
-              <span className="theme-text-faint block text-[11px] font-semibold uppercase tracking-wide">
-                Now stored
+              <span className="theme-text-faint block text-sm font-semibold">
+                Current preview
               </span>
               {/* Capped and scrollable: a long note must not push the two
                   choices below the fold on a phone. */}
-              <span className="theme-text-secondary mt-1 block max-h-24 overflow-y-auto whitespace-pre-wrap text-[12px] leading-snug">
+              <span className="theme-text-secondary mt-1 block max-h-24 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-snug">
                 {conflict.storedText.trim() || (
                   <span className="theme-text-faint italic">(empty)</span>
                 )}
@@ -323,47 +415,59 @@ export function EditableValue<T extends EditableValueInput = string>({
                   type="button"
                   variant="glass"
                   size="quiet"
+                  className="h-auto max-w-full whitespace-normal text-left"
+                  onPointerDown={(event) => event.preventDefault()}
                   onClick={(event) => {
                     event.stopPropagation();
                     commitDraft(draft);
                   }}
                   disabled={isPending}
                 >
-                  <Icon icon="lucide:save" size={14} />
-                  Save my text over it
+                  <Icon icon="lucide:check" size={14} />
+                  Apply my text to preview
                 </Button>
                 <Button
                   type="button"
                   variant="pill"
                   size="quiet"
+                  className="h-auto max-w-full whitespace-normal text-left"
+                  onPointerDown={(event) => event.preventDefault()}
                   onClick={(event) => {
                     event.stopPropagation();
                     setDraft(conflict.storedText);
                     setError(null);
+                    textareaRef.current?.focus();
                   }}
                   disabled={isPending}
                 >
                   <Icon icon="lucide:corner-down-left" size={14} />
-                  Use the stored text
+                  Use current preview text
                 </Button>
               </span>
             </span>
           </Surface>
         ) : null}
       </Wrapper>
+      {statusMessage}
+      </>
     );
   }
 
   return (
+    <>
     <Wrapper
+      ref={focusTriggerOnMount}
       role="button"
       tabIndex={0}
       aria-label={`Edit ${fieldLabel}`}
       data-editable-path={path}
       className={cn(
-        "group cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-none transition-colors duration-150",
+        "group relative cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-none transition-colors duration-150",
         "hover:decoration-current focus-visible:decoration-current focus-visible:ring-1 focus-visible:ring-current",
         "motion-reduce:transition-none",
+        TOUCH_PILL,
+        "[@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:py-2 [@media(pointer:coarse)]:decoration-current",
+        as === "span" ? "[@media(pointer:coarse)]:inline-block" : "pe-5",
         className,
       )}
       onClick={(event: ReactMouseEvent<HTMLElement>) => {
@@ -380,6 +484,7 @@ export function EditableValue<T extends EditableValueInput = string>({
         startEditing();
       }}
       onKeyDown={(event: ReactKeyboardEvent<HTMLElement>) => {
+        if (event.target !== event.currentTarget) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           event.stopPropagation();
@@ -395,8 +500,13 @@ export function EditableValue<T extends EditableValueInput = string>({
       <Icon
         icon="lucide:pencil-line"
         size={12}
-        className="ml-1 inline-block align-baseline opacity-0 transition-opacity duration-150 group-hover:opacity-60 group-focus-visible:opacity-60 motion-reduce:transition-none"
+        className={cn(
+          "opacity-0 transition-opacity duration-150 group-hover:opacity-60 group-focus-visible:opacity-60 [@media(pointer:coarse)]:opacity-60 motion-reduce:transition-none",
+          as === "div" ? "absolute end-0 top-1 [@media(pointer:coarse)]:top-3" : "ml-1 inline-block align-baseline",
+        )}
       />
     </Wrapper>
+    {statusMessage}
+    </>
   );
 }

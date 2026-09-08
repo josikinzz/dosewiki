@@ -9,27 +9,15 @@ import {
 } from "./publicRoutePlan";
 import { getSubstanceRouteAlias } from "./substanceRouteAliases";
 
-// Demand-rendered families (replications, replicationArtists, contributors)
-// deliberately have no loader here: their pages return [] from
-// generateStaticParams and rely on ISR, while the route plan still feeds the
-// sitemap. Substances are the exception below: the important tiers are
-// prerendered, the long tail stays on demand.
+// Only build-enumerated families have loaders here. Demand-rendered pages return
+// [] from generateStaticParams and rely on ISR; the route plan still feeds their
+// sitemap entries. Substances prerender the important tiers, not the long tail.
 const getStaticParamsFor = (family: PublicRouteFamily) =>
   cache(async () => getPublicRouteParams(await getPublicRoutePlan(), family));
 
-export const getStaticCategoryParams = getStaticParamsFor("categories");
-export const getStaticEffectParams = getStaticParamsFor("effects");
 export const getStaticEffectCategoryParams =
   getStaticParamsFor("effectCategories");
-export const getStaticPsychoactiveSummaryParams = getStaticParamsFor(
-  "psychoactiveSummaries",
-);
-export const getStaticArticleParams = getStaticParamsFor("articles");
 export const getStaticReportParams = getStaticParamsFor("reports");
-export const getStaticMechanismParams = getStaticParamsFor("mechanisms");
-export const getStaticMechanismQualifierParams = getStaticParamsFor(
-  "mechanismQualifiers",
-);
 
 export type SubstancePrerenderPriority = "high" | "normal" | "low";
 

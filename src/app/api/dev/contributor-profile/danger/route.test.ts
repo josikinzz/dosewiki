@@ -47,7 +47,7 @@ const ADMIN = { email: "admin@example.com", name: "Admin" };
 const dangerRequest = (body: Record<string, unknown>) =>
   new Request("https://dose.wiki/api/dev/contributor-profile/danger", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 

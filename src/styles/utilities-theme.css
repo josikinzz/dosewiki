@@ -154,6 +154,32 @@ a[data-nav-pending="true"] {
   color: var(--theme-accent-strong);
 }
 
+/* Homepage tiles (HomeExperience.tsx) answer the click by lighting up rather
+   than dimming: an app icon that has just been pressed should read as
+   activated, so the pending state takes the accent ring the tile already
+   wears on focus, accent ink in the label, and the same 1px lift its hover
+   uses. The generic dim above would fight that, so it is overridden here.
+
+   An outline rather than a surface restyle: the tile's own background is a
+   layered gradient that each theme re-declares through the `background`
+   shorthand (light mode with !important), so a pending wash would have to be
+   cloned per theme to survive. The outline paints over all of them and reads
+   the same everywhere. */
+.theme-home-nav-link[data-nav-pending="true"] {
+  opacity: 1;
+  color: var(--theme-text-primary);
+}
+
+.theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-label {
+  color: var(--theme-accent-strong);
+}
+
+.theme-home-nav-link[data-nav-pending="true"] .theme-home-nav-icon {
+  outline: 2px solid var(--theme-accent-strong);
+  outline-offset: 3px;
+  transform: translate3d(0, -1px, 0);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @supports (-webkit-background-clip: text) or (background-clip: text) {
     .theme-index-card-link[data-nav-pending="true"] .theme-index-card-label {
@@ -3028,11 +3054,14 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
 }
 
 /* Hover lifts the row into the shared frosted-control material (radial
-     upper-left highlight + inset top sheen) rather than a flat tint. */
+     upper-left highlight + inset top sheen) rather than a flat tint. Keyboard
+     focus adds the site ring on top so it never reads as a stray hover. */
 .theme-index-row-link:focus-visible,
 .theme-report-index-link:focus-visible {
   background: var(--theme-frosted-control-hover-bg);
   box-shadow: var(--theme-frosted-control-hover-shadow);
+  outline: 2px solid var(--theme-accent-strong);
+  outline-offset: 2px;
 }
 @media (hover: hover) {
   .theme-index-row-link:hover,
@@ -5762,15 +5791,16 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 
 /* ---------------------------------------------------------------------
    About page · Partners & Community (AboutCommunitySection.tsx)
-   Shared logo-tile and row-hover colors use theme tokens so palette presets
-   and the hue slider repaint them like every other accented surface.
+   Logo artwork keeps a black backing except Nervewing's cream paper;
+   hover and focus borders retain their theme colors.
    --------------------------------------------------------------------- */
 .theme-community-tile {
-  background: linear-gradient(
-    135deg,
-    var(--theme-avatar-gradient-from),
-    var(--theme-avatar-gradient-to)
-  );
+  background: rgb(var(--c-black));
+}
+
+/* Match the paper in Nervewing's antlion artwork, independent of theme. */
+.theme-community-node[href="https://nervewing.blogspot.com"] .theme-community-tile {
+  background: rgb(236 240 218);
 }
 
 @media (hover: hover) {

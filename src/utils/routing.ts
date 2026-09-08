@@ -1,4 +1,4 @@
-import { findDevTab, resolveDevRoute } from "@/features/dev/pages/devTabRegistry";
+import devRouting from "./devRouting.editor";
 import { AppView } from "../types/navigation";
 import { publicHref } from "./publicHref";
 
@@ -49,13 +49,8 @@ export function viewToPath(view: AppView): string {
       const key = view.profileKey.trim();
       return publicHref.contributor(key);
     }
-    case "dev": {
-      const tab = view.tab;
-      const slug = view.slug?.trim();
-      const path = slug ? `/dev/${tab}/${slug}` : `/dev/${tab}`;
-      const filter = view.filter ? findDevTab(tab).filter : undefined;
-      return filter ? `${path}?${filter.param}=${encodeURIComponent(view.filter ?? "")}` : path;
-    }
+    case "dev":
+      return devRouting.path(view);
     default:
       return "/substances";
   }
@@ -222,7 +217,7 @@ export function parsePath(
         return resolveDefault();
       }
       case "dev":
-        return { type: "dev", ...resolveDevRoute(slug, segments[2], Object.fromEntries(searchParams)) };
+        return devRouting.parse(slug, segments[2], Object.fromEntries(searchParams)) ?? resolveDefault();
       default:
         // Treat any unrecognized path as a substance slug (e.g., /lsd -> substance lsd)
         return { type: "substance", slug: root };

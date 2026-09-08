@@ -40,7 +40,13 @@ describe("LD50ArrayEditor", () => {
 
     const [, , thirdUnitBefore] = screen.getAllByLabelText("Unit");
 
-    fireEvent.click(screen.getByRole("button", { name: "Remove entry 2" }));
+    const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const remove = screen.getByRole("button", { name: "Remove Rat · Oral" });
+    fireEvent.click(remove);
+    expect(screen.getAllByLabelText("Unit").map((input) => (input as HTMLInputElement).value)).toEqual(["a", "b", "c"]);
+    confirmation.mockReturnValue(true);
+    fireEvent.click(remove);
+    confirmation.mockRestore();
 
     const units = screen.getAllByLabelText("Unit");
     expect(units).toHaveLength(2);
@@ -53,7 +59,7 @@ describe("LD50ArrayEditor", () => {
   it("appends a blank entry without disturbing existing rows", () => {
     render(<LD50Harness initial={[{ species: "Mouse", route: "Oral", value: 1, unit: "a" }]} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Add Entry/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Add LD50 entry/i }));
 
     const units = screen.getAllByLabelText("Unit");
     expect(units.map((input) => (input as HTMLInputElement).value)).toEqual(["a", "mg/kg"]);
@@ -74,7 +80,13 @@ describe("OrganToxicityArrayEditor", () => {
 
     const [, , thirdFindingsBefore] = screen.getAllByLabelText("Findings");
 
-    fireEvent.click(screen.getByRole("button", { name: "Remove Renal" }));
+    const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const remove = screen.getByRole("button", { name: "Remove Renal" });
+    fireEvent.click(remove);
+    expect(screen.getAllByLabelText("Findings").map((input) => (input as HTMLTextAreaElement).value)).toEqual(["one", "two", "three"]);
+    confirmation.mockReturnValue(true);
+    fireEvent.click(remove);
+    confirmation.mockRestore();
 
     const findings = screen.getAllByLabelText("Findings");
     expect(findings.map((input) => (input as HTMLTextAreaElement).value)).toEqual(["one", "three"]);

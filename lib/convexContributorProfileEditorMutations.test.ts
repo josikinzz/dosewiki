@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { saveProfileAsEditor, setContributorOrdering } from "../convex/contributorProfiles";
+import { replicationRevision } from "../convex/lib/replicationEditJournal";
 import {
   buildEditorProfilePatch,
   editorProfilePatchValidator,
@@ -67,6 +68,7 @@ function createCtx({
     auth: { getUserIdentity: vi.fn(async () => null) },
     storage: { getUrl: vi.fn(async () => "https://cdn.example.com/avatar.png") },
     db: {
+      normalizeId: () => null, // This fixture only mutates contributor profiles.
       patch,
       insert,
       query: vi.fn((table: string) => ({
@@ -75,14 +77,16 @@ function createCtx({
           selector: (query: { eq: (field: string, value: string) => unknown }) => unknown,
         ) => {
           let captured = "";
-          selector({
-            eq: (_field, value) => {
+          const filter = {
+            eq: (_field: string, value: string) => {
               captured = value;
-              return {};
+              return filter;
             },
-          });
+          };
+          selector(filter);
 
           return {
+            order: () => ({ first: async () => lookup(table, captured) }),
             first: vi.fn(async () => lookup(table, captured)),
             unique: vi.fn(async () => {
               if (table !== "memberships") {
@@ -115,9 +119,9 @@ const orderingHandler = asHandler(setContributorOrdering);
 
 // `editorArgs` is an editor who does not own JOSIE; `ownerArgs` is the editor
 // whose membership email the JOSIE row carries.
-const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com" };
-const ownerArgs = { apiKey: "secret", actorEmail: "josie@example.com" };
-const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com" };
+const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com", expectedUpdatedAt: baseProfile.updatedAt };
+const ownerArgs = { apiKey: "secret", actorEmail: "josie@example.com", expectedUpdatedAt: baseProfile.updatedAt };
+const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com", expectedUpdatedAt: baseProfile.updatedAt };
 const editorMemberships: Record<string, Role> = {
   "editor@example.com": "editor",
   "josie@example.com": "editor",
@@ -306,6 +310,7 @@ describe("contributorProfiles.setContributorOrdering", () => {
     const result = await orderingHandler(harness.ctx, {
       ...adminArgs,
       key: "JOSIE",
+      expectedRevision: await replicationRevision(harness.ctx, { _id: "profile-1", ...harness.read() }, "artist:JOSIE"),
       replicationOrder: ["geometry"],
     });
 
@@ -324,6 +329,7 @@ describe("contributorProfiles.setContributorOrdering", () => {
     const result = await orderingHandler(harness.ctx, {
       ...ownerArgs,
       key: "JOSIE",
+      expectedRevision: await replicationRevision(harness.ctx, { _id: "profile-1", ...harness.read() }, "artist:JOSIE"),
       replicationOrder: ["tracers", "deleted-one", "geometry", "tracers"],
       reportOrder: ["first-report", "gone"],
     });

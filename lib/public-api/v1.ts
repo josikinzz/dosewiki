@@ -133,6 +133,7 @@ export function projectPublicApiReplication(replication: GalleryReplication) {
     ...(replication.artist_url ? { artist_url: replication.artist_url } : {}),
     type: replication.type,
     effect_slug: replication.effect_slug,
+    effect_tags: replication.effect_tags ?? [],
     url: replication.url,
     ...(replication.thumbnail_url
       ? { thumbnail_url: replication.thumbnail_url }

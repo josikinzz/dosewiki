@@ -1,7 +1,7 @@
 "use client";
 
-import { useId, useState } from "react";
-import Link from "next/link";
+import { useContext, useId, useState } from "react";
+import { SmartLink } from "@/components/common/SmartLink";
 import { Search } from "lucide-react";
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { Icon } from "@/components/common/Icon";
@@ -14,6 +14,7 @@ import { partitionQuickLinkRows, type HomeQuickLink } from "./homeQuickLinks";
 import { homeTileGlyphStyle } from "./homeTileGlyph";
 import { AppearanceControls } from "./AppearanceControls";
 import { MailingListInvite } from "./MailingListInvite";
+import { EditorLauncherEligibilityContext } from "@/features/editor-launcher/context";
 
 interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
@@ -30,6 +31,7 @@ export function HomeExperience({
   copy,
 }: HomeExperienceProps) {
   const searchInputId = useId();
+  const hasEditorLauncher = useContext(EditorLauncherEligibilityContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
 
@@ -288,9 +290,10 @@ export function HomeExperience({
                   </span>
                   </button>
                 ) : (
-                <Link
+                <SmartLink
                   key={item.href}
                   href={item.href}
+                  eager
                   className="theme-home-nav-link group flex w-24 flex-col items-center gap-2.5 transition-[color,width,gap,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 sm:w-28"
                 >
                   <span
@@ -302,7 +305,7 @@ export function HomeExperience({
                   <span className="theme-home-nav-label font-display text-lg font-semibold leading-none tracking-normal transition-[opacity,max-width] duration-200">
                     {item.label}
                   </span>
-                  </Link>
+                  </SmartLink>
                 ),
               )}
               </div>
@@ -324,11 +327,12 @@ export function HomeExperience({
           className="theme-home-corner-widget fixed bottom-4 left-4 z-20 sm:bottom-6 sm:left-6"
         />
 
-        {/* The mailing-list trigger takes the remaining free corner, bottom-right,
-            opposite the supporter credit. Like `SiteSupporter` it sits outside
-            <section> because the hero stage animates `transform`, and a transformed
-            ancestor would become the containing block for a fixed child. */}
-        <MailingListInvite className="theme-home-corner-widget fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
+        {/* The shared launcher takes this corner only after live session eligibility
+            resolves. Otherwise keep the mailing-list entry point, outside the
+            transformed hero stage so fixed positioning remains viewport-relative. */}
+        {!hasEditorLauncher ? (
+          <MailingListInvite className="theme-home-corner-widget fixed bottom-4 right-4 z-20 sm:bottom-6 sm:right-6" />
+        ) : null}
       </main>
     </>
   );

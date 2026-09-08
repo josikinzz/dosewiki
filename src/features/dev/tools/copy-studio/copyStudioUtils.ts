@@ -28,6 +28,7 @@ export type CopyBlockRow = {
   group: string;
   updatedAt?: string;
   updatedBy?: string;
+  revision?: number;
 };
 
 /** One block as the studio presents it: default, stored row, and draft in one. */

@@ -13,19 +13,20 @@ export type ProposalTargetKind = "article" | "indexLayout" | "about" | "copyBloc
 
 export type ProposalTarget = { kind: ProposalTargetKind; key: string; baseHash: string };
 
-export type ProposalComment = { by: string; at: string; text: string };
+export type ProposalComment = { authorName: string; at: string; text: string };
 
 /** One row of `GET /api/dev/proposals`: everything but payload, diff, and snapshot. */
 export type ProposalSummary = {
   _id: string;
-  proposedBy: string;
+  proposerName: string;
+  isAuthor: boolean;
   createdAt: string;
   updatedAt: string;
   status: ProposalStatus;
   targets: ProposalTarget[];
   summary: string;
   revisionOf?: string;
-  reviewedBy?: string;
+  reviewerName?: string;
   reviewedAt?: string;
   reviewNotes?: string;
   commentCount: number;
@@ -36,6 +37,8 @@ export type ProposalSummary = {
 /** `GET /api/dev/proposals/<id>`: the full row plus the live hash of each target. */
 export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   diff: string;
+  comparisonMode?: "applied" | "submitted" | "verified_live" | "unavailable";
+  comparisonNote?: string;
   comments: ProposalComment[];
   revertedAt?: string;
   liveHashes: Array<{ kind: ProposalTargetKind; key: string; hash: string }>;
@@ -56,18 +59,18 @@ export type QueueGroup = {
 
 /** Rail order: what an admin has to act on first, closed proposals last. */
 export const QUEUE_GROUPS: readonly QueueGroup[] = [
-  { id: "submitted", label: "Submitted", statuses: ["submitted"] },
-  { id: "changes_requested", label: "Changes requested", statuses: ["changes_requested"] },
-  { id: "applied", label: "Applied", statuses: ["applied"] },
-  { id: "closed", label: "Rejected / Superseded / Reverted", statuses: ["rejected", "superseded", "reverted"] },
+  { id: "submitted", label: "Awaiting review", statuses: ["submitted"] },
+  { id: "changes_requested", label: "Needs revision", statuses: ["changes_requested"] },
+  { id: "applied", label: "Published", statuses: ["applied"] },
+  { id: "closed", label: "Closed", statuses: ["rejected", "superseded", "reverted"] },
 ];
 
 export const STATUS_LABELS: Record<ProposalStatus, string> = {
-  submitted: "Submitted",
+  submitted: "Awaiting review",
   changes_requested: "Changes requested",
-  applied: "Applied",
+  applied: "Published",
   rejected: "Rejected",
-  superseded: "Superseded",
+  superseded: "Replaced by revision",
   reverted: "Reverted",
 };
 
@@ -125,12 +128,12 @@ export function reviewActionsFor(status: ProposalStatus): { approve: boolean; re
  * `revisionOf`.
  */
 export function canLoadIntoEditor(
-  proposal: Pick<ProposalSummary, "status" | "proposedBy" | "targets">,
-  viewer: { actorEmail: string | null | undefined; canApprove: boolean },
+  proposal: Pick<ProposalSummary, "status" | "isAuthor" | "targets">,
+  viewer: { canApprove: boolean },
 ): boolean {
   const open = proposal.status === "submitted" || proposal.status === "changes_requested";
   const seedable = proposal.targets.every((target) => target.kind === "article" || target.kind === "indexLayout");
-  return open && seedable && (viewer.canApprove || (!!viewer.actorEmail && proposal.proposedBy === viewer.actorEmail));
+  return open && seedable && (viewer.canApprove || proposal.isAuthor);
 }
 
 /** The seed the dev context takes: the row's identity, why it came back, and its staged save. */

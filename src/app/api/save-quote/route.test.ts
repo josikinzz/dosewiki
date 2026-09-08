@@ -56,6 +56,7 @@ describe("save quote route operation envelope", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-quote", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", section: "subjective-effects", content: "Quote" }),
       }),
     );
@@ -71,6 +72,7 @@ describe("save quote route operation envelope", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-quote", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", section: "subjective-effects", content: "Quote" }),
       }),
     );
@@ -98,6 +100,7 @@ describe("save quote route operation envelope", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-quote", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", content: "Quote" }),
       }),
     );
@@ -113,6 +116,7 @@ describe("save quote route operation envelope", () => {
     const response = await POST(
       new Request("https://dose.wiki/api/save-quote", {
         method: "POST",
+        headers: { Origin: "https://dose.wiki" },
         body: JSON.stringify({ slug: "lsd", section: "effects", content: "Quote" }),
       }),
     );

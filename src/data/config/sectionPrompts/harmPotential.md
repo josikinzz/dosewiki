@@ -1,333 +1,139 @@
 # Harm Potential Section Generation
 
-You are a harm-reduction database assistant generating ONLY the `harm_potential` section of a dose.wiki substance article.
+Generate only the `harm_potential` section of a dose.wiki substance article from the provided source excerpts. Work through evidence selection, field population, and completion checks in order. All instructions needed for this task are below.
 
----
+## 1. Select eligible evidence
 
-## Context
+Use only information explicitly supported by specific text in the provided excerpts. Apply this requirement to every fact, value, mechanism, classification, and description. Populate every supported field; use the empty values defined in step 3 for unsupported content. General knowledge, training data, assumptions, and inferred safety or danger cannot fill evidence gaps.
 
-dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic researcher and the founder of PsychonautWiki, the Subjective Effect Index, Effect Index, and the blog "Disregard Everything I Say." She is known for her work on psychedelic harm reduction documentation, subjective effect taxonomy, and visual replication art.
+Select substance-specific findings or explicitly attested uncertainty. Generic disclaimers and reusable adverse-effect warnings are not substance-specific evidence, even when quoted from this substance's article. Exclude that boilerplate rather than deriving addiction potential, dose-risk relationships, injury, or fatal outcomes from it.
 
----
+Preserve the scope of safety claims. Omit undated statements that no deaths or adverse effects have been reported: they do not establish present-day absence. Anecdotal impressions and absent reports cannot establish that common doses are safe or not acutely dangerous. Retain explicitly attested uncertainty about toxic thresholds without adding reassurance or invented risks.
 
-## Style
+When severity assessments conflict, prefer the more authoritative assessment, prioritizing primary medical/toxicological evidence over community or anecdotal evidence. If assessments genuinely disagree and neither is clearly stronger, use the lower supported level and describe the uncertainty in the risk assessment directly. Match the evidence's actual risk rather than inflating rare outcomes or discounting documented ones.
 
-Write in the style of Josie Kins' psychedelic harm reduction documentation:
-- Phenomenologically precise yet accessible
-- Clinical but not cold
-- Neutral documentation (no advocacy)
-- Technical accuracy with readable prose
-- Information-dense but well-structured
+### Scope
 
----
+Keep addiction, physical dependence, lethal dosage, organ toxicity, carcinogenicity, antimicrobial activity, psychosis, and seizure findings here. Route-specific toxicity and the molecular mechanism of tissue damage belong here when supported.
 
-## Critical Constraints
+Keep the following material in its separate article section:
 
-**CRITICAL: SOURCE MATERIAL ONLY - THIS APPLIES TO EVERY SINGLE FIELD**
+| Material | Section |
+|----------|---------|
+| Receptor binding and primary or therapeutic mechanism of action | `pharmacology` |
+| Drug interactions and combinations, including combination-related fatalities | `interactions` |
+| Tolerance development timeline | `tolerance` |
+| Subjective effect descriptions | `subjective_effects` |
+| General dosing information | `dosage` |
+| Effect duration and timeline | `duration` |
+| Legal status | `legality` |
 
-This rule applies to ALL fields in the entire harm_potential section: addiction levels, addiction descriptions, ld50 values, organ_toxicity entries, carcinogenicity, antibiotic_function, psychosis, seizure, and all other fields.
+**Selection complete when:** every candidate finding has specific supporting excerpt text, belongs to an owned field, and passes the evidence and scope rules above. Apply the additional lethal-dose source restriction when populating that field.
 
-- If information is NOT explicitly stated in the provided source excerpts, leave the field EMPTY ("", null, or [])
-- Do NOT fill in fields with general knowledge, assumptions, or information from your training data
-- Do NOT invent facts, values, or findings beyond what the sources state (mapping a source's own risk language onto a severity level is not inventing — see "Assign Severity Levels Carefully")
-- When in doubt, leave it empty - an empty field is better than fabricated data
-- This is a harm reduction database - accuracy is paramount, speculation is dangerous
-- It is BETTER to return mostly empty fields than to fabricate information
-- Only populate a field if you can point to specific text in the sources that supports it
+## 2. Populate fields with direct findings
 
-**Writing Style:**
-- SYNTHESIZE information from the provided excerpts into original prose
-- Do not copy sentences or lengthy phrases verbatim from any source
-- Standard technical terminology (medical terms, toxicology terms) can remain as-is
-- Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts
+Write original, information-dense prose that is clinically precise, accessible, neutral, and harm-reduction focused. Synthesize and restructure the excerpts; standard medical and toxicological terminology may remain unchanged, but do not copy sentences or lengthy phrases.
 
-**NEVER COMMENT ON SOURCES - CRITICAL**
+Make each description about the substance, outcome, or biological process itself. State the actual supported finding directly, preserving species, route, exposure conditions, causal uncertainty, frequency, reversibility, and other qualifiers that limit its meaning. Report tested negative findings within their tested scope. Historical or descriptive labels attached to a claim and statements that testing was absent do not add findings to the prose; retain any actual supported result or risk uncertainty instead. Evidence-availability classifications may still be encoded where the schema explicitly supports them.
 
-NEVER write meta-commentary about sources or data availability. If information is unavailable, leave the field EMPTY.
+Use empty fields for missing information, not commentary about excerpts, documentation, sources, or data availability. This distinction preserves substantive uncertainty about a finding while keeping the writing focused on the substance. If equally authoritative severity assessments conflict, express the disagreement as uncertainty about the risk itself.
 
-❌ WRONG (commenting on sources - these should NEVER appear):
-- "No data available in sources"
-- "Sources do not describe..."
-- "Not characterized in available sources"
-- "Not documented in sources"
-- "Limited documentation in sources"
-- "No specific data provided in sources"
-- "Not well characterized in available sources"
+Keep descriptive string fields to 1-3 concise sentences, with the narrower psychological-addiction limit below. Use short labels for species, routes, units, anatomical systems, and assay names.
 
-✅ CORRECT:
-- Leave the field as "" (empty string) or null
-- Only write content that describes the substance itself, never the sources or their limitations
+### Addiction, physical dependence, psychosis, and seizure
 
-**Source Exclusion - Lethal Dosage:**
-- For the `lethal_dosage` field ONLY (both `notes` and `ld50`), **IGNORE all content from the "Disregard Everything I Say" source**
-- This source contains speculative LD50 extrapolations that are not reliable for harm reduction documentation
-- Use only formal medical/toxicological sources (PsychonautWiki, Wikipedia, Erowid, academic sources, etc.) for lethal dosage information
-- This exclusion applies ONLY to lethal_dosage — other harm potential fields (addiction, organ_toxicity, psychosis, seizure, etc.) may still use "Disregard Everything I Say" content
+Map the source's own risk language about this substance onto the following enum. This mapping is expected; asserting an unsupported risk is not. Apply the full definition, including frequency and exposure pattern, rather than treating the seriousness of one outcome as evidence of how commonly it occurs.
 
----
+| Level | Definition |
+|-------|------------|
+| `extremely_low` | Minimal risk even with regular use; virtually no documented cases |
+| `low` | Rare occurrences; typically requires predisposing factors or heavy use |
+| `moderate` | Documented risk at typical doses; occurs in a notable minority of users |
+| `high` | Common occurrence; expected with regular use |
+| `extremely_high` | Near-certain with regular use; potentially life-threatening |
 
-## harm_potential Schema
+Use `level: null` when the excerpts provide no risk assessment or lack the frequency or exposure pattern needed to meet a definition. Retain a supported adverse outcome or warning in `description` even when its level is unclassified. Leave the description empty only when no eligible finding supports it. Preserve rarity and relevant severity, including severe or life-threatening outcomes, without converting severity alone into frequency.
 
-This is the ONLY structure you should output:
+| Field | Population target |
+|-------|-------------------|
+| `addiction.psychological` | In 1-2 sentences, describe psychological addiction, abuse potential, reinforcement, habit formation, compulsive redosing, or difficulty stopping. Include supported daily-use or binge patterns and route differences. Assign level according to how commonly psychological addiction develops. |
+| `addiction.physical_dependence` | Describe physical dependence distinctly from psychological addiction, including withdrawal or discontinuation symptoms and relevant tolerance development without its timeline. Preserve supported withdrawal severity, hospitalization needs, and fatality risk. Assign level according to likelihood and severity of dependence. |
+| `psychosis` | Describe supported psychosis, psychotic episodes, delusions, paranoia, or emergence delirium. Include hallucinations only as part of a supported psychiatric risk finding, not ordinary subjective effects. Distinguish acute symptoms during use from persistent symptoms after use. Assign level according to supported frequency and severity. |
+| `seizure` | Describe seizures, convulsions, epileptic effects, or seizure-threshold changes, with the conditions that increase risk. Assign level according to how commonly seizures occur. |
 
-```yaml
-harm_potential:
-  addiction:
-    psychological:
-      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
-      description: string
-    physical_dependence:
-      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
-      description: string
-  toxicity:
-    lethal_dosage:
-      notes: string  # Freeform text for approximate lethal doses, case reports, informal estimates
-      ld50:  # Formal LD50 data from human or animal studies (optional, only if structured data available)
-        - species: string
-          route: string
-          value: number | null
-          unit: string
-    organ_toxicity:
-      - system: string
-        findings: string
-        mechanism: string
-        notes: string
-    carcinogenicity:
-      level: "confirmed" | "probable" | "possible" | "no_evidence" | "unknown" | null
-      evidence:
-        human_epidemiological: "none" | "negative" | "limited" | "positive" | null
-        animal_models:
-          level: "none" | "negative" | "limited" | "positive" | null
-          species: string[]
-        in_vitro:  # the whole object is null when no in-vitro data; do not null the inner fields
-          type: string  # e.g. "genotoxic", "non-genotoxic"
-          assay_type: string
-        mechanistic:
-          level: "none" | "negative" | "limited" | "positive" | null
-          basis: string
-      description: string
-    antibiotic_function:
-      level: "confirmed" | "probable" | "possible" | "no_evidence" | "unknown" | null
-      description: string
-  psychosis:
-    level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
-    description: string
-  seizure:
-    level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
-    description: string
-```
+### `toxicity.lethal_dosage`
 
----
+**Source restriction:** exclude all content from "Disregard Everything I Say" from both `notes` and `ld50`. Its speculative LD50 extrapolations are unsuitable for this field. Use only formal medical/toxicological sources, including the original source categories of PsychonautWiki, Wikipedia, Erowid, and academic sources. This exclusion is limited to lethal dosage; other harm-potential fields may use eligible findings from "Disregard Everything I Say".
 
-## Severity Level Definitions
+- `notes`: approximate human lethal-dose estimates, case reports, anecdotal findings, informal ranges, and other information unsuitable for a formal LD50 entry. Preserve supported route- and tolerance-related variability and uncertainty. The interaction exclusion also applies here.
+- `ld50`: formal LD50 results from controlled human or animal studies only. Each entry has `species`, `route`, numeric `value` or `null` for descriptive-only data, and `unit`. Preserve the reported administration route and units.
 
-### Risk Levels (addiction, dependence, psychosis, seizure)
+Informal estimates belong only in `notes`; leave `ld50: []` when no formal structured data is available. Never turn informal estimates into formal LD50 values.
 
-| Level | Definition | Examples |
-|-------|------------|----------|
-| `extremely_low` | Minimal risk even with regular use; virtually no documented cases | Classic psychedelics (LSD, psilocybin) for addiction |
-| `low` | Rare occurrences; typically requires predisposing factors or heavy use | Cannabis, MDMA for physical dependence |
-| `moderate` | Documented risk at typical doses; occurs in notable minority of users | Ketamine for psychological addiction |
-| `high` | Common occurrence; expected with regular use | Opioids for physical dependence, stimulants for psychological addiction |
-| `extremely_high` | Near-certain with regular use; potentially life-threatening | Alcohol/benzodiazepine physical dependence (fatal withdrawal possible) |
+### `toxicity.organ_toxicity`
 
-### Carcinogenicity Levels
+Create one entry per affected organ or body system. Include supported organ damage, biomarker elevations, mechanistic models, and route-specific toxicity differences. Populate each entry as follows:
+
+| Field | Population target |
+|-------|-------------------|
+| `system` | Anatomical organ or body-system name. |
+| `findings` | A complete, self-contained sentence describing the damage and its supported exposure conditions. This is the summary visible in a collapsed card, so retain essential species, route, dose/frequency, duration, risk-factor, and causal qualifiers here. State explicitly when a finding applies only to heavy, chronic, compulsive, prolonged, extreme-dose, or overdose exposure. Use only conditions the excerpt supports; an unspecified condition is not a reason to invent one or imply safety at other exposures. |
+| `mechanism` | Only the biochemical or molecular pathway of damage: molecular targets, cellular processes, or biochemical pathways. Keep mechanistic models qualified as models. Use `""` when no biochemical explanation is supported. |
+| `notes` | Additional clinical context: prevalence, statistics, reversibility, case counts, populations, risk factors, dosing/frequency patterns, and observations without a biochemical explanation. Keep the essential conditions needed to understand the damage in `findings`; place further detail here. |
+
+Keep findings proportionate to the attested exposure pattern. Evidence of damage under extreme use does not establish the same risk under occasional use, and it does not establish safety under occasional use either.
+
+### `toxicity.carcinogenicity`
+
+Use supported cancer, carcinogenicity, mutagenicity, or classification findings. Select the level from the definitions below, not from missing excerpts.
 
 | Level | Definition |
 |-------|------------|
 | `confirmed` | IARC Group 1 or equivalent; established human carcinogen |
-| `probable` | IARC Group 2A; strong evidence in animals, limited human data |
+| `probable` | IARC Group 2A; strong animal evidence and limited human data |
 | `possible` | IARC Group 2B; some evidence, not conclusive |
 | `no_evidence` | Studies exist showing no carcinogenic activity |
-| `unknown` | Insufficient data; no studies conducted |
+| `unknown` | Explicitly attested insufficient data or absence of conducted studies |
 
-### Antibiotic Function Levels
+Use `null` if the excerpts do not support a classification. Write `description` as direct cancer-risk findings, including negative study results with their species and other scope qualifiers. An explicitly attested absence of testing may support `unknown` without supplying descriptive prose.
 
-| Level | Definition |
-|-------|------------|
-| `confirmed` | Documented antimicrobial activity at pharmacological doses |
-| `probable` | Strong in vitro evidence, mechanism understood |
-| `possible` | Some evidence of antimicrobial properties |
-| `no_evidence` | Studies show no antimicrobial activity |
-| `unknown` | Not studied for antimicrobial properties |
+Use `evidence: null` when no detailed evidence breakdown is supported. Otherwise populate the evidence object in step 3:
 
-### Evidence Levels (for carcinogenicity evidence breakdown)
+- `human_epidemiological`: evidence level for human epidemiological findings.
+- `animal_models`: evidence level and array of tested species.
+- `in_vitro`: `type` of finding and `assay_type`; use `null` for the whole object when no in-vitro data is available. When the object is present, its inner fields are strings, using `""` for unsupported text rather than inner `null` values.
+- `mechanistic`: evidence level and the supported receptor or mechanism `basis`; the whole object may be `null` when no mechanistic evidence is available.
+
+Apply these evidence levels only when explicitly supported:
 
 | Level | Definition |
 |-------|------------|
 | `none` | No studies conducted |
-| `negative` | Studies show no effect/carcinogenic activity |
-| `limited` | Some studies suggest activity but inconclusive |
+| `negative` | Studies show no effect or carcinogenic activity |
+| `limited` | Some studies suggest activity but remain inconclusive |
 | `positive` | Clear evidence of carcinogenic activity |
 
----
+Use `null` for an unassigned evidence level. An absent excerpt does not establish `none`, and an absence of studies does not establish `negative` or `no_evidence`.
 
-## Core Principles
+### `toxicity.antibiotic_function`
 
-**Evidence Only:** Every fact (toxicities, LD50 values, mechanisms, case reports) must come from the source quotes. If a fact is not supported by the sources, leave the field empty (`""`), null, or use empty arrays (`[]`). Assigning a severity level by mapping the source's own risk language is expected and is not fabrication — see "Assign Severity Levels Carefully".
+Describe supported antimicrobial, antibiotic, bactericidal, or bacteriostatic findings directly, retaining experimental conditions and uncertainty. Select a classification only when the excerpts support it:
 
-**Source Priority:** When sources give conflicting severity, prefer the assessment from the more authoritative source (primary medical/toxicological over community/anecdotal). Report the risk at the level the evidence supports — do not inflate a rare risk to seem cautious, and do not discount a documented one. If sources genuinely disagree and none is clearly stronger, use the lower `level` and note the disagreement in the description.
+| Level | Definition |
+|-------|------------|
+| `confirmed` | Documented antimicrobial activity at pharmacological doses |
+| `probable` | Strong in-vitro evidence with an understood mechanism |
+| `possible` | Some evidence of antimicrobial properties |
+| `no_evidence` | Studies show no antimicrobial activity |
+| `unknown` | Explicitly attested absence of study of antimicrobial properties |
 
-**Completeness:** Fill every field that has supporting evidence. Empty fields are acceptable when no data exists.
+Use `null` when no classification is supported. Explicitly absent testing can support `unknown`; keep the description empty unless an actual finding is supported.
 
-**If something is rare, say so:** Over-exaggerating dangers of relatively safe substances causes people to develop false confidence around more important harm reduction areas.
+**Population complete when:** every eligible finding is represented in its correct field, every level meets its definition or is `null`, and descriptions retain the qualifiers needed to interpret findings without source commentary.
 
-**Assign Severity Levels Carefully:** Assigning a level means mapping the source's own risk language about *this* substance onto the enum — e.g. "moderately addictive" → `moderate`, "highly reinforcing / compulsive redosing" → `high`, "no documented cases of dependence" → `extremely_low`. This mapping is expected, not fabrication; fabrication is asserting a fact no source states. If the sources give no risk language for a field, use `null` and leave the description empty.
+## 3. Return the exact YAML contract
 
-**Ignore Drug Interactions:** Source quotes may mention dangerous combinations. **Do not include this.** Drug interactions are covered in a separate `interactions` section.
-
----
-
-## What Belongs Elsewhere (DO NOT Include)
-
-| Information Type | Correct Section |
-|------------------|-----------------|
-| Receptor binding, the drug's primary/therapeutic mechanism of action | `pharmacology` (the *mechanism of tissue damage* stays here in `organ_toxicity.mechanism`) |
-| Drug interactions/combinations | `interactions` |
-| Tolerance development timeline | `tolerance` |
-| Effect descriptions (euphoria, visuals, etc.) | `subjective_effects` |
-| Dosing information | `dosage` |
-| Duration/timeline of effects | `duration` |
-| Legal status | `legality` |
-
----
-
-## Field Definitions
-
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `addiction.psychological.level` | `enum \| null` | Severity level for psychological addiction risk | `"moderate"` |
-| `addiction.psychological.description` | `string` | 1-2 sentences on psychological addiction potential, abuse potential, compulsive redosing patterns | "Moderate abuse potential with risk of psychological dependence. Compulsive redosing is commonly reported, particularly with insufflation." |
-| `addiction.physical_dependence.level` | `enum \| null` | Severity level for physical dependence risk | `"high"` |
-| `addiction.physical_dependence.description` | `string` | Physical dependence risk, withdrawal symptoms, tolerance development | "Physical dependence develops with chronic use. Withdrawal symptoms include anxiety, tremor, sweating, and palpitations." |
-| `toxicity.lethal_dosage.notes` | `string` | Freeform text for approximate lethal doses, human case reports, or informal estimates that don't fit structured LD50 format | "Human lethal dose is estimated at 200-500 mg, though deaths have occurred at lower doses in combination with other substances." |
-| `toxicity.lethal_dosage.ld50` | `array` | Array of formal LD50 entries from human or animal studies with species, route, value, and unit (optional - only include if structured data available) | See example below |
-| `toxicity.organ_toxicity` | `array` | Array of organ-specific damage entries | See example below |
-| `toxicity.carcinogenicity.level` | `enum \| null` | Classification level (confirmed/probable/possible/no_evidence/unknown) | `"no_evidence"` |
-| `toxicity.carcinogenicity.evidence` | `object \| null` | Detailed evidence breakdown (optional - include if data available) | See example below |
-| `toxicity.carcinogenicity.description` | `string` | Cancer risk data if available | "Not shown to be carcinogenic in animal studies." |
-| `toxicity.antibiotic_function.level` | `enum \| null` | Antimicrobial activity classification | `"unknown"` |
-| `toxicity.antibiotic_function.description` | `string` | Antibiotic/antimicrobial properties | "No studies on antimicrobial properties." |
-| `psychosis.level` | `enum \| null` | Severity level for psychosis risk | `"moderate"` |
-| `psychosis.description` | `string` | Psychosis, psychotic episodes, emergence delirium | "10-20% of adults experience psychiatric reactions during emergence." |
-| `seizure.level` | `enum \| null` | Severity level for seizure risk | `"low"` |
-| `seizure.description` | `string` | Seizure threshold effects, convulsion risk | "Seizures rare but reported at very high doses. May lower seizure threshold." |
-
-### toxicity.lethal_dosage
-Container for all lethal dosage information, with two fields:
-
-**lethal_dosage.notes** (freeform string):
-Use this for:
-- Approximate human lethal dose estimates
-- Case reports and anecdotal data
-- Ranges expressed informally (e.g., "deaths reported above 500mg")
-- Information that doesn't fit the structured LD50 table format
-- Context about lethal dose variability (route, tolerance, combinations)
-
-**lethal_dosage.ld50** (array):
-Use this for formal LD50 data from controlled human or animal studies. Each entry:
-- **species**: Species (e.g., "human", "rat", "mouse")
-- **route**: Administration route (e.g., "oral", "IV", "IP")
-- **value**: Numeric value (or null if only descriptive data)
-- **unit**: Unit string (e.g., "mg/kg")
-
-If sources only provide informal estimates, put them in `notes` and leave `ld50` empty. Do not fabricate formal LD50 values from informal data.
-
-### toxicity.organ_toxicity
-Array of organ-specific damage. Each entry has 4 fields with STRICT definitions:
-
-| Field | Purpose | Content Type |
-|-------|---------|--------------|
-| `system` | Which organ/body system | Anatomical system name |
-| `findings` | Self-contained summary of damage | A complete sentence describing what damage can occur AND under what conditions (see below) |
-| `mechanism` | HOW/WHY it causes damage at molecular level | Biochemical pathways, cellular processes, receptor interactions |
-| `notes` | EVERYTHING ELSE | Prevalence statistics, reversibility, case counts, additional context |
-
-#### Findings Field - CRITICAL GUIDANCE
-
-The `findings` field is displayed prominently in collapsed organ toxicity cards. It must be:
-
-1. **A complete sentence** (not a comma-separated list of terms)
-2. **Self-contained** - readable and informative without expanding for more details
-3. **Contextualized** - ALWAYS specify under what conditions the damage occurs:
-   - "with chronic heavy use"
-   - "at doses significantly exceeding typical recreational ranges"
-   - "with prolonged daily use over months/years"
-   - "primarily in cases of addiction/compulsive use"
-   - "at extreme/overdose-level doses"
-
-4. **Proportionate** - Do NOT over-exaggerate. If damage only occurs with extreme abuse patterns, say so clearly. Users should understand these are not risks from occasional responsible use.
-
-**BAD findings (comma list, no context, alarming):**
-```
-findings: "Elevated blood pressure, tachycardia, cardiac strain"
-```
-
-**GOOD findings (complete sentence, contextualized, proportionate):**
-```
-findings: "Acute cardiovascular effects including elevated blood pressure and increased heart rate occur during intoxication; serious cardiac events are rare and typically associated with pre-existing conditions or extreme doses."
-```
-
-#### Mechanism Field - STRICT Definition
-
-The `mechanism` field describes ONLY the biochemical/molecular pathway of damage:
-- Molecular targets (enzymes, receptors, DNA, proteins)
-- Cellular processes (apoptosis, necrosis, oxidative stress, inflammation)
-- Biochemical pathways (CYP450 metabolism, ROS generation, membrane disruption)
-
-**mechanism is NOT for:**
-- Prevalence statistics ("affects 20% of users") → PUT IN NOTES
-- Dosing patterns ("associated with high doses") → PUT IN NOTES
-- Reversibility ("usually reversible") → PUT IN NOTES
-- Case counts ("over 100 documented cases") → PUT IN NOTES
-- Risk factors ("more common in chronic users") → PUT IN NOTES
-- Clinical observations without biochemical explanation → PUT IN NOTES
-
-**If the sources don't describe the biochemical mechanism, leave it EMPTY ("")**
-
-#### Notes Field - Catch-All
-
-The `notes` field is for ALL contextual information:
-- Prevalence and statistics
-- Reversibility status
-- Risk factors and populations
-- Case counts and documentation
-- Dosing/frequency patterns
-- Any other relevant context
-
-#### CORRECT vs INCORRECT Examples
-
-**WRONG - Study info in mechanism, alarming comma-list:**
-```yaml
-- system: "Central Nervous System"
-  findings: "Cognitive deficits, brain atrophy"  # Alarming without context!
-  mechanism: "Daily use causes indicators of cell death. Primate studies showed damage after 6 months."  # Study info, not mechanism!
-  notes: ""
-```
-
-**CORRECT - Proportionate, contextualized findings:**
-```yaml
-- system: "Central Nervous System"
-  findings: "Daily heavy use over extended periods may cause cognitive deficits in memory and learning; some imaging studies suggest white and grey matter changes in chronic users, though effects may be partially reversible with abstinence."
-  mechanism: "NMDA receptor blockade leads to increased apoptosis, particularly in developing brain tissue"
-  notes: "Primate studies showed prefrontal cortex cell death after 6 months at 1 mg/kg IV daily. Infrequent recreational use at typical doses shows minimal evidence of lasting neurotoxicity."
-```
-
-Include: biomarker elevations (ALT/AST, CK), mechanistic models, ROA-specific toxicity differences.
-
-### toxicity.carcinogenicity.evidence
-Detailed evidence breakdown (include if source data available):
-- `human_epidemiological`: none/negative/limited/positive
-- `animal_models`: level + species tested
-- `in_vitro`: genotoxic/non-genotoxic + assay type
-- `mechanistic`: none/negative/limited/positive + receptor/mechanism basis
-
----
-
-## Output Format
-
-Return ONLY valid YAML (no markdown code fences, no commentary):
+Return only valid YAML with the single top-level key `harm_potential`, no Markdown fences or commentary. Include every field in the empty template, replacing empty values only where supported. Use `""` for empty strings, `[]` for empty arrays, and `null` for unassigned levels or unavailable optional evidence objects. Indent with spaces, not tabs.
 
 ```yaml
 harm_potential:
@@ -358,130 +164,40 @@ harm_potential:
     description: ""
 ```
 
----
+When populated, array entries and the carcinogenicity evidence object use exactly these fields and types. The notation below defines types, not literal output values.
 
-## Examples
-
-### Lethal Dosage (notes only - informal data)
 ```yaml
-lethal_dosage:
-  notes: "Human lethal dose is estimated at 200-500mg orally in non-tolerant individuals. Deaths have been reported at lower doses when combined with alcohol or other CNS depressants."
-  ld50: []
+ld50:
+  - species: string
+    route: string
+    value: number | null
+    unit: string
+organ_toxicity:
+  - system: string
+    findings: string
+    mechanism: string
+    notes: string
+evidence:
+  human_epidemiological: "none" | "negative" | "limited" | "positive" | null
+  animal_models:
+    level: "none" | "negative" | "limited" | "positive" | null
+    species: string[]
+  in_vitro:  # object | null
+    type: string
+    assay_type: string
+  mechanistic:  # object | null
+    level: "none" | "negative" | "limited" | "positive" | null
+    basis: string
 ```
 
-### Lethal Dosage (formal LD50 data from animal studies)
-```yaml
-lethal_dosage:
-  notes: ""
-  ld50:
-    - species: "rat"
-      route: "oral"
-      value: 1700
-      unit: "mg/kg"
-    - species: "mouse"
-      route: "IV"
-      value: 400
-      unit: "mg/kg"
-```
+## 4. Check completion
 
-### Lethal Dosage (both notes and LD50 data)
-```yaml
-lethal_dosage:
-  notes: "Human lethal dose is highly variable due to tolerance. Fatal overdoses typically involve doses significantly exceeding typical recreational ranges."
-  ld50:
-    - species: "rat"
-      route: "oral"
-      value: 1700
-      unit: "mg/kg"
-```
+Before returning, check every populated field against its supporting excerpt and confirm:
 
-### Carcinogenicity with Evidence
-```yaml
-carcinogenicity:
-  level: "no_evidence"
-  evidence:
-    human_epidemiological: "none"
-    animal_models:
-      level: "negative"
-      species: ["rat", "mouse"]
-    in_vitro: null
-    mechanistic: null
-  description: "No carcinogenicity observed in two-year rodent studies."
-```
-
-### Carcinogenicity Unknown
-```yaml
-carcinogenicity:
-  level: "unknown"
-  evidence: null
-  description: "No human, animal, or genotoxicity data available."
-```
-
----
-
-## Extraction Rules
-
-### For addiction.psychological:
-- Look for: "abuse potential", "addiction", "habit-forming", "compulsive", "psychological dependence", "reinforcing"
-- Note frequency patterns: "daily use", "bingeing", "difficulty stopping"
-- Assign level based on how commonly psychological addiction develops
-
-### For addiction.physical_dependence:
-- Look for: "physical dependence", "withdrawal", "discontinuation symptoms"
-- Distinguish from psychological addiction
-- Note severity of withdrawal (can it be fatal? hospitalization needed?)
-- Assign level based on likelihood and severity of physical dependence
-
-### For toxicity.lethal_dosage:
-See the `toxicity.lethal_dosage` field guidance above: informal estimates and case reports → `notes`; formal study values (species, route, value, unit) → `ld50`; never fabricate formal LD50 values from informal data.
-
-### For toxicity.organ_toxicity:
-- Look for: liver damage, kidney damage, bladder damage, cardiotoxicity, neurotoxicity
-- Create a separate entry per organ system affected (see the `toxicity.organ_toxicity` field guidance above for the findings/mechanism/notes split)
-
-### For toxicity.carcinogenicity:
-- Look for: "carcinogenic", "cancer", "mutagenic", "IARC", "Group 1/2A/2B"
-- Assign level based on classification or available evidence
-- Include evidence breakdown if source provides detailed study information
-
-### For toxicity.antibiotic_function:
-- Look for: "antimicrobial", "antibiotic", "bactericidal", "bacteriostatic"
-- Most recreational drugs will be "unknown" unless specifically studied
-
-### For psychosis:
-- Look for: "psychosis", "psychotic", "hallucinations", "delusions", "paranoia", "emergence delirium"
-- Note if acute (during use) or persistent (after use)
-- Assign level based on frequency and severity
-
-### For seizure:
-- Look for: "seizure", "convulsion", "epileptic", "seizure threshold"
-- Note conditions that increase risk
-- Assign level based on how commonly seizures occur
-
----
-
-## Formatting Rules
-
-1. **String fields**: 1-3 sentences, clear, concise, factual
-2. **Empty values**: `""` for empty strings, `[]` for empty arrays, `null` for unassigned levels
-3. **No speculation**: If sources don't mention it, leave empty or null
-4. **Consistent tone**: Clinical, factual, harm-reduction focused
-5. **Cite severity**: Use qualifiers like "rare", "common", "severe", "life-threatening"
-6. Do not be afraid to leave sections empty if no relevant text in sources
-7. Keep outputs succinct while containing essential information
-8. Only assign severity levels when confident based on source material
-
----
-
-## Validation Checklist
-
-Before returning output:
-- [ ] All fields present (even if empty/null)
-- [ ] YAML is valid (proper indentation, no tabs)
-- [ ] Informal lethal-dose text in `notes` (string), formal study values in `ld50` (array); no fabricated LD50 numbers
-- [ ] `toxicity.organ_toxicity` is an array of objects
-- [ ] Severity levels are valid enum values or null
-- [ ] No markdown code fences in output
-- [ ] No commentary or explanation, just YAML
-- [ ] Content derived only from provided sources
-- [ ] Mechanism fields contain actual biological mechanisms, not dose observations
+- All required keys and object/array shapes match step 3; each level is an allowed enum or `null`.
+- Each fact passes step 1, including boilerplate, safety-claim, interaction, and owned-section boundaries.
+- Both lethal-dose fields pass their source restriction, with informal estimates kept separate from formal LD50 results.
+- Organ findings stand alone with supported conditions and qualifiers; mechanisms explain molecular damage, and additional clinical context is in notes.
+- Every supported finding survives even when its severity is unclassified; unsupported information uses the specified empty value.
+- Prose states direct findings or substantive uncertainty, with historical/descriptive labels and absent-testing commentary omitted. Tested negative results retain their experimental scope.
+- The response is valid YAML only.

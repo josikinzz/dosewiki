@@ -1,7 +1,8 @@
 import type { IconName } from "@/components/common/Icon";
+import { EFFECT_CATEGORY_DEFINITIONS } from "@/data/effectCategoryDefinitions";
 import { icons } from "@/utils/iconNames";
 
-export type TabId = "all" | "sensory" | "cognitive" | "physical" | "info";
+export type TabId = "all" | "sensory" | "cognitive" | "physical" | "library" | "info";
 
 export interface TabConfig {
   id: TabId;
@@ -59,6 +60,16 @@ export const TABS: TabConfig[] = [
     icon: "lucide:activity",
     filterTags: ["physical", "uncomfortable"],
     blob: "Physical effects are subjective effects that directly affect part of a person's physical body.",
+  },
+  // The archive of long-form articles that the effect entries lean on: the
+  // intensity scales, the substance guides, and the dream and meditation
+  // pieces. Static curation lives in libraryConfig, so no filter tags.
+  {
+    id: "library",
+    label: "Library",
+    icon: "lucide:book-open-text",
+    filterTags: [],
+    blob: "The long-form writing behind the index: the scales that grade how intense these effects are, the substance guides that walk an experience end to end, and the pieces on dreaming and meditation.",
   },
   // The index's thesis lives here rather than above the grid: the "All
   // Effects" view opens straight into the categories, and this tab carries
@@ -184,3 +195,54 @@ export const FLAT_CATEGORIES: FlatCategoryConfig[] = [
   { key: "cardiovascular", routeSlug: "cardiovascular-effects", title: "Cardiovascular Effects", icon: "lucide:heart-pulse", tags: ["uncomfortable", "cardiovascular"], tab: "physical" },
   { key: "neurological", routeSlug: "neurological-effects", title: "Neurological Effects", icon: "fluent:thinking-24-regular", tags: ["uncomfortable", "neurological"], tab: "physical" },
 ];
+
+function normalizeCategoryLabel(label: string): string {
+  return label.trim().toLowerCase().replace(/&/g, "and").replace(/[-\s]+/g, " ");
+}
+
+const CATEGORY_ICONS_BY_LABEL = new Map<string, IconName | null>();
+
+// Flat titles can be shared; only retain aliases that agree on the icon.
+for (const category of FLAT_CATEGORIES) {
+  for (const label of [category.key, category.routeSlug, category.title]) {
+    const key = normalizeCategoryLabel(label);
+    const existing = CATEGORY_ICONS_BY_LABEL.get(key);
+    CATEGORY_ICONS_BY_LABEL.set(
+      key,
+      existing === undefined || existing === category.icon ? category.icon : null,
+    );
+  }
+}
+
+// A broad category owns its route, even when several flat panels link to it.
+for (const category of PARENT_CATEGORIES) {
+  for (const label of [
+    category.key,
+    category.routeSlug,
+    category.title,
+    category.displayTitle,
+  ]) {
+    if (label) CATEGORY_ICONS_BY_LABEL.set(normalizeCategoryLabel(label), category.icon);
+  }
+}
+
+for (const category of EFFECT_CATEGORY_DEFINITIONS) {
+  const icon = CATEGORY_ICONS_BY_LABEL.get(normalizeCategoryLabel(category.slug)) ?? category.icon;
+  for (const label of [category.slug, category.name]) {
+    const key = normalizeCategoryLabel(label);
+    if (!CATEGORY_ICONS_BY_LABEL.has(key)) CATEGORY_ICONS_BY_LABEL.set(key, icon);
+  }
+}
+
+for (const tab of TABS) {
+  if (tab.id !== "sensory" && tab.id !== "cognitive" && tab.id !== "physical") continue;
+  for (const label of [tab.id, tab.label]) {
+    const key = normalizeCategoryLabel(label);
+    if (!CATEGORY_ICONS_BY_LABEL.has(key)) CATEGORY_ICONS_BY_LABEL.set(key, tab.icon);
+  }
+}
+
+/** Match canonical category keys, slugs, titles, and unambiguous display labels. */
+export function resolveEffectCategoryIcon(label: string): IconName | undefined {
+  return CATEGORY_ICONS_BY_LABEL.get(normalizeCategoryLabel(label)) ?? undefined;
+}

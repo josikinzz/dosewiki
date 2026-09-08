@@ -6,8 +6,6 @@ import {
   updateGalleryOrderHandler,
 } from "../convex/lib/replicationWrites";
 import {
-  appendArticleReferenceHandler,
-  removeArticleReferenceHandler,
   saveSubstanceHandler,
   saveSubstancesHandler,
   setArticleFieldHandler,
@@ -18,6 +16,7 @@ import { save as saveQuote } from "../convex/quotes";
 import { saveAboutHandler } from "../convex/siteConfig";
 import {
   setCarouselOrder,
+  setDisabled,
   setReplicationDirectAssociation,
   setReplicationExclusions,
   upsert as upsertGallery,
@@ -107,10 +106,8 @@ const snapshot = {
 const DIRECT_WRITES: Array<[string, (ctx: never, args: never) => Promise<unknown>, Record<string, unknown>]> = [
   ["saveSubstance", saveSubstanceHandler as never, { article: { id: 1, title: "LSD", slug: "lsd" } }],
   ["saveSubstances", saveSubstancesHandler as never, { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }],
-  ["setArticleField", setArticleFieldHandler as never, { slug: "lsd", path: "title", value: "x", expected: "y" }],
+  ["setArticleField", setArticleFieldHandler as never, { slug: "lsd", path: "title", value: "x", expected: "y", baseHash: "loaded-revision", changeId: "field-change" }],
   ["setIupacName", setIupacNameHandler as never, { slug: "lsd", value: "x", expected: "y" }],
-  ["appendArticleReference", appendArticleReferenceHandler as never, { slug: "lsd", reference: { id: "r1" } }],
-  ["removeArticleReference", removeArticleReferenceHandler as never, { slug: "lsd", referenceId: "r1" }],
   ["indexLayouts.save", saveIndexLayoutHandler as never, { type: "psychoactive", version: 1, categories: [] }],
   ["siteConfig.saveAbout", saveAboutHandler as never, { aboutMarkdown: "# About" }],
   ["prompts.save", handlerOf(savePrompt), { key: "section_summary", content: "Prompt" }],
@@ -128,6 +125,7 @@ const DIRECT_WRITES: Array<[string, (ctx: never, args: never) => Promise<unknown
     { substance_slug: "lsd", curated_slugs: [], removed_slugs: [] },
   ],
   ["substanceGalleries.setCarouselOrder", handlerOf(setCarouselOrder), { substance_slug: "lsd", carousel_order: [] }],
+  ["substanceGalleries.setDisabled", handlerOf(setDisabled), { substance_slug: "lsd", disabled: true, expectedRevision: "a".repeat(64) }],
   [
     "substanceGalleries.setReplicationDirectAssociation",
     handlerOf(setReplicationDirectAssociation),
@@ -171,7 +169,7 @@ describe("direct production writes sit on the admin floor", () => {
     const { ctx } = createCtx();
 
     await expect(
-      setArticleFieldHandler(ctx, { ...as("admin@example.com"), slug: "lsd", path: "title", value: "x" }),
+      setArticleFieldHandler(ctx, { ...as("admin@example.com"), slug: "lsd", path: "title", value: "x", expected: "y", baseHash: "loaded-revision", changeId: "field-change" }),
     ).rejects.toThrow("unexpected read of substanceIndex before authorization");
   });
 });
@@ -197,6 +195,7 @@ describe("siteConfig.saveAbout audit stamp", () => {
             _index: string,
             selector: (query: { eq: (field: string, value: string) => unknown }) => unknown,
           ) => {
+            if (table === "contentRevisions") return { order: () => ({ first: async () => null }) };
             let key = "";
             selector({
               eq: (_field, value) => {

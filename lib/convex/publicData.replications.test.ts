@@ -354,39 +354,23 @@ describe("getPublicReplicationsForSubstance", () => {
     warn.mockRestore();
   });
 
-  it("reads the corpus page, curation, and slug batch as sibling unstable_cache leaves under a request-scoped assembler", async () => {
-    // Next bypasses an `unstable_cache` reached from inside another one, so
-    // the per-substance function must be React `cache()` only and the corpus
-    // page, curation, slug-batch, and one-shot reads must each be their own
-    // `unstable_cache` leaf. The next/cache mock above throws on any nested
-    // entry; this case pins the four leaves the corpus fallback path enters.
+  it("keeps a disabled gallery empty on the complete-corpus fallback", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     respond({
       [ONE_SHOT]: notDeployed,
       "substanceGalleries:getPublicMatchableReplicationsPage": () => ({
-        items: [matchable("specific-image")],
+        items: [matchable("new-specific-image"), matchable("direct", { title_drugs: [] })],
         cursor: "done",
         isDone: true,
       }),
       "substanceGalleries:getBySubstance": () => ({
-        substance_slug: "lsd",
-        curated_slugs: [],
-        removed_slugs: [],
-        carousel_order: [],
+        curated_slugs: ["direct"], removed_slugs: [], carousel_order: ["direct"], disabled: true,
       }),
-      "replications:getBySlugs": (args) => (args.slugs as string[]).map((slug) => resolved(slug)),
     });
-
+    // Reload after resetModules to exercise deployment fallback and its cache leaves.
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
-    await getPublicReplicationsForSubstance("lsd");
-
-    expect(new Set(cacheTrace.entered)).toEqual(new Set([
-      "convex-public-substance-gallery-v1",
-      "convex-public-matchable-replication-corpus-page-v1",
-      "convex-public-substance-gallery-curation-v1",
-      "convex-public-replications-by-slug-batch-v1",
-    ]));
+    expect(await getPublicReplicationsForSubstance("lsd")).toEqual({ items: [] });
   });
 
   it("assembles the showcase from the shared corpus, curation, and one indexed resolution", async () => {
@@ -533,6 +517,7 @@ describe("getPublicGalleryReplications", () => {
   const work = (slug: string, artist: string) => ({
     slug,
     artist,
+    effect_slug: slug,
     type: "image",
     url: `https://x/${slug}`,
   });
@@ -545,9 +530,12 @@ describe("getPublicGalleryReplications", () => {
   ];
 
   const stubConvex = (profiles: NormalizedUserProfile[]) => {
-    mocks.queryConvex.mockImplementation(async (functionName: string) => {
+    mocks.queryConvex.mockImplementation(async (functionName: string, args: { slugs?: string[] } = {}) => {
       if (functionName === "replications:getPublicGalleryPage") {
         return { items: corpus, cursor: "done", isDone: true };
+      }
+      if (functionName === "replications:getBySlugs") {
+        return corpus.filter((row) => args.slugs?.includes(row.slug));
       }
       if (functionName === "contributorProfiles:getAll") {
         return profiles;
@@ -675,8 +663,6 @@ describe("getPublicGalleryReplications", () => {
     // exclusion is a gallery-presentation choice, not an unpublication.
     await expect(getPublicReplications()).resolves.toEqual(corpus);
 
-    mocks.queryConvex.mockReset();
-    mocks.queryConvex.mockResolvedValueOnce([work("drifting", "Josie Kins")]);
     const { getPublicReplicationsByEffect } = await import("./publicData.effects");
     // Effect-article replication sections still show an excluded artist's work.
     await expect(getPublicReplicationsByEffect("drifting")).resolves.toEqual([
@@ -706,7 +692,7 @@ describe("getPublicReplicationsBySlugs", () => {
     );
     const slugs = Array.from({ length: 205 }, (_, index) => `work-${index}`);
     const { getPublicReplicationsBySlugs } = await import(
-      "./publicData.replications"
+      "./publicData.replicationDetails"
     );
 
     await expect(getPublicReplicationsBySlugs(slugs)).resolves.toHaveLength(205);

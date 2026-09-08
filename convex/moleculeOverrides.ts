@@ -1,4 +1,5 @@
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { v } from "convex/values";
 import { requireRole } from "./lib/auth";
 
@@ -23,6 +24,25 @@ function assertValidSlug(slug: string) {
   if (!SLUG_RE.test(slug)) {
     throw new Error(`Invalid molecule slug: "${slug}".`);
   }
+}
+
+/**
+ * A depiction URL identifies SVG bytes, not the time of a metadata-only save.
+ * Advance past the stored timestamp when writes share a millisecond or a mirror
+ * brings an older revision. Identical SVGs keep their already-published URL.
+ */
+function depictionUpdatedAt(
+  existing: { svg: string; updatedAt: string } | null,
+  svg: string,
+  proposed = new Date().toISOString(),
+) {
+  if (existing?.svg === svg) return existing.updatedAt;
+  const previousTime = existing ? Date.parse(existing.updatedAt) : NaN;
+  const proposedTime = Date.parse(proposed);
+  if (!Number.isFinite(proposedTime)) throw new Error("Invalid molecule updatedAt.");
+  return Number.isFinite(previousTime) && proposedTime <= previousTime
+    ? new Date(previousTime + 1).toISOString()
+    : new Date(proposedTime).toISOString();
 }
 
 /** Returns one canonical depiction by slug; null means none has been published. */
@@ -144,6 +164,11 @@ export const save = mutation({
       throw new Error("Invalid molecule boldBonds.");
     }
 
+    const existing = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+
     const doc = {
       slug: args.slug,
       svg: args.svg,
@@ -152,14 +177,9 @@ export const save = mutation({
       // Empty is stored as absent so untouched rows and cleared rows look alike.
       boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
       source: "editor" as const,
-      updatedAt: new Date().toISOString(),
+      updatedAt: depictionUpdatedAt(existing, args.svg),
       updatedBy: args.updatedBy,
     };
-
-    const existing = await ctx.db
-      .query("moleculeOverrides")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, doc);
@@ -173,9 +193,9 @@ export const save = mutation({
 
 /**
  * Mirror tool for copying the canonical depiction set between deployments
- * (e.g. prod → dev). Unlike `save`, the passed provenance (`source`,
- * `updatedAt`, `updatedBy`) is preserved verbatim so the target stays a
- * faithful replica. Not used by the editor.
+ * (e.g. prod → dev). Preserves source and author provenance. Changed SVGs use
+ * the incoming revision only when it advances the target; unchanged SVGs keep
+ * their published revision. Not used by the editor.
  */
 export const replicate = mutation({
   args: {
@@ -210,6 +230,11 @@ export const replicate = mutation({
       throw new Error("Invalid molecule boldBonds.");
     }
 
+    const existing = await ctx.db
+      .query("moleculeOverrides")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+
     const doc = {
       slug: args.slug,
       svg: args.svg,
@@ -217,14 +242,9 @@ export const replicate = mutation({
       smiles: args.smiles,
       boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
       source: args.source,
-      updatedAt: args.updatedAt,
+      updatedAt: depictionUpdatedAt(existing, args.svg, args.updatedAt),
       updatedBy: args.updatedBy,
     };
-
-    const existing = await ctx.db
-      .query("moleculeOverrides")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, doc);
@@ -286,7 +306,7 @@ export const applyTemplateDepiction = mutation({
       svg: args.svg,
       molblock: args.molblock,
       source: "template" as const,
-      updatedAt: new Date().toISOString(),
+      updatedAt: depictionUpdatedAt(existing, args.svg),
       updatedBy: args.updatedBy,
     };
 
@@ -344,7 +364,7 @@ export const rerenderSvg = mutation({
 
     await ctx.db.patch(existing._id, {
       svg: args.svg,
-      updatedAt: new Date().toISOString(),
+      updatedAt: depictionUpdatedAt(existing, args.svg),
       updatedBy: args.updatedBy,
     });
     return { updated: true as const };

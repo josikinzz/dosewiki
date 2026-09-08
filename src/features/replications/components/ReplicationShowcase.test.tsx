@@ -4,6 +4,7 @@ import type { ReplicationWithUrl } from "@/types/replications";
 import type { SubstanceGalleryItem } from "@/data/substanceReplicationGallery";
 import { ReplicationShowcase } from "./ReplicationShowcase";
 import {
+  buildEffectShowcaseWorks,
   buildShowcaseWorks,
   visualEffectNameBySlug,
 } from "./showcaseModel";
@@ -849,5 +850,50 @@ describe("buildShowcaseWorks", () => {
       "specific-still",
       "visual-fallback-gif",
     ]);
+  });
+
+  it("keeps unsettling works available after ordinary open-eye media on both collection paths", () => {
+    const rows = [
+      replication({ slug: "horror-video", type: "video", viewing_mode: "open-eye", content_tags: ["body-horror"] }),
+      replication({ slug: "abstract-video", type: "video", viewing_mode: "closed-eye", has_audio: true }),
+      replication({ slug: "open-still", viewing_mode: "open-eye" }),
+      replication({ slug: "open-video", type: "video", viewing_mode: "open-eye", has_audio: false }),
+      replication({ slug: "unknown-still" }),
+    ];
+    const substance = buildShowcaseWorks(
+      rows.map((row) => item(row, "geometry")),
+      new Map(),
+    );
+    const effect = buildEffectShowcaseWorks(rows, { effectSlug: "geometry" });
+    const expected = ["open-video", "open-still", "abstract-video", "unknown-still", "horror-video"];
+    expect(substance.map((work) => work.slug)).toEqual(expected);
+    expect(effect.map((work) => work.slug)).toEqual(expected);
+    expect(rows.map((row) => row.slug)).toEqual([
+      "horror-video", "abstract-video", "open-still", "open-video", "unknown-still",
+    ]);
+  });
+
+  it("keeps a closed-eye editorial opener ahead of automatic opening preferences", () => {
+    const rows = [
+      replication({ slug: "open-video", type: "video", viewing_mode: "open-eye" }),
+      replication({ slug: "curated-still", viewing_mode: "closed-eye" }),
+      replication({ slug: "pinned-horror", content_family: "dark-surrealism" }),
+    ];
+    const works = buildEffectShowcaseWorks(rows, { galleryOrder: ["curated-still", "pinned-horror"] });
+    expect(works.map((work) => work.slug)).toEqual(["curated-still", "pinned-horror", "open-video"]);
+  });
+
+  it("preserves complete large editorial permutations on both shared renderers", () => {
+    const rows = Array.from({ length: 300 }, (_, index) => replication({
+      slug: `work-${index}`,
+      type: index % 2 ? "image" : "video",
+      viewing_mode: index % 2 ? "closed-eye" : "open-eye",
+      ...(index % 3 === 0 ? { content_tags: ["body-horror"] } : {}),
+    }));
+    const order = rows.map(row => row.slug).reverse();
+    expect(buildShowcaseWorks(
+      rows.map(row => item(row, "geometry")), new Map(), undefined, undefined, order,
+    ).map(work => work.slug)).toEqual(order);
+    expect(buildEffectShowcaseWorks(rows, { galleryOrder: order }).map(work => work.slug)).toEqual(order);
   });
 });

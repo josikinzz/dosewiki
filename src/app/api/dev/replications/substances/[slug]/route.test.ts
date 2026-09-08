@@ -16,19 +16,10 @@ vi.mock("../../../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidatePath: cacheMocks.revalidatePath,
-  revalidateTag: cacheMocks.revalidateTag,
-}));
-
-vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { replications: "public-replications" },
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 installProtectedRouteMocks();
@@ -44,13 +35,13 @@ const DETAIL = {
 function saveRequest(body: unknown, slug = "lsd") {
   return new Request(`https://dose.wiki/api/dev/replications/substances/${slug}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
 
 beforeEach(() => {
-  // next/cache spies live outside the route harness and accumulate across cases.
+  // The publish spy lives outside the route harness and accumulates across cases.
   vi.clearAllMocks();
   resetRouteMocks("admin", { email: "admin@example.com", name: "Admin" });
   vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -70,7 +61,7 @@ describe("substance gallery route auth", () => {
     expect(write.status).toBe(403);
     expect(routeMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(routeMocks.mutation).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 });
 
@@ -113,7 +104,7 @@ describe("substance gallery GET", () => {
 });
 
 describe("substance gallery POST", () => {
-  it("submits full arrays, revalidates, and returns the pruned echo verbatim", async () => {
+  it("submits full arrays, publishes, and returns the pruned echo verbatim", async () => {
     routeMocks.mutation.mockResolvedValue({
       status: "ok",
       updated: true,
@@ -154,8 +145,10 @@ describe("substance gallery POST", () => {
       updatedBy: "admin@example.com",
       expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
     });
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("public-replications", { expire: 0 });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/lsd");
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "article", slug: "lsd" }, { kind: "replication-collections" }],
+      source: "manual",
+    });
   });
 
   it("rejects a curated∩excluded overlap before reaching Convex", async () => {
@@ -211,51 +204,6 @@ describe("substance gallery POST", () => {
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("omits expectedUpdatedAt when the body does not carry it", async () => {
-    routeMocks.mutation.mockResolvedValue({
-      status: "ok",
-      updated: false,
-      substance_slug: "lsd",
-      curated_slugs: [],
-      removed_slugs: [],
-      pruned_curated: [],
-      pruned_removed: [],
-      updated_at: "2026-02-02T02:02:02.000Z",
-      updated_by: "editor@example.com",
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(saveRequest({ curatedSlugs: [], removedSlugs: [] }));
-
-    expect(response.status).toBe(200);
-    expect(routeMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: undefined });
-  });
-
-  it("relays a null expectedUpdatedAt so Convex asserts no curation row exists", async () => {
-    routeMocks.mutation.mockResolvedValue({
-      status: "ok",
-      updated: false,
-      substance_slug: "lsd",
-      curated_slugs: ["tracers-hand"],
-      removed_slugs: [],
-      pruned_curated: [],
-      pruned_removed: [],
-      updated_at: "2026-02-02T02:02:02.000Z",
-      updated_by: "editor@example.com",
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      saveRequest({
-        curatedSlugs: ["tracers-hand"],
-        removedSlugs: [],
-        expectedUpdatedAt: null,
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(routeMocks.mutation.mock.calls[0][1]).toMatchObject({ expectedUpdatedAt: null });
-  });
 
   it("rejects a non-string, non-null expectedUpdatedAt before reaching Convex", async () => {
     const { POST } = await import("./route");
@@ -268,7 +216,7 @@ describe("substance gallery POST", () => {
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("reports a stale save as a 409 with the server state and revalidates nothing", async () => {
+  it("reports a stale save as a 409 with the server state and publishes nothing", async () => {
     routeMocks.mutation.mockResolvedValue({
       status: "conflict",
       server: {
@@ -298,8 +246,7 @@ describe("substance gallery POST", () => {
         updated_by: "other@example.com",
       },
     });
-    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 });
 

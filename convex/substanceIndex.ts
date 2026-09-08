@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
-import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { substanceArticleLightValidator } from "./lib/validators";
 import {
@@ -36,9 +37,7 @@ import {
   setEditorialReviewHandler,
 } from "./lib/substanceReviewHandlers";
 import {
-  appendArticleReferenceHandler,
   deleteSubstanceHandler,
-  removeArticleReferenceHandler,
   saveSubstanceHandler,
   saveSubstancesHandler,
   setArticleFieldHandler,
@@ -642,7 +641,9 @@ export const setArticleField = mutation({
     slug: v.string(),
     path: v.string(),
     value: editableFieldValueValidator,
-    expected: v.optional(editableFieldValueValidator),
+    expected: editableFieldValueValidator,
+    baseHash: v.string(),
+    changeId: v.string(),
   },
   handler: setArticleFieldHandler,
 });
@@ -658,25 +659,6 @@ export const setIupacName = mutation({
   handler: setIupacNameHandler,
 });
 
-export const appendArticleReference = mutation({
-  args: {
-    apiKey: v.optional(v.string()),
-    actorEmail: v.optional(v.string()),
-    slug: v.string(),
-    reference: v.any(),
-  },
-  handler: appendArticleReferenceHandler,
-});
-
-export const removeArticleReference = mutation({
-  args: {
-    apiKey: v.optional(v.string()),
-    actorEmail: v.optional(v.string()),
-    slug: v.string(),
-    referenceId: v.string(),
-  },
-  handler: removeArticleReferenceHandler,
-});
 
 export const getArticleReferenceProvenanceRepairSnapshot = query({
   args: {

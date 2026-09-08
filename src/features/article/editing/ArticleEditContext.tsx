@@ -57,21 +57,25 @@ export function isArticleFieldConflict(error: unknown): boolean {
 }
 
 /**
- * The one capability an inline-editable article surface needs: persist a new
- * value for one field path and resolve with the value that was stored.
+ * Apply one inline field to the current local preview. Durable private saving
+ * and publication are separate, explicitly confirmed article lifecycle actions.
  *
  * Deliberately tiny. The public article path never provides this context, so
  * every `EditableValue` collapses to its children and the rendered DOM is
  * unchanged — the affordance exists only where an editor opted in.
  */
 export interface ArticleEditContextValue {
+  registerDraft?: (path: string, draft: {
+    save: () => Promise<void>;
+    discard: () => void;
+  }) => () => void;
   /**
    * Rejects with a human-readable `Error` the field can render inline.
    *
    * `expected` is the value the field held on screen. Paths carry concrete
    * array indices, and the rendered article can be a local draft that has been
-   * reordered since the database last saw it, so the write is only safe when
-   * the store still agrees about what sits at that index.
+   * reordered since the field opened, so local application is safe only when
+   * the current draft still agrees about what sits at that index.
    *
    * A value is either prose or a `{min, max, unit}` range; the kind is fixed by
    * the path's entry in the inline-edit allow-list, and both sides of the
@@ -83,8 +87,8 @@ export interface ArticleEditContextValue {
     expected: EditableFieldValue,
   ) => Promise<EditableFieldValue>;
   /**
-   * The value the surface now believes is stored at `path`, for a field whose
-   * commit was just refused as stale.
+   * The value the surface now holds at `path` in its local preview, for a field
+   * whose local application was refused as stale.
    *
    * Returns `null` when the surface has nothing fresher than what it already
    * rendered, which is the honest answer rather than a guess — a field with no

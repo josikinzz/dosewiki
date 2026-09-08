@@ -225,35 +225,7 @@ describe("MediaRail view-all affordance", () => {
     }
   });
 
-  it("forwards clicks on both affordances to onViewAllOpen, keeping the href", async () => {
-    const user = userEvent.setup();
-    // Mirrors the explorer's launcher: intercept the plain click so the
-    // viewer opens in place; the anchor still carries the artist href for
-    // modified clicks, new tabs, and crawlers.
-    const onViewAllOpen = vi.fn((event: React.MouseEvent) =>
-      event.preventDefault(),
-    );
 
-    render(
-      <MediaRail
-        group={group({ count: 2 })}
-        viewAllHref="/replications/artist/symmetric-vision"
-        viewerHrefFor={viewerHrefFor}
-        onViewAllOpen={onViewAllOpen}
-      />,
-    );
-
-    const links = screen.getAllByRole("link", { name: /View all 2/ });
-    expect(links).toHaveLength(2);
-    for (const link of links) {
-      expect(link).toHaveAttribute(
-        "href",
-        "/replications/artist/symmetric-vision",
-      );
-      await user.click(link);
-    }
-    expect(onViewAllOpen).toHaveBeenCalledTimes(2);
-  });
 });
 
 describe("MediaRail tile forwarding", () => {

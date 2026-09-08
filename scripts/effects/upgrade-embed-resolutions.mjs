@@ -199,16 +199,28 @@ const client = new ConvexHttpClient(command.targetUrl);
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 const replications = await client.query(api.replications.getAll, {});
 const imageReplications = replications.filter((row) => row.type === "image");
-// Some rows carry `placeholder-*` storage ids for externally hosted media;
-// those cannot be resolved (real ids are UUIDs or `_storage` document ids).
-const resolvable = imageReplications.filter((row) => !row.storage_id.startsWith("placeholder"));
+// Resolved URLs come from the same public read the site renders from: since the
+// R2 migration a row's primary locator may be `r2_key` with no Convex Storage
+// object at all, so `storage_id` alone no longer identifies the master.
+const galleryRows = await client.query(api.replications.getPublicReplications, {});
+const urlBySlug = new Map(
+  galleryRows.flatMap((row) => (row.url ? [[row.slug, row.url]] : [])),
+);
+// Rows outside the public gallery keep resolving through Convex Storage.
+// `placeholder-*` ids mark externally hosted media and never resolve.
+const legacy = imageReplications.filter((row) =>
+  !urlBySlug.has(row.slug)
+  && typeof row.storage_id === "string"
+  && !row.storage_id.startsWith("placeholder"));
 const servedUrls = await client.query(api.replications.resolveStorageUrls, {
-  storageIds: resolvable.map((row) => row.storage_id),
+  storageIds: legacy.map((row) => row.storage_id),
 });
-const resolvedBySlug = new Map(resolvable.map((row, index) => [row.slug, servedUrls[index]]));
+legacy.forEach((row, index) => {
+  if (servedUrls[index]) urlBySlug.set(row.slug, servedUrls[index]);
+});
 const replicationUrl = new Map(imageReplications.map((row) => [
   row.slug,
-  resolvedBySlug.get(row.slug) ?? row.url ?? null,
+  urlBySlug.get(row.slug) ?? row.url ?? null,
 ]));
 const servedUrlSet = new Set([...replicationUrl.values()].filter(Boolean));
 

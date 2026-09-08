@@ -1,114 +1,52 @@
 # Summary Section Generation
 
-You are a harm-reduction database assistant generating ONLY the `summary` section of a dose.wiki substance article.
+Generate only the `summary` section of a dose.wiki substance article. dose.wiki is Josie Kins' harm reduction database; use the neutral, precise, accessible voice of her harm reduction documentation.
 
----
+## 1. Select the supported overview
 
-## Context
+Use only claims explicitly stated or clearly implied in the provided excerpts. A synthesis date, discoverer, or origin requires explicit attestation; never fill gaps from prior knowledge.
 
-dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic researcher and the founder of PsychonautWiki, the Subjective Effect Index, Effect Index, and the blog "Disregard Everything I Say." She is known for her work on psychedelic harm reduction documentation, subjective effect taxonomy, and visual replication art.
+Consider every topic below, retaining only what the excerpts support:
 
----
+| Topic | Scope |
+|-------|-------|
+| Identity | Primary name and chemical class |
+| Psychoactive class | Primary effects category |
+| History or origin | First synthesis, discoverer, or traditional use |
+| Distinguishing characteristics | Features that distinguish the substance from similar substances |
+| Key safety notes | Attested adverse outcomes, adulterants, or caustic routes, with the conditions and uncertainty attached to those hazards. Research availability is not itself an adverse outcome and is outside this overview. |
 
-## Style
+Keep the overview within these ownership boundaries:
 
-Write in the style of Josie Kins' psychedelic harm reduction documentation:
-- Phenomenologically precise yet accessible
-- Clinical but not cold
-- Neutral documentation (no advocacy)
-- Technical accuracy with readable prose
-- Information-dense but well-structured
+| Material owned elsewhere | Summary allowance |
+|--------------------------|-------------------|
+| `dosage`: specific dosage numbers | One qualitative potency note |
+| `duration`: onset, peak, and offset timelines | One overall-duration clause |
+| `pharmacology`: detailed mechanism of action | None of that detail |
+| `legality`: legal status details | None |
+| `subjective_effects`: exhaustive effect lists | Only the overview topics above |
+| Identification above the summary: alternative, slang, and chemical names | Primary name only |
 
-Write in third person, declarative present tense; never address the reader.
+**Complete when:** all five topics have been considered, every selected claim has excerpt support, and all selected material fits the ownership boundaries.
 
----
+## 2. Write the overview paragraph
 
-## Critical Constraints
+Synthesize the selected information into original prose, ordered naturally for someone unfamiliar with the substance. Retain standard technical terminology such as chemical and drug class names, but do not copy source sentences or lengthy phrases.
 
-- SYNTHESIZE information from the provided excerpts into original prose
-- Do not copy sentences or lengthy phrases verbatim from any source
-- Standard technical terminology (chemical names, drug class names) can remain as-is
-- Restructure and reframe information in your own voice
-- Do not reference or comment on sources; present information directly without meta-commentary
+Aim for 50-80 words. If the excerpts support fewer than 50 words, write a shorter paragraph of matching substance rather than padding it.
 
----
+Write in third person and declarative present tense, using past tense for origins. Build each sentence around what the substance is, does, or causes, or when and how it originated. Attach uncertainty to those specific facts. Use neutral, precise, technically accurate prose that is readable without specialist knowledge. The paragraph is a substance description, not an assessment of research coverage or a request for further study.
 
-## Core Principles
+**Complete when:** every sentence states a supported identity, effect, origin, distinguishing property, or concrete hazard; qualifications describe that fact's limits. The paragraph uses original wording and the specified voice, and meets the length target or is shorter because those facts warrant fewer words.
 
-**Evidence Only:** Every claim must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, do not include it. Never infer a synthesis date, discoverer, or origin that the excerpts do not attest.
+## 3. Return the YAML
 
-**Concise Overview:** Aim for 50-80 words that introduce the substance to someone unfamiliar with it. When the sources support fewer than 50 words of verifiable content, write a shorter fully-sourced summary — a faithful 35-word summary is better than a padded 60-word one.
-
----
-
-## Output Format
-
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary):
+Return exactly one string field in this structure:
 
 ```yaml
 summary: ""
 ```
 
-The fenced blocks in this document are for readability only; your output is the bare YAML.
+The entire reply must be valid raw YAML, beginning with `summary:`. Use proper string quoting and no tabs. Do not include code fences, commentary, explanations, or additional fields.
 
----
-
-## Field Definition
-
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `summary` | `string` | Overview paragraph | See examples below |
-
----
-
-## What to Include
-
-Cover whichever of the following the sources attest, in whatever order reads naturally:
-1. **What it is**: Chemical class and primary name
-2. **Psychoactive class**: Primary effects category (psychedelic, stimulant, etc.)
-3. **Brief history/origin**: When first synthesized, by whom, or traditional use
-4. **Notable characteristics**: What distinguishes it from similar substances
-5. **Key safety notes**: Common adulterants, caustic routes, or other prominent warnings (if applicable)
-
----
-
-## What NOT to Include
-
-The summary provides context, not exhaustive detail. Leave to their own sections:
-
-- Specific dosage numbers (belongs in `dosage` section) — a single qualitative potency note such as "active in the microgram range" is acceptable
-- Onset/peak/offset duration timelines (belongs in `duration` section) — a single overall-duration clause such as "effects lasting 8-12 hours" is acceptable
-- Detailed mechanism of action (belongs in `pharmacology` section)
-- Legal status details (belongs in `legality` section)
-- Exhaustive effect lists (belongs in `subjective_effects` section)
-- Alternative names for the substance such as slang or chemistry names. These will already be covered by a section directly above the summary.
-
----
-
-## Example Outputs
-
-### Example 1: Classic Psychedelic
-
-```yaml
-summary: "LSD is a semisynthetic psychedelic of the lysergamide class. First synthesized by Albert Hofmann in 1938, its psychoactive properties were discovered in 1943. LSD is known for producing profound alterations in perception, thought, and mood, with effects lasting 8-12 hours. It remains one of the most potent psychoactive substances known, active in the microgram range."
-```
-
-### Example 2: Research Chemical with Safety Note
-
-```yaml
-summary: "25I-NBOMe is a synthetic psychedelic of the substituted phenethylamine class, specifically an N-benzylated derivative of the 2C-x family. First synthesized in 2003, it gained notoriety as a dangerous LSD adulterant. Unlike classical psychedelics, 25I-NBOMe has been associated with fatalities at recreational doses and is notably caustic when insufflated, causing severe nasal damage."
-```
-
-### Example 3: Dissociative
-
-```yaml
-summary: "Ketamine is an arylcyclohexylamine dissociative originally developed as an anesthetic in 1962. It produces dose-dependent effects ranging from mild dissociation to complete anesthetic states. Ketamine has gained attention for its rapid-acting antidepressant properties and is used clinically for treatment-resistant depression. Chronic use is associated with urinary tract damage."
-```
-
----
-
-## Validation Checklist
-
-Before returning output:
-- [ ] YAML is valid (no tabs, proper quoting)
-- [ ] Output is the YAML alone — no code fences, no commentary or explanation
+**Completion check:** before returning, confirm every criterion in steps 1 and 2 is satisfied and the reply contains only the required YAML string field.

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { __unstable__loadDesignSystem } from "tailwindcss";
 import { PALETTE_GROUPS } from "./paletteTokens";
 import { readSourceFiles } from "@/test/sourceScan";
 
@@ -25,6 +26,10 @@ function isExempt(relativePath: string) {
   return relativePath === GUARD_FILE;
 }
 
+const shadowDesignSystem = await __unstable__loadDesignSystem(
+  fs.readFileSync(new URL(import.meta.resolve("tailwindcss/theme.css")), "utf8"),
+);
+
 /**
  * Every spelling of a hardcoded shadow, not just the named scale. The three
  * forms this migration replaced — the Tailwind scale ("shadow-" + "lg"), a
@@ -40,7 +45,9 @@ function isExempt(relativePath: string) {
  * `:` and pass.
  */
 function hardcodedShadows(text: string) {
-  return text.match(/(?<![-\w])shadow-(?!\[var\(--theme-)[^\s"'`]*/g) ?? [];
+  const candidates = text.match(/(?<![-\w])shadow-(?!\[var\(--theme-)[^\s"'`]*/g) ?? [];
+  const compiled = shadowDesignSystem.candidatesToCss(candidates);
+  return candidates.filter((_, index) => compiled[index] !== null);
 }
 
 const SOURCE_FILES = readSourceFiles(["src/app", "src/components", "src/features", "src/hooks"], {
@@ -56,6 +63,12 @@ function definedIn(css: string) {
 }
 
 describe("elevation tokens", () => {
+  it("distinguishes compiled shadow utilities from non-utility domain identifiers", () => {
+    const prefix = "shadow-";
+    expect(hardcodedShadows(`${prefix}people ${prefix}lg ${prefix}fuchsia-500/8 ${prefix}[0_2px_4px_black] ${prefix}[var(--theme-elevation-card)]`))
+      .toEqual([`${prefix}lg`, `${prefix}fuchsia-500/8`, `${prefix}[0_2px_4px_black]`]);
+  });
+
   it("registers every elevation token the stylesheet defines, and vice versa", () => {
     const defined = definedIn(SITE_COLORS);
 

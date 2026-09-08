@@ -14,15 +14,10 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({ revalidateTag: vi.fn() }));
+const publishMocks = vi.hoisted(() => ({ publishPublicCache: vi.fn(async () => []) }));
 
-vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
-  revalidateTag: cacheMocks.revalidateTag,
-}));
-
-vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { copy: "convex-public:copy" },
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -47,8 +42,8 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
 function jsonRequest(method: "POST" | "DELETE", body: unknown) {
   return new Request("https://dose.wiki/api/dev/copy-block", {
     method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+    body: JSON.stringify({ expected: null, expectedRevision: 0, operationId: "copy-fixture-operation", ...(body as Record<string, unknown>) }),
   });
 }
 
@@ -77,24 +72,24 @@ describe("copy block route", () => {
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(convexMocks.mutation).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
   it("lets an admin save a block as themselves", async () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
-    convexMocks.mutation.mockResolvedValue({ updated: true, key: "home-hero" });
+    convexMocks.mutation.mockResolvedValue({ updated: true, key: "home-hero", revision: 1, replayed: false, unchanged: false });
 
     const response = await POST(jsonRequest("POST", blockBody));
 
     expect(response.status).toBe(200);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-    expect(convexMocks.mutation).toHaveBeenCalledWith(
-      "copyBlocks.upsert",
-      expect.objectContaining({ apiKey: "admin-key", actorEmail: "admin@example.com", key: "home-hero" }),
-    );
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:copy", { expire: 0 });
+    expect(await response.json()).toMatchObject({ revision: 1, replayed: false, unchanged: false });
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "copy" }],
+      source: "manual",
+    });
   });
 
   it("refuses an editor resetting a block with 403 before touching Convex", async () => {
@@ -103,22 +98,22 @@ describe("copy block route", () => {
     expect(response.status).toBe(403);
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(convexMocks.mutation).not.toHaveBeenCalled();
-    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
+    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
   it("lets an admin reset a block", async () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
-    convexMocks.mutation.mockResolvedValue({ removed: true, key: "home-hero" });
+    convexMocks.mutation.mockResolvedValue({ removed: true, key: "home-hero", revision: 1, replayed: false, unchanged: false });
 
     const response = await DELETE(jsonRequest("DELETE", { key: "home-hero" }));
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledWith("copyBlocks.remove", {
-      apiKey: "admin-key",
-      actorEmail: "admin@example.com",
-      key: "home-hero",
+    expect(await response.json()).toMatchObject({ revision: 1, replayed: false, unchanged: false });
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "copy" }],
+      source: "manual",
     });
   });
 });

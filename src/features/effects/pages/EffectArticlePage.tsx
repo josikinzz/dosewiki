@@ -5,8 +5,11 @@ import { PublicTableOfContents } from "@/components/common/PublicTableOfContents
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { StickyTocLayout } from "@/components/common/StickyTocLayout";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
+import { GuideLinkLine } from "@/features/articles/components/GuideLinkLine";
+import { ARTICLE_GUIDES_BY_CLASS } from "@/features/articles/domain/articleGuides";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
 import { createVCodeHeadingIdAssigner } from "../vcode/headings";
+import type { ArtistCreditLinks } from "../vcode/artistCreditLinks";
 import { CommentaryBubble } from "../components/CommentaryBubble";
 import { EffectCitationsSection } from "../components/EffectCitationsSection";
 import { AudioReplicationCard } from "../components/AudioReplicationCard";
@@ -26,11 +29,16 @@ import {
 interface EffectArticlePageProps {
   article: EffectArticleModel;
   replicationsSection?: ReactNode;
+  headingActions?: ReactNode;
   drugHrefPrefix?: string;
   categoryHrefPrefix?: string;
   linkableSubstanceSlugs: readonly string[];
   linkableEffectSlugs: readonly string[];
   contributorDirectory?: ContributorDirectory;
+  /** Credit-line destinations for replication images embedded in the body. */
+  artistCreditLinks?: ArtistCreditLinks;
+  /** Reuse article content inside an editor without a full-page shell or TOC. */
+  embedded?: boolean;
 }
 
 interface EffectArticleRichSectionProps {
@@ -39,6 +47,7 @@ interface EffectArticleRichSectionProps {
   className?: string;
   contentClassName?: string;
   assignHeadingId?: (text: string) => string | undefined;
+  artistCreditLinks?: ArtistCreditLinks;
 }
 
 function EffectArticleRichSection({
@@ -47,6 +56,7 @@ function EffectArticleRichSection({
   className,
   contentClassName,
   assignHeadingId,
+  artistCreditLinks,
 }: EffectArticleRichSectionProps) {
   if (!content) {
     return null;
@@ -66,6 +76,7 @@ function EffectArticleRichSection({
           citations={section.citations}
           subarticles={section.subarticles}
           assignHeadingId={assignHeadingId}
+          artistCreditLinks={artistCreditLinks}
         />
       </div>
     </ArticleSection>
@@ -80,11 +91,14 @@ function EffectArticleRichSection({
 export function EffectArticlePage({
   article,
   replicationsSection,
+  headingActions,
   drugHrefPrefix,
   categoryHrefPrefix,
   linkableSubstanceSlugs,
   linkableEffectSlugs,
   contributorDirectory = [],
+  artistCreditLinks,
+  embedded = false,
 }: EffectArticlePageProps) {
   const normalizedReplicationsSection = replicationsSection
     ? Children.toArray(replicationsSection)
@@ -104,20 +118,21 @@ export function EffectArticlePage({
     article.sections.map((section) => section.id),
   );
 
-  return (
-    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <StickyTocLayout toc={tocNode} contentClassName="gap-10" className="theme-toc-strip-scope">
+  const content = (
+    <>
         {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
             the site header from the very first scroll; replaced by the sticky
             gutter TOC at >=1200px. */}
-        {tocNode ? <PublicTocStrip items={tocItems} /> : null}
+        {!embedded && tocNode ? <PublicTocStrip items={tocItems} /> : null}
 
         <div className="flex items-center gap-3">
           <Icon icon={article.hero.icon} size={32} className="theme-accent-heading shrink-0" />
           <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
             {article.hero.name}
           </h1>
+          {headingActions}
         </div>
+        {article.hero.summary ? <p className="theme-text-secondary type-reading-measure text-[1.0625rem] leading-7">{article.hero.summary}</p> : null}
 
         {article.sections.map((section) => {
           switch (section.kind) {
@@ -129,9 +144,18 @@ export function EffectArticlePage({
                       content={section.content}
                       citations={section.citations}
                       subarticles={section.subarticles}
+                      artistCreditLinks={artistCreditLinks}
                       assignHeadingId={assignHeadingId}
                     />
                   </div>
+                  {/* The scale grades this whole family of effects. A guide to
+                      one substance belongs on that substance's page, not here. */}
+                  {article.hero.guideClass ? (
+                    <GuideLinkLine
+                      className="mt-5"
+                      scale={ARTICLE_GUIDES_BY_CLASS[article.hero.guideClass].scale}
+                    />
+                  ) : null}
                 </section>
               );
 
@@ -143,6 +167,7 @@ export function EffectArticlePage({
                   section={section}
                   content={section.content}
                   assignHeadingId={assignHeadingId}
+                  artistCreditLinks={artistCreditLinks}
                 />
               );
 
@@ -205,6 +230,7 @@ export function EffectArticlePage({
                           content={section.content}
                           citations={section.citations}
                           subarticles={section.subarticles}
+                          artistCreditLinks={artistCreditLinks}
                           assignHeadingId={assignHeadingId}
                         />
                       </div>
@@ -294,7 +320,13 @@ export function EffectArticlePage({
               );
           }
         })}
-      </StickyTocLayout>
+    </>
+  );
+  return embedded ? (
+    <div className="min-w-0 space-y-10 [overflow-wrap:anywhere]">{content}</div>
+  ) : (
+    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
+      <StickyTocLayout toc={tocNode} contentClassName="gap-10" className="theme-toc-strip-scope">{content}</StickyTocLayout>
     </main>
   );
 }

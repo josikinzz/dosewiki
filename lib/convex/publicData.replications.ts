@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache, publicSubstanceGalleryTag } from "./publicData.cache";
 import { cache } from "react";
 import { contributorMatchNames, findContributorProfileByAuthorName } from "../contributorProfileIdentity";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
@@ -13,6 +13,7 @@ import {
   type ReplicationWithUrl,
 } from "../../src/types/replications";
 import { getPublicReplicationBySlug, getPublicReplications } from "./publicData.effects";
+import { getPublicReplicationsBySlugs } from "./publicData.replicationDetails";
 import { getPublicContributorProfiles } from "./publicData.contributors";
 import {
   includeDirectlyAssociatedRows,
@@ -51,7 +52,7 @@ function batches<T>(items: readonly T[], size: number): T[][] {
  * its empty answer for the window, which is the harmless direction and clears
  * with the deploy that adds the function.
  */
-const getPublicReplicationArtistTaxonomyBatch = cache(unstable_cache(async (
+const getPublicReplicationArtistTaxonomyBatch = cache(publicDataCache(async (
   keys: string[],
 ) => getPublicDataReadAdapter().getPublicReplicationArtistsByKeys(keys), [
   "convex-public-replication-artist-taxonomy-batch-v1",
@@ -77,7 +78,7 @@ const getPublicReplicationArtistTaxonomyBatch = cache(unstable_cache(async (
  * note on `getPublicReplications` in `publicData.effects` for why the gate sits
  * on this side of Convex.
  */
-export const getReplicationsByContributor = cache(unstable_cache(async (
+export const getReplicationsByContributor = cache(publicDataCache(async (
   profile: NormalizedUserProfile,
 ): Promise<ReplicationWithUrl[]> => {
   const artistNames = contributorMatchNames(profile);
@@ -112,7 +113,7 @@ export const getReplicationsByContributor = cache(unstable_cache(async (
  * `getPublicMatchableReplicationCorpus` and `getPublicReplicationsForSubstance`
  * below are therefore React `cache()` (request dedupe) only.
  */
-const getPublicMatchableReplicationCorpusPage = cache(unstable_cache(async (
+const getPublicMatchableReplicationCorpusPage = cache(publicDataCache(async (
   cursor?: string,
 ) => {
   return await getPublicDataReadAdapter().getPublicMatchableReplicationPage(cursor);
@@ -166,49 +167,38 @@ const getPublicMatchableReplicationCorpus = cache(async (): Promise<SubstanceGal
  * a leaf: it reads the adapter directly, so it is safe as a top-level
  * `unstable_cache`.
  */
-const getPublicSubstanceGalleryCuration = cache(unstable_cache(async (
+const getPublicSubstanceGalleryCuration = cache(publicDataCache(async (
   substanceSlug: string,
 ) => {
   return await getPublicDataReadAdapter().getPublicSubstanceGalleryCuration(substanceSlug);
-}, ["convex-public-substance-gallery-curation-v1"], {
+}, ["convex-public-substance-gallery-curation-v2"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [
+  tags: (slug) => [
     PUBLIC_CONVEX_CACHE_TAGS.all,
     PUBLIC_CONVEX_CACHE_TAGS.replications,
     PUBLIC_CONVEX_CACHE_TAGS.substances,
+    publicSubstanceGalleryTag(slug),
   ],
 }));
 
-/** Thrown inside the fast-path cache so an undeployed query is never persisted as an empty gallery. */
-class PublicSubstanceGalleryFastPathUnavailableError extends Error {
-  constructor() {
-    super("substanceGalleries:getPublicGalleryBySubstance is not deployed");
-    this.name = "PublicSubstanceGalleryFastPathUnavailableError";
-  }
-}
 
 /**
  * The single-round-trip showcase read (`substanceGalleries:getPublicGalleryBySubstance`),
- * persisted per substance. The merged gallery is at most a few hundred
- * URL-resolved rows, well inside the data-cache entry limit. A deployment
- * that lacks the query throws instead of returning, so nothing is cached and
- * the next request tries again rather than sitting on an empty entry for a
- * whole revalidate window.
+ * persisted per substance. Oversized values use the shared cache's bypass
+ * sentinel. Expected query/index unavailability persists as null so a stale
+ * refresh can replace an old gallery and select the complete corpus fallback.
  */
-const readPublicSubstanceGalleryFastPath = cache(unstable_cache(async (
+const readPublicSubstanceGalleryFastPath = cache(publicDataCache(async (
   substanceSlug: string,
-): Promise<PublicSubstanceGallery> => {
-  const gallery = await getPublicDataReadAdapter().getPublicSubstanceGallery(substanceSlug);
-  if (!gallery) {
-    throw new PublicSubstanceGalleryFastPathUnavailableError();
-  }
-  return gallery;
-}, ["convex-public-substance-gallery-v1"], {
+): Promise<PublicSubstanceGallery | null> => {
+  return await getPublicDataReadAdapter().getPublicSubstanceGallery(substanceSlug);
+}, ["convex-public-substance-gallery-v2"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [
+  tags: (slug) => [
     PUBLIC_CONVEX_CACHE_TAGS.all,
     PUBLIC_CONVEX_CACHE_TAGS.replications,
     PUBLIC_CONVEX_CACHE_TAGS.substances,
+    publicSubstanceGalleryTag(slug),
   ],
 }));
 
@@ -245,7 +235,7 @@ const assemblePublicSubstanceGalleryFromCorpus = cache(async (
       items.push({ replication, provenance });
     }
   }
-  return { items };
+  return { items, carouselOrder: curation?.carousel_order ?? [] };
 });
 
 /**
@@ -293,14 +283,14 @@ export const getPublicReplicationsForSubstance = cache(async (
 
   try {
     const gallery = await readPublicSubstanceGalleryFastPath(substanceSlug);
-    return {
-      items: gallery.items.filter((item) => isPublishableReplication(item.replication)),
-    };
+    if (gallery) {
+      return {
+        carouselOrder: gallery.carouselOrder,
+        items: gallery.items.filter((item) => isPublishableReplication(item.replication)),
+      };
+    }
   } catch (error) {
-    if (
-      !(error instanceof PublicSubstanceGalleryFastPathUnavailableError) &&
-      !hasWarnedAboutSubstanceGalleryFastPath
-    ) {
+    if (!hasWarnedAboutSubstanceGalleryFastPath) {
       // Once per process: before the query is deployed every article would
       // otherwise repeat this line, and a build prerenders hundreds of them.
       hasWarnedAboutSubstanceGalleryFastPath = true;
@@ -326,11 +316,11 @@ export const getPublicReplicationsForSubstance = cache(async (
  * Tagged `replications` so saving a selection can revalidate it with the same
  * tag the rest of the replication surface already uses.
  */
-export const getPublicFeaturedReplicationSlugs = cache(unstable_cache(async (): Promise<string[] | null> => {
+export const getPublicFeaturedReplicationSlugs = cache(publicDataCache(async (): Promise<string[] | null> => {
   return await getPublicDataReadAdapter().getPublicFeaturedReplicationSlugs();
 }, ["convex-public-featured-replications"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications, PUBLIC_CONVEX_CACHE_TAGS.featuredReplications],
 }));
 
 /**
@@ -494,31 +484,3 @@ export const getPublicGalleryReplicationBySlug = cache(async (
   });
 });
 
-/**
- * One indexed batch of at most 100 detail rows, persisted under its slug list.
- * A leaf read, so it is a top-level `unstable_cache`; the corpus fallback in
- * `getPublicReplicationsForSubstance` reaches it through request-scoped
- * functions only.
- */
-const getPublicReplicationsBySlugBatch = cache(unstable_cache(async (
-  slugs: string[],
-): Promise<ReplicationWithUrl[]> => {
-  return await getPublicDataReadAdapter().getPublicReplicationsBySlugs(slugs);
-}, ["convex-public-replications-by-slug-batch-v1"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
-}));
-
-/** Resolve only the detail rows selected from a slim catalog page. */
-export const getPublicReplicationsBySlugs = cache(async (
-  slugs: string[],
-): Promise<ReplicationWithUrl[]> => {
-  const uniqueSlugs = [...new Set(slugs)];
-  if (uniqueSlugs.length === 0) return [];
-  const rows = (
-    await Promise.all(
-      batches(uniqueSlugs, 100).map((batch) => getPublicReplicationsBySlugBatch(batch)),
-    )
-  ).flat();
-  return rows.filter(isPublishableReplication);
-});

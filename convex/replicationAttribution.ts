@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import {
   attributionBatchUpdateValidator,

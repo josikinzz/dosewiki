@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 
-import { Icon } from "@/components/common/Icon";
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Surface } from "@/components/ui/surface";
 import { EditorNotice, EditorSection, EditorStatusPill } from "@/features/dev/components";
 import type { EditorSectionProps } from "@/features/dev/components";
@@ -18,6 +18,7 @@ function WarningList({
   ids,
   summary,
   collapsible = false,
+  headingLevel,
 }: {
   title: string;
   ids: string[];
@@ -25,6 +26,7 @@ function WarningList({
   summary?: string;
   /** Collapse the badge list behind a show/hide toggle (collapsed by default). */
   collapsible?: boolean;
+  headingLevel: 3 | 4 | 5;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   if (ids.length === 0) return null;
@@ -40,11 +42,12 @@ function WarningList({
   );
 
   if (!collapsible) {
-    return <EditorNotice notice={{ tone: "warning", title, message: badges }} />;
+    return <EditorNotice headingLevel={headingLevel} notice={{ tone: "warning", title, message: badges }} />;
   }
 
   return (
     <EditorNotice
+      headingLevel={headingLevel}
       notice={{
         tone: "warning",
         title: (
@@ -57,7 +60,7 @@ function WarningList({
             <span className="min-w-0">{summary || title}</span>
             <span className="ml-auto flex shrink-0 items-center gap-1 text-xs font-normal">
               {isExpanded ? "Hide" : "Show"}
-              <Icon icon={isExpanded ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
+              <ExpandIndicator isExpanded={isExpanded} />
             </span>
           </button>
         ),
@@ -103,26 +106,28 @@ export function EditorCitationDiagnosticsPanel({
   const previewLimit = compact ? 4 : 8;
   const prosePreviews = diagnostics.prosePreviews.slice(0, previewLimit);
   const routePreviews = diagnostics.routePreviews.slice(0, previewLimit);
+  const warningHeadingLevel = headingLevel === "h4" ? 5 : headingLevel === "h3" ? 4 : 3;
 
   return (
     <EditorSection icon="lucide:brackets" title="Citation token preview" headingLevel={headingLevel}>
       <div className="flex flex-wrap items-center gap-2">
         <EditorStatusPill tone="neutral">
-          {article.references?.length ?? 0} structured references
+          {article.references?.length ?? 0} structured {(article.references?.length ?? 0) === 1 ? "reference" : "references"}
         </EditorStatusPill>
         <EditorStatusPill tone="neutral">
-          {diagnostics.prosePreviews.length} tokenized text fields
+          {diagnostics.prosePreviews.length} tokenized text {diagnostics.prosePreviews.length === 1 ? "field" : "fields"}
         </EditorStatusPill>
         <EditorStatusPill tone="neutral">
-          {diagnostics.routePreviews.length} route linkages
+          {diagnostics.routePreviews.length} route {diagnostics.routePreviews.length === 1 ? "linkage" : "linkages"}
         </EditorStatusPill>
       </div>
 
       {/* Warnings are rare; stack them full-width instead of leaving empty grid cells */}
       <div className="space-y-3">
-        <WarningList title="Unknown inline reference IDs" ids={diagnostics.unknownInlineReferenceIds} />
-        <WarningList title="Unknown route reference IDs" ids={diagnostics.unknownStructuredReferenceIds} />
+        <WarningList headingLevel={warningHeadingLevel} title="Unknown inline reference IDs" ids={diagnostics.unknownInlineReferenceIds} />
+        <WarningList headingLevel={warningHeadingLevel} title="Unknown route reference IDs" ids={diagnostics.unknownStructuredReferenceIds} />
         <WarningList
+          headingLevel={warningHeadingLevel}
           title="Structured references with no current links"
           ids={diagnostics.orphanedReferenceIds}
           collapsible
@@ -130,7 +135,7 @@ export function EditorCitationDiagnosticsPanel({
             diagnostics.orphanedReferenceIds.length === 1 ? " has" : "s have"
           } no inline links`}
         />
-        <WarningList title="Adjacent duplicate cite tokens" ids={diagnostics.duplicateAdjacentTokenIds} />
+        <WarningList headingLevel={warningHeadingLevel} title="Adjacent duplicate cite tokens" ids={diagnostics.duplicateAdjacentTokenIds} />
       </div>
 
       {routePreviews.length > 0 && (

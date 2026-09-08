@@ -37,6 +37,10 @@ export type PlaylistEditorProps = {
   onChange: (draft: PlaylistDraft) => void;
   onSave: () => void;
   onCancel: () => void;
+  saveLabel?: string;
+  membershipEditable?: boolean;
+  titleEditable?: boolean;
+  contextual?: boolean;
 };
 
 /**
@@ -56,6 +60,10 @@ export function PlaylistEditor({
   onChange,
   onSave,
   onCancel,
+  saveLabel,
+  membershipEditable = true,
+  titleEditable = true,
+  contextual = false,
 }: PlaylistEditorProps) {
   const [newSlug, setNewSlug] = useState("");
   const [slugError, setSlugError] = useState<string | null>(null);
@@ -91,30 +99,28 @@ export function PlaylistEditor({
 
   return (
     <section aria-labelledby={headingId} className="space-y-5">
-      {/* Pinned under the site header (`.app-header`, 4.25rem; the theme
-          variable stays in CSS) so the save controls and the outcome notice
-          stay in reach however long the list below grows. */}
-      <header className="sticky top-[4.25rem] z-10 space-y-2 border-b border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg)]/95 py-2 backdrop-blur">
+      {/* Keep actions at the embedded pane's top, or below the standalone site header. */}
+      <header className={`sticky ${contextual ? "top-0" : "top-[4.25rem]"} z-10 space-y-2 border-b border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg)]/95 py-2 backdrop-blur`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 id={headingId} className="theme-text-primary text-base font-semibold">
             {isNew ? "New playlist" : `Edit ${draft.title || draft.key}`}
           </h3>
-          <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 ${contextual ? "flex-wrap" : ""}`}>
             {isDirty ? <EditorStatusPill tone="warning">Unsaved</EditorStatusPill> : null}
-            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onCancel}>
+            {!contextual || isDirty ? <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onCancel}>
               <Icon icon="lucide:x" size={14} />
               {isDirty ? "Discard" : "Close"}
-            </Button>
+            </Button> : null}
             <Button type="button" variant="accent" size="sm" disabled={!canSave} onClick={onSave}>
               <Icon icon={busy ? "lucide:loader-circle" : "lucide:save"} size={14} />
-              {isNew ? "Create playlist" : "Save changes"}
+              {saveLabel ?? (isNew ? "Create playlist" : "Save changes")}
             </Button>
           </div>
         </div>
         {notice ? <EditorNotice notice={notice} /> : null}
       </header>
 
-      <EditorFieldRow layout="twoColumn">
+      {contextual && !titleEditable ? <p className="theme-text-muted text-sm">{draft.title} <span className="break-all">({draft.key})</span></p> : <EditorFieldRow layout="twoColumn">
         <EditorField label="Name" required>
           {(control) => (
             <Input
@@ -122,7 +128,7 @@ export function PlaylistEditor({
               value={draft.title}
               placeholder="Classic psychedelic opener"
               maxLength={120}
-              disabled={busy}
+              disabled={busy || !titleEditable}
               onChange={(event) => {
                 const title = event.target.value;
                 onChange({ ...draft, title, key: isNew ? playlistKeyOf(title) : draft.key });
@@ -138,7 +144,7 @@ export function PlaylistEditor({
             <Input {...control} value={draft.key} readOnly disabled className="font-mono text-xs" />
           )}
         </EditorField>
-      </EditorFieldRow>
+      </EditorFieldRow>}
 
       {showOwner ? (
         <EditorField
@@ -197,17 +203,17 @@ export function PlaylistEditor({
                 >
                   <Icon icon="lucide:arrow-down" size={14} />
                 </Button>
-                <Button
+                {!contextual || membershipEditable ? <Button
                   type="button"
                   variant="ghostDestructive"
                   size="icon"
                   className={`h-8 w-8 ${TOUCH_ICON}`}
-                  disabled={busy}
+                  disabled={busy || !membershipEditable}
                   aria-label={`Remove ${slug}`}
                   onClick={() => updateSlugs(draft.slugs.filter((entry) => entry !== slug), index)}
                 >
                   <Icon icon="lucide:x" size={14} />
-                </Button>
+                </Button> : null}
               </li>
             ))}
           </ol>
@@ -230,7 +236,7 @@ export function PlaylistEditor({
           </div>
         ) : null}
 
-        <EditorFieldRow layout="actionTrailing">
+        {!contextual || membershipEditable ? <EditorFieldRow layout="actionTrailing">
           <EditorField
             id={slugInputId}
             label="Add a work"
@@ -242,7 +248,7 @@ export function PlaylistEditor({
                 {...control}
                 value={newSlug}
                 placeholder="replication-slug"
-                disabled={busy}
+                disabled={busy || !membershipEditable}
                 className="font-mono text-sm"
                 onChange={(event) => {
                   setNewSlug(event.target.value);
@@ -257,11 +263,11 @@ export function PlaylistEditor({
               />
             )}
           </EditorField>
-          <Button type="button" variant="secondary" size="sm" disabled={busy || newSlug.trim().length === 0} onClick={addSlug}>
+          <Button type="button" variant="secondary" size="sm" disabled={busy || !membershipEditable || newSlug.trim().length === 0} onClick={addSlug}>
             <Icon icon="lucide:plus" size={14} />
             Add
           </Button>
-        </EditorFieldRow>
+        </EditorFieldRow> : null}
       </div>
     </section>
   );

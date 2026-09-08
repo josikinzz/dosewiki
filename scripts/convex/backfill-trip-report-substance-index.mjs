@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Backfill the `tripReportSubstances` join table from the stored `tripReports`
- * corpus so `tripReports:getBySubstanceNames` can answer through an index
- * instead of scanning the whole table on every article render.
+ * Backfill the maintained public read indexes. Defaults to tripReports; use
+ * --index=gallery, --index=history or --index=reviews for the other relations.
+ * Server-owned cursor checkpoints resume interrupted runs without skips.
  *
  * Idempotent: rows already in place are kept and stale ones removed, so the
  * script can be re-run after a partial pass. It calls two internal Convex
@@ -39,14 +39,22 @@ import {
 } from "../lib/data-ops-run-context.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const CONFIRMATION_FLAG = "--confirm-trip-report-substance-index-backfill";
+const REQUESTED_INDEX = getFlagValue(process.argv.slice(2), "--index") ?? "tripReports";
+const CONFIRMATION_FLAG = REQUESTED_INDEX === "tripReports"
+  ? "--confirm-trip-report-substance-index-backfill" : "--confirm-public-read-index-backfill";
 const DEPLOY_KEY_VARS = ["CONVEX_DEPLOY_KEY_PROD", "CONVEX_DEPLOY_KEY"];
-const STATUS_FUNCTION = "tripReports:getSubstanceIndexBackfillStatus";
-const BACKFILL_FUNCTION = "tripReports:backfillSubstanceIndex";
+const STATUS_FUNCTION = REQUESTED_INDEX === "tripReports"
+  ? "tripReports:getSubstanceIndexBackfillStatus" : "publicReadIndexes:getBackfillStatus";
+const BACKFILL_FUNCTION = REQUESTED_INDEX === "tripReports"
+  ? "tripReports:backfillSubstanceIndex" : "publicReadIndexes:backfill";
+const INDEX_ARGS = REQUESTED_INDEX === "tripReports" ? {} : { name: REQUESTED_INDEX };
 const DEFAULT_BATCH_SIZE = 50;
 const MAX_PAGES = 10_000;
 
 function parseOptions(argv) {
+  if (!["tripReports", "gallery", "history", "reviews"].includes(REQUESTED_INDEX)) {
+    throw new Error("--index must be tripReports, gallery, history or reviews.");
+  }
   const write = argv.includes("--write");
   if (write && argv.includes("--dry-run")) {
     throw new Error("Use either --dry-run or --write, not both.");
@@ -55,16 +63,21 @@ function parseOptions(argv) {
   if (!Number.isInteger(batchSize) || batchSize < 1) {
     throw new Error("--batch-size must be a positive integer.");
   }
+  const maxPages = Number(getFlagValue(argv, "--max-pages") ?? MAX_PAGES);
+  if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > MAX_PAGES) {
+    throw new Error(`--max-pages must be between 1 and ${MAX_PAGES}.`);
+  }
   return {
     write,
     targetUrl: getFlagValue(argv, "--target-url"),
     batchSize,
+    maxPages,
     help: argv.includes("--help") || argv.includes("-h"),
   };
 }
 
 function printHelp() {
-  console.log(`Backfill the tripReportSubstances join table from tripReports.
+  console.log(`Backfill maintained public read indexes with durable resumable checkpoints.
 
 Usage:
   node scripts/convex/backfill-trip-report-substance-index.mjs --target-url=<url> --dry-run
@@ -76,7 +89,9 @@ Options:
   --write                Run the backfill (default is dry-run: status only)
   ${CONFIRMATION_FLAG}
                          Required with --write
-  --batch-size=<n>       Reports per Convex mutation (default: ${DEFAULT_BATCH_SIZE}, max 200)
+  --index=<name>         tripReports (default), gallery, history or reviews
+  --batch-size=<n>       Source documents per mutation (default: ${DEFAULT_BATCH_SIZE}, max 50)
+  --max-pages=<n>        Stop after a bounded batch; next run resumes server checkpoint
 
 Requires ${DEPLOY_KEY_VARS.join(" or ")} for the target deployment; internal
 functions are only reachable through the Convex CLI.
@@ -143,13 +158,10 @@ function assertKeyReachesTarget(deployKey, targetUrl) {
 }
 
 function printStatus(label, status) {
-  console.log(`${label}:`);
-  console.log(`  reports:               ${status.reportCount}`);
-  console.log(`  join rows:             ${status.joinRowCount}`);
-  console.log(`  reports indexed:       ${status.indexedReportCount}`);
-  console.log(`  reports missing rows:  ${status.reportsMissingRows}`);
-  console.log(`  orphan rows:           ${status.orphanRows}`);
-  console.log(`  indexed read active:   ${status.indexActive ? "yes" : "no (readers still scan the table)"}`);
+  console.log(`${label}: ${REQUESTED_INDEX} index version ${status.version}`);
+  console.log(`  source rows processed: ${status.processed}`);
+  console.log(`  checkpoint:            ${status.cursor ? "stored (resumable)" : "not started"}`);
+  console.log(`  indexed read active:   ${status.indexActive ? "yes" : "no (complete fallback remains active)"}`);
 }
 
 const argv = process.argv.slice(2);
@@ -166,15 +178,21 @@ const envWithCliOverrides = {
 };
 
 const runContext = createDataOpsRunContext({
-  operation: "backfill trip report substance index",
-  intent: "trip-report-substance-index-backfill",
+  operation: REQUESTED_INDEX === "tripReports"
+    ? "backfill trip report substance index" : `backfill ${REQUESTED_INDEX} public read index`,
+  intent: "public-read-index-backfill",
   argv,
   env: envWithCliOverrides,
   dryRunFlag: "--dry-run",
   executeFlag: "--write",
   requiresExecute: true,
   confirmationFlag: CONFIRMATION_FLAG,
-  selectedTables: ["tripReports", "tripReportSubstances"],
+  selectedTables: ["publicReadIndexState", ...({
+    tripReports: ["tripReports", "tripReportSubstances"],
+    gallery: ["replications", "replicationGalleryCandidates"],
+    history: ["changelog", "articleHistory"],
+    reviews: ["substanceIndex", "reviewedArticles"],
+  })[REQUESTED_INDEX]],
   destructive: true,
 });
 if (!options.write) {
@@ -196,7 +214,7 @@ async function main() {
   const reached = assertKeyReachesTarget(deployKey.value, targetUrl);
   console.log(`Deployment: ${reached}`);
 
-  const before = runFunction(deployKey.value, STATUS_FUNCTION, {});
+  const before = runFunction(deployKey.value, STATUS_FUNCTION, INDEX_ARGS);
   printStatus("Before", before);
 
   if (!options.write) {
@@ -208,6 +226,10 @@ async function main() {
   }
 
   assertDataOpsWriteAllowed(runContext);
+  if (before.indexActive) {
+    console.log("The current index version is already complete; no mutation needed.");
+    return;
+  }
 
   const audit = writeAuditLog({
     operation: runContext.operation,
@@ -217,15 +239,16 @@ async function main() {
   });
   console.log(`Audit log: ${audit.path}`);
 
-  let cursor = null;
+  let cursor = before.cursor;
   let processed = 0;
   let inserted = 0;
   let removed = 0;
   let pages = 0;
-  const limit = Math.min(options.batchSize, 200);
-
-  for (; pages < MAX_PAGES; pages += 1) {
+  const limit = Math.min(options.batchSize, 50);
+  let completed = false;
+  for (; pages < options.maxPages; pages += 1) {
     const result = runFunction(deployKey.value, BACKFILL_FUNCTION, {
+      ...INDEX_ARGS,
       ...(cursor ? { cursor } : {}),
       limit,
     });
@@ -235,33 +258,27 @@ async function main() {
     console.log(
       `  page ${pages + 1}: processed ${result.processed}, inserted ${result.inserted}, removed ${result.removed}`,
     );
-    if (result.isDone) break;
+    updateAuditLog(audit.path, { deployment: reached, index: REQUESTED_INDEX, processed, inserted, removed, pages: pages + 1, cursor: result.cursor, complete: result.isDone });
+    if (result.isDone) { completed = true; break; }
     if (typeof result.cursor !== "string" || result.cursor.length === 0 || result.cursor === cursor) {
       throw new Error(`${BACKFILL_FUNCTION} did not advance its cursor.`);
     }
     cursor = result.cursor;
   }
-  if (pages >= MAX_PAGES) {
-    throw new Error(`${BACKFILL_FUNCTION} exceeded ${MAX_PAGES} pages without finishing.`);
-  }
-
-  const after = runFunction(deployKey.value, STATUS_FUNCTION, {});
+  const after = runFunction(deployKey.value, STATUS_FUNCTION, INDEX_ARGS);
   updateAuditLog(audit.path, {
     deployment: reached,
     processed,
     inserted,
     removed,
-    pages: pages + 1,
+    pages: completed ? pages + 1 : pages,
     before,
     after,
   });
 
-  console.log(`\nBackfill complete: processed ${processed}, inserted ${inserted}, removed ${removed}.`);
+  console.log(`\n${completed ? "Backfill complete" : "Bounded batch stopped; rerun to resume"}: processed ${processed}, inserted ${inserted}, removed ${removed}.`);
   printStatus("After", after);
-  if (after.reportsMissingRows > 0 || after.orphanRows > 0) {
-    console.warn("Warning: the join table still disagrees with the corpus; re-run the script.");
-    process.exitCode = 1;
-  }
+  if (completed && !after.indexActive) throw new Error("Backfill ended without a durable completion marker.");
 }
 
 main().catch((error) => {

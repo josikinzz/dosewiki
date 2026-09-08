@@ -8,8 +8,9 @@ import {
 import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
 import { getPublicContributorReferenceCounts } from "@server/convex/publicData.contributorReferences";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
+import { flavoredCopyKey, flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
+import { splitAboutMarkdown } from "@/data/content/aboutSections";
 import { selectAboutContributors } from "@/data/contributorRoster";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
 import { AboutPage as AboutContentPage } from "@/components/pages/AboutPage";
@@ -17,6 +18,10 @@ import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnaps
 import type { SubstanceArticle } from "@/schema";
 import { SITE_FLAVOR_CONFIG, isEffectIndex } from "@/config/siteFlavor";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
+import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
+import AboutBlock from "@/features/dev/tools/about/AboutBlock.editor";
+import CopyBlock from "@/features/dev/tools/copy-studio/CopyBlock.editor";
+import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 
 export const revalidate = 3600;
 
@@ -124,6 +129,9 @@ export default async function AboutPage() {
     : about.markdown;
 
   const aboutMarkdown = applyPlaceholders(missionSource, placeholderValues);
+  const aboutSections = OWNS_ABOUT_PROSE
+    ? { introduction: aboutMarkdown, sources: "", history: "" }
+    : splitAboutMarkdown(aboutMarkdown);
 
   const contributors = selectAboutContributors({
     isEffectIndex: showContributorRoster,
@@ -134,19 +142,36 @@ export default async function AboutPage() {
 
 
   return (
-    <AboutContentPage
-      founderProfiles={contributors.founderProfiles}
-      contributorRoster={contributors.roster}
-      contributorsSectionTitle={contributors.sectionTitle}
-      previewSnapshots={previewSnapshots}
-      missionContent={<AboutMissionMarkdown content={aboutMarkdown} />}
-      subtitle={resolveAboutSubtitle(about.subtitle)}
-      downloads={{
-        substances: substanceDownload,
-        effects: effectDownload,
-        reports: reportDownload,
-        molecules: showOpenData ? getMoleculePackDownloadStats() : undefined,
-      }}
-    />
+    <>
+      <EditorLauncherTarget
+        target={{ kind: "writing", slug: "about", name: "About", writingKind: "article" }}
+      />
+      <AboutContentPage
+        founderProfiles={contributors.founderProfiles}
+        contributorRoster={contributors.roster}
+        contributorsSectionTitle={contributors.sectionTitle}
+        previewSnapshots={previewSnapshots}
+        reuseContent={<CopyBlock copyKey={flavoredCopyKey("about-reuse-notice")}><PublicMarkdownBody content={copy.text(flavoredCopyKey("about-reuse-notice"))} /></CopyBlock>}
+        docBlurbs={!OWNS_ABOUT_PROSE ? copy.items("about-doc-link-blurbs") : undefined}
+        docCopyControl={!OWNS_ABOUT_PROSE ? <CopyBlock copyKey="about-doc-link-blurbs" /> : undefined}
+        missionContent={OWNS_ABOUT_PROSE
+          ? <CopyBlock copyKey={flavoredCopyKey(ABOUT_MISSION_COPY_KEY)}><AboutMissionMarkdown content={aboutMarkdown} /></CopyBlock>
+          : <AboutBlock placeholderValues={placeholderValues}><AboutMissionMarkdown content={aboutSections.introduction} /></AboutBlock>}
+        sourcesContent={aboutSections.sources
+          ? <AboutBlock placeholderValues={placeholderValues} label="Edit sources and review"><AboutMissionMarkdown content={aboutSections.sources} /></AboutBlock>
+          : undefined}
+        historyContent={aboutSections.history
+          ? <AboutBlock placeholderValues={placeholderValues} label="Edit project history"><AboutMissionMarkdown content={aboutSections.history} /></AboutBlock>
+          : undefined}
+        subtitle={applyPlaceholders(resolveAboutSubtitle(about.subtitle), placeholderValues)}
+        subtitleControl={!OWNS_ABOUT_PROSE ? <AboutBlock placeholderValues={placeholderValues} label="Edit About subtitle" /> : undefined}
+        downloads={{
+          substances: substanceDownload,
+          effects: effectDownload,
+          reports: reportDownload,
+          molecules: showOpenData ? getMoleculePackDownloadStats() : undefined,
+        }}
+      />
+    </>
   );
 }

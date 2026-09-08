@@ -12,8 +12,8 @@ import {
  * so a fixed track count would strand blank cells and squeeze the filled ones
  * below the width an index panel needs. The shared masonry flows whatever
  * survives the renderer's blank-column filter into as many columns as the
- * measure actually fits, at each panel's own height — the same layout the
- * Substance and Effect indexes use for uneven cards.
+ * measure actually fits, at each panel's own height, using the same preferred
+ * panel width as the Substance and Effect indexes.
  */
 export function Columns({ children }: PropsWithChildren) {
   return (

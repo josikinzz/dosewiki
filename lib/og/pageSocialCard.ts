@@ -7,6 +7,7 @@ import {
   PAGE_SOCIAL_CARD_SIZE,
   type PageSocialCardKey,
 } from "../../src/data/mappings/pageSocialCardUrl";
+import type { GalleryCounts } from "../../src/features/effects/gallery/galleryModel";
 import {
   DOSEWIKI_LOGO_DATA_URI,
   SOCIAL_CARD_COLORS,
@@ -18,7 +19,7 @@ import {
   renderSocialCardSvgPng,
 } from "./socialCardPrimitives";
 
-export const PAGE_SOCIAL_CARD_RENDER_VERSION = "6";
+export const PAGE_SOCIAL_CARD_RENDER_VERSION = "7";
 
 type TileSpec = {
   labelLines: readonly string[];
@@ -312,7 +313,7 @@ function renderSubstancesCard(): Buffer {
   );
 }
 
-async function renderReplicationsCard(): Promise<Buffer> {
+async function renderReplicationsCard(counts: GalleryCounts): Promise<Buffer> {
   const artwork = await sharp(
     path.join(
       process.cwd(),
@@ -322,6 +323,19 @@ async function renderReplicationsCard(): Promise<Buffer> {
     .png()
     .toBuffer();
   const artworkDataUri = `data:image/png;base64,${artwork.toString("base64")}`;
+  const stats = [
+    ["Replications", counts.total],
+    ["Artists", counts.artists],
+    ["Images", counts.images],
+    ["Videos", counts.videos],
+  ] as const;
+  const statsMarkup = stats.map(([label, count], index) => {
+    // Round down so the abbreviated lower bound never overstates the archive.
+    const value = count >= 1000
+      ? `${Math.floor(count / 100) / 10}k+`
+      : String(count);
+    return `<text x="${210 + index * 260}" y="302" text-anchor="middle" font-family="Blinker" font-size="28" fill="${SOCIAL_CARD_COLORS.textMuted}">${label}: <tspan font-weight="600" fill="${SOCIAL_CARD_COLORS.accentStrong}">${value}</tspan></text>`;
+  }).join("");
 
   return renderSocialCardSvgPng(
     cardSvg(`
@@ -337,7 +351,8 @@ async function renderReplicationsCard(): Promise<Buffer> {
         92,
       )}
       <text x="600" y="248" text-anchor="middle" font-family="Blinker" font-size="32" fill="${SOCIAL_CARD_COLORS.textMuted}">Image, video, and audio recreations of subjective effects</text>
-      <g>
+      ${statsMarkup}
+      <g transform="translate(0 54)">
         <rect x="90" y="290" width="1020" height="640" rx="28" fill="${SOCIAL_CARD_COLORS.surface}" stroke="${SOCIAL_CARD_COLORS.border}" stroke-width="2"/>
         <image href="${artworkDataUri}" x="108" y="308" width="984" height="553" clip-path="url(#featured-replication)" preserveAspectRatio="xMidYMid slice"/>
         ${renderSocialCardIcon(
@@ -351,7 +366,7 @@ async function renderReplicationsCard(): Promise<Buffer> {
         <text x="326" y="903" font-family="Blinker" font-size="27" fill="${SOCIAL_CARD_COLORS.textFaint}">by Chelsea Morgan</text>
       </g>
       ${renderTileRows([REPLICATION_TILES], {
-        top: 958,
+        top: 1012,
         tileWidth: 116,
         tileHeight: 156,
         columnGap: 56,
@@ -425,7 +440,10 @@ function renderAboutCard(): Buffer {
   );
 }
 
-export async function renderPageSocialCardPng(key: PageSocialCardKey): Promise<Buffer> {
+export async function renderPageSocialCardPng(
+  key: PageSocialCardKey,
+  replicationCounts?: GalleryCounts,
+): Promise<Buffer> {
   switch (key) {
     case "home":
       return renderHomeCard();
@@ -434,7 +452,10 @@ export async function renderPageSocialCardPng(key: PageSocialCardKey): Promise<B
     case "effects":
       return await renderEffectsCard();
     case "replications":
-      return await renderReplicationsCard();
+      if (!replicationCounts) {
+        throw new Error("Replication social cards require current gallery counts.");
+      }
+      return await renderReplicationsCard(replicationCounts);
     case "chemical-classes":
       return renderChemicalClassesCard();
     case "about":

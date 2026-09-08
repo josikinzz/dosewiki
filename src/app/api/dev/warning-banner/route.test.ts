@@ -1,3 +1,4 @@
+import type * as NextCache from "next/cache";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
 
@@ -8,26 +9,28 @@ vi.mock("server-only", () => ({}));
 vi.mock("../../../../../convex/_generated/api", () => ({
   api: {
     warningBanners: {
-      listPresets: "warningBanners.listPresets",
+      listEditorPresets: "warningBanners.listEditorPresets",
       upsertPreset: "warningBanners.upsertPreset",
       removePreset: "warningBanners.removePreset",
     },
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
+const cacheMocks = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 
 vi.mock("next/cache", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/cache")>()),
+  ...(await importOriginal<typeof NextCache>()),
   revalidatePath: cacheMocks.revalidatePath,
-  revalidateTag: cacheMocks.revalidateTag,
 }));
 
-vi.mock("@server/convex/publicData", () => ({
-  PUBLIC_CONVEX_CACHE_TAGS: { banners: "convex-public:banners" },
+const publishMocks = vi.hoisted(() => ({
+  publishPublicCache: vi.fn(async () => [
+    { target: "local", status: "accepted", attempts: 1 },
+  ]),
+}));
+
+vi.mock("@server/next/publishPublicCache", () => ({
+  publishPublicCache: publishMocks.publishPublicCache,
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -51,6 +54,10 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
 }));
 
 const presetBody = {
+  action: "publish",
+  scope: "preset",
+  baseHash: "a".repeat(64),
+  changeId: "warning-change",
   key: "opioid",
   tone: "danger",
   icon: "lucide:skull",
@@ -65,7 +72,7 @@ const presetBody = {
 function jsonRequest(method: "POST" | "DELETE", body: unknown) {
   return new Request("https://dose.wiki/api/dev/warning-banner", {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
     body: JSON.stringify(body),
   });
 }
@@ -101,40 +108,75 @@ describe("warning banner preset route", () => {
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("saves a preset as the admin actor and revalidates the touched articles", async () => {
+  it("publishes the banner setting and every touched article, removals included", async () => {
     convexMocks.mutation.mockResolvedValue({
       updated: true,
       key: "opioid",
       allSubstances: false,
       enabledSlugs: ["heroin"],
+      affectedSlugs: ["heroin", "removed-article"],
     });
 
     const response = await POST(jsonRequest("POST", presetBody));
 
     expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledWith(
-      "warningBanners.upsertPreset",
-      expect.objectContaining({
-        apiKey: "admin-key",
-        actorEmail: "admin@example.com",
-        key: "opioid",
-        updatedBy: "admin@example.com",
-      }),
-    );
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/heroin");
-  });
-
-  it("removes a preset as the admin actor", async () => {
-    convexMocks.mutation.mockResolvedValue({ removed: true, key: "opioid" });
-
-    const response = await DELETE(jsonRequest("DELETE", { key: "opioid" }));
-
-    expect(response.status).toBe(200);
-    expect(convexMocks.mutation).toHaveBeenCalledWith("warningBanners.removePreset", {
-      apiKey: "admin-key",
-      actorEmail: "admin@example.com",
-      key: "opioid",
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [
+        { kind: "banners" },
+        { kind: "article", slug: "heroin" },
+        { kind: "article", slug: "removed-article" },
+      ],
+      source: "manual",
+    });
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(await response.json()).toMatchObject({
+      publication: [{ target: "local", status: "accepted" }],
     });
   });
+
+  it("expires the root layout for a preset that covers every substance", async () => {
+    convexMocks.mutation.mockResolvedValue({
+      updated: true,
+      key: "opioid",
+      allSubstances: true,
+      enabledSlugs: [],
+      affectedSlugs: ["heroin"],
+    });
+
+    const response = await POST(
+      jsonRequest("POST", { ...presetBody, allSubstances: true, enabledSlugs: [] }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "banners" }],
+      source: "manual",
+    });
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/", "layout");
+  });
+
+  it("publishes the banner setting when a preset is deleted", async () => {
+    convexMocks.mutation.mockResolvedValue({
+      removed: true,
+      key: "opioid",
+      allSubstances: false,
+      affectedSlugs: ["heroin"],
+    });
+
+    const response = await DELETE(
+      jsonRequest("DELETE", {
+        key: "opioid",
+        scope: "preset",
+        baseHash: "a".repeat(64),
+        changeId: "warning-change",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "banners" }, { kind: "article", slug: "heroin" }],
+      source: "manual",
+    });
+  });
+
 });

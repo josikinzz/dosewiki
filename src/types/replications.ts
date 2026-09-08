@@ -147,6 +147,14 @@ export function isPublishableReplication(row: {
   );
 }
 
+/** An exact publisher assignment, not an inferred ancestor or related effect. */
+export function depictsEffect(
+  row: { effect_slug?: string; effect_tags?: readonly string[] },
+  effectSlug: string,
+): boolean {
+  return row.effect_slug === effectSlug || row.effect_tags?.includes(effectSlug) === true;
+}
+
 /**
  * Replication rights status. Replication media is separate from dose.wiki's
  * CC0 article dataset unless an individual item says otherwise.
@@ -223,13 +231,13 @@ export interface ReplicationRecord extends ReplicationRightsMetadata {
   type: ReplicationType;
   storage_id?: string;
   /**
-   * Owning effect, when there is one. Absent for assets with no effect at all:
-   * figures embedded in effect-index articles, page heroes, a molecule diagram.
+   * Owning effect, when there is one. Assets without an owner can still carry
+   * explicit depicted-effect tags; figures and page heroes often have neither.
    */
   effect_slug?: string;
   /**
-   * Effects this asset also depicts, as effect slugs. Written from the `/dev`
-   * Replication Studio; the gallery's depicted-effect filter reads it.
+   * Explicit additional depicted-effect identities, not ancestors. The gallery
+   * filter, effect article collection and public API all read these assignments.
    */
   effect_tags?: string[];
   /** SHA-256 of the immutable acquisition source, when recorded at intake. */

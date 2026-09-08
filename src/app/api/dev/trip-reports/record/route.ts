@@ -6,8 +6,8 @@
  * thread Next's dynamic route params; `api/dev/replications/editorial` reaches
  * for the same shape for the same reason.
  *
- *   GET  ?id=…  → { report: { id, slug, ownerEmail, fields } }
- *   POST { mode: "save",   id, expected, updates, profile_key?, confirm_author_name_claim? }
+ *   GET  ?id=…  → { report: { id, slug, ownerEmail, fields, revision } }
+ *   POST { mode: "save", id, expected, expectedRevision, updates, profile_key?, confirm_author_name_claim? }
  *   POST { mode: "delete", id }   (admin only; refused here and again in Convex)
  *
  * The GET is the read half of the portal's split payload: `/api/dev/trip-reports`
@@ -21,7 +21,7 @@
  * report with the full form.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { canApprove } from "@/lib/auth/roles";
@@ -40,9 +40,11 @@ type RecordBody = {
   mode?: unknown;
   id?: unknown;
   expected?: unknown;
+  expectedRevision?: unknown;
   updates?: unknown;
   profile_key?: unknown;
   confirm_author_name_claim?: unknown;
+  operationId?: unknown;
 };
 
 type ParsedRecord =
@@ -50,9 +52,11 @@ type ParsedRecord =
       mode: "save";
       id: string;
       expected: TripReportEditableFields;
+      expectedRevision: string;
       updates: TripReportEditableFields;
       profileKey?: string;
       confirmAuthorNameClaim?: boolean;
+      operationId?: string;
     }
   | { mode: "delete"; id: string };
 
@@ -97,13 +101,21 @@ function parseRecordBody(body: RecordBody): ParsedRecord {
   if (mode !== "save") {
     throw new JsonBodyError(400, 'mode must be "save" or "delete".');
   }
+  if (typeof body.expectedRevision !== "string" || !/^[a-f0-9]{64}$/.test(body.expectedRevision)) {
+    throw new JsonBodyError(400, "The published report revision is required. Reload the report before saving.");
+  }
 
   const parsed: ParsedRecord = {
     mode: "save",
     id,
     expected: requireFields(body.expected, "expected"),
+    expectedRevision: body.expectedRevision,
     updates: requireFields(body.updates, "updates"),
   };
+  if (body.operationId !== undefined) {
+    if (typeof body.operationId !== "string" || !/^[\w-]{16,100}$/.test(body.operationId)) throw new JsonBodyError(400, "A valid publication operation ID is required.");
+    parsed.operationId = body.operationId;
+  }
 
   // Absent leaves the stored attribution alone; an empty string clears it. The
   // two are different instructions, so the key is only forwarded when present.
@@ -138,19 +150,22 @@ export const GET = protectedRouteOperation({
       throw new Error("Convex write capability is required.");
     }
 
-    const id = new URL(request.url).searchParams.get("id");
-    if (!id || id.trim().length === 0 || id.length > 200) {
-      return NextResponse.json({ error: "id is required." }, { status: 400 });
+    const params = new URL(request.url).searchParams;
+    const id = params.get("id");
+    const slug = params.get("slug");
+    if ((!id && !slug) || (id ?? slug ?? "").length > 200) {
+      return NextResponse.json({ error: "A report id or slug is required." }, { status: 400 });
     }
 
     const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
     const report = await convexWrite.client.query(api.tripReports.getPortalRecord, {
       apiKey,
       actorEmail,
-      id: id.trim() as Id<"tripReports">,
+      ...(id ? { id: id.trim() as Id<"tripReports"> } : { slug: slug!.trim() }),
+      contextual: params.get("contextual") === "true",
     });
 
-    return NextResponse.json({ ok: true, report });
+    return NextResponse.json({ ok: true, report }, { headers: { "Cache-Control": "private, no-store" } });
   },
 });
 
@@ -202,7 +217,9 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
         id: body.id as Id<"tripReports">,
       });
 
-      revalidatePath("/reports");
+      // The deleted row leaves no slug behind, so only the index it dropped
+      // out of can be named.
+      await publishPublicCache({ targets: [{ kind: "report-lists" }], source: "manual" });
       return NextResponse.json({ ok: true, deleted: result.deleted });
     }
 
@@ -211,15 +228,19 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
       actorEmail,
       id: body.id as Id<"tripReports">,
       expected: body.expected,
+      expectedRevision: body.expectedRevision,
       updates: body.updates,
       profileKey: body.profileKey,
       confirmAuthorNameClaim: body.confirmAuthorNameClaim,
+      operationId: body.operationId,
     });
 
     // The published report and the index that lists it both went stale.
-    revalidatePath("/reports");
-    revalidatePath(`/reports/${result.slug}`);
+    await publishPublicCache({
+      targets: [{ kind: "report", slug: result.slug }, { kind: "report-lists" }],
+      source: "manual",
+    });
 
-    return NextResponse.json({ ok: true, slug: result.slug });
+    return NextResponse.json({ ok: true, slug: result.slug, fields: result.fields, revision: result.revision });
   },
 });

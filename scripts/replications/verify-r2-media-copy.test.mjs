@@ -8,6 +8,7 @@ describe("validateDeliveryHeaders", () => {
   it("accepts the public immutable inline media contract", () => {
     const headers = new Headers({
       "accept-ranges": "bytes",
+      "access-control-allow-origin": "*",
       "cache-control": "public, max-age=31536000, immutable",
       "content-disposition": "inline",
       "content-type": "image/webp",
@@ -20,10 +21,11 @@ describe("validateDeliveryHeaders", () => {
     });
   });
 
-  it("rejects a wrong MIME type, mutable cache, forced download, or missing byte ranges", () => {
+  it("rejects a wrong MIME type, mutable cache, forced download, missing byte ranges, or private CORS", () => {
     const valid = {
       "accept-ranges": "bytes",
       "cache-control": "public, max-age=31536000, immutable",
+      "access-control-allow-origin": "*",
       "content-disposition": "inline",
       "content-type": "image/webp",
     };
@@ -32,6 +34,7 @@ describe("validateDeliveryHeaders", () => {
       { "cache-control": "no-cache" },
       { "content-disposition": "attachment" },
       { "accept-ranges": "none" },
+      { "access-control-allow-origin": "https://dose.wiki" },
     ]) {
       expect(() => validateDeliveryHeaders(new Headers({ ...valid, ...patch }), object, "GET")).toThrow();
     }

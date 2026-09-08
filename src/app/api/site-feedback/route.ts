@@ -6,7 +6,7 @@ import {
   SiteFeedbackStorageConfigurationError,
   SiteFeedbackValidationError,
   getSiteFeedbackIpHashSecret,
-  getSiteFeedbackStore,
+  getPublicSiteFeedbackStore,
 } from "@/features/site-feedback/siteFeedbackStore.server";
 import {
   TurnstileVerificationError,
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       clientIp,
     );
     const body = parseFeedbackBody(rawBody, request);
-    const store = await getSiteFeedbackStore();
+    const store = await getPublicSiteFeedbackStore();
     const row = await store.create(body, {
       ip: clientIp,
       ip_hash_secret: getSiteFeedbackIpHashSecret(),

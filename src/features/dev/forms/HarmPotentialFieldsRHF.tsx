@@ -27,9 +27,10 @@ import {
 
 export type AddictionFieldsRHFProps = {
   idPrefix: string;
+  pairedIndicator?: boolean;
 };
 
-export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
+export function AddictionFieldsRHF({ idPrefix, pairedIndicator = false }: AddictionFieldsRHFProps) {
   const { register, setValue, watch } = useFormContext<SubstanceArticle>();
 
   const psychologicalDesc = watch("harm_potential.addiction.psychological.description") ?? "";
@@ -121,6 +122,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
 
       <CollapsibleSubsection
         title="Toxicity"
+        pairedIndicator={pairedIndicator}
+        description={pairedIndicator ? "Lethal dosage, organ toxicity, and carcinogenicity" : undefined}
         icon={<Icon icon="healthicons:poison-24px" className="h-5 w-5" size={20} />}
       >
         <div className="space-y-4">
@@ -154,10 +157,10 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
               name="harm_potential.toxicity.carcinogenicity.level"
             >
               <Select
-                value={carcinogenicityLevel ?? ""}
+                value={carcinogenicityLevel ?? "none"}
                 onValueChange={(nextValue) => setValue(
                   "harm_potential.toxicity.carcinogenicity.level",
-                  nextValue === "" ? null : (nextValue as CarcinogenicityLevel),
+                  nextValue === "none" ? null : (nextValue as CarcinogenicityLevel),
                 )}
               >
                 <SelectTrigger id={`${idPrefix}-carc-level`}>
@@ -201,7 +204,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       </CollapsibleSubsection>
 
       <CollapsibleSubsection
-        title="Risks"
+        title={pairedIndicator ? "Psychosis & seizure" : "Risks"}
+        pairedIndicator={pairedIndicator}
         icon={<Icon icon="streamline:dangerous-zone-sign-remix" className="h-5 w-5" size={20} />}
       >
         <EditorFieldRow layout="twoColumn">

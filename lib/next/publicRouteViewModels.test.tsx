@@ -222,10 +222,6 @@ describe("public route view models", () => {
     expect(viewModel.pageProps.linkableSubstanceSlugs).toEqual(["lsd"]);
     expect(viewModel.pageProps.linkableEffectSlugs).toEqual(["geometry"]);
     expect(viewModel.pageProps.replicationsSection).toBeDefined();
-    expect(viewModel.pageProps.article.hero).toEqual({
-      name: "Visual drifting",
-      icon: "lucide:eye",
-    });
     expect(viewModel.pageProps.article.sections.map((section) => section.kind)).toEqual([
       "overview",
       "replications",

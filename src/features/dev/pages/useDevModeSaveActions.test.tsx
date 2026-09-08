@@ -66,6 +66,9 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     chemicalIndexManual: null,
     mechanismIndexManual: null,
     getOriginalArticles: () => originalArticles,
+    getOriginalPsychoactiveIndexManual: () => null,
+    getOriginalChemicalIndexManual: () => null,
+    getOriginalMechanismIndexManual: () => null,
     markChangesSaved: vi.fn(),
     isSignedIn: true,
     canDraft: true,
@@ -127,17 +130,6 @@ describe("useDevModeSaveActions", () => {
 
     await waitFor(() => {
       expect(submitProposalMutateAsyncMock).toHaveBeenCalledTimes(1);
-    });
-    expect(submitProposalMutateAsyncMock).toHaveBeenCalledWith({
-      payload: expect.objectContaining({
-        articles: [changedArticles[0]],
-        changelog: {
-          markdown: "# LSD\n\n+ Changed summary",
-          articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-        },
-      }),
-      summary: "Update LSD",
-      diff: "# LSD\n\n+ Changed summary",
     });
     expect(saveToConvexMutateAsyncMock).not.toHaveBeenCalled();
     expect(screen.getByText("Submitted Proposal #abc123 for review as JOSIE.")).toBeInTheDocument();

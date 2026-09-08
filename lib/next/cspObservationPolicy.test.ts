@@ -294,6 +294,35 @@ describe("browser security response policy", () => {
     );
   });
 
+  it("delegates embed playback and fullscreen only on the exact document endpoint", () => {
+    const headers = getBrowserSecurityHeaders({
+      host: "dose.wiki",
+      pathname: "/embed/replications",
+      isDevelopment: false,
+    });
+    expect(directiveValue(headerValue(headers, CSP_ENFORCEMENT_HEADER), "frame-ancestors")).toBe(
+      "frame-ancestors 'self' https://osmanthus.io https://www.osmanthus.io http://localhost:3000 http://127.0.0.1:3000",
+    );
+    expect(headers.find((header) => header.key === "X-Frame-Options")).toBeUndefined();
+    expect(headerValue(headers, "X-Robots-Tag")).toContain("noindex");
+    expect(headerValue(headers, "Permissions-Policy")).toContain("fullscreen=(self), autoplay=(self)");
+    expect(headerValue(headers, "Permissions-Policy")).toContain("camera=()");
+
+    for (const pathname of ["/embed/replications/child", "/embed/other", "/preview/embed/replications", "/dev"]) {
+      const lockedHeaders = getBrowserSecurityHeaders({
+        host: "dose.wiki",
+        pathname,
+        nonce: NONCE,
+        isDevelopment: false,
+      });
+      expect(directiveValue(headerValue(lockedHeaders, CSP_ENFORCEMENT_HEADER), "frame-ancestors")).toBe(
+        "frame-ancestors 'none'",
+      );
+      expect(headerValue(lockedHeaders, "X-Frame-Options")).toBe("DENY");
+      expect(headerValue(lockedHeaders, "Permissions-Policy")).not.toContain("fullscreen=");
+    }
+  });
+
   it("allows the Turnstile script on public routes only, with its challenge frame", () => {
     const publicCsp = headerValue(
       getBrowserSecurityHeaders({

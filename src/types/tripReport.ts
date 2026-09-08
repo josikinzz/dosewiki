@@ -66,6 +66,8 @@ export interface TripReport {
   tags: string[];
   license?: string;
   attribution_review?: TripReportAttributionReview;
+  /** Public byline policy, without moderation or ownership metadata. */
+  attribution_locked?: boolean;
 }
 
 export type StoredTripReport = TripReport;
@@ -87,6 +89,7 @@ export type TripReportPreviewRecord = Pick<
   // Carried into previews because it decides whether the byline may resolve to
   // a contributor at all; see `lib/convex/publicData.reportProfileProjection`.
   | "attribution_review"
+  | "attribution_locked"
 >;
 
 export interface PublicReportPreview {

@@ -136,6 +136,13 @@ describe("artistLinkPresentation", () => {
     );
   });
 
+  it("uses the Wikipedia wordmark for language and mobile subdomains", () => {
+    for (const host of ["wikipedia.org", "en.wikipedia.org", "en.m.wikipedia.org"]) {
+      expect(artistLinkPresentation(`https://${host}/wiki/Symmetric_Vision`))
+        .toEqual({ icon: "simple-icons:wikipedia", faviconSrc: null });
+    }
+  });
+
   it("falls back to a committed favicon for known source domains", () => {
     expect(
       artistLinkPresentation("https://psychonautwiki.org/wiki/User:X"),

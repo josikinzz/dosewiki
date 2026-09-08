@@ -70,6 +70,15 @@ longer changes what the browser sees (`fieldThatWins()` in
 `repoint-renditions.mjs` predates the R2 tier). During an R2 rollback the
 variable is unset, so the documented rerun behaviour still holds exactly.
 
+Urgent URL withdrawal is separate from gallery hiding and ordinary outage
+rollback. The existing R2 Worker now checks a private per-object withdrawal
+marker before serving any GET, HEAD, conditional or range response. Provider
+deployment, exact marker-write approval, managed CDN containment and fresh
+delivery verification remain required. Follow the
+[urgent withdrawal procedure](agents/convex-to-cloudflare-r2-media-handoff.md#urgent-media-withdrawal);
+never unset the R2-first switch during an active withdrawal if a native fallback
+could re-expose the bytes. Originals and rollback locators remain intact.
+
 ## Corrections to earlier readings of this corpus
 
 - **`notes-and-plans/reports/replication-provenance/audit-latest.json` is stale
@@ -104,6 +113,62 @@ Two more `<video>` elements consume the same shape:
 `src/features/effects/gallery/GalleryMediaTile.tsx:132-148` and
 `src/features/effect-index/home/FeaturedReplicationsPanel.tsx:149-163`. Both are
 client components fed by a server read; no client `useQuery` reads replications.
+
+### Immersive viewer playback
+
+The expanded Replication Viewer uses the resolved full-length `url` from its
+first frame. It does not replace a playing 10-second tile preview with another
+source. Tile previews remain gallery assets, not a viewer quality tier. GIFs
+use `motion_url` when their companion motion poster exists.
+
+Five persistent player slots cover the active work and the four navigation
+directions. Parked videos use `preload="none"`. Only one likely next work is
+prepared after the active clip has a healthy runway and measured spare bandwidth,
+or its entire remaining duration is buffered. A gesture prioritizes the approached
+neighbor; its decoder stops after its first frame or one second. Committing either
+axis retains that player's source and playback position. Native preload hints are
+advisory, not download limits: health changes stop further speculation without
+clearing sources or forcibly aborting existing requests.
+
+Startup waits for about 1.75 seconds of contiguous buffered media at the playhead,
+adapting within 1.5 to 2.5 seconds from observed buffer growth and stalls. Recovery
+uses a larger 3 to 4 second runway. Targets clamp to the remaining finite duration,
+and already-buffered works start without an artificial delay. `canplay` alone
+cannot release the gate. After five seconds, a sustained wait automatically starts
+native playback, allowing browsers that suspended preload to continue fetching.
+That attempt stays active until a frame arrives instead of being paused again by
+initial `waiting` events. Explicit pause cancels deferred playback, and seeking
+or changing works invalidates stale callbacks. Short native loops remain uninterrupted.
+
+The poster stays above undecoded video until a presented frame is available.
+Startup loading uses the canonical SVG mark and a bounded, subtle gradient wash;
+rebuffering keeps the last decoded frame and uses a smaller mark. Below the mark a
+single `Loading` label carries an ellipsis that breathes one, two, three, two dots,
+and it leans with the stage media the way the transport iconography does. The
+indicator offers no action: a stalled startup releases itself after five seconds.
+The indicator waits 250 ms before appearing and fades out after presentation. Its
+animations use only transform and opacity. Hidden tabs suspend playback and loading
+animation; returning restores only prior playback intent. Reduced motion makes the
+indicator stationary and, like data saving, disables automatic playback and neighbor
+warming.
+
+Buffering cannot make a source sustainable on a connection slower than its bitrate.
+These controls do not transcode media, replace a playing source, or introduce an
+adaptive-streaming quality tier.
+
+Each pane resolves its own orientation before activation. The media stage
+occupies the full viewport with header, transport and numbered thumbnails
+overlaid. Tapping the artwork toggles all chrome without changing stage size,
+playback or sound, and the hidden preference survives navigation. Left/right
+walk works; up/down walk groups and remember the last work in each group.
+
+Playback stays inline (`playsInline`) on iPhone. Optional fullscreen targets
+the dialog container, never the native video player.
+
+Playback icon artwork follows the video's rotation inside fixed 44px touch targets.
+Labels, timestamps, seek and volume controls, and navigation arrows remain upright.
+Work changes mount icons at their incoming angle; user rotation uses a short
+transform transition, disabled for reduced motion.
 
 ### The resolver is the integration surface
 

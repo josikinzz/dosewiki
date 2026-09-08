@@ -15,6 +15,7 @@ import {
 } from "@/features/replications/replicationsInfoCopy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
+import CopyBlock from "@/features/dev/tools/copy-studio/CopyBlock.editor";
 
 // Both blocks on this page are editable copy — Convex reads — so the segment
 // follows the other index pages onto the hourly ISR window; a Copy Studio
@@ -55,6 +56,7 @@ export default async function ReplicationsInfoPage() {
       <div className="mx-auto mt-8 w-full max-w-7xl">
         <h2 className="sr-only">More Info</h2>
 
+        <CopyBlock copyKey={REPLICATIONS_INTRO_KEY}>
         <ReactMarkdown
           skipHtml
           remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -62,13 +64,16 @@ export default async function ReplicationsInfoPage() {
         >
           {copy.text(REPLICATIONS_INTRO_KEY) || REPLICATIONS_INTRO_FALLBACK}
         </ReactMarkdown>
+        </CopyBlock>
 
+        <CopyBlock copyKey={REPLICATIONS_FAIR_USE_NOTICE_KEY}>
         <ReplicationsFairUseNotice
           body={
             copy.text(REPLICATIONS_FAIR_USE_NOTICE_KEY) ||
             REPLICATIONS_FAIR_USE_NOTICE_FALLBACK
           }
         />
+        </CopyBlock>
       </div>
     </>
   );

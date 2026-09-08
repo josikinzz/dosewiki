@@ -4,6 +4,7 @@ import type { MenuItem } from "./tagMultiSelectUtils";
 
 type TagMultiSelectMenuProps = {
   listboxId: string;
+  labelId: string;
   isOpen: boolean;
   menuItems: MenuItem[];
   highlightedIndex: number | null;
@@ -12,7 +13,6 @@ type TagMultiSelectMenuProps = {
   shouldShowInlineCreateButton: boolean;
   shouldShowInlineEmptyState: boolean;
   disabled: boolean;
-  openStrategy: "focus" | "button";
   onCreate: () => void;
   onOptionMouseDown: (event: MouseEvent<HTMLButtonElement>) => void;
   onOptionClick: (item: MenuItem) => void;
@@ -21,6 +21,7 @@ type TagMultiSelectMenuProps = {
 
 export function TagMultiSelectMenu({
   listboxId,
+  labelId,
   isOpen,
   menuItems,
   highlightedIndex,
@@ -29,7 +30,6 @@ export function TagMultiSelectMenu({
   shouldShowInlineCreateButton,
   shouldShowInlineEmptyState,
   disabled,
-  openStrategy,
   onCreate,
   onOptionMouseDown,
   onOptionClick,
@@ -42,7 +42,7 @@ export function TagMultiSelectMenu({
           <Button
             type="button"
             variant="default"
-            className="w-full rounded-lg"
+            className="h-auto min-h-10 w-full whitespace-normal rounded-lg [overflow-wrap:anywhere]"
             onMouseDown={(event) => event.preventDefault()}
             onClick={onCreate}
             disabled={disabled}
@@ -51,22 +51,21 @@ export function TagMultiSelectMenu({
           </Button>
         </div>
       ) : null}
-      {shouldShowInlineEmptyState ? (
+      {shouldShowInlineEmptyState && !isOpen ? (
         <p className={`${shouldShowInlineCreateButton ? "mt-2" : "mt-3"} theme-text-faint text-xs`}>
           {emptyStateText}
         </p>
       ) : null}
-      {isOpen && (openStrategy !== "button" || menuItems.length > 0) ? (
+      {isOpen ? (
         <div
           id={listboxId}
           role="listbox"
+          aria-labelledby={labelId}
           aria-multiselectable="true"
           className="theme-select-panel absolute left-0 right-0 z-20 mt-2 max-h-64 overflow-auto rounded-xl border p-2"
         >
           {menuItems.length === 0 ? (
-            shouldShowInlineEmptyState ? null : (
-              <div className="theme-text-faint px-3 py-2 text-sm">{emptyStateText}</div>
-            )
+            <div role="status" className="theme-text-faint px-3 py-2 text-sm">{emptyStateText}</div>
           ) : (
             menuItems.map((item, index) => {
               const isActive = highlightedIndex === index;
@@ -83,13 +82,13 @@ export function TagMultiSelectMenu({
                     onMouseDown={onOptionMouseDown}
                     onMouseEnter={() => onHighlight(index)}
                     onClick={() => onOptionClick(item)}
-                    className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
+                    className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm [overflow-wrap:anywhere] transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
                       isActive
                         ? "bg-[var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
                         : "text-[var(--theme-text-secondary)]"
                     }`}
                   >
-                    <span>{createOptionLabel}</span>
+                    <span className="min-w-0">{createOptionLabel}</span>
                   </button>
                 );
               }
@@ -104,15 +103,15 @@ export function TagMultiSelectMenu({
                   onMouseDown={onOptionMouseDown}
                   onMouseEnter={() => onHighlight(index)}
                   onClick={() => onOptionClick(item)}
-                  className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
+                  className={`flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm [overflow-wrap:anywhere] transition hover:bg-[var(--theme-frosted-control-on-panel-hover-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] ${
                     isActive
                       ? "bg-[var(--theme-frosted-control-on-panel-hover-bg)] text-[var(--theme-text-primary)]"
                       : "text-[var(--theme-text-secondary)]"
                   }`}
                 >
-                  <span>{item.option.label}</span>
+                  <span className="min-w-0">{item.option.label}</span>
                   {typeof item.option.count === "number" && item.option.count > 0 ? (
-                    <span className="theme-text-faint text-xs">{item.option.count}</span>
+                    <span className="theme-text-faint shrink-0 text-xs">{item.option.count}</span>
                   ) : null}
                 </button>
               );

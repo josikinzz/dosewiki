@@ -7,9 +7,10 @@ import type { SubstanceArticle } from "@/schema";
 
 export type NotesFieldsRHFProps = {
   idPrefix: string;
+  describedBy?: string;
 };
 
-export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
+export function NotesFieldsRHF({ idPrefix, describedBy }: NotesFieldsRHFProps) {
   const { register, watch } = useFormContext<SubstanceArticle>();
   const summaryValue = watch("summary") ?? "";
 
@@ -26,6 +27,7 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
       >
         <Textarea
           id={`${idPrefix}-summary`}
+          aria-describedby={describedBy}
           className="min-h-[140px]"
           {...register("summary")}
           placeholder="Brief summary of the substance."

@@ -208,8 +208,9 @@ export const IndexCard = memo(function IndexCard({
           className={cn(
             "grid items-center gap-3 pb-2",
             hideIcon ? "grid-cols-[minmax(0,1fr)_auto]" : "grid-cols-[auto_minmax(0,1fr)_auto]",
-            actions && "grid-cols-[minmax(0,1fr)_auto_auto]",
-            actions && !hideIcon && "grid-cols-[auto_minmax(0,1fr)_auto_auto]",
+            hideIcon
+              ? "[&:has(>[data-index-card-actions]:not(:empty))]:grid-cols-[minmax(0,1fr)_auto_auto]"
+              : "[&:has(>[data-index-card-actions]:not(:empty))]:grid-cols-[auto_minmax(0,1fr)_auto_auto]",
           )}
         >
           {hideIcon ? null : iconElement}
@@ -236,7 +237,7 @@ export const IndexCard = memo(function IndexCard({
               <p className="theme-text-faint mt-1 text-xs">{description}</p>
             ) : null}
           </div>
-          {actions}
+          {actions ? <div data-index-card-actions className="contents">{actions}</div> : null}
           <button
             type="button"
             onClick={handleToggle}
@@ -367,6 +368,8 @@ interface IndexCardListItemProps {
    * rail rather than competing with the labels.
    */
   meta?: ReactNode;
+  /** Optional contextual controls, outside the navigation link or button. */
+  actions?: ReactNode;
   /**
    * Indent level. `1` marks a row as belonging to the one above it — a
    * sub-effect under its parent effect — with a hollow bullet, so the
@@ -390,6 +393,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
   slug,
   onSelect,
   meta,
+  actions,
   depth = 0,
 }: IndexCardListItemProps) {
   const handleClick = useCallback(() => {
@@ -424,19 +428,21 @@ export const IndexCardListItem = memo(function IndexCardListItem({
 
   if (href) {
     return (
-      <li id={id} className={id ? "scroll-mt-24" : undefined}>
+      <li id={id} className={cn(id && "scroll-mt-24", "[&:has(>[data-index-item-actions]:not(:empty))]:flex [&:has(>[data-index-item-actions]:not(:empty))]:items-center")}>
         <SmartLink href={href} className={className}>
           {content}
         </SmartLink>
+        {actions ? <div data-index-item-actions className="contents">{actions}</div> : null}
       </li>
     );
   }
 
   return (
-    <li id={id} className={id ? "scroll-mt-24" : undefined}>
+    <li id={id} className={cn(id && "scroll-mt-24", "[&:has(>[data-index-item-actions]:not(:empty))]:flex [&:has(>[data-index-item-actions]:not(:empty))]:items-center")}>
       <button type="button" onClick={handleClick} className={className}>
         {content}
       </button>
+      {actions ? <div data-index-item-actions className="contents">{actions}</div> : null}
     </li>
   );
 });

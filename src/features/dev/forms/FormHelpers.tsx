@@ -88,6 +88,7 @@ export interface CollapsibleSubsectionProps extends PropsWithChildren {
   icon?: ReactNode;
   description?: string;
   defaultExpanded?: boolean;
+  pairedIndicator?: boolean;
 }
 
 export function CollapsibleSubsection({
@@ -95,6 +96,7 @@ export function CollapsibleSubsection({
   icon,
   description,
   defaultExpanded = false,
+  pairedIndicator = false,
   children,
 }: CollapsibleSubsectionProps) {
   return (
@@ -104,6 +106,7 @@ export function CollapsibleSubsection({
       description={description}
       defaultExpanded={defaultExpanded}
       density="compact"
+      pairedIndicator={pairedIndicator}
     >
       {children}
     </CollapsibleEditorCard>

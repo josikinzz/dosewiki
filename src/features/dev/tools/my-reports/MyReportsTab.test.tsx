@@ -34,7 +34,7 @@ function stubReportsApi(rows: OwnedReportRow[], saveStatus = 200) {
     if (url.pathname === "/api/dev/trip-reports/record" && !init) {
       return Response.json({
         ok: true,
-        report: { id: url.searchParams.get("id"), slug: "alpine-clarity", fields },
+        report: { id: url.searchParams.get("id"), slug: "alpine-clarity", fields, revision: "0".repeat(64) },
       });
     }
     const body = typeof init?.body === "string" ? (JSON.parse(init.body) as Record<string, unknown>) : null;

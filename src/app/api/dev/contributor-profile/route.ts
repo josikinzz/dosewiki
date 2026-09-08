@@ -40,6 +40,7 @@
 import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
 import {
+  MAX_CONTRIBUTOR_PROFILE_LINKS as MAX_LINKS,
   deriveProfileKeyFromEmail,
   normalizeProfileKey,
   toContributorDisplayName,
@@ -55,18 +56,20 @@ import {
   uploadAvatarToConvex,
 } from "@server/next/contributorAvatarUpload";
 import { revalidateContributorSurfaces } from "./contributorRevalidation";
+import { contentHash } from "@server/proposals/contentHash";
 
 export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 3 * 1024 * 1024;
 const MAX_BIO_LENGTH = 4_000;
-const MAX_LINKS = 3;
 const MAX_ALIASES = 32;
 const MAX_SHORT_TEXT = 200;
 const MAX_URL_LENGTH = 2_000;
 
 type ProfilePatchBody = {
   key?: unknown;
+  expectedUpdatedAt?: unknown;
+  operationId?: unknown;
   displayName?: unknown;
   bio?: unknown;
   role?: unknown;
@@ -89,6 +92,8 @@ type ProfileLink = { label: string; url: string };
 
 type ParsedProfilePatch = {
   key: string;
+  expectedUpdatedAt: string | null;
+  operationId?: string;
   patch: {
     displayName?: string;
     bio?: string;
@@ -223,8 +228,14 @@ function parseStaffNote(
     : { markdown };
 }
 
-export function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch {
+function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch {
   const key = requireProfileKey(raw.key);
+  if (raw.expectedUpdatedAt !== null && typeof raw.expectedUpdatedAt !== "string") {
+    throw new JsonBodyError(400, "The expected profile revision must be a timestamp or null.");
+  }
+  if (raw.operationId !== undefined && (typeof raw.operationId !== "string" || !/^[\w-]{16,100}$/.test(raw.operationId))) {
+    throw new JsonBodyError(400, "A valid publication operation ID is required.");
+  }
   const patch: ParsedProfilePatch["patch"] = {};
 
   if (raw.displayName !== undefined) {
@@ -300,6 +311,8 @@ export function parseProfilePatchBody(raw: ProfilePatchBody): ParsedProfilePatch
 
   return {
     key,
+    expectedUpdatedAt: raw.expectedUpdatedAt as string | null,
+    operationId: raw.operationId as string | undefined,
     patch,
     avatarUpload: normalizeAvatarUpload(raw.avatarUpload),
   };
@@ -428,6 +441,17 @@ export const GET = protectedRouteOperation({
       }
       return NextResponse.json({ ok: true, profile: blankOwnProfile(selfKey), works: [], reports: [] });
     }
+    if (new URL(request.url).searchParams.get("contextual") === "true") {
+      const owner = await resolveOwnProfileKey(convexWrite, actorEmail);
+      const canEdit = auth.role === "admin" || normalizeProfileKey(profile.key) === owner;
+      if (!canEdit) return NextResponse.json(OWN_RECORD_ONLY, { status: 403 });
+      return NextResponse.json({
+        ok: true,
+        profile: { ...profile, membershipEmail: null, staffNote: null },
+        works: [],
+        reports: [],
+      }, { headers: { "Cache-Control": "private, no-store" } });
+    }
 
     // The same name set the public gallery matches on: display name plus every
     // stored alias. Matching narrower here would show the editor a different
@@ -482,6 +506,9 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     const rejection = classifyConvexRejection(error);
+    if (rejection?.code === "PROFILE_CONFLICT") {
+      return NextResponse.json({ error: rejection.message, code: rejection.code }, { status: 409 });
+    }
     if (rejection?.code === "ADMIN_ONLY_PROFILE_FIELD") {
       return NextResponse.json({ error: rejection.message, code: rejection.code }, { status: 403 });
     }
@@ -499,6 +526,21 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
 
     const apiKey = adminIntentToken(convexWrite);
     const isEditor = roleMeetsFloor(auth.role, "editor");
+    const clientRequestIdentity = contentHash({
+      key: normalizeProfileKey(body.key),
+      expectedUpdatedAt: body.expectedUpdatedAt,
+      patch: body.patch,
+      avatarUpload: body.avatarUpload,
+    });
+    if (body.operationId) {
+      const receipt = await convexWrite.client.query(api.contributorProfiles.getPublicationReceipt, {
+        apiKey, actorEmail, key: body.key, operationId: body.operationId, clientRequestIdentity,
+      });
+      if (receipt) {
+        await revalidateContributorSurfaces({ contributorKeys: receipt.revalidate.contributorKeys, scope: "profile", galleryVisibilityChanged: body.patch.exclude_from_gallery !== undefined });
+        return NextResponse.json({ ok: true, profile: receipt.profile, revision: receipt.revision });
+      }
+    }
 
     // An editor patches a stored record they own. A non-editor, or an editor
     // whose own record does not exist yet, writes the self-serve field set
@@ -538,6 +580,9 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
       ? await convexWrite.client.mutation(api.contributorProfiles.saveProfile, {
           apiKey,
           actorEmail,
+          expectedUpdatedAt: body.expectedUpdatedAt,
+          operationId: body.operationId,
+          clientRequestIdentity,
           profile: {
             key: body.key,
             displayName: body.patch.displayName ?? "",
@@ -553,13 +598,16 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
           apiKey,
           actorEmail,
           key: body.key,
+          expectedUpdatedAt: body.expectedUpdatedAt,
+          operationId: body.operationId,
+          clientRequestIdentity,
           patch: {
             ...body.patch,
             ...(avatarStorageId ? { avatarStorageId } : {}),
           },
         });
 
-    revalidateContributorSurfaces({
+    await revalidateContributorSurfaces({
       contributorKeys: result.revalidate?.contributorKeys ?? [body.key],
       scope: "profile",
       // The /replications gallery corpus filters on this flag, so flipping it
@@ -567,6 +615,6 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
       galleryVisibilityChanged: body.patch.exclude_from_gallery !== undefined,
     });
 
-    return NextResponse.json({ ok: true, profile: result.profile });
+    return NextResponse.json({ ok: true, profile: result.profile, revision: result.revision });
   },
 });

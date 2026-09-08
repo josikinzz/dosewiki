@@ -16,6 +16,7 @@ import { ReportHeroSection } from "../components/ReportHeroSection";
 import type { TripReport } from "@/types/tripReport";
 import { ReportBackLink } from "../components/ReportBackLink";
 import { type SubstanceLookupRecord } from "../domain/tripReportIndex";
+import PublishedReportEditor from "../editing/PublishedReport.editor";
 
 /** Section titles + icons defined once so the TOC, the section heading, and
  *  the heading icon never drift apart. */
@@ -38,6 +39,7 @@ interface TripReportDetailPageProps {
   /** Map of report substance name -> public article href, for substances that
    *  resolve to a known article. Built by the route loader in `page.tsx`. */
   substanceLinks?: Record<string, string>;
+  preview?: boolean;
 }
 
 /**
@@ -47,12 +49,14 @@ export const TripReportDetailPage = memo(function TripReportDetailPage({
   report,
   substanceBySlug,
   substanceLinks,
+  preview,
 }: TripReportDetailPageProps) {
   return (
     <TripReportDetailContent
       report={report}
       substanceBySlug={substanceBySlug}
       substanceLinks={substanceLinks}
+      preview={preview}
     />
   );
 });
@@ -61,6 +65,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   report,
   substanceBySlug,
   substanceLinks,
+  preview,
 }: TripReportDetailPageProps) {
   const hasTimeline =
     report.onset.length > 0 || report.peak.length > 0 || report.offset.length > 0;
@@ -85,17 +90,18 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   ].filter(Boolean) as PublicTableOfContentsItem[];
 
   const tocNode =
-    tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
+    !preview && tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
 
   return (
-    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
+    <main id={preview ? undefined : "main-content"} tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <StickyTocLayout toc={tocNode} contentClassName="gap-6" className="theme-toc-strip-scope">
         {/* Mobile/tablet TOC: sticky chip strip above the hero, pinned under
             the site header from the very first scroll; replaced by the sticky
             gutter TOC at >=1200px. */}
         {tocNode ? <PublicTocStrip items={tocItems} /> : null}
 
-        <ReportBackLink substances={report.substances} substanceBySlug={substanceBySlug} />
+        {!preview ? <ReportBackLink substances={report.substances} substanceBySlug={substanceBySlug} /> : null}
+        {!preview ? <PublishedReportEditor report={report} substanceBySlug={substanceBySlug} substanceLinks={substanceLinks} /> : null}
 
         <ReportHeroSection
           title={report.title}
@@ -110,7 +116,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           }}
         />
 
-        <div id="report-context" className="scroll-mt-24">
+        <div id={preview ? undefined : "report-context"} className="scroll-mt-24">
           <ReportDossier
             subject={report.subject}
             substances={report.substances}
@@ -122,7 +128,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
             comfortable measure; the timeline phases share a continuous rail. */}
         <article className="max-w-[70ch] space-y-10 pt-2">
           {report.introduction ? (
-            <div id="report-introduction" className="scroll-mt-24">
+            <div id={preview ? undefined : "report-introduction"} className="scroll-mt-24">
               <TextSection
                 title={INTRODUCTION_SECTION.title}
                 icon={INTRODUCTION_SECTION.icon}
@@ -134,17 +140,17 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           {hasTimeline ? (
             <div className="theme-report-rail relative space-y-10 pl-8">
               {report.onset.length > 0 ? (
-                <div id="report-onset" className="scroll-mt-24">
+                <div id={preview ? undefined : "report-onset"} className="scroll-mt-24">
                   <TimelineSection phase="onset" entries={report.onset} />
                 </div>
               ) : null}
               {report.peak.length > 0 ? (
-                <div id="report-peak" className="scroll-mt-24">
+                <div id={preview ? undefined : "report-peak"} className="scroll-mt-24">
                   <TimelineSection phase="peak" entries={report.peak} />
                 </div>
               ) : null}
               {report.offset.length > 0 ? (
-                <div id="report-offset" className="scroll-mt-24">
+                <div id={preview ? undefined : "report-offset"} className="scroll-mt-24">
                   <TimelineSection phase="offset" entries={report.offset} />
                 </div>
               ) : null}
@@ -152,7 +158,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           ) : null}
 
           {report.conclusion ? (
-            <div id="report-conclusion" className="scroll-mt-24">
+            <div id={preview ? undefined : "report-conclusion"} className="scroll-mt-24">
               <TextSection
                 title={CONCLUSION_SECTION.title}
                 icon={CONCLUSION_SECTION.icon}
@@ -162,7 +168,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           ) : null}
         </article>
 
-        <ReportFooterActions />
+        {!preview ? <ReportFooterActions /> : null}
       </StickyTocLayout>
     </main>
   );

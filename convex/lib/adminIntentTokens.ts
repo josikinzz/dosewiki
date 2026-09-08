@@ -1,6 +1,7 @@
 export const ADMIN_INTENTS = [
   "legacyAdmin",
   "editorArticleWrite",
+  "publicIntakeCreate",
   "promptMigrationWrite",
   "quoteMigrationWrite",
   "profileMediaWrite",
@@ -33,6 +34,7 @@ const LEGACY_ADMIN_KEY_ENV_VAR = "CONVEX_ADMIN_KEY";
 const INTENT_ENV_VARS: Record<AdminIntent, string | null> = {
   legacyAdmin: null,
   editorArticleWrite: "CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE",
+  publicIntakeCreate: "CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE",
   promptMigrationWrite: "CONVEX_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE",
   quoteMigrationWrite: "CONVEX_ADMIN_TOKEN_QUOTE_MIGRATION_WRITE",
   profileMediaWrite: "CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE",

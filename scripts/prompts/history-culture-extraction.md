@@ -1,113 +1,54 @@
 # History & Culture Extraction Prompt
 
-You copy history and culture passages, word for word, out of a source file into a structured excerpt
-file. This is mechanical copy-paste — not summarising, synthesis, or rewriting.
+Extract every history and culture passage from the supplied collected-source file for one substance. Use only the supplied documents. Extraction preserves source text verbatim; it is not summarisation, synthesis or rewriting. Missing history stays absent rather than being completed from memory.
 
-Your output is checked against the source file by exact substring match. Any passage that does not
-appear character-for-character in the input is rejected and the run fails.
+## 1. Identify sources and output mode
 
-## The rule that matters most: only the source speaks
+In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Source count, length and quality vary.
 
-You already know a great deal of drug history. Shulgin, Hofmann, Sandoz, Bicycle Day, first-synthesis
-years, scheduling milestones, the 1960s counterculture — this material sits in your memory and it will
-feel natural to complete a half-told story with it. History is the section where that instinct does
-the most damage: one remembered sentence written into an excerpt file becomes a fabricated fact in a
-published harm-reduction article.
+Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-The trap, concretely:
+If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
 
-> **Source text:** `2C-B is a psychedelic phenethylamine of the 2C-x family.`
->
-> **Wrong output:** `2C-B is a psychedelic phenethylamine of the 2C-x family. It was first synthesized by Alexander Shulgin in 1974.`
->
-> **Correct output:** `2C-B is a psychedelic phenethylamine of the 2C-x family.`
+Continue when every source boundary and the active output mode are identified.
 
-The added sentence is factually true. It is still a failure, because this source did not say it.
+## 2. Decide which history and culture passages qualify
 
-**An empty result is a correct result.** Most research chemicals have sources that say nothing about
-their history. A file whose every source block reads `*No history or culture content found.*` is a
-complete, successful extraction. Inventing plausible content is the only real failure available to you.
+Read every source end to end. Relevant material may appear in introductions, Background, Overview and Society and culture, as well as History sections. A lone historical sentence inside otherwise unrelated prose qualifies its whole paragraph.
 
-## Copying rules
+| Include | Content to select |
+| --- | --- |
+| Discovery and synthesis | First synthesis, chemist, laboratory or company, original research purpose, patents and accidental-discovery stories |
+| Medical and therapeutic history | Early clinical use, research programmes and trials, psychotherapy use, approval or rejection history, and brands under which the substance was sold |
+| Market and recreational emergence | First street or research-chemical market appearance, spread, first seizures or vendor reports, street-name origins and slang etymology |
+| Counterculture and the arts | Associated movements, scenes and eras, named advocates and public figures, and influence on music, literature, film or art |
+| Programmes and controversies | State or military research, notable incidents framed as historical events, media coverage and moral panics |
+| Traditional and indigenous use | Ceremonial and ritual use, shamanic practice, ethnobotanical history, pre-modern records and significance to a people |
+| Modern revival | Renewed research interest, current clinical programmes and shifts in scientific or public attitude |
 
-- **Verbatim.** No paraphrasing, condensing, normalising, spelling correction, or tidying. Copy the
-  characters that are there, including typos, doubled spaces, and odd punctuation.
-- **Dates, names, and place names exactly as given** — including when the source is vague. `the late
-  1960s`, `sometime in the 1990s`, `an Israeli company`, `a Swiss chemist` are copied as written.
-  Resolving a vague reference to the specific year, person, or company you know it means is fabrication.
-- **Contradictions are preserved.** If one source says a substance was scheduled in 1994 and another
-  says 1995, copy both, each under its own source heading. Reconciling them is a human's job later;
-  yours is to put both in front of them.
-- **Complete units.** Whole paragraphs, list items, table rows, headings. Never truncate mid-sentence.
-  When a historical fact sits inside a paragraph about something else, copy the entire paragraph.
-- **Markdown as-is** — the source's headings, bullets, bold, tables, blockquotes.
-- **Numbers and units unchanged.** Never convert, round, or reformat.
-- **Separate non-contiguous passages with a blank line.** Do not write `...`, `[…]`, `(continued)`, or
-  any other connector of your own — those characters are not in the source and fail the check.
-- If a source's text is wrapped in a ```` ```markdown ```` fence, the fence lines are packaging; copy
-  what is inside them.
-- **When unsure whether a passage is relevant, include it.** A human reviews these files. An extra
-  paragraph costs nothing; a missed one is invisible.
+Apply these boundaries beside the inclusion criteria:
 
-## What counts as history and culture
+- Current country-by-country schedule lists and legal-status tables belong to legality extraction. Exclude those blocks even when they contain dates. Include a scheduling event narrated as part of a historical story, such as a legal change linked to market developments.
+- Pure effects, dosing, duration, pharmacology or harm content belongs to other extraction passes. This includes experience descriptions, dose figures, onset tables, receptor binding, metabolism, LD50 figures, case reports and fatality write-ups without a historical framing.
+- Where a passage mixes qualifying history with another topic, copy the whole passage. Include a passage when its historical or cultural relevance remains uncertain.
 
-| Category | Copy passages covering |
-|----------|------------------------|
-| Discovery & synthesis | First synthesis, the chemist, the lab or company, original research purpose, patents, accidental-discovery stories |
-| Medical & therapeutic history | Early clinical use, research programmes and trials, psychotherapy use, approval or rejection history, brand names it was sold under |
-| Market & recreational emergence | First appearance on the street or research-chemical market, how it spread, first seizures or vendor reports, street-name origins and slang etymology |
-| Counterculture & the arts | Movements, scenes, and eras it is tied to, named advocates and public figures, influence on music, literature, film, art |
-| Programmes & controversies | State or military research (MK-ULTRA and the like), notable incidents framed as historical events, media coverage, moral panics |
-| Traditional & indigenous use | Ceremonial and ritual use, shamanic practice, ethnobotanical history, pre-modern records, significance to a people |
-| Modern revival | Renewed research interest, current clinical programmes, shifts in scientific or public attitude |
+Continue when every source has been reviewed and every qualifying or uncertain passage identified. A source with no history or culture content is a valid result.
 
-History lives anywhere in a source, not only under a `History` heading — introductions, `Background`,
-`Overview`, and `Society and culture` sections all carry it, and lone historical sentences turn up
-inside unrelated prose. Read the whole of every source.
+## 3. Preserve complete units and historical uncertainty
 
-Worked relevance calls:
+- Copy complete paragraphs, list items, table rows and headings. Keep mixed-topic paragraphs whole and every sentence complete.
+- Preserve all characters, including typos, doubled spaces, unusual punctuation and markdown headings, bullets, bold, tables and blockquotes. Numbers and units retain their original form without conversion or rounding.
+- Copy dates, names and place names exactly as given, including vague dates or unnamed people and companies. Never resolve a vague reference using outside knowledge.
+- Preserve contradictions between sources, each under its own source heading. Reconciliation belongs to later review, not extraction.
+- Retain the sentence carrying an event date, rather than extracting a date in isolation.
+- In excerpt mode, separate non-contiguous passages with a blank line. Use no invented connectors or commentary. If a source is wrapped in a markdown code fence, copy its contents without the packaging fence lines.
+- Author only the metadata, source headings, separators and empty-source markers defined in step 4. Every historical claim must come from its own source; do not fill gaps with remembered facts, even if they are true.
 
-- **Copy it.** `2C-B was marketed in the late 1980s as an MDMA replacement after MDMA was scheduled in
-  1985.` — a dated event with a market consequence.
-- **Copy it.** `The sale of 2-FMA on the online research chemical market was first reported in August
-  2007.` — a first-appearance date, often the only history a research chemical has.
-- **Skip it.** `2C-B produces open-eye visuals and a strong body load at common doses.` — an effect
-  description with no time dimension.
+Continue when every selected unit retains its complete wording, ambiguity and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
 
-## Material that belongs to other extraction passes
+## 4. Emit the active output format
 
-Each has its own run, so a passage that is purely one of these adds noise here. Where a passage mixes
-history with one of them, copy the whole passage.
-
-- **Current legal status.** Country-by-country schedule lists and legal-status tables (`**Germany**:
-  controlled under Anlage I BtMG as of…`) belong to the legality pass — copy none of that block, even
-  though it is full of dates. A scheduling event narrated as story stays here: `The increasing
-  popularity of 2C-B led to it also being placed in Schedule I in 1995.`
-- **Effects, dosing, duration, pharmacology, harm** — what the experience is like, dose figures,
-  onset tables, receptor binding, metabolism, LD50 figures, case reports, fatality write-ups.
-
-## Input you receive
-
-One staged file holding every collected source for one substance. Source count and quality vary widely
-— some articles carry two sources, some a dozen.
-
-```
-# <Substance Title> — Collected Sources
-
-## Source: TripSit Factsheets
-
-<full document text>
-
----
-
-## Source: Wikipedia
-
-<full document text>
-
----
-```
-
-## Output you produce
+When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - History & Culture Quotes
@@ -127,24 +68,28 @@ One staged file holding every collected source for one substance. Source count a
 ---
 ```
 
-- Use today's date, `YYYY-MM-DD`, on the `Generated` line.
-- One `## Source:` heading per source in the staged file, **in the same order, with the same name**,
-  including sources that yielded nothing. Never merge, reorder, or omit a source.
-- A source with no history or culture content gets `*No history or culture content found.*` — that
-  italic line alone, under its heading.
-- A source that was present but empty gets `*No content available for this source.*`
-- Every source block ends with a `---` rule.
-- Output the file body only: no code fences around it, no preamble, no closing commentary.
+Take the substance title from the input's first line, without its Collected Sources suffix. Use today's date as `YYYY-MM-DD`.
 
-## Schema field mapping
+Emit exactly one `## Source:` heading for every input source, with its exact name and original order. End every source block with `---`. A nonempty document with no qualifying content gets exactly `*No history or culture content found.*` alone under its heading. An empty document gets exactly `*No content available for this source.*`. An all-empty extraction is complete and successful.
 
-These excerpts feed a generator that fills the `history_culture` fields below. Copy the material that
-gives it something to work with.
+## 5. Check completion
+
+Before responding, confirm:
+
+- Every source has been read end to end and is represented once, in order, including empty results.
+- Every qualifying or uncertain passage is included, including historical sentences embedded in other topics.
+- Current legal-status lists and tables remain excluded; narrated historical scheduling events remain eligible.
+- Every selected unit is complete, with dates attached to their event sentences, vague references unresolved and source contradictions intact.
+- Every historical claim matches its originating source rather than outside knowledge.
+- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- Every downstream field below has been checked for available evidence. These fields guide coverage, not authored labels or output reorganisation.
+
+The excerpts feed these `history_culture` fields:
 
 | Field | Fed by |
-|-------|--------|
+| --- | --- |
 | `content` | Any historical prose; for substances with little history this is the only field used |
-| `sections[].heading` | Topic labels the sources themselves use — `History`, `Society and culture`, `Discovery` |
-| `sections[].content` | The narrative paragraphs under those headings |
-| `sections[].date_range.start` / `.end` | Years and full dates attached to events (`1938`, `1943-04-19`, spans like `1963`–`1971`) — copy the sentence carrying the date, never the date alone |
-| `sections[].subsections[]` | Passages about a single named person or programme that stand on their own (a chemist, an advocate, `Project MKUltra`) |
+| `sections[].heading` | Topic labels used by the sources, including History, Society and culture, and Discovery |
+| `sections[].content` | Narrative paragraphs under those headings |
+| `sections[].date_range.start` / `.end` | Years, full dates and date spans attached to events, retained in their sentences |
+| `sections[].subsections[]` | Standalone passages about a single named person or programme |

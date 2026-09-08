@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unstable_cache } from "next/cache";
+import { publicDataCache } from "./publicData.cache"
 import { cache } from "react";
 import { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 import { getPublicAboutData } from "./publicData.about";
@@ -10,7 +10,7 @@ import { getPublicSubstances } from "./publicData.substances";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { IndexLayoutRecord, IndexLayoutType } from "./publicData.shared";
 
-export const getIndexLayoutByType = cache(unstable_cache(async (type: IndexLayoutType): Promise<IndexLayoutRecord | null> => {
+export const getIndexLayoutByType = cache(publicDataCache(async (type: IndexLayoutType): Promise<IndexLayoutRecord | null> => {
   return await getPublicDataReadAdapter().getPublicIndexLayoutByType(type);
 }, ["convex-public-index-layout-by-type"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,

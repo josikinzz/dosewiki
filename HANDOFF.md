@@ -1,6 +1,6 @@
 # DoseWiki Public API handoff
 
-This is the implementation handoff for consuming everything currently exposed by the read-only DoseWiki Public API: substance listings, complete substance articles, normalized reagent-test results, molecule SVGs, and image/video effect replications.
+This is the implementation handoff for consuming everything currently exposed by the read-only DoseWiki Public API: substance listings, complete substance articles, normalized reagent-test results, molecule SVGs, and image/video effect and substance replication collections.
 
 ## Start here
 
@@ -10,7 +10,7 @@ OpenAPI 3.1:       https://dose.wiki/api/v1/openapi.json
 Metadata:          https://dose.wiki/api/v1/meta
 ```
 
-The API is live on the public dose.wiki origin. API paths are versioned under `/api/v1`; do not build against unversioned or `/dev` routes.
+The API is live on the public dose.wiki origin. Data API paths are versioned under `/api/v1`; do not build a data client against unversioned or `/dev` routes. The canonical replication UI document below is a separate, explicitly supported embedding contract, not another data API.
 
 The API is public and read-only:
 
@@ -24,6 +24,119 @@ The API is public and read-only:
 
 License and reuse terms: <https://dose.wiki/docs/license>. Substance article data and replication media do not necessarily have the same reuse rights. Preserve article source attribution, and inspect each replication's `rights` object before reuse.
 
+## Canonical replication UI embed
+
+DoseWiki owns the replication carousel and immersive viewer implementation for
+Osmanthus. The consumer embeds a live publisher document rather than copying
+player code or linking a sibling repository into its build:
+
+```text
+GET /embed/replications?kind=effect&slug=drifting&parentOrigin=https%3A%2F%2Fosmanthus.io
+GET /embed/replications?kind=substance&slug=lsd&parentOrigin=https%3A%2F%2Fosmanthus.io
+```
+
+`src/app/embed/replications/page.tsx` reads the same
+`getEffectShowcaseWorks` and `getSubstanceShowcaseWorks` collections as the
+website. `src/features/replications/embed/ReplicationEmbed.tsx` directly renders
+the canonical public `ReplicationShowcase` and `ReplicationViewerOverlay`.
+There is no alternate player, copied media, or consumer-side sorting.
+
+Effect embeds omit the collection heading/count strip and generic media-rights
+footer so the consumer can place the slideshow beside its own effect definition.
+Work titles, creator attribution, effect tags, and viewer information remain
+available. Substance embeds retain their existing footer. These are publisher
+presentation changes, not a message-protocol change.
+
+### Collections and exact website order
+
+- `kind` is `effect` or `substance`.
+- Repeat `slug` for a reviewed union of effect counterparts (maximum 64).
+  Substances accept exactly one publisher article slug.
+- Each viewer playlist preserves every work in the website loader's exact
+  sequence, including curated ordering. Never alphabetize, reshuffle, rank,
+  truncate the full viewer, or apply a second media-type sort in the embed.
+- Canonical loaders apply the publisher's opening curation before embedding:
+  recorded unsettling content and reviewed asset-specific deferrals go later;
+  non-unsettling effect editorial pins and reviewed welcoming assets precede
+  automatic open-eye and motion preferences. This is presentation curation,
+  not safety certification or an AI/audio/resolution quality score. Every work
+  remains available. Some inherently unsettling collections cannot offer a calm
+  opener; Scenarios and plots currently has only two reviewed welcoming entries.
+- Explicitly tagged effect collections remain playable even when no matching
+  editorial effect article exists. Missing articles do not mean missing media;
+  a slug with neither an article nor any published works remains unknown.
+- Multiple effects retain their ordered groups. A work associated with two
+  effects remains in both playlists. The compact inline union deduplicates
+  by slug, preserving the first occurrence in the requested group order.
+- `work` optionally opens a particular work, including one beyond the compact
+  strip. Canonical showcase `viewer` links are also understood.
+- Slugs are bounded to 200 lowercase alphanumeric, underscore, or hyphen
+  characters and must start with an alphanumeric character.
+- `theme=light|dark` optionally adapts the host scheme without changing a
+  reader's saved DoseWiki color-scheme preference.
+- Reads use public collection services and existing media delivery. Empty,
+  unavailable-work, and read-failure states remain visible and retryable.
+  Third-party media rights do not become permission through embedding.
+
+### Message protocol, version 1
+
+Every message includes `channel: "dosewiki-replications"` and `version: 1`.
+Both peers validate `event.source`, exact `event.origin`, message kind, and
+payload. Always send to the exact target origin, never `"*"`.
+
+| Direction | `type` | Additional fields | Meaning |
+| --- | --- | --- | --- |
+| Publisher to host | `ready` | `height: number` | Document initialized, including terminal empty/error states |
+| Publisher to host | `resize` | `height: number` | Inline content height changed; host clamps to 160 through 1600 CSS pixels |
+| Publisher to host | `viewer` | `slug: string \| null` | Active work changed, or viewer closed |
+| Publisher to host | `error` | `message: string` | Visible collection/selection failure |
+| Host to publisher | `select` | `slug: string \| null` | Restore a work or close after host history navigation |
+| Host to publisher | `theme` | `theme: "light" \| "dark"` | Adapt the embed's color scheme |
+
+The publisher acknowledges `select` with a `viewer` message even when unchanged.
+This lets the host reject stale work events while Close/Back is settling.
+Ordinary viewer navigation reports its work without resetting group position.
+The iframe remains in one DOM location across open/close and history changes;
+the host expands it to its own viewport and restores focus/scroll on return.
+Osmanthus retains its `osMediaCollection=<kind>:<canonical-key>` and
+`osMediaWork=<publisher-slug>` URL state. No private report data, model keys,
+media URLs, or credentials are sent to the embed.
+
+### Hosting, security, and release
+
+Production `parentOrigin` values are exactly `https://osmanthus.io`,
+`https://www.osmanthus.io`, `http://localhost:3000`, `http://127.0.0.1:3000`,
+or the publisher's own origin. The two port-3000 local clients were explicitly
+approved on 2026-09-07 to consume the live publisher. Other canonical HTTP
+`localhost` and `127.0.0.1` ports are accepted only by a development publisher.
+No LAN-address or wildcard preview-host trust exists.
+`lib/next/replicationEmbedPolicy.ts` owns the server, client, and CSP policy;
+only the exact `/embed/replications` document gets these frame ancestors.
+Unrelated pages keep `frame-ancestors 'none'` and `X-Frame-Options: DENY`.
+
+The host permits the iframe's `autoplay` and `fullscreen` capabilities and
+sandboxes scripts, same-origin resources, popups, downloads, and presentation.
+It does not grant top navigation. Normal publisher links open separately;
+only the exact approved child window can alter host viewer state.
+
+Use the **public** DoseWiki build, including for local verification
+(`DOSEWIKI_BUILD_SURFACE=public`). The chromeless document does not mount
+editorial providers, page chrome, analytics, or Theme Lab, and the existing
+public artifact audit must report zero editorial browser modules.
+
+Deploy and verify the DoseWiki endpoint before releasing the Osmanthus consumer.
+Future releases require explicit operator authorization; the deployed endpoint
+and approved local-origin repair are recorded in `docs/agents/deployment.md`.
+After release, compatible carousel/viewer changes ship once with DoseWiki and
+appear in fresh embedded documents without an Osmanthus rebuild. Keep version 1
+compatible; a breaking message change needs a coordinated version change.
+
+Verification on 2026-09-06 compared every rendered embed work position with the
+same production build's website showcase responses: LSD 648, Drifting 2,025,
+After images 68, and Tracers 135. The mixed-effect inline union matched too.
+The regression in `src/features/replications/embed/embedModel.test.ts` protects
+curated navigation order and cross-group duplicate associations.
+
 ## Endpoint inventory
 
 | Method | Path                               | Purpose                                                               |
@@ -32,6 +145,7 @@ License and reuse terms: <https://dose.wiki/docs/license>. Substance article dat
 | `GET`  | `/substances`                      | Cursor-paginated public substance previews                            |
 | `GET`  | `/substances/{slug}`               | Complete public substance article plus reagent and molecule resources |
 | `GET`  | `/substances/{slug}/reagent-tests` | Standalone normalized reagent-test results                            |
+| `GET`  | `/substances/{slug}/replications`  | Cursor-paginated canonical substance article replication collection    |
 | `GET`  | `/replications`                    | Cursor-paginated image/video replication gallery                      |
 | `GET`  | `/replications/{slug}`             | One replication and its rights metadata                               |
 | `GET`  | `/effects/{slug}/replications`     | All replications associated with one subjective-effect slug           |
@@ -75,7 +189,7 @@ Do not hard-code an exhaustive client type from examples in this document. Gener
 
 ## Pagination
 
-`/substances` and `/replications` accept:
+`/substances`, `/replications`, and `/substances/{slug}/replications` accept:
 
 - `limit`: integer from `1` through `100`; default `25`;
 - `cursor`: opaque value returned as `pagination.next_cursor`.
@@ -550,7 +664,7 @@ const absoluteMoleculeUrl = new URL(
 
 A depiction may come from the canonical Convex override or a static publication fallback. A missing depiction returns `404`; chemical identifiers may still be present in the article.
 
-## Effect replications
+## Replication collections
 
 Replications are image/video attempts to reproduce subjective effects. They are separate media records, not embedded in substance article responses.
 
@@ -563,7 +677,7 @@ GET /replications?effect=drifting&type=video&limit=25
 
 Optional filters:
 
-- `effect`: exact effect slug;
+- `effect`: exact owning `effect_slug` (use the effect collection below for owner-or-tag membership);
 - `type`: `image` or `video`.
 
 Filtering happens before pagination. Results are ordered by effect slug, curated within-effect order when available, then replication slug.
@@ -574,7 +688,56 @@ Filtering happens before pagination. Results are ordered by effect slug, curated
 GET /effects/drifting/replications
 ```
 
-This endpoint returns all matching items without a pagination object. Metadata includes `effect_slug` and `total`. An empty array means there are no associated replications; it is not necessarily an error or proof that an effect article exists.
+This endpoint returns all publishable works whose owning `effect_slug` equals the requested slug OR whose explicit `effect_tags` contains it, without duplicates or a pagination object. These are exact publisher assignments, not inferred ancestors, descendants, or related effects. The effect article showcase shares this membership read and then applies its own curated gallery order. Artist-gallery display opt-outs do not alter effect/API membership. The API retains media-rank ordering.
+
+Metadata includes the requested `effect_slug` and `total`; each work retains its own owning `effect_slug`, additional `effect_tags`, and complete public rights/source metadata. An empty array means there are no associated publishable replications; it is not necessarily an error or proof that an effect article exists.
+
+### Browse one substance
+
+```http
+GET /substances/ketamine/replications?limit=100
+```
+
+This endpoint returns the complete ordered collection shown in the substance article's Replication Showcase, not just its compact preview strip. The canonical loader continues to own direct title-drug associations, permitted class rules, curated placements and ordering, removals, exclusions, and combination rules. Do not reconstruct this collection by filtering the global or effect gallery.
+
+Each `data` item is the existing `Replication` below plus:
+
+```ts
+association: {
+  substance_slug: string;
+  basis: "specific_drug" | "drug_class" | "visual_disconnection" | "curated" | "unknown";
+  effect_slug?: string;
+  drug_class?: "dissociatives" | "deliriants";
+}
+```
+
+The basis is publisher-known placement evidence, not a claim that a work documents this drug's effects:
+
+- `specific_drug`: a standalone title-drug association.
+- `drug_class`: a permitted general dissociative or deliriant class association.
+- `visual_disconnection`: the canonical dissociative still-image fallback.
+- `curated`: editorial placement without a more specific known association.
+- `unknown`: no recognized publisher provenance is available. Do not infer a direct association.
+
+Ordering a work editorially does not replace its known association basis. Private curation lists, removals, notes, storage identifiers, and contributor internals are not part of this projection.
+
+The response uses the common `pagination` object and this metadata:
+
+```ts
+meta: {
+  api_version: "v1";
+  total: number;
+  substance_slug: string;
+  collection_label: string;
+  collection_revision: string;
+}
+```
+
+Preserve response order and key media by `slug`; `order_index` is not this collection's order. Media URLs, dimensions, audio flags, motion renditions, artist credit, and `rights` use the same projection as `/replications/{slug}`. Association does not grant reuse rights.
+
+A known substance without media returns `200`, `data: []`, `total: 0`, `has_more: false`, and `next_cursor: null`. An unknown substance returns `404 not_found`. These are distinct from a temporary `503 service_unavailable`.
+
+Cursors are opaque and bound to the substance and its ordered collection revision. Stable-revision traversal returns every canonical work once in the same order, even when page size changes. Malformed, cross-substance, stale-revision, and out-of-range cursors return `400 invalid_cursor` without success-cache headers. After a revision change, discard accumulated pages and restart without a cursor; do not append a new first page to an older collection. `collection_revision` tracks ordered work identities and public placement context, not media bytes or rotating storage URLs, and is not an `ETag`. No snapshot is retained by the API.
 
 ### Fetch one replication
 
@@ -591,15 +754,19 @@ type Replication = {
   artist: string;
   artist_url?: string;
   type: "image" | "video";
-  effect_slug: string;
+  effect_slug?: string;
+  effect_tags: string[];
   url: string;
   thumbnail_url?: string;
   preview_url?: string;
+  motion_url?: string;
+  motion_poster_url?: string;
   width?: number;
   height?: number;
   format: string;
   file_size?: number;
   duration?: number;
+  has_audio?: boolean;
   order_index?: number;
   rights: {
     status: string;
@@ -611,6 +778,8 @@ type Replication = {
   };
 };
 ```
+
+`effect_slug` is the owning effect, not necessarily the requested collection. `effect_tags` records explicit additional depicted-effect identities, not ancestors, and is always an array (empty when no additional assignments are recorded). An absent owner does not imply no assignment: a work can belong through tags alone. If an older deployment omits `effect_tags`, its association-vocabulary evidence is incomplete, not known-empty. Enumerate media-bearing vocabulary from the union of owner slugs and these tags, not owner slugs alone.
 
 `url`, `thumbnail_url`, and `preview_url` are storage URLs and may be time-sensitive. Refresh the API record before display instead of persisting those URLs as permanent identifiers; video preview renditions may receive a new URL when regenerated. Never infer permission from public availability. If `rights.status` is `unknown`, treat reuse rights as unknown. Keep `artist`, `credit_line`, and applicable source/license links with the media.
 
@@ -633,7 +802,7 @@ JSON errors use this shape:
 Known error codes are:
 
 - `invalid_request`: malformed slug, filter, limit, or molecule scheme;
-- `invalid_cursor`: malformed or out-of-range cursor;
+- `invalid_cursor`: malformed or out-of-range cursor; substance collections also reject cursors for another substance or an older collection revision;
 - `not_found`: requested substance, replication, or molecule does not exist;
 - `service_unavailable`: an upstream/runtime read failed.
 
@@ -682,6 +851,7 @@ Do not call similarly named `/api/dev/*`, `/api/reagent-proxy`, `/api/molecules/
 When the API changes, update this handoff alongside the implementation:
 
 - public API projection, envelopes, CORS, caching, and cursor rules: `lib/public-api/v1.ts`;
+- canonical substance media adapter and revision-bound cursor rules: `lib/public-api/substanceReplications.ts`;
 - route handlers: `src/app/api/v1/`;
 - machine-readable contract: `src/app/api/v1/openapi.json/route.ts`;
 - canonical substance article schema: `src/schema/substance.schema.ts` and `src/schema/substance/`;

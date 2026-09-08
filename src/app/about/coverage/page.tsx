@@ -1,4 +1,4 @@
-import { getUncachedCoverageSubstances } from "@server/convex/publicData";
+import { getPublicCoverageSubstances } from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -40,8 +40,10 @@ export async function generateMetadata() {
 
 export default async function CoveragePage() {
   // Explicit full-corpus exemption: this noIndex internal surface must run the
-  // exact article/TOC coverage rules and therefore cannot use a slim projection.
-  const substances = await getUncachedCoverageSubstances();
+  // exact article/TOC coverage rules and therefore cannot use a slim
+  // projection. The read is persisted, so this page's regenerations do not
+  // each drain the corpus.
+  const substances = await getPublicCoverageSubstances();
   const columns = getCoverageColumns();
   const rows = buildCoverageRows(
     substances as (SubstanceArticle & { slug?: string })[],

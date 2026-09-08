@@ -97,6 +97,7 @@ export function formatArtistWorksLine(counts: {
  * runtime favicon fetcher); everything else falls back to the globe.
  */
 const BRAND_ICON_BY_HOST: Record<string, string> = {
+  "wikipedia.org": "simple-icons:wikipedia",
   "youtube.com": "simple-icons:youtube",
   "youtu.be": "simple-icons:youtube",
   "instagram.com": "simple-icons:instagram",

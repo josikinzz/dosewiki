@@ -31,7 +31,7 @@ export const POST = protectedRouteOperation({
       proposalId,
     });
 
-    revalidateSavedPaths(result.revalidatePaths, "proposal-revert");
+    await revalidateSavedPaths(result.revalidatePaths, "proposal-revert");
     return NextResponse.json({ ok: true, status: result.status, revalidatedPaths: result.revalidatePaths });
   },
 });

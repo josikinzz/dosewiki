@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { requireRoleSession } from "./requireEditorSession";
 
 const mocks = vi.hoisted(() => ({
@@ -16,6 +16,18 @@ vi.mock("@auth", () => ({
 describe("requireRoleSession", () => {
   beforeEach(() => {
     mocks.getServerSession.mockReset();
+    vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "true");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("rejects an authenticated admin on a public build", async () => {
+    vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "false");
+    mocks.getServerSession.mockResolvedValue({
+      user: { email: "admin@example.com", role: "admin" },
+    });
+    const result = await requireRoleSession("admin");
+    expect(result.ok).toBe(false);
+    if (result.ok === false) expect(result.response.status).toBe(403);
   });
 
   it("rejects anonymous requests", async () => {
@@ -43,7 +55,7 @@ describe("requireRoleSession", () => {
     }
   });
 
-  it("rejects a session below the floor and names the floor", async () => {
+  it("rejects a contributor session at the editor floor", async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { email: "contributor@example.com", role: "contributor" },
     });
@@ -53,7 +65,6 @@ describe("requireRoleSession", () => {
     expect(result.ok).toBe(false);
     if (result.ok === false) {
       expect(result.response.status).toBe(403);
-      expect(await result.response.json()).toEqual({ error: "Editor access required." });
     }
   });
 

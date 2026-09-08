@@ -1,3 +1,5 @@
+import { ConvexError } from "convex/values";
+import { replicationRevision } from "./replicationEditJournal";
 import type { MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { requireRole } from "./auth";
@@ -585,6 +587,7 @@ export async function updateGalleryOrderHandler(
     .withIndex("by_slug", (q) => q.eq("slug", args.effect_slug))
     .first();
   if (!effect) throw new Error(`Effect not found: ${args.effect_slug}`);
+  if (await replicationRevision(ctx, effect, `effect:${args.effect_slug}`) !== args.expectedRevision) throw new ConvexError({ code: "CONFLICT", message: "This collection changed. Reload its stored order before saving." });
   if (
     args.expected_replication_slugs !== undefined &&
     JSON.stringify(effect.gallery_order ?? []) !==

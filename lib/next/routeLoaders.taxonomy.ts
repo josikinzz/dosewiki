@@ -4,23 +4,24 @@ import { cache } from "react";
 import {
   getPublicEffectArticles,
   getPublicEffects,
+  getPublicGalleryReplications,
   type PublicEffectArticle,
   type PublicEffectPreview,
 } from "@server/convex/publicData";
 import { getPublicCategoryDetail, getPublicMechanismDetail } from "@server/convex/publicLibrary";
+import {
+  buildArtistCreditLinks,
+  type ArtistCreditLinks,
+} from "../../src/features/effects/vcode/artistCreditLinks";
 import { effectMatchesCategorySlug, getEffectCategoryDefinition } from "../../src/data/effectCategoryDefinitions";
 import {
   getCategoryRouteAlias,
-  getCategoryRouteAliasParams,
   getEffectCategoryRouteAlias,
   getEffectCategoryRouteAliasParams,
 } from "./publicRouteAliases";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import {
-  getStaticCategoryParams,
   getStaticEffectCategoryParams,
-  getStaticMechanismParams,
-  getStaticMechanismQualifierParams,
 } from "./staticParams";
 import { toRouteMetadata, type RouteMetadataSource } from "./routeLoaderResults";
 
@@ -118,10 +119,6 @@ type CategoryDetailData = Awaited<ReturnType<typeof getPublicCategoryDetail>>;
 
 export const categoryRouteDescriptor: TaxonomyRouteDescriptor<"category", CategoryDetailData> = {
   routeFamily: "category",
-  getStaticParams: async () => [
-    ...((await getStaticCategoryParams()) as { categoryKey: string }[]),
-    ...getCategoryRouteAliasParams(),
-  ],
   getAlias: ({ categoryKey }) => {
     const alias = getCategoryRouteAlias(categoryKey);
     return alias ? { categoryKey: alias } : null;
@@ -136,7 +133,10 @@ export const categoryRouteDescriptor: TaxonomyRouteDescriptor<"category", Catego
 };
 
 export type CategoryRouteResult =
-  | (TaxonomyOkRouteResult<CategoryDetailData> & { effects: PublicEffectArticle[] })
+  | (TaxonomyOkRouteResult<CategoryDetailData> & {
+      effects: PublicEffectArticle[];
+      artistCreditLinks: ArtistCreditLinks;
+    })
   | Exclude<TaxonomyRouteResult<CategoryDetailData>, { kind: "ok" }>;
 
 export const loadCategoryRoute = cache(async (categoryKey: string): Promise<CategoryRouteResult> => {
@@ -146,7 +146,16 @@ export const loadCategoryRoute = cache(async (categoryKey: string): Promise<Cate
     return result;
   }
 
-  return { ...result, effects: await getPublicEffectArticles() };
+  const [effects, galleryReplications] = await Promise.all([
+    getPublicEffectArticles(),
+    getPublicGalleryReplications(),
+  ]);
+
+  return {
+    ...result,
+    effects,
+    artistCreditLinks: buildArtistCreditLinks(galleryReplications),
+  };
 });
 
 type EffectCategoryDetailData = PublicEffectPreview[] | null;
@@ -192,7 +201,6 @@ type MechanismDetailData = Awaited<ReturnType<typeof getPublicMechanismDetail>>;
 
 export const mechanismRouteDescriptor: TaxonomyRouteDescriptor<"mechanism", MechanismDetailData> = {
   routeFamily: "mechanism",
-  getStaticParams: async () => (await getStaticMechanismParams()) as { mechanismSlug: string }[],
   getDetail: ({ mechanismSlug }) => getPublicMechanismDetail(mechanismSlug),
   getMetadata: ({ detail }) => ({
     title: detail?.definition.name ?? "Mechanism",
@@ -230,11 +238,6 @@ export const mechanismQualifierRouteDescriptor: TaxonomyRouteDescriptor<
   MechanismQualifierDetailData
 > = {
   routeFamily: "mechanismQualifier",
-  getStaticParams: async () =>
-    (await getStaticMechanismQualifierParams()) as {
-      mechanismSlug: string;
-      qualifierSlug: string;
-    }[],
   getDetail: getMechanismQualifierDetail,
   getMetadata: ({ detail }) => ({
     title: detail

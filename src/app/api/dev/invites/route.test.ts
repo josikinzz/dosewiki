@@ -58,12 +58,12 @@ const listRequest = () => new Request("https://dev.dose.wiki/api/dev/invites");
 const mintRequest = (body: unknown) =>
   new Request("https://dev.dose.wiki/api/dev/invites", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: "https://dev.dose.wiki" },
     body: JSON.stringify(body),
   });
 
 const revokeRequest = (id: string) =>
-  new Request(`https://dev.dose.wiki/api/dev/invites/${id}/revoke`, { method: "POST" });
+  new Request(`https://dev.dose.wiki/api/dev/invites/${id}/revoke`, { method: "POST", headers: { Origin: "https://dev.dose.wiki" } });
 
 beforeEach(() => {
   vi.clearAllMocks();

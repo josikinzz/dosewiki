@@ -2,9 +2,7 @@ import "server-only";
 
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { unstable_cache } from "next/cache";
 import { cache } from "react";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "../convex/publicData.cache";
 import { buildOpenDataDocument, OPEN_DATA_DATASETS, type OpenDataDatasetName } from "./datasets";
 
 /** What a download button states about its file: records inside, bytes on disk. */
@@ -19,21 +17,15 @@ export type PublicDownloadStats = {
  * counts (the About page's substance total includes unlisted articles the
  * export leaves out).
  *
- * Building the document drains the full corpus from Convex, so the result is
- * held in the data cache on the routes' own daily cadence. Deliberately tagged
- * with the bulk-import tag only: editor saves expire the per-dataset tags many
- * times a day, and each expiry here would cost another corpus drain for a
- * label that changes by a few kilobytes.
+ * This composition reuses the public readers' persistent leaves. An outer
+ * persistent cache would bypass those leaves on misses and rescan Convex.
+ * The containing page's ISR caches the rendered labels with the document.
  */
 export const getOpenDataDownloadStats = cache(
-  unstable_cache(
-    async (dataset: OpenDataDatasetName): Promise<PublicDownloadStats> => {
-      const { count, json } = await buildOpenDataDocument(OPEN_DATA_DATASETS[dataset]);
-      return { count, bytes: Buffer.byteLength(json) };
-    },
-    ["open-data-download-stats"],
-    { revalidate: 86400, tags: [PUBLIC_CONVEX_CACHE_TAGS.all] },
-  ),
+  async (dataset: OpenDataDatasetName): Promise<PublicDownloadStats> => {
+    const { count, json } = await buildOpenDataDocument(OPEN_DATA_DATASETS[dataset]);
+    return { count, bytes: Buffer.byteLength(json) };
+  },
 );
 
 let moleculePackDownloadStats: PublicDownloadStats | null = null;

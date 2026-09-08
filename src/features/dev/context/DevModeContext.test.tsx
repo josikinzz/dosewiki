@@ -15,6 +15,8 @@ vi.mock("convex/react", () => ({
 vi.mock("@/data/SubstanceIndexProvider", () => ({
   useLibrary: useLibraryMock,
 }));
+vi.mock("next-auth/react", () => ({ useSession: () => ({ status: "authenticated", data: { user: { role: "editor" } } }) }));
+vi.mock("../tools/useCopyIndexSource", () => ({ useCopyIndexSource: () => ({ data: useQueryMock(), error: null, reload: vi.fn() }) }));
 
 vi.mock("../../../../convex/_generated/api", () => ({
   api: {
@@ -89,6 +91,8 @@ function ProposalSeedConsumer() {
     getOriginalArticles,
     loadProposal,
     psychoactiveIndexManual,
+    updateArticleAt,
+    replacePsychoactiveIndexManual,
   } = useDevMode();
   const [error, setError] = useState("");
   const first = articles[0] as { title?: string; summary?: string } | undefined;
@@ -105,6 +109,12 @@ function ProposalSeedConsumer() {
         {activeProposal ? `${activeProposal.proposalId}:${activeProposal.reason}:${activeProposal.summary}` : "none"}
       </div>
       <div data-testid="load-error">{error}</div>
+      <button type="button" onClick={() => updateArticleAt(0, { ...articles[0], summary: "Unsaved local summary" })}>
+        Stage local article
+      </button>
+      <button type="button" onClick={() => replacePsychoactiveIndexManual({ version: 9, categories: [] })}>
+        Stage local layout
+      </button>
       <button
         type="button"
         onClick={() => {
@@ -149,18 +159,6 @@ describe("DevModeContext", () => {
     expect(navigateMock).toHaveBeenCalledWith("/substances");
   });
 
-  it("subscribes to the index layouts only; the About document belongs to its editor", () => {
-    useLibraryMock.mockReturnValue({ articles: ARTICLES });
-    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
-
-    render(
-      <DevModeProvider>
-        <DevModeConsumer />
-      </DevModeProvider>,
-    );
-
-    expect(new Set(useQueryMock.mock.calls.map(([query]) => query))).toEqual(new Set(["indexLayouts.getAll"]));
-  });
 
   it("preserves article reset behavior", () => {
     useLibraryMock.mockReturnValue({ articles: ARTICLES });
@@ -266,6 +264,23 @@ describe("DevModeContext", () => {
     expect(screen.getByTestId("load-error")).toHaveTextContent("Could not load lsd from the library");
     expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
     expect(screen.getByTestId("article-summary")).toHaveTextContent("");
+    expect(screen.getByTestId("article-count")).toHaveTextContent("1");
+  });
+
+  it.each(["article", "layout"] as const)("keeps unsaved %s edits when a proposal is loaded", async (kind) => {
+    useLibraryMock.mockReturnValue({ articles: ARTICLES });
+    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ articles: ARTICLES })));
+    render(<DevModeProvider><ProposalSeedConsumer /></DevModeProvider>);
+
+    fireEvent.click(screen.getByRole("button", { name: `Stage local ${kind}` }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Load proposal" }));
+    });
+
+    expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
+    expect(screen.getByTestId("article-summary")).toHaveTextContent(kind === "article" ? "Unsaved local summary" : "");
+    expect(screen.getByTestId("psychoactive-version")).toHaveTextContent(kind === "layout" ? "9" : "1");
     expect(screen.getByTestId("article-count")).toHaveTextContent("1");
   });
 });

@@ -1,4 +1,5 @@
 @import "./theme-status.css";
+@import "../features/theme-lab/theme-lab.css";
 /* theme-light-mode.css is NOT imported here any more. It is inert without
    html[data-theme="light"], so dark readers (the dose.wiki default) were
    paying ~56 KB for nothing. It now ships as a static copy in public/

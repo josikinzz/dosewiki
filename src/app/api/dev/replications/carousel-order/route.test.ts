@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseCarouselOrderBody,
   parseCarouselTargetRequest,
-} from "./route";
+} from "./carouselOrderRequest";
 
 describe("parseCarouselOrderBody", () => {
   it("accepts an exact collection order and deduplicates repeated slugs", () => {
@@ -13,6 +13,7 @@ describe("parseCarouselOrderBody", () => {
         targetKey: "ketamine",
         slugs: ["still-work", "video-work", "still-work"],
         expectedUpdatedAt: "2026-08-25T10:00:00.000Z",
+        expectedRevision: "a".repeat(64),
       }),
     ).toEqual({
       targetKind: "substance",
@@ -20,6 +21,7 @@ describe("parseCarouselOrderBody", () => {
       slugs: ["still-work", "video-work"],
       expectedOrder: undefined,
       expectedUpdatedAt: "2026-08-25T10:00:00.000Z",
+      expectedRevision: "a".repeat(64),
     });
   });
 
@@ -40,14 +42,15 @@ describe("parseCarouselOrderBody", () => {
     ).toThrow("valid collection target key");
   });
 
-  it("rejects oversized or malformed order arrays", () => {
-    expect(() =>
-      parseCarouselOrderBody({
-        targetKind: "effect",
-        targetKey: "tracers",
-        slugs: Array.from({ length: 251 }, (_, index) => `work-${index}`),
-      }),
-    ).toThrow("at most 250");
+  it("accepts a complete article order above the membership-edit limit", () => {
+    const slugs = Array.from({ length: 2025 }, (_, index) => `work-${index}`).reverse();
+    expect(parseCarouselOrderBody({
+      targetKind: "effect", targetKey: "drifting", slugs,
+      expectedOrder: [...slugs].reverse(), expectedRevision: "a".repeat(64),
+    }).slugs).toEqual(slugs);
+  });
+
+  it("rejects malformed order arrays", () => {
     expect(() =>
       parseCarouselOrderBody({
         targetKind: "effect",

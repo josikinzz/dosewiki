@@ -9,11 +9,16 @@ import {
   getPublicEffectArticles,
   getPublicEffectBySlug,
   getPublicEffects,
+  getPublicGalleryReplications,
   getPublicReportsBySubstanceNames,
   getPublicSubstanceBySlug,
   getPublicSubstanceSlugs,
   type PublicEffectArticle,
 } from "@server/convex/publicData";
+import {
+  buildArtistCreditLinks,
+  type ArtistCreditLinks,
+} from "../../src/features/effects/vcode/artistCreditLinks";
 import { getPublicEffectDetail } from "@server/convex/publicLibrary";
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
 import { getPublicArticleHistory } from "@server/convex/publicData.changelog";
@@ -60,7 +65,7 @@ import {
 } from "./routeLoaderResults";
 
 export type SubstanceRouteResult =
-  | OkRouteResult<SubstanceArticleViewModel["pageProps"]>
+  | (OkRouteResult<SubstanceArticleViewModel["pageProps"]> & { publicRevision?: string })
   | RedirectRouteResult
   | NotFoundRouteResult;
 
@@ -192,6 +197,8 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
 
   return {
     kind: "ok",
+    publicRevision: "publicRevision" in substance && typeof substance.publicRevision === "string"
+      ? substance.publicRevision : undefined,
     pageProps: viewModel.pageProps,
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "substance", params: { slug } },
@@ -199,16 +206,28 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
 });
 
 export type EffectRouteResult =
-  | OkRouteResult<EffectArticleViewModel["pageProps"]>
+  | OkRouteResult<
+      EffectArticleViewModel["pageProps"] & {
+        artistCreditLinks: ArtistCreditLinks;
+      }
+    >
   | NotFoundRouteResult;
 
 export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectRouteResult> => {
-  const [effect, detail, contributorDirectory, linkableSubstanceSlugs, publicEffects] = await Promise.all([
+  const [
+    effect,
+    detail,
+    contributorDirectory,
+    linkableSubstanceSlugs,
+    publicEffects,
+    galleryReplications,
+  ] = await Promise.all([
     getPublicEffectBySlug(effectSlug),
     getPublicEffectDetail(effectSlug),
     getPublicContributorDirectory(),
     getPublicSubstanceSlugs(),
     getPublicEffects(),
+    getPublicGalleryReplications(),
   ]);
 
   if (!effect) {
@@ -226,7 +245,10 @@ export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectR
 
   return {
     kind: "ok",
-    pageProps: viewModel.pageProps,
+    pageProps: {
+      ...viewModel.pageProps,
+      artistCreditLinks: buildArtistCreditLinks(galleryReplications),
+    },
     metadata: toRouteMetadata(viewModel.metadata),
     canonicalRoute: { family: "effect", params: { effectSlug } },
   };
@@ -261,6 +283,7 @@ export type PsychoactiveSummaryRouteResult =
           effects: PublicEffectArticle[];
         }
       >;
+      artistCreditLinks: ArtistCreditLinks;
     }>
   | NotFoundRouteResult;
 
@@ -274,7 +297,10 @@ export const loadPsychoactiveSummaryRoute = cache(
       return { kind: "not-found" };
     }
 
-    const effects = await getPublicEffectArticles();
+    const [effects, galleryReplications] = await Promise.all([
+      getPublicEffectArticles(),
+      getPublicGalleryReplications(),
+    ]);
 
     return {
       kind: "ok",
@@ -287,6 +313,7 @@ export const loadPsychoactiveSummaryRoute = cache(
             section.selection,
           ),
         })),
+        artistCreditLinks: buildArtistCreditLinks(galleryReplications),
       },
       metadata: {
         title: definition.metadataTitle,

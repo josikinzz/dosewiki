@@ -5,6 +5,8 @@ import type { DosageCategoryGroup } from "@/data/builders/library";
 import { IndexCard, IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
 import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/common/IndexPanelLayout";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
+import IndexCategory from "@/features/dev/tools/index-layout/IndexCategory.editor";
+import IndexItem from "@/features/dev/tools/index-layout/IndexItem.editor";
 
 const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
 
@@ -106,6 +108,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
       toggleLabel={toggleLabel}
       tone={tone}
       hideIcon={hideIcon}
+      actions={<IndexCategory group={group} />}
     >
       {group.total === 0 ? (
         <p className="py-2 pl-1 text-sm italic theme-text-faint">
@@ -128,6 +131,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
                     href={getDrugHref(drug.slug)}
                     slug={drug.slug}
                     onSelect={onSelectDrug}
+                    actions={<IndexItem slug={drug.slug} name={drug.name} />}
                   />
                 ))}
               </IndexCardList>
@@ -144,6 +148,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
                 href={getDrugHref(drug.slug)}
                 slug={drug.slug}
                 onSelect={onSelectDrug}
+                actions={<IndexItem slug={drug.slug} name={drug.name} />}
               />
             ))}
           </IndexCardList>
@@ -191,7 +196,7 @@ export function CategoryGrid({
   getCardTone,
   hideCardIcons = false,
 }: CategoryGridProps) {
-  const { count: columnCount, gate: columnGate } = useResponsiveColumnCount({ limitColumns, maxColumns });
+  const { count: columnCount, gate: columnGate, ref: panelRef } = useResponsiveColumnCount({ limitColumns, maxColumns });
 
   const visibleGroups = useMemo(() => {
     if (!hideEmptyGroups) {
@@ -387,7 +392,7 @@ export function CategoryGrid({
   }
 
   return (
-    <IndexPanelGrid columns={nonEmptyColumns.length} gate={columnGate}>
+    <IndexPanelGrid ref={panelRef} columns={nonEmptyColumns.length} gate={columnGate}>
       {nonEmptyColumns.map((column) => (
         <div key={column.index} className={INDEX_PANEL_STACK_CLASS_NAME}>
           {column.groups.map((group) => (

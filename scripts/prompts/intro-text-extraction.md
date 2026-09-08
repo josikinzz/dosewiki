@@ -1,122 +1,54 @@
 # Intro Text Extraction Prompt
 
-You are given one file containing every collected source document for a single psychoactive
-substance. Copy the introductory passages out of it, verbatim, into the excerpt file described under
-**Output format**. Output that file body and nothing else.
+Extract introductory content from the supplied collected-source file for one psychoactive substance. Use only the supplied source documents. Extraction preserves source text verbatim; it is not summarisation or article writing.
 
-This is mechanical copy-and-paste. You are not summarising, condensing, or explaining. A script
-checks your output afterwards by searching each extracted passage for a character-for-character
-match in the source; a passage that does not match exactly is rejected and the whole file fails.
+## 1. Identify sources and output mode
 
-## Hard rules
+In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the input begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Sources vary in length and quality.
 
-1. **Every line inside a source block is either copied from that source or a blank line.** No
-   headings you wrote, no labels, no quotation marks you added, no bolding you added, no bridging
-   sentences, no commentary.
-2. **Copy the passage exactly**, including spelling, capitalisation, punctuation, markdown, inline
-   links, footnote markers, and any surrounding whitespace within a line.
-3. **Numbers, units, and chemical names are copied character for character.** No conversion,
-   rounding, or reformatting.
-4. **Extract complete units.** Whole paragraphs, whole list items, whole table rows, whole sections
-   including their heading. Never stop mid-sentence and never take half a paragraph. A paragraph is
-   in or out as a unit — decide on its main subject, then copy or skip the whole thing.
-5. **Extract only what the source says.** Never write a definition, a chemical class, a synthesis
-   date, or a comparison from your own knowledge, from a chemically related substance, or from a
-   different source block in the same file.
-6. **Keep passages under the source they came from.** Never move text between source blocks, merge
-   sources, reorder them, or omit one.
-7. **When unsure whether a definitional passage is introductory enough, include it.** A human
-   reviews these excerpts. An extra passage costs nothing; a missed one is invisible.
+Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-## What counts as intro content
+If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
 
-Passages that orient a reader who knows nothing about the substance yet — what it is, what family it
-belongs to, and how it is encountered:
+Continue when every source boundary and the active output mode are identified.
 
-- The defining lead sentence: *"X is a psychedelic substance of the phenethylamine class."*
-- Psychoactive class (psychedelic, stimulant, dissociative, depressant, opioid, deliriant) and
-  chemical class or family (tryptamine, lysergamide, arylcyclohexylamine, benzodiazepine, cathinone)
-- Names: common name, IUPAC or substitutive name, brand names, street names, synonym lists
-- A one-or-two-sentence characterisation of what the substance does, at lead-paragraph granularity
-- Comparison to related substances — *"a synthetic analogue of mescaline"*, *"described as halfway
-  between LSD and MDMA"*, *"milder than LSD or psilocybin"*
-- Physical form and how it is encountered: powder, crystal, blotter, pill, liquid, vial, plant
-  material; colour, taste, smell; a general potency statement
-- General use context: recreational, medical, veterinary, therapeutic, traditional
-- A one-sentence origin note — who first synthesised it and when, or its traditional origin
-- Factsheet header lines such as `**Categories:**`, `**Also known as:**`, `**Synonyms:**`,
-  `**Summary:**`, `**Street & Reference Names:**`, `**Form:**`, `**IUPAC Name:**`
+## 2. Decide which complete units qualify
 
-## What does not count
+Read every source for passages that orient a reader: what the substance is, its family, and how it is encountered. Judge a paragraph by its main subject, then include or skip it whole.
 
-Nearly every sentence in a source article can be argued to be introductory, which is how this
-extraction fails: the excerpt file ends up being the source pasted back. Seven other extraction runs
-already collect the topics below from the same file. Leave them there.
+| Include introductory content | Boundary |
+| --- | --- |
+| Defining lead sentence, primary name, chemical class or family, psychoactive class | Include definitions and classification, rather than detailed mechanism or receptor data. |
+| Common, IUPAC or substitutive names; brands, street names and synonym lists | Copy labelled name lines and lead sentences where present, rather than hunting body text for scattered name mentions. |
+| One- or two-sentence characterisation of what the substance does; comparisons to related substances | Keep lead-paragraph characterisation, rather than named-effect lists, descriptions or trip-report phenomenology. |
+| Physical form, colour, taste, smell, how it is encountered, and general potency | Dose tiers, numerical dose ranges, mg or mg/kg figures, and effect timing belong to dosage-duration. |
+| General recreational, medical, veterinary, therapeutic or traditional use context | A paragraph mainly about clinical dosing or timing is excluded whole, even if it opens with general use context. |
+| One-sentence origin note: first synthesis, discoverer, date or traditional origin | Multi-era timelines, cultural reception and discovery narratives beyond one sentence belong to history-culture. |
+| Prominent safety framing in the source's own lead | Detailed LD50, addiction, dependence, overdose, organ damage and drug interactions belong to harm-potential. |
+| Factsheet header lines such as `**Categories:**`, `**Also known as:**`, `**Synonyms:**`, `**Summary:**`, `**Street & Reference Names:**`, `**Form:**`, `**IUPAC Name:**` | Preserve the source's labels and content as written. |
 
-| Content | Collected by |
-|---------|--------------|
-| Dose tiers, mg values, mg/kg figures, threshold/light/common/strong ranges | dosage-duration |
-| Onset, come-up, peak, offset, after-effects, total duration | dosage-duration |
-| Mechanism of action, receptor binding, half-life, bioavailability, metabolism | pharmacology |
-| Named effects and their descriptions, effect lists, trip-report phenomenology | subjective-effects |
-| Tolerance build and decay, cross-tolerance | tolerance |
-| LD50, addiction, dependence, overdose, organ damage, drug interactions | harm-potential |
-| Legal status by country, scheduling, court cases, analogue-act discussion | legality |
-| Multi-era timelines, cultural reception, discovery narratives beyond one sentence | history-culture |
+Also exclude paragraphs mainly about mechanism, receptor binding, half-life, bioavailability or metabolism (pharmacology); tolerance build, decay or cross-tolerance (tolerance); and country legal status, scheduling, court cases or analogue-act discussion (legality).
 
-Test a candidate paragraph by asking which question it answers. *What is this?* keeps it. *How much,
-how long, how does it work, is it legal, what does it feel like, what happened next?* drops it.
+The decision question is whether the unit mainly answers what the substance is. A definitional passage whose introductory relevance remains uncertain is included. This uncertainty rule does not turn a paragraph mainly about another section's topic into introductory content.
 
-Most sources yield one to four paragraphs. A source block much longer than that is the article
-pasted back — re-check each of its paragraphs against the table.
+Inspect the lead before the first subheading and sections named Summary, Overview, Description, About, Basics, Classification and Chemistry. Chemistry may contain a separate orienting structural-class paragraph. Before concluding that Wikipedia, PsychonautWiki, DrugBank or Erowid has no introductory content, re-read its first paragraphs.
 
-**Qualifies** — how the substance is encountered is definitional:
+Most sources yield one to four paragraphs. Treat a longer selection as a reason to reconsider each paragraph's main subject, not as a length cap.
 
-> Ketamine is generally sold to the recreational user in one of two forms: in the evaporated salts,
-> which are sold as a powder, or crystals (often referred to as shards), as well as in multi-dose
-> vials for use in veterinary and human medicine.
+Continue when every candidate has an inclusion or exclusion decision and all likely locations have been examined. A source with no qualifying content is a valid result.
 
-**Does not qualify** — opens like an introduction, then turns into dosage and duration. Rule 4
-governs it: the paragraph is one unit whose subject is clinical dosing, so the whole thing is
-skipped rather than trimmed back to its first sentence.
+## 3. Preserve the selected material
 
-> For decades, ketamine has been a popular anesthetic in humans and in veterinary settings. Most
-> often it is delivered intravenously, but it can be given intramuscularly, albeit with some
-> injection site pain, a longer recovery time, and a greater likelihood of vomiting. Anesthesia
-> usually begins with 1-2 mg/kg (IV) or 8-10 mg/kg (IM). Its dissociative anesthetic effects have an
-> IV onset of 1-2 minutes.
+- Select complete paragraphs, list items, table rows, or sections including their heading. A paragraph stays whole; never trim it to a qualifying sentence.
+- Preserve every character: spelling, capitalisation, punctuation, markdown, inline links, footnote markers and within-line whitespace. Copy numbers, units and chemical names without conversion, rounding or reformatting.
+- Keep claims within their original source. Do not supply definitions, classes, dates or comparisons from memory, a related substance, or another source block.
+- In excerpt mode, each content line is copied from that source or is blank. The only authored text is the document metadata, source headings, separators and empty-source markers specified in step 4. Add no labels, quotation marks, formatting or commentary to passages.
 
-## Where to look
+Continue when all selected units retain their original wording and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
 
-The lead paragraphs before a document's first subheading, and sections headed Summary, Overview,
-Description, About, Basics, Classification, or Chemistry. A second orienting paragraph often sits
-further down under Chemistry, naming the structural class — take it too.
+## 4. Emit the active output format
 
-Encyclopedic sources open with a definitional lead by construction. Before marking a Wikipedia,
-PsychonautWiki, DrugBank, or Erowid document as having no intro content, re-read its first
-paragraphs; on those sources that marker is almost always a miss.
-
-## Input format
-
-```
-# <Substance Title> — Collected Sources
-
-## Source: wikipedia
-
-<full document text>
-
----
-
-## Source: tripsit-factsheets
-
-<full document text>
-
----
-```
-
-Source count varies from two to a dozen, and length and quality vary just as widely.
-
-## Output format
+When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Intro Text Quotes
@@ -136,35 +68,28 @@ Source count varies from two to a dozen, and length and quality vary just as wid
 ---
 ```
 
-- `<Substance Title>` is copied from the first line of the input. `<YYYY-MM-DD>` is today's date.
-- One `## Source:` heading per source in the input, in the input's order, with the source name
-  spelled exactly as the input spells it. Include sources that yielded nothing.
-- A source with no intro content gets exactly `*No intro content found.*` — that italic line alone
-  under its heading.
-- A source that was present but had no document text gets `*No content available for this source.*`
-- Every source block ends with a `---` rule.
-- No code fences around the output, no preamble, no closing commentary.
+Use the substance title from the input's first line, without its Collected Sources suffix, and today's date as `YYYY-MM-DD`. Emit exactly one `## Source:` heading for every input source, with its exact name and original order. End every source block with `---`.
 
-## An empty result is a correct result
+For a nonempty document with no qualifying content, place exactly `*No intro content found.*` alone under its source heading. For an empty document, use exactly `*No content available for this source.*`. An all-empty extraction is complete and successful.
 
-Some sources are pure dosage tables, effect indexes, or legal notices and genuinely say nothing about
-what the substance is. A file whose every source block reads `*No intro content found.*` is a
-correct, successful, complete result — report it and stop. The only real failure is text in the
-output that is not in the source. One invented sentence here becomes the opening line of a published
-article, so an empty file always beats a plausible one.
+## 5. Check completion
 
-## Schema field mapping
+Before responding, confirm:
 
-Your excerpts are the only material the downstream generator sees, and it fills exactly one field:
-`summary`, a 50–80 word paragraph opening the article. It needs to find, in your excerpts:
+- Every source has been examined and is represented once, in order, including empty results.
+- Every selected unit passes the main-subject decision, with the definitional uncertainty rule applied.
+- Every selected unit is complete and source-faithful, and every qualifying candidate is included.
+- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- The following downstream needs have been checked wherever the source supplies introductory evidence. They guide coverage, not output organisation or invention.
 
-- **What it is** — chemical class and primary name, mirroring `classification.chemical_class`
-- **Psychoactive class** — primary effects category, mirroring `classification.psychoactive_class`
-- **Origin** — first synthesis, discoverer, date, or traditional use, where a source attests it
-- **Notable characteristics** — what distinguishes this substance from similar ones
-- **Prominent safety framing** — only where a source's own lead carries it, e.g. a substance known
-  chiefly as a dangerous adulterant
+The downstream generator fills `summary`, a 50–80 word opening paragraph, from these excerpts:
 
-Nomenclature lines feed `identification.*` fields rendered above the summary, so copy the labelled
-name lines and lead sentences where you find them rather than hunting document bodies for scattered
-name mentions. Do not sort, label, or restructure your output around any of these fields.
+| Need | Source material |
+| --- | --- |
+| What it is | Chemical class and primary name, mirroring `classification.chemical_class` |
+| Psychoactive class | Primary effects category, mirroring `classification.psychoactive_class` |
+| Origin | Attested first synthesis, discoverer, date or traditional use |
+| Notable characteristics | What distinguishes the substance from similar ones |
+| Prominent safety framing | Safety context carried by the source's own lead |
+
+Nomenclature lines also feed `identification.*` fields rendered above the summary. Preserve them in source order; do not sort, label or restructure excerpts around downstream fields.

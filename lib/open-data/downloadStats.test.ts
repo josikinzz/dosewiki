@@ -1,6 +1,6 @@
 import { statSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { GET } from "../../src/app/open-data/SubstanceIndex.json/route";
 import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "./downloadStats";
 
@@ -18,15 +18,29 @@ const documents = [
   { _id: "cx4", _creationTime: 4, id: 2, title: "Draft", slug: "draft", priority: "low" },
 ];
 
+const corpus = vi.hoisted(() => ({
+  substances: vi.fn(),
+  effects: vi.fn(),
+  reports: vi.fn(),
+}));
+
 vi.mock("../convex/publicData", () => ({
-  getPublicFullSubstanceDocuments: vi.fn(async () => documents),
+  getPublicFullSubstanceDocuments: corpus.substances,
+  getPublicEffectArticles: corpus.effects,
+  getPublicReportDetails: corpus.reports,
 }));
-vi.mock("next/cache", () => ({
-  unstable_cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
-}));
+
+afterEach(() => {
+  corpus.substances.mockReset();
+  corpus.effects.mockReset();
+  corpus.reports.mockReset();
+  vi.unstubAllEnvs();
+});
 
 describe("open-data download stats", () => {
   it("reports the entry count and decoded byte length of the file the route serves", async () => {
+    corpus.substances.mockResolvedValue(documents);
+
     const stats = await getOpenDataDownloadStats("SubstanceIndex");
     const served = gunzipSync(Buffer.from(await (await GET()).arrayBuffer()));
 

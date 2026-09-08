@@ -2,13 +2,12 @@ import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import {
   getPublicChemicalClassDetailPayload,
-  getPublicChemicalClassTreePayload,
 } from "@server/convex/publicChemicalClassIndex";
 import { ChemicalClassDetailPage } from "@/features/chemical-classes/pages/ChemicalClassDetailPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 type ChemicalClassPageProps = {
   params: Promise<{
@@ -29,9 +28,9 @@ const truncateDescription = (value: string | undefined) => {
   return clean.length > 160 ? `${clean.slice(0, 157).trimEnd()}...` : clean;
 };
 
-export async function generateStaticParams() {
-  const payload = await getPublicChemicalClassTreePayload();
-  return Object.keys(payload.nodes).map((classKey) => ({ classKey }));
+// Keep the build bounded; published keys enter the ISR cache on first request.
+export function generateStaticParams() {
+  return [];
 }
 
 export async function generateMetadata({ params }: ChemicalClassPageProps) {
@@ -39,11 +38,7 @@ export async function generateMetadata({ params }: ChemicalClassPageProps) {
   const detail = await getPublicChemicalClassDetailPayload(classKey);
 
   if (!detail) {
-    return buildPublicPageMetadata({
-      title: "Chemical class",
-      description: `Browse the chemical class tree on ${SITE_FLAVOR_CONFIG.name}.`,
-      route: { family: "chemicalClasses" },
-    });
+    notFound();
   }
 
   return buildPublicPageMetadata({

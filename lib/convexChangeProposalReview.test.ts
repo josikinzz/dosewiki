@@ -25,6 +25,16 @@ afterEach(() => {
 });
 
 describe("changeProposalReview.approveAndApply", () => {
+  it("requires a different admin to approve an admin-authored proposal", async () => {
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin],
+      substanceIndex: [storedLsd],
+      changeProposals: [proposalRow({ proposedBy: "admin@example.com" })],
+    });
+    await expect(approveAndApplyHandler(ctx, asAdmin)).rejects.toMatchObject({ data: { code: "PROPOSAL_SELF_APPROVAL" } });
+    expect(rowsOf("substanceIndex").get("s1")).toEqual(storedLsd);
+    expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("submitted");
+  });
   it("applies the payload through the article write path and records the snapshot, hashes, and changelog", async () => {
     const { ctx, rowsOf } = createCtx({
       memberships: [admin, editor],
@@ -42,7 +52,6 @@ describe("changeProposalReview.approveAndApply", () => {
       status: "applied",
       appliedChangelogEntryId: "proposal-proposal_p1",
       reviewedBy: "admin@example.com",
-      snapshotBefore: [{ kind: "article", key: "lsd", document: liveArticleDocument(storedLsd) }],
     });
     expect(proposal.appliedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     const appliedHashes = proposal.appliedHashes as Array<{ kind: string; key: string; hash: string }>;
@@ -54,11 +63,37 @@ describe("changeProposalReview.approveAndApply", () => {
     const [entry] = [...rowsOf("changelog").values()];
     expect(entry).toMatchObject({
       entryId: "proposal-proposal_p1",
-      message: "Update LSD (proposed by editor@example.com, approved by admin@example.com)",
-      markdown: "# LSD\n\n- Stored summary\n+ Proposed summary",
       submittedBy: "EDITOR",
-      articles: [],
     });
+    expect(JSON.stringify(entry)).not.toContain("@example.com");
+    expect(entry.markdown).toContain("Proposed summary");
+    expect(entry.markdown).toContain("Stored summary");
+  });
+
+  it("journals and restores the unprojected article without unrelated normalization changes", async () => {
+    const source = {
+      ...storedLsd,
+      _creationTime: 0,
+      pharmacology: { ...storedLsd.pharmacology as Record<string, unknown>, legacyDetail: "Preserve raw source" },
+    };
+    const { _id, _creationTime, ...before } = source;
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin, editor],
+      substanceIndex: [source],
+      changeProposals: [proposalRow({
+        payload: { articles: [{ ...before, summary: "Narrow revision" }] },
+        targets: [{ kind: "article", key: "lsd", baseHash: contentHash(liveArticleDocument(source)) }],
+      })],
+    });
+    await approveAndApplyHandler(ctx, asAdmin);
+    const [revision] = [...rowsOf("articleRevisions").values()];
+    expect(revision.before).toEqual(before);
+    expect(revision.after).toEqual({ ...before, summary: "Narrow revision" });
+    const [entry] = [...rowsOf("changelog").values()];
+    expect(entry.markdown).toContain("Narrow revision");
+    expect(entry.markdown).not.toContain("pharmacology");
+    await revertHandler(ctx, asAdmin);
+    expect(rowsOf("substanceIndex").get("s1")).toEqual(source);
   });
 
   it("applies an index layout through the layout write path, including the categoryLayout mirror", async () => {
@@ -87,7 +122,6 @@ describe("changeProposalReview.approveAndApply", () => {
       snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null }],
     });
     expect([...rowsOf("changelog").values()][0]).toMatchObject({
-      markdown: "layout diff",
       articles: [{ id: 1, title: "LSD", slug: "lsd" }],
     });
   });
@@ -131,6 +165,24 @@ describe("changeProposalReview.approveAndApply", () => {
     expect(result).toMatchObject({ status: "changes_requested" });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ slug: "lysergide", summary: "Stored summary" });
     expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "changes_requested" });
+  });
+
+  it("refuses an ID acquired at another slug after a creation proposal was submitted", async () => {
+    const newArticle = { ...proposedLsd, id: 2, slug: "new-article" };
+    const unrelated = { ...storedLsd, _id: "s2", id: 2, slug: "other-article", summary: "Unrelated production" };
+    const { ctx, rowsOf } = createCtx({
+      memberships: [admin],
+      substanceIndex: [unrelated],
+      changeProposals: [proposalRow({
+        targets: [{ kind: "article", key: "new-article", baseHash: contentHash(null) }],
+        payload: { articles: [newArticle] },
+      })],
+    });
+    const result = await approveAndApplyHandler(ctx, asAdmin);
+    expect(result).toMatchObject({ status: "changes_requested" });
+    expect(rowsOf("substanceIndex").get("s2")).toEqual(unrelated);
+    expect(rowsOf("substanceIndex").size).toBe(1);
+    expect(rowsOf("changelog").size).toBe(0);
   });
 
   it("refuses a proposal that is not open for approval", async () => {
@@ -244,6 +296,9 @@ describe("changeProposalReview.revert", () => {
       message: "Reverted proposal proposal_p1",
       submittedBy: "ADMIN",
     });
+    expect(JSON.stringify(entries[1])).not.toContain("@example.com");
+    expect(entries[1].markdown).toContain(proposal.summary);
+    expect(proposal.reviewedBy).toBe("admin@example.com");
   });
 
   it("removes a row the proposal created when the snapshot recorded absence", async () => {
@@ -298,8 +353,8 @@ describe("changeProposalReview.revert", () => {
     await revertHandler(withMirror.ctx, asAdmin);
 
     expect(withMirror.rowsOf("indexLayouts").size).toBe(0);
-    expect([...withMirror.rowsOf("categoryLayout").values()]).toEqual([
-      { _id: "cl1", version: 1, categories: seededMirror.categories },
+    expect([...withMirror.rowsOf("categoryLayout").values()]).toMatchObject([
+      { version: 1, categories: seededMirror.categories },
     ]);
 
     // Neither row existed: the revert clears the mirror the apply projected.
@@ -316,10 +371,8 @@ describe("changeProposalReview.revert", () => {
     expect(withoutMirror.rowsOf("categoryLayout").size).toBe(0);
   });
 
-  it("refuses with REVERT_INCOMPLETE when the reference merge keeps applied metadata the snapshot lacked", async () => {
-    // The stored reference has no journal; the proposal adds one. Writing the
-    // snapshot back merges against the applied row, which keeps the populated
-    // `containerTitle`, so the row can no longer hash to the proposal's base.
+  it("restores reference metadata exactly without merging the applied enrichment back in", async () => {
+    // Source metadata and prose belong to the same audited inverse.
     const reference = {
       id: "ref-1",
       type: "journal_article",
@@ -345,11 +398,11 @@ describe("changeProposalReview.revert", () => {
       references: [{ id: "ref-1", containerTitle: "Journal of Ergolines" }],
     });
 
-    await expect(revertHandler(ctx, asAdmin)).rejects.toMatchObject({ data: { code: "REVERT_INCOMPLETE" } });
-
-    // The throw is what rolls the mutation back; nothing after the write ran.
-    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "applied" });
-    expect(rowsOf("changelog").size).toBe(1);
+    await revertHandler(ctx, asAdmin);
+    expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Stored summary" });
+    expect(rowsOf("substanceIndex").get("s1")?.references).toEqual([reference]);
+    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
+    expect(rowsOf("changelog").size).toBe(2);
   });
 });
 

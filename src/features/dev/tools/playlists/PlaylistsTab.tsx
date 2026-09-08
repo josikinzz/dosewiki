@@ -124,14 +124,22 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const save = () => {
     if (!draft) return;
     const creating = draft.expectedUpdatedAt === null;
-    void run(async () => {
-      const stored = await savePlaylist(draft, { sendOwner: isAdmin && creating });
-      setDraft(draftOf(stored));
-      const dropped =
-        stored.pruned.length > 0
-          ? ` ${stored.pruned.length} ${stored.pruned.length === 1 ? "entry" : "entries"} named a work that does not exist or is excluded everywhere, and ${stored.pruned.length === 1 ? "was" : "were"} dropped.`
+    confirm({
+      title: `${creating ? "Create" : "Update"} "${draft.title}"?`,
+      confirmLabel: "Confirm playlist publication",
+      description: <div className="space-y-3">
+        <p>This saves the reusable playlist. Showcases that previously copied it are unchanged; no canonical media record is edited.</p>
+        <div><strong>Before</strong><pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify({ title: saved?.title ?? "", works: saved?.replication_slugs ?? [] }, null, 2)}</pre></div>
+        <div><strong>After</strong><pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify({ title: draft.title, works: draft.slugs }, null, 2)}</pre></div>
+      </div>,
+      onConfirm: () => run(async () => {
+        const stored = await savePlaylist(draft, { sendOwner: isAdmin && creating });
+        setDraft(draftOf(stored));
+        const dropped = stored.pruned.length > 0
+          ? ` ${stored.pruned.length} ineligible entries were dropped.`
           : "";
-      return `${creating ? "Created" : "Saved"} "${stored.title}".${dropped}`;
+        return `${creating ? "Created" : "Saved"} "${stored.title}".${dropped}`;
+      }),
     });
   };
 
@@ -285,6 +293,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             busy={busy}
             showOwner={isAdmin && draft.expectedUpdatedAt === null}
             notice={notice}
+            saveLabel="Review playlist changes"
             onChange={setDraft}
             onSave={save}
             onCancel={() => guard(() => setDraft(null))}

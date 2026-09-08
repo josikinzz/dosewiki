@@ -4,7 +4,7 @@ import { useLayoutEffect, useState } from "react";
 import {
   computeIndexPanelColumnCount,
   guessIndexPanelColumnCount,
-  indexPanelColumnGate,
+  INDEX_PANEL_LARGE_GAP,
   type IndexPanelColumnGate,
 } from "@/components/common/indexPanelColumns";
 
@@ -16,32 +16,47 @@ type ResponsiveColumnOptions = {
 export type ResponsiveColumnCount = {
   count: number;
   /**
-   * Set until the viewport has been measured, so the server render and the
-   * hydration render carry the same gate. Pass it to `IndexPanelGrid`, which
-   * keeps the grid unpainted wherever the server guess is wrong for this
-   * viewport. Null once measured, or when the cap makes the guess exact.
+   * Set until the grid's content box has been measured. The server and first
+   * hydration render agree; the layout effect replaces the provisional grouping
+   * before the first client paint.
    */
   gate: IndexPanelColumnGate | null;
+  ref: (element: HTMLDivElement | null) => void;
 };
 
 export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): ResponsiveColumnCount {
   const limitColumns = options?.limitColumns ?? false;
   const maxColumns = options?.maxColumns ?? (limitColumns ? 3 : Number.POSITIVE_INFINITY);
 
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [measured, setMeasured] = useState<number | null>(null);
 
-  // Layout effect, not effect: on a client-side navigation or a tab remount
-  // the measurement lands before the browser paints, so the guess is never
-  // shown. On initial load the server HTML has already painted; the gate
-  // covers that case.
   useLayoutEffect(() => {
-    const measure = () => setMeasured(computeIndexPanelColumnCount(window.innerWidth, maxColumns));
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [maxColumns]);
+    if (!element) return;
 
-  return measured === null
-    ? { count: guessIndexPanelColumnCount(maxColumns), gate: indexPanelColumnGate(maxColumns) }
-    : { count: measured, gate: null };
+    const measure = () => {
+      const style = window.getComputedStyle(element);
+      const width = element.getBoundingClientRect().width
+        - (parseFloat(style.paddingLeft) || 0)
+        - (parseFloat(style.paddingRight) || 0);
+      const gap = parseFloat(style.columnGap) || INDEX_PANEL_LARGE_GAP;
+      setMeasured(computeIndexPanelColumnCount(width, maxColumns, gap));
+    };
+
+    measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(element);
+    // The viewport may change the gap without changing the container's width.
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [element, maxColumns]);
+
+  return {
+    count: measured ?? guessIndexPanelColumnCount(maxColumns),
+    gate: measured === null && maxColumns > 1 ? "pending" : null,
+    ref: setElement,
+  };
 }

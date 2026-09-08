@@ -74,7 +74,7 @@ const PROSE_CLASS = "theme-text-secondary max-w-[68ch] break-words leading-7";
 const CARD_LABEL_CLASS =
   "theme-text-faint mb-1.5 text-xs font-semibold uppercase tracking-[0.18em]";
 const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
-const LIST_CLASS = "theme-text-secondary space-y-2 leading-7";
+const LIST_CLASS = "theme-text-secondary space-y-2 break-words leading-7";
 const NODE_LIST_CLASS = "theme-text-secondary space-y-2 leading-7 text-sm";
 const CONTENT_CARD_CLASS = "min-w-0 shadow-[var(--theme-elevation-sm)]";
 const STAT_NUMBER_CLASS =
@@ -506,7 +506,7 @@ export default async function DocsCodePage() {
 │   ├── `}
             <span className="theme-accent-heading font-semibold">features/</span>
             {`             `}
-            <span className="theme-text-faint">· 15 domain modules; dev is half of it (~690 files)</span>
+            <span className="theme-text-faint">· 15 domain modules; dev has ~400 TS/TSX files, including tests</span>
             {`
 │   ├── components/           `}
             <span className="theme-text-faint">· shared UI: layout, pages, ui primitives</span>
@@ -1106,9 +1106,22 @@ export default async function DocsCodePage() {
           <p className={`${PROSE_CLASS} mt-4`}>
             <DocsInline>{copy.text("docs-code-s8-writes")}</DocsInline>
           </p>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s8-write-records")}</DocsInline>
+          </p>
 
           <p className={`${PROSE_CLASS} mt-4`}>
-            <DocsInline>{copy.text("docs-code-s8-families")}</DocsInline>
+            <DocsInline>{copy.text("docs-code-s8-families-intro")}</DocsInline>
+          </p>
+          <ul className={`${LIST_CLASS} mt-3 list-disc pl-5`}>
+            {copy.items("docs-code-s8-families").map((item, i) => (
+              <li key={i}>
+                <DocsInline>{item}</DocsInline>
+              </li>
+            ))}
+          </ul>
+          <p className={`${PROSE_CLASS} mt-4`}>
+            <DocsInline>{copy.text("docs-code-s8-command-registry")}</DocsInline>
           </p>
 
           {/* The content pipeline itself (sources, excerpts, prompts, citation

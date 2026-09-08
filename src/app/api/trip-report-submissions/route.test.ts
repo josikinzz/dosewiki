@@ -15,11 +15,11 @@ vi.mock("@server/http/nextRateLimit", () => ({
 
 const mocks = vi.hoisted(() => ({
   storeCreate: vi.fn(),
-  getTripReportSubmissionStore: vi.fn(),
+  getPublicTripReportSubmissionStore: vi.fn(),
 }));
 
 vi.mock("@/features/reports/submissions/tripReportSubmissionStore.server", () => ({
-  getTripReportSubmissionStore: mocks.getTripReportSubmissionStore,
+  getPublicTripReportSubmissionStore: mocks.getPublicTripReportSubmissionStore,
   TripReportSubmissionStorageConfigurationError: class TripReportSubmissionStorageConfigurationError extends Error {},
 }));
 
@@ -46,8 +46,8 @@ describe("trip report submissions public route", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.storeCreate.mockReset();
-    mocks.getTripReportSubmissionStore.mockReset();
-    mocks.getTripReportSubmissionStore.mockResolvedValue({
+    mocks.getPublicTripReportSubmissionStore.mockReset();
+    mocks.getPublicTripReportSubmissionStore.mockResolvedValue({
       create: mocks.storeCreate,
     });
     mocks.storeCreate.mockResolvedValue({

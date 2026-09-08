@@ -1,15 +1,9 @@
 import { ConvexError, v } from "convex/values";
-import {
-  query,
-  mutation,
-  internalMutation,
-  internalQuery,
-  type MutationCtx,
-  type QueryCtx,
-} from "./_generated/server";
+import { query, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation, internalMutation } from "./lib/indexedMutation";
 import type { Doc, Id } from "./_generated/dataModel";
 import { requireRole, roleMeetsFloor } from "./lib/auth";
-import { recordRevision } from "./lib/contentRevisions";
+import { findRevisionOperation, recordRevision } from "./lib/contentRevisions";
 import {
   assertAuthorNameClaimAdjudicated,
   normalizeAssignedProfileKey,
@@ -30,10 +24,11 @@ import {
 } from "./tripReportContract";
 import { findMembershipByEmail, ownsReport, refuseNotOwner } from "./lib/tripReportOwnership";
 import {
-  deleteTripReportSubstanceRows,
   findTripReportsBySubstanceNames,
-  syncTripReportSubstanceRows,
 } from "./lib/tripReportSubstanceIndex";
+import { backfillPublicReadIndexPage, getPublicReadIndexStatus } from "./lib/publicReadIndexBackfill";
+import { publicTripReport } from "./lib/tripReportPublicProjection";
+import { contentHash } from "../lib/proposals/contentHash";
 
 /**
  * Trip report functions.
@@ -47,7 +42,7 @@ import {
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("tripReports").collect();
+    return (await ctx.db.query("tripReports").collect()).map(publicTripReport);
   },
 });
 
@@ -57,10 +52,8 @@ export const getAll = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("tripReports")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
+    const report = await ctx.db.query("tripReports").withIndex("by_slug", (q) => q.eq("slug", args.slug)).first();
+    return report ? publicTripReport(report) : null;
   },
 });
 
@@ -70,10 +63,7 @@ export const getBySlug = query({
 export const getFeatured = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
-      .query("tripReports")
-      .withIndex("by_featured", (q) => q.eq("featured", true))
-      .collect();
+    return (await ctx.db.query("tripReports").withIndex("by_featured", (q) => q.eq("featured", true)).collect()).map(publicTripReport);
   },
 });
 
@@ -83,7 +73,7 @@ export const getFeatured = query({
  */
 export const getBySubstance = query({
   args: { substanceName: v.string() },
-  handler: async (ctx, args) => findTripReportsBySubstanceNames(ctx, [args.substanceName]),
+  handler: async (ctx, args) => (await findTripReportsBySubstanceNames(ctx, [args.substanceName])).map(publicTripReport),
 });
 
 /**
@@ -96,7 +86,7 @@ export const getBySubstance = query({
  */
 export const getBySubstanceNames = query({
   args: { substanceNames: v.array(v.string()) },
-  handler: async (ctx, args) => findTripReportsBySubstanceNames(ctx, args.substanceNames),
+  handler: async (ctx, args) => (await findTripReportsBySubstanceNames(ctx, args.substanceNames)).map(publicTripReport),
 });
 
 /**
@@ -111,7 +101,7 @@ export const getByAuthor = query({
     
     return allReports.filter(
       (report) => report.subject.name.toLowerCase() === lowerName
-    );
+    ).map(publicTripReport);
   },
 });
 
@@ -132,8 +122,9 @@ export const getByContributor = query({
         return true;
       }
 
+      if (report.attribution_review) return false;
       return lowerNames.has(report.subject.name.trim().toLowerCase());
-    });
+    }).map(publicTripReport);
   },
 });
 
@@ -258,6 +249,13 @@ export const getPortalRows = query({
   },
 });
 
+async function reportRevision(ctx: QueryCtx | MutationCtx, report: Doc<"tripReports">) {
+  const latest = await ctx.db.query("contentRevisions")
+    .withIndex("by_table_key", (q) => q.eq("table", "tripReports").eq("key", report.slug))
+    .order("desc").first();
+  return contentHash({ report, journalId: latest?._id ?? null });
+}
+
 /**
  * The full editable slice of one report, for the portal's editor pane.
  *
@@ -273,7 +271,9 @@ export const getPortalRecord = query({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
-    id: v.id("tripReports"),
+    id: v.optional(v.id("tripReports")),
+    slug: v.optional(v.string()),
+    contextual: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const actor = await requireRole(
@@ -282,19 +282,24 @@ export const getPortalRecord = query({
       "contributor",
     );
 
-    const report = await ctx.db.get(args.id);
+    const report = args.id ? await ctx.db.get(args.id) : args.slug
+      ? await ctx.db.query("tripReports").withIndex("by_slug", (q) => q.eq("slug", args.slug!)).unique()
+      : null;
     if (!report) {
       throw new Error(`Trip report ${args.id} no longer exists.`);
     }
     if (!roleMeetsFloor(actor.role, "editor") && !ownsReport(actor, report)) {
       refuseNotOwner(report);
     }
+    if (args.contextual && actor.role !== "admin" && !ownsReport(actor, report)) refuseNotOwner(report);
 
     return {
       id: report._id,
       slug: report.slug,
-      ownerEmail: report.owner_email,
+      ...(!args.contextual ? { ownerEmail: report.owner_email } : {}),
+      canEdit: actor.role === "admin" || ownsReport(actor, report),
       fields: editableSnapshotOf(report),
+      revision: await reportRevision(ctx, report),
     };
   },
 });
@@ -307,11 +312,9 @@ export const getPortalRecord = query({
  * had to re-run a migration. This is the field-level path the portal saves
  * through.
  *
- * Concurrency is guarded the way `replications.updateEditorialFields` guards
- * it — by snapshot equality rather than a version column, since `tripReports`
- * has neither an `updatedAt` nor a revision. `expected` is the snapshot the
- * editor opened; if storage no longer matches it, the save is refused rather
- * than silently overwriting somebody else's edit.
+ * Concurrency binds the complete stored row and latest canonical journal ID.
+ * The opaque token catches metadata changes and A→B→A content cycles; the
+ * expected editable snapshot remains a separate lossless field guard.
  *
  * Byline changes go through the same adjudication as promotion. Renaming a
  * report onto a name a contributor profile answers to would otherwise hand that
@@ -332,9 +335,11 @@ type UpdateArgs = {
   actorEmail?: string;
   id: Id<"tripReports">;
   expected: EditableFieldsInput;
+  expectedRevision: string;
   updates: EditableFieldsInput;
   profileKey?: string;
   confirmAuthorNameClaim?: boolean;
+  operationId?: string;
 };
 
 /**
@@ -380,10 +385,20 @@ export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
     throw new Error(`Trip report ${args.id} no longer exists.`);
   }
 
+  if (actor.role !== "admin" && !ownsReport(actor, row)) refuseNotOwner(row);
+  const requestIdentity = contentHash({ id: args.id, expectedRevision: args.expectedRevision, expected: normalizeEditableFields(args.expected), updates: normalizeEditableFields(args.updates), profileKey: args.profileKey, confirmAuthorNameClaim: args.confirmAuthorNameClaim });
+  const prior = await findRevisionOperation(ctx, "tripReports", row.slug, args.operationId, actor.email);
+  if (prior) {
+    if (prior.requestIdentity !== requestIdentity || !prior.after || !prior.revision) {
+      throw new ConvexError({ code: "REPORT_OPERATION_REUSED", message: "This publication ID belongs to a different report correction. Reconcile the original correction before publishing again." });
+    }
+    return { updated: contentHash(prior.before) !== contentHash(prior.after), slug: row.slug, fields: editableSnapshotOf(prior.after as Doc<"tripReports">), revision: contentHash({ report: prior.after, journalId: prior._id }) };
+  }
+  if (!args.expectedRevision || args.expectedRevision !== await reportRevision(ctx, row)) {
+    throw new ConvexError({ code: "REPORT_CONFLICT", message: "This report or its attribution changed since it was opened. Your local corrections are retained; reload and reconcile before publishing." });
+  }
   if (!editableSnapshotsAgree(editableSnapshotOf(row), normalizeEditableFields(args.expected))) {
-    throw new Error(
-      `Trip report ${row.slug} changed since it was opened; reload the portal before saving.`,
-    );
+    throw new ConvexError({ code: "REPORT_CONFLICT", message: "This report's editable fields changed since it was opened. Your local corrections are retained; reload and reconcile before publishing." });
   }
 
   const updates = normalizeEditableFields(args.updates);
@@ -454,12 +469,28 @@ export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
       decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),
     };
   }
+  // An untouched field retains the exact stored bytes, including legacy
+  // whitespace, media markup, and optional-value distinctions.
+  const baseline = editableSnapshotOf(row);
+  for (const key of ["title", "substances", "introduction", "onset", "peak", "offset", "conclusion", "tags"] as const) {
+    if (JSON.stringify(baseline[key]) === JSON.stringify(updates[key])) delete patch[key];
+  }
+  for (const key of ["name", "trip_date", "age", "gender", "height", "weight", "medications", "setting"] as const) {
+    if (baseline.subject[key] === updates.subject[key]) {
+      if (row.subject[key] === undefined) delete subject[key];
+      else subject[key] = row.subject[key];
+    }
+  }
+  const revision = args.operationId ?? new Date().toISOString();
+  if (editableSnapshotsAgree(baseline, updates) && !attributionDecided) {
+    if (args.operationId) await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, after: row, actor, operationId: args.operationId, revision, publications: ["dose.wiki", "Effect Index"], requestIdentity });
+    return { updated: false, slug: row.slug, fields: baseline, revision: await reportRevision(ctx, row) };
+  }
 
-  await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, actor });
+  await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, after: { ...row, ...patch }, actor, operationId: args.operationId, revision, publications: ["dose.wiki", "Effect Index"], requestIdentity });
   await ctx.db.patch(args.id, patch);
-  await syncTripReportSubstanceRows(ctx, args.id, updates.substances);
 
-  return { updated: true, slug: row.slug };
+  return { updated: true, slug: row.slug, fields: updates, revision: await reportRevision(ctx, { ...row, ...patch } as Doc<"tripReports">) };
 }
 
 export const update = mutation({
@@ -468,10 +499,12 @@ export const update = mutation({
     actorEmail: v.optional(v.string()),
     id: v.id("tripReports"),
     expected: editableTripReportFieldsValidator,
+    expectedRevision: v.string(),
     updates: editableTripReportFieldsValidator,
     // Omitted leaves the stored attribution alone; "" clears it.
     profileKey: v.optional(v.string()),
     confirmAuthorNameClaim: v.optional(v.boolean()),
+    operationId: v.optional(v.string()),
   },
   handler: updateHandler,
 });
@@ -602,11 +635,9 @@ export const bulkImport = internalMutation({
 
         if (existing) {
           await ctx.db.patch(existing._id, report);
-          await syncTripReportSubstanceRows(ctx, existing._id, report.substances);
           results.updated++;
         } else {
-          const reportId = await ctx.db.insert("tripReports", report);
-          await syncTripReportSubstanceRows(ctx, reportId, report.substances);
+          await ctx.db.insert("tripReports", report);
           results.created++;
         }
       } catch (error) {
@@ -628,7 +659,6 @@ export const deleteAll = internalMutation({
     const allReports = await ctx.db.query("tripReports").collect();
 
     for (const report of allReports) {
-      await deleteTripReportSubstanceRows(ctx, report._id);
       await ctx.db.delete(report._id);
     }
 
@@ -662,7 +692,6 @@ export const deleteById = mutation({
     }
 
     await recordRevision(ctx, { table: "tripReports", key: existing.slug, action: "remove", before: existing, actor });
-    await deleteTripReportSubstanceRows(ctx, args.id);
     await ctx.db.delete(args.id);
     return { deleted: true };
   },
@@ -704,8 +733,6 @@ export const renameAuthor = mutation({
   },
 });
 
-const SUBSTANCE_INDEX_BACKFILL_PAGE_SIZE = 50;
-const SUBSTANCE_INDEX_BACKFILL_MAX_PAGE_SIZE = 200;
 
 /**
  * Internal mutation: (re)build one page of the `tripReportSubstances` join
@@ -719,56 +746,11 @@ export const backfillSubstanceIndex = internalMutation({
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    const requested = Math.floor(args.limit ?? SUBSTANCE_INDEX_BACKFILL_PAGE_SIZE);
-    const numItems = Math.min(Math.max(requested, 1), SUBSTANCE_INDEX_BACKFILL_MAX_PAGE_SIZE);
-    const page = await ctx.db
-      .query("tripReports")
-      .paginate({ cursor: args.cursor ?? null, numItems });
-
-    let inserted = 0;
-    let removed = 0;
-    for (const report of page.page) {
-      const result = await syncTripReportSubstanceRows(ctx, report._id, report.substances);
-      inserted += result.inserted;
-      removed += result.removed;
-    }
-
-    return {
-      processed: page.page.length,
-      inserted,
-      removed,
-      cursor: page.continueCursor,
-      isDone: page.isDone,
-    };
-  },
+  handler: (ctx, args) => backfillPublicReadIndexPage(ctx, { ...args, name: "tripReports" }),
 });
 
-/**
- * Internal query: how much of the corpus the join table covers, for the
- * backfill script's dry run and post-run check.
- */
+/** Bounded durable completion status, not a whole-corpus counting query. */
 export const getSubstanceIndexBackfillStatus = internalQuery({
   args: {},
-  handler: async (ctx) => {
-    const reports = await ctx.db.query("tripReports").collect();
-    const rows = await ctx.db.query("tripReportSubstances").collect();
-    const indexedReportIds = new Set(rows.map((row) => row.report_id as string));
-    const reportIds = new Set(reports.map((report) => report._id as string));
-    let orphanRows = 0;
-    for (const row of rows) {
-      if (!reportIds.has(row.report_id as string)) orphanRows += 1;
-    }
-    const reportsMissingRows = reports.filter(
-      (report) => report.substances.length > 0 && !indexedReportIds.has(report._id as string),
-    ).length;
-    return {
-      reportCount: reports.length,
-      joinRowCount: rows.length,
-      indexedReportCount: indexedReportIds.size,
-      reportsMissingRows,
-      orphanRows,
-      indexActive: rows.length > 0,
-    };
-  },
+  handler: (ctx) => getPublicReadIndexStatus(ctx, "tripReports"),
 });

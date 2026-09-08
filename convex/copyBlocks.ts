@@ -1,7 +1,22 @@
 import { ConvexError, v } from "convex/values";
-import { query, mutation, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { auditStampFor } from "./lib/auditStamp";
 import { requireRole } from "./lib/auth";
+import { copyIndexRevision, prepareCopyIndexPublication, copyIndexContentEqual, journalCopyIndex } from "./lib/copyIndexPublication";
+
+export const getByKey = query({
+  args: { key: v.string() },
+  handler: async (ctx, { key }) => ctx.db.query("copyBlocks").withIndex("by_key", (q) => q.eq("key", key)).unique(),
+});
+
+export const getForEditor = query({
+  args: { key: v.string(), apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
+  handler: async (ctx, { key, apiKey, actorEmail }) => {
+    await requireRole(ctx, { apiKey, actorEmail, adminIntent: "editorArticleWrite" }, "editor");
+    return { document: await ctx.db.query("copyBlocks").withIndex("by_key", (q) => q.eq("key", key)).unique(), revision: await copyIndexRevision(ctx, "copyBlocks", key) };
+  },
+});
 
 /**
  * Editable site copy ("copy blocks").
@@ -85,7 +100,7 @@ function reject(message: string): never {
  * cleared rather than left behind: a block that flips from a list to markdown
  * must not keep serving stale `items` to a reader whose renderer still looks.
  */
-function normalizeCopyBlockPayload(args: {
+export function normalizeCopyBlockPayload(args: {
   kind: CopyBlockKind;
   body?: string;
   items?: string[];
@@ -128,6 +143,9 @@ type UpsertCopyBlockArgs = CopyBlockDocument & {
   apiKey?: string;
   actorEmail?: string;
   updatedBy?: string;
+  expected?: unknown;
+  expectedRevision?: number;
+  operationId?: string;
 };
 
 export async function upsertCopyBlockHandler(ctx: MutationCtx, args: UpsertCopyBlockArgs) {
@@ -171,14 +189,20 @@ export async function upsertCopyBlockHandler(ctx: MutationCtx, args: UpsertCopyB
     updatedAt: new Date().toISOString(),
     updatedBy: auditStampFor(actor, args.updatedBy),
   };
-
-  if (existing) {
-    await ctx.db.patch(existing._id, document);
-    return { updated: true, id: existing._id, key };
+  const prepared = await prepareCopyIndexPublication(ctx, { table: "copyBlocks", kind: "copyBlock", key, before: existing, after: document, expected: args.expected, expectedRevision: args.expectedRevision, operationId: args.operationId, actor });
+  if (prepared.replayed) {
+    const after = prepared.replayed.after;
+    const id = after && typeof after === "object" && "_id" in after && typeof after._id === "string" ? ctx.db.normalizeId("copyBlocks", after._id) : null;
+    if (!id) throw new Error("The stored publication receipt has no copy block identity.");
+    return { updated: true, id, key, revision: prepared.revision, replayed: true, unchanged: false };
   }
-
-  const id = await ctx.db.insert("copyBlocks", document);
-  return { updated: false, id, key };
+  if (existing && copyIndexContentEqual("copyBlock", existing, document)) return { updated: true, id: existing._id, key, revision: prepared.revision, replayed: false, unchanged: true };
+  const revision = prepared.revision + 1;
+  const stored = document;
+  const id = existing?._id ?? await ctx.db.insert("copyBlocks", stored);
+  if (existing) await ctx.db.patch(id, stored);
+  await journalCopyIndex(ctx, { table: "copyBlocks", key, before: existing, after: { ...stored, _id: id }, actor, revision, operationId: args.operationId, requestIdentity: prepared.requestIdentity });
+  return { updated: !!existing, id, key, revision, replayed: false, unchanged: false };
 }
 
 /**
@@ -194,20 +218,26 @@ export const upsert = mutation({
     actorEmail: v.optional(v.string()),
     ...copyBlockDocumentFields,
     updatedBy: v.optional(v.string()),
+    expected: v.optional(v.any()),
+    expectedRevision: v.optional(v.number()),
+    operationId: v.optional(v.string()),
   },
   returns: v.object({
     updated: v.boolean(),
     id: v.id("copyBlocks"),
     key: v.string(),
+    revision: v.number(),
+    replayed: v.boolean(),
+    unchanged: v.boolean(),
   }),
   handler: upsertCopyBlockHandler,
 });
 
 export async function removeCopyBlockHandler(
   ctx: MutationCtx,
-  args: { apiKey?: string; actorEmail?: string; key: string },
+  args: { apiKey?: string; actorEmail?: string; key: string; expected?: unknown; expectedRevision?: number; operationId?: string },
 ) {
-  await requireRole(ctx, {
+  const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
@@ -219,12 +249,13 @@ export async function removeCopyBlockHandler(
     .withIndex("by_key", (q) => q.eq("key", key))
     .first();
 
-  if (!existing) {
-    return { removed: false, key };
-  }
-
+  const prepared = await prepareCopyIndexPublication(ctx, { table: "copyBlocks", kind: "copyBlock", key, before: existing, after: null, expected: args.expected, expectedRevision: args.expectedRevision, operationId: args.operationId, actor });
+  if (prepared.replayed) return { removed: true, key, revision: prepared.revision, replayed: true, unchanged: false };
+  if (!existing) return { removed: false, key, revision: prepared.revision, replayed: false, unchanged: true };
+  const revision = prepared.revision + 1;
+  await journalCopyIndex(ctx, { table: "copyBlocks", key, before: existing, after: null, actor, revision, operationId: args.operationId, requestIdentity: prepared.requestIdentity });
   await ctx.db.delete(existing._id);
-  return { removed: true, key };
+  return { removed: true, key, revision, replayed: false, unchanged: false };
 }
 
 /**
@@ -236,7 +267,10 @@ export const remove = mutation({
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     key: v.string(),
+    expected: v.optional(v.any()),
+    expectedRevision: v.optional(v.number()),
+    operationId: v.optional(v.string()),
   },
-  returns: v.object({ removed: v.boolean(), key: v.string() }),
+  returns: v.object({ removed: v.boolean(), key: v.string(), revision: v.number(), replayed: v.boolean(), unchanged: v.boolean() }),
   handler: removeCopyBlockHandler,
 });

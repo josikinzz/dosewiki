@@ -13,6 +13,7 @@ import type { SubstanceArticle } from "@/schema";
 export interface AttributionEditorProps {
   /** Prefix for input IDs */
   idPrefix: string;
+  pairedIndicator?: boolean;
 }
 
 function AttributionFields({ idPrefix }: AttributionEditorProps) {
@@ -62,7 +63,7 @@ function AttributionFields({ idPrefix }: AttributionEditorProps) {
   );
 }
 
-export function AttributionEditor({ idPrefix }: AttributionEditorProps) {
+export function AttributionEditor({ idPrefix, pairedIndicator = false }: AttributionEditorProps) {
   const { control } = useFormContext<SubstanceArticle>();
   const { errors } = useFormState({
     control,
@@ -77,6 +78,7 @@ export function AttributionEditor({ idPrefix }: AttributionEditorProps) {
       badge={<span className="theme-text-faint text-xs">(optional)</span>}
       density="compact"
       hasError={hasError}
+      pairedIndicator={pairedIndicator}
     >
       <AttributionFields idPrefix={idPrefix} />
     </CollapsibleEditorCard>

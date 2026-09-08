@@ -187,7 +187,7 @@ describe("EditableValue when the stored value moved underneath it", () => {
     // …alongside the value that landed, so the two can be reconciled in place.
     expect(screen.getByText("Someone else's note.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Save my text over it/ }));
+    await user.click(screen.getByRole("button", { name: /Apply my text to preview/ }));
 
     // The retry is sent against the refreshed baseline, so it is a normal
     // write rather than a second refusal.
@@ -213,7 +213,7 @@ describe("EditableValue when the stored value moved underneath it", () => {
 
     const user = await openAndType(" Corrected.{Enter}");
     await screen.findByRole("alert");
-    await user.click(screen.getByRole("button", { name: /Use the stored text/ }));
+    await user.click(screen.getByRole("button", { name: /Use current preview text/ }));
 
     const field = screen.getByRole("textbox", { name: "Edit Oral notes" });
     expect(field).toHaveValue("Someone else's note.");
@@ -265,7 +265,7 @@ describe("EditableValue when the stored value moved underneath it", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Unable to save that edit right now.",
     );
-    expect(screen.queryByText(/Save my text over it/)).toBeNull();
+    expect(screen.queryByText(/Apply my text to preview/)).toBeNull();
     expect(screen.getByRole("textbox", { name: "Edit Oral notes" })).toHaveValue(
       "Original note. Corrected.",
     );
@@ -286,7 +286,7 @@ describe("EditableValue when the stored value moved underneath it", () => {
     await openAndType(" Corrected.{Enter}");
 
     expect(await screen.findByRole("alert")).toHaveTextContent("It moved.");
-    expect(screen.queryByText(/Save my text over it/)).toBeNull();
+    expect(screen.queryByText(/Apply my text to preview/)).toBeNull();
   });
 });
 

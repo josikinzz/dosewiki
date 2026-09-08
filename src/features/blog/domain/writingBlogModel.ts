@@ -1,6 +1,7 @@
 import type { ArticleBylineAuthor } from "@/features/articles/domain/articleByline";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { buildBlogPostExcerpt } from "./blogPostModel";
+import type { VCodeContent } from "@/features/effects/vcode/types";
 
 /**
  * A dose.wiki blog post — a `kind: "blog"` row of `effectIndexArticles`, written
@@ -20,6 +21,9 @@ export type WritingBlogPost = {
   dateLabel: string | null;
   dateTime: string | null;
   body: string;
+  bodyFormat?: "vcode" | "markdown";
+  body_ast?: VCodeContent;
+  citations?: Array<{ url: string; text: string }>;
   bylineAuthors: ArticleBylineAuthor[];
 };
 
@@ -31,6 +35,9 @@ export function toWritingBlogPost(
     coverImageUrl?: string;
     publicationDate?: string;
     body_raw: string;
+    bodyFormat?: "vcode" | "markdown";
+    body_ast?: VCodeContent;
+    citations?: Array<{ url: string; text: string }>;
   },
   bylineAuthors: ArticleBylineAuthor[] = [],
 ): WritingBlogPost {
@@ -45,6 +52,9 @@ export function toWritingBlogPost(
     dateLabel,
     dateTime: dateLabel ? row.publicationDate ?? null : null,
     body: row.body_raw,
+    bodyFormat: row.bodyFormat,
+    body_ast: row.body_ast,
+    citations: row.citations,
     bylineAuthors,
   };
 }

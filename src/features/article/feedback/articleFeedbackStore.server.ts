@@ -4,7 +4,10 @@ import { createHmac, randomUUID } from "node:crypto";
 
 import { makeFunctionReference } from "convex/server";
 
-import { getServerConvexWriteCapability } from "@server/convex/serverWriteCapability";
+import {
+  getPublicIntakeWriteCapability,
+  getServerConvexWriteCapability,
+} from "@server/convex/serverWriteCapability";
 import {
   createArticleFeedbackRow,
   validateArticleFeedback,
@@ -37,6 +40,7 @@ export class ArticleFeedbackNotFoundError extends Error {
 
 type ConvexCallableClient = {
   mutation(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
+  mutationAsService(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
   query(reference: unknown, args: Record<string, unknown>): Promise<unknown>;
 };
 
@@ -110,7 +114,7 @@ export class ConvexArticleFeedbackStore {
       ip_hash: hashIpAddress(context.ip, context.ip_hash_secret),
     });
 
-    return await this.options.client.mutation(createFeedbackRef, {
+    return await this.options.client.mutationAsService(createFeedbackRef, {
       apiKey: this.options.apiKey,
       feedback: row,
     }) as ArticleFeedbackRow;
@@ -156,6 +160,22 @@ export class ConvexArticleFeedbackStore {
 
 let store: ConvexArticleFeedbackStore | null = null;
 let storeCacheKey: string | null = null;
+
+export async function getPublicArticleFeedbackStore(): Promise<
+  Pick<ConvexArticleFeedbackStore, "create">
+> {
+  const capability = getPublicIntakeWriteCapability();
+  if (!capability) {
+    throw new ArticleFeedbackStorageConfigurationError(
+      "Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL plus CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE to enable public article feedback.",
+    );
+  }
+
+  return new ConvexArticleFeedbackStore({
+    client: capability.client,
+    apiKey: capability.apiKey,
+  });
+}
 
 export async function getArticleFeedbackStore(): Promise<ConvexArticleFeedbackStore> {
   const writeCapability = getServerConvexWriteCapability();

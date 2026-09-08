@@ -13,6 +13,7 @@ import { EmptyStateSurface } from "@/components/ui/surface";
 import { CollapsibleEditorCard } from "../CollapsibleEditorCard";
 import { SubcategoryEditor } from "./SubcategoryEditor";
 import { useSensorySubcategories } from "./useRecordFieldArray";
+import { useGrowToContent } from "./useGrowToContent";
 import type { SubstanceArticle, EffectEntry } from "@/schema";
 
 export type SenseType = "visual" | "auditory" | "tactile" | "olfactory" | "gustatory" | "multisensory";
@@ -26,6 +27,7 @@ export interface SenseCategoryCardProps {
   icon?: IconName;
   /** Prefix for input IDs */
   idPrefix: string;
+  pairedIndicator?: boolean;
 }
 
 export function SenseCategoryCard({
@@ -33,19 +35,17 @@ export function SenseCategoryCard({
   label,
   icon,
   idPrefix,
+  pairedIndicator = false,
 }: SenseCategoryCardProps) {
   const { register } = useFormContext<SubstanceArticle>();
 
   // Sense note field path
   const noteFieldPath = `subjective_effects.sensory.${sense}.note` as const;
+  const { ref: registerNoteRef, ...noteRegistration } = register(noteFieldPath);
+  const noteField = useGrowToContent();
 
   // Use the sensory subcategories hook
   const { fields, append, remove, updateKey, move } = useSensorySubcategories(sense);
-
-  const handleAddSubcategory = useCallback(() => {
-    const newKey = `New Subcategory ${fields.length + 1}`;
-    append({ key: newKey, note: "", effects: [] });
-  }, [fields.length, append]);
 
   return (
     <CollapsibleEditorCard
@@ -53,6 +53,7 @@ export function SenseCategoryCard({
       icon={icon ? <Icon icon={icon} size={16} /> : undefined}
       count={fields.length}
       density="compact"
+      pairedIndicator={pairedIndicator}
     >
       <div className="space-y-4">
         {/* Sense-level note */}
@@ -62,9 +63,14 @@ export function SenseCategoryCard({
           </Label>
           <Textarea
             id={`${idPrefix}-${sense}-note`}
-            {...register(noteFieldPath)}
+            {...noteRegistration}
+            ref={(element) => {
+              registerNoteRef(element);
+              noteField.ref(element);
+            }}
+            onInput={noteField.grow}
             placeholder={`Brief qualitative description of ${label.toLowerCase()} effects...`}
-            className="min-h-[60px] resize-none text-sm"
+            className="min-h-[60px] resize-none"
             rows={2}
           />
         </div>
@@ -74,7 +80,7 @@ export function SenseCategoryCard({
           <div className="space-y-3">
             {fields.map((field, index) => (
               <SensorySubcategoryEditorWrapper
-                key={field.key}
+                key={field.id}
                 sense={sense}
                 subcategoryKey={field.key}
                 index={index}
@@ -101,7 +107,7 @@ export function SenseCategoryCard({
           type="button"
           variant="outline"
           size="sm"
-          onClick={handleAddSubcategory}
+          onClick={append}
           className="w-full border-dashed"
         >
           <Icon icon="lucide:plus" className="h-3.5 w-3.5 mr-1.5" size={14} />
@@ -124,7 +130,7 @@ interface SensorySubcategoryEditorWrapperProps {
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  onKeyChange: (newKey: string) => void;
+  onKeyChange: (newKey: string) => string | undefined;
 }
 
 function SensorySubcategoryEditorWrapper({

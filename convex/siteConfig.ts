@@ -1,8 +1,10 @@
 import { v } from "convex/values";
-import { query, mutation, type MutationCtx } from "./_generated/server";
+import { query, type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { auditStampFor } from "./lib/auditStamp";
 import { requireRole } from "./lib/auth";
 import { clampSafetyBannerIconSize } from "../src/data/substanceWarningBanners";
+import { copyIndexRevision, prepareCopyIndexPublication, copyIndexContentEqual, journalCopyIndex } from "./lib/copyIndexPublication";
 
 /**
  * Site configuration storage - About page content and other global settings.
@@ -19,6 +21,15 @@ export const getAbout = query({
       .first();
 
     return config ?? null;
+  },
+});
+
+export const getAboutForEditor = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "editor");
+    const document = await ctx.db.query("siteConfig").withIndex("by_key", (q) => q.eq("key", "about")).first();
+    return document ? { ...document, revision: await copyIndexRevision(ctx, "siteConfig", "about") } : null;
   },
 });
 
@@ -48,6 +59,9 @@ type SaveAboutArgs = AboutDocument & {
   apiKey?: string;
   actorEmail?: string;
   updatedBy?: string;
+  expected?: unknown;
+  expectedRevision?: number;
+  operationId?: string;
 };
 
 /**
@@ -77,13 +91,15 @@ export async function saveAboutHandler(ctx: MutationCtx, args: SaveAboutArgs) {
     updatedAt: now,
     updatedBy: auditStampFor(actor, args.updatedBy),
   };
-
-  if (existing) {
-    await ctx.db.patch(existing._id, data);
-    return { updated: true, id: existing._id };
-  }
-  const id = await ctx.db.insert("siteConfig", data);
-  return { updated: false, id };
+  const prepared = await prepareCopyIndexPublication(ctx, { table: "siteConfig", kind: "about", key: ABOUT_KEY, before: existing, after: data, expected: args.expected, expectedRevision: args.expectedRevision, operationId: args.operationId, actor });
+  if (prepared.replayed) return { updated: true, revision: prepared.revision, replayed: true, unchanged: false };
+  if (existing && copyIndexContentEqual("about", existing, data)) return { updated: true, id: existing._id, revision: prepared.revision, replayed: false, unchanged: true };
+  const revision = prepared.revision + 1;
+  const stored = data;
+  const id = existing?._id ?? await ctx.db.insert("siteConfig", stored);
+  if (existing) await ctx.db.patch(id, stored);
+  await journalCopyIndex(ctx, { table: "siteConfig", key: ABOUT_KEY, before: existing, after: { ...stored, _id: id }, actor, revision, operationId: args.operationId, requestIdentity: prepared.requestIdentity });
+  return { updated: !!existing, id, revision, replayed: false, unchanged: false };
 }
 
 // Save the About page configuration
@@ -93,6 +109,9 @@ export const saveAbout = mutation({
     actorEmail: v.optional(v.string()),
     ...aboutDocumentFields,
     updatedBy: v.optional(v.string()),
+    expected: v.optional(v.any()),
+    expectedRevision: v.optional(v.number()),
+    operationId: v.optional(v.string()),
   },
   handler: saveAboutHandler,
 });

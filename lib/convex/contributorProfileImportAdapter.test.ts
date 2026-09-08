@@ -80,7 +80,7 @@ describe("buildContributorProfileImportPayload", () => {
       liveProfiles: liveProfiles(),
       operationId: changed.campaignId,
       dryRun: true,
-    })).toThrow(/exceeds the 3-link product limit/);
+    })).toThrow(/exceeds the 3-link reviewed plan limit/);
   });
 
   it("projects an R2 avatar reference for the mutation's typed fail-closed dry run", () => {

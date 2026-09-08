@@ -9,6 +9,7 @@
  */
 
 import type { WarningBannerTarget } from "@/data/substanceWarningBanners";
+import { WarningRequestError } from "./warningEditing";
 
 const TARGETS_API = "/api/dev/warning-banner/targets";
 
@@ -32,7 +33,7 @@ export async function fetchWarningBannerTargets(
     return cachedWarningBannerTargets;
   }
 
-  const response = await fetch(TARGETS_API, { headers: { Accept: "application/json" } });
+  const response = await fetch(TARGETS_API, { cache: "no-store", headers: { Accept: "application/json" } });
 
   let payload: { items?: WarningBannerTarget[]; error?: string } = {};
   try {
@@ -45,8 +46,9 @@ export async function fetchWarningBannerTargets(
 
   if (!response.ok || !payload.items) {
     cachedWarningBannerTargets = null;
-    throw new Error(
+    throw new WarningRequestError(
       payload.error ?? `The substance list could not be loaded (HTTP ${response.status}).`,
+      response.status,
     );
   }
 

@@ -1,10 +1,14 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc, Id } from "./_generated/dataModel";
 import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
-import { DIFF_MARKDOWN_MAX_LENGTH } from "../lib/proposals/diffMarkdown";
+import { contentHash } from "../lib/proposals/contentHash";
+import { proposalComparableDocument, type ProposalBaseline } from "../lib/proposals/proposalBaseline";
+import { buildProposalDiff } from "./lib/changeProposalDiff";
+import type { ProposalPayload } from "./lib/changeProposalApply";
 import { requireRole } from "./lib/auth";
-import { deriveProposalTargets, hashProposalTarget } from "./lib/changeProposalTargets";
+import { deriveProposalTargets, proposalHashDocument, readProposalTarget } from "./lib/changeProposalTargets";
 import {
   indexLayoutValidator,
   substanceArticleLightValidator,
@@ -13,6 +17,8 @@ import {
 import { copyBlockDocumentValidator, type CopyBlockDocument } from "./copyBlocks";
 import { changeProposalStatusValidator } from "./schema";
 import { aboutDocumentValidator, type AboutDocument } from "./siteConfig";
+import { projectProposalComment, projectProposalDetail, projectProposalSummary } from "../lib/proposals/proposalPublic";
+import { articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
 
 /**
  * Editor change proposals: the commit panel's staged save, held for an admin
@@ -51,7 +57,7 @@ type SubmitArgs = {
     changelog?: { markdown: string; articles: Array<{ id: number; title: string; slug: string }> };
   };
   summary: string;
-  diff: string;
+  baselines: ProposalBaseline[];
   /** The returned proposal this one replaces; it becomes `superseded` in the same mutation. */
   revisionOf?: Id<"changeProposals">;
 };
@@ -81,12 +87,12 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     });
   }
   for (const article of args.payload.articles ?? []) {
-    const validation = validateArticleForIngestion(article);
-    if (validation.ok === false) {
-      throw new ConvexError({
-        code: "PROPOSAL_ARTICLE_INVALID",
-        message: `${article.title}: ${validation.message}`,
-      });
+    const [target] = await deriveProposalTargets(ctx, { articles: [article] });
+    const stored = target ? await ctx.db.query("substanceIndex").withIndex("by_slug", (q) => q.eq("slug", target.key)).unique() : null;
+    if (stored) validateArticleChange(articleDocument(stored), article);
+    else {
+      const validation = validateArticleForIngestion(article);
+      if (validation.ok === false) throw new ConvexError({ code: "PROPOSAL_ARTICLE_INVALID", message: `${article.title}: ${validation.message}` });
     }
   }
 
@@ -95,12 +101,6 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     throw new ConvexError({
       code: "PROPOSAL_SUMMARY_INVALID",
       message: `Summary must be 1 to ${SUMMARY_MAX_LENGTH} characters.`,
-    });
-  }
-  if (args.diff.length > DIFF_MARKDOWN_MAX_LENGTH) {
-    throw new ConvexError({
-      code: "PROPOSAL_DIFF_TOO_LARGE",
-      message: `Diff exceeds ${DIFF_MARKDOWN_MAX_LENGTH} characters.`,
     });
   }
 
@@ -112,9 +112,25 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     });
   }
 
+  if (!Array.isArray(args.baselines) || args.baselines.length !== implied.length ||
+      new Set(args.baselines.map((entry) => `${entry.kind}:${entry.key}`)).size !== implied.length) {
+    throw new ConvexError({ code: "PROPOSAL_BASELINE_REQUIRED", message: "Every change needs its loaded baseline. Your draft is preserved; reload the source and reapply your edits." });
+  }
   const targets = [];
+  const snapshots = [];
   for (const target of implied) {
-    targets.push({ kind: target.kind, key: target.key, baseHash: await hashProposalTarget(ctx, target) });
+    const baseline = args.baselines.find((entry) => entry.kind === target.kind && entry.key === target.key);
+    const document = await readProposalTarget(ctx, target, "stored");
+    const hashDocument = proposalHashDocument(target.kind, document);
+    if (!baseline || contentHash(proposalComparableDocument(target.kind, baseline.document)) !==
+        contentHash(proposalComparableDocument(target.kind, hashDocument))) {
+      throw new ConvexError({
+        code: "PROPOSAL_BASELINE_STALE",
+        message: `Production changed since you loaded ${target.kind} "${target.key}". Your draft is preserved. Copy your edits, reload the latest source, reconcile the changes, and submit again.`,
+      });
+    }
+    targets.push({ ...target, baseHash: contentHash(hashDocument) });
+    snapshots.push({ ...target, document });
   }
 
   // Rebase: the earlier revision must be the actor's own (or the actor an
@@ -155,10 +171,14 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     targets,
     payload: args.payload,
     summary,
-    diff: args.diff,
+    diff: buildProposalDiff(args.payload as ProposalPayload, snapshots),
+    diffVersion: 1,
     comments: [],
     ...(args.revisionOf ? { revisionOf: args.revisionOf } : {}),
   });
+  for (const target of targets) {
+    if (target.kind === "article") await ctx.db.insert("articleProposalTargets", { slug: target.key, ownerEmail: actor.email, proposalId, createdAt: now });
+  }
   if (prior) {
     await ctx.db.patch(prior._id, { status: "superseded", updatedAt: now });
   }
@@ -166,9 +186,8 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
 }
 
 /**
- * Submit one commit-panel save as a proposal. Editor floor. Targets are
- * derived from the payload and the base hash of each is read from production
- * here, so a stale client can never pin a hash it did not observe.
+ * Submit one commit-panel save as a proposal. Each loaded baseline must match
+ * production before the server pins its hash and generates the review diff.
  */
 export const submit = mutation({
   args: {
@@ -176,7 +195,11 @@ export const submit = mutation({
     actorEmail: v.optional(v.string()),
     payload: changeProposalPayloadValidator,
     summary: v.string(),
-    diff: v.string(),
+    baselines: v.array(v.object({
+      kind: v.union(v.literal("article"), v.literal("indexLayout"), v.literal("copyBlock"), v.literal("about")),
+      key: v.string(),
+      document: v.any(),
+    })),
     revisionOf: v.optional(v.id("changeProposals")),
   },
   handler: submitHandler,
@@ -184,23 +207,29 @@ export const submit = mutation({
 
 const LIST_MINE_LIMIT = 50;
 
-function summarizeProposal(row: Doc<"changeProposals">) {
-  return {
-    _id: row._id,
-    proposedBy: row.proposedBy,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    status: row.status,
-    targets: row.targets,
-    summary: row.summary,
-    revisionOf: row.revisionOf,
-    reviewedBy: row.reviewedBy,
-    reviewedAt: row.reviewedAt,
-    reviewNotes: row.reviewNotes,
-    commentCount: row.comments.length,
-    appliedAt: row.appliedAt,
-    conflictReason: row.conflictReason,
+/** Only an explicitly linked public profile may supply a display name. */
+function proposalNameResolver(ctx: QueryCtx | MutationCtx) {
+  const names = new Map<string, Promise<string | undefined>>();
+  return (email: string) => {
+    let name = names.get(email);
+    if (!name) {
+      name = ctx.db.query("contributorProfiles")
+        .withIndex("by_membership_email", (q) => q.eq("membershipEmail", email))
+        .first()
+        .then((profile) => profile?.displayName);
+      names.set(email, name);
+    }
+    return name;
   };
+}
+
+async function summarizeProposals(ctx: QueryCtx, rows: Doc<"changeProposals">[], actorEmail: string) {
+  const nameOf = proposalNameResolver(ctx);
+  return Promise.all(rows.map(async (row) => projectProposalSummary({
+    ...row,
+    proposerName: await nameOf(row.proposedBy),
+    reviewerName: row.reviewedBy ? await nameOf(row.reviewedBy) : undefined,
+  }, actorEmail)));
 }
 
 export async function listMineHandler(
@@ -218,7 +247,7 @@ export async function listMineHandler(
     .withIndex("by_proposed_by", (q) => q.eq("proposedBy", actor.email))
     .order("desc")
     .take(limit);
-  return rows.map(summarizeProposal);
+  return summarizeProposals(ctx, rows, actor.email);
 }
 
 /** The actor's own proposals, newest first, without payload or diff. Editor floor. */
@@ -232,15 +261,15 @@ export const listMine = query({
 });
 
 export async function countHandler(ctx: QueryCtx, args: { apiKey?: string; actorEmail?: string }) {
-  await requireRole(
+  const actor = await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
     "editor",
   );
-  const submitted = await ctx.db
-    .query("changeProposals")
-    .withIndex("by_status", (q) => q.eq("status", "submitted"))
-    .collect();
+  const submitted = actor.role === "admin"
+    ? await ctx.db.query("changeProposals").withIndex("by_status", (q) => q.eq("status", "submitted")).collect()
+    : await ctx.db.query("changeProposals")
+      .withIndex("by_proposed_by_status", (q) => q.eq("proposedBy", actor.email).eq("status", "submitted")).collect();
   return { submitted: submitted.length };
 }
 
@@ -259,23 +288,44 @@ export async function listHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string; status?: Doc<"changeProposals">["status"] },
 ) {
-  await requireRole(
+  const actor = await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
     "editor",
   );
   const status = args.status;
-  const rows = status
-    ? await ctx.db
-        .query("changeProposals")
-        .withIndex("by_status", (q) => q.eq("status", status))
-        .order("desc")
-        .take(LIST_LIMIT)
-    : await ctx.db.query("changeProposals").order("desc").take(LIST_LIMIT);
-  return rows.map(summarizeProposal);
+  const isActive = (row: Doc<"changeProposals">) =>
+    row.status === "submitted" || row.status === "changes_requested";
+  let rows: Doc<"changeProposals">[];
+  if (actor.role !== "admin") {
+    if (status) {
+      const matches = ctx.db.query("changeProposals")
+        .withIndex("by_proposed_by_status", (q) => q.eq("proposedBy", actor.email).eq("status", status)).order("desc");
+      rows = status === "submitted" || status === "changes_requested" ? await matches.collect() : await matches.take(LIST_LIMIT);
+    } else {
+      const [submitted, returned, recent] = await Promise.all([
+        ctx.db.query("changeProposals").withIndex("by_proposed_by_status", (q) => q.eq("proposedBy", actor.email).eq("status", "submitted")).collect(),
+        ctx.db.query("changeProposals").withIndex("by_proposed_by_status", (q) => q.eq("proposedBy", actor.email).eq("status", "changes_requested")).collect(),
+        ctx.db.query("changeProposals").withIndex("by_proposed_by", (q) => q.eq("proposedBy", actor.email)).order("desc").take(LIST_LIMIT),
+      ]);
+      rows = [...submitted, ...returned, ...recent.filter((row) => !isActive(row))];
+    }
+  } else if (status) {
+    const matches = ctx.db.query("changeProposals").withIndex("by_status", (q) => q.eq("status", status)).order("desc");
+    rows = status === "submitted" || status === "changes_requested" ? await matches.collect() : await matches.take(LIST_LIMIT);
+  } else {
+    const [submitted, returned, recent] = await Promise.all([
+      ctx.db.query("changeProposals").withIndex("by_status", (q) => q.eq("status", "submitted")).collect(),
+      ctx.db.query("changeProposals").withIndex("by_status", (q) => q.eq("status", "changes_requested")).collect(),
+      ctx.db.query("changeProposals").order("desc").take(LIST_LIMIT),
+    ]);
+    rows = [...submitted, ...returned, ...recent.filter((row) => !isActive(row))];
+  }
+  rows.sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right._creationTime - left._creationTime);
+  return summarizeProposals(ctx, rows, actor.email);
 }
 
-/** The review queue: every proposal, or those in one status, newest first, without payload or diff. Editor floor. */
+/** Admin-global review queue; editors see only their own submissions. */
 export const list = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -289,26 +339,51 @@ export async function getHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string; id: Id<"changeProposals"> },
 ) {
-  await requireRole(
+  const actor = await requireRole(
     ctx,
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
     "editor",
   );
   const row = await ctx.db.get(args.id);
-  if (!row) {
+  if (!row || (actor.role !== "admin" && row.proposedBy !== actor.email)) {
     return null;
   }
   // The production hash of each target as it stands now: a reviewer sees a
   // target has drifted from `baseHash` before approve refuses it.
   const liveHashes = [];
+  const baseline = [];
   for (const target of row.targets) {
+    const document = await readProposalTarget(ctx, target, "stored");
+    baseline.push({ kind: target.kind, key: target.key, document });
     liveHashes.push({
       kind: target.kind,
       key: target.key,
-      hash: await hashProposalTarget(ctx, { kind: target.kind, key: target.key }),
+      hash: contentHash(proposalHashDocument(target.kind, document)),
     });
   }
-  return { ...row, liveHashes };
+  const liveMatchesBase = liveHashes.every((live, index) => live.hash === row.targets[index].baseHash);
+  const comparisonMode = row.snapshotBefore ? "applied"
+    : row.diffVersion === 1 ? "submitted"
+    : liveMatchesBase && (row.status === "submitted" || row.status === "changes_requested") ? "verified_live"
+    : "unavailable";
+  const diff = comparisonMode === "applied"
+    ? buildProposalDiff(row.payload as ProposalPayload, row.snapshotBefore)
+    : comparisonMode === "submitted" ? row.diff
+    : comparisonMode === "verified_live" ? buildProposalDiff(row.payload as ProposalPayload, baseline)
+    : "";
+  const comparisonNote = comparisonMode === "unavailable"
+    ? "Historical comparison unavailable: this older proposal has no verified server-generated diff or captured baseline. The original client-supplied diff is not trusted. Reload current production and submit a fresh revision to review these changes."
+    : undefined;
+  const nameOf = proposalNameResolver(ctx);
+  return projectProposalDetail({
+    ...row,
+    proposerName: await nameOf(row.proposedBy),
+    reviewerName: row.reviewedBy ? await nameOf(row.reviewedBy) : undefined,
+    comments: await Promise.all(row.comments.map(async (comment) => ({
+      ...comment, authorName: await nameOf(comment.by),
+    }))),
+    diff, comparisonMode, comparisonNote, liveHashes,
+  }, actor.email);
 }
 
 /** One proposal in full, with the live hash of every target. Editor floor. */
@@ -340,12 +415,12 @@ export async function commentHandler(
     });
   }
   const row = await ctx.db.get(args.id);
-  if (!row) {
+  if (!row || (actor.role !== "admin" && row.proposedBy !== actor.email)) {
     throw new ConvexError({ code: "PROPOSAL_NOT_FOUND", message: "No proposal with that id." });
   }
   const comment = { by: actor.email, at: new Date().toISOString(), text };
   await ctx.db.patch(row._id, { comments: [...row.comments, comment], updatedAt: comment.at });
-  return comment;
+  return projectProposalComment({ ...comment, authorName: await proposalNameResolver(ctx)(actor.email) });
 }
 
 /** Append a discussion comment. Editor floor; any status, including terminal ones. */

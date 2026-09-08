@@ -10,6 +10,7 @@ import {
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
+  useConfirm,
 } from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { normalizeWhitespace } from "@/lib/text";
@@ -25,6 +26,7 @@ import { AboutCopyEditors } from "./AboutCopyEditors";
 import { AboutPreviewSection } from "./AboutPreviewSection";
 import { AboutFounderSelectionSection } from "./AboutFounderSelectionSection";
 import { useAboutEditorController } from "./useAboutEditorController";
+import { useLibrary } from "@/data/SubstanceIndexProvider";
 
 const AUTO_RESIZE_MIN_HEIGHT = 240;
 const SUBTITLE_MIN_HEIGHT = 80;
@@ -36,6 +38,7 @@ interface AboutEditorTabProps {
   canApprove: boolean;
   /** Whether the About draft holds unsaved edits; the Writing rail guards leaving it. */
   onDirtyChange?: (dirty: boolean) => void;
+  onCanDiscardChange?: (canDiscard: boolean) => void;
 }
 
 export const AboutEditorTab = memo(function AboutEditorTab({
@@ -43,14 +46,26 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   profilesLoading,
   canApprove,
   onDirtyChange,
+  onCanDiscardChange,
 }: AboutEditorTabProps) {
-  const controller = useAboutEditorController({ canApprove });
+  const library = useLibrary();
+  const { confirm, dialog } = useConfirm();
+  const controller = useAboutEditorController({ canApprove, placeholderValues: {
+    compoundCount: library.substanceRecords.length.toLocaleString(),
+    psychoactiveClassCount: library.dosageCategoryGroups.length.toLocaleString(),
+    categoryCount: library.dosageCategoryGroups.length.toLocaleString(),
+    chemicalClassCount: library.chemicalClassIndexGroups.length.toLocaleString(),
+    mechanismClassCount: library.mechanismIndexGroups.length.toLocaleString(),
+    mechanismOfActionClassCount: library.mechanismIndexGroups.length.toLocaleString(),
+    reportCount: "0", replicationCount: "0",
+  } });
   const {
     isLoaded,
     draft,
     original,
     isDirty,
     saveState,
+    publicationUncertain,
     notice,
     copyNotice,
     markdownDiff,
@@ -76,6 +91,8 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+  useEffect(() => { onCanDiscardChange?.(!publicationUncertain && saveState !== "saving"); }, [onCanDiscardChange, publicationUncertain, saveState]);
+  useEffect(() => () => onCanDiscardChange?.(true), [onCanDiscardChange]);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const subtitleTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -164,7 +181,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
 
   if (!isLoaded) {
     return (
-      <StateCard loading compact title="Loading About" />
+      controller.loadError ? <div><p role="alert">{controller.loadError}</p><Button onClick={controller.reloadSource}>Retry loading</Button></div> : <StateCard loading compact title="Loading About" />
     );
   }
 
@@ -172,6 +189,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     <div className="space-y-8">
       {notice ? <EditorNotice notice={notice} /> : null}
 
+      <fieldset disabled={publicationUncertain && saveState !== "saving"}>
       <AboutCopyEditors
         aboutMarkdown={aboutMarkdown}
         onMarkdownChange={handleTextareaChange}
@@ -188,12 +206,14 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         subtitleTextareaRef={subtitleTextareaRef}
         copyNotice={copyNotice}
       />
+      </fieldset>
 
       <AboutPreviewSection
         resolvedPreviewMarkdown={resolvedPreviewMarkdown}
         selectedFounders={selectedFounders}
       />
 
+      <fieldset disabled={publicationUncertain}>
       <AboutFounderSelectionSection
         availableProfiles={availableProfiles}
         selectedFounders={selectedFounders}
@@ -206,6 +226,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         formatFounderList={formatFounderList}
         isLoadingProfiles={profilesLoading}
       />
+      </fieldset>
 
       <EditorSection
         title="Related copy"
@@ -243,7 +264,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
           <div className="space-y-4">
             {isMarkdownDirty && (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold theme-text-secondary">Page copy</h3>
+                <h3 className="text-sm font-semibold theme-text-secondary">About copy</h3>
                 <DiffPreview diffText={stripDiffHeading(markdownDiff)} maxHeight={256} />
               </div>
             )}
@@ -270,7 +291,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             variant="accent"
             size="sm"
             disabled={!isDirty || saveState === "saving"}
-            onClick={() => void save()}
+            onClick={() => canApprove ? confirm({ title: "Publish About copy?", description: "Publish the displayed About copy, subtitle, and founder selection diff to dose.wiki /about and its search metadata.", confirmLabel: "Publish About copy", onConfirm: () => { void save(); } }) : void save()}
           >
             <Icon icon={canApprove ? "lucide:save" : "lucide:send"} size={15} />
             {canApprove ? "Save About page" : "Submit for review"}
@@ -284,6 +305,8 @@ export const AboutEditorTab = memo(function AboutEditorTab({
           )}
         </EditorToolbar>
       </EditorSection>
+      {publicationUncertain && <p role="alert">A publication is awaiting confirmation. Retry the same publication before leaving; newer local edits are preserved.</p>}
+      {dialog}
     </div>
   );
 });

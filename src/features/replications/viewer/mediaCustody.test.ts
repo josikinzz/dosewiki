@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   adoptPooledElement,
   assignPooledSource,
-  blessPooledElement,
   clearPooledSource,
   createSoundCustody,
   detachPooledElement,
@@ -11,7 +10,6 @@ import {
   reloadPooledElement,
   seekPooledElement,
   silencePooledElement,
-  warmPooledElement,
 } from "./mediaCustody";
 
 function video({ paused = true }: { paused?: boolean } = {}) {
@@ -85,18 +83,6 @@ describe("pooled element custody verbs", () => {
     expect(load).toHaveBeenCalledOnce();
   });
 
-  it("warms muted and blesses with a post-play parking decision", async () => {
-    const warm = video();
-
-    warmPooledElement(warm.element);
-    expect(warm.element.muted).toBe(true);
-    expect(warm.play).toHaveBeenCalledOnce();
-
-    const blessed = video({ paused: false });
-    blessPooledElement(blessed.element, () => false);
-    await settlePromises();
-    expect(blessed.pause).toHaveBeenCalledOnce();
-  });
   it("detaches through the generic deferred release", async () => {
     const { element, pause, load } = video({ paused: false });
     element.src = "https://cdn.test/old.mp4";
@@ -185,5 +171,43 @@ describe("sound custody", () => {
     expect(element.muted).toBe(true);
     expect(element.volume).toBe(0.5);
     expect(custody.iouOutstanding()).toBe(true);
+  });
+
+  it("does not retry refused audio after an explicit pause", async () => {
+    const { element, play } = video();
+    document.body.append(element);
+    element.muted = false;
+    let rejectPending!: (reason: unknown) => void;
+    const pending = new Promise<void>((_resolve, reject) => { rejectPending = reject; });
+    play.mockReturnValueOnce(pending);
+    const onBlocked = vi.fn();
+    const custody = createSoundCustody({ volume: 1, onBlocked });
+    custody.attemptPlay(element);
+    custody.pause(element);
+    rejectPending(new DOMException("denied", "NotAllowedError"));
+    await settlePromises();
+    expect(play).toHaveBeenCalledOnce();
+    expect(element.muted).toBe(false);
+    expect(onBlocked).not.toHaveBeenCalled();
+  });
+
+  it("ignores a stale fallback rejection after custody moves to a new element", async () => {
+    const { element, play } = video();
+    const next = video();
+    document.body.append(element, next.element);
+    element.muted = false;
+    let rejectFallback!: (reason: unknown) => void;
+    const fallback = new Promise<void>((_resolve, reject) => { rejectFallback = reject; });
+    play.mockRejectedValueOnce(new Error("sound denied"))
+      .mockReturnValueOnce(fallback);
+    const onBlocked = vi.fn();
+    const custody = createSoundCustody({ volume: 1, onBlocked });
+    custody.attemptPlay(element);
+    await settlePromises();
+    custody.pause(element);
+    custody.attemptPlay(next.element);
+    rejectFallback(new Error("old fallback denied"));
+    await settlePromises();
+    expect(onBlocked).not.toHaveBeenCalled();
   });
 });

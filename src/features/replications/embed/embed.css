@@ -1,0 +1,19 @@
+/* The host sizes its frame from the reported root height, so the frame must
+   never scroll itself: a scrollbar would narrow the stage, grow the measured
+   height, and oscillate the frame between two sizes. */
+html:has([data-replication-embed]) {
+  min-height: 0;
+  background: transparent;
+  overflow: hidden;
+  scrollbar-width: none;
+}
+
+html:has([data-replication-embed]) body.app-container.theme-page-shell {
+  min-height: 0;
+  background: transparent;
+}
+
+[data-replication-embed] {
+  width: 100%;
+  flex: none;
+}

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query, type QueryCtx } from "./_generated/server";
+import { query, type QueryCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 
 const statusValidator = v.union(
@@ -68,7 +69,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     // Public intake relays an unauthenticated submitter: the server acts as
     // itself, so no actor is delegated.
-    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "editorArticleWrite" }, "editor");
+    await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "publicIntakeCreate" }, "editor");
     validateCreatedFeedback(args.feedback);
 
     const existing = await findFeedbackByPublicId(ctx, args.feedback.id);

@@ -37,7 +37,7 @@ export const VCODE_TAG_NAMES = new Set([
   "youtube-embed",
 ]);
 
-const HASH_DIRECTIVE_ALIASES: Record<string, string> = {
+export const HASH_DIRECTIVE_ALIASES: Record<string, string> = {
   "cap-img": "captioned-image",
   md: "markdown",
   quotation: "quote",
@@ -78,7 +78,7 @@ const HASH_CONTAINER_TAG_NAMES = new Set([
 ]);
 
 const HASH_DIRECTIVE_NAME_PATTERN = /^[A-Za-z][\w-]*/;
-const HASH_ATTRIBUTE_PATTERN = /^\|([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^|{\s]*))/;
+export const HASH_ATTRIBUTE_PATTERN = /^\|([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^|{\s]*))/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -120,6 +120,8 @@ export function normalizeVCodeContent(ast: unknown, raw: string | undefined): VC
  * card would double the framing. Quotes nested deeper in the content keep
  * their normal chrome.
  */
+export function unwrapTopLevelQuotes(content: (string | VCodeNode)[]): (string | VCodeNode)[];
+export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent;
 export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent {
   if (typeof content === "string") {
     return content;

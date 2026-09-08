@@ -44,6 +44,7 @@ const convexCapability = {
 function request(body: unknown = { value: "ok" }) {
   return new Request("https://dose.wiki/api/test", {
     method: "POST",
+    headers: { Origin: "https://dose.wiki", "Content-Type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -59,6 +60,32 @@ describe("protectedRouteOperation", () => {
       capability: convexCapability,
     });
   });
+  it("rejects foreign, opaque, and missing origins before any authenticated mutation", async () => {
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    let stored = "original";
+    const handler = protectedRouteOperation({
+      auth: "editor",
+      rateLimit: "editorSmallWrite",
+      unexpectedErrorLabel: "test:",
+      operation: () => { stored = "changed"; return NextResponse.json({ ok: true }); },
+    });
+    for (const origin of ["https://attacker.example", "null", undefined]) {
+      const response = await handler(new Request("https://dev.dose.wiki/api/test", {
+        method: "POST",
+        headers: origin ? { Origin: origin } : {},
+      }));
+      expect(response.status).toBe(403);
+      expect(stored).toBe("original");
+      expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    }
+    const response = await handler(new Request("https://dev.dose.wiki/api/test", {
+      method: "POST", headers: { Origin: "https://dev.dose.wiki", "Sec-Fetch-Site": "same-origin" },
+    }));
+    expect(response.status).toBe(200);
+    expect(stored).toBe("changed");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
 
   it("returns unauthenticated responses without invoking the operation", async () => {
     const operation = vi.fn();

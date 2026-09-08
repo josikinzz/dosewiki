@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "./_generated/dataModel";
 import { auditStampFor } from "./lib/auditStamp";
 import { requireRole, roleMeetsFloor, type AuthorizedActor } from "./lib/auth";
@@ -270,7 +271,7 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
     } else {
       owner_email = existing.owner_email;
     }
-    await recordRevision(ctx, { table: "replicationPlaylists", key: existing.key, action: "update", before: existing, actor });
+    await recordRevision(ctx, { table: "replicationPlaylists", key: existing.key, action: "update", before: existing, after: { ...existing, ...patch }, actor });
     await ctx.db.patch(existing._id, patch);
   } else {
     await ctx.db.insert("replicationPlaylists", {

@@ -1,6 +1,9 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, type QueryCtx } from "./_generated/server";
+import { query, type QueryCtx, type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
+import { contentHash } from "../lib/proposals/contentHash";
+import type { WarningBannerPreset } from "../src/data/substanceWarningBanners";
 import {
   classSourceFromSubstanceDocument,
   normalizeEnabledSlugs,
@@ -38,7 +41,7 @@ const warningBannerToneValidator = v.union(
   v.literal("caution"),
 );
 
-/** Mirrors the `warningBannerPresets` row shape in `convex/schema.ts`. */
+/** Public warning projection: excludes editor identities and revision tokens. */
 const warningBannerPresetDocValidator = v.object({
   _id: v.id("warningBannerPresets"),
   _creationTime: v.number(),
@@ -52,11 +55,10 @@ const warningBannerPresetDocValidator = v.object({
   allSubstances: v.optional(v.boolean()),
   enabledSlugs: v.array(v.string()),
   updatedAt: v.string(),
-  updatedBy: v.optional(v.string()),
 });
 
 function reject(message: string): never {
-  throw new ConvexError({ code: "invalidWarningBanner", message });
+  throw new ConvexError({ code: "INVALID_WARNING_BANNER", message });
 }
 
 /**
@@ -83,7 +85,20 @@ export const listPresets = query({
   args: {},
   returns: v.array(warningBannerPresetDocValidator),
   handler: async (ctx) => {
-    return await ctx.db.query("warningBannerPresets").collect();
+    const rows = await ctx.db.query("warningBannerPresets").collect();
+    return rows.map(({ updatedBy: _updatedBy, ...row }) => row);
+  },
+});
+
+export const listEditorPresets = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "admin");
+    const rows = await ctx.db.query("warningBannerPresets").collect();
+    return await Promise.all(rows.map(async (row) => ({
+      ...presetValue(row), baseHash: await presetHash(ctx, row.key, row),
+    })));
   },
 });
 
@@ -173,14 +188,12 @@ export const upsertPreset = mutation({
     enabled: v.boolean(),
     allSubstances: v.boolean(),
     enabledSlugs: v.array(v.string()),
-    updatedBy: v.optional(v.string()),
+    baseHash: v.string(),
+    changeId: v.string(),
+    scope: v.union(v.literal("assignment"), v.literal("preset")),
+    slug: v.optional(v.string()),
   },
-  returns: v.object({
-    updated: v.boolean(),
-    key: v.string(),
-    allSubstances: v.boolean(),
-    enabledSlugs: v.array(v.string()),
-  }),
+  returns: v.any(),
   handler: async (ctx, args) => {
     const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
@@ -271,7 +284,32 @@ export const upsertPreset = mutation({
     const existing = await ctx.db
       .query("warningBannerPresets")
       .withIndex("by_key", (q) => q.eq("key", key))
-      .first();
+      .unique();
+    const requestHash = contentHash(argsWithoutCredentials(args));
+    const replay = await replayOperation(ctx, args.changeId, requestHash, actor.email);
+    if (replay) return replay;
+    const baseHash = await presetHash(ctx, key, existing);
+    if (baseHash !== args.baseHash) conflict();
+    if (args.scope === "assignment") {
+      if (!existing || !args.slug || !(await uniqueSubstanceBySlug(ctx, args.slug))) {
+        reject("An assignment must name an existing article and preset.");
+      }
+      if (existing.allSubstances) reject("Sitewide presets have no local assignment. Edit the shared preset instead.");
+      const unchanged = { ...presetValue(existing), enabledSlugs };
+      if (contentHash(unchanged) !== contentHash({ key, tone: args.tone, icon, severityLabel, headline, points, enabled: args.enabled, allSubstances: args.allSubstances, enabledSlugs })) {
+        reject("A local assignment cannot change shared preset content or status.");
+      }
+      if (contentHash(existing.enabledSlugs.filter((slug) => slug !== args.slug)) !==
+          contentHash(enabledSlugs.filter((slug) => slug !== args.slug))) {
+        reject("A local assignment can change only the named article.");
+      }
+    } else if (args.slug) {
+      if (!existing || !(await uniqueSubstanceBySlug(ctx, args.slug))) reject("Article or preset not found.");
+      if (existing.enabled !== args.enabled || Boolean(existing.allSubstances) !== args.allSubstances ||
+          contentHash(existing.enabledSlugs) !== contentHash(enabledSlugs)) {
+        reject("Contextual preset edits cannot change bulk coverage.");
+      }
+    }
 
     const document = {
       key,
@@ -284,16 +322,16 @@ export const upsertPreset = mutation({
       allSubstances: args.allSubstances,
       enabledSlugs,
       updatedAt: new Date().toISOString(),
-      updatedBy: args.updatedBy ?? actor.email,
+      updatedBy: actor.email,
     };
 
-    if (existing) {
-      await ctx.db.patch(existing._id, document);
-      return { updated: true, key, allSubstances: args.allSubstances, enabledSlugs };
-    }
-
-    await ctx.db.insert("warningBannerPresets", document);
-    return { updated: false, key, allSubstances: args.allSubstances, enabledSlugs };
+    if (existing) await ctx.db.patch(existing._id, document);
+    else await ctx.db.insert("warningBannerPresets", document);
+    return await journal(ctx, {
+      key, before: presetValue(existing), after: presetValue(document), baseHash,
+      changeId: args.changeId, requestHash, actor, scope: args.scope, slug: args.slug,
+      operation: "publish",
+    });
   },
 });
 
@@ -307,10 +345,12 @@ export const removePreset = mutation({
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     key: v.string(),
+    baseHash: v.string(),
+    changeId: v.string(),
   },
-  returns: v.object({ removed: v.boolean(), key: v.string() }),
+  returns: v.any(),
   handler: async (ctx, args) => {
-    await requireRole(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
@@ -320,13 +360,119 @@ export const removePreset = mutation({
     const existing = await ctx.db
       .query("warningBannerPresets")
       .withIndex("by_key", (q) => q.eq("key", key))
-      .first();
+      .unique();
 
-    if (!existing) {
-      return { removed: false, key };
-    }
-
+    const requestHash = contentHash(argsWithoutCredentials(args));
+    const replay = await replayOperation(ctx, args.changeId, requestHash, actor.email);
+    if (replay) return replay;
+    const baseHash = await presetHash(ctx, key, existing);
+    if (baseHash !== args.baseHash) conflict();
+    if (!existing) reject("Preset not found.");
     await ctx.db.delete(existing._id);
-    return { removed: true, key };
+    return await journal(ctx, {
+      key, before: presetValue(existing), after: null, baseHash, changeId: args.changeId,
+      requestHash, actor, scope: "preset", operation: "remove",
+    });
+  },
+});
+
+function presetValue(value: WarningBannerPreset | null): WarningBannerPreset | null {
+  if (!value) return null;
+  return { key: value.key, tone: value.tone, icon: value.icon,
+    severityLabel: value.severityLabel, headline: value.headline, points: value.points,
+    enabled: value.enabled, allSubstances: Boolean(value.allSubstances), enabledSlugs: value.enabledSlugs };
+}
+
+async function presetHash(ctx: QueryCtx | MutationCtx, key: string, value: WarningBannerPreset | null) {
+  const latest = await ctx.db.query("warningBannerRevisions").withIndex("by_key", (q) => q.eq("key", key)).order("desc").first();
+  return contentHash({ preset: presetValue(value), revision: latest?.changeId ?? null });
+}
+
+function conflict(): never {
+  throw new ConvexError({ code: "FIELD_CONFLICT", message: "This warning changed since it was opened. Reload its current version before publishing; your local edits have not been applied." });
+}
+
+function argsWithoutCredentials(args: Record<string, unknown>) {
+  const { apiKey: _apiKey, actorEmail: _actorEmail, ...payload } = args;
+  return payload;
+}
+
+async function replayOperation(ctx: MutationCtx, changeId: string, requestHash: string, actorEmail: string) {
+  if (!changeId.trim() || changeId.length > 128) reject("A bounded change id is required.");
+  const previous = await ctx.db.query("warningBannerRevisions").withIndex("by_change", (q) => q.eq("changeId", changeId)).unique();
+  if (!previous) return null;
+  if (previous.actorEmail !== actorEmail || previous.requestHash !== requestHash) reject("This change id belongs to a different request.");
+  return revisionResult(previous);
+}
+
+function revisionResult(revision: {
+  key: string; changeId: string; resultHash: string; after: unknown;
+  affectedSlugs: string[]; allSubstances: boolean;
+}) {
+  const after = revision.after as WarningBannerPreset | null;
+  return { key: revision.key, changeId: revision.changeId, baseHash: revision.resultHash,
+    preset: after, updated: true, removed: after === null, enabledSlugs: after?.enabledSlugs ?? [],
+    allSubstances: revision.allSubstances, affectedSlugs: revision.affectedSlugs };
+}
+
+async function journal(ctx: MutationCtx, input: {
+  key: string; before: WarningBannerPreset | null; after: WarningBannerPreset | null;
+  baseHash: string; changeId: string; requestHash: string;
+  actor: { email: string; role: string }; scope: "assignment" | "preset"; slug?: string;
+  operation: "publish" | "remove" | "restore";
+}) {
+  const { actor, ...values } = input;
+  const resultHash = contentHash({ preset: input.after, revision: input.changeId });
+  const revision = {
+    ...values, resultHash, actorEmail: actor.email, actorRole: actor.role,
+    createdAt: new Date().toISOString(),
+    affectedSlugs: input.scope === "assignment" && input.slug ? [input.slug] :
+      [...new Set([...(input.before?.enabledSlugs ?? []), ...(input.after?.enabledSlugs ?? [])])].sort(),
+    allSubstances: Boolean(input.before?.allSubstances || input.after?.allSubstances),
+    publications: ["dose.wiki", "Effect Index"],
+  };
+  await ctx.db.insert("warningBannerRevisions", revision);
+  return revisionResult(revision);
+}
+
+export const getEditorState = query({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), key: v.string(), changeId: v.optional(v.string()) },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    const actor = await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "admin");
+    const preset = await ctx.db.query("warningBannerPresets").withIndex("by_key", (q) => q.eq("key", args.key)).unique();
+    const history = await ctx.db.query("warningBannerRevisions").withIndex("by_key", (q) => q.eq("key", args.key)).order("desc").take(50);
+    const operation = args.changeId ? await ctx.db.query("warningBannerRevisions").withIndex("by_change", (q) => q.eq("changeId", args.changeId!)).unique() : null;
+    return { preset: presetValue(preset), baseHash: await presetHash(ctx, args.key, preset),
+      history: history.map((row) => ({ ...row, revisionId: row._id })),
+      operation: operation && operation.key === args.key && operation.actorEmail === actor.email ? revisionResult(operation) : null };
+  },
+});
+
+export const restorePreset = mutation({
+  args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), key: v.string(),
+    baseHash: v.string(), changeId: v.string(), revisionId: v.id("warningBannerRevisions") },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    const actor = await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "admin");
+    const requestHash = contentHash(argsWithoutCredentials(args));
+    const replay = await replayOperation(ctx, args.changeId, requestHash, actor.email);
+    if (replay) return replay;
+    const revision = await ctx.db.get(args.revisionId);
+    if (!revision || revision.key !== args.key) reject("Warning revision not found.");
+    const existing = await ctx.db.query("warningBannerPresets").withIndex("by_key", (q) => q.eq("key", args.key)).unique();
+    const baseHash = await presetHash(ctx, args.key, existing);
+    if (baseHash !== args.baseHash || baseHash !== revision.resultHash) conflict();
+    const after = revision.before as WarningBannerPreset | null;
+    if (after) {
+      for (const slug of after.enabledSlugs) {
+        if (!(await uniqueSubstanceBySlug(ctx, slug))) reject("An article in this historical assignment no longer exists. Update coverage explicitly instead of restoring it.");
+      }
+      const document = { ...after, updatedAt: new Date().toISOString(), updatedBy: actor.email };
+      if (existing) await ctx.db.replace(existing._id, document);
+      else await ctx.db.insert("warningBannerPresets", document);
+    } else if (existing) await ctx.db.delete(existing._id);
+    return await journal(ctx, { key: args.key, before: presetValue(existing), after, baseHash,
+      changeId: args.changeId, requestHash, actor, scope: revision.scope, slug: revision.slug, operation: "restore" });
   },
 });

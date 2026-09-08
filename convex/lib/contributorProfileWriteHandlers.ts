@@ -1,7 +1,9 @@
 import { ConvexError } from "convex/values";
-import type { MutationCtx } from "../_generated/server";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
+import { contentHash } from "../../lib/proposals/contentHash";
 import { requireRole, roleMeetsFloor } from "./auth";
-import { recordRevision } from "./contentRevisions";
+import { findRevisionOperation, recordRevision } from "./contentRevisions";
 import {
   buildEditorProfilePatch,
   buildStoredProfile,
@@ -66,6 +68,9 @@ export async function saveContributorProfileHandler(
     apiKey?: string;
     actorEmail: string;
     profile: Parameters<typeof buildStoredProfile>[0];
+    expectedUpdatedAt: string | null;
+    operationId?: string;
+    clientRequestIdentity?: string;
   },
 ) {
   const actor = await requireRole(
@@ -88,6 +93,15 @@ export async function saveContributorProfileHandler(
   ) {
     throw new Error("You can only edit your own contributor profile.");
   }
+  const requestIdentity = contentHash({ operation: "profile-self", expectedUpdatedAt: args.expectedUpdatedAt, profile: args.profile, clientRequestIdentity: args.clientRequestIdentity });
+  const prior = await findRevisionOperation(ctx, "contributorProfiles", targetKey, args.operationId, actor.email);
+  if (prior) {
+    if (prior.requestIdentity !== requestIdentity) throw new ConvexError({ code: "PROFILE_OPERATION_REUSED", message: "This publication ID belongs to a different profile change. Reconcile the original change before publishing again." });
+    return profilePublicationResult(ctx, prior);
+  }
+  if (args.expectedUpdatedAt === undefined || (existing?.updatedAt ?? null) !== args.expectedUpdatedAt) {
+    throw new ConvexError({ code: "PROFILE_CONFLICT", message: "This profile changed since it was opened. Your local edits are retained; reload the published profile before retrying." });
+  }
 
   const nextProfile = buildStoredProfile(
     args.profile,
@@ -95,13 +109,15 @@ export async function saveContributorProfileHandler(
     actor.email,
     actor.role,
   );
+  nextProfile.updatedAt = new Date(Math.max(Date.now(), (Date.parse(existing?.updatedAt ?? "") || 0) + 1)).toISOString();
   const aliases = attributionAliasesForProfile(existingProfile, nextProfile.aliases);
   if (existing) {
-    await recordRevision(ctx, { table: "contributorProfiles", key: targetKey, action: "update", before: existing, actor });
+    await recordRevision(ctx, { table: "contributorProfiles", key: targetKey, action: "update", before: existing, after: { ...existing, ...nextProfile, aliases }, actor, operationId: args.operationId, revision: nextProfile.updatedAt, publications: ["dose.wiki", "Effect Index"], requestIdentity, clientRequestIdentity: args.clientRequestIdentity });
     await ctx.db.patch(existing._id, { ...nextProfile, aliases });
     const updated = await getStoredContributorProfile(ctx, targetKey);
     return {
       updated: true,
+      revision: nextProfile.updatedAt,
       profile: updated ? await materializeProfile(ctx, updated as StoredProfile) : null,
       revalidate: {
         contributorKeys: contributorProfileRevalidationKeys(targetKey, updated?.aliases),
@@ -116,8 +132,12 @@ export async function saveContributorProfileHandler(
     createdAt: new Date().toISOString(),
   });
   const created = await getStoredContributorProfile(ctx, targetKey);
+  if (created) {
+    await recordRevision(ctx, { table: "contributorProfiles", key: targetKey, action: "create", before: null, after: created, actor, operationId: args.operationId, revision: created.updatedAt, publications: ["dose.wiki", "Effect Index"], requestIdentity, clientRequestIdentity: args.clientRequestIdentity });
+  }
   return {
     updated: false,
+    revision: nextProfile.updatedAt,
     profile: created ? await materializeProfile(ctx, created as StoredProfile) : null,
     revalidate: {
       contributorKeys: contributorProfileRevalidationKeys(targetKey, created?.aliases),
@@ -285,6 +305,9 @@ export async function saveContributorProfileAsEditorHandler(
     actorEmail?: string;
     key: string;
     patch: Parameters<typeof buildEditorProfilePatch>[0];
+    expectedUpdatedAt: string | null;
+    operationId?: string;
+    clientRequestIdentity?: string;
   },
 ) {
   const actor = await requireRole(
@@ -307,16 +330,54 @@ export async function saveContributorProfileAsEditorHandler(
   ) {
     throw new Error("You can only edit your own contributor profile.");
   }
-  const patch = buildEditorProfilePatch(args.patch, existing as StoredProfile, actor.email);
-  await recordRevision(ctx, { table: "contributorProfiles", key, action: "update", before: existing, actor });
+  const requestIdentity = contentHash({ operation: "profile-editor", expectedUpdatedAt: args.expectedUpdatedAt, patch: args.patch, clientRequestIdentity: args.clientRequestIdentity });
+  const prior = await findRevisionOperation(ctx, "contributorProfiles", key, args.operationId, actor.email);
+  if (prior) {
+    if (prior.requestIdentity !== requestIdentity) throw new ConvexError({ code: "PROFILE_OPERATION_REUSED", message: "This publication ID belongs to a different profile change. Reconcile the original change before publishing again." });
+    return profilePublicationResult(ctx, prior);
+  }
+  if (args.expectedUpdatedAt === undefined || (existing.updatedAt ?? null) !== args.expectedUpdatedAt) {
+    throw new ConvexError({ code: "PROFILE_CONFLICT", message: "This profile changed since it was opened. Your local edits are retained; reload the published profile before retrying." });
+  }
+  const revision = new Date(Math.max(Date.now(), (Date.parse(existing.updatedAt ?? "") || 0) + 1)).toISOString();
+  const patch = buildEditorProfilePatch(args.patch, existing as StoredProfile, actor.email, revision);
+  await recordRevision(ctx, { table: "contributorProfiles", key, action: "update", before: existing, after: { ...existing, ...patch }, actor, operationId: args.operationId, revision, publications: ["dose.wiki", "Effect Index"], requestIdentity, clientRequestIdentity: args.clientRequestIdentity });
   await ctx.db.patch(existing._id, patch);
   const updated = await getStoredContributorProfile(ctx, key);
   return {
     updated: true,
+    revision,
     profile: updated ? await materializeProfile(ctx, updated as StoredProfile) : null,
     revalidate: {
       contributorKeys: contributorProfileRevalidationKeys(key, updated?.aliases),
       reportSlugs: [] as string[],
     },
   };
+}
+
+async function profilePublicationResult(ctx: QueryCtx | MutationCtx, receipt: Doc<"contentRevisions">) {
+  if (!receipt.after || !receipt.revision) throw new ConvexError({ code: "PROFILE_OPERATION_REUSED", message: "This older operation has no canonical result. Reload the published profile before continuing." });
+  const snapshot = receipt.after as StoredProfile;
+  return {
+    updated: receipt.action !== "create",
+    revision: receipt.revision,
+    profile: await materializeProfile(ctx, snapshot),
+    revalidate: { contributorKeys: contributorProfileRevalidationKeys(snapshot.key, snapshot.aliases), reportSlugs: [] as string[] },
+  };
+}
+
+/** Reconcile the original HTTP request before allocating another avatar upload. */
+export async function readContributorProfilePublicationHandler(ctx: QueryCtx, args: {
+  apiKey?: string; actorEmail: string; key: string; operationId: string; clientRequestIdentity: string;
+}) {
+  const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "profileMediaWrite" }, "contributor");
+  const key = normalizeProfileKey(args.key);
+  const existing = await getStoredContributorProfile(ctx, key);
+  if (!canEditContributorProfile({ actorEmail: actor.email, actorRole: actor.role, targetKey: key, existingProfile: existing as StoredProfile | null })) {
+    throw new Error("You can only edit your own contributor profile.");
+  }
+  const receipt = await findRevisionOperation(ctx, "contributorProfiles", key, args.operationId, actor.email);
+  if (!receipt) return null;
+  if (receipt.clientRequestIdentity !== args.clientRequestIdentity) throw new ConvexError({ code: "PROFILE_OPERATION_REUSED", message: "This publication ID belongs to a different profile request." });
+  return profilePublicationResult(ctx, receipt);
 }

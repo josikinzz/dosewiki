@@ -1,4 +1,5 @@
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
+import { splitAboutMarkdown } from "@/data/content/aboutSections";
 import {
   ContributorCard,
   PublicSectionHeading,
@@ -14,36 +15,46 @@ type AboutPreviewSectionProps = {
 };
 
 /**
- * Renders the editable About content with the same components the public
- * page uses (`AboutMissionMarkdown`, `PublicSectionHeading`,
- * `ContributorCard`) so the preview cannot drift from what publishing
- * produces. The public hero and the Data/Docs tabs are not editable here,
- * so they are intentionally omitted.
+ * Renders editable About sections with the public page's Markdown renderer,
+ * headings, and contributor cards. The hero and noneditable sections are omitted.
  */
 export function AboutPreviewSection({
   resolvedPreviewMarkdown,
   selectedFounders,
 }: AboutPreviewSectionProps) {
+  const { introduction, sources, history } = splitAboutMarkdown(resolvedPreviewMarkdown);
   return (
     <EditorSection
       icon="lucide:eye"
       title="Live preview"
-      description="Rendered with the same components as the public About page's Mission and Contributors tabs."
+      description="Rendered in public page order: Introduction, Sources and review, then Founders & Contributors."
     >
       <NestedContentCard variant="subtle" padding="lg" radius="xl" className="space-y-10">
         <section className="space-y-6">
-          <PublicSectionHeading icon="lucide:book-open" title="Project Mission" />
-          <AboutMissionMarkdown content={resolvedPreviewMarkdown} />
+          <PublicSectionHeading icon="lucide:book-open" title="Introduction" />
+          <AboutMissionMarkdown content={introduction} />
         </section>
+        {sources ? (
+          <section className="space-y-6">
+            <PublicSectionHeading icon="lucide:book-open" title="Sources and review" />
+            <AboutMissionMarkdown content={sources} />
+          </section>
+        ) : null}
 
         <section className="space-y-6">
           <PublicSectionHeading icon="lucide:users" title="Founders & Contributors" />
+          {history ? (
+            <div className="space-y-4">
+              <h3 className="theme-text-primary text-lg font-semibold">Project history</h3>
+              <AboutMissionMarkdown content={history} />
+            </div>
+          ) : null}
           {selectedFounders.length > 0 ? (
             <ul className="grid gap-4 sm:grid-cols-2">
               {selectedFounders.map((profile) => (
                 <li key={profile.key}>
                   <ContributorCard
-                    contributor={profile}
+                    contributor={{ ...profile, subtitle: profile.role }}
                     href={publicHref.contributor(profile.key)}
                   />
                 </li>

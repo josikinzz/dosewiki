@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { GalleryReplication, ReplicationWithUrl } from "../../src/types/replications";
+import type { GalleryReplication } from "../../src/types/replications";
 import type { PublicDataReadAdapter } from "./publicData.reads";
+import { projectPublicApiReplication } from "../public-api/v1";
 
 /**
  * The publication gate on the replication reads.
@@ -52,7 +53,7 @@ function row(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
   };
 }
 
-async function loadWithRows(rows: GalleryReplication[]) {
+async function loadWithRows(rows: GalleryReplication[], details = rows) {
   vi.resetModules();
 
   const reads = await import("./publicData.reads");
@@ -62,8 +63,8 @@ async function loadWithRows(rows: GalleryReplication[]) {
       cursor: "done",
       isDone: true,
     }),
-    getPublicReplicationsByEffect: async (effectSlug: string) =>
-      rows.filter((item) => item.effect_slug === effectSlug) as ReplicationWithUrl[],
+    getPublicReplicationsBySlugs: async (slugs: string[]) =>
+      details.filter((item) => slugs.includes(item.slug)),
   } as unknown as PublicDataReadAdapter);
 
   return await import("./publicData.effects");
@@ -92,6 +93,41 @@ describe("the replication publication gate", () => {
     expect((await getPublicReplicationsByEffect("tracers")).map((item) => item.slug)).toEqual([
       "tracers-study",
     ]);
+  });
+
+  it("hydrates exact tag-only associations with full public rights, without duplicates or inherited matches", async () => {
+    const tagged = row({
+      slug: "deliriant-work", effect_slug: "external-hallucination",
+      effect_tags: ["delirium"], rights_status: "permission-granted",
+      license_name: "Artist permission", license_url: "https://artist.test/terms",
+      credit_line: "Artist, used with permission", rightsholder: "Artist",
+      source_url: "https://artist.test/original", permission_notes: "Private grant",
+    });
+    const owner = row({ slug: "owning-work", effect_slug: "delirium", effect_tags: ["delirium"] });
+    const noOwner = row({ slug: "tag-without-owner", effect_slug: undefined, effect_tags: ["delirium"] });
+    const unrelated = row({ slug: "untagged-child", effect_slug: "internal-hallucination" });
+    const suppressed = row({ slug: "suppressed", effect_tags: ["delirium"], publication_state: "duplicate-suppressed" });
+    const stale = row({ slug: "stale-tag", effect_tags: ["delirium"] });
+    const withdrawn = row({ slug: "withdrawn", effect_tags: ["delirium"] });
+    // The discovery projection intentionally has no rights/source detail.
+    const slimTagged = row({ slug: tagged.slug, effect_slug: tagged.effect_slug, effect_tags: tagged.effect_tags });
+    const { getPublicReplicationsByEffect } = await loadWithRows(
+      [slimTagged, owner, noOwner, unrelated, suppressed, slimTagged, stale, withdrawn],
+      [owner, tagged, noOwner, unrelated, suppressed, { ...stale, effect_tags: [] }, { ...withdrawn, role: "figure" }],
+    );
+    const result = (await getPublicReplicationsByEffect("delirium")).map(projectPublicApiReplication);
+    expect(result.map((item) => item.slug)).toEqual(["deliriant-work", "owning-work", "tag-without-owner"]);
+    expect(result[0]).toMatchObject({
+      effect_slug: "external-hallucination", effect_tags: ["delirium"],
+      rights: {
+        status: "permission-granted", license_name: "Artist permission",
+        license_url: "https://artist.test/terms", credit_line: "Artist, used with permission",
+        source_url: "https://artist.test/original", rightsholder: "Artist",
+      },
+    });
+    expect(result[0]).not.toHaveProperty("permission_notes");
+    expect(result[1].rights.status).toBe("unknown");
+    expect((await getPublicReplicationsByEffect("external-hallucination")).map((item) => item.slug)).toEqual(["deliriant-work"]);
   });
 
   it("withholds audio, which every surface would otherwise draw as an image", async () => {

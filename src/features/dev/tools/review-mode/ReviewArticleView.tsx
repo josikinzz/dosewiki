@@ -5,21 +5,16 @@ import type { MouseEvent } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { EditorNotice, EditorStatusPill } from "@/features/dev/components";
+import { EditorNotice } from "@/features/dev/components";
 import { ArticleLayout } from "@/features/article/components/ArticleLayout";
-import {
-  ArticleEditProvider,
-  type ArticleEditContextValue,
-} from "@/features/article/editing";
-import type { Reference, SubstanceArticle } from "@/schema";
-import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
-import type { SubstanceEditorTabProps } from "../substance-editor/types";
-import { CITATION_PANEL_ID, MOLECULE_PANEL_ID } from "./ReviewBarChrome";
-import { ReviewCitationPanel } from "./ReviewCitationPanel";
+import ArticleContextBridge from "@/features/article/editing/ArticleContextBridge.editor";
+import type { SubstanceArticle } from "@/schema";
+import { MOLECULE_PANEL_ID } from "./ReviewBarChrome";
 import { ReviewMoleculePanel } from "./ReviewMoleculePanel";
 import type { ReviewQueueEntry } from "./reviewQueue";
 import type { ReviewViewMode } from "./reviewSettings";
-import type { ReviewDraftHandle } from "./useReviewWrites";
+import type { AppRole } from "@/lib/auth/roles";
+import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
 
 /**
  * The public layout mounts here without a route loader, so it has no resolved
@@ -36,17 +31,8 @@ const BANNERS_HIDDEN_NOTICE = (
   />
 );
 
-/** The slice of the substance editor draft controller the editor view renders. */
-interface ReviewEditorDraft extends ReviewDraftHandle {
-  validationError: string | null;
-  saveError: string | null;
-  isSaving: boolean;
-  handleFormMutate: () => void;
-  handleSaveToDatabase: () => Promise<void>;
-}
 
-interface ReviewArticleViewProps
-  extends Pick<SubstanceEditorTabProps, "renderCommitPanel"> {
+interface ReviewArticleViewProps {
   allReviewed: boolean;
   total: number;
   showAll: () => void;
@@ -63,17 +49,16 @@ interface ReviewArticleViewProps
   closeMoleculePanel: () => void;
   citationPanelOpen: boolean;
   closeCitationPanel: () => void;
-  rememberSavedReference: (slug: string, reference: Reference) => void;
-  rememberRemovedReference: (slug: string, referenceId: string) => void;
   viewMode: ReviewViewMode;
   articleLinks: boolean;
   blockArticleLinks: (event: MouseEvent) => void;
   articlesRefreshConflict: boolean;
   inlineEdit: boolean;
-  /** Admin: inline field edits and source add/remove write production directly, so only an admin arms them. */
-  canApprove: boolean;
-  articleEditContext: ArticleEditContextValue;
-  draft: ReviewEditorDraft;
+  workbenchRole: AppRole | null;
+  workbenchEmail: string | null;
+  onDirtyChange: (dirty: boolean) => void;
+  draftGuardRef: React.MutableRefObject<DraftNavigationGuard | null>;
+  onOperationLockChange: (locked: boolean) => void;
 }
 
 /** Everything under the command bar: the panels, then the article in either view. */
@@ -91,17 +76,12 @@ export function ReviewArticleView({
   closeMoleculePanel,
   citationPanelOpen,
   closeCitationPanel,
-  rememberSavedReference,
-  rememberRemovedReference,
   viewMode,
   articleLinks,
   blockArticleLinks,
   articlesRefreshConflict,
   inlineEdit,
-  canApprove,
-  articleEditContext,
-  draft,
-  renderCommitPanel,
+  workbenchRole, workbenchEmail, onDirtyChange, draftGuardRef, onOperationLockChange,
 }: ReviewArticleViewProps) {
   return (
     <>
@@ -119,30 +99,6 @@ export function ReviewArticleView({
         </div>
       ) : null}
 
-      {/* Fed the overlaid article, so a marker pasted through an inline edit
-          moves its reference from "uncited" to numbered without a refresh. */}
-      {citationPanelOpen && current && articleForView ? (
-        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
-          <ReviewCitationPanel
-            key={current.slug}
-            id={CITATION_PANEL_ID}
-            article={articleForView}
-            name={current.name}
-            // Explicit, not read off the article: the SubstanceArticle contract
-            // has no slug, and the panel's add-source write needs an address
-            // that survives any future projection of the stored doc.
-            slug={current.slug}
-            canApprove={canApprove}
-            onClose={closeCitationPanel}
-            onReferenceSaved={(reference) =>
-              rememberSavedReference(current.slug, reference)
-            }
-            onReferenceRemoved={(referenceId) =>
-              rememberRemovedReference(current.slug, referenceId)
-            }
-          />
-        </div>
-      ) : null}
 
       {/* `theme-review-article-scope` re-times the article's own sticky and
           anchor offsets against the live bar height — see the rule pair in
@@ -201,99 +157,30 @@ export function ReviewArticleView({
           </div>
         ) : null}
 
-        {viewMode === "webpage" ? (
-          articleForView ? (
-            /* Only this branch is edit-enabled: the editor tab already owns a
-               full draft of the article, and two live writers over one document
-               is how an edit quietly disappears. A null value reaches every
-               EditableValue as "no editing surface", so the toggle costs the
-               rendered page nothing when it is off. The inline write lands on
-               the published article, so a non-admin never gets a surface even
-               with the setting persisted on. */
-            <ArticleEditProvider value={inlineEdit && canApprove ? articleEditContext : null}>
-              <ArticleLayout
-                article={articleForView}
-                moleculeOverrideUrl={moleculeOverrideUrl}
-                warningBannerNotice={BANNERS_HIDDEN_NOTICE}
-              />
-            </ArticleEditProvider>
-          ) : articleHydrating ? (
-            /* Per-slug hydration in flight: the bar, queue position, and
-               picker stay live; only the article area waits. */
-            <div aria-busy="true" data-testid="review-article-loading">
-              <EditorNotice
-                notice={{
-                  tone: "info",
-                  message: `Loading ${current?.name ?? "the article"}…`,
-                }}
-              />
-            </div>
-          ) : current && !articleFailed ? (
-            <EditorNotice
-              notice={{
-                tone: "warning",
-                message: "No article data found for this substance.",
-              }}
-            />
-          ) : null
-        ) : (
-          <div className="space-y-6">
-            {draft.formDirty ? (
-              <EditorStatusPill tone="warning" icon="lucide:circle-dot" live>
-                Unapplied form edits
-              </EditorStatusPill>
-            ) : null}
-            {draft.validationError ? (
-              <EditorNotice
-                notice={{
-                  tone: "danger",
-                  title: "Draft not applied",
-                  message: draft.validationError,
-                  live: true,
-                }}
-              />
-            ) : null}
-            {draft.saveError ? (
-              <EditorNotice
-                notice={{ tone: "danger", message: draft.saveError, live: true }}
-              />
-            ) : null}
-            {!articleHydrating && draft.formArticleOverride ? (
-              <ArticleDraftFormFieldsRHF
-                key={current?.slug ?? "review-form"}
-                idPrefix="review-form"
-                article={draft.formArticleOverride}
-                onMutate={draft.handleFormMutate}
-                formRef={draft.formRef}
-              />
-            ) : current && !articleFailed ? (
-              <EditorNotice
-                notice={{
-                  tone: "info",
-                  message: "Loading the article into the editor form…",
-                }}
-              />
-            ) : null}
-            {renderCommitPanel ? (
-              <div>
-                {renderCommitPanel(
-                  <Button
-                    variant="glass"
-                    size="pill"
-                    className="rounded-full"
-                    onClick={() => {
-                      void draft.handleSaveToDatabase();
-                    }}
-                    disabled={draft.isSaving || !draft.formDirty}
-                  >
-                    Apply to draft
-                  </Button>,
-                  "Form edits stay in your draft until you commit them. The review tick saves on its own and needs no commit.",
-                )}
-              </div>
-            ) : null}
+        {articleForView && current ? (
+          <ArticleContextBridge
+            key={current.slug}
+            slug={current.slug}
+            article={articleForView}
+            workbench={inlineEdit || viewMode !== "webpage" || citationPanelOpen}
+            workbenchRole={workbenchRole}
+            workbenchEmail={workbenchEmail}
+            onDirtyChange={onDirtyChange}
+            draftGuardRef={draftGuardRef}
+            onOperationLockChange={onOperationLockChange}
+            requestedSection={citationPanelOpen ? "references" : null}
+            onSectionClose={closeCitationPanel}
+            layoutProps={{ moleculeOverrideUrl, warningBannerNotice: BANNERS_HIDDEN_NOTICE }}
+          >
+            <ArticleLayout article={articleForView} moleculeOverrideUrl={moleculeOverrideUrl} warningBannerNotice={BANNERS_HIDDEN_NOTICE} />
+          </ArticleContextBridge>
+        ) : articleHydrating ? (
+          <div aria-busy="true" data-testid="review-article-loading">
+            <EditorNotice notice={{ tone: "info", message: `Loading ${current?.name ?? "the article"}…` }} />
           </div>
-        )}
+        ) : current && !articleFailed ? (
+          <EditorNotice notice={{ tone: "warning", message: "No article data found for this substance." }} />
+        ) : null}
       </div>
     </>
   );

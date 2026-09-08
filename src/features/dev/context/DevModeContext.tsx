@@ -1,5 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useQuery } from "convex/react";
+import { useSession } from "next-auth/react";
+import { canDraft, resolveSessionRole } from "@/lib/auth/roles";
+import { Button } from "@/components/ui";
+import { useCopyIndexSource } from "../tools/useCopyIndexSource";
 import { api } from "../../../../convex/_generated/api";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
@@ -24,16 +28,16 @@ export function DevModeProvider({
 }) {
   const { articles: articlesSource } = useLibrary();
 
-  // One subscription for all three layouts. The three `getByType` reads this
-  // replaced were three separate round trips for rows that `getAll` already
-  // returns together, and `useIndexLayouts` (behind the library drain) issues
-  // the identical `getAll` — Convex dedupes the two into a single subscription.
-  const indexLayouts = useQuery(api.indexLayouts.getAll, {});
+  const session = useSession();
+  const canReadPrivateLayouts = session.status === "authenticated" && canDraft(resolveSessionRole({ role: session.data?.user?.role }));
+  const privateLayouts = useCopyIndexSource<Array<ManualIndexConfig & { type: "psychoactive" | "chemical" | "mechanism" }>>(canReadPrivateLayouts ? "/api/dev/index-layout?type=all" : null);
+  const publicLayouts = useQuery(api.indexLayouts.getAll, canReadPrivateLayouts ? "skip" : {});
+  const indexLayouts = canReadPrivateLayouts ? privateLayouts.data : publicLayouts?.map((layout) => ({ ...layout, revision: 0 }));
 
   type IndexLayoutRow = NonNullable<typeof indexLayouts>[number];
 
   const layoutsByType = useMemo(
-    () => new Map<string, IndexLayoutRow>((indexLayouts ?? []).map((layout) => [layout.type, layout])),
+    () => new Map<string, IndexLayoutRow>((indexLayouts ?? []).map((layout): [string, IndexLayoutRow] => [layout.type, layout])),
     [indexLayouts],
   );
 
@@ -46,7 +50,7 @@ export function DevModeProvider({
       return EMPTY_INDEX_CONFIG;
     }
 
-    return { version: psychoactiveLayout.version, categories: psychoactiveLayout.categories };
+    return { version: psychoactiveLayout.version, categories: psychoactiveLayout.categories, revision: psychoactiveLayout.revision ?? 0 };
   }, [psychoactiveLayout]);
 
   const chemicalSource = useMemo<ManualIndexConfig>(() => {
@@ -54,7 +58,7 @@ export function DevModeProvider({
       return EMPTY_INDEX_CONFIG;
     }
 
-    return { version: chemicalLayout.version, categories: chemicalLayout.categories };
+    return { version: chemicalLayout.version, categories: chemicalLayout.categories, revision: chemicalLayout.revision ?? 0 };
   }, [chemicalLayout]);
 
   const mechanismSource = useMemo<ManualIndexConfig>(() => {
@@ -62,7 +66,7 @@ export function DevModeProvider({
       return EMPTY_INDEX_CONFIG;
     }
 
-    return { version: mechanismLayout.version, categories: mechanismLayout.categories };
+    return { version: mechanismLayout.version, categories: mechanismLayout.categories, revision: mechanismLayout.revision ?? 0 };
   }, [mechanismLayout]);
 
   const navigationState = useDevNavigationState({ getCurrentPath, navigate });
@@ -76,8 +80,8 @@ export function DevModeProvider({
     articleCount: articlesState.articles.length,
     hydrateArticles: articlesState.hydrateArticles,
   });
-  const { hydrateArticles: _hydrateArticles, ...articleContextValue } = articlesState;
-  const { markIndexManualsSaved, ...indexContextValue } = indexConfigsState;
+  const { hydrateArticles: _hydrateArticles, hasUnsavedArticleChanges, ...articleContextValue } = articlesState;
+  const { markIndexManualsSaved, hasUnsavedIndexChanges, ...indexContextValue } = indexConfigsState;
   const proposalLayouts = useMemo(
     () => ({
       psychoactive: { replace: indexConfigsState.replacePsychoactiveIndexManual, reset: indexConfigsState.resetPsychoactiveIndexManual },
@@ -94,6 +98,7 @@ export function DevModeProvider({
     ],
   );
   const proposalSeed = useDevProposalSeed({
+    hasUnsavedChanges: hasUnsavedArticleChanges || hasUnsavedIndexChanges,
     hydrateArticlesNow: articleHydration.hydrateArticlesNow,
     applyArticlesTransform: articlesState.applyArticlesTransform,
     getOriginalArticles: articlesState.getOriginalArticles,
@@ -103,7 +108,8 @@ export function DevModeProvider({
   const markChangesSaved = useCallback(() => {
     articleContextValue.markChangesSaved();
     markIndexManualsSaved();
-  }, [articleContextValue, markIndexManualsSaved]);
+    if (canReadPrivateLayouts) privateLayouts.reload();
+  }, [articleContextValue, markIndexManualsSaved, canReadPrivateLayouts, privateLayouts.reload]);
 
   const value = useMemo<DevModeContextValue>(() => ({
     ...navigationState,
@@ -121,6 +127,7 @@ export function DevModeProvider({
     proposalSeed,
   ]);
 
+  if (canReadPrivateLayouts && privateLayouts.data === undefined) return <div role="status">{privateLayouts.error ? <><p role="alert">{privateLayouts.error}</p><Button onClick={privateLayouts.reload}>Retry loading editor layouts</Button></> : "Loading editor layouts…"}</div>;
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;
 }
 

@@ -70,9 +70,10 @@ export function EntryCard({
               size="auto"
               onClick={onRemove}
               aria-label={removeLabel}
+              title={removeLabel}
               className={cn("h-7 w-7 shrink-0 p-0", TOUCH_ICON)}
             >
-              <Icon icon="lucide:x" size={14} />
+              <Icon icon="lucide:trash-2" size={14} />
             </Button>
           ) : null}
         </div>

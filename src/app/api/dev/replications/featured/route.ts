@@ -16,15 +16,15 @@
  * deployment records what was already on screen rather than silently replacing
  * it with something else.
  *
- * The POST finishes by revalidating `PUBLIC_CONVEX_CACHE_TAGS.replications`
- * with `expire: 0`, which is what makes a re-curation reach the homepage
- * immediately instead of at the end of the 15-minute public-data window, and by
- * revalidating the Effect Index home route that renders the carousel.
+ * The POST finishes by publishing the featured replication set, which expires
+ * the featured-replications tag with `expire: 0` and the Effect Index home
+ * route that renders the carousel, on this deployment and on the public ones.
+ * That is what makes a re-curation reach the homepage immediately instead of at
+ * the end of the 15-minute public-data window.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "../../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
 import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "@server/next/effectIndexHome";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -108,8 +108,10 @@ export const POST = protectedRouteOperation<FeaturedBody, string[]>({
       updatedBy: actorEmail,
     });
 
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
-    revalidatePath("/");
+    await publishPublicCache({
+      targets: [{ kind: "featured-replications" }],
+      source: "manual",
+    });
 
     return NextResponse.json({ ok: true, slugs: result.slugs, pruned: result.pruned });
   },

@@ -1,22 +1,31 @@
 /**
- * Cache invalidation shared by the three Contributors-tab write routes.
+ * Cache publication shared by the three Contributors-tab write routes.
  *
  * A contributor edit lands on more than the contributor page: the ordering
  * panels decide the sequence of the works and reports rendered *inside* that
  * page, and a merge or a byline retarget rewrites the author shown on the
- * report pages themselves. So the replication and report tags go with the
- * contributor tag rather than being invalidated only where the row lives.
+ * report pages themselves. So the replication and report identities go with
+ * the contributor identity rather than being published only where the row
+ * lives.
  *
- * `expire: 0` is what makes the edit visible on the next request instead of at
- * the end of the 15-minute public-data window, matching the Copy Studio route.
+ * Publishing rather than revalidating locally is what makes the edit visible
+ * on dose.wiki and effectindex.com, whose caches this project cannot reach:
+ * the seam expires this deployment's entries immediately and delivers the same
+ * identities to the public deployments.
  */
-import { revalidatePath, revalidateTag } from "next/cache";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import { revalidatePath } from "next/cache";
+import {
+  isPublicationTarget,
+  type PublicationTarget,
+} from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
+import type { PublicationReceipt } from "@server/next/publicationDispatch";
 import { getPublicRoutePath } from "@server/next/publicSite";
+import { normalizeContributorProfileKey } from "@/utils/publicRouteIdentity";
 
 export type ContributorRevalidationScope = "profile" | "ordering" | "attribution";
 
-export function revalidateContributorSurfaces({
+export async function revalidateContributorSurfaces({
   contributorKeys,
   scope,
   galleryVisibilityChanged = false,
@@ -26,40 +35,54 @@ export function revalidateContributorSurfaces({
   /**
    * A profile save that touched `exclude_from_gallery`. The /replications
    * gallery corpus is composed from the replications AND contributors caches,
-   * so the replications tag goes too — without dragging the reports tag along
-   * the way a full "ordering" scope would.
+   * so the replications identity goes too - without dragging the reports
+   * identity along the way a full "ordering" scope would.
    */
   galleryVisibilityChanged?: boolean;
-}): void {
+}): Promise<PublicationReceipt[]> {
+  const targets: PublicationTarget[] = [];
+  let unnamedKey = false;
+
+  // The contributor identity carries the profile page and the contributor's
+  // Artist Page route segment (T-4: the profile's one public surface when they
+  // claim credited works), which renders the same avatar, bio and links.
   for (const key of contributorKeys) {
-    const normalized = key.trim();
+    const normalized = normalizeContributorProfileKey(key);
     if (!normalized) {
       continue;
     }
-    revalidatePath(
-      getPublicRoutePath({ family: "contributor", params: { profileKey: normalized } }),
-    );
+    const target: PublicationTarget = { kind: "contributor", slug: normalized };
+    if (isPublicationTarget(target)) {
+      targets.push(target);
+      continue;
+    }
+    // A profile key the publication contract cannot carry (an email address,
+    // say) has no transmittable identity, and one target the receiver refuses
+    // costs the whole signal. Expire this deployment's copy of the page
+    // directly instead.
+    unnamedKey = true;
+    revalidatePath(getPublicRoutePath({ family: "contributor", params: { profileKey: normalized } }));
   }
 
-  // The contributor's Artist Page (T-4: the profile's one public surface when
-  // they claim credited works) renders the profile's avatar, bio, and links,
-  // so an edit must land there too. The profile→artist-key mapping needs the
-  // gallery corpus, which this write path has no business reading; the family
-  // is small and hourly-cached, so the whole route segment revalidates.
-  revalidatePath("/replications/artist/[key]", "page");
-
-  revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.contributors, { expire: 0 });
+  if (unnamedKey) {
+    revalidatePath("/replications/artist/[key]", "page");
+    // The contributors data cache still moved, and the index identity carries
+    // exactly that cache without having to name the key, so the public
+    // deployments are not left reading a stale profile payload.
+    targets.push({ kind: "contributor-lists" });
+  }
 
   if (scope === "ordering" || scope === "attribution") {
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.reports, { expire: 0 });
+    targets.push({ kind: "replication-collections" }, { kind: "report-lists" });
   } else if (galleryVisibilityChanged) {
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.replications, { expire: 0 });
+    targets.push({ kind: "replication-collections" });
   }
 
   if (scope === "profile" || scope === "attribution") {
     // The About page renders founder profiles inline, so a display name, role
     // or avatar change is visible there too.
-    revalidatePath("/about");
+    targets.push({ kind: "about" });
   }
+
+  return publishPublicCache({ targets, source: "manual" });
 }

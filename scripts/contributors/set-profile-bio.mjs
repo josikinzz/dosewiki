@@ -105,7 +105,7 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
   const writeClient = new ConvexHttpClient(command.targetUrl);
 
-  const live = await writeClient.query(api.contributorProfiles.getByKey, { key });
+  const live = await writeClient.query(api.contributorProfiles.getEditorProfile, { apiKey, key });
   if ((live?.bio ?? "") !== plan.before) {
     throw new Error(`Profile ${key} changed between planning and writing; re-run to re-plan.`);
   }
@@ -113,6 +113,8 @@ async function main() {
   const result = await writeClient.mutation(api.contributorProfiles.saveProfileAsEditor, {
     apiKey,
     key,
+    expectedUpdatedAt: live?.updatedAt ?? null,
+    operationId: crypto.randomUUID(),
     patch: { bio: plan.after },
   });
   if (!result?.updated || (result.profile?.bio ?? "") !== plan.after) {

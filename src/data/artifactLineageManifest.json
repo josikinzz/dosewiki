@@ -509,6 +509,8 @@
       ],
       "inputs": [
         "lib/og/pageSocialCard.ts",
+        "https://dose.wiki/api/replications/gallery (current public gallery counts)",
+        "src/features/effects/gallery/galleryModel.ts",
         "lib/og/socialCardPrimitives.ts",
         "src/assets/dosewiki-logo.svg",
         "src/assets/replications-after-images-chelsea-morgan.webp",
@@ -518,7 +520,7 @@
         "@iconify-json/* devDependencies"
       ],
       "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
-      "sourceDeployment": "local working tree",
+      "sourceDeployment": "local working tree and https://dose.wiki/api/replications/gallery",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generatePageSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",

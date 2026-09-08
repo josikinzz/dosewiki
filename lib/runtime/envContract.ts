@@ -3,6 +3,14 @@ import {
   getConvexRuntimeTargetMatrix,
   type ConvexRuntimeTargetMatrix,
 } from "../convex/runtimeTargets";
+import {
+  PUBLICATION_TARGETS_ENV,
+  getPublicationTargets,
+} from "../next/publicationDispatch";
+import {
+  PUBLICATION_SECRET_ENV,
+  getPublicationSecret,
+} from "../next/publicationSignature";
 
 export type RuntimeEnv = Partial<Record<string, string | undefined>>;
 
@@ -22,7 +30,8 @@ export type RuntimeEnvCapability =
   | "serverReadConfig"
   | "serverWriteConfig"
   | "authConfig"
-  | "diagnosticsConfig";
+  | "diagnosticsConfig"
+  | "publicationConfig";
 
 export type PublicBrowserRuntimeConfig = {
   convexUrl: string;
@@ -130,6 +139,7 @@ function buildIssues({
   authPolicy,
   convexTargets,
   diagnosticsConfig,
+  env,
   profile,
   publicBrowserConfig,
   serverWriteConfig,
@@ -137,6 +147,7 @@ function buildIssues({
   authPolicy: AuthRuntimePolicy;
   convexTargets: ConvexRuntimeTargetMatrix;
   diagnosticsConfig: DiagnosticsRuntimeConfig;
+  env: RuntimeEnv;
   profile: RuntimeDeploymentProfile;
   publicBrowserConfig: PublicBrowserRuntimeConfig;
   serverWriteConfig: ServerWriteRuntimeConfig;
@@ -198,6 +209,22 @@ function buildIssues({
         ["CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL"],
         "warning",
         warning,
+      ),
+    );
+  }
+
+  // A half-configured pair is the silent case: writes commit, the editor
+  // refreshes itself, and the public deployments keep serving the old revision
+  // with nothing in the response that looks like a failure.
+  const publicationTargets = getPublicationTargets(env);
+  const publicationSecret = getPublicationSecret(env);
+  if (publicationTargets.length > 0 && !publicationSecret) {
+    issues.push(
+      issue(
+        "publicationConfig",
+        [PUBLICATION_TARGETS_ENV, PUBLICATION_SECRET_ENV],
+        "warning",
+        "Public cache targets are configured without a signing secret; editorial writes will not reach the public deployments.",
       ),
     );
   }
@@ -266,6 +293,7 @@ export function resolveRuntimeEnvContract(
     authPolicy,
     convexTargets,
     diagnosticsConfig,
+    env,
     profile,
     publicBrowserConfig,
     serverWriteConfig,

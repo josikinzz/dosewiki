@@ -21,7 +21,7 @@ installProtectedRouteMocks();
 function post(body: unknown, id = "cp_old") {
   return new Request(`https://dose.wiki/api/dev/proposals/${id}/resubmit`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.9" },
+    headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.9", Origin: "https://dose.wiki" },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -33,7 +33,7 @@ function useClient(mutation: Mock) {
 const stagedSave = {
   payload: { articles: [{ id: 1, title: "LSD", slug: "lsd", draftOnlyField: "dropped" }] },
   summary: "  Update LSD  ",
-  diff: "# LSD\n\n+ Rebased",
+  baselines: [{ kind: "article", key: "lsd", document: null }],
 };
 
 describe("dev proposal resubmit route", () => {
@@ -50,14 +50,6 @@ describe("dev proposal resubmit route", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true, proposalId: "cp_new" });
     expect(client.mutation).toHaveBeenCalledTimes(1);
-    expect(client.mutation).toHaveBeenCalledWith("changeProposals.submit", {
-      apiKey: "article-token",
-      actorEmail: "editor@example.com",
-      payload: expect.objectContaining({ articles: [{ id: 1, title: "LSD", slug: "lsd" }] }),
-      summary: "Update LSD",
-      diff: "# LSD\n\n+ Rebased",
-      revisionOf: "cp_old",
-    });
   });
 
   it("uses the path id even when the body names a different revisionOf", async () => {

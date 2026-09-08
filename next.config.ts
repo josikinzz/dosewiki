@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { NextConfig } from "next";
+import { EditorArtifactAudit, getServerRuntimeIncludes } from "./scripts/build/editor-artifact-audit.mjs";
 import { getPublicBrowserRuntimeConfig } from "./lib/runtime/envContract";
 // The legacy redirect table lives in its own module so application code (the Discord
 // page) can read the invite URL from it without importing this config.
@@ -7,6 +8,17 @@ import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirect
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
 
 const publicBrowserConfig = getPublicBrowserRuntimeConfig();
+
+// Separate artifacts, never a host-conditional lazy import inside one public bundle.
+const buildSurface = process.env.DOSEWIKI_BUILD_SURFACE ?? (process.env.NODE_ENV === "development" ? "editor" : "public");
+if (buildSurface !== "public" && buildSurface !== "editor") {
+  throw new Error("DOSEWIKI_BUILD_SURFACE must be public or editor.");
+}
+const editorBuild = buildSurface === "editor";
+const buildDirectory = editorBuild ? ".next-editor" : ".next";
+if (process.env.NODE_ENV === "production" && process.argv.includes("build") && !process.argv.includes("--webpack")) {
+  throw new Error("Public/editor artifact separation requires the audited webpack build. Use bun run build (next build --webpack).");
+}
 
 /**
  * Build-time flavor module selection.
@@ -74,6 +86,8 @@ const effectCategoryRouteAliases = {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  distDir: buildDirectory,
+  productionBrowserSourceMaps: false,
   // The unlisted /html-docs/[doc] route reads repo-root html-docs/ at request time;
   // without this the files never reach the deployed serverless bundle.
   outputFileTracingIncludes: {
@@ -131,6 +145,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_CONVEX_URL: publicBrowserConfig.convexUrl,
+    NEXT_PUBLIC_EDITOR_BUILD: String(editorBuild),
   },
   turbopack: {
     resolveAlias: {
@@ -144,7 +159,18 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  webpack(config) {
+  webpack(config, { isServer, dev }) {
+    if (!dev && !editorBuild) {
+      config.module.rules.unshift({
+        test: /\.[cm]?[jt]sx?$/,
+        include: path.resolve(process.cwd(), "src"),
+        enforce: "pre",
+        use: [{ loader: path.resolve(process.cwd(), "scripts/build/public-editor-boundary.mjs"), options: { client: !isServer } }],
+      });
+    }
+    if (!dev && !isServer) {
+      config.plugins.push(new EditorArtifactAudit({ editorBuild, directory: path.resolve(process.cwd(), buildDirectory) }));
+    }
     config.module.rules.push({
       test: /\.md$/i,
       resourceQuery: /raw/,
@@ -259,4 +285,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default async function configureNext(): Promise<NextConfig> {
+  return {
+    ...nextConfig,
+    outputFileTracingIncludes: {
+      ...nextConfig.outputFileTracingIncludes,
+      "/*": await getServerRuntimeIncludes(),
+    },
+  };
+}

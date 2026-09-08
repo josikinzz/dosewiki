@@ -3,7 +3,7 @@
  * Uses useFieldArray for route management.
  */
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { EditorFieldRow } from "@/features/dev/components";
 
 import { useArticleFormContext } from "./ArticleFormContext";
@@ -34,7 +35,7 @@ const durationStageLabels: Array<["onset" | "come_up" | "peak" | "offset" | "aft
   ["come_up", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],
   ["offset", "Offset", "e.g., ~2 hours"],
-  ["after_effects", "After Effects", "e.g., Residual stimulation"],
+  ["after_effects", "After Effects", "e.g., 1-2 hours"],
   ["total_duration", "Total Duration", "e.g., 6-8 hours"],
 ];
 
@@ -57,14 +58,52 @@ function RouteCardTitle({ index }: { index: number }) {
   return <>{label.length > 0 ? label : `Route ${index + 1}`}</>;
 }
 
+function CopyDurationStages({ index }: { index: number }) {
+  const { applyDurationFromRoute } = useArticleFormContext();
+  const source = useWatch<SubstanceArticle>({ name: "dosage.routes.0.route" });
+  const destination = useWatch<SubstanceArticle>({ name: `dosage.routes.${index}.route` });
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const sourceName = typeof source === "string" && source.trim() ? source.trim() : "Route 1";
+  const destinationName = typeof destination === "string" && destination.trim() ? destination.trim() : `Route ${index + 1}`;
+
+  return (
+    <div className="space-y-2">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button type="button" variant="ghost" size="sm" className="h-auto max-w-full whitespace-normal text-left">
+            Copy duration stages from {sourceName}
+          </Button>
+        </DialogTrigger>
+        <DialogContent showClose={false} className="[overflow-wrap:anywhere]">
+          <DialogHeader>
+            <DialogTitle>Replace duration stages for {destinationName}?</DialogTitle>
+            <DialogDescription>
+              Copy all six duration stages from {sourceName}, replacing this route&apos;s current stages.
+              Half-life, notes, and reference IDs stay unchanged.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-wrap gap-2">
+            <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+            <Button type="button" onClick={() => { applyDurationFromRoute(0, index); setCopied(true); setOpen(false); }}>
+              Replace duration stages
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {copied && <p role="status" className="theme-text-muted text-sm">Duration stages copied. Half-life, notes, and reference IDs are unchanged.</p>}
+    </div>
+  );
+}
+
 export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFProps) {
-  const { register } = useFormContext<SubstanceArticle>();
+  const { register, setFocus } = useFormContext<SubstanceArticle>();
   const {
     dosageRoutes,
     addDosageRoute,
     removeDosageRoute,
     moveDosageRoute,
-    applyDurationFromRoute,
+    renameDosageRoute,
   } = useArticleFormContext();
 
   const routeCount = dosageRoutes.fields.length;
@@ -72,14 +111,16 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0) {
       moveDosageRoute(index, index - 1);
+      requestAnimationFrame(() => setFocus(`dosage.routes.${index - 1}.route`));
     }
-  }, [moveDosageRoute]);
+  }, [moveDosageRoute, setFocus]);
 
   const handleMoveDown = useCallback((index: number) => {
     if (index < routeCount - 1) {
       moveDosageRoute(index, index + 1);
+      requestAnimationFrame(() => setFocus(`dosage.routes.${index + 1}.route`));
     }
-  }, [moveDosageRoute, routeCount]);
+  }, [moveDosageRoute, routeCount, setFocus]);
 
   return (
     <section className="space-y-6">
@@ -87,9 +128,9 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
         {dosageRoutes.fields.map((field, index) => {
           const routeKey = `${idPrefix}-route-${index}`;
           return (
+            <div key={field.id} role="group" aria-labelledby={`${routeKey}-title`}>
             <EntryCard
-              key={field.id}
-              title={<RouteCardTitle index={index} />}
+              title={<span id={`${routeKey}-title`}><RouteCardTitle index={index} /></span>}
               bodyClassName="space-y-4"
               badge={
                 <span className="flex items-center gap-1">
@@ -117,16 +158,6 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                   >
                     <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
                   </Button>
-                  {index > 0 ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => applyDurationFromRoute(0, index)}
-                    >
-                      Copy duration from Route 1
-                    </Button>
-                  ) : null}
                 </span>
               }
               onRemove={
@@ -143,6 +174,7 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                   <Input
                     id={`${routeKey}-route`}
                     {...register(`dosage.routes.${index}.route`)}
+                    onChange={(event) => renameDosageRoute(index, event.target.value)}
                     placeholder="e.g., Oral"
                   />
                 </FormEditorField>
@@ -193,6 +225,7 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                 </EditorFieldRow>
               </div>
               <div className="space-y-3">
+                {index > 0 && <CopyDurationStages index={index} />}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
                     <Icon icon="lucide:chart-line" size={14} className="theme-icon-accent" />
@@ -268,6 +301,7 @@ export function DosageDurationFieldsRHF({ idPrefix }: DosageDurationFieldsRHFPro
                 />
               </EditorFieldRow>
             </EntryCard>
+            </div>
           );
         })}
       </div>

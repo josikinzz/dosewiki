@@ -131,9 +131,13 @@ async function backfillAuthorProfileKeys() {
 
   for (const article of pending) {
     try {
+      const baseline = await client.query(api.effectIndexArticles.getForEditor, { apiKey: credential.token, slug: article.slug });
+      if (!baseline || baseline.authorProfileKeys?.length) throw new Error("Writing attribution changed after this backfill was planned.");
       await client.mutation(api.effectIndexArticles.upsertArticle, {
         apiKey: credential.token,
         slug: article.slug,
+        expectedRevision: baseline.baseRevision,
+        operationId: crypto.randomUUID(),
         authorProfileKeys: [JOSIE_PROFILE_KEY],
       });
       updated += 1;

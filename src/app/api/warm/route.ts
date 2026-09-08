@@ -16,27 +16,20 @@ import {
 /**
  * Cron-driven warmer for substance articles.
  *
- * Vercel's ISR page cache does not survive a deployment and this repo deploys
- * many times a day, so the `vercel.json` cron calls this route on a schedule
- * to request every substance article on the public origin
- * (`PUBLIC_SITE.url`, i.e. https://dose.wiki for the dose.wiki flavor) with
- * bounded concurrency. It deliberately targets the canonical public host
- * rather than the request host: crons arrive on the deployment URL, and the
- * editor hosts must never be the warmed surface.
+ * Scheduled runs warm at most 40 high-priority article URLs on the canonical
+ * public origin. Priority is an existing editorial signal, not inferred traffic.
+ * Low-tier pages stay demand-driven instead of being swept every 15 minutes.
  *
- * The run is time-boxed below the function's `maxDuration`, warms the
- * never-pre-rendered low tier first from an offset that advances every tick,
- * then the pre-rendered tiers, and returns the same summary shape as
- * `scripts/deploy/warm-public-routes.mjs`, with `remaining` reporting how many
- * URLs the budget did not reach.
+ * Authenticated deployment warming may explicitly request includeLow=1 and
+ * rotate through at most 120 URLs per bounded run. The workstation CLI remains
+ * available for deliberate sitemap warming after a deployment.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
-  // The cron fires four times an hour; the limit only matters for a caller
-  // guessing at the secret, whose failures should not be free to repeat.
+  // Keep unauthenticated attempts bounded as well as the authorized workload.
   const rateLimited = await enforceRateLimit(request, "diagnosticRead");
   if (rateLimited) return rateLimited;
 
@@ -48,12 +41,17 @@ export async function GET(request: Request) {
   }
 
   const startedAt = Date.now();
-  const { concurrency, budgetMs, includeLow, rotate } = parseWarmSearchParams(
+  const { concurrency, budgetMs, includeLow, rotate, maxUrls } = parseWarmSearchParams(
     new URL(request.url).searchParams,
   );
   const rotateBy = rotate ?? warmRotationForTick(startedAt);
   const lookup = await getPublicSubstanceLookup();
-  const targets = planWarmTargets(lookup, PUBLIC_SITE.url, { includeLow, rotateBy });
+  const targets = planWarmTargets(lookup, PUBLIC_SITE.url, {
+    includeLow,
+    rotateBy,
+    highOnly: !includeLow,
+    maxUrls,
+  });
 
   const { results, remaining } = await warmUrls(targets, {
     concurrency,
@@ -75,6 +73,8 @@ export async function GET(request: Request) {
       planned: targets.length,
       concurrency,
       budgetMs,
+      includeLow,
+      maxUrls,
       rotateBy,
       ...summary,
     },

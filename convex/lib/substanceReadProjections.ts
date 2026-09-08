@@ -1,3 +1,4 @@
+import { contentHash } from "../../lib/proposals/contentHash";
 import {
   getDefaultEditorialReview,
   normalizeMechanisms,
@@ -149,6 +150,7 @@ type SubstancePublicReferenceProjection = Omit<
 >;
 export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "editorial_review" | "references"> & {
   slug: string;
+  publicRevision: string;
   priority: PublicSubstancePriority;
   references: SubstancePublicReferenceProjection[];
   /**
@@ -491,7 +493,7 @@ function projectPublicReference(
 
 export function projectPublicArticle(article: SubstanceArticleRecord): SubstancePublicArticleProjection {
   const { editorial_review: editorialReview, ...publicArticle } = article;
-  return {
+  const projection = {
     ...publicArticle,
     pharmacology: normalizePharmacologySection(article.pharmacology),
     slug: resolveSubstanceSlug(article),
@@ -499,6 +501,10 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
     references: (article.references ?? []).map(projectPublicReference),
     expert_reviewed: isCompletedEditorialReview(editorialReview),
   };
+  // Convex identity and editorial-only fields do not name rendered content.
+  const { _id: _id, _creationTime: _creationTime, publicRevision: _revision, ...content } =
+    projection as typeof projection & { _id?: unknown; _creationTime?: unknown; publicRevision?: unknown };
+  return { ...projection, publicRevision: contentHash(content) };
 }
 
 export function projectEditorArticle(article: SubstanceArticleRecord): SubstanceEditorArticleProjection {

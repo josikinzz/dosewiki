@@ -1,25 +1,10 @@
-/**
- * Admin write endpoint for one drug-class safety banner preset (the /dev
- * Banner Studio).
- *
- *   POST   /api/dev/warning-banner   { key, tone, icon, severityLabel,
- *                                      headline, points, enabled, allSubstances,
- *                                      enabledSlugs }
- *   DELETE /api/dev/warning-banner   { key }
- *
- * The browser holds no admin intent token, so the write is delegated here: the
- * route checks the admin session, then calls `warningBanners.upsertPreset`
- * with the server's own token plus the actor's email for the audit trail.
- *
- * Both verbs revalidate `PUBLIC_CONVEX_CACHE_TAGS.banners` with `expire: 0`,
- * which drops the cached preset list immediately instead of at the end of the
- * 15-minute public-data window, and both also revalidate the article paths the
- * change touches, because each of those pages holds its own ISR entry.
- */
+/** Admin-only warning publication, reconciliation and attributed history. */
 import { NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
-import { PUBLIC_CONVEX_CACHE_TAGS } from "@server/convex/publicData";
+import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -45,6 +30,39 @@ type WarningBannerBody = {
   allSubstances?: unknown;
   enabledSlugs?: unknown;
 };
+
+type WarningGuard = { baseHash: string; changeId: string; scope: "assignment" | "preset"; slug?: string };
+
+function parseGuard(raw: Record<string, unknown>): WarningGuard {
+  if (typeof raw.baseHash !== "string" || !/^[a-f0-9]{64}$/.test(raw.baseHash) ||
+      typeof raw.changeId !== "string" || !raw.changeId.trim() || raw.changeId.length > 128) {
+    throw new JsonBodyError(400, "A current warning revision and change id are required. Reload the warning.");
+  }
+  if (raw.scope !== "assignment" && raw.scope !== "preset") throw new JsonBodyError(400, "Choose local assignment or shared preset.");
+  if (raw.slug !== undefined && (typeof raw.slug !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(raw.slug))) {
+    throw new JsonBodyError(400, "The article slug is malformed.");
+  }
+  return { baseHash: raw.baseHash, changeId: raw.changeId, scope: raw.scope, ...(raw.slug ? { slug: raw.slug as string } : {}) };
+}
+
+async function publish(result: { allSubstances: boolean; affectedSlugs: string[] }) {
+  const targets: PublicationTarget[] = [{ kind: "banners" }];
+  if (!result.allSubstances) {
+    // `affectedSlugs` carries the slugs this change removed from the preset as
+    // well as the ones it added, so an article that just lost its banner is
+    // refreshed too.
+    for (const slug of result.affectedSlugs) targets.push({ kind: "article", slug });
+  }
+  const receipts = await publishPublicCache({ targets, source: "manual" });
+  // A preset that covers every substance has no per-article identity to name,
+  // and no content identity expires the root layout, so that one stays a
+  // direct call. It only reaches this deployment; the public deployments pick
+  // the change up through the delivered `banners` identity.
+  if (result.allSubstances) revalidatePath("/", "layout");
+  return receipts;
+}
+
+const privateHeaders = { "Cache-Control": "private, no-store" };
 
 type ParsedWarningBanner = {
   key: string;
@@ -200,120 +218,69 @@ function parseWarningBannerBody(raw: WarningBannerBody): ParsedWarningBanner {
   };
 }
 
-export const POST = protectedRouteOperation<WarningBannerBody, ParsedWarningBanner>({
-  auth: "admin",
-  rateLimit: "editorSmallWrite",
-  body: {
-    maxBytes: 64 * 1024,
-    parse: parseWarningBannerBody,
-  },
-  capabilities: [{ type: "convexWrite" }],
-  unexpectedErrorLabel: "Failed to save a warning banner preset via Next route:",
-  unexpectedErrorMessage: "Unable to save that safety banner right now.",
-  operation: async ({ actorEmail, body, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
-    }
+type PublishBody = { action: "publish"; preset: ParsedWarningBanner; guard: WarningGuard } |
+  { action: "restore"; key: string; revisionId: string; guard: WarningGuard };
 
-    const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-
-    const previousPresets = (await convexWrite.client.query(
-      api.warningBanners.listPresets,
-      {},
-    )) as { key?: unknown; allSubstances?: unknown }[];
-    const previousWasSitewide = previousPresets.some(
-      (preset) => preset.key === body.key && preset.allSubstances === true,
-    );
-
-    const result = await convexWrite.client.mutation(api.warningBanners.upsertPreset, {
-      apiKey,
-      actorEmail,
-      key: body.key,
-      tone: body.tone,
-      icon: body.icon,
-      severityLabel: body.severityLabel,
-      headline: body.headline,
-      points: body.points,
-      enabled: body.enabled,
-      allSubstances: body.allSubstances,
-      enabledSlugs: body.enabledSlugs,
-      updatedBy: actorEmail,
-    });
-
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.banners, { expire: 0 });
-
-    // A sitewide scope transition invalidates every substance article, including
-    // future paths absent from any stored slug list. The layout invalidation is
-    // intentionally reserved for that rare operation; ordinary edits retain
-    // narrow per-article invalidation.
-    if (body.allSubstances || previousWasSitewide) {
-      revalidatePath("/", "layout");
-    } else {
-      const touched = new Set([...body.enabledSlugs, ...result.enabledSlugs]);
-      for (const slug of touched) {
-        revalidatePath(`/${slug}`);
-      }
-    }
-
-    return NextResponse.json({
-      ok: true,
-      key: result.key,
-      updated: result.updated,
-      allSubstances: result.allSubstances,
-      enabledSlugs: result.enabledSlugs,
-    });
+export const GET = protectedRouteOperation({
+  auth: "admin", rateLimit: "diagnosticRead", capabilities: [{ type: "convexWrite" }],
+  unexpectedErrorLabel: "Failed to read warning editor:",
+  operation: async ({ request, actorEmail, convexWrite }) => {
+    if (!convexWrite) throw new Error("Convex write capability is required.");
+    const params = new URL(request.url).searchParams;
+    const key = params.get("key");
+    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const result = key
+      ? await convexWrite.client.query(api.warningBanners.getEditorState, {
+          apiKey, actorEmail, key: requireKey(key), ...(params.get("changeId") ? { changeId: params.get("changeId")! } : {}),
+        })
+      : { presets: await convexWrite.client.query(api.warningBanners.listEditorPresets, { apiKey, actorEmail }) };
+    return NextResponse.json(result, { headers: privateHeaders });
   },
 });
 
-export const DELETE = protectedRouteOperation<{ key?: unknown }, string>({
-  auth: "admin",
-  rateLimit: "editorSmallWrite",
-  body: {
-    maxBytes: 4 * 1024,
-    parse: (raw) => requireKey(raw?.key),
+export const POST = protectedRouteOperation<Record<string, unknown>, PublishBody>({
+  auth: "admin", rateLimit: "editorSmallWrite", capabilities: [{ type: "convexWrite" }],
+  body: { maxBytes: 64 * 1024, parse: (raw) => {
+    const guard = parseGuard(raw);
+    if (raw.action === "restore") {
+      if (typeof raw.revisionId !== "string" || !raw.revisionId) throw new JsonBodyError(400, "Choose a warning revision to reverse.");
+      return { action: "restore", key: requireKey(raw.key), revisionId: raw.revisionId, guard };
+    }
+    if (raw.action !== "publish") throw new JsonBodyError(400, "Unsupported warning action.");
+    return { action: "publish", preset: parseWarningBannerBody(raw), guard };
+  } },
+  unexpectedErrorLabel: "Failed to publish warning:",
+  operation: async ({ actorEmail, body, convexWrite }) => {
+    if (!convexWrite) throw new Error("Convex write capability is required.");
+    const apiKey = convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
+    const result = body.action === "restore"
+      ? await convexWrite.client.mutation(api.warningBanners.restorePreset, {
+          apiKey, actorEmail, key: body.key, baseHash: body.guard.baseHash, changeId: body.guard.changeId,
+          revisionId: body.revisionId as Id<"warningBannerRevisions">,
+        })
+      : await convexWrite.client.mutation(api.warningBanners.upsertPreset, {
+          apiKey, actorEmail, ...body.preset, ...body.guard,
+        });
+    const publication = await publish(result);
+    return NextResponse.json({ ok: true, ...result, publication }, { headers: privateHeaders });
   },
-  capabilities: [{ type: "convexWrite" }],
-  unexpectedErrorLabel: "Failed to remove a warning banner preset via Next route:",
-  unexpectedErrorMessage: "Unable to remove that safety banner right now.",
-  operation: async ({ actorEmail, body: key, convexWrite }) => {
-    if (!convexWrite) {
-      throw new Error("Convex write capability is required.");
-    }
+});
 
-    const apiKey =
-      convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey;
-
-    // Read the row before it goes: `removePreset` echoes only `{ removed, key }`,
-    // and once the row is gone nothing can say which articles were serving it.
-    // Same reason as the POST union above — the tag drops the cached preset
-    // list, but each article page has its own ISR entry that would keep
-    // painting the warning until the 15-minute window expired.
-    const presets = (await convexWrite.client.query(api.warningBanners.listPresets, {})) as
-      | { key?: unknown; allSubstances?: unknown; enabledSlugs?: unknown }[]
-      | null;
-    const covered = (Array.isArray(presets) ? presets : []).find((preset) => preset.key === key);
-    const coveredSlugs: unknown[] = Array.isArray(covered?.enabledSlugs)
-      ? (covered.enabledSlugs as unknown[])
-      : [];
-
+export const DELETE = protectedRouteOperation<Record<string, unknown>, { key: string; guard: WarningGuard }>({
+  auth: "admin", rateLimit: "editorSmallWrite", capabilities: [{ type: "convexWrite" }],
+  body: { maxBytes: 4 * 1024, parse: (raw) => {
+    const guard = parseGuard(raw);
+    if (guard.scope !== "preset" || guard.slug) throw new JsonBodyError(400, "Deleting a warning is a shared preset operation, never a local assignment.");
+    return { key: requireKey(raw.key), guard };
+  } },
+  unexpectedErrorLabel: "Failed to remove warning:",
+  operation: async ({ actorEmail, body, convexWrite }) => {
+    if (!convexWrite) throw new Error("Convex write capability is required.");
     const result = await convexWrite.client.mutation(api.warningBanners.removePreset, {
-      apiKey,
-      actorEmail,
-      key,
+      apiKey: convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite.adminKey,
+      actorEmail, key: body.key, baseHash: body.guard.baseHash, changeId: body.guard.changeId,
     });
-
-    revalidateTag(PUBLIC_CONVEX_CACHE_TAGS.banners, { expire: 0 });
-    if (covered?.allSubstances === true) {
-      revalidatePath("/", "layout");
-    } else {
-      for (const slug of coveredSlugs) {
-        if (typeof slug === "string" && slug.length > 0) {
-          revalidatePath(`/${slug}`);
-        }
-      }
-    }
-
-    return NextResponse.json({ ok: true, key: result.key, removed: result.removed });
+    const publication = await publish(result);
+    return NextResponse.json({ ok: true, ...result, publication }, { headers: privateHeaders });
   },
 });

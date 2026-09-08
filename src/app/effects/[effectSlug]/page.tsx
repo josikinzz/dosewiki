@@ -1,17 +1,17 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { loadEffectRoute } from "@server/next/routeLoaders.substances";
-import { getStaticEffectParams } from "@server/next/staticParams";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 import { buildSubjectiveEffectSchema, serializeJsonLd } from "@/utils/seo/structuredData";
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
+import EffectContextualEditor from "@/features/effects/editing/EffectContextualEditor.editor";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return await getStaticEffectParams();
+// Keep the build bounded; published keys enter the ISR cache on first request.
+export function generateStaticParams() {
+  return [];
 }
 
 type EffectPageProps = {
@@ -25,11 +25,7 @@ export async function generateMetadata({ params }: EffectPageProps) {
   const result = await loadEffectRoute(effectSlug);
 
   if (result.kind === "not-found") {
-    return buildPublicPageMetadata({
-      title: "Effect",
-      description: `Browse subjective effect details in ${SITE_FLAVOR_CONFIG.name}.`,
-      route: { family: "effect", params: { effectSlug } },
-    });
+    notFound();
   }
 
   return buildPublicPageMetadata({
@@ -61,7 +57,21 @@ export default async function EffectPage({ params }: EffectPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd }}
       />
-      <EffectArticlePage {...pageProps} />
+      <EffectArticlePage
+        {...pageProps}
+        headingActions={
+          <EffectContextualEditor
+            slug={effectSlug}
+            pageProps={{
+              article: pageProps.article,
+              drugHrefPrefix: pageProps.drugHrefPrefix,
+              categoryHrefPrefix: pageProps.categoryHrefPrefix,
+              linkableSubstanceSlugs: pageProps.linkableSubstanceSlugs,
+              linkableEffectSlugs: pageProps.linkableEffectSlugs,
+            }}
+          />
+        }
+      />
     </>
   );
 }

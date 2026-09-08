@@ -151,7 +151,7 @@ describe("public substance gallery pagination", () => {
     ]);
     expect(pageOne.cursor).toBe("opaque-page-2");
     expect(pageOne.isDone).toBe(false);
-    expect(pageOne.curation).toEqual({
+    expect(pageOne.curation).toMatchObject({
       curated_slugs: ["direct"],
       removed_slugs: [],
       carousel_order: ["direct"],

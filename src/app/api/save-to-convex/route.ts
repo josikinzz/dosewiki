@@ -4,6 +4,7 @@ import { saveRevalidationPaths } from "../../../../convex/lib/saveRevalidationPa
 import { truncateDiffMarkdown } from "../../../../lib/proposals/diffMarkdown";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { revalidateSavedPaths } from "./revalidateSavedPaths";
+import { parseCopyIndexPublicationInput } from "../dev/copyIndexPublicationInput";
 import {
   buildArticlePathsFromWriteOutcomes,
   buildArticleVerificationFromWriteOutcome,
@@ -133,6 +134,10 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
     const articles = rawArticles.map(sanitizeArticleForConvexMutation);
     const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts);
     const changelog = parseChangelogPayload(body.changelog);
+    if (indexLayouts.some((layout) => !Object.prototype.hasOwnProperty.call(layout, "expected"))) {
+      return NextResponse.json({ error: "Every index layout needs its loaded baseline. Reload the editor source before publishing." }, { status: 400 });
+    }
+    for (const layout of indexLayouts) parseCopyIndexPublicationInput(layout);
     const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
     const strippedArticleFieldCount = rawArticles.reduce(
       (count, article) => count + countFieldsStrippedForConvexMutation(article),
@@ -149,6 +154,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       convexWrite.getAdminIntentToken?.("editorArticleWrite") ?? adminKey;
     const savedItems: string[] = [];
     const warnings: string[] = [];
+    const publishedLayoutTypes: string[] = [];
     let phase: SaveToConvexPhase = "initializing";
 
     console.info("[save-to-convex] request:start", {
@@ -199,19 +205,26 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
 
       if (indexLayouts.length > 0) {
         phase = "index-layout-mutation";
+        let confirmed = 0;
         for (const layout of indexLayouts) {
           // indexLayouts.save mirrors psychoactive layouts into the
           // categoryLayout table the public /substances page reads.
-          await client.mutation(api.indexLayouts.save, {
+          const receipt = await client.mutation(api.indexLayouts.save, {
             apiKey: editorArticleWriteToken,
             actorEmail,
             type: layout.type,
             version: layout.version,
             categories: layout.categories,
+            expected: layout.expected,
+            expectedRevision: layout.expectedRevision, operationId: layout.operationId,
           });
+          if (!receipt.unchanged) {
+            confirmed += 1;
+            publishedLayoutTypes.push(layout.type);
+          }
         }
 
-        savedItems.push(`${indexLayouts.length} index layout(s)`);
+        savedItems.push(confirmed ? `${confirmed} index layout publication receipt(s) confirmed` : "Index layouts unchanged; no publication needed");
       }
 
       let entry:
@@ -239,10 +252,10 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
           : articleResult?.affectedPaths ?? [];
       const uniqueRevalidatedPaths = saveRevalidationPaths(
         articlePaths,
-        indexLayouts.map((layout) => layout.type),
+        publishedLayoutTypes as (typeof indexLayouts)[number]["type"][],
       );
 
-      if ((savedArticleCount > 0 || indexLayouts.length > 0) && changelog) {
+      if (savedArticleCount > 0 && changelog) {
         phase = "changelog-mutation";
         const now = new Date();
         const createdAt = now.toISOString();
@@ -276,7 +289,22 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
       }
 
       phase = "revalidation";
-      revalidateSavedPaths(uniqueRevalidatedPaths, "save-to-convex");
+      // The Convex write is already durable here. A public deployment that
+      // refuses or drops its refresh is reported as an unpublished target, not
+      // raised as a save failure that would invite a duplicate write.
+      const savedRevisions = articleOutcomes.flatMap((outcome) =>
+        outcome.action !== "skipped" && outcome.publicRevision && outcome.next?.slug
+          ? [{ slug: outcome.next.slug, revision: outcome.publicRevision }] : []);
+      const publication = await revalidateSavedPaths(uniqueRevalidatedPaths, "save-to-convex", savedRevisions);
+      const unpublishedTargets = publication.filter(
+        (receipt) => receipt.status !== "accepted" || receipt.verification === "incomplete",
+      );
+      if (unpublishedTargets.length > 0) {
+        console.warn("[save-to-convex] request:publication-incomplete", {
+          requestId,
+          unpublishedTargets,
+        });
+      }
 
       console.info("[save-to-convex] request:complete", {
         requestId,
@@ -285,6 +313,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         articleResult,
         verification,
         revalidatedPaths: uniqueRevalidatedPaths,
+        publication,
         entryId: entry?.id ?? null,
       });
 
@@ -311,6 +340,7 @@ export const POST = protectedRouteOperation<SaveToConvexBody>({
         entry,
         verification,
         revalidatedPaths: uniqueRevalidatedPaths,
+        publication,
       });
     } catch (error) {
       const safeError = getSafeConvexSaveError(error);

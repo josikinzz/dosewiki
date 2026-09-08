@@ -10,7 +10,8 @@
  *   DELETE /api/dev/molecule-override?slug=lsd                            → remove
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import type { PublicationTarget } from "@server/next/publicationWire";
+import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -85,14 +86,18 @@ function parseMoleculeSlug(value: string | null): string {
   return slug;
 }
 
-function revalidateMoleculeOwner(slug: string) {
+async function publishMoleculeOwner(slug: string) {
+  // The persisted public leaves key on the stored slug, `class:` prefix and
+  // all, so the molecule identity expires exactly this depiction plus the
+  // shared override index every substance page reads, and carries the owner
+  // page with it.
+  const targets: PublicationTarget[] = [{ kind: "molecule", slug }];
   if (slug.startsWith("class:")) {
-    const classKey = slug.slice("class:".length);
-    revalidatePath(`/chemical-classes/${classKey}`);
-    revalidatePath("/chemical-classes");
-    return;
+    // A class depiction is also drawn on the class index, which the stored
+    // slug alone does not name.
+    targets.push({ kind: "chemical-class-lists" });
   }
-  revalidatePath(`/${slug}`);
+  await publishPublicCache({ targets, source: "manual" });
 }
 
 /**
@@ -147,7 +152,7 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
     });
 
     // Refresh the owner page so it receives the new updatedAt-versioned URL.
-    revalidateMoleculeOwner(body.slug);
+    await publishMoleculeOwner(body.slug);
 
     return NextResponse.json({ ok: true, updated: result.updated, slug: body.slug, updatedBy });
   },
@@ -174,7 +179,7 @@ export const DELETE = protectedRouteOperation({
     });
 
     // Return the owner page to its legacy static fallback.
-    revalidateMoleculeOwner(slug);
+    await publishMoleculeOwner(slug);
 
     return NextResponse.json({ ok: true, deleted: result.deleted, slug });
   },

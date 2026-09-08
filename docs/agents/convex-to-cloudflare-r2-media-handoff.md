@@ -191,9 +191,147 @@ The owner confirmed the migration completed these gates:
 
 Run repository verification appropriate to the change. Because this touches Convex and the application, the expected gate is `npm run verify:all`, plus focused resolver, gallery, viewer, studio, CSP, and media delivery tests. Follow any stricter current instructions in `AGENTS.md`.
 
+### Cached-publishing asset coverage (2026-09-07)
+
+The completed replication migration is not evidence that every public asset
+class or every later R2-only intake row has a native-storage rollback. Keep the
+existing manifests rather than copying the archive again:
+
+| Public asset kind | Serving origin and identity evidence | Recovery and remaining delivery check |
+| --- | --- | --- |
+| Main, thumbnail, preview, motion, motion poster | `scripts/replications/data/r2-ledger/r2-media-ledger.json`: 2,804 field mappings, source storage IDs, byte sizes, content types, SHA-256 and canonical R2 keys. `r2-copy-verification.jsonl` records the copied objects' full-byte and range checks. | These are dated migration records, not a live inventory of later intake. Preserve the mapped original locators; use the existing ledger producer for a scoped refresh. |
+| Contributor avatars | `convex/lib/contributorProfileMaterialization.ts` resolves valid `avatarR2Key` through the same media base, then storage, then direct/local avatar URLs. `public/profile-avatars/` contains retained application-host assets. Profile rollout snapshots preserve avatar reference fields. | Do not move working local or external avatars by assumption. Record the exact current URL, kind, size, MIME and available hash in the incident manifest. An R2-only avatar needs an independently verified recovery locator, not an assumed storage fallback. |
+| Article-body media | `scripts/replications/article-media-planning.mjs` records byte evidence and storage identity for promoted media; `article-media-publication.mjs` checks the actual resolved delivery response. Existing body embeds may still name direct external URLs. | Include literal body URLs as well as referenced replication IDs in the incident manifest. The media Worker cannot revoke an external host or a native Convex URL. Record these as containment exceptions, never as Worker-covered assets. |
+| Page, entity and substance social cards | `src/data/{page,entity,substance}SocialCardManifest.generated.json` contains versioned R2 URLs. `scripts/build/publishSocialCardsToR2.mjs` owns generation/promotion. `runs/social-card-r2-promotion/` retains publisher, verification and rollback ledgers. | The same Worker blocks old social-card object keys even if an application rollback restores a stale manifest. Replace references through the producer, never by editing generated JSON. Include cropped/composite cards containing withdrawn media as distinct objects. |
+
+For each incident, preserve a non-public manifest with asset kind, referencing
+record IDs, all variant keys/URLs and serving origins, byte size, content type,
+hash where available, prior reference fields, and an actually reachable
+recovery locator. Record unknown values explicitly and leave that asset's
+delivery/rollback check incomplete. An R2-only row may recover from the retained
+R2 object or verified local archive; do not claim that unsetting
+`REPLICATION_MEDIA_BASE_URL` will restore a URL that never had a native fallback.
+The resolver checks syntax and configuration, not HTTP reachability. A valid
+but inaccessible R2 URL is a failed delivery check, not a runtime fallback.
+
+`verify-r2-media-copy.mjs` now also requires public CORS on HEAD, full GET and
+range GET. Use a new `--output` path when establishing fresh delivery evidence:
+the resumable verifier deliberately skips objects already in its output ledger,
+and historical records do not prove the newly checked header. Verify bytes and
+headers before any promotion. No copy, promotion or new live delivery
+verification was performed for this cached-publishing code change.
+
+## Urgent media withdrawal
+
+Ordinary gallery exclusion, duplicate suppression and removing an article
+reference do not revoke an immutable media URL. Urgent removal uses the
+existing delivery Worker, independently of application publication state.
+
+### Delivery contract
+
+`scripts/replications/r2-delivery-worker.js` checks
+`BUCKET.head("_withdrawals/" + mediaKey)` for each canonical public media
+request before reading the media object. Any marker, including an empty one,
+returns an empty `410` with browser and CDN `no-store`. A failed marker lookup
+returns empty `503` with `no-store`, never media bytes or a conditional `304`.
+GET, HEAD, ranges and conditional requests all pass through this check; query
+strings do not change the suppression identity. The private marker namespace
+is not accepted by the public route. No public mutation endpoint exists.
+
+Markers use the already-bound private `replications` bucket. They are not
+copied into application manifests, cached in Worker memory, or read from
+Convex. This adds one R2 HEAD per valid network request; it does not add a
+Convex read. R2's [strong consistency](https://developers.cloudflare.com/r2/reference/consistency/)
+applies to direct Worker-binding reads, unlike a cached custom-domain response.
+The media bytes and all originals remain unchanged.
+
+### Provider prerequisites before claiming coverage
+
+1. Deploy the updated existing `dosewiki-media` Worker. The checked-in social
+   manifests name `https://dosewiki-media.gremblinzuwu.workers.dev`; confirm the
+   actual deployed `REPLICATION_MEDIA_BASE_URL` and every alias rather than
+   assuming those manifests enumerate all hosts. Retain the existing `BUCKET`
+   binding to private bucket `replications`. No new KV, Durable Object,
+   database, public write endpoint or permission grant is required.
+2. Confirm an already-authorized operator can write and read an exact marker
+   key through the bucket dashboard or existing bucket-scoped S3 credential.
+   Do not put that credential in Vercel public builds or browser code. Deploy
+   authorization alone does not authorize an actual withdrawal marker.
+3. Inventory every managed media hostname and any CDN in front of it. Direct
+   public R2 bucket domains, `r2.dev`, old Workers without this check and native
+   Convex URLs bypass this control. If any such URL is in the approved
+   withdrawal scope, record incomplete containment until the operator supplies
+   an approved non-destructive block on that exact surface. Changing bucket
+   permissions or account security settings requires separate approval.
+4. Identify the zone IDs, cache-key rules and already-authorized purge
+   capability for managed cached URLs. This Worker does not use the Cache API;
+   do not invent a cache to purge or claim absence of upstream caches from
+   source inspection. Record a provider-confirmed no-cache disposition where
+   applicable. Follow Cloudflare's [single-file purge limitations](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-by-single-file/):
+   query/header/custom-key variants may require a different explicitly approved
+   purge scope. One successful bare-URL purge is not proof all variants cleared.
+
+### Authorized incident procedure
+
+1. Preserve the exact incident manifest described above, including all five
+   rendition roles, avatars, article-body references, social composites,
+   aliases, native/direct fallbacks, incident identity, approval and expected
+   deadline. Inspect shared hashes: a marker withdraws those bytes for every
+   record using that object, not just the selected gallery item.
+2. After explicit approval of the exact bucket, keys and withdrawal scope,
+   upload a small incident record to `_withdrawals/<complete-media-key>` for
+   each affected managed object. Read back every marker through the storage
+   API. Record each acknowledged write time; partial writes are incomplete
+   removal. Keep prior marker contents if already present. Never overwrite or
+   delete the media object. Do not synchronize this control prefix away during
+   archive maintenance.
+3. Publish the canonical correction/removal through the normal editorial
+   workflow and cross-project publication seam. This must cover HTML, RSC,
+   metadata, APIs, exports, search, lists and embed collections on both public
+   flavors. Markers enforce media delivery while that separate work completes.
+   Record the canonical commit time independently from marker acknowledgment.
+4. After marker acknowledgment, perform only the explicitly approved managed
+   CDN purges for every affected URL/cache-key variant. Preserve provider
+   receipts. A failed receiver, purge or marker write leaves the incident
+   incomplete; do not extend its deadline silently. Keep installed markers
+   while retrying. If another managed surface still serves content, use its
+   separately approved provider-side URL block; do not claim full containment
+   from the R2 `410` alone.
+5. Verify fresh network GET, HEAD, range and conditional requests to every
+   managed media URL and alias, including the exact previously cached URL
+   without a cache-busting query. Each withdrawn asset must return `410` and
+   no bytes; `503` means safe failure but not healthy verified withdrawal.
+   Record request time, status, cache headers, elapsed time from canonical
+   commit and marker acknowledgment, and provider request IDs where supplied.
+   Probe both public publication targets separately. Invalidation acceptance
+   and stale-while-revalidate eligibility are not removal evidence.
+6. Keep markers across application rollback, delayed publication messages,
+   regenerated manifests and R2 media reuploads. Do not roll the Worker back
+   to a version without this check. Do not disable R2-first resolution while
+   any withdrawn object could reappear through its unblocked native fallback.
+   An application rollback must preserve the current canonical suppression.
+   Restoration is a separate explicit approval: archive the incident record,
+   remove only the approved marker, restore approved references and verify
+   the same retained bytes and URL. No original or destination deletion is
+   part of restoration.
+
+Already downloaded bytes, browser immutable caches, an open tab's buffered
+playback and third-party copies cannot be recalled. Requests that passed the
+check before the marker commit may finish. The guarantee concerns subsequent
+network requests through inventoried managed surfaces, after required cache
+purges. Rehearse marker installation, receiver/lookup failure and restoration
+on synthetic assets only with the necessary provider-write approval. This
+change supplies the delivery guard and procedure; it does not claim a live
+withdrawal rehearsal, purge, provider deployment or measured removal deadline.
+
 ## Rollback
 
 Rollback must remain possible without restoring bytes:
+
+For active urgent withdrawals, the suppression-preserving procedure above takes
+precedence: keep the delivery guard and markers, and do not enable an unblocked
+native fallback. The ordinary outage rollback below is safe only when it cannot
+re-expose withdrawn material.
 
 - Keep all old Convex storage IDs and direct URLs during migration.
 - Make the resolver precedence switch reversible with a server-side flag or a small code rollback.

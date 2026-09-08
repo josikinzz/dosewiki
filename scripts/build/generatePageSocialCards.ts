@@ -1,5 +1,9 @@
 #!/usr/bin/env bun
 
+// Regenerate one card with `bun scripts/build/generatePageSocialCards.ts --only=replications`.
+// Replication stats use the public gallery's hourly-cached corpus and counting rules.
+// Generation is local only; R2 publication remains a separate explicit step.
+
 import { createHash } from "node:crypto";
 import { access, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,6 +14,13 @@ import {
   renderPageSocialCardPng,
 } from "../../lib/og/pageSocialCard";
 import { PAGE_SOCIAL_CARD_KEYS } from "../../src/data/mappings/pageSocialCardUrl";
+import {
+  countGallery,
+  isDisplayable,
+  isWithheldFromArtistViews,
+  type GalleryCounts,
+} from "../../src/features/effects/gallery/galleryModel";
+import type { PublicGalleryReplicationPreview } from "../../src/types/replications";
 
 const OUTPUT_DIR = path.join(process.cwd(), "public/images/social/pages");
 const MANIFEST_PATH = path.join(
@@ -49,11 +60,12 @@ async function writeAtomic(targetPath: string, content: string | Buffer): Promis
   await rename(temporaryPath, targetPath);
 }
 
-async function rendererDigest(key: string): Promise<string> {
+async function rendererDigest(key: string, counts?: GalleryCounts): Promise<string> {
   const hash = createHash("sha256")
     .update(PAGE_SOCIAL_CARD_RENDER_VERSION)
     .update("\0")
     .update(key);
+  if (counts) hash.update("\0").update(JSON.stringify(counts));
   for (const inputPath of RENDER_INPUT_PATHS) {
     hash.update("\0").update(inputPath).update("\0");
     hash.update(await readFile(path.join(process.cwd(), inputPath)));
@@ -71,13 +83,31 @@ async function main(): Promise<void> {
 
   await mkdir(OUTPUT_DIR, { recursive: true });
 
-  const cards: Record<string, string> = {};
+  const only = process.argv.find((arg) => arg.startsWith("--only="))?.slice(7);
+  if (only && !PAGE_SOCIAL_CARD_KEYS.some((key) => key === only)) {
+    throw new Error(`Unknown page social card: ${only}`);
+  }
+  const keys = PAGE_SOCIAL_CARD_KEYS.filter((key) => !only || key === only);
+  const cards: Record<string, string> = only
+    ? (JSON.parse(await readFile(MANIFEST_PATH, "utf8")) as CardManifest).cards
+    : {};
+  let replicationCounts: GalleryCounts | undefined;
+  if (keys.includes("replications")) {
+    const response = await fetch("https://dose.wiki/api/replications/gallery");
+    if (!response.ok) throw new Error(`Gallery read failed: HTTP ${response.status}`);
+    const { data } = await response.json() as { data: PublicGalleryReplicationPreview[] };
+    replicationCounts = countGallery(data.filter(
+      (item) => isDisplayable(item) && !isWithheldFromArtistViews(item),
+    ));
+    console.log("[page-social-cards] Live gallery counts:", replicationCounts);
+  }
   const expectedFiles = new Set<string>();
   let rendered = 0;
   let reused = 0;
 
-  for (const key of PAGE_SOCIAL_CARD_KEYS) {
-    const digest = await rendererDigest(key);
+  for (const key of keys) {
+    const counts = key === "replications" ? replicationCounts : undefined;
+    const digest = await rendererDigest(key, counts);
     const filename = `${key}.${digest}.jpg`;
     const outputPath = path.join(OUTPUT_DIR, filename);
     cards[key] = `${MANIFEST_PUBLIC_PREFIX}/${filename}`;
@@ -88,7 +118,7 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const png = await renderPageSocialCardPng(key);
+    const png = await renderPageSocialCardPng(key, counts);
     const jpeg = await sharp(png)
       .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })
       .toBuffer();
@@ -99,6 +129,7 @@ async function main(): Promise<void> {
   const currentFiles = await readdir(OUTPUT_DIR);
   const staleFiles = currentFiles.filter(
     (filename) =>
+      (!only || filename.startsWith(`${only}.`)) &&
       /\.(?:jpe?g|png|webp)$/i.test(filename) && !expectedFiles.has(filename),
   );
   await Promise.all(staleFiles.map((filename) => rm(path.join(OUTPUT_DIR, filename))));
@@ -111,7 +142,7 @@ async function main(): Promise<void> {
   await writeAtomic(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
 
   console.log(
-    `[page-social-cards] Complete: ${PAGE_SOCIAL_CARD_KEYS.length} cards (${rendered} rendered, ${reused} reused, ${staleFiles.length} stale removed).`,
+    `[page-social-cards] Complete: ${keys.length} cards (${rendered} rendered, ${reused} reused, ${staleFiles.length} stale removed).`,
   );
 }
 

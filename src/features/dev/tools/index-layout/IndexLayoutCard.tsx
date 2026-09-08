@@ -45,8 +45,8 @@ export interface BoardActions {
   onMove: (from: LayoutSlot, slug: string, to: LayoutSlot) => void;
   onRemoveSlug: (slot: LayoutSlot, slug: string) => void;
   onAddSlug: (slot: LayoutSlot, slug: string) => void;
-  onSortSlot: (slot: LayoutSlot) => void;
-  onSortCategory: (categoryKey: string) => void;
+  onSortSlot?: (slot: LayoutSlot) => void;
+  onSortCategory?: (categoryKey: string) => void;
   onPlaceSection: (
     categoryKey: string,
     sectionKey: string,
@@ -256,10 +256,10 @@ function CategoryMenu({ category, actions }: { category: BoardCategory; actions:
             <Icon icon="lucide:plus" size={14} className="mr-2" />
             Add a section
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => actions.onSortCategory(category.key)}>
+          {actions.onSortCategory && <DropdownMenuItem onSelect={() => actions.onSortCategory?.(category.key)}>
             <Icon icon="lucide:arrow-down-a-z" size={14} className="mr-2" />
             Sort every list A to Z
-          </DropdownMenuItem>
+          </DropdownMenuItem>}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-dose-danger focus:text-dose-danger"
@@ -367,10 +367,10 @@ function SectionMenu({
               </DropdownMenuItem>
             </>
           ) : null}
-          <DropdownMenuItem onSelect={() => actions.onSortSlot(section.slot)}>
+          {actions.onSortSlot && <DropdownMenuItem onSelect={() => actions.onSortSlot?.(section.slot)}>
             <Icon icon="lucide:arrow-down-a-z" size={14} className="mr-2" />
             Sort A to Z
-          </DropdownMenuItem>
+          </DropdownMenuItem>}
           {editable ? (
             <>
               <DropdownMenuSeparator />

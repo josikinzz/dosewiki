@@ -1,3 +1,5 @@
+import { ConvexError } from "convex/values";
+import { replicationRevision } from "./replicationEditJournal";
 import type { MutationCtx } from "../_generated/server";
 import { requireRole } from "./auth";
 import {
@@ -36,6 +38,7 @@ export async function setContributorOrderingHandler(
     key: string;
     replicationOrder?: string[];
     expectedReplicationOrder?: string[];
+    expectedRevision?: string;
     reportOrder?: string[];
   },
 ) {
@@ -58,6 +61,7 @@ export async function setContributorOrderingHandler(
   ) {
     throw new Error("You can only edit your own contributor profile.");
   }
+  if (args.replicationOrder !== undefined && await replicationRevision(ctx, existing, `artist:${key}`) !== args.expectedRevision) throw new ConvexError({ code: "CONFLICT", message: "This collection changed. Reload its stored order before saving." });
   if (
     args.expectedReplicationOrder !== undefined &&
     JSON.stringify(normalizeOrderSlugs(existing.replicationOrder)) !==

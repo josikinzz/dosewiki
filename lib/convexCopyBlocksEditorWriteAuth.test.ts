@@ -2,11 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getAll, remove, upsert } from "../convex/copyBlocks";
 
 type Role = "admin" | "editor" | "viewer";
+type IndexFilter = { eq: (field: string, value: unknown) => IndexFilter };
 
 const insert = vi.fn(
   async (_table: string, _document: Record<string, unknown>) => "copy-block-id",
 );
-const patch = vi.fn(async () => undefined);
+const patch = vi.fn(async (_id: string, _document: Record<string, unknown>) => undefined);
 const remove_ = vi.fn(async () => undefined);
 const collect = vi.fn(async () => [] as unknown[]);
 
@@ -28,6 +29,7 @@ function createCtx({
       getUserIdentity: vi.fn(async () => identity ?? null),
     },
     db: {
+      normalizeId: () => null, // Copy blocks are not indexed source tables.
       insert,
       patch,
       delete: remove_,
@@ -41,18 +43,37 @@ function createCtx({
           };
         }
 
+        if (table === "contentRevisions") {
+          const cursor = {
+            order: () => cursor,
+            first: async () => null,
+            unique: async () => null,
+          };
+          return {
+            withIndex: (
+              _indexName: string,
+              selector: (query: IndexFilter) => unknown,
+            ) => {
+              const query: IndexFilter = { eq: () => query };
+              selector(query);
+              return cursor;
+            },
+          };
+        }
+
         return {
           withIndex: (
             _indexName: string,
-            selector: (query: { eq: (field: string, value: string) => unknown }) => unknown,
+            selector: (query: IndexFilter) => unknown,
           ) => {
             let email = "";
-            selector({
-              eq: (_field, value) => {
-                email = value;
-                return {};
+            const query: IndexFilter = {
+              eq: (field, value) => {
+                if (field === "email" && typeof value === "string") email = value;
+                return query;
               },
-            });
+            };
+            selector(query);
 
             return {
               unique: vi.fn(async () => {
@@ -144,7 +165,7 @@ describe("copyBlocks write authorization", () => {
       ),
     ).resolves.toMatchObject({ updated: false, key: "home-hero-title" });
 
-    expect(insert).toHaveBeenCalledTimes(1);
+    expect(insert.mock.calls.filter(([table]) => table === "copyBlocks")).toHaveLength(1);
     expect(insert.mock.calls[0]?.[1]).toMatchObject({
       key: "home-hero-title",
       kind: "markdown",
@@ -178,8 +199,11 @@ describe("copyBlocks write authorization", () => {
       ),
     ).resolves.toMatchObject({ updated: true, id: "existing-id" });
 
-    expect(patch).toHaveBeenCalledTimes(1);
-    expect(insert).not.toHaveBeenCalled();
+    expect(patch).toHaveBeenCalledWith("existing-id", expect.objectContaining({
+      key: "home-hero-title",
+      body: validBlock.body,
+    }));
+    expect(insert.mock.calls.filter(([table]) => table === "copyBlocks")).toEqual([]);
   });
 
   it("clears the payload field the kind does not own", async () => {
@@ -210,8 +234,8 @@ describe("copyBlocks write authorization", () => {
 
     await expect(
       upsertHandler(
-        createCtx({ identity: null, memberships: { "editor@example.com": "editor" } }),
-        { ...validBlock, key: "Home Hero", apiKey: "secret", actorEmail: "editor@example.com" },
+        createCtx({ identity: null, memberships: { "admin@example.com": "admin" } }),
+        { ...validBlock, key: "Home Hero", apiKey: "secret", actorEmail: "admin@example.com" },
       ),
     ).rejects.toThrow();
 

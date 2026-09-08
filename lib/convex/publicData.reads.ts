@@ -54,18 +54,24 @@ import {
   type PublicEffectIndexPost,
 } from "../../convex/lib/effectIndexArchiveReadProjections";
 import { publicDataReadCatalog } from "./publicData.readCatalog";
+import {
+  drainConvexPaginationPages,
+  drainPublicCorpusPages,
+  queryPaginatedPublicProjectionRead,
+  visitPublicCorpusPages,
+  type QueryArgs,
+  type QueryTransport,
+} from "./publicData.pagination";
+import {
+  publicDataCache,
+  PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CONVEX_CACHE_TAGS,
+  PUBLIC_SUBSTANCE_LISTS_TAG,
+} from "./publicData.cache";
 
 export { publicDataReadCatalog };
 
-type QueryArgs = Record<string, unknown>;
-type QueryTransport = <Result, Args extends QueryArgs = Record<string, never>>(
-  name: string,
-  args: Args,
-) => Promise<Result>;
-
 const ABOUT_PREVIEW_COUNT = 12;
-const PUBLIC_CORPUS_MAX_PAGES = 512;
-const PUBLIC_CORPUS_MAX_ROWS = 20_000;
 const ABOUT_PREVIEW_MAX_PAGES = 128;
 const ABOUT_PREVIEW_MAX_ROWS = 8_192;
 
@@ -98,6 +104,7 @@ export type PublicSubstanceGalleryCuration = {
   curated_slugs: string[];
   removed_slugs: string[];
   carousel_order: string[];
+  disabled?: boolean;
 };
 
 export type PublicDataReadAdapter = {
@@ -122,7 +129,6 @@ export type PublicDataReadAdapter = {
   getPublicEffectIndexArticleBySlug(slug: string): Promise<PublicEffectIndexArticle | null>;
   getPublicEffectIndexPosts(): Promise<PublicEffectIndexPost[]>;
   getPublicEffectIndexPostBySlug(slug: string): Promise<PublicEffectIndexPost | null>;
-  getPublicReplicationsByEffect(effectSlug: string): Promise<ReplicationWithUrl[]>;
   getPublicReplications(): Promise<GalleryReplication[]>;
   getPublicGalleryReplicationPage(cursor?: string, limit?: number): Promise<PublicGalleryReplicationPage>;
   getPublicReplicationArtistsByKeys(keys: string[]): Promise<PublicReplicationArtistTaxonomy[]>;
@@ -131,7 +137,7 @@ export type PublicDataReadAdapter = {
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicMatchableReplicationPage(cursor?: string): Promise<PublicMatchableReplicationPage>;
   getPublicSubstanceGalleryCuration(substanceSlug: string): Promise<PublicSubstanceGalleryCuration | null>;
-  /** The merged showcase in one round trip, or null while the query is not deployed. */
+  /** The merged showcase, or null while the query or its complete index is unavailable. */
   getPublicSubstanceGallery(substanceSlug: string): Promise<PublicSubstanceGallery | null>;
   getPublicTripReportRecords(): Promise<TripReportRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
@@ -407,187 +413,6 @@ function reportDegradedReplicationArtistTaxonomyRead(error: unknown): boolean {
   return true;
 }
 
-/**
- * Degradation guard for the additive Effect Index archive blog queries.
- *
- * Deliberately broader than the explicit missing-function check used by the replication gallery.
- * Here a wrong guess costs a silently empty
- * blog, and production Convex reports *every* failure — a missing function, a bad
- * argument, an internal error — as the same opaque `Server Error`. So the tolerance is
- * kept but made loud: the caller logs before degrading, and the blog post route stays
- * dynamic-params-enabled so a degraded build renders posts on demand instead of baking
- * a permanent 404 for every slug.
- */
-function reportDegradedEffectIndexArchiveRead(scope: string, error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  const message = error.message.toLowerCase();
-
-  if (
-    !message.includes("could not find public function") &&
-    !message.includes("server error")
-  ) {
-    return false;
-  }
-
-  console.warn(
-    `[publicData] Effect Index archive read "${scope}" failed and degraded to empty. ` +
-      `If effectIndexArchive:listPosts/getPostBySlug are deployed, this is a real Convex ` +
-      `error and the blog output of this build is incomplete. Cause: ${error.message}`,
-  );
-
-  return true;
-}
-
-type PublicCorpusPage<Item> = {
-  items: Item[];
-  cursor: string;
-  isDone: boolean;
-};
-
-type PublicCorpusPageSource = {
-  functionName: string;
-  args: (cursor?: string) => { cursor?: string; limit: number };
-};
-
-type PublicCorpusDrainLimits = {
-  maxPages: number;
-  maxRows: number;
-};
-
-type PublicCorpusVisitResult = "done" | "stopped";
-
-async function visitPublicCorpusPages<Item>(
-  query: QueryTransport,
-  source: PublicCorpusPageSource,
-  limits: PublicCorpusDrainLimits,
-  visitItems: (items: Item[]) => boolean,
-): Promise<PublicCorpusVisitResult> {
-  const seenCursors = new Set<string>();
-  let cursor: string | undefined;
-  let rowCount = 0;
-
-  for (let pageNumber = 1; pageNumber <= limits.maxPages; pageNumber += 1) {
-    const page = await query<PublicCorpusPage<Item>, { cursor?: string; limit: number }>(
-      source.functionName,
-      source.args(cursor),
-    );
-
-    if (!Array.isArray(page.items) || typeof page.isDone !== "boolean") {
-      throw new Error(`Public corpus page "${source.functionName}" returned an invalid payload.`);
-    }
-    rowCount += page.items.length;
-    if (rowCount > limits.maxRows) {
-      throw new Error(
-        `Public corpus pagination for "${source.functionName}" exceeded maxRows (${limits.maxRows}).`,
-      );
-    }
-    if (visitItems(page.items)) {
-      return "stopped";
-    }
-    if (page.isDone) {
-      return "done";
-    }
-    if (
-      typeof page.cursor !== "string" ||
-      page.cursor.length === 0 ||
-      seenCursors.has(page.cursor)
-    ) {
-      throw new Error(`Public corpus pagination for "${source.functionName}" did not advance.`);
-    }
-    seenCursors.add(page.cursor);
-    cursor = page.cursor;
-  }
-
-  throw new Error(
-    `Public corpus pagination for "${source.functionName}" exceeded maxPages (${limits.maxPages}).`,
-  );
-}
-
-async function drainPublicCorpusPages<Item>(
-  query: QueryTransport,
-  source: PublicCorpusPageSource,
-): Promise<Item[]> {
-  const items: Item[] = [];
-  await visitPublicCorpusPages<Item>(
-    query,
-    source,
-    { maxPages: PUBLIC_CORPUS_MAX_PAGES, maxRows: PUBLIC_CORPUS_MAX_ROWS },
-    (pageItems) => {
-      items.push(...pageItems);
-      return false;
-    },
-  );
-  return items;
-}
-
-type ConvexPaginationPage<Item> = {
-  page: Item[];
-  isDone: boolean;
-  continueCursor: string | null;
-};
-
-/**
- * Drain a standard Convex `paginationOpts` query (page/isDone/continueCursor),
- * unlike the bespoke corpus pages above (items/cursor/isDone). Shares their
- * fail-closed guards against malformed pages, stalled cursors, and runaway
- * reads.
- */
-async function drainConvexPaginationPages<Item>(
-  query: QueryTransport,
-  source: {
-    functionName: string;
-    args: (cursor: string | null) => { paginationOpts: { cursor: string | null; numItems: number } };
-  },
-): Promise<Item[]> {
-  const items: Item[] = [];
-  const seenCursors = new Set<string>();
-  let cursor: string | null = null;
-
-  for (let pageNumber = 1; pageNumber <= PUBLIC_CORPUS_MAX_PAGES; pageNumber += 1) {
-    const result = await query<ConvexPaginationPage<Item>, { paginationOpts: { cursor: string | null; numItems: number } }>(
-      source.functionName,
-      source.args(cursor),
-    );
-    if (!Array.isArray(result.page) || typeof result.isDone !== "boolean") {
-      throw new Error(`Convex pagination for "${source.functionName}" returned an invalid payload.`);
-    }
-    items.push(...result.page);
-    if (items.length > PUBLIC_CORPUS_MAX_ROWS) {
-      throw new Error(
-        `Convex pagination for "${source.functionName}" exceeded maxRows (${PUBLIC_CORPUS_MAX_ROWS}).`,
-      );
-    }
-    if (result.isDone) {
-      return items;
-    }
-    const nextCursor = result.continueCursor;
-    if (
-      typeof nextCursor !== "string" ||
-      nextCursor.length === 0 ||
-      nextCursor === cursor ||
-      seenCursors.has(nextCursor)
-    ) {
-      throw new Error(`Convex pagination for "${source.functionName}" did not advance.`);
-    }
-    seenCursors.add(nextCursor);
-    cursor = nextCursor;
-  }
-
-  throw new Error(
-    `Convex pagination for "${source.functionName}" exceeded maxPages (${PUBLIC_CORPUS_MAX_PAGES}).`,
-  );
-}
-
-async function queryPaginatedPublicProjectionRead<RawItem, PublicResult>(
-  query: QueryTransport,
-  source: PublicCorpusPageSource,
-  project: (result: RawItem[]) => PublicResult,
-): Promise<PublicResult> {
-  return project(await drainPublicCorpusPages<RawItem>(query, source));
-}
 
 export function createConvexPublicDataReadAdapter(query: QueryTransport = queryConvex): PublicDataReadAdapter {
   return {
@@ -782,45 +607,21 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           publicDataReadCatalog.publicEffectIndexArticleBySlug.args(slug),
         ),
       ),
-    // The archive blog queries are additive and only reached on the Effect Index build.
-    // A deployment that predates them degrades to an empty blog rather than failing a
-    // build whose `generateStaticParams` runs against production Convex — but it says so
-    // in the build log, because production cannot distinguish "not deployed" from a real
-    // failure. See `reportDegradedEffectIndexArchiveRead`.
-    getPublicEffectIndexPosts: async () => {
-      try {
-        return projectPublicEffectIndexPosts(
-          await query<unknown[]>(
-            publicDataReadCatalog.publicEffectIndexPosts.functionName,
-            publicDataReadCatalog.publicEffectIndexPosts.args(),
-          ),
-        );
-      } catch (error) {
-        if (reportDegradedEffectIndexArchiveRead("listPosts", error)) {
-          return [];
-        }
-        throw error;
-      }
-    },
-    getPublicEffectIndexPostBySlug: async (slug) => {
-      try {
-        return projectPublicEffectIndexPost(
-          await query<unknown | null, { slug: string }>(
-            publicDataReadCatalog.publicEffectIndexPostBySlug.functionName,
-            publicDataReadCatalog.publicEffectIndexPostBySlug.args(slug),
-          ),
-        );
-      } catch (error) {
-        if (reportDegradedEffectIndexArchiveRead(`getPostBySlug(${slug})`, error)) {
-          return null;
-        }
-        throw error;
-      }
-    },
-    getPublicReplicationsByEffect: (effectSlug) =>
-      query<ReplicationWithUrl[], { effect_slug: string }>(
-        publicDataReadCatalog.publicReplicationsByEffect.functionName,
-        publicDataReadCatalog.publicReplicationsByEffect.args(effectSlug),
+    // Archive failures must reject: empty lists and null are authoritative absence
+    // and would otherwise be persisted as successful indexes or not-found pages.
+    getPublicEffectIndexPosts: async () =>
+      projectPublicEffectIndexPosts(
+        await query<unknown[]>(
+          publicDataReadCatalog.publicEffectIndexPosts.functionName,
+          publicDataReadCatalog.publicEffectIndexPosts.args(),
+        ),
+      ),
+    getPublicEffectIndexPostBySlug: async (slug) =>
+      projectPublicEffectIndexPost(
+        await query<unknown | null, { slug: string }>(
+          publicDataReadCatalog.publicEffectIndexPostBySlug.functionName,
+          publicDataReadCatalog.publicEffectIndexPostBySlug.args(slug),
+        ),
       ),
     getPublicReplications: async () =>
       // This compatibility-shaped catalog is intentionally reconstructed from
@@ -910,7 +711,7 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
     // long-deployed public query, so no rollout degrade is needed here.
     getPublicSubstanceGalleryCuration: async (substanceSlug) => {
       const doc = await query<
-        { curated_slugs: string[]; removed_slugs: string[]; carousel_order?: string[] } | null,
+        { curated_slugs: string[]; removed_slugs: string[]; carousel_order?: string[]; disabled?: boolean } | null,
         { substance_slug: string }
       >(
         publicDataReadCatalog.publicSubstanceGalleryCuration.functionName,
@@ -921,11 +722,11 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         curated_slugs: doc.curated_slugs ?? [],
         removed_slugs: doc.removed_slugs ?? [],
         carousel_order: doc.carousel_order ?? [],
+        disabled: doc.disabled ?? false,
       };
     },
-    // The single-round-trip showcase read. Additive across function rollout:
-    // a deployment that predates it reports null (warned once) and the caller
-    // assembles the showcase from the paged matchable corpus instead.
+    // A missing query or incomplete index must use the shared paged corpus.
+    // Cached null means use that complete fallback, never an empty gallery.
     getPublicSubstanceGallery: async (substanceSlug) => {
       try {
         return await query<PublicSubstanceGallery, { substance_slug: string }>(
@@ -933,6 +734,13 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
           publicDataReadCatalog.publicSubstanceGallery.args(substanceSlug),
         );
       } catch (error) {
+        if (
+          typeof error === "object" && error !== null && "data" in error &&
+          typeof error.data === "object" && error.data !== null &&
+          "code" in error.data && error.data.code === "SUBSTANCE_GALLERY_INDEX_NOT_READY"
+        ) {
+          return null;
+        }
         if (isExplicitMissingPublicFunctionError(error)) {
           if (!hasWarnedAboutSubstanceGalleryRead) {
             hasWarnedAboutSubstanceGalleryRead = true;
@@ -1003,7 +811,38 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
   };
 }
 
-const defaultPublicDataReadAdapter = createConvexPublicDataReadAdapter();
+// Persist bounded corpus pages, never assembled multi-megabyte inputs.
+// Full documents use smaller pages than slim library and route projections.
+// Compositions above these leaves remain request-only to avoid nested bypass.
+const readPublicSubstanceProjectionPage = publicDataCache(
+  async (name: string, args: QueryArgs) => queryConvex<unknown, QueryArgs>(name, args),
+  ["convex-public-substance-projection-page-v1"],
+  {
+    revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    tags: [
+      PUBLIC_CONVEX_CACHE_TAGS.all,
+      PUBLIC_CONVEX_CACHE_TAGS.substances,
+      PUBLIC_SUBSTANCE_LISTS_TAG,
+    ],
+  },
+);
+
+const queryDefaultPublicData: QueryTransport = async <
+  Result,
+  Args extends QueryArgs = Record<string, never>,
+>(name: string, args: Args): Promise<Result> => {
+  if (
+    name === publicDataReadCatalog.publicSubstanceLibraryInput.functionName ||
+    name === publicDataReadCatalog.publicSubstanceMechanismRouteInput.functionName ||
+    name === publicDataReadCatalog.publicSubstanceCoverageInput.functionName ||
+    name === publicDataReadCatalog.publicSubstanceFullDocuments.functionName
+  ) {
+    return await readPublicSubstanceProjectionPage(name, args) as Result;
+  }
+  return queryConvex<Result, Args>(name, args);
+};
+
+const defaultPublicDataReadAdapter = createConvexPublicDataReadAdapter(queryDefaultPublicData);
 
 let publicDataReadAdapter: PublicDataReadAdapter = defaultPublicDataReadAdapter;
 

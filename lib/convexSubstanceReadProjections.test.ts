@@ -259,6 +259,15 @@ describe("substance read projections", () => {
     });
   });
 
+  it("names rendered article content, not private editorial notes or Convex storage identity", () => {
+    const revision = projectPublicArticle(article).publicRevision;
+    expect(projectPublicArticle({
+      ...article, _id: "another-storage-id", _creationTime: 1,
+      editorial_review: { ...article.editorial_review, notes: "Different private note" },
+    } as never).publicRevision).toBe(revision);
+    expect(projectPublicArticle({ ...article, summary: "A public correction" }).publicRevision).not.toBe(revision);
+  });
+
   it("keeps hide-for-now editorially while projecting low priority publicly", () => {
     const hiddenForNowArticle = {
       ...article,

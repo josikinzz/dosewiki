@@ -1,0 +1,28 @@
+import "server-only";
+
+import { cache } from "react";
+import { isPublishableReplication, type ReplicationWithUrl } from "../../src/types/replications";
+import { publicDataCache, PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
+import { getPublicDataReadAdapter } from "./publicData.reads";
+
+/** Leaf cache: callers assembling corpus collections must remain request-scoped. */
+const getPublicReplicationsBySlugBatch = cache(publicDataCache(async (
+  slugs: string[],
+): Promise<ReplicationWithUrl[]> => {
+  return await getPublicDataReadAdapter().getPublicReplicationsBySlugs(slugs);
+}, ["convex-public-replications-by-slug-batch-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
+}));
+
+/** Hydrate slim catalog selections with complete public media and rights metadata. */
+export const getPublicReplicationsBySlugs = cache(async (
+  slugs: string[],
+): Promise<ReplicationWithUrl[]> => {
+  const uniqueSlugs = [...new Set(slugs)];
+  const batches: Promise<ReplicationWithUrl[]>[] = [];
+  for (let offset = 0; offset < uniqueSlugs.length; offset += 100) {
+    batches.push(getPublicReplicationsBySlugBatch(uniqueSlugs.slice(offset, offset + 100)));
+  }
+  return (await Promise.all(batches)).flat().filter(isPublishableReplication);
+});

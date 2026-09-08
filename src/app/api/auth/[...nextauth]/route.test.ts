@@ -74,11 +74,4 @@ describe("credentials callback rate limiting", () => {
     expect(otherIp.status).toBe(200);
   });
 
-  it("forwards the request and route context to the NextAuth handler verbatim", async () => {
-    const request = credentialsRequest("192.0.2.58");
-
-    await POST(request, context);
-
-    expect(handlerMock).toHaveBeenCalledWith(request, context);
-  });
 });

@@ -19,12 +19,15 @@ type JoinRow = { _id: string; report_id: string; name_lower: string };
  * `by_name_lower` index lookups, `first()` presence checks, and a bare
  * `collect()` over `tripReports` for the fallback scan.
  */
-function fakeDb(reports: Report[], rows: JoinRow[] = []) {
+function fakeDb(reports: Report[], rows: JoinRow[] = [], ready = false) {
   let nextId = rows.length + 1;
   const joinRows = [...rows];
   const scans: string[] = [];
 
   function queryTable(table: string) {
+    if (table === "publicReadIndexState") {
+      return { withIndex: () => ({ unique: async () => ready ? { version: 1, ready: true } : null }) };
+    }
     const filterBy = (predicate: (row: JoinRow) => boolean) => ({
       collect: async () => joinRows.filter(predicate),
       first: async () => joinRows.find(predicate) ?? null,
@@ -125,8 +128,10 @@ describe("findTripReportsBySubstanceNames", () => {
     expect(scans).toEqual([]);
   });
 
-  it("scans the whole table only while the join table is empty", async () => {
-    const { ctx, scans } = fakeDb([lsdReport, mdmaReport, mixedReport]);
+  it("preserves complete results when only some reports have been indexed", async () => {
+    const { ctx, scans } = fakeDb([lsdReport, mdmaReport, mixedReport], [
+      { _id: "partial", report_id: "r1", name_lower: "lsd" },
+    ]);
 
     const result = await findTripReportsBySubstanceNames(ctx, ["lsd"]);
 
@@ -134,8 +139,8 @@ describe("findTripReportsBySubstanceNames", () => {
     expect(scans).toEqual(["tripReports"]);
   });
 
-  it("answers through the index once rows exist, in creation order, case-insensitively", async () => {
-    const { ctx, scans } = fakeDb([lsdReport, mdmaReport, mixedReport]);
+  it("answers through a certified index in creation order, case-insensitively", async () => {
+    const { ctx, scans } = fakeDb([lsdReport, mdmaReport, mixedReport], [], true);
     for (const report of [lsdReport, mdmaReport, mixedReport]) {
       await syncTripReportSubstanceRows(ctx, report._id as never, report.substances);
     }
@@ -147,7 +152,7 @@ describe("findTripReportsBySubstanceNames", () => {
   });
 
   it("never surfaces a report through a stale join row", async () => {
-    const { ctx } = fakeDb([mdmaReport], [{ _id: "stale", report_id: "r2", name_lower: "lsd" }]);
+    const { ctx } = fakeDb([mdmaReport], [{ _id: "stale", report_id: "r2", name_lower: "lsd" }], true);
 
     await expect(findTripReportsBySubstanceNames(ctx, ["lsd"])).resolves.toEqual([]);
   });

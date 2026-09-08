@@ -29,12 +29,13 @@ describe("importReviewedProfilePlanHandler typed blocks", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("returns a typed block for the four-link reviewed projection without truncating it", async () => {
+  it("returns a typed block for the seven-link reviewed projection without truncating it", async () => {
     const reviewedOfficialLinkCandidates = [
       { kind: "official artist website candidate", url: "https://algaart.com/" },
       { kind: "Facebook page", url: "https://www.facebook.com/algaartworks/" },
       { kind: "Instagram profile", url: "https://www.instagram.com/alga_artist/" },
       { kind: "Reddit profile", url: "https://www.reddit.com/user/Algaart_Works/" },
+      ...Array.from({ length: 3 }, (_, i) => ({ kind: `Portfolio ${i}`, url: `https://example.com/${i}` })),
     ];
     const projected = profile({
       key: "ANGUSLONG",
@@ -69,7 +70,7 @@ describe("importReviewedProfilePlanHandler typed blocks", () => {
     expect(patch).not.toHaveBeenCalled();
   });
 
-  it("rejects a write batch with a four-link profile before its first write", async () => {
+  it("rejects a write batch with a seven-link profile before its first write", async () => {
     const { ctx, insert, patch } = mutationContext();
 
     await expect(importReviewedProfilePlanHandler(ctx, {
@@ -88,10 +89,13 @@ describe("importReviewedProfilePlanHandler typed blocks", () => {
             { label: "Instagram", url: "https://instagram.com/artist" },
             { label: "Facebook", url: "https://facebook.com/artist" },
             { label: "Reddit", url: "https://reddit.com/user/artist" },
+            { label: "YouTube", url: "https://youtube.com/@artist" },
+            { label: "Patreon", url: "https://patreon.com/artist" },
+            { label: "Wikipedia", url: "https://en.wikipedia.org/wiki/Artist" },
           ],
         }),
       }],
-    })).rejects.toThrow(/exceed the 3-link product limit/);
+    })).rejects.toThrow(/exceed the 6-link product limit/);
     expect(insert).not.toHaveBeenCalled();
     expect(patch).not.toHaveBeenCalled();
   });

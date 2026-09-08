@@ -1,23 +1,10 @@
 /**
- * The validation and append rule behind `substanceIndex.appendArticleReference`,
- * the single-source write the review workbench's citation palette uses.
+ * Pure reference normalization and collection operations.
  *
- * Adding a source is not an inline field edit: `setArticleField` is scalar-only
- * by construction, and an array append does not fit it. It is also not a full
- * editor save — a reviewer who spots a missing citation mid-queue should be able
- * to mint the source and go on reading, without a diff or a commit message.
- *
- * The rule that makes that safe is idempotency by source identity. New ids are
- * deterministic, but older stored references may use another id for the same
- * DOI/PMID/ISBN/URL. Canonical identity matching keeps the stored marker id and
- * losslessly fills missing metadata without replacing populated canonical
- * fields. A double-click, a retry after a dropped response, and two reviewers
- * pasting the same source all converge on one
- * reference — which is why this write needs no optimistic-concurrency token the
- * way an inline edit does.
- *
- * Nothing here reads or writes Convex; the mutation supplies the document and
- * applies the patch, and the shared logic stays testable from plain Vitest.
+ * Contextual article publication uses the same identity and metadata rules as
+ * reference intake. None of these helpers writes production independently:
+ * prose, sources, revision guards and citation-evidence rechecks commit together
+ * through the article lifecycle.
  */
 import {
   findEquivalentReference,

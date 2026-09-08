@@ -9,6 +9,7 @@ import {
   EditorNotice,
   EditorPanel,
   EditorStatusPill,
+  EditorToolbar,
   TagToken,
 } from "@/features/dev/components";
 import type { TripReportEditableFields } from "../../../../../convex/lib/tripReportEditing";
@@ -40,6 +41,8 @@ export function PortalReportEditor({
   onRevert,
   onSave,
   row,
+  contentOnly = false,
+  saveLabel = "Save report",
 }: {
   busy: boolean;
   contributors: readonly PortalContributorOption[];
@@ -52,6 +55,8 @@ export function PortalReportEditor({
   onRevert: () => void;
   onSave: (request: EditorSaveRequest) => void;
   row: PortalRow;
+  contentOnly?: boolean;
+  saveLabel?: string;
 }) {
   const [profileKey, setProfileKey] = useState<string | null>(null);
   const [confirmAuthorNameClaim, setConfirmAuthorNameClaim] = useState(false);
@@ -73,9 +78,25 @@ export function PortalReportEditor({
     onChange({ ...draft, subject: { ...draft.subject, ...next } });
   }
 
+  const saveActions = <>
+    <Button
+      type="button"
+      variant="accent"
+      disabled={busy || !dirty}
+      onClick={() => onSave({
+        updates: draft,
+        ...(profileKey !== null ? { profileKey } : {}),
+        ...(confirmAuthorNameClaim ? { confirmAuthorNameClaim: true } : {}),
+      })}
+    >
+      {busy ? "Saving…" : saveLabel}
+    </Button>
+    <Button type="button" variant="ghost" disabled={busy || !dirty} onClick={onRevert}>Revert</Button>
+  </>;
+
   return (
-    <EditorPanel variant="default" className="flex min-h-0 flex-col">
-      <header className="theme-portal-rule sticky top-0 z-10 space-y-2.5 border-b px-5 py-4 backdrop-blur">
+    <EditorPanel variant="default" className={contentOnly ? "flex min-h-0 flex-col overflow-visible" : "flex min-h-0 flex-col"}>
+      <header className={contentOnly ? "theme-portal-rule space-y-2.5 border-b px-5 py-4" : "theme-portal-rule sticky top-0 z-10 space-y-2.5 border-b px-5 py-4 backdrop-blur"}>
         <div className="flex items-start gap-3">
           <label htmlFor="portal-report-title" className="sr-only">
             Report title
@@ -93,7 +114,7 @@ export function PortalReportEditor({
         <div className="flex flex-wrap items-center gap-2">
           <EditorStatusPill tone="success">Published</EditorStatusPill>
           {row.publicSlug ? (
-            <span className="text-dose-text-ghost font-mono text-[11px]">
+            <span className={contentOnly ? "theme-text-muted break-words text-xs" : "text-dose-text-ghost font-mono text-[11px]"}>
               /reports/{row.publicSlug}
               {row.license ? ` · ${row.license}` : ""}
               {row.profileKey ? ` · ${row.profileKey}` : ""}
@@ -105,8 +126,9 @@ export function PortalReportEditor({
           ) : null}
         </div>
       </header>
+      {contentOnly ? <EditorToolbar variant="sticky" className="bg-[var(--editor-panel-bg)] px-5">{saveActions}</EditorToolbar> : null}
 
-      <div className="min-h-0 flex-1 space-y-0 overflow-y-auto px-5 pb-4">
+      <div className={contentOnly ? "min-w-0 flex-1 space-y-0 px-5 pb-4 [&_input]:scroll-mt-20 [&_textarea]:scroll-mt-20 [&_button]:scroll-mt-20" : "min-h-0 flex-1 space-y-0 overflow-y-auto px-5 pb-4"}>
         {feedback ? (
           <div className="pt-4">
             <ActionNotice tone={feedback.tone} onDismiss={onDismissFeedback}>
@@ -115,7 +137,7 @@ export function PortalReportEditor({
           </div>
         ) : null}
 
-        <Section title="Attribution">
+        {!contentOnly ? <Section title="Attribution">
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <Field label="Author / byline" htmlFor="portal-report-author">
               <Input
@@ -155,7 +177,7 @@ export function PortalReportEditor({
               Reassign this byline even though it matches a contributor, without attributing the report
             </label>
           ) : null}
-        </Section>
+        </Section> : <p className="theme-text-muted pt-4 text-sm">Attribution is unchanged. Administrative attribution and intake actions remain in the report workbench.</p>}
 
         <Section title="Report details">
           <div className="grid gap-x-7 gap-y-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
@@ -236,9 +258,12 @@ export function PortalReportEditor({
                   {draft.substances.map((substance, index) => (
                     <div
                       key={index}
-                      className="grid grid-cols-1 gap-1.5 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]"
+                      className={contentOnly ? "grid grid-cols-1 items-end gap-3 sm:grid-cols-2" : "grid grid-cols-1 gap-1.5 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]"}
                     >
+                      <div className={contentOnly ? "min-w-0 sm:col-span-2" : "min-w-0"}>
+                      {contentOnly && <label htmlFor={`portal-report-substance-${index}-name`}><FieldLabel>Name</FieldLabel></label>}
                       <Input
+                        id={contentOnly ? `portal-report-substance-${index}-name` : undefined}
                         aria-label={`Substance ${index + 1} name`}
                         value={substance.name}
                         placeholder="Substance"
@@ -250,7 +275,11 @@ export function PortalReportEditor({
                           })
                         }
                       />
+                      </div>
+                      <div className="min-w-0">
+                      {contentOnly && <label htmlFor={`portal-report-substance-${index}-dose`}><FieldLabel>Dose</FieldLabel></label>}
                       <Input
+                        id={contentOnly ? `portal-report-substance-${index}-dose` : undefined}
                         aria-label={`Substance ${index + 1} dose`}
                         value={substance.dose ?? ""}
                         placeholder="Dose"
@@ -263,7 +292,11 @@ export function PortalReportEditor({
                           })
                         }
                       />
+                      </div>
+                      <div className="min-w-0">
+                      {contentOnly && <label htmlFor={`portal-report-substance-${index}-route`}><FieldLabel>Route</FieldLabel></label>}
                       <Input
+                        id={contentOnly ? `portal-report-substance-${index}-route` : undefined}
                         aria-label={`Substance ${index + 1} route`}
                         value={substance.roa ?? ""}
                         placeholder="ROA"
@@ -275,11 +308,12 @@ export function PortalReportEditor({
                           })
                         }
                       />
+                      </div>
                       <Button
                         type="button"
                         variant="iconGhost"
                         size="icon"
-                        className="justify-self-end md:justify-self-auto"
+                        className={contentOnly ? "justify-self-end sm:col-span-2" : "justify-self-end md:justify-self-auto"}
                         aria-label={`Remove substance ${index + 1}`}
                         title="Remove substance"
                         onClick={() =>
@@ -305,7 +339,7 @@ export function PortalReportEditor({
           <PortalReportTimelineEditor draft={draft} onChange={onChange} />
         </Section>
 
-        <Section title="Danger zone">
+        {!contentOnly ? <Section title="Danger zone">
           {deleteConfirmation === null ? (
             <Button
               type="button"
@@ -356,30 +390,10 @@ export function PortalReportEditor({
               }}
             />
           )}
-        </Section>
+        </Section> : null}
       </div>
 
-      <footer className="theme-portal-rule sticky bottom-0 flex flex-wrap items-center gap-2 border-t px-5 py-3 backdrop-blur">
-        <Button
-          type="button"
-          variant="accent"
-          disabled={busy || !dirty}
-          onClick={() =>
-            onSave({
-              updates: draft,
-              // Only sent when the editor actually touched the field, so an
-              // untouched panel leaves the stored attribution exactly as it was.
-              ...(profileKey !== null ? { profileKey } : {}),
-              ...(confirmAuthorNameClaim ? { confirmAuthorNameClaim: true } : {}),
-            })
-          }
-        >
-          {busy ? "Saving…" : "Save report"}
-        </Button>
-        <Button type="button" variant="ghost" disabled={busy || !dirty} onClick={onRevert}>
-          Revert
-        </Button>
-      </footer>
+      {!contentOnly ? <footer className="theme-portal-rule sticky bottom-0 flex flex-wrap items-center gap-2 border-t px-5 py-3 backdrop-blur">{saveActions}</footer> : null}
     </EditorPanel>
   );
 }

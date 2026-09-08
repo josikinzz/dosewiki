@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, type MutationCtx } from "./_generated/server";
+import { type MutationCtx } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc, Id } from "./_generated/dataModel";
 import { deriveSubmittedBy } from "../lib/changelog/submitterStamp";
 import { contentHash } from "../lib/proposals/contentHash";
@@ -14,7 +15,10 @@ import {
   type ProposalPayload,
   type ProposalSnapshotEntry,
 } from "./lib/changeProposalApply";
-import { hashProposalTarget } from "./lib/changeProposalTargets";
+import { deriveProposalTargets, hashProposalTarget, proposalHashDocument } from "./lib/changeProposalTargets";
+import { proposalChangelogArticles, type ProposalArticleRow } from "../lib/proposals/proposalChangelogStamp";
+import { buildProposalDiff } from "./lib/changeProposalDiff";
+import { indexLayoutRevalidationPath, type IndexLayoutType } from "./lib/saveRevalidationPaths";
 
 /**
  * Admin review of change proposals: approve (which applies in the same
@@ -51,6 +55,17 @@ async function loadProposal(ctx: MutationCtx, proposalId: Id<"changeProposals">)
   return proposal;
 }
 
+function replayRevalidationPaths(proposal: Doc<"changeProposals">): string[] {
+  const paths = new Set<string>();
+  for (const target of proposal.targets) {
+    if (target.kind === "article") { paths.add(`/${target.key}`); paths.add("/substances"); }
+    else if (target.kind === "indexLayout") { paths.add("/substances"); paths.add(indexLayoutRevalidationPath(target.key as IndexLayoutType)); }
+    else if (target.kind === "about") paths.add("/about");
+    else if (target.kind === "copyBlock") paths.add("/copy-blocks");
+  }
+  return [...paths].sort();
+}
+
 function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus) {
   if (!canTransition(proposal.status, to)) {
     throw new ConvexError({
@@ -60,9 +75,36 @@ function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus)
   }
 }
 
+/**
+ * The article rows the proposal's targets name, as production stands right
+ * now. Read after the write so an applied entry stamps the id and slug the
+ * reader will follow, exactly like the direct save's history row.
+ */
+async function readArticleRows(
+  ctx: MutationCtx,
+  targets: Doc<"changeProposals">["targets"],
+): Promise<ProposalArticleRow[]> {
+  const rows: ProposalArticleRow[] = [];
+  for (const target of targets) {
+    if (target.kind !== "article") continue;
+    const row = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_slug", (q) => q.eq("slug", target.key))
+      .first();
+    rows.push({ slug: target.key, id: row?.id ?? null, title: row?.title ?? null });
+  }
+  return rows;
+}
+
 export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs) {
   const actor = await requireReviewer(ctx, args);
   const proposal = await loadProposal(ctx, args.proposalId);
+  if (proposal.proposedBy === actor.email) {
+    throw new ConvexError({ code: "PROPOSAL_SELF_APPROVAL", message: "Another admin must review and approve your proposal." });
+  }
+  if (proposal.status === "applied") {
+    return { status: "applied" as const, revalidatePaths: replayRevalidationPaths(proposal) };
+  }
   requireTransition(proposal, "applied");
   const now = new Date().toISOString();
 
@@ -71,9 +113,23 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   // against something that is no longer there.
   const snapshotBefore: ProposalSnapshotEntry[] = [];
   const drifted: string[] = [];
+  const payload = proposal.payload as ProposalPayload;
+  // An ID absent at submission may now resolve to a different slug. Re-resolve
+  // the write destinations before the slug-based CAS can authorize any writes.
+  try {
+    const currentTargets = await deriveProposalTargets(ctx, payload);
+    if (currentTargets.length !== proposal.targets.length || currentTargets.some((current) =>
+      !proposal.targets.some((pinned) => pinned.kind === current.kind && pinned.key === current.key))) {
+      drifted.push("the payload's write destinations");
+    }
+  } catch (error) {
+    if (!(error instanceof ConvexError) || typeof error.data !== "object" || error.data === null ||
+        error.data.code !== "PROPOSAL_SLUG_MOVE" || typeof error.data.message !== "string") throw error;
+    drifted.push(error.data.message);
+  }
   for (const target of proposal.targets) {
     const entry = await snapshotProposalTarget(ctx, target);
-    if (contentHash(entry.document) !== target.baseHash) {
+    if (contentHash(proposalHashDocument(target.kind, entry.document)) !== target.baseHash) {
       drifted.push(`${target.kind} "${target.key}"`);
     }
     snapshotBefore.push(entry);
@@ -90,8 +146,7 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     return { status: "changes_requested" as const, conflictReason };
   }
 
-  const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail };
-  const payload = proposal.payload as ProposalPayload;
+  const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail, articleChangeId: `proposal-${proposal._id}`, articleSummary: proposal.summary };
   const revalidatePaths = await applyDocuments(ctx, auth, payloadDocuments(payload));
 
   const appliedHashes = [];
@@ -104,10 +159,10 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
     ...auth,
     entryId,
     createdAt: now,
-    message: `${proposal.summary} (proposed by ${proposal.proposedBy}, approved by ${actor.email})`,
-    markdown: truncateDiffMarkdown(payload.changelog?.markdown ?? proposal.diff),
+    message: proposal.summary,
+    markdown: truncateDiffMarkdown(buildProposalDiff(payload, snapshotBefore)),
     submittedBy: deriveSubmittedBy(proposal.proposedBy),
-    articles: payload.changelog?.articles ?? [],
+    articles: proposalChangelogArticles(payload.changelog?.articles, await readArticleRows(ctx, proposal.targets)),
   });
 
   await ctx.db.patch(proposal._id, {
@@ -143,6 +198,7 @@ export async function rejectHandler(ctx: MutationCtx, args: ReviewArgs & { note:
     });
   }
   const proposal = await loadProposal(ctx, args.proposalId);
+  if (proposal.status === "rejected" && proposal.reviewedBy === actor.email && proposal.reviewNotes === note) return { status: "rejected" as const };
   requireTransition(proposal, "rejected");
   const now = new Date().toISOString();
   await ctx.db.patch(proposal._id, {
@@ -164,6 +220,9 @@ export const reject = mutation({
 export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
   const actor = await requireReviewer(ctx, args);
   const proposal = await loadProposal(ctx, args.proposalId);
+  if (proposal.status === "reverted") {
+    return { status: "reverted" as const, revalidatePaths: replayRevalidationPaths(proposal) };
+  }
   requireTransition(proposal, "reverted");
 
   const appliedHashes = proposal.appliedHashes ?? [];
@@ -184,7 +243,7 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
     });
   }
 
-  const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail };
+  const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail, articleChangeId: `revert-${proposal._id}`, articleSummary: `Reverted: ${proposal.summary}` };
   const revalidatePaths = await applyDocuments(ctx, auth, snapshotBefore);
 
   // An article snapshot is written back through the same reference merge the
@@ -207,9 +266,9 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
     entryId,
     createdAt: now,
     message: `Reverted proposal ${proposal._id}`,
-    markdown: `Reverted "${proposal.summary}" (proposed by ${proposal.proposedBy}, applied by ${proposal.reviewedBy ?? "unknown"}, reverted by ${actor.email}).`,
+    markdown: `Reverted "${proposal.summary}".`,
     submittedBy: deriveSubmittedBy(actor.email),
-    articles: payload.changelog?.articles ?? [],
+    articles: proposalChangelogArticles(payload.changelog?.articles, await readArticleRows(ctx, proposal.targets)),
   });
 
   await ctx.db.patch(proposal._id, {

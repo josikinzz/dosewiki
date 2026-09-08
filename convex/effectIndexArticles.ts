@@ -1,7 +1,11 @@
 import { ConvexError, v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "./_generated/dataModel";
 import { requireRole } from "./lib/auth";
+import { contentHash } from "../lib/proposals/contentHash";
+import { prepareVCode } from "../src/features/effects/vcode/editing";
+import { currentNarrativeRevision, narrativeRevision, recordNarrativeMaintenance, recordNarrativeRevision } from "./lib/narrativeRevisions";
 
 /**
  * `getAll`, `getBySlug` and `getByTag` are unauthenticated public reads, so the
@@ -104,10 +108,13 @@ export const getForEditor = query({
       adminIntent: "editorArticleWrite",
     }, "editor");
 
-    return await ctx.db
+    const article = await ctx.db
       .query("effectIndexArticles")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
+    if (!article) return null;
+    const revisions = await ctx.db.query("narrativeRevisions").withIndex("by_document", q => q.eq("kind", "writing").eq("documentId", article._id)).order("desc").take(5);
+    return { ...article, baseRevision: narrativeRevision(article, revisions[0]?.operationId ?? null), history: revisions.map(({ createdAt, actorEmail, revision, before, after }) => ({ createdAt, actorEmail, revision, before, after })) };
   },
 });
 
@@ -132,6 +139,8 @@ export const upsertArticle = mutation({
     slug: v.string(),
     /** The slug the editor loaded the row with; differs from `slug` on a rename. */
     originalSlug: v.optional(v.string()),
+    expectedRevision: v.string(),
+    operationId: v.string(),
     title: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
@@ -159,13 +168,15 @@ export const upsertArticle = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await requireRole(ctx, {
+    const actor = await requireRole(ctx, {
       apiKey: args.apiKey,
       actorEmail: args.actorEmail,
       adminIntent: "editorArticleWrite",
     }, "admin");
 
-    const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, ...rest } = args;
+    const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, expectedRevision, operationId, ...rest } = args;
+    const requestHash = contentHash({ slug, originalSlug, ...rest });
+    if (!/^[a-f0-9-]{36}$/i.test(operationId)) throw new ConvexError({ code: "INVALID_WRITING", message: "A valid publication operation is required." });
 
     if (!SLUG_PATTERN.test(slug)) {
       throw new Error(
@@ -179,6 +190,17 @@ export const upsertArticle = mutation({
       .query("effectIndexArticles")
       .withIndex("by_slug", (q) => q.eq("slug", renamingFrom ?? slug))
       .first();
+    if (operationId) {
+      const applied = await ctx.db.query("narrativeRevisions").withIndex("by_operation", q => q.eq("kind", "writing").eq("operationId", operationId)).first();
+      if (applied) {
+        if (applied.actorEmail !== actor.email || applied.baseRevision !== expectedRevision || applied.key !== (originalSlug ?? slug) || applied.requestHash !== requestHash) throw new ConvexError({ code: "FIELD_CONFLICT", message: "Operation identity does not match this writing document." });
+        const after = applied.after as Doc<"effectIndexArticles">;
+        return { slug: after.slug, id: after._id, created: applied.before === null, revision: applied.revision };
+      }
+    }
+    if (await currentNarrativeRevision(ctx, "writing", existing) !== expectedRevision) throw new ConvexError({ code: "FIELD_CONFLICT", message: "This writing document changed. Reload and reconcile your local edits before publishing." });
+    if (existing && rest.bodyFormat !== undefined && rest.bodyFormat !== (existing.bodyFormat ?? "vcode")) throw new ConvexError({ code: "INVALID_WRITING", message: "Writing format cannot be converted by this editor." });
+    if (existing && rest.kind !== undefined && rest.kind !== (existing.kind ?? "article")) throw new ConvexError({ code: "INVALID_WRITING", message: "Writing family cannot be changed by this editor." });
 
     if (renamingFrom) {
       if (!existing) {
@@ -207,14 +229,25 @@ export const upsertArticle = mutation({
 
     const status = patch.status ?? existing?.status ?? "published";
     const body = patch.body_raw ?? existing?.body_raw ?? "";
+    if (body.length > 400_000 || (patch.title !== undefined && (!patch.title.trim() || patch.title.length > 200)) || (patch.teaser?.length ?? 0) > 500 || (patch.tags?.length ?? 0) > 24 || (patch.authorProfileKeys?.length ?? 0) > 12) throw new ConvexError({ code: "INVALID_WRITING", message: "Writing fields exceed their supported limits." });
+    if (patch.coverImageUrl && !/^(https?:\/\/|\/(?!\/))/.test(patch.coverImageUrl)) throw new ConvexError({ code: "INVALID_WRITING", message: "Use an https/http or site-relative cover image URL." });
+    if (patch.body_ast !== undefined && patch.body_raw === undefined) throw new ConvexError({ code: "INVALID_WRITING", message: "VCode source is required with its parsed document." });
 
     if (status === "published" && body.trim() === "") {
       throw new Error("Cannot publish an article with an empty body");
     }
+    if ((patch.bodyFormat ?? existing?.bodyFormat ?? "vcode") === "vcode" && patch.body_raw !== undefined) {
+      try { patch.body_ast = prepareVCode(body, existing && rest.body_ast === undefined ? { raw: existing.body_raw, ast: existing.body_ast } : undefined); }
+      catch (error) { throw new ConvexError({ code: "INVALID_VCODE", message: error instanceof Error ? error.message : "Invalid VCode." }); }
+    } else if (patch.bodyFormat === "markdown") {
+      patch.body_ast = undefined;
+    }
 
     if (existing) {
       await ctx.db.patch(existing._id, renamingFrom ? { ...patch, slug } : patch);
-      return { slug, created: false, id: existing._id };
+      const after = (await ctx.db.get(existing._id))!;
+      const revision = await recordNarrativeRevision(ctx, { kind: "writing", key: originalSlug ?? slug, operationId, requestHash, baseRevision: expectedRevision, actor, before: existing, after });
+      return { slug, created: false, id: existing._id, revision };
     }
 
     if (patch.title === undefined) {
@@ -229,7 +262,9 @@ export const upsertArticle = mutation({
       ...patch,
     });
 
-    return { slug, created: true, id };
+    const after = (await ctx.db.get(id))!;
+    const revision = await recordNarrativeRevision(ctx, { kind: "writing", key: slug, operationId, requestHash, baseRevision: expectedRevision, actor, before: null, after });
+    return { slug, created: true, id, revision };
   },
 });
 
@@ -264,7 +299,7 @@ export const bulkImport = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
+    const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail }, "admin");
 
     const results = {
       created: 0,
@@ -272,8 +307,8 @@ export const bulkImport = mutation({
       errors: [] as string[],
     };
 
+    // Let a failure abort the transaction: content and history must commit together.
     for (const article of args.articles) {
-      try {
         // Check if article already exists
         const existing = await ctx.db
           .query("effectIndexArticles")
@@ -283,17 +318,14 @@ export const bulkImport = mutation({
         if (existing) {
           // Update existing article
           await ctx.db.patch(existing._id, article);
+          await recordNarrativeMaintenance(ctx, { kind: "writing", key: article.slug, actor, before: existing, after: (await ctx.db.get(existing._id))! });
           results.updated++;
         } else {
           // Create new article
-          await ctx.db.insert("effectIndexArticles", article);
+          const id = await ctx.db.insert("effectIndexArticles", article);
+          await recordNarrativeMaintenance(ctx, { kind: "writing", key: article.slug, actor, before: null, after: (await ctx.db.get(id))! });
           results.created++;
         }
-      } catch (error) {
-        results.errors.push(
-          `Failed to import ${article.slug}: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
     }
 
     return results;

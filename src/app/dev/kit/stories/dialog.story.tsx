@@ -159,6 +159,11 @@ export const dialogStory: StoryDef = {
       description: "DialogContent prop. Renders the absolute top-right close (X) button.",
     },
     {
+      name: "container",
+      type: "HTMLElement | null",
+      description: "Portal container for a dialog opened within an existing viewer or native fullscreen focus boundary. Defaults to document.body.",
+    },
+    {
       name: "asChild",
       type: "boolean",
       default: "false",

@@ -53,8 +53,9 @@ import {
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
 } from "./warningBannerTargets";
+import { pendingWarning, publishWarning, readWarningJson, retryPendingWarning, writeWarning } from "./warningEditing";
+import type { EditableWarningPreset } from "./warningEditing";
 
-const WARNING_BANNER_API = "/api/dev/warning-banner";
 
 /**
  * A separate endpoint, not a field on the preset write: the size is one document
@@ -79,6 +80,7 @@ type WarningBannerPresetDoc = {
   enabled: boolean;
   allSubstances?: boolean;
   enabledSlugs: string[];
+  baseHash: string;
 };
 
 type StudioView = WarningBannersStudioViewMode;
@@ -90,8 +92,8 @@ type SaveState = EditorActionStatusState | "idle";
  * the key field editable and Save an insert rather than an update.
  */
 type PresetEditor = {
-  origin: WarningBannerPreset | null;
-  draft: WarningBannerPreset;
+  origin: EditableWarningPreset | null;
+  draft: EditableWarningPreset;
 };
 
 const BLANK_PRESET: WarningBannerPreset = {
@@ -127,12 +129,22 @@ export function WarningBannersTab(props: WarningBannersTabProps) {
 }
 
 function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) {
-  const rows = useQuery(api.warningBanners.listPresets) as
-    | WarningBannerPresetDoc[]
-    | undefined;
+  const [rows, setRows] = useState<WarningBannerPresetDoc[] | undefined>(undefined);
+  const [rowsError, setRowsError] = useState<string | null>(null);
+  const [rowsToken, setRowsToken] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    setRowsError(null);
+    readWarningJson<{ presets: WarningBannerPresetDoc[] }>("/api/dev/warning-banner").then(
+      (result) => { if (active) setRows(result.presets); },
+      (error: unknown) => { if (active) setRowsError(error instanceof Error ? error.message : "The warning presets could not be loaded."); },
+    );
+    return () => { active = false; };
+  }, [rowsToken]);
 
   const presets = useMemo(() => {
-    const mapped = (rows ?? []).map((row): WarningBannerPreset => ({
+    const mapped = (rows ?? []).map((row): EditableWarningPreset => ({
       key: row.key,
       tone: isWarningBannerTone(row.tone) ? row.tone : "caution",
       icon: row.icon,
@@ -142,6 +154,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       enabled: row.enabled,
       allSubstances: row.allSubstances === true,
       enabledSlugs: row.enabledSlugs,
+      baseHash: row.baseHash,
     }));
     return mapped.sort(compareWarningBanners);
   }, [rows]);
@@ -226,40 +239,21 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   /**
    * One POST is every write in this tool: authoring copy, enabling a class of
    * substances, and disabling one slug all submit the whole preset. Returns the
-   * server's `enabledSlugs` for the caller to adopt, or `null` when the write
-   * failed and the caller must leave stored state alone.
+   * confirmed preset and its new revision for the caller to adopt, or `null`
+   * when the write failed and local edits must remain untouched.
    */
   const submitPreset = useCallback(
-    async (preset: WarningBannerPreset): Promise<string[] | null> => {
+    async (preset: EditableWarningPreset): Promise<EditableWarningPreset | null> => {
       const submitted = normalizeEnabledSlugs(preset.enabledSlugs);
       setSaveState("saving");
       setNotice(null);
 
       try {
-        const response = await fetch(WARNING_BANNER_API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            key: preset.key.trim(),
-            tone: preset.tone,
-            icon: preset.icon.trim(),
-            severityLabel: preset.severityLabel.trim(),
-            headline: preset.headline.trim(),
-            points: preset.points.map((point) => point.trim()).filter(Boolean),
-            enabled: preset.enabled,
-            allSubstances: preset.allSubstances,
-            enabledSlugs: submitted,
-          }),
-        });
-
-        const payload = (await response.json()) as {
-          error?: string;
-          enabledSlugs?: string[];
-        };
-        const echoed = payload.enabledSlugs;
-        if (!response.ok || !echoed) {
-          throw new Error(payload.error ?? "The preset could not be saved.");
-        }
+        const result = await publishWarning({ ...preset, enabledSlugs: submitted });
+        if (!result.preset) throw new Error("The saved warning could not be confirmed.");
+        const echoed = result.enabledSlugs;
+        const adopted = { ...result.preset, baseHash: result.baseHash };
+        setRows((current) => [...(current ?? []).filter((row) => row.key !== adopted.key), adopted]);
 
         setSaveState("saved");
 
@@ -278,13 +272,14 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
           });
         }
 
-        return echoed;
+        return { ...result.preset, baseHash: result.baseHash };
       } catch (error) {
         setSaveState("error");
         setNotice({
           tone: "danger",
           title: "Couldn't save that preset",
           message: error instanceof Error ? error.message : "The preset could not be saved.",
+          actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button> : undefined,
         });
         return null;
       }
@@ -308,12 +303,8 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     summary: string,
   ) {
     const previous = preset.enabledSlugs;
-    const echoed = await submitPreset({ ...preset, enabledSlugs: nextSlugs });
-    if (!echoed) {
-      return;
-    }
-
-    const adopted: WarningBannerPreset = { ...preset, enabledSlugs: echoed };
+    const adopted = await submitPreset({ ...preset, enabledSlugs: nextSlugs });
+    if (!adopted) return;
     // Keep an open drawer in step with a write made from inside it, so the
     // dirty pill does not claim unsaved changes the server already has.
     if (editor && (editor.origin === null || editor.origin.key === preset.key)) {
@@ -359,41 +350,65 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     });
   }
 
+  function recoverPending(key: string) {
+    const operation = pendingWarning(key);
+    if (!operation) return;
+    confirm({
+      title: `Resolve pending warning ${key}?`,
+      description: <><p>Check the receipt, then retry only this original request with the same change id if necessary. Different local edits will not be sent.</p><pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(operation.body, null, 2)}</pre></>,
+      confirmLabel: "Reconcile or retry original change",
+      onConfirm: async () => {
+        setSaveState("saving");
+        try {
+          const result = await retryPendingWarning(key);
+          const adopted = result.preset ? { ...result.preset, baseHash: result.baseHash } : null;
+          setRows((current) => [...(current ?? []).filter((row) => row.key !== key), ...(adopted ? [adopted] : [])]);
+          setEditor(adopted ? { origin: adopted, draft: adopted } : null);
+          setSaveState("saved");
+          setNotice({ tone: "info", message: `Confirmed the original change for ${key}.` });
+        } catch (error) {
+          setSaveState("error");
+          setNotice({
+            tone: "danger", title: "Original warning change unresolved",
+            message: error instanceof Error ? error.message : "The original request could not be reconciled.",
+            actions: pendingWarning(key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(key)}>Reconcile original change</Button> : undefined,
+          });
+        }
+      },
+    });
+  }
+
   const openPreset = useCallback((preset: WarningBannerPreset | null) => {
     setEditor(preset ? { origin: preset, draft: preset } : null);
     setSaveState("idle");
-    setNotice(null);
+    setNotice(preset && pendingWarning(preset.key) ? {
+      tone: "warning", message: "An earlier warning publication remains unconfirmed. Resolve its original request before making another change.",
+      actions: <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button>,
+    } : null);
   }, []);
 
-  const handleSave = useCallback(async () => {
-    if (!editor) {
-      return;
-    }
-    const echoed = await submitPreset(editor.draft);
-    if (!echoed) {
-      return;
-    }
-    // Not optimism: the write returned OK, so the copy fields are stored as
-    // submitted and only `enabledSlugs` may have been pruned. Re-seeding origin
-    // and draft together is what clears the dirty pill.
-    const adopted: WarningBannerPreset = { ...editor.draft, enabledSlugs: echoed };
-    setEditor({ origin: adopted, draft: adopted });
-  }, [editor, submitPreset]);
+  const handleSave = useCallback(() => {
+    if (!editor) return;
+    const reach = editor.draft.allSubstances ? "every substance article, including future articles" : editor.draft.enabledSlugs.join(", ") || "no assigned articles";
+    confirm({
+      title: "Publish shared warning preset?",
+      description: `This changes shared warning copy on dose.wiki and Effect Index. Affected scope: ${reach}.`,
+      confirmLabel: "Publish preset",
+      onConfirm: async () => {
+        const adopted = await submitPreset(editor.draft);
+        if (adopted) setEditor({ origin: adopted, draft: adopted });
+      },
+    });
+  }, [editor, submitPreset, confirm]);
 
-  const deletePreset = useCallback(async (preset: WarningBannerPreset) => {
+  const deletePreset = useCallback(async (preset: EditableWarningPreset) => {
     setSaveState("saving");
     setNotice(null);
 
     try {
-      const response = await fetch(WARNING_BANNER_API, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: preset.key }),
-      });
-      const payload = (await response.json()) as { error?: string; removed?: boolean };
-      if (!response.ok) {
-        throw new Error(payload.error ?? "The preset could not be deleted.");
-      }
+      if (!preset.baseHash) throw new Error("Reload this warning before deleting it.");
+      await writeWarning("DELETE", { key: preset.key, baseHash: preset.baseHash, scope: "preset" });
+      setRows((current) => current?.filter((row) => row.key !== preset.key));
       setSaveState("saved");
       setEditor(null);
       setNotice({
@@ -406,6 +421,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         tone: "danger",
         title: "Couldn't delete that preset",
         message: error instanceof Error ? error.message : "The preset could not be deleted.",
+        actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button> : undefined,
       });
     }
   }, []);
@@ -469,6 +485,9 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   }, [iconSize]);
 
   if (rows === undefined) {
+    if (rowsError) {
+      return <StateCard compact tone="danger" title="Unable to load warning presets" description={rowsError} actions={<Button variant="secondary" onClick={() => setRowsToken((value) => value + 1)}>Retry preset read</Button>} />;
+    }
     return (
       <StateCard loading compact className="mt-10" title="Loading banner presets" />
     );
