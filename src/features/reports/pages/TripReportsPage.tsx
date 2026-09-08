@@ -22,7 +22,9 @@ interface TripReportsPageProps {
 }
 
 /**
- * Experience reports listing page with view mode selector.
+ * Experience reports index. The page owns orientation only: title, framing,
+ * and the contribution invitation at the end, where a reader who has actually
+ * read a report meets it. Everything between belongs to the explorer.
  */
 export function TripReportsPage({
   reports,
@@ -31,21 +33,20 @@ export function TripReportsPage({
   initialView = REPORTS_INDEX_DEFAULT_VIEW,
 }: TripReportsPageProps) {
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10 focus:outline-none">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      // Unbounded width, matching the substance and effect indexes: the panel
+      // grid measures its own container and takes as many 320px columns as the
+      // monitor allows. Header and controls keep the reading measure.
+      className="mx-auto w-full px-4 pb-20 pt-10 focus:outline-none md:px-8"
+    >
       <PageHeader
         title="Experience Reports"
         icon={icons.fileSignature}
-        className="mb-7"
+        description="First-person accounts of psychoactive experiences, published as their authors wrote them. Each one is a single person's experience, not dosing guidance."
+        className="mx-auto mb-7 w-full max-w-4xl"
       />
-
-      <div className="mb-4 flex justify-center" data-nosnippet>
-        <Button variant="accent" size="pillLg" asChild>
-          <Link href={publicHref.reportSubmission()}>
-            <Icon icon="lucide:file-pen-line" size={16} />
-            Submit a report
-          </Link>
-        </Button>
-      </div>
 
       <TripReportsExplorer
         key={initialView}
@@ -54,6 +55,27 @@ export function TripReportsPage({
         reportHrefPrefix={reportHrefPrefix}
         emptyState={emptyState}
       />
+
+      <div className="mx-auto mt-16 w-full max-w-4xl">
+        <div className="theme-horizontal-divider h-px" />
+        <div
+          className="mt-5 flex flex-wrap items-center justify-center gap-3"
+          data-nosnippet
+        >
+          <Button variant="pill" size="pill" asChild>
+            <Link href={publicHref.reportSubmission()}>
+              <Icon icon="lucide:file-pen-line" size={16} />
+              Submit a report
+            </Link>
+          </Button>
+          <Button variant="quiet" size="quiet" asChild>
+            <a href="#main-content">
+              <Icon icon="lucide:arrow-up" size={15} />
+              Back to top
+            </a>
+          </Button>
+        </div>
+      </div>
     </main>
   );
 }

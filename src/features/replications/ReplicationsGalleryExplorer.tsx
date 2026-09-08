@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Icon, type IconName } from "@/components/common/Icon";
 import {
   dismissPrePaintRouteStateCover,
@@ -115,6 +115,16 @@ const PHONE_MENU_ITEM = "min-h-11 gap-2";
 const MODE_ICON: Record<GalleryMode, IconName> = {
   artist: "lucide:palette",
   effect: "lucide:sparkles",
+};
+
+/**
+ * Browse-mode names. The bar shows the glyph alone at every width now, so
+ * these are what the control is *called*: its accessible name, its tooltip,
+ * and its row in the phone menu.
+ */
+const MODE_LABEL: Record<GalleryMode, string> = {
+  artist: "By artist",
+  effect: "By effect",
 };
 
 const TYPE_ICON: Record<GalleryTypeFilter, IconName> = {
@@ -339,8 +349,9 @@ export interface ReplicationsGalleryExplorerProps {
 
 /**
  * Phones get a denser, media-first masonry (three thin columns, hairline
- * gutters, captions hidden via `mobileCompact`); from `sm` up the grid
- * relaxes back to the readable card layout with visible captions.
+ * gutters, and captions tightened by `mobileCompact` rather than hidden: a
+ * title only a hover reveals is a title touch readers never get); from `sm`
+ * up the grid relaxes back to the readable card layout.
  */
 const MASONRY_CLASS =
   "columns-3 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
@@ -480,7 +491,6 @@ function GalleryExplorer({
   viewerParamPresent,
   urlStateResolved,
 }: ReplicationsGalleryExplorerProps & GalleryUrlState) {
-  const router = useRouter();
   const [galleryReplications, setGalleryReplications] = useState(replications);
   const galleryReplicationsRef = useRef(galleryReplications);
   const [hasMore, setHasMore] = useState(Boolean(completeCorpusUrl));
@@ -1261,11 +1271,44 @@ function GalleryExplorer({
   // Below Tailwind's `sm` (640px) the control bar is the one-row icon layout.
   const phone = useMediaQuery("(max-width: 639px)");
 
+  /**
+   * The search field rests at glyph width and opens on focus.
+   *
+   * Every other control in the bar is a glyph now, and a permanently open
+   * field with a sentence of placeholder in it was the one text run left. At
+   * rest it is a magnifier in a 36px box; focus widens it, and an active query
+   * holds it open through `searching` so a `?q=` deep link and a reader
+   * mid-search never meet a shut field. It is width, not mounting: the input
+   * stays in the DOM and in the tab order, so reaching it never costs a click
+   * and the placeholder is the only thing that has to wait.
+   */
+  const searchOpen = searching;
+
+  useEffect(() => {
+    if (chrome !== "full") return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        /^(input|textarea|select)$/i.test(target?.tagName ?? "")
+      ) {
+        return;
+      }
+      event.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [chrome]);
+
   return (
     <>
       <section
         aria-label="Replications gallery"
-        className="mx-auto mt-4 w-full max-w-7xl"
+        className="mx-auto mt-2 w-full max-w-7xl"
       >
         {!hasMedia && !hasMore ? (
           <SearchEmptyState
@@ -1285,16 +1328,18 @@ function GalleryExplorer({
               </Alert>
             ) : null}
 
-            {/* Phones get one row: search, then three icon menus (browse,
-                media, filters) so the sticky bar costs ~3.5rem of a short
-                viewport instead of three stacked rows. From `sm` up the
-                same state is driven by the labelled pill groups and the
-                artist-sort menu; the two sets never render together. */}
+            {/* One row of glyphs at every width: browse mode, media type,
+                artist sort, filters, and a search field that folds into its
+                own magnifier. Phones drive browse/media through menus instead
+                of segmented groups because a menu row is a finger target and
+                a three-up segment is not; the two sets never render together.
+                Every glyph carries its name in `aria-label` and `title`, the
+                way the editor chrome's icon buttons do. */}
             {chrome === "full" ? (
-              <div className="sticky top-[4.75rem] z-20 mt-4 md:mt-0">
+              <div className="sticky top-[calc(var(--site-header-height)+var(--site-header-sticky-gap))] z-20 mt-2 md:mt-0">
                 <div
                   data-testid="gallery-control-bar"
-                  className="flex w-full min-w-0 items-center gap-1.5 rounded-2xl border border-[color:var(--theme-frosted-control-border)] bg-[var(--theme-frosted-control-bg)] p-1.5 shadow-[var(--theme-frosted-control-shadow)] backdrop-blur-md sm:flex-wrap sm:gap-3 sm:p-2"
+                  className="theme-frosted-control-bar flex w-full min-w-0 items-center gap-1.5 rounded-2xl border border-[color:var(--theme-frosted-control-border)] p-1.5 backdrop-blur-md sm:flex-wrap sm:gap-3 sm:p-2"
                 >
                   <ToggleGroup
                     type="single"
@@ -1306,48 +1351,80 @@ function GalleryExplorer({
                     aria-label="Browse by"
                     className="hidden shrink-0 sm:flex"
                   >
-                    <ToggleGroupItem
-                      value="artist"
-                      className={cn(
-                        TOUCH_PILL,
-                        "data-[state=on]:border-dose-accent-strong data-[state=on]:font-semibold",
-                      )}
-                    >
-                      By artist
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="effect"
-                      className={cn(
-                        TOUCH_PILL,
-                        "data-[state=on]:border-dose-accent-strong data-[state=on]:font-semibold",
-                      )}
-                    >
-                      By effect
-                    </ToggleGroupItem>
+                    {(["artist", "effect"] as const).map((value) => (
+                      <ToggleGroupItem
+                        key={value}
+                        value={value}
+                        aria-label={MODE_LABEL[value]}
+                        title={MODE_LABEL[value]}
+                        className={cn(
+                          TOUCH_PILL,
+                          "px-2.5 data-[state=on]:border-dose-accent-strong",
+                        )}
+                      >
+                        <Icon
+                          icon={MODE_ICON[value]}
+                          className="h-4 w-4"
+                          aria-hidden
+                        />
+                      </ToggleGroupItem>
+                    ))}
                   </ToggleGroup>
 
-                  <div className="relative min-w-0 flex-1 basis-0 sm:min-w-60 sm:flex-[1_1_calc(100%_-_12rem)] lg:flex-[1_1_15rem]">
+                  <div
+                    className={cn(
+                      "group relative min-w-0 shrink-0 transition-[width,flex-basis] duration-200 ease-out motion-reduce:transition-none",
+                      "focus-within:w-full focus-within:flex-1 focus-within:basis-0 sm:focus-within:min-w-60 sm:focus-within:flex-[1_1_calc(100%_-_12rem)] lg:focus-within:flex-[1_1_15rem]",
+                      searchOpen
+                        ? "w-full flex-1 basis-0 sm:min-w-60 sm:flex-[1_1_calc(100%_-_12rem)] lg:flex-[1_1_15rem]"
+                        : "w-10 sm:w-9",
+                    )}
+                  >
                     <Icon
                       icon="lucide:search"
-                      className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                      className={cn(
+                        "theme-text-faint pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 transition-[left] duration-200 motion-reduce:transition-none",
+                        // Resting, the glyph is the control: it sits centred in
+                        // its square and slides to the field's left edge as the
+                        // field opens.
+                        searchOpen
+                          ? "left-3"
+                          : "left-1/2 -translate-x-1/2 group-focus-within:left-3 group-focus-within:translate-x-0",
+                      )}
                     />
                     <Input
                       ref={inputRef}
                       id="replications-gallery-search"
                       defaultValue={browse.query}
                       onChange={(event) => updateQuery(event.target.value)}
-                      placeholder={
-                        phone ? "Search replications" : "Search art, artist, effect"
-                      }
+                      onKeyDown={(event) => {
+                        // Escape empties the field rather than closing it: the
+                        // field is what shows the reader why the grid is
+                        // filtered, so it stays and the query goes.
+                        if (event.key !== "Escape" || !inputRef.current?.value) {
+                          return;
+                        }
+                        inputRef.current.value = "";
+                        updateQuery("");
+                      }}
+                      placeholder="Search art, artist, effect"
                       className={cn(
-                        "h-10 pl-9 [@media(pointer:coarse)]:h-11 sm:h-9 sm:pr-12",
-                        // The trailing slot only holds the clear button or the
-                        // pending spinner; on a phone the room is the
-                        // placeholder's, so reserve it only while occupied.
-                        searching || queryWritePending ? "pr-10" : "pr-3",
+                        "h-10 [@media(pointer:coarse)]:h-11 sm:h-9",
+                        // Resting, the box is 36px wide, which is narrower than
+                        // the open field's own padding: with `box-sizing:
+                        // border-box` that padding becomes the used width and
+                        // the input overflows its square, so the padding (and
+                        // the placeholder it would reveal) arrives with focus.
+                        searchOpen
+                          ? cn(
+                              "pl-9 sm:pr-12",
+                              searching || queryWritePending ? "pr-10" : "pr-3",
+                            )
+                          : "theme-collapsed-search-input px-0 focus:pl-9 focus:pr-10 sm:focus:pr-12",
                       )}
                       inputMode="search"
                       aria-label="Search replications"
+                      title="Search replications (/)"
                     />
                     {searching ? (
                       <Button
@@ -1516,12 +1593,18 @@ function GalleryExplorer({
                       <ToggleGroupItem
                         key={value}
                         value={value}
+                        aria-label={TYPE_LABEL[value]}
+                        title={TYPE_LABEL[value]}
                         className={cn(
                           TOUCH_PILL,
-                          "data-[state=on]:border-dose-accent-strong data-[state=on]:font-semibold",
+                          "px-2.5 data-[state=on]:border-dose-accent-strong",
                         )}
                       >
-                        {TYPE_LABEL[value]}
+                        <Icon
+                          icon={TYPE_ICON[value]}
+                          className="h-4 w-4"
+                          aria-hidden
+                        />
                       </ToggleGroupItem>
                     ))}
                   </ToggleGroup>
@@ -1535,12 +1618,17 @@ function GalleryExplorer({
                         type="button"
                         variant="pill"
                         size="auto"
-                        aria-label="Sort artists"
+                        aria-label={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
+                        title={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
                         aria-hidden={!sortActive || undefined}
                         inert={!sortActive}
                         className={cn(
-                          "hidden min-h-10 shrink-0 items-center justify-center gap-1.5 px-2 text-sm sm:flex",
-                          TOUCH_PILL,
+                          "hidden h-9 w-9 shrink-0 items-center justify-center p-0 sm:flex",
+                          TOUCH_ICON,
+                          // A changed sort is the only thing that distinguishes
+                          // this glyph from its default, so it says so.
+                          artistSort !== GALLERY_BROWSE_DEFAULTS.sort &&
+                            "border-dose-accent-strong",
                           !sortActive && "invisible",
                         )}
                       >
@@ -1549,7 +1637,6 @@ function GalleryExplorer({
                           className="h-4 w-4"
                           aria-hidden
                         />
-                        <span>{ARTIST_SORT_LABEL[artistSort]}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -1577,6 +1664,50 @@ function GalleryExplorer({
                       setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
                     }
                   />
+
+                  {/* The corpus census rides at the end of the bar instead of
+                      on its own row: an Experience surface cannot spend a
+                      whole line of vertical budget on a sentence read once.
+                      Rendered exactly once, with no responsive twin. Below
+                      `md` the bar has no room for it, so it goes screen-reader
+                      only rather than display:none, keeping the background
+                      fetch's announcement alive without costing pixels. In the
+                      default artist view the numbers come from the server's
+                      complete-corpus stats, so the archive's true size shows
+                      before the corpus finishes loading and the sentence does
+                      not change when it does. */}
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className={cn(
+                      "theme-text-faint flex items-center gap-1.5 px-1 text-xs tabular-nums max-md:sr-only md:ml-auto",
+                      focusRingClassName,
+                    )}
+                  >
+                    <span>
+                      {displayCounts.total}{" "}
+                      {hasMore && !statsComplete ? "loaded " : ""}
+                      {displayCounts.total === 1 ? "work" : "works"} ·{" "}
+                      {displayCounts.artists} artists · {displayCounts.effects}{" "}
+                      effects
+                      {hasMore && !statsComplete ? " · more available" : ""}
+                    </span>
+                    {pageLoadState === "loading" ? (
+                      <>
+                        <Icon
+                          icon="svg-spinners:ring-resize"
+                          className="h-3 w-3 shrink-0"
+                          aria-hidden
+                        />
+                        <span className="sr-only">
+                          {" "}
+                          Loading the complete gallery…
+                        </span>
+                      </>
+                    ) : completionAnnouncement ? (
+                      <span className="sr-only"> {completionAnnouncement}.</span>
+                    ) : null}
+                  </p>
                 </div>
               </div>
             ) : null}
@@ -1612,49 +1743,9 @@ function GalleryExplorer({
               </Alert>
             ) : null}
 
-            {/* One quiet corpus summary for every breakpoint — the bar itself
-              stays reserved for controls. In the default artist view the
-              numbers come from the server's complete-corpus stats, so the
-              archive's true size shows before the corpus finishes loading and
-              the visible sentence does not change when it does. The
-              background fetch reports here too — a spinner at the end of the
-              same line plus screen-reader-only text — rather than in a banner
-              that would push the rails down and back up. */}
-            {chrome === "full" ? (
-              <p
-                role="status"
-                aria-live="polite"
-                className={cn(
-                  "theme-text-faint mt-3 flex items-center gap-1.5 px-1 text-xs tabular-nums",
-                  focusRingClassName,
-                )}
-              >
-                <span>
-                  {displayCounts.total}{" "}
-                  {hasMore && !statsComplete ? "loaded " : ""}
-                  {displayCounts.total === 1 ? "work" : "works"} ·{" "}
-                  {displayCounts.artists} artists · {displayCounts.effects}{" "}
-                  effects
-                  {hasMore && !statsComplete ? " · more available" : ""}
-                </span>
-                {pageLoadState === "loading" ? (
-                  <>
-                    <Icon
-                      icon="svg-spinners:ring-resize"
-                      className="h-3 w-3 shrink-0"
-                      aria-hidden
-                    />
-                    <span className="sr-only">Loading the complete gallery…</span>
-                  </>
-                ) : completionAnnouncement ? (
-                  <span className="sr-only">{completionAnnouncement}.</span>
-                ) : null}
-              </p>
-            ) : null}
-
             {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
             {hideIncompleteResults ? null : focus && focusedGroup ? (
-              <div className="mt-6 space-y-4">
+              <div className="mt-4 space-y-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
                   <div className="min-w-0">
                     <Link
@@ -1737,7 +1828,7 @@ function GalleryExplorer({
             ) : searching ? (
               /* Search results — flat masonry */
               filtered.length > 0 ? (
-                <div className="mt-6 space-y-4">
+                <div className="mt-4 space-y-3">
                   <p className="theme-text-faint px-1 text-xs tabular-nums">
                     {filtered.length} result{filtered.length === 1 ? "" : "s"}{" "}
                     for “{query.trim()}”
@@ -1780,7 +1871,7 @@ function GalleryExplorer({
                rail and everything thinner pools into one dense masonry,
                where each tile's byline carries the attribution. "View all"
                is a crawlable focus URL. */
-              <div className="mt-4 space-y-10">
+              <div className="mt-2 space-y-5">
                 {visibleRails.map((group) => (
                   <MediaRail
                     key={group.key}
@@ -1811,6 +1902,12 @@ function GalleryExplorer({
                         replication.slug,
                       )
                     }
+                    /* Phones browse in a continuous three-column masonry: the
+                       rail loads fourteen tiles and reveals one at 390px,
+                       which is the throughput ceiling on the page. Desktop
+                       keeps the rail, where the horizontal gesture is cheap
+                       and the artist grouping earns its keep. */
+                    layout={phone ? "masonry" : "rail"}
                     mobileCompact
                     onTileOpen={openViewerAt}
                   />

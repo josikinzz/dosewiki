@@ -9,6 +9,12 @@
    files, so nothing real is scanned out of them. */
 @source not "./data";
 
+/* Design-critique snapshots quote class names as prose, including malformed ones
+   lifted from a finding (`bg-[var()]`). Tailwind emits those as real rules, and
+   an empty `var()` fails PostCSS parsing outright, so one archived critique can
+   break every page's stylesheet. Nothing under `.impeccable` is authored markup. */
+@source not "../.impeccable";
+
 @import "./styles/base.css" layer(base);
 @import "./styles/theme-overrides.css";
 @import "./styles/site-colors.css";

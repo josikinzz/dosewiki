@@ -13,6 +13,7 @@ import type {
   TripReportSubstance,
 } from "@/types/tripReport";
 import { cn } from "@/lib/utils";
+import { formatTripDateLabel } from "@/utils/tripReportDate";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
@@ -227,6 +228,8 @@ function TripReportCardTitleBlock({
   disableNestedLinks: boolean;
   report: TripReportCardProjection;
 }) {
+  const dateLabel = formatTripDateLabel(report.tripDate);
+
   return (
     <div className="min-w-0 flex-1">
       <h3
@@ -245,18 +248,18 @@ function TripReportCardTitleBlock({
             : "theme-report-metadata-text mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm",
         )}
       >
-        {report.tripDate ? (
+        {dateLabel ? (
           compact ? (
             <span className="flex items-center gap-1">
               <Icon icon="lucide:calendar" size={12} />
-              {report.tripDate}
+              {dateLabel}
             </span>
           ) : (
-            <span>on {report.tripDate}</span>
+            <span>{dateLabel}</span>
           )
         ) : null}
-        <span className={compact ? "flex items-center gap-1" : "italic"}>
-          {compact ? <Icon icon="lucide:user" size={12} /> : <span aria-hidden="true">— </span>}
+        <span className={compact ? "flex items-center gap-1" : "flex items-center gap-1 italic"}>
+          {compact ? <Icon icon="lucide:user" size={12} /> : <span>by</span>}
           <AuthorLink
             authorName={report.authorName}
             profileKey={report.authorProfileKey}

@@ -20,11 +20,13 @@ const noticeMarkdownComponents = {
 };
 
 /**
- * The gallery's fair-use / takedown notice, server-rendered from the
- * `replications-fair-use-notice` copy block. It sits between the section intro
- * and the gallery, and replaces the short rights footnote the explorer draws
- * elsewhere (`rightsFootnote` prop), so the page states its rights position
- * exactly once and states it before the art rather than after it.
+ * The section's fair-use / takedown notice, server-rendered from the
+ * `replications-fair-use-notice` copy block. It lives on the More Info tab,
+ * which is the only route that renders it. The gallery index keeps the
+ * explorer's short rights footnote (`rightsFootnote`) instead: the two are not
+ * alternatives on one page, they are the long form and the short form on
+ * different tabs, and suppressing the footnote in favour of a notice on
+ * another route left the index stating its rights position nowhere.
  *
  * The outer measure matches the section header and the gallery card
  * (`max-w-7xl`) so every element on the page shares one left edge; the prose

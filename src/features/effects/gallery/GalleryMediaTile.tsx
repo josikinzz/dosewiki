@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
 import { useMotionAllowed } from "./inViewPlayback";
+import { workDateMs } from "./galleryModel";
 
 /** `duration` in seconds as `m:ss`, or null when unusable. */
 function formatVideoDuration(seconds: number | undefined): string | null {
@@ -17,6 +18,27 @@ function formatVideoDuration(seconds: number | undefined): string | null {
     return null;
   const total = Math.round(seconds);
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/**
+ * The work's own date as a bare year, or null when the record cannot defend
+ * one.
+ *
+ * `created_at` is the ingest timestamp, not a work date, so it never appears
+ * here: dating a 1998 painting to the day it was scraped would be a factual
+ * claim the archive cannot make. `inferred` and `unknown` kinds assert a
+ * precision the row does not have, and an `upper_bound` value is a ceiling
+ * rather than a date, so it renders as one.
+ */
+function formatWorkYear(
+  row: Pick<PublicGalleryReplicationPreview, "date_info">,
+): string | null {
+  const kind = row.date_info?.kind;
+  if (!kind || kind === "unknown" || kind === "inferred") return null;
+  const ms = workDateMs(row);
+  if (ms === null) return null;
+  const year = String(new Date(ms).getUTCFullYear());
+  return kind === "upper_bound" ? `\u2264${year}` : year;
 }
 
 interface GalleryMediaTileProps {
@@ -42,8 +64,10 @@ interface GalleryMediaTileProps {
   /** Omit the creator byline under the title (artist rails already name the artist once, above). */
   showByline?: boolean;
   /**
-   * Hide the caption below `md` where dense phone rails and masonry use the
-   * expanded viewer for complete title and credit context.
+   * Tighten the caption below `md`, where the phone masonry runs three thin
+   * columns and the expanded viewer owns complete title and credit context.
+   * The caption itself stays: a title that only exists on hover is a title
+   * touch readers never get.
    */
   mobileCompact?: boolean;
   /** Canonical source-collection URL with this work active in the viewer. */
@@ -57,11 +81,19 @@ interface GalleryMediaTileProps {
 }
 
 /**
- * A gallery tile: framed media with its title and credit *underneath*.
+ * A gallery tile: framed media with its title and credit *underneath*, and one
+ * corner chip naming what the work is.
  *
- * Nothing is drawn over the artwork. The previous hover-gradient caption made
- * attribution unreachable on touch and put white text over unpredictable image
- * content; a real caption row is legible on every device and in both themes.
+ * The title is never drawn over the artwork. The previous hover-gradient
+ * caption made attribution unreachable on touch and put white text over
+ * unpredictable image content; these thumbnails are high-chroma, high-detail
+ * replications, so no scrim carries body text across them without eating the
+ * work. A real caption row is legible on every device and in both themes.
+ *
+ * The chip is the one thing that sits on the media, in the quietest corner:
+ * a medium marker for every work (an absent chip used to be the only signal
+ * for "still image", which is a rule readers had to learn), the duration for
+ * video, and the researched work year when the record can defend one.
  *
  * The tile is an anchor, not a button, so each work can be linked, opened in a
  * new tab, and crawled.
@@ -79,7 +111,6 @@ export function GalleryMediaTile({
 }: GalleryMediaTileProps) {
   const { hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
-  const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const frameRef = useRef<HTMLAnchorElement | null>(null);
   // While bytes are in flight a visible <img> paints its alt text (the title)
@@ -115,7 +146,6 @@ export function GalleryMediaTile({
     : gifReady
       ? replication.motion_url
       : undefined;
-  const moving = isVideo || gifReady;
   const thumbnailUrl = gifLike
     ? replication.motion_poster_url
     : isVideo
@@ -143,7 +173,6 @@ export function GalleryMediaTile({
       videoRef.current.currentTime = 0;
       void videoRef.current.play().catch(() => {});
     }
-    if (!showPreview) setPlaying(false);
   }, [showPreview]);
 
   // Reads the element's own state instead of React's onLoad: cached posters
@@ -170,6 +199,7 @@ export function GalleryMediaTile({
   const durationLabel = isVideo
     ? formatVideoDuration(replication.duration)
     : null;
+  const workYear = formatWorkYear(replication);
 
   return (
     <figure className={cn("min-w-0", className)}>
@@ -231,43 +261,57 @@ export function GalleryMediaTile({
             loop
             playsInline
             preload="metadata"
-            onPlaying={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            // The preview covers the whole anchor and paints last, so without this
-            // it swallows every click on a video tile. Browsers do not forward a
-            // media element's click to an ancestor link the way they do for images.
+            // The preview covers the whole anchor and paints last, so without
+            // this it swallows every click on a video tile. Browsers do not
+            // forward a media element's click to an ancestor link the way they
+            // do for images. Playback state itself is not tracked: the corner
+            // chip stays put whether or not frames are moving.
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
         ) : null}
 
-        {moving ? (
-          // Always-visible motion marker: play glyph plus duration when known.
-          // Same on-media optics as the shared viewer's controls.
-          // Fades out while a preview is actually rendering frames, so it never
-          // sits over moving footage.
-          <span
-            className={cn(
-              "pointer-events-none absolute bottom-2 right-2 z-10 flex items-center gap-1 rounded-full",
-              "bg-black/55 px-2 py-1 backdrop-blur-sm",
-              "theme-media-tile-title text-[11px] font-medium leading-none tabular-nums",
-              "transition-opacity duration-300 motion-reduce:transition-none",
-              playing ? "opacity-0" : "opacity-100",
-            )}
-          >
+        {/* Medium, length and date, in the top-right corner: away from the
+            caption below the frame, and deliberately not faded out during a
+            hover preview, since the duration matters most at the moment a
+            reader is deciding whether to commit to watching. */}
+        <span
+          className={cn(
+            "pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-1 rounded-full",
+            "bg-black/55 px-2 py-1 backdrop-blur-sm",
+            "theme-media-tile-title text-[11px] font-medium leading-none tabular-nums",
+          )}
+        >
+          {isVideo ? (
             <Icon
               icon="lucide:play"
               className="h-3 w-3 fill-current"
               aria-hidden
             />
-            {durationLabel ? <span>{durationLabel}</span> : null}
-            <span className="sr-only">{isVideo ? "Video" : "Animation"}</span>
+          ) : gifLike ? (
+            <span aria-hidden className="text-[10px] font-semibold tracking-wide">
+              GIF
+            </span>
+          ) : (
+            <Icon icon="lucide:image" className="h-3 w-3" aria-hidden />
+          )}
+          {durationLabel ? <span aria-hidden>{durationLabel}</span> : null}
+          {durationLabel && workYear ? <span aria-hidden>·</span> : null}
+          {workYear ? <span aria-hidden>{workYear}</span> : null}
+          {/* Every visible part of the chip is aria-hidden and spoken here
+              instead, so the tile's accessible name reads "Title, video, 0:24,
+              2019" rather than running the glyphs and figures together. The
+              leading comma is the separator: the name computation concatenates
+              its parts without one, and a leading space would be trimmed. */}
+          <span className="sr-only">
+            {`, ${isVideo ? "Video" : gifLike ? "Animation" : "Image"}`}
+            {durationLabel ? `, ${durationLabel}` : ""}
+            {workYear ? `, ${workYear}` : ""}
           </span>
-        ) : null}
+        </span>
       </SmartLink>
 
-      {/* Compact phone tiles keep one concise caption row. Artist rails can
-          still suppress the repeated byline with `showByline={false}`, while
-          effect and mixed views retain the creator credit.
+      {/* Artist rails suppress the repeated byline with `showByline={false}`,
+          while effect and mixed views retain the creator credit.
 
           `w-0 min-w-full`: the caption must never contribute intrinsic width.
           In rails the figure is a max-content flex item whose width comes from
@@ -277,8 +321,8 @@ export function GalleryMediaTile({
           `truncate` can ellipsize it. */}
       <figcaption
         className={cn(
-          "mt-2 w-0 min-w-full px-0.5",
-          mobileCompact && "max-md:mt-1 max-md:px-0",
+          "mt-1 w-0 min-w-full px-0.5",
+          mobileCompact && "max-md:px-0",
         )}
       >
         <p className="theme-text-secondary truncate text-sm font-medium">

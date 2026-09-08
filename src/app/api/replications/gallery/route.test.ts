@@ -4,10 +4,12 @@ import { GET } from "./route";
 const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
   getPublicGalleryReplications: vi.fn(),
+  getPublicContributorDirectory: vi.fn(),
 }));
 
 vi.mock("@server/convex/publicData", () => ({
   getPublicGalleryReplications: mocks.getPublicGalleryReplications,
+  getPublicContributorDirectory: mocks.getPublicContributorDirectory,
 }));
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
@@ -24,10 +26,18 @@ const preview = {
   created_at: "2026-01-01",
 };
 
+// One entry per credited artist in the corpus. The index page inlines only the
+// entries its prerendered rails consult, so this response is where the rest of
+// the artists' identities reach the client.
+const directory = [
+  { key: "ARTIST", displayName: "Artist", aliases: ["artist"] },
+];
+
 describe("replication gallery corpus", () => {
   beforeEach(() => {
     mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
     mocks.getPublicGalleryReplications.mockReset().mockResolvedValue([preview]);
+    mocks.getPublicContributorDirectory.mockReset().mockResolvedValue(directory);
   });
 
   it("returns the complete slim corpus in one cached response", async () => {
@@ -39,7 +49,10 @@ describe("replication gallery corpus", () => {
     expect(response.headers.get("Cache-Control")).toBe(
       "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
     );
-    await expect(response.json()).resolves.toEqual({ data: [preview] });
+    await expect(response.json()).resolves.toEqual({
+      data: [preview],
+      contributorDirectory: directory,
+    });
     expect(mocks.getPublicGalleryReplications).toHaveBeenCalledTimes(1);
   });
 

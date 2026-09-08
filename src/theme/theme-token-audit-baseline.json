@@ -3793,6 +3793,13 @@
     },
     {
       "rule": "direct-theme-variable",
+      "filePath": "src/features/theme-lab/elevationTokens.test.ts",
+      "match": "var(--theme-elevation-card)",
+      "line": 68,
+      "column": 118
+    },
+    {
+      "rule": "direct-theme-variable",
       "filePath": "src/features/theme-lab/ThemeLab.picker.test.tsx",
       "match": "var(--theme-text-primary)",
       "line": 12,

@@ -286,10 +286,10 @@ describe("URL → rendered state", () => {
       "data-state",
       "on",
     );
-    // The current order stays visible without opening the sort menu.
-    expect(screen.getByRole("button", { name: "Sort artists" })).toHaveTextContent(
-      "Videos first",
-    );
+    // The current order is the control's name, since the glyph carries no text.
+    expect(
+      screen.getByRole("button", { name: "Sort artists: Videos first" }),
+    ).toBeInTheDocument();
     // The spotlight row is gone: density-first, media starts immediately.
     expect(screen.queryByText("Spotlight")).toBeNull();
   });
@@ -534,9 +534,11 @@ describe("hybrid browse layout", () => {
   it("keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter", () => {
     renderExplorer("view=effect");
 
-    expect(
-      screen.getByText("Videos first").closest('[aria-hidden="true"]'),
-    ).not.toBeNull();
+    // `aria-hidden` takes it out of the accessible tree in effect mode, which
+    // is the point, so it is reached by its tooltip rather than by role.
+    const sort = screen.getByTitle(/^Sort artists/);
+    expect(sort).toHaveAttribute("aria-hidden", "true");
+    expect(sort.className).toContain("invisible");
   });
 });
 
@@ -1050,7 +1052,7 @@ describe("responsive gallery controls", () => {
     const user = userEvent.setup();
     renderExplorer("");
 
-    await user.click(screen.getByRole("button", { name: "Sort artists" }));
+    await user.click(screen.getByRole("button", { name: /^Sort artists/ }));
 
     // All three orders travel with the menu, not a two-state cycle.
     expect(

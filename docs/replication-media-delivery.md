@@ -141,11 +141,12 @@ initial `waiting` events. Explicit pause cancels deferred playback, and seeking
 or changing works invalidates stale callbacks. Short native loops remain uninterrupted.
 
 The poster stays above undecoded video until a presented frame is available.
-Startup loading uses the canonical SVG mark and a bounded, subtle gradient wash;
-rebuffering keeps the last decoded frame and uses a smaller mark. Below the mark a
-single `Loading` label carries an ellipsis that breathes one, two, three, two dots,
-and it leans with the stage media the way the transport iconography does. The
-indicator offers no action: a stalled startup releases itself after five seconds.
+Startup loading uses the canonical turning SVG mark over its own darkening scrim
+and no accent glow; rebuffering keeps the last decoded frame and uses a smaller
+mark. Below the mark a single `Loading` label carries an ellipsis that breathes
+one, two, three, two dots, and it leans with the stage media the way the transport
+iconography does. The indicator offers no action: a stalled startup releases
+itself after five seconds.
 The indicator waits 250 ms before appearing and fades out after presentation. Its
 animations use only transform and opacity. Hidden tabs suspend playback and loading
 animation; returning restores only prior playback intent. Reduced motion makes the

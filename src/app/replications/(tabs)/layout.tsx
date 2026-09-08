@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
-import { PageHeader } from "@/components/layout/PageHeader";
-import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
+import { ReplicationsSectionTitle } from "./_components/ReplicationsSectionTitle";
 
 // The header is shared chrome for every tab of the replications section
 // (Gallery, Tutorials, Audio, More Info); the tab bar itself belongs to each
@@ -17,7 +16,9 @@ export const revalidate = 3600;
  * The main element is deliberately full width (the same hosting environment
  * the gallery had on /effects); the header sits left-aligned on the gallery's
  * own `max-w-7xl` measure, and every tab route renders its own body on that
- * same measure so everything shares one edge.
+ * same measure so everything shares one edge. The Gallery tab keeps its
+ * heading accessible-only so the art starts at the top of the page; see
+ * ReplicationsSectionTitle.
  */
 export default function ReplicationsSectionLayout({
   children,
@@ -28,18 +29,9 @@ export default function ReplicationsSectionLayout({
     <main
       id="main-content"
       tabIndex={-1}
-      className="mx-auto w-full px-4 pb-20 pt-4 focus:outline-none 2xl:px-8"
+      className="mx-auto w-full px-4 pb-20 pt-2 focus:outline-none 2xl:px-8"
     >
-      {/* Centred like the other index headers; kept to a deliberately short
-          footprint since the media below is the point of the page. */}
-      <div className="mx-auto w-full max-w-7xl">
-        <PageHeader
-          className="mb-4 gap-2"
-          titleClassName="[--type-size-title:2.25rem] md:[--type-size-title:3rem]"
-          title="Replications"
-          icon={resolveRouteChromeIcon("replications")}
-        />
-      </div>
+      <ReplicationsSectionTitle />
       {children}
     </main>
   );

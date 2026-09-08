@@ -250,7 +250,7 @@ describe("MediaRail tile forwarding", () => {
     expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
     expect(screen.queryByText("by Symmetric Vision")).toBeNull();
     // mobileCompact reaches the tile's denser, still-visible caption.
-    expect(container.querySelector("figcaption")).toHaveClass("max-md:mt-1");
+    expect(container.querySelector("figcaption")).toHaveClass("mt-1");
     expect(container.querySelector("figcaption")).not.toHaveClass(
       "max-md:hidden",
     );

@@ -151,7 +151,7 @@ export function ReplicationTaxonomyFilters({
           variant="pill"
           size="auto"
           className={cn(
-            "relative h-10 w-10 shrink-0 gap-1.5 p-0 text-sm [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 sm:h-auto sm:w-auto sm:px-3.5 sm:py-1.5 sm:[@media(pointer:coarse)]:h-auto sm:[@media(pointer:coarse)]:w-auto sm:[@media(pointer:coarse)]:min-h-11",
+            "relative h-10 w-10 shrink-0 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 sm:h-9 sm:w-9 sm:[@media(pointer:coarse)]:h-11 sm:[@media(pointer:coarse)]:w-11",
             className,
           )}
           aria-label={
@@ -159,11 +159,11 @@ export function ReplicationTaxonomyFilters({
               ? `Filters, ${activeCount} active`
               : "Filters"
           }
+          title={activeCount > 0 ? `Filters, ${activeCount} active` : "Filters"}
         >
           <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
-          <span className="hidden sm:inline">Filters</span>
           {activeCount > 0 ? (
-            <span className="theme-badge-surface absolute right-1 top-1 min-w-4 rounded-full px-1 text-[0.625rem] font-semibold leading-4 text-dose-accent-strong sm:static sm:min-w-0 sm:px-1.5 sm:text-[0.6875rem] sm:leading-normal">
+            <span className="theme-badge-surface absolute right-1 top-1 min-w-4 rounded-full px-1 text-[0.625rem] font-semibold leading-4 text-dose-accent-strong">
               {activeCount}
             </span>
           ) : null}

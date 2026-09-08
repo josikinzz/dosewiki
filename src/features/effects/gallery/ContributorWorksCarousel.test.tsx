@@ -62,8 +62,10 @@ describe("ContributorWorksCarousel", () => {
       screen.getByRole("list", { name: "Replications by Chelsea Morgan" }),
     ).toBeInTheDocument();
     // Artist context: the tile opens the viewer walking this artist's works,
-    // keyed by the credit line's gallery artist key.
-    expect(screen.getByRole("link", { name: /a/ })).toHaveAttribute(
+    // keyed by the credit line's gallery artist key. The name is anchored to
+    // the title's own start because every tile's accessible name now ends with
+    // the corner chip's medium marker.
+    expect(screen.getByRole("link", { name: /^a,/ })).toHaveAttribute(
       "href",
       "/replications/artist/chelsea-morgan?viewer=a",
     );

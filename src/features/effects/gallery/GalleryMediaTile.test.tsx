@@ -168,7 +168,7 @@ describe("GalleryMediaTile", () => {
 
     expect(container.querySelector("video")).toBeNull();
     // The chip is their signal that the still is actually a video.
-    expect(screen.getByText("Video")).toBeInTheDocument();
+    expect(screen.getByText(/Video/)).toBeInTheDocument();
   });
 
   it("shows a duration chip in m:ss on video tiles", () => {
@@ -204,7 +204,7 @@ describe("GalleryMediaTile", () => {
     expect(
       container.querySelector('img[src="https://example.test/original.gif"]'),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Animation")).toBeInTheDocument();
+    expect(screen.getByText(/Animation/)).toBeInTheDocument();
   });
 
   it("never mounts a raw GIF when the motion pair is absent", () => {
@@ -227,7 +227,11 @@ describe("GalleryMediaTile", () => {
       container.querySelector('img[src="https://example.test/original.gif"]'),
     ).not.toBeInTheDocument();
     expect(container.querySelector("video")).not.toBeInTheDocument();
-    expect(screen.queryByText("Animation")).not.toBeInTheDocument();
+    // The corner chip names the medium, so a GIF still reads as an animation
+    // even when no motion rendition exists to play: the marker describes the
+    // artifact, and the absence of a <video> above is what proves nothing
+    // plays.
+    expect(screen.getByText(/Animation/)).toBeInTheDocument();
   });
 
   // jsdom never fetches images, so a fresh poster is "in flight" until the
@@ -311,7 +315,9 @@ describe("GalleryMediaTile caption contract", () => {
 
     expect(screen.getByText("Geometry Frog")).toBeInTheDocument();
     expect(screen.getByText("by Symmetric Vision")).toBeInTheDocument();
-    expect(container.querySelector("figcaption")).toHaveClass("max-md:mt-1");
+    // The caption is dense at every breakpoint now, and never hidden: a title
+    // only a hover reveals is a title touch readers never get.
+    expect(container.querySelector("figcaption")).toHaveClass("mt-1");
     expect(container.querySelector("figcaption")).not.toHaveClass(
       "max-md:hidden",
     );

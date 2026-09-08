@@ -623,6 +623,10 @@ html[data-theme="light"]
 .theme-frosted-control-bar {
   background: var(--theme-frosted-control-bg);
   box-shadow: var(--theme-frosted-control-shadow);
+  /* The hairline belongs to the recipe too. Call sites were spelling it as
+     `border-[color:var(--theme-frosted-control-border)]`, a direct theme-variable
+     read the token audit rejects. */
+  border: 1px solid var(--theme-frosted-control-border);
 }
 
 .theme-evidence-accent {
@@ -1901,6 +1905,19 @@ html[data-theme="light"] .theme-home-search-input {
   color: var(--theme-text-faint);
   font-style: italic;
   opacity: 0.68;
+}
+
+/* A search field collapsed to an icon-width square: its placeholder is hidden
+   until focus widens the field, so no clipped text sits in the square, and it
+   returns at the faint step the Input already uses. Kept here rather than as
+   `focus:placeholder:text-[var(--theme-text-faint)]` at the call site, which is
+   a direct theme-variable read the token audit rejects. */
+.theme-collapsed-search-input::placeholder {
+  color: transparent;
+}
+
+.theme-collapsed-search-input:focus::placeholder {
+  color: var(--theme-text-faint);
 }
 
 @media (hover: hover) {

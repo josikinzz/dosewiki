@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import type { ReportCardModel } from "@/types/tripReport";
@@ -18,6 +18,19 @@ function reportCard(index: number): ReportCardModel {
     },
     substances: [{ name: "DMT" }],
   };
+}
+
+function shelf(name: string): HTMLElement {
+  const section = screen.getByRole("heading", { level: 2, name }).closest("section");
+  if (!section) {
+    throw new Error(`No shelf rendered for ${name}`);
+  }
+  return section as HTMLElement;
+}
+
+async function chooseSort(user: UserEvent, label: string) {
+  await user.click(screen.getByRole("button", { name: /^Sort order/ }));
+  await user.click(screen.getByRole("menuitemradio", { name: label }));
 }
 
 // The substance picker is a Radix popper-positioned popover; it measures its
@@ -53,10 +66,10 @@ describe("TripReportsExplorer", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("heading", { name: "Author 1" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Author 1" })).toBeInTheDocument();
   });
 
-  it("renders every report without progressive pagination", () => {
+  it("renders every report in its shelf without progressive pagination", () => {
     const reports = Array.from({ length: 30 }, (_, index) => reportCard(index + 1));
 
     render(<TripReportsExplorer reports={reports} />);
@@ -64,28 +77,32 @@ describe("TripReportsExplorer", () => {
     expect(
       screen.getByRole("tablist", { name: "Trip report grouping" }).closest("[data-nosnippet]"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("group", { name: "Sort order" }).closest("[data-nosnippet]"),
-    ).toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(30);
-    expect(screen.getByRole("link", { name: /report 30/i })).toBeInTheDocument();
+    expect(within(shelf("DMT")).getAllByRole("listitem")).toHaveLength(30);
+    expect(within(shelf("DMT")).getByRole("link", { name: /report 30/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /show .* reports/i })).not.toBeInTheDocument();
   });
 
-  it("keeps every report visible when users change grouping", async () => {
+  it("states each shelf's report count next to its heading", () => {
+    const reports = Array.from({ length: 4 }, (_, index) => reportCard(index + 1));
+
+    render(<TripReportsExplorer reports={reports} />);
+
+    expect(shelf("DMT")).toHaveTextContent("4");
+  });
+
+  it("groups the title view by initial so the index keeps a document outline", async () => {
     const user = userEvent.setup();
-    const reports = Array.from({ length: 30 }, (_, index) => reportCard(index + 1));
+    const reports = [reportCard(1), reportCard(2)];
 
     render(<TripReportsExplorer reports={reports} />);
 
     await user.click(screen.getByRole("tab", { name: /title/i }));
     expect(window.location.pathname).toBe("/reports/group/title");
 
-    expect(screen.getAllByRole("link")).toHaveLength(30);
-    expect(screen.getByRole("link", { name: /report 30/i })).toBeInTheDocument();
+    expect(within(shelf("R")).getAllByRole("listitem")).toHaveLength(2);
   });
 
-  it("sorts groups by report count when the count control is selected", async () => {
+  it("orders shelves by report count when that sort is chosen", async () => {
     const user = userEvent.setup();
     const reports = [
       { ...reportCard(1), substances: [{ name: "LSD" }] },
@@ -95,18 +112,43 @@ describe("TripReportsExplorer", () => {
 
     render(<TripReportsExplorer reports={reports} />);
 
-    let headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings.map((heading) => heading.textContent)).toEqual(["DMT", "LSD"]);
+    const headingNames = () =>
+      screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
 
-    // Count sort defaults to most-reports-first.
-    await user.click(screen.getByRole("button", { name: /report count/i }));
-    headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings.map((heading) => heading.textContent)).toEqual(["DMT", "LSD"]);
+    expect(headingNames()).toEqual(["Start here", "DMT", "LSD"]);
 
-    // Clicking again flips to fewest-first.
-    await user.click(screen.getByRole("button", { name: /report count/i }));
-    headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings.map((heading) => heading.textContent)).toEqual(["LSD", "DMT"]);
+    await chooseSort(user, "Fewest reports first");
+    expect(headingNames()).toEqual(["Start here", "LSD", "DMT"]);
+
+    await chooseSort(user, "Most reports first");
+    expect(headingNames()).toEqual(["Start here", "DMT", "LSD"]);
+  });
+
+  it("prints the dose the payload has always carried", () => {
+    render(
+      <TripReportsExplorer
+        reports={[
+          {
+            ...reportCard(1),
+            substances: [{ name: "DMT", dose: "40 mg", roa: "Vaporized" }],
+          },
+        ]}
+      />,
+    );
+
+    expect(within(shelf("DMT")).getByRole("listitem")).toHaveTextContent("40 mg");
+  });
+
+  it("normalizes the free-text trip date instead of printing it raw", () => {
+    render(
+      <TripReportsExplorer
+        reports={[{ ...reportCard(1), subject: { name: "Author", trip_date: "~2012" } }]}
+      />,
+    );
+
+    const row = within(shelf("DMT")).getByRole("listitem");
+    expect(row).toHaveTextContent("around 2012");
+    expect(row).not.toHaveTextContent("~2012");
   });
 
   it("keeps the empty state", () => {
@@ -115,10 +157,10 @@ describe("TripReportsExplorer", () => {
     expect(
       screen.getByRole("heading", { name: "No trip reports found" }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /show .* reports/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
   });
 
-  it("lists exactly the substances with reports and narrows them by search", async () => {
+  it("offers every substance with reports as a listbox option and narrows them by search", async () => {
     const user = userEvent.setup();
     const reports = [
       { ...reportCard(1), substances: [{ name: "LSD" }] },
@@ -130,28 +172,25 @@ describe("TripReportsExplorer", () => {
 
     await user.click(screen.getByRole("button", { name: "Filter by substance" }));
 
-    const picker = screen.getByRole("dialog");
-    let options = within(picker).getAllByRole("button");
-    expect(options.map((option) => option.textContent)).toEqual([
+    const picker = screen.getByRole("listbox", { name: "Substances with reports" });
+    expect(within(picker).getAllByRole("option").map((option) => option.textContent)).toEqual([
       "Cannabis1",
       "DMT2",
       "LSD1",
     ]);
 
-    await user.type(within(picker).getByRole("searchbox", { name: "Search substances" }), "dm");
+    const search = screen.getByRole("combobox", { name: "Search substances" });
+    await user.type(search, "dm");
+    expect(within(picker).getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "DMT2",
+    ]);
 
-    options = within(picker).getAllByRole("button");
-    expect(options.map((option) => option.textContent)).toEqual(["DMT2"]);
-
-    await user.clear(within(picker).getByRole("searchbox", { name: "Search substances" }));
-    await user.type(
-      within(picker).getByRole("searchbox", { name: "Search substances" }),
-      "ketamine",
-    );
-    expect(within(picker).getByText("No substances match.")).toBeInTheDocument();
+    await user.clear(search);
+    await user.type(search, "ketamine");
+    expect(screen.getByText("No substances match.")).toBeInTheDocument();
   });
 
-  it("filters every view by the selected substance and restores on clear", async () => {
+  it("carries the substance filter in the URL and restores the index on clear", async () => {
     const user = userEvent.setup();
     const reports = [
       { ...reportCard(1), substances: [{ name: "LSD" }] },
@@ -162,25 +201,41 @@ describe("TripReportsExplorer", () => {
     render(<TripReportsExplorer reports={reports} />);
 
     await user.click(screen.getByRole("button", { name: "Filter by substance" }));
-    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: /DMT/ }));
+    await user.click(screen.getByRole("option", { name: /DMT/ }));
 
-    // Substance view keeps the single-substance group plus combinations.
-    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(window.location.search).toBe("?substance=DMT");
     expect(screen.queryByRole("link", { name: /report 01/i })).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent("2 of 3");
 
     // The filter survives view-mode changes.
-    await user.click(screen.getByRole("tab", { name: /title/i }));
-    expect(screen.getAllByRole("link")).toHaveLength(2);
     await user.click(screen.getByRole("tab", { name: /author/i }));
-    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(screen.getByRole("status")).toHaveTextContent("2 of 3");
+    expect(window.location.search).toBe("?substance=DMT");
 
-    // The chip wears the active substance; the sibling pill clears in one click.
-    expect(
-      screen.getByRole("button", { name: "Substance filter, DMT active" }),
-    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Clear substance filter, DMT" }));
 
-    expect(screen.getAllByRole("link")).toHaveLength(3);
+    expect(window.location.search).toBe("");
     expect(screen.getByRole("button", { name: "Filter by substance" })).toBeInTheDocument();
+    expect(
+      within(shelf("Author 1")).getByRole("link", { name: /report 01/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("searches titles, authors and substances, and offers a way out of no results", async () => {
+    const user = userEvent.setup();
+    const reports = [reportCard(1), reportCard(2), reportCard(3)];
+
+    render(<TripReportsExplorer reports={reports} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "Search reports" }), "report 02");
+    expect(window.location.search).toBe("?q=report+02");
+    expect(within(shelf("DMT")).getAllByRole("listitem")).toHaveLength(1);
+
+    await user.clear(screen.getByRole("searchbox", { name: "Search reports" }));
+    await user.type(screen.getByRole("searchbox", { name: "Search reports" }), "nothing here");
+
+    expect(screen.getByRole("heading", { level: 2, name: "No reports match" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(within(shelf("DMT")).getAllByRole("listitem")).toHaveLength(3);
   });
 });

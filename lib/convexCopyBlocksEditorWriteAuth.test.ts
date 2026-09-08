@@ -4,11 +4,22 @@ import { getAll, remove, upsert } from "../convex/copyBlocks";
 type Role = "admin" | "editor" | "viewer";
 type IndexFilter = { eq: (field: string, value: unknown) => IndexFilter };
 
-const insert = vi.fn(
-  async (_table: string, _document: Record<string, unknown>) => "copy-block-id",
-);
-const patch = vi.fn(async (_id: string, _document: Record<string, unknown>) => undefined);
-const remove_ = vi.fn(async () => undefined);
+// `withPublicationOutbox` re-reads every row a mutation writes to decide whether
+// the write changed public content, so the fake writer keeps what it was handed
+// instead of discarding it.
+const documents = new Map<string, Record<string, unknown>>();
+
+const insert = vi.fn(async (table: string, document: Record<string, unknown>) => {
+  const id = table === "copyBlocks" ? "copy-block-id" : `${table}-id`;
+  documents.set(id, { _id: id, ...document });
+  return id;
+});
+const patch = vi.fn(async (id: string, document: Record<string, unknown>) => {
+  documents.set(id, { ...documents.get(id), ...document, _id: id });
+});
+const remove_ = vi.fn(async (id: string) => {
+  documents.delete(id);
+});
 const collect = vi.fn(async () => [] as unknown[]);
 
 /**
@@ -30,6 +41,7 @@ function createCtx({
     },
     db: {
       normalizeId: () => null, // Copy blocks are not indexed source tables.
+      get: vi.fn(async (id: string) => documents.get(id) ?? existingBlock),
       insert,
       patch,
       delete: remove_,
@@ -114,6 +126,7 @@ describe("copyBlocks write authorization", () => {
     patch.mockClear();
     remove_.mockClear();
     collect.mockClear();
+    documents.clear();
   });
 
   it("rejects anyone below admin on the upsert, an editor included", async () => {

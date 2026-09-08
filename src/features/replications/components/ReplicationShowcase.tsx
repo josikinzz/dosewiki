@@ -129,6 +129,13 @@ export interface ReplicationShowcaseProps {
    */
   showHeading?: boolean;
   /**
+   * The heading's document level. Article embeds sit under a section `h2`, so
+   * `3` is right there and is the default. A page whose only heading above
+   * this is its `h1` (the Artist Page) passes `2`, because skipping straight
+   * to `h3` leaves that outline with a hole in it.
+   */
+  headingLevel?: 2 | 3;
+  /**
    * Page-level viewer ownership. A page that renders several showcases over
    * one collection (the Artist Page) resolves the `?viewer=` deep link and
    * mounts the overlay itself; a controlled showcase reports launches through
@@ -173,9 +180,11 @@ export function ReplicationShowcase({
   collectionLabel,
   showCreator = true,
   showHeading = true,
+  headingLevel = 3,
   controller,
 }: ReplicationShowcaseProps) {
   const baseId = useId();
+  const CollectionHeading = headingLevel === 2 ? "h2" : "h3";
   const [activeIndex, setActiveIndex] = useState(0);
   /**
    * The reader's explicit play/pause verdict for one work; it outranks the
@@ -544,7 +553,7 @@ export function ReplicationShowcase({
         className={showHeading ? "space-y-2" : "flex flex-col gap-2"}
       >
         {showHeading ? (
-          <h3
+          <CollectionHeading
             id={collectionHeadingId}
             data-replication-collection-heading
             tabIndex={-1}
@@ -559,7 +568,7 @@ export function ReplicationShowcase({
             {viewerCollection.label}
             <span aria-hidden>·</span>
             <span>{total}</span>
-          </h3>
+          </CollectionHeading>
         ) : null}
         {!controller && unavailableViewerSlug ? (
           <Alert role="status">

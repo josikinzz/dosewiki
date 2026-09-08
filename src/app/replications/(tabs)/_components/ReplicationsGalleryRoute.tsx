@@ -163,7 +163,11 @@ export async function ReplicationsGalleryRoute({
           initialReplications,
           contributorDirectory,
         )}
-        rightsFootnote={false}
+        /* The index republishes 6,607 works by 2,117 named artists, so it
+           states its own rights position: the fair-use notice moved to the
+           More Info tab, which left this page with no credit or takedown path
+           at any breakpoint in any state. */
+        rightsFootnote
       />
     </>
   );

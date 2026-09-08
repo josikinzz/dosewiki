@@ -70,11 +70,6 @@ function BufferingSession({
     >
       <div className={styles.content}>
         <div className={styles.markFrame} aria-hidden="true">
-          {displayedPhase === "startup" && !reducedMotion ? (
-            <div className={`theme-icon-accent ${styles.washClip}`}>
-              <div className={styles.wash} />
-            </div>
-          ) : null}
           <DoseWikiLogo
             ariaHidden
             className={styles.mark}
@@ -83,7 +78,7 @@ function BufferingSession({
           />
         </div>
         <div role="status" aria-live="off" className={styles.label}>
-          <span className={styles.word}>Loading</span>
+          <span>Loading</span>
           {/* Three dots that breathe 1-2-3-2; the word carries the meaning. */}
           <span className={styles.ellipsis} aria-hidden="true">
             <span className={styles.dot}>.</span>

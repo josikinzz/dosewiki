@@ -15,6 +15,23 @@ import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryModel";
 /** How much of the visible rail one arrow press advances. */
 const ARROW_SCROLL_RATIO = 0.8;
 
+/**
+ * Phone browse view. Three thin columns and hairline gutters, the same
+ * geometry the search masonry uses, so a group reads as a continuous grid of
+ * work instead of a rail that loads fourteen tiles and reveals one.
+ */
+const GROUP_MASONRY_CLASS = "columns-3 gap-1.5 [column-fill:_balance]";
+const GROUP_MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid";
+
+/**
+ * Where a masonry group's label parks while its own tiles scroll past: below
+ * the app header and the control bar that sticks under it. Every offset in the
+ * stack derives from the same three tokens (src/styles/base.css), so a header
+ * height change moves the whole stack at once.
+ */
+const STICKY_LABEL_TOP =
+  "top-[calc(var(--site-header-height)+var(--site-header-sticky-gap)+var(--replications-control-bar-height))]";
+
 const HEADING_LINK_CLASS =
   "theme-text-primary font-display text-lg font-semibold tracking-tight transition-colors hover:text-[var(--theme-accent-strong)]";
 
@@ -32,8 +49,15 @@ interface MediaRailProps {
   viewAllHref: string;
   /** Forwarded to each tile as `showByline`; artist rails already name the artist in the heading. */
   tileBylines?: boolean;
-  /** Forwarded to each tile: hide captions below `md` so phone rails are media-only. */
+  /** Forwarded to each tile: tighten captions below `md`. */
   mobileCompact?: boolean;
+  /**
+   * `rail` is the horizontal scroller. `masonry` is the phone browse view: the
+   * group's works in a continuous three-column grid under a sticky label,
+   * which is the only layout on this page that puts more than one or two works
+   * on a phone screen at a time.
+   */
+  layout?: "rail" | "masonry";
   /** Opens the canonical in-page viewer for an ordinary click. */
   onTileOpen?: (
     event: React.MouseEvent,
@@ -59,6 +83,7 @@ export function MediaRail({
   viewAllHref,
   tileBylines = true,
   mobileCompact,
+  layout = "rail",
   onTileOpen,
   avatarUrl,
   viewerHrefFor,
@@ -207,17 +232,31 @@ export function MediaRail({
     </span>
   );
 
+  const masonry = layout === "masonry";
+
   return (
-    <section className="space-y-3" aria-label={group.label}>
+    <section className={masonry ? "space-y-2" : "space-y-3"} aria-label={group.label}>
       <div
         className={cn(
           "flex flex-wrap justify-between gap-x-4 gap-y-1 px-1",
           // A bare name sits on the baseline with "View all"; a portrait is
           // taller than the text it leads, so the row centers on it instead.
           portrait ? "items-center" : "items-baseline",
+          // In the masonry view the label rides along above its own tiles:
+          // fourteen works of one artist scroll past in three columns, and a
+          // label that scrolls away with the first row leaves the rest of the
+          // grid unattributed.
+          masonry &&
+            cn(
+              "sticky z-10 -mx-1 rounded-lg px-2 py-0.5 backdrop-blur-md theme-frosted-control-bar",
+              STICKY_LABEL_TOP,
+            ),
         )}
       >
-        <div className="flex min-w-0 flex-col gap-0.5">{heading}</div>
+        {/* A real heading, not a styled span: the browse view is otherwise one
+            h1 followed by sixteen unheaded regions, so nobody can navigate
+            artist to artist by heading. */}
+        <h2 className="flex min-w-0 flex-col gap-0.5">{heading}</h2>
         {hasMore ? (
           <SmartLink
             href={viewAllHref}
@@ -232,6 +271,23 @@ export function MediaRail({
         ) : null}
       </div>
 
+      {masonry ? (
+        <div className={GROUP_MASONRY_CLASS}>
+          {preview.map((replication) => (
+            <GalleryMediaTile
+              key={replication._id}
+              replication={replication}
+              className={GROUP_MASONRY_TILE_CLASS}
+              frameClassName="w-full"
+              sizes="33vw"
+              showByline={tileBylines}
+              mobileCompact={mobileCompact}
+              onOpen={onTileOpen}
+              viewerHref={viewerHrefFor(replication)}
+            />
+          ))}
+        </div>
+      ) : (
       <div className="relative">
         <div
           ref={scrollerRef}
@@ -290,6 +346,7 @@ export function MediaRail({
           <Icon icon="lucide:chevron-right" className="h-4 w-4" aria-hidden />
         </Button>
       </div>
+      )}
     </section>
   );
 }

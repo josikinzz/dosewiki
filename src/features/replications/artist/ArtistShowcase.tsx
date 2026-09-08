@@ -120,6 +120,8 @@ export function ArtistShowcase({
         totalCount={totalCount}
         collectionLabel={label}
         showCreator={false}
+        /* The page's only heading above this is its own h1. */
+        headingLevel={2}
         controller={controller}
       />
 
