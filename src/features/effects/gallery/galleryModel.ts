@@ -11,7 +11,11 @@ import type {
 } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
 import { replicationMediaRank } from "@/features/replications/mediaRank";
-import { depictsEffect } from "@/types/replications";
+import {
+  curatedEffectPosition,
+  depictedEffects,
+  depictsEffect,
+} from "@/types/replications";
 
 /**
  * Data model for the cross-effect replications gallery: normalization,
@@ -128,9 +132,10 @@ export function isDisplayable(
  * name. Renderings of that effect belong to the reader who went looking, not
  * to the reader idly paging past an artist.
  *
- * Membership is by owning `effect_slug` alone, never `effect_tags`: what one
- * side withholds must be exactly what the other side still carries, and
- * effect grouping buckets on `effect_slug`.
+ * Withholding is by owning `effect_slug` alone, never `effect_tags`: what one
+ * side withholds must be exactly what the other side still carries. Effect
+ * grouping is depicts-based, so a withheld work keeps its place under every
+ * effect it depicts while remaining absent from artist browsing.
  */
 export const ARTIST_VIEW_WITHHELD_EFFECT_SLUGS: ReadonlySet<string> = new Set([
   "unspeakable-horrors",
@@ -294,26 +299,37 @@ function mediaTier(
 
 /**
  * Sort within a group: audio-first media rank (`replicationMediaRank`) leads —
- * videos with a soundtrack, then silent motion, then stills — then curated
- * gallery_order, then videos above stills above GIFs (`mediaTier`), then
+ * videos with a soundtrack, then silent motion, then stills — then the curated
+ * rank inside `effectSlug`'s `gallery_order` (the owning effect's when no
+ * effect is named), then videos above stills above GIFs (`mediaTier`), then
  * newest researched work date (`workDateMs`) with undated rows sinking below
  * every dated one (newest-ingested first among themselves), then title.
  * Generic so full-fidelity callers (the permalink's neighbour ordering) keep
  * their richer row type through the sort.
+ *
+ * `effectSlug` matters because a work depicting several effects holds an
+ * independent rank in each: sorting an effect's group against the owning
+ * effect's rank would rank a tagged-in work by a number from another playlist.
  */
 export function sortWithinGroup<
   T extends Pick<
     PublicGalleryReplicationPreview,
-    "title" | "type" | "format" | "created_at" | "order_index" | "date_info"
+    | "title"
+    | "type"
+    | "format"
+    | "created_at"
+    | "effect_slug"
+    | "effect_order_index"
+    | "date_info"
   > & { has_audio?: boolean | null },
->(items: readonly T[]): T[] {
+>(items: readonly T[], effectSlug?: string): T[] {
   return [...items].sort((a, b) => {
     const arank = replicationMediaRank(a);
     const brank = replicationMediaRank(b);
     if (arank !== brank) return arank - brank;
 
-    const ao = a.order_index ?? Number.POSITIVE_INFINITY;
-    const bo = b.order_index ?? Number.POSITIVE_INFINITY;
+    const ao = curatedEffectPosition(a, effectSlug) ?? Number.POSITIVE_INFINITY;
+    const bo = curatedEffectPosition(b, effectSlug) ?? Number.POSITIVE_INFINITY;
     if (ao !== bo) return ao - bo;
 
     const atier = mediaTier(a);
@@ -330,6 +346,42 @@ export function sortWithinGroup<
       if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc)
         return bc - ac;
     }
+
+    return a.title.localeCompare(b.title);
+  });
+}
+
+/**
+ * An artist's default order: newest researched work date first, and nothing
+ * outranks the date.
+ *
+ * Deliberately not `sortWithinGroup`. That chain ranks `replicationMediaRank`
+ * and `mediaTier` above the date, so a 2020 sounded video preceded a 2026
+ * still and an artist's rail read as a media-type grouping rather than a
+ * timeline. Media rank and tier are presentation preferences about an effect's
+ * playlist; an artist's body of work is read chronologically.
+ *
+ * Rows sharing a work date fall to ingest recency, then title, so a corpus of
+ * year-only dates still lands in a stable, recency-flavoured order rather than
+ * an alphabetical one. Undated rows sink below every dated row and order among
+ * themselves by ingest, newest first — the same treatment `sortWithinGroup`
+ * gives them, since an absent date is not a claim of being old.
+ */
+export function sortArtistWorks<
+  T extends Pick<
+    PublicGalleryReplicationPreview,
+    "title" | "created_at" | "date_info"
+  >,
+>(items: readonly T[]): T[] {
+  return [...items].sort((a, b) => {
+    const at = workDateMs(a);
+    const bt = workDateMs(b);
+    if (at !== null && bt !== null && at !== bt) return bt - at;
+    if ((at === null) !== (bt === null)) return at === null ? 1 : -1;
+
+    const ac = Date.parse(a.created_at ?? "");
+    const bc = Date.parse(b.created_at ?? "");
+    if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc) return bc - ac;
 
     return a.title.localeCompare(b.title);
   });
@@ -435,7 +487,7 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  * `contributorDirectory` is passed in rather than looked up because this
  * model is pure and runs inside a client component; the directory is read on
  * the server and threaded down. Beyond identity it supplies the claiming
- * profile's curated `replicationOrder` and its approved-replicator flag.
+ * profile's approved-replicator flag.
  *
  * The unattributed bucket is the one heading with no `href`: its page exists
  * (the `unknown` key), but the rows in it are credited "Unknown", "Anonymous"
@@ -523,16 +575,13 @@ export function groupByArtist(
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
-    // The unattributed bucket has no contributor owner, so it carries neither
-    // a stored order nor an endorsement.
+    // The unattributed bucket has no contributor owner, so it carries no
+    // endorsement.
     const profile = profileByBucket.get(group.key);
-    // A claimed contributor's explicit order is authoritative across media
-    // ranks. Everything unlisted keeps the automatic audio/newest/title order.
-    const items = applyCuratedOrder(
-      sortWithinGroup(group.items),
-      profile?.replicationOrder?.length ? profile.replicationOrder : undefined,
-      (replication) => replication.slug,
-    );
+    // Newest work first, unconditionally: an artist's rail is a timeline, so
+    // nothing outranks the date here — not the audio-first media rank, not the
+    // media tier, and not a stored `replicationOrder` prefix.
+    const items = sortArtistWorks(group.items);
     const { imageCount, videoCount } = tally(items);
     return {
       ...group,
@@ -602,6 +651,18 @@ export function selectContributorDirectoryForWorks(
   return contributorDirectory.filter((entry) => claimedKeys.has(entry.key));
 }
 
+/**
+ * "By effect" browse groups, one per effect any visible work depicts.
+ *
+ * Membership is `depictsEffect`, the same union the effect article's own
+ * collection uses: a work owned by `chromatic-aberration` and tagged
+ * `colour-enhancement` belongs to both playlists, so it appears in both
+ * groups. Bucketing on the owning `effect_slug` alone made the browse rail a
+ * strict subset of the article it links to, which is why 13 effects opened on
+ * a work that was not their curated first pick: the pick lived in another
+ * bucket entirely. A work therefore appears in as many groups as it depicts
+ * effects, exactly as it appears in as many effect articles.
+ */
 export function groupByEffect(
   replications: PublicGalleryReplicationPreview[],
   effectName: (slug: string) => string,
@@ -610,36 +671,54 @@ export function groupByEffect(
   const buckets = new Map<string, GalleryGroup>();
 
   for (const replication of replications) {
-    const slug = replication.effect_slug;
-
-    // "By effect" groups rows by their owning effect, and a row can have none.
-    // Such a row gets no bucket rather than one keyed `undefined`, whose header
-    // would read the slug back as a name and link to `/effects/undefined`; it
-    // stays visible under "By artist", which is a grouping it does belong to.
-    // Reading `.replace` off the missing slug used to throw here, taking the
-    // whole toggle down. All 247 stored rows carry an effect, so nothing moves.
-    if (!slug) {
-      continue;
+    // A row can depict nothing at all. It gets no bucket rather than one keyed
+    // `undefined`, whose header would read the slug back as a name and link to
+    // `/effects/undefined`; it stays visible under "By artist", which is a
+    // grouping it does belong to. Reading `.replace` off the missing slug used
+    // to throw here, taking the whole toggle down.
+    for (const slug of depictedEffects(replication)) {
+      let group = buckets.get(slug);
+      if (!group) {
+        group = {
+          key: slug,
+          label: effectName(slug),
+          href: effectHref(slug),
+          count: 0,
+          imageCount: 0,
+          videoCount: 0,
+          items: [],
+        };
+        buckets.set(slug, group);
+      }
+      group.items.push(replication);
     }
-
-    let group = buckets.get(slug);
-    if (!group) {
-      group = {
-        key: slug,
-        label: effectName(slug),
-        href: effectHref(slug),
-        count: 0,
-        imageCount: 0,
-        videoCount: 0,
-        items: [],
-      };
-      buckets.set(slug, group);
-    }
-    group.items.push(replication);
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
-    const items = sortWithinGroup(group.items);
+    // The effect's stored `gallery_order` reaches this projection as each row's
+    // `effect_order_index` (the array itself never leaves Convex), so rebuild
+    // the editor's prefix from this effect's own positions and apply it the way
+    // `groupByArtist` applies a claimed contributor's stored order: curation is
+    // authoritative across media ranks. Ranking it inside `sortWithinGroup`
+    // instead confines the prefix to one audio-first media-rank bucket, so any
+    // uncurated sounded video outranks the editor's chosen opener and the
+    // browse rail contradicts the effect article's own showcase.
+    const curatedPrefix = group.items
+      .map((item) => ({
+        slug: item.slug,
+        position: curatedEffectPosition(item, group.key),
+      }))
+      .filter(
+        (entry): entry is { slug: string; position: number } =>
+          entry.position !== undefined,
+      )
+      .sort((left, right) => left.position - right.position)
+      .map((entry) => entry.slug);
+    const items = applyCuratedOrder(
+      sortWithinGroup(group.items, group.key),
+      curatedPrefix.length ? curatedPrefix : undefined,
+      (replication) => replication.slug,
+    );
     const { imageCount, videoCount } = tally(items);
     return { ...group, items, count: items.length, imageCount, videoCount };
   });
@@ -688,11 +767,12 @@ export function countGallery(
   let videos = 0;
   for (const replication of replications) {
     artists.add(artistIdentity(replication.artist).key);
-    // The header prints this as "N effects". A row with no owning effect would
-    // otherwise add `undefined` to the set and claim one effect more than the
-    // gallery can actually show.
-    if (replication.effect_slug) {
-      effects.add(replication.effect_slug);
+    // The header prints this as "N effects", and "By effect" now renders one
+    // group per depicted effect, so count the same union. A row that depicts
+    // nothing contributes none rather than adding `undefined` and claiming one
+    // effect more than the gallery can show.
+    for (const slug of depictedEffects(replication)) {
+      effects.add(slug);
     }
     if (replication.type === "video") videos += 1;
     else images += 1;

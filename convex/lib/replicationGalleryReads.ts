@@ -8,7 +8,12 @@ import {
   drugClassValidator,
   viewingModeTagValidator,
 } from "./replicationTaxonomyValidators";
-import { memoizedStorageUrls, resolveReplicationUrls } from "./replicationUrls";
+import {
+  memoizedStorageUrls,
+  resolveReplicationUrls,
+  type StorageUrlReader,
+} from "./replicationUrls";
+import { depictedEffects } from "../../src/types/replications";
 
 const PUBLIC_GALLERY_PAGE_SIZE = 64;
 
@@ -42,7 +47,7 @@ const publicGalleryPreviewValidator = v.object({
   date_info: v.optional(
     v.object({ value: v.optional(v.string()), kind: replicationDateKind }),
   ),
-  order_index: v.optional(v.number()),
+  effect_order_index: v.optional(v.record(v.string(), v.number())),
 });
 
 export const publicGalleryPageArgs = {
@@ -78,9 +83,9 @@ function defined<T>(value: T | undefined | null): value is T {
 }
 
 async function projectGalleryRow(
-  urls: ReturnType<typeof memoizedStorageUrls>,
+  urls: StorageUrlReader,
   row: Doc<"replications">,
-  orderIndex?: number,
+  orderByEffect: ReadonlyMap<string, ReadonlyMap<string, number>>,
 ) {
   const resolved = await resolveReplicationUrls(urls, {
     ...row,
@@ -130,7 +135,22 @@ async function projectGalleryRow(
           },
         }
       : {}),
-    ...(defined(orderIndex) ? { order_index: orderIndex } : {}),
+    ...(() => {
+      // One curated position per depicted effect, because the same work holds a
+      // different rank in each effect's `gallery_order` — position 0 of
+      // `colour-enhancement` can be position 55 of its owning
+      // `chromatic-aberration`. A single scalar could only ever carry the
+      // owning effect's rank, which is meaningless in any other effect's
+      // playlist.
+      const positions: Record<string, number> = {};
+      for (const effectSlug of depictedEffects(row)) {
+        const position = orderByEffect.get(effectSlug)?.get(row.slug);
+        if (defined(position)) positions[effectSlug] = position;
+      }
+      return Object.keys(positions).length > 0
+        ? { effect_order_index: positions }
+        : {};
+    })(),
   };
 }
 
@@ -150,11 +170,13 @@ export async function getPublicGalleryPageHandler(
     numItems: clampPublicGalleryPageSize(args.limit),
   });
   const rows = result.page.filter(isPublishableGalleryRow);
-  const orderByEffect = new Map<string, Map<string, number>>();
+  const orderByEffect = new Map<string, ReadonlyMap<string, number>>();
 
-  for (const effectSlug of new Set(
-    rows.map((row) => row.effect_slug).filter(defined),
-  )) {
+  // Every effect any row on this page depicts, not just the owning ones: a
+  // work tagged into an effect is a member of that effect's playlist and needs
+  // that playlist's curated rank. Bounded by the number of stored effects, and
+  // each lookup is a single indexed read.
+  for (const effectSlug of new Set(rows.flatMap(depictedEffects))) {
     const effect = await ctx.db
       .query("subjectiveEffects")
       .withIndex("by_slug", (query) => query.eq("slug", effectSlug))
@@ -169,15 +191,7 @@ export async function getPublicGalleryPageHandler(
 
   const urls = memoizedStorageUrls(ctx);
   const projected = await Promise.all(
-    rows.map((row) =>
-      projectGalleryRow(
-        urls,
-        row,
-        row.effect_slug
-          ? orderByEffect.get(row.effect_slug)?.get(row.slug)
-          : undefined,
-      ),
-    ),
+    rows.map((row) => projectGalleryRow(urls, row, orderByEffect)),
   );
 
   return {

@@ -277,7 +277,12 @@ function isGalleryReplicationPreview(
           value.date_info.kind === "unknown") &&
         (!("value" in value.date_info) ||
           typeof value.date_info.value === "string"))) &&
-    (!("order_index" in value) || typeof value.order_index === "number")
+    (!("effect_order_index" in value) ||
+      (value.effect_order_index !== null &&
+        typeof value.effect_order_index === "object" &&
+        Object.values(value.effect_order_index).every(
+          (position) => typeof position === "number",
+        )))
   );
 }
 
@@ -1004,10 +1009,17 @@ function GalleryExplorer({
         : splitRailsAndPool(groups),
     [mode, groups],
   );
-  const pooledItems = useMemo(
-    () => pool.flatMap((group) => group.items),
-    [pool],
-  );
+  const pooledItems = useMemo(() => {
+    // One masonry, so a work depicting two thin effects must still render
+    // once: depicts-based grouping puts it in both pool groups, and two tiles
+    // for one work would collide on its slug key.
+    const seen = new Set<string>();
+    return pool.flatMap((group) =>
+      group.items.filter((item) =>
+        seen.has(item.slug) ? false : (seen.add(item.slug), true),
+      ),
+    );
+  }, [pool]);
 
   /**
    * While only the server-curated subset is loaded, the default artist view

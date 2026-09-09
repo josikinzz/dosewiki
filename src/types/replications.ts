@@ -156,6 +156,43 @@ export function depictsEffect(
 }
 
 /**
+ * Every effect a work depicts: its owning `effect_slug` plus each explicit
+ * `effect_tags` entry. The set `depictsEffect` answers, enumerated — an
+ * effect's playlist carries every work that depicts it, so effect grouping
+ * places a work in each of these.
+ */
+export function depictedEffects(row: {
+  effect_slug?: string;
+  effect_tags?: readonly string[];
+}): string[] {
+  const slugs = new Set<string>();
+  if (row.effect_slug) slugs.add(row.effect_slug);
+  for (const tag of row.effect_tags ?? []) slugs.add(tag);
+  return [...slugs];
+}
+
+/**
+ * A work's position within one effect's curated `gallery_order`, or
+ * `undefined` when that effect never curated it.
+ *
+ * Per-effect rather than a single number because the same work holds an
+ * independent rank in every playlist it belongs to: position 0 of
+ * `colour-enhancement` can be position 55 of its owning
+ * `chromatic-aberration`. Omitting `effectSlug` asks for the owning effect's
+ * rank, which is the only meaningful answer outside an effect-grouped view.
+ */
+export function curatedEffectPosition(
+  row: {
+    effect_slug?: string;
+    effect_order_index?: Readonly<Record<string, number>>;
+  },
+  effectSlug?: string,
+): number | undefined {
+  const key = effectSlug ?? row.effect_slug;
+  return key === undefined ? undefined : row.effect_order_index?.[key];
+}
+
+/**
  * Replication rights status. Replication media is separate from dose.wiki's
  * CC0 article dataset unless an individual item says otherwise.
  */
@@ -311,12 +348,13 @@ export interface ReplicationWithUrl extends ReplicationRecord {
 }
 
 /**
- * Replication enriched for the cross-effect gallery. `order_index` is the
- * item's position within its effect's `gallery_order` (absent when the effect
- * has no curated order), used for intra-effect sorting in the gallery.
+ * Replication enriched for the cross-effect gallery. `effect_order_index` maps
+ * each effect this work depicts to its position in that effect's
+ * `gallery_order`; read it through `curatedEffectPosition`. Effects that never
+ * curated the work are absent, as is the whole field when none did.
  */
 export interface GalleryReplication extends ReplicationWithUrl {
-  order_index?: number;
+  effect_order_index?: Readonly<Record<string, number>>;
 }
 
 /**
@@ -397,8 +435,11 @@ export interface PublicGalleryReplicationPreview {
   created_at: string;
   /** Best-estimate work date; the shared newest-work-first sort reads it. */
   date_info?: PublicGalleryDateInfo;
-  /** Position within the owning effect's curated `gallery_order`. */
-  order_index?: number;
+  /**
+   * Position within each depicted effect's curated `gallery_order`, keyed by
+   * effect slug. Read it through `curatedEffectPosition`.
+   */
+  effect_order_index?: Readonly<Record<string, number>>;
 }
 
 /**

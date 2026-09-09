@@ -87,15 +87,15 @@ describe("contributor and replication route loaders", () => {
     ]);
   });
 
-  it("leads a contributor's rail with their curated works", async () => {
+  it("puts the newest work first even when an older one is editorially featured", async () => {
     publicData.getPublicContributorByKey.mockResolvedValueOnce(
       buildContributorProfile(),
     );
     publicData.getReportsByContributor.mockResolvedValueOnce([]);
     publicData.getReplicationsByContributor.mockResolvedValueOnce([
       buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-      // A real entry from the checked-in curation list, so this test fails if
-      // the list is ever repointed without the rail following.
+      // A real entry from the checked-in Effect Index curation list, which used
+      // to float above the default sort. The date outranks it now.
       buildReplication({
         slug: "forest-of-life-loka",
         created_at: "2019-01-01T00:00:00.000Z",
@@ -108,60 +108,8 @@ describe("contributor and replication route loaders", () => {
       throw new Error("expected ok result");
     }
     expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
+      "new",
       "forest-of-life-loka",
-      "new",
-    ]);
-  });
-
-  it("leaves the rail untouched for a contributor with nothing curated", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(
-      buildContributorProfile(),
-    );
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
-      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    // Only 36 works are curated corpus-wide, so this is the common case and it
-    // must stay a pure no-op.
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
-      "new",
-      "old",
-    ]);
-  });
-
-  it("puts the contributor's own curation ahead of the editorial list", async () => {
-    publicData.getPublicContributorByKey.mockResolvedValueOnce(
-      buildContributorProfile({ replicationOrder: ["old", "gone"] }),
-    );
-    publicData.getReportsByContributor.mockResolvedValueOnce([]);
-    publicData.getReplicationsByContributor.mockResolvedValueOnce([
-      buildReplication({ slug: "new", created_at: "2025-01-01T00:00:00.000Z" }),
-      buildReplication({ slug: "old", created_at: "2023-01-01T00:00:00.000Z" }),
-      // Editorial curation still floats its pick above the default sort, but
-      // below anything the contributor pinned themselves.
-      buildReplication({
-        slug: "forest-of-life-loka",
-        created_at: "2019-01-01T00:00:00.000Z",
-      }),
-    ]);
-
-    const result = await loadContributorRoute("ada");
-
-    if (result.kind !== "ok") {
-      throw new Error("expected ok result");
-    }
-    // "gone" matches no work and is simply ignored.
-    expect(result.pageProps.replications.map((work) => work.slug)).toEqual([
-      "old",
-      "forest-of-life-loka",
-      "new",
     ]);
   });
 

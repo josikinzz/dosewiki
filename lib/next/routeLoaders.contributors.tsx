@@ -16,11 +16,7 @@ import type { UserProfileEditorNote } from "../../src/components/pages/UserProfi
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 import type { ReplicationWithUrl } from "../../src/types/replications";
-import {
-  orderContributorReplications,
-  orderContributorWorksFeaturedFirst,
-} from "../../src/features/effects/gallery/replicationDetailModel";
-import { EFFECT_INDEX_FEATURED_REPLICATION_SLUGS } from "./effectIndexHome";
+import { orderContributorReplications } from "../../src/features/effects/gallery/replicationDetailModel";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import type { ContributorReviewedArticle } from "../../src/types/reviewedArticles";
 import { applyCuratedOrder } from "../curatedOrder";
@@ -170,17 +166,10 @@ export const loadContributorRoute = cache(
           profile.reportOrder,
           (report) => report.slug,
         ),
-        // The contributor's own `replicationOrder` is the exact leading prefix.
-        // Effect Index editorial picks lead only within the unlisted tail; the
-        // remaining works keep the shared automatic order.
-        replications: applyCuratedOrder(
-          orderContributorWorksFeaturedFirst(
-            orderContributorReplications(replications),
-            EFFECT_INDEX_FEATURED_REPLICATION_SLUGS,
-          ),
-          profile.replicationOrder,
-          (replication) => replication.slug,
-        ),
+        // Newest work first, unconditionally. Reports keep the contributor's
+        // own `reportOrder` above; works deliberately do not, because an
+        // artist's playlist is a timeline and nothing outranks the date.
+        replications: orderContributorReplications(replications),
         effectArticles,
         reviewedArticles,
         editorNote: staffNote

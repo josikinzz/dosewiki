@@ -403,7 +403,7 @@ export function projectPublicGalleryReplicationPreview(
     date_info: replication.date_info
       ? { value: replication.date_info.value, kind: replication.date_info.kind }
       : undefined,
-    order_index: replication.order_index ?? undefined,
+    effect_order_index: replication.effect_order_index ?? undefined,
   };
 }
 

@@ -121,10 +121,13 @@ export async function resolveReplicationUrls(
   return { url, thumbnail_url, preview_url, motion_url, motion_poster_url };
 }
 
-/** Resolve each distinct storage ID at most once during one query invocation. */
-export function memoizedStorageUrls(ctx: {
+/** A per-invocation storage URL reader; the unit `resolveReplicationUrls` reads through. */
+export interface StorageUrlReader {
   storage: { getUrl: (storageId: string) => Promise<string | null> };
-}): { storage: { getUrl: (storageId: string) => Promise<string | null> } } {
+}
+
+/** Resolve each distinct storage ID at most once during one query invocation. */
+export function memoizedStorageUrls(ctx: StorageUrlReader): StorageUrlReader {
   const cache = new Map<string, Promise<string | null>>();
   return {
     storage: {

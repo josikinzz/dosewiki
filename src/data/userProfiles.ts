@@ -42,14 +42,16 @@ export type NormalizedUserProfile = {
   hasCustomBio: boolean;
   role?: string;
   /**
-   * Contributor-curated ordering, passed through from Convex
-   * (`contributorProfiles.replicationOrder` / `reportOrder`). Optional because
-   * only the public profile read carries it — a profile materialized locally
-   * (fallbacks, the identity mapping, normalizeProfileRecord) has no curation,
-   * and absent means "use the surface's default sort". Consumers apply it with
+   * The contributor's curated report ordering, passed through from Convex
+   * (`contributorProfiles.reportOrder`). Optional because only the public
+   * profile read carries it — a profile materialized locally (fallbacks, the
+   * identity mapping, normalizeProfileRecord) has no curation, and absent
+   * means "use the surface's default sort". Consumers apply it with
    * `applyCuratedOrder`.
+   *
+   * There is deliberately no works counterpart: an artist's replications are
+   * ordered newest work first and nothing outranks the date.
    */
-  replicationOrder?: string[];
   reportOrder?: string[];
   /**
    * The contributor's opt-out from the public /replications gallery, passed

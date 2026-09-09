@@ -634,17 +634,19 @@ describe("canonical replication viewer", () => {
     renderExplorer("");
 
     // A tile click is the only way in: the gallery has no separate viewer
-    // button, so the collection's first work is reached by clicking it in the
-    // first artist's rail.
-    fireEvent.click(screen.getAllByTestId("rail-tile")[0]);
+    // button. Which work leads the rail is the artist sort's business, so the
+    // assertion follows the tile that was actually clicked.
+    const tile = screen.getAllByTestId("rail-tile")[0];
+    const openedSlug = `slug-${tile.textContent?.replace(/\D+/g, "")}`;
+    fireEvent.click(tile);
 
     const viewer = screen.getByTestId("replication-viewer");
-    expect(viewer).toHaveAttribute("data-initial-slug", "slug-2");
+    expect(viewer).toHaveAttribute("data-initial-slug", openedSlug);
     expect(viewer).toHaveAttribute("data-collection-label", "Sorted by artist");
     expect(pushState).toHaveBeenCalledWith(
       expect.objectContaining({ replicationViewer: true }),
       "",
-      expect.stringContaining("viewer=slug-2"),
+      expect.stringContaining(`viewer=${openedSlug}`),
     );
     expect(
       screen.getByRole("textbox", { name: "Search replications" }),
@@ -673,11 +675,13 @@ describe("canonical replication viewer", () => {
   it("opens from rail tiles using the same viewer", () => {
     renderExplorer("");
 
-    fireEvent.click(screen.getAllByTestId("rail-tile")[0]);
+    const tile = screen.getAllByTestId("rail-tile")[0];
+    const openedSlug = `slug-${tile.textContent?.replace(/\D+/g, "")}`;
+    fireEvent.click(tile);
 
     expect(screen.getByTestId("replication-viewer")).toHaveAttribute(
       "data-initial-slug",
-      "slug-2",
+      openedSlug,
     );
   });
 
@@ -1460,7 +1464,7 @@ describe("complete corpus loading", () => {
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
   });
 
-  it("applies a deferred artist's avatar, profile link, and curated order", async () => {
+  it("applies a deferred artist's avatar, profile link, and newest-first order", async () => {
     const initial = rep({ title: "Initial work", artist: "First Artist" });
     const laterSecond = rep({
       title: "Later second",
@@ -1469,6 +1473,7 @@ describe("complete corpus loading", () => {
     const laterFirst = rep({
       title: "Later first",
       artist: "Deferred Artist",
+      created_at: "2025-01-01T00:00:00.000Z",
     });
     vi.stubGlobal(
       "fetch",
@@ -1486,7 +1491,6 @@ describe("complete corpus loading", () => {
           displayName: "Deferred Artist",
           aliases: [],
           avatarUrl: "https://cdn.test/deferred.webp",
-          replicationOrder: [laterFirst.slug, laterSecond.slug],
         },
       ],
     });
@@ -1511,14 +1515,18 @@ describe("complete corpus loading", () => {
 
   it("adopts the contributor directory that arrives with the complete corpus", async () => {
     // The index page inlines only the entries its prerendered rails need, so a
-    // deferred artist's identity — avatar, portfolio link, curated order —
+    // deferred artist's identity — avatar and portfolio link —
     // reaches the client with the corpus rather than with the initial props.
     const initial = rep({ title: "Initial work", artist: "First Artist" });
     const laterSecond = rep({
       title: "Later second",
       artist: "Deferred Artist",
     });
-    const laterFirst = rep({ title: "Later first", artist: "Deferred Artist" });
+    const laterFirst = rep({
+      title: "Later first",
+      artist: "Deferred Artist",
+      created_at: "2025-01-01T00:00:00.000Z",
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -1532,7 +1540,6 @@ describe("complete corpus loading", () => {
               displayName: "Deferred Artist",
               aliases: [],
               avatarUrl: "https://cdn.test/deferred.webp",
-              replicationOrder: [laterFirst.slug, laterSecond.slug],
             },
           ],
         }),

@@ -6,12 +6,6 @@ export type ContributorDirectoryEntry = {
   displayName: string;
   aliases: string[];
   /**
-   * The contributor's curated work ordering, carried on the directory because
-   * the gallery groups by credit line and never reads profiles itself. Absent
-   * on a profile that has curated nothing, which means "default sort".
-   */
-  replicationOrder?: string[];
-  /**
    * The profile's avatar, carried so credit-line surfaces (viewer byline chip,
    * artist groups) can render the claiming profile's face without reading
    * profiles themselves. Null when the profile has none.

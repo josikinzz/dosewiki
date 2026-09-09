@@ -59,9 +59,6 @@ export const getPublicContributorDirectory = cache(
       key: profile.key,
       displayName: profile.displayName,
       aliases: profile.aliases,
-      // Threaded so the by-artist gallery can honour the contributor's curation
-      // without reading profiles of its own; see `applyCuratedOrder`.
-      replicationOrder: profile.replicationOrder,
       avatarUrl: profile.avatarUrl,
       // Threaded so the gallery can star and lift approved artists' rails.
       ...(profile.approved_replicator === true ? { approvedReplicator: true } : {}),

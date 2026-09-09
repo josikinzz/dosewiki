@@ -4,7 +4,7 @@ import type {
   PublicSubstanceRecord,
 } from "@server/convex/publicData";
 import type { NormalizedReagentData } from "@/types/reagent";
-import type { GalleryReplication } from "@/types/replications";
+import { curatedEffectPosition, type GalleryReplication } from "@/types/replications";
 
 export const PUBLIC_API_VERSION = "v1" as const;
 export const PUBLIC_API_BASE_PATH = "/api/v1" as const;
@@ -155,8 +155,11 @@ export function projectPublicApiReplication(replication: GalleryReplication) {
     ...(replication.has_audio !== undefined
       ? { has_audio: replication.has_audio }
       : {}),
-    ...(replication.order_index !== undefined
-      ? { order_index: replication.order_index }
+    // The documented `order_index` is the owning effect's rank, explicitly not
+    // the requested collection's order (see HANDOFF.md). Derived from the
+    // per-effect map so the published contract stays a single number.
+    ...(curatedEffectPosition(replication) !== undefined
+      ? { order_index: curatedEffectPosition(replication) }
       : {}),
     rights: {
       status: replication.rights_status ?? "unknown",

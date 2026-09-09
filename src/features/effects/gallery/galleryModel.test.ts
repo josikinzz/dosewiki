@@ -34,9 +34,16 @@ function dateInfo(kind: ReplicationDateKind, value: string | null): ReplicationD
   };
 }
 
-function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
+/**
+ * `order` is the row's position in its own effect's curated `gallery_order`,
+ * written as the per-effect map the projection actually carries.
+ */
+function rep(
+  overrides: Partial<GalleryReplication> & { order?: number } = {},
+): GalleryReplication {
   seq += 1;
-  return {
+  const { order, ...rest } = overrides;
+  const row: GalleryReplication = {
     _id: `id-${seq}`,
     _creationTime: seq,
     slug: `slug-${seq}`,
@@ -48,8 +55,11 @@ function rep(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
     format: 'jpg',
     created_at: '2024-01-01T00:00:00.000Z',
     url: `https://cdn.test/${seq}.jpg`,
-    ...overrides,
+    ...rest,
   };
+  return order === undefined || !row.effect_slug
+    ? row
+    : { ...row, effect_order_index: { [row.effect_slug]: order } };
 }
 
 const effectName = (slug: string) => ({ geometry: 'Geometry', drifting: 'Drifting' })[slug] ?? slug;
@@ -170,69 +180,88 @@ describe('groupByArtist', () => {
     expect(group.href).toBeUndefined();
   });
 
-  it("leads an artist's section with the works they curated", () => {
-    const first = rep({ artist: 'Kaytwo', slug: 'first', order_index: 1 });
-    const second = rep({ artist: 'Kaytwo', slug: 'second', order_index: 2 });
-    const third = rep({ artist: 'Kaytwo', slug: 'third', order_index: 3 });
+  it("orders an artist's section newest work first, above every other key", () => {
+    // The date now outranks the audio-first media rank, the media tier, and
+    // any stored `replicationOrder`. Before this an artist's rail read as a
+    // media grouping: a 2020 sounded video always preceded a 2026 still.
+    const works = [
+      rep({
+        artist: 'Kaytwo',
+        slug: 'old-sounded-video',
+        type: 'video',
+        format: 'mp4',
+        has_audio: true,
+        date_info: dateInfo('exact_date', '2020-06-01'),
+      }),
+      rep({
+        artist: 'Kaytwo',
+        slug: 'newest-still',
+        type: 'image',
+        format: 'webp',
+        date_info: dateInfo('year', '2026'),
+      }),
+      rep({
+        artist: 'Kaytwo',
+        slug: 'mid-gif',
+        format: 'gif',
+        date_info: dateInfo('exact_date', '2023-02-02'),
+      }),
+    ];
 
-    const [group] = groupByArtist([first, second, third], 'count', [
-      { key: 'KAYTWO', displayName: 'Kaytwo', aliases: ['kaylee'], replicationOrder: ['third', 'first'] },
+    const [group] = groupByArtist(works, 'count', [
+      { key: 'KAYTWO', displayName: 'Kaytwo', aliases: ['kaylee'] },
     ]);
 
-    // Curated slugs in their curated order, then the default sort for the rest.
-    expect(group.items.map((item) => item.slug)).toEqual(['third', 'first', 'second']);
-  });
-
-  it("keeps an artist's explicit prefix authoritative across media ranks", () => {
-    const sounded = rep({
-      artist: 'Kaytwo',
-      slug: 'sounded',
-      type: 'video',
-      format: 'mp4',
-      has_audio: true,
-    });
-    const still = rep({
-      artist: 'Kaytwo',
-      slug: 'still',
-      type: 'image',
-      format: 'webp',
-    });
-    const [group] = groupByArtist([sounded, still], 'count', [
-      {
-        key: 'KAYTWO',
-        displayName: 'Kaytwo',
-        aliases: [],
-        replicationOrder: ['still'],
-      },
+    expect(group.items.map((item) => item.slug)).toEqual([
+      'newest-still',
+      'mid-gif',
+      'old-sounded-video',
     ]);
-
-    expect(group.items.map((item) => item.slug)).toEqual(['still', 'sounded']);
   });
 
-  it('ignores curated slugs the artist no longer has, and leaves an uncurated artist alone', () => {
-    const curated = groupByArtist(
-      [rep({ artist: 'Kaytwo', slug: 'a', order_index: 1 }), rep({ artist: 'Kaytwo', slug: 'b', order_index: 2 })],
-      'count',
-      [{ key: 'KAYTWO', displayName: 'Kaytwo', aliases: [], replicationOrder: ['gone', 'b'] }],
-    );
-    expect(curated[0].items.map((item) => item.slug)).toEqual(['b', 'a']);
-
-    const uncurated = groupByArtist(
-      [rep({ artist: 'Kaytwo', slug: 'a', order_index: 1 }), rep({ artist: 'Kaytwo', slug: 'b', order_index: 2 })],
-      'count',
-      [{ key: 'KAYTWO', displayName: 'Kaytwo', aliases: [] }],
-    );
-    expect(uncurated[0].items.map((item) => item.slug)).toEqual(['a', 'b']);
-  });
-
-  it('never lets a curation reorder the unattributed bucket', () => {
+  it('sinks an undated work below every dated one in an artist section', () => {
     const [group] = groupByArtist(
-      [rep({ artist: 'Unknown', slug: 'x', order_index: 1 }), rep({ artist: '', slug: 'y', order_index: 2 })],
+      [
+        rep({ artist: 'Kaytwo', slug: 'undated' }),
+        rep({
+          artist: 'Kaytwo',
+          slug: 'ancient',
+          date_info: dateInfo('year', '2011'),
+        }),
+      ],
       'count',
-      [{ key: 'IMPOSTOR', displayName: UNATTRIBUTED_LABEL, aliases: ['unknown'], replicationOrder: ['y'] }],
     );
 
-    expect(group.items.map((item) => item.slug)).toEqual(['x', 'y']);
+    expect(group.items.map((item) => item.slug)).toEqual(['ancient', 'undated']);
+  });
+
+  it('breaks a shared work date by ingest recency, not by title', () => {
+    // Most of the corpus carries year-only dates, so the tiebreak decides most
+    // adjacent pairs; alphabetical there would read as an arbitrary shuffle.
+    const [group] = groupByArtist(
+      [
+        rep({
+          artist: 'Kaytwo',
+          slug: 'a-ingested-first',
+          title: 'A',
+          created_at: '2024-01-01T00:00:00.000Z',
+          date_info: dateInfo('year', '2022'),
+        }),
+        rep({
+          artist: 'Kaytwo',
+          slug: 'z-ingested-later',
+          title: 'Z',
+          created_at: '2025-01-01T00:00:00.000Z',
+          date_info: dateInfo('year', '2022'),
+        }),
+      ],
+      'count',
+    );
+
+    expect(group.items.map((item) => item.slug)).toEqual([
+      'z-ingested-later',
+      'a-ingested-first',
+    ]);
   });
 
   it('drops an artist_url that is not an absolute http(s) url', () => {
@@ -364,24 +393,26 @@ describe('groupByArtist', () => {
   });
 
   it('folds Anonymous works into the unattributed bucket, unlinked', () => {
-    // "Anonymous" holds a marker contributor profile, but its works belong to
-    // the Unattributed bucket: no section of its own, no profile link, and the
-    // profile's curation cannot reorder the bucket.
+    // "Anonymous" holds a marker profile, but its works belong in the
+    // Unattributed bucket: no section of its own and no profile link.
     const groups = groupByArtist(
       [
-        rep({ artist: 'Anonymous', slug: 'anon-work', order_index: 2 }),
-        rep({ artist: 'unknown', slug: 'unknown-work', order_index: 1 }),
+        rep({ artist: 'Anonymous', slug: 'anon-work' }),
+        rep({ artist: 'unknown', slug: 'unknown-work' }),
         rep({ artist: 'Josie Kins' }),
       ],
       'count',
-      [{ key: 'ANONYMOUS', displayName: 'Anonymous', aliases: [], replicationOrder: ['anon-work'] }],
+      [{ key: 'ANONYMOUS', displayName: 'Anonymous', aliases: [] }],
     );
 
     expect(groups.map((group) => group.label)).toEqual(['Josie Kins', UNATTRIBUTED_LABEL]);
     const bucket = groups[1];
     expect(bucket.key).toBe(UNATTRIBUTED_KEY);
     expect(bucket.href).toBeUndefined();
-    expect(bucket.items.map((item) => item.slug)).toEqual(['unknown-work', 'anon-work']);
+    expect([...bucket.items.map((item) => item.slug)].sort()).toEqual([
+      'anon-work',
+      'unknown-work',
+    ]);
   });
 
   it('keeps the "Various artists" and "Midjourney" marker sections', () => {
@@ -437,6 +468,59 @@ describe('groupByEffect', () => {
     expect(groups).toHaveLength(1);
     expect(groups[0]).toMatchObject({ key: 'unspeakable-horrors', count: 2 });
   });
+
+  it("opens on the effect's curated pick even when it loses every automatic rank", () => {
+    // Regression: the editor's stored `gallery_order` reaches this projection
+    // as `effect_order_index`, and `sortWithinGroup` ranks it below the
+    // media rank. So the browse rail opened on whichever uncurated video had
+    // sound while the effect article opened on the curated still, and 37 of
+    // the 49 curated effects disagreed with their own article.
+    const groups = groupByEffect(
+      [
+        rep({ slug: 'loud-video', type: 'video', has_audio: true }),
+        rep({ slug: 'silent-video', type: 'video', has_audio: false }),
+        rep({ slug: 'curated-still', order: 0 }),
+        rep({ slug: 'curated-runner-up', order: 1 }),
+      ],
+      effectName,
+      effectHref,
+    );
+
+    expect(groups[0].items.map((item) => item.slug)).toEqual([
+      'curated-still',
+      'curated-runner-up',
+      'loud-video',
+      'silent-video',
+    ]);
+  });
+
+  it('groups a work under every effect it depicts, not only the one it owns', () => {
+    // Regression: the effect article's collection is `depictsEffect`, so a
+    // tagged-in work is a member of that playlist and can be its curated
+    // opener. Bucketing on the owning slug alone left 13 effects unable to
+    // open on their own first pick, because the pick sat in another bucket.
+    const groups = groupByEffect(
+      [
+        rep({
+          slug: 'tagged-in',
+          effect_slug: 'geometry',
+          effect_tags: ['drifting'],
+          effect_order_index: { geometry: 40, drifting: 0 },
+        }),
+        rep({ slug: 'owned-by-drifting', effect_slug: 'drifting', order: 1 }),
+      ],
+      effectName,
+      effectHref,
+    );
+
+    const drifting = groups.find((group) => group.key === 'drifting');
+    // Ranked by drifting's own curated position, not by geometry's 40.
+    expect(drifting?.items.map((item) => item.slug)).toEqual([
+      'tagged-in',
+      'owned-by-drifting',
+    ]);
+    expect(groups.find((group) => group.key === 'geometry')?.count).toBe(1);
+  });
 });
 
 describe('isWithheldFromArtistViews', () => {
@@ -490,12 +574,12 @@ describe('workDateMs', () => {
 });
 
 describe('sortWithinGroup', () => {
-  it('prefers curated order_index within a media rank, then falls through the tiers', () => {
+  it('prefers the curated position within a media rank, then falls through the tiers', () => {
     const items = [
-      rep({ slug: 'a', order_index: undefined, date_info: dateInfo('exact_date', '2024-01-01') }),
-      rep({ slug: 'b', order_index: 0, format: 'gif' }),
-      rep({ slug: 'c', order_index: 1, type: 'video', format: 'mp4' }),
-      rep({ slug: 'd', order_index: undefined, date_info: dateInfo('exact_date', '2024-05-01') }),
+      rep({ slug: 'a', date_info: dateInfo('exact_date', '2024-01-01') }),
+      rep({ slug: 'b', order: 0, format: 'gif' }),
+      rep({ slug: 'c', order: 1, type: 'video', format: 'mp4' }),
+      rep({ slug: 'd', date_info: dateInfo('exact_date', '2024-05-01') }),
     ];
     expect(sortWithinGroup(items).map((item) => item.slug)).toEqual(['b', 'c', 'd', 'a']);
   });

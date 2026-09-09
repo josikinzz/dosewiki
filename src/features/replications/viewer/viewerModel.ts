@@ -130,22 +130,40 @@ export function viewerItemFromShowcaseWork(work: ShowcaseWork): ReplicationViewe
   };
 }
 
-/** Locate a work in a normalized collection. */
+/**
+ * Locate a work in a normalized collection.
+ *
+ * A work depicting several effects sits in each of their groups, and the
+ * address carries only its slug. The owning effect's group wins so the
+ * overlay's heading and vertical navigation match the work's own effect
+ * rather than whichever depicting group happens to sort first; any group is
+ * still better than none.
+ */
 export function findViewerPosition(
   collection: ReplicationViewerCollection,
   slug: string,
 ): ReplicationViewerPosition | null {
+  let fallback: ReplicationViewerPosition | null = null;
   for (
     let groupIndex = 0;
     groupIndex < collection.groups.length;
     groupIndex += 1
   ) {
-    const itemIndex = collection.groups[groupIndex].items.findIndex(
+    const group = collection.groups[groupIndex];
+    const itemIndex = group.items.findIndex(
       (item) => item.replication.slug === slug,
     );
-    if (itemIndex >= 0) return { groupIndex, itemIndex };
+    if (itemIndex < 0) continue;
+    const position = { groupIndex, itemIndex };
+    if (
+      collection.grouping !== "effect" ||
+      group.key === group.items[itemIndex].effectSlug
+    ) {
+      return position;
+    }
+    fallback ??= position;
   }
-  return null;
+  return fallback;
 }
 
 /** Finite horizontal navigation within the active group. */
