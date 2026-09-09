@@ -59,34 +59,22 @@ describe("exhaustive social-card delivery verification", () => {
     await assert.rejects(verifyObject(corruptFetch, { url: cardUrl, key: "key", sha256: digest }), /digest mismatch/);
   });
 
-  it("accepts a full-byte HTTP 206 and rejects partial or inconsistent ranges", async () => {
-    const full206Headers = {
-      ...deliveryHeaders(),
-      "content-range": `bytes 0-${bytes.length - 1}/${bytes.length}`,
-    };
+  it("rejects a 206 or a stray Content-Range on the range-less crawler GET", async () => {
+    const contentRange = `bytes 0-${bytes.length - 1}/${bytes.length}`;
     const full206Fetch = async (_url, init = {}) => init.method === "HEAD"
       ? new Response(null, { status: 200, headers: deliveryHeaders() })
-      : new Response(bytes, { status: 206, headers: full206Headers });
-    assert.deepEqual(
-      await verifyObject(full206Fetch, { url: cardUrl, key: "full-206", sha256: digest }),
-      { sha256: digest, size: bytes.length },
+      : new Response(bytes, { status: 206, headers: { ...deliveryHeaders(), "content-range": contentRange } });
+    await assert.rejects(
+      verifyObject(full206Fetch, { url: cardUrl, key: "full-206", sha256: digest }),
+      /GET full-206: HTTP 206/,
     );
 
-    const partialBytes = bytes.subarray(0, 4);
-    const partialDigest = sha256Bytes(partialBytes);
-    const partial206Fetch = async (_url, init = {}) => init.method === "HEAD"
-      ? new Response(null, { status: 200, headers: { ...deliveryHeaders(), "content-length": String(partialBytes.length) } })
-      : new Response(partialBytes, {
-        status: 206,
-        headers: {
-          ...deliveryHeaders(),
-          "content-length": String(partialBytes.length),
-          "content-range": `bytes 0-${partialBytes.length - 1}/${bytes.length}`,
-        },
-      });
+    const strayRangeFetch = async (_url, init = {}) => init.method === "HEAD"
+      ? new Response(null, { status: 200, headers: deliveryHeaders() })
+      : new Response(bytes, { status: 200, headers: { ...deliveryHeaders(), "content-range": contentRange } });
     await assert.rejects(
-      verifyObject(partial206Fetch, { url: cardUrl, key: "partial-206", sha256: partialDigest }),
-      /Incomplete HTTP 206 response/,
+      verifyObject(strayRangeFetch, { url: cardUrl, key: "stray-range", sha256: digest }),
+      /Unexpected Content-Range on range-less GET/,
     );
   });
 

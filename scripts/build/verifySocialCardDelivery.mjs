@@ -126,21 +126,18 @@ export async function verifyObject(fetchImpl, object) {
     fetchImpl(`${object.url}${bust}`, { cache: "no-store", signal: AbortSignal.timeout(60_000) }),
   ]);
   if (head.status !== 200) throw new Error(`HEAD ${object.key}: HTTP ${head.status}`);
-  if (get.status !== 200 && get.status !== 206) throw new Error(`GET ${object.key}: HTTP ${get.status}`);
+  // Crawlers send no Range header, so 200 is the only conforming status. A
+  // whole-object 206 is exactly the defect that stripped card art from Twitter
+  // previews (RFC 9110 15.3.7), so this must fail on it rather than accept it.
+  if (get.status !== 200) throw new Error(`GET ${object.key}: HTTP ${get.status}`);
   const bytes = Buffer.from(await get.arrayBuffer());
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   if (sha256 !== object.sha256) throw new Error(`Delivered digest mismatch for ${object.key}: ${sha256}`);
   validateDeliveryHeaders(head.headers, object.key, bytes.length);
   validateDeliveryHeaders(get.headers, object.key, bytes.length);
   const contentRange = get.headers.get("content-range");
-  if (get.status === 200 && contentRange !== null) {
-    throw new Error(`Unexpected Content-Range on HTTP 200 for ${object.key}: ${contentRange}`);
-  }
-  if (get.status === 206) {
-    const expectedRange = `bytes 0-${bytes.length - 1}/${bytes.length}`;
-    if (contentRange !== expectedRange) {
-      throw new Error(`Incomplete HTTP 206 response for ${object.key}: ${contentRange} != ${expectedRange}`);
-    }
+  if (contentRange !== null) {
+    throw new Error(`Unexpected Content-Range on range-less GET for ${object.key}: ${contentRange}`);
   }
   return { sha256, size: bytes.length };
 }
