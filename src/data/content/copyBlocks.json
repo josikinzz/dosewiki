@@ -83,7 +83,7 @@
     "kind": "markdown",
     "label": "Reuse notice",
     "group": "About",
-    "body": "We dedicate our own contributions to the public domain through [CC0](/docs/license), including our article writing, the dataset schema, and normalization work. You can use and improve them without permission or attribution.\n\nQuoted passages, replications, legacy trip reports, [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), and [reagent test data](https://protestkit.eu) keep their own terms. The downloads are not uniformly CC0. See [License & reuse](/docs/license) for the terms that apply to each kind of material. The site's code is released under the [MIT license](/docs/license).\n\nThe substance, effect, and trip report datasets are available above. You can use them in your own project or build another encyclopedia on top of them, subject to the applicable reuse terms."
+    "body": "Writing by dose.wiki editors, data schemas, and data normalization efforts are licensed [CC0](/docs/license): they are in the public domain. You are free to use and improve CC0 content without permission or attribution. Our code is [MIT licensed](/docs/license).\n\nThird-party content such as quoted text, [reagent test data](https://protestkit.eu), [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), legacy trip reports, or replications may be subject to other terms. Datasets downloaded from dose.wiki are not necessarily licensed CC0.\n\nYou can use our datasets on effects, substances, and/or trip reports in your own datasets, harm reduction efforts, or to build your own encyclopedia as described [here](/docs/license)."
   },
   {
     "key": "about-reuse-notice-effect-index",
@@ -111,6 +111,13 @@
     "label": "Mission statement",
     "group": "About",
     "body": "Effect Index serves as the platform for the [Subjective Effect Index (SEI)](/effects), a resource containing formalised documentation of the vast number of distinct subjective states that may occur under the influence of hallucinogens. We strive to comprehensively document and describe the wide variety of potential hallucinogenic experiences. The SEI is presented in an easily readable format that contains not only descriptions, but also image, video, and audio [replications](/replications) of these effects.\n\nWe believe that in pioneering formalised subjective effect documentation, we may demystify the psychedelic experience. This has the potential to allow hallucinogen usage to become more culturally acceptable, better understood, and create a platform on top of which these substances may be more easily studied.\n\nEffect Index was initially founded as a side project on 30 June, 2017 by [Josie Kins](/contributors/josie), the founder of [PsychonautWiki](https://psychonautwiki.org) and [DisregardEverythingISay](https://disregardeverythingisay.com/). It serves as a platform for content that has been in constant development for the previous six years on these sites. However, the aforementioned content is now hosted on its own dedicated platform with the hope of further spreading the documentation and creating a universal terminology set that gives people the vernacular to fully describe experiences that were previously considered ineffable.\n\nIf you find this project interesting, we encourage you to join our active communities within both our [subreddit](https://reddit.com/r/replications) and our [Discord](/discord)."
+  },
+  {
+    "key": "about-community-intro",
+    "kind": "markdown",
+    "label": "Community intro",
+    "group": "About",
+    "body": "Other projects & communities we admire or work with include:"
   },
   {
     "key": "effect-index-home-intro-lead",
@@ -1303,7 +1310,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Tooling + safety: body",
     "group": "Docs · Code",
-    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, rejecting data that does not match the required structure. These checks do not establish factual accuracy. The repository has ~500 Vitest test files. Molecule diagrams render through a vendored **OpenChemLib** fork (`vendor/openchemlib`) with its own verification script."
+    "body": "Bun is the package manager. **Zod schemas** (in `src/schema/` and `schemas/`) validate every article shape before the app stores or renders it, rejecting data that does not match the required structure. These checks do not establish factual accuracy. The repository has ~500 Vitest test files. Molecule diagrams render through a vendored **OpenChemLib** fork (`vendor/openchemlib`), verified by `scripts/chemistry/verify-openchemlib-fork.mjs`."
   },
   {
     "key": "docs-code-s4-intro",
@@ -1545,7 +1552,7 @@
     "kind": "markdown",
     "label": "06 · Data layer · table row: memberships",
     "group": "Docs · Code",
-    "body": "Membership records linking each email to an admin, editor, contributor, or viewer role, read by Auth.js at sign-in. Viewer has no editor access; the other roles have different permissions."
+    "body": "Membership records linking each email to an admin, editor, contributor, or viewer role, read by next-auth at sign-in. Viewer has no editor access; the other roles have different permissions."
   },
   {
     "key": "docs-code-s6-table-changelog",
@@ -1657,7 +1664,7 @@
     "kind": "markdown",
     "label": "07 · Traffic · read card: key",
     "group": "Docs · Code",
-    "body": "**Key property:** there is no client-side database access. Pages prerender, then revalidate by cache tag when an editor saves."
+    "body": "**Key property:** there is no client-side database access. Convex therefore never sees per-reader traffic, and a save can invalidate the affected pages predictably. Pages prerender, then revalidate by cache tag when an editor saves."
   },
   {
     "key": "docs-code-s7-submit-label",
@@ -2166,7 +2173,7 @@
       "**`README.md` and `ARCHITECTURE.md`**: the orientation docs from the maintainers. They cover routes, npm scripts, and system layout.",
       "**`convex/schema.ts`**: the data model that everything else is built around. Skim the `substanceIndex` table definition first.",
       "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/convex/publicData.*` → `src/features/article/`**: Flow A from section 10. This chain covers the whole public read path.",
-      "**`middleware.ts` + `auth.ts`**: short files that show how `/dev` is protected and how roles work.",
+      "**`src/middleware.ts` + `auth.ts`**: short files that show how `/dev` is protected and how roles work. Middleware runs on Vercel but never under `next dev`.",
       "**`src/lib/http/protectedRouteOperation.ts` + `lib/http/rateLimitPolicy.ts`**: the shared handler for protected API operations (session role, named rate-limit bucket, payload cap). Public submission routes have separate abuse controls and do not require sign-in.",
       "**`src/features/dev/save-orchestrator/` and `src/app/api/save-to-convex/`**: Flow B. These files show how edits reach the database with an audit trail.",
       "**`scripts/lib/workflow-command-surface.mjs`**: the registry of pipeline commands. From here you can find whichever pipeline (batch, citations, replications, migrate, sync) you need."

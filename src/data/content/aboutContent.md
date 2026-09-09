@@ -9,11 +9,11 @@
 
 Much of the information a substance article needs has already been gathered and published: decades of documentation by scientists, psychonauts, and the harm-reduction community. We draw on [ten harm-reduction and reference sites](/docs/how#sources), each with its own format, with no shared standard and no one site covering all of the information. Each article links back to the source pages that informed it.
 
-Substance articles were drafted by artificial intelligence. Dosage information was transcribed with software from tables found online. [Citations were checked with custom-written software](/docs/how#citations) that assesses whether each claim is supported by its source; these checks cannot establish that a human has reviewed an article. [How articles are made](/docs/how) describes the process and includes the prompts used to prepare article drafts.
+Substance articles were drafted by artificial intelligence. Dosage information was transcribed with software from tables found online. [Citations were checked with custom-written software](/docs/how#citations) that assesses whether each cited claim is supported by its source; these checks cannot establish that a human has reviewed an article. [How articles are made](/docs/how) describes the process and includes the prompts used to prepare article drafts.
 
 Articles are still far from complete, and human review is what makes them trustworthy. Reviewing an article means verifying the pharmacology, checking dose and interaction information for errors that could cause harm, and adding corrections, references, and explanations of their own. Incorrect information on this topic can have serious real-world consequences, so we encourage anyone who is able to review an article.
 
-The extent of human review varies by article. A substance article's current work-in-progress state can be tracked using the Status label on the article: articles that have been reviewed by a human say as much, and the rest are labelled as AI-generated drafts.
+The extent of human review varies by article. A substance article's current work-in-progress state can be tracked in the Article Status section on the article: articles that have been reviewed by a human say as much, and the rest are marked as not yet reviewed.
 
 The other three collections are made by people. The effect articles are the [Subjective Effect Index](/effects), written over more than a decade across several websites. Replications are made by artists attempting to depict the subjective appearance of an experience, most of whom are from the [r/replications](https://reddit.com/r/replications) community on Reddit. Trip reports are written by their authors and reviewed by an editor before they are published.
 

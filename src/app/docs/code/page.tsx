@@ -355,7 +355,7 @@ export default async function DocsCodePage() {
   APP["Next.js app<br/>src/app/ routes +<br/>src/features/ modules"]:::pub
   PUBLIC["Public site<br/>articles, effects, reports,<br/>gallery, search, indexes"]:::pub
   DEV["/dev editor<br/>forms, AI generation,<br/>review queues, studios"]:::dev
-  AUTH["Auth.js editor sign-in<br/>auth.ts + middleware.ts"]:::dev
+  AUTH["next-auth editor sign-in<br/>auth.ts + src/middleware.ts"]:::dev
 
   SRC -->|"scrape + parse"| SCRIPTS
   AI -->|"generates sections"| SCRIPTS
@@ -517,8 +517,11 @@ export default async function DocsCodePage() {
 │   ├── data/                 `}
             <span className="theme-text-faint">· copy-block seeds, JSON artifacts, generated maps</span>
             {`
-│   └── theme/                `}
+│   ├── theme/                `}
             <span className="theme-text-faint">· design tokens</span>
+            {`
+│   └── middleware.ts         `}
+            <span className="theme-text-faint">· the /dev gatekeeper; runs on Vercel, not next dev</span>
             {`
 ├── `}
             <span
@@ -566,15 +569,8 @@ export default async function DocsCodePage() {
             >
               auth.ts
             </span>
-            {`  `}
-            <span
-              className="font-semibold"
-              style={{ color: DOMAIN_VAR.blue }}
-            >
-              middleware.ts
-            </span>
-            {`   `}
-            <span className="theme-text-faint">· sign-in config + /dev gatekeeper</span>
+            {`                   `}
+            <span className="theme-text-faint">· next-auth sign-in configuration</span>
             {`
 ├── public/                   `}
             <span className="theme-text-faint">
