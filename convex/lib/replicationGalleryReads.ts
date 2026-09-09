@@ -23,7 +23,7 @@ const publicGalleryPreviewValidator = v.object({
   title: v.string(),
   artist: v.string(),
   artist_url: v.optional(v.string()),
-  type: v.union(v.literal("image"), v.literal("video")),
+  type: v.union(v.literal("image"), v.literal("video"), v.literal("audio")),
   format: v.string(),
   effect_slug: v.optional(v.string()),
   effect_tags: v.optional(v.array(v.string())),
@@ -69,12 +69,18 @@ export function clampPublicGalleryPageSize(requested: number): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_GALLERY_PAGE_SIZE);
 }
 
+/**
+ * The Convex-side twin of `isPublishableReplication`. Kept as its own literal
+ * check rather than an import because this runs inside the Convex runtime
+ * against a `Doc`, and the two must be widened together: this one decides
+ * whether a row reaches `publicGalleryPreviewValidator` at all.
+ */
 function isPublishableGalleryRow(row: Doc<"replications">): boolean {
   return (
     (row.role ?? "replication") === "replication" &&
     row.publication_state !== "duplicate-suppressed" &&
     row.replication_status !== "not-replication" &&
-    (row.type === "image" || row.type === "video")
+    (row.type === "image" || row.type === "video" || row.type === "audio")
   );
 }
 
@@ -99,7 +105,7 @@ async function projectGalleryRow(
     title: row.title,
     artist: row.artist,
     ...(row.artist_url ? { artist_url: row.artist_url } : {}),
-    type: row.type as "image" | "video",
+    type: row.type as "image" | "video" | "audio",
     format: row.format,
     ...(row.effect_slug ? { effect_slug: row.effect_slug } : {}),
     ...(row.effect_tags ? { effect_tags: row.effect_tags } : {}),

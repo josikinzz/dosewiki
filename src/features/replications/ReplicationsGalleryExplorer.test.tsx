@@ -283,6 +283,21 @@ function chooseFromMenuSync(trigger: string | RegExp, item: string | RegExp) {
   fireEvent.click(screen.getByRole("menuitemradio", { name: item }));
 }
 
+/**
+ * Media is a select inside the Filters popover now, not a menu on the bar.
+ * The Popover trigger opens on `click`; a Select opens on `pointerdown` and
+ * its rows are `option`s.
+ */
+function chooseMediaSync(option: string) {
+  fireEvent.click(screen.getByRole("button", { name: /Filters/ }));
+  fireEvent.pointerDown(screen.getByRole("combobox", { name: "Media" }), {
+    button: 0,
+    ctrlKey: false,
+    pointerType: "mouse",
+  });
+  fireEvent.click(screen.getByRole("option", { name: option }));
+}
+
 beforeEach(() => {
   navMocks.push.mockReset();
   navMocks.replace.mockReset();
@@ -311,11 +326,10 @@ describe("URL → rendered state", () => {
       screen.getByRole("button", { name: "Browse by: By artist" }),
     ).toHaveTextContent("By artist");
     expect(
-      screen.getByRole("button", { name: "Media: All media" }),
-    ).toHaveTextContent("All media");
-    expect(
-      screen.getByRole("button", { name: "Sort artists: Videos first" }),
-    ).toHaveTextContent("Videos first");
+      screen.getByRole("button", { name: "Order: Newest" }),
+    ).toHaveTextContent("Newest");
+    // Media is a filter now, not a control of its own.
+    expect(screen.queryByRole("button", { name: /^Media:/ })).toBeNull();
     // The spotlight row is gone: density-first, media starts immediately.
     expect(screen.queryByText("Spotlight")).toBeNull();
   });
@@ -393,15 +407,19 @@ describe("URL → rendered state", () => {
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
   });
 
-  it("reproduces a pasted ?view=effect&type=video&sort=alpha state exactly", () => {
-    renderExplorer("view=effect&type=video&sort=alpha");
+  it("reproduces a pasted ?view=effect&type=video&sort=oldest state exactly", () => {
+    renderExplorer("view=effect&type=video&sort=oldest");
 
     expect(
       screen.getByRole("button", { name: "Browse by: By effect" }),
     ).toHaveTextContent("By effect");
     expect(
-      screen.getByRole("button", { name: "Media: Videos" }),
-    ).toHaveTextContent("Videos");
+      screen.getByRole("button", { name: "Order: Oldest" }),
+    ).toHaveTextContent("Oldest");
+    // The media filter is readable from its chip while the popover is shut.
+    expect(
+      screen.getByRole("button", { name: "Remove Media filter: Videos" }),
+    ).toBeInTheDocument();
     // One video total: too thin for a rail, so it pools straight into the
     // masonry — and with no rails above it, the "More effects" heading is
     // dropped rather than describing everything as "more".
@@ -558,13 +576,11 @@ describe("hybrid browse layout", () => {
     }
   });
 
-  it("drops the artist sort outside artist mode, where rails have no sort", () => {
+  it("keeps the order control in every grouped view", () => {
+    // It used to be an artist-only affordance, because it sorted the rails
+    // themselves. Now it orders the works inside them, which every axis has.
     renderExplorer("view=effect");
-
-    // It used to stay mounted, inert and invisible, to keep the bar one width
-    // across mode switches. Labelled triggers make the widths differ anyway,
-    // so the placeholder only bought a hole where a control used to be.
-    expect(screen.queryByTitle(/^Sort artists/)).toBeNull();
+    expect(screen.getByTitle("Order: Curated")).toBeInTheDocument();
   });
 });
 
@@ -709,7 +725,7 @@ describe("canonical replication viewer", () => {
 
   it("reconstructs only the filtered result collection on a direct link", () => {
     renderExplorer(
-      "view=effect&q=drifting&type=video&sort=alpha&viewer=slug-2",
+      "view=effect&q=drifting&type=video&sort=oldest&viewer=slug-2",
     );
 
     const viewer = screen.getByTestId("replication-viewer");
@@ -722,7 +738,7 @@ describe("canonical replication viewer", () => {
     );
     expect(screen.getByText("Work 2").closest("a")).toHaveAttribute(
       "href",
-      "/replications?view=effect&q=drifting&type=video&sort=alpha&viewer=slug-2",
+      "/replications?view=effect&q=drifting&type=video&sort=oldest&viewer=slug-2",
     );
   });
 
@@ -857,7 +873,7 @@ describe("state → URL", () => {
   it("pushes the media-type filter into the query string", async () => {
     renderExplorer("view=effect");
 
-    await chooseFromMenu("Media: All media", "Videos");
+    chooseMediaSync("Videos");
 
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect&type=video");
   });
@@ -1044,11 +1060,14 @@ describe("responsive gallery controls", () => {
     expect(
       within(sheet).getByRole("group", { name: "Named in the title" }),
     ).toBeInTheDocument();
+    // Media leads: it is the axis readers reach for most, and the one whose
+    // own bar slot this popover absorbed.
     expect(
       within(sheet)
         .getAllByRole("combobox")
         .map((trigger) => trigger.getAttribute("aria-label")),
     ).toEqual([
+      "Media",
       "Depicted effect",
       "Viewing mode",
       "Content family",
@@ -1073,22 +1092,34 @@ describe("responsive gallery controls", () => {
     expect(historySpies.push).not.toHaveBeenCalled();
   });
 
-  it("keeps every artist sort reachable through the compact menu", async () => {
+  it("offers each axis its own orders through the menu", async () => {
+    const user = userEvent.setup();
+    renderExplorer("view=effect");
+
+    await user.click(screen.getByRole("button", { name: /^Order:/ }));
+
+    // Curation is an effect-view answer: an editor picked what represents the
+    // effect. The artist and year axes have no such list.
+    expect(
+      screen.getByRole("menuitemradio", { name: "Curated" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitemradio", { name: "Newest" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("menuitemradio", { name: "Oldest" }));
+
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect&sort=oldest");
+  });
+
+  it("offers the artist axis no curated order", async () => {
     const user = userEvent.setup();
     renderExplorer("");
 
-    await user.click(screen.getByRole("button", { name: /^Sort artists/ }));
+    await user.click(screen.getByRole("button", { name: /^Order:/ }));
 
-    // All three orders travel with the menu, not a two-state cycle.
-    expect(
-      screen.getByRole("menuitemradio", { name: "Videos first" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("menuitemradio", { name: "Most works" }),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("menuitemradio", { name: "A–Z" }));
-
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?sort=alpha");
+    expect(screen.queryByRole("menuitemradio", { name: "Curated" })).toBeNull();
+    await user.click(screen.getByRole("menuitemradio", { name: "Oldest" }));
+    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?sort=oldest");
   });
 });
 
@@ -1649,7 +1680,7 @@ describe("complete corpus loading", () => {
       replications: [initial],
       completeCorpusUrl: "/api/replications/gallery",
     });
-    chooseFromMenuSync("Media: All media", "Videos");
+    chooseMediaSync("Videos");
     chooseFromMenuSync("Browse by: By artist", "By effect");
     await act(async () => {
       resolveFirstResponse?.({ ok: false, status: 503 });
@@ -1684,7 +1715,7 @@ describe("complete corpus loading", () => {
     };
 
     const view = renderExplorer("", props);
-    chooseFromMenuSync("Media: All media", "Videos");
+    chooseMediaSync("Videos");
 
     navMocks.params = new URLSearchParams("view=effect");
     view.rerender(<ReplicationsGalleryExplorer {...props} />);

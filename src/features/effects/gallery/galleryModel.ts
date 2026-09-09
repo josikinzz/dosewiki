@@ -27,9 +27,31 @@ import {
  * works everywhere too.
  */
 
-export type GalleryMode = "artist" | "effect";
-export type GalleryTypeFilter = "all" | "image" | "video";
-export type GalleryArtistSort = "video-first" | "count" | "alpha";
+export type GalleryMode = "artist" | "effect" | "year";
+export type GalleryTypeFilter = "all" | "image" | "video" | "audio";
+/**
+ * A year rail's own key, narrowing the gallery to that rail: `2020`, a merged
+ * decade span like `1939-1952`, or `undated`. Not part of the editorial
+ * taxonomy: a work's date is a researched fact about the work, not a tag.
+ */
+export type GalleryYearFilter = "all" | string;
+export const UNDATED_YEAR_FILTER = "undated";
+
+/**
+ * Which end of time a playlist leads with, and the one exception to it.
+ *
+ * `newest` and `oldest` are the same axis read in either direction, applied
+ * wherever the grouping makes chronology meaningful: inside each playlist
+ * under "By artist" and "By effect", and across the year rails themselves
+ * under "By year".
+ *
+ * `curated` exists only for "By effect", where an editor has already chosen
+ * what represents the effect (`gallery_order`, reaching this projection as
+ * `effect_order_index`). It is that mode's default, so the browse rail opens
+ * on the same work as the effect article; naming a direction is an explicit
+ * request for a chronological read, and curation yields to it.
+ */
+export type GalleryOrder = "curated" | "newest" | "oldest";
 export type GalleryViewingFilter = "all" | ReplicationViewingModeTag;
 export type GalleryArtistTypeFilter = "all" | ReplicationArtistTypeTag;
 export type GalleryDrugFilter = "all" | string;
@@ -57,14 +79,25 @@ export const DEFAULT_GALLERY_TAXONOMY_FILTERS: GalleryTaxonomyFilterState = {
 };
 
 /**
- * The gallery's default artist order: a hard three-tier sort. Artists dose.wiki
- * has approved as replicators (`approvedReplicator`) lead the page outright;
- * below them any artist with at least one video ranks above every image-only
- * artist; and the old count-then-alpha default applies within each tier.
- * Video replications are far scarcer than images, so their makers lead the
- * unapproved field.
+ * The order a mode uses when the URL names none. "By effect" defers to the
+ * editor's curation; the artist and year views are timelines, so they open on
+ * the newest work.
  */
-export const DEFAULT_GALLERY_ARTIST_SORT: GalleryArtistSort = "video-first";
+export function defaultGalleryOrder(mode: GalleryMode): GalleryOrder {
+  return mode === "effect" ? "curated" : "newest";
+}
+
+/**
+ * Artist rails carry no order control of their own: which rail leads is a
+ * hard three-tier sort. Artists dose.wiki has approved as replicators
+ * (`approvedReplicator`) lead the page outright; below them any artist with at
+ * least one video ranks above every image-only artist; and count then label
+ * decides everything within a tier. Video replications are far scarcer than
+ * images, so their makers lead the unapproved field.
+ *
+ * The reader's chronological choice governs the works inside each rail, not
+ * which artist they meet first, so the two never competed for one control.
+ */
 
 export const UNATTRIBUTED_KEY = "__unattributed__";
 export const UNATTRIBUTED_LABEL = "Unattributed";
@@ -93,6 +126,7 @@ export interface GalleryGroup {
   count: number;
   imageCount: number;
   videoCount: number;
+  audioCount: number;
   /**
    * The artist's claimed profile is an approved replicator: the heading wears
    * the star and the default order lifts the group. Never set on effect groups
@@ -352,49 +386,84 @@ export function sortWithinGroup<
 }
 
 /**
- * An artist's default order: newest researched work date first, and nothing
- * outranks the date.
+ * Chronological order, in either direction, with nothing outranking the date.
  *
  * Deliberately not `sortWithinGroup`. That chain ranks `replicationMediaRank`
  * and `mediaTier` above the date, so a 2020 sounded video preceded a 2026
- * still and an artist's rail read as a media-type grouping rather than a
- * timeline. Media rank and tier are presentation preferences about an effect's
- * playlist; an artist's body of work is read chronologically.
+ * still and a rail read as a media-type grouping rather than a timeline. Media
+ * rank and tier are presentation preferences about an effect's curated
+ * playlist; a body of work read by date is a timeline.
  *
- * Rows sharing a work date fall to ingest recency, then title, so a corpus of
+ * Rows sharing a work date fall to ingest order, then title, so a corpus of
  * year-only dates still lands in a stable, recency-flavoured order rather than
- * an alphabetical one. Undated rows sink below every dated row and order among
- * themselves by ingest, newest first — the same treatment `sortWithinGroup`
- * gives them, since an absent date is not a claim of being old.
+ * an alphabetical one. Both tiebreaks follow the requested direction, so the
+ * whole list reads monotonically instead of flipping era order while keeping
+ * ties newest-first.
+ *
+ * Undated rows sink below every dated row in *both* directions. An absent date
+ * is not a claim of being old, so "Oldest" must not promote unknown rows to
+ * the front; they order among themselves by ingest, in the chosen direction.
  */
-export function sortArtistWorks<
+export function sortWorksByDate<
   T extends Pick<
     PublicGalleryReplicationPreview,
     "title" | "created_at" | "date_info"
   >,
->(items: readonly T[]): T[] {
+>(items: readonly T[], direction: "newest" | "oldest" = "newest"): T[] {
+  const sign = direction === "oldest" ? -1 : 1;
   return [...items].sort((a, b) => {
     const at = workDateMs(a);
     const bt = workDateMs(b);
-    if (at !== null && bt !== null && at !== bt) return bt - at;
+    if (at !== null && bt !== null && at !== bt) return (bt - at) * sign;
     if ((at === null) !== (bt === null)) return at === null ? 1 : -1;
 
     const ac = Date.parse(a.created_at ?? "");
     const bc = Date.parse(b.created_at ?? "");
-    if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc) return bc - ac;
+    if (Number.isFinite(ac) && Number.isFinite(bc) && ac !== bc)
+      return (bc - ac) * sign;
 
     return a.title.localeCompare(b.title);
   });
 }
 
+/**
+ * The order a group's items take under `order`: the editor's curated playlist,
+ * or the timeline in the direction the reader asked for. `effectSlug` names
+ * whose curation applies, since a work depicting several effects holds an
+ * independent rank in each.
+ */
+export function orderGroupItems<
+  T extends Pick<
+    PublicGalleryReplicationPreview,
+    | "title"
+    | "type"
+    | "format"
+    | "created_at"
+    | "effect_slug"
+    | "effect_order_index"
+    | "date_info"
+  > & { has_audio?: boolean | null },
+>(items: readonly T[], order: GalleryOrder, effectSlug?: string): T[] {
+  return order === "curated"
+    ? sortWithinGroup(items, effectSlug)
+    : sortWorksByDate(items, order);
+}
+
+/**
+ * The group's media split. Counted per kind rather than "video or not": an
+ * audio work counted as an image would put a wrong number in the Artist Page's
+ * works line, which is the one place this split is read out loud.
+ */
 function tally(items: PublicGalleryReplicationPreview[]) {
   let imageCount = 0;
   let videoCount = 0;
+  let audioCount = 0;
   for (const item of items) {
     if (item.type === "video") videoCount += 1;
+    else if (item.type === "audio") audioCount += 1;
     else imageCount += 1;
   }
-  return { imageCount, videoCount };
+  return { imageCount, videoCount, audioCount };
 }
 
 export function matchesType(
@@ -402,6 +471,28 @@ export function matchesType(
   filter: GalleryTypeFilter,
 ): boolean {
   return filter === "all" || replication.type === filter;
+}
+
+/**
+ * Whether a work belongs to a year rail's span. The filter value is a year
+ * rail's own key: `2020`, a merged decade span `1939-1952`, or `undated`,
+ * which matches exactly the rows `workDateMs` cannot date. This is what a
+ * year rail's "View all" narrows to, so the two can never disagree about
+ * which works a year holds.
+ */
+export function matchesYear(
+  replication: Pick<PublicGalleryReplicationPreview, "date_info">,
+  filter: GalleryYearFilter,
+): boolean {
+  if (filter === "all") return true;
+  const ms = workDateMs(replication);
+  if (filter === UNDATED_YEAR_FILTER) return ms === null;
+  if (ms === null) return false;
+  const year = new Date(ms).getUTCFullYear();
+  const [from, to] = filter.split("-");
+  const start = Number(from);
+  const end = to === undefined ? start : Number(to);
+  return year >= start && year <= end;
 }
 
 export function matchesTaxonomyFilters(
@@ -505,8 +596,8 @@ function toExternalArtistUrl(value: string | undefined): string | undefined {
  */
 export function groupByArtist(
   replications: PublicGalleryReplicationPreview[],
-  sort: GalleryArtistSort = DEFAULT_GALLERY_ARTIST_SORT,
   contributorDirectory: ContributorDirectory = [],
+  order: GalleryOrder = "newest",
 ): GalleryGroup[] {
   const buckets = new Map<string, GalleryGroup>();
   // The claiming profile per bucket key, resolved once per distinct credit
@@ -551,6 +642,7 @@ export function groupByArtist(
         count: 0,
         imageCount: 0,
         videoCount: 0,
+        audioCount: 0,
         creditKeys: [creditKey],
         items: [],
       };
@@ -578,17 +670,22 @@ export function groupByArtist(
     // The unattributed bucket has no contributor owner, so it carries no
     // endorsement.
     const profile = profileByBucket.get(group.key);
-    // Newest work first, unconditionally: an artist's rail is a timeline, so
-    // nothing outranks the date here — not the audio-first media rank, not the
-    // media tier, and not a stored `replicationOrder` prefix.
-    const items = sortArtistWorks(group.items);
-    const { imageCount, videoCount } = tally(items);
+    // A rail is a timeline: the date decides, in the direction the reader
+    // chose, and nothing outranks it — not the audio-first media rank, not the
+    // media tier, and not a stored `replicationOrder` prefix. An artist has no
+    // curated playlist, so `curated` reads as the default `newest` here.
+    const items = sortWorksByDate(
+      group.items,
+      order === "oldest" ? "oldest" : "newest",
+    );
+    const { imageCount, videoCount, audioCount } = tally(items);
     return {
       ...group,
       items,
       count: items.length,
       imageCount,
       videoCount,
+      audioCount,
       ...(profile?.approvedReplicator === true ? { approvedReplicator: true } : {}),
     };
   });
@@ -597,17 +694,14 @@ export function groupByArtist(
     // Unattributed always sinks to the bottom.
     if (a.key === UNATTRIBUTED_KEY) return 1;
     if (b.key === UNATTRIBUTED_KEY) return -1;
-    if (sort === "alpha") return a.label.localeCompare(b.label);
-    if (sort === "video-first") {
-      // Hard tiers: approved replicators above everyone, then video-having
-      // artists above image-only artists; the plain count order decides
-      // everything within a tier.
-      const approved =
-        Number(b.approvedReplicator === true) - Number(a.approvedReplicator === true);
-      if (approved !== 0) return approved;
-      const tier = Number(b.videoCount > 0) - Number(a.videoCount > 0);
-      if (tier !== 0) return tier;
-    }
+    // Hard tiers: approved replicators above everyone, then video-having
+    // artists above image-only artists; count then label decides everything
+    // within a tier.
+    const approved =
+      Number(b.approvedReplicator === true) - Number(a.approvedReplicator === true);
+    if (approved !== 0) return approved;
+    const tier = Number(b.videoCount > 0) - Number(a.videoCount > 0);
+    if (tier !== 0) return tier;
     if (a.count !== b.count) return b.count - a.count;
     return a.label.localeCompare(b.label);
   });
@@ -652,6 +746,26 @@ export function selectContributorDirectoryForWorks(
 }
 
 /**
+ * An effect group's editorial prefix: the slugs it holds that carry a position
+ * in *this* effect's `gallery_order`, in that order. Undefined when the
+ * effect has curated nothing, which leaves the automatic sort untouched.
+ */
+function curatedPrefixOf(group: GalleryGroup): string[] | undefined {
+  const curated = group.items
+    .map((item) => ({
+      slug: item.slug,
+      position: curatedEffectPosition(item, group.key),
+    }))
+    .filter(
+      (entry): entry is { slug: string; position: number } =>
+        entry.position !== undefined,
+    )
+    .sort((left, right) => left.position - right.position)
+    .map((entry) => entry.slug);
+  return curated.length ? curated : undefined;
+}
+
+/**
  * "By effect" browse groups, one per effect any visible work depicts.
  *
  * Membership is `depictsEffect`, the same union the effect article's own
@@ -667,6 +781,7 @@ export function groupByEffect(
   replications: PublicGalleryReplicationPreview[],
   effectName: (slug: string) => string,
   effectHref: (slug: string) => string | undefined,
+  order: GalleryOrder = "curated",
 ): GalleryGroup[] {
   const buckets = new Map<string, GalleryGroup>();
 
@@ -686,6 +801,7 @@ export function groupByEffect(
           count: 0,
           imageCount: 0,
           videoCount: 0,
+          audioCount: 0,
           items: [],
         };
         buckets.set(slug, group);
@@ -695,38 +811,159 @@ export function groupByEffect(
   }
 
   const groups = Array.from(buckets.values()).map((group) => {
-    // The effect's stored `gallery_order` reaches this projection as each row's
-    // `effect_order_index` (the array itself never leaves Convex), so rebuild
-    // the editor's prefix from this effect's own positions and apply it the way
-    // `groupByArtist` applies a claimed contributor's stored order: curation is
-    // authoritative across media ranks. Ranking it inside `sortWithinGroup`
-    // instead confines the prefix to one audio-first media-rank bucket, so any
-    // uncurated sounded video outranks the editor's chosen opener and the
-    // browse rail contradicts the effect article's own showcase.
-    const curatedPrefix = group.items
-      .map((item) => ({
-        slug: item.slug,
-        position: curatedEffectPosition(item, group.key),
-      }))
-      .filter(
-        (entry): entry is { slug: string; position: number } =>
-          entry.position !== undefined,
-      )
-      .sort((left, right) => left.position - right.position)
-      .map((entry) => entry.slug);
-    const items = applyCuratedOrder(
-      sortWithinGroup(group.items, group.key),
-      curatedPrefix.length ? curatedPrefix : undefined,
-      (replication) => replication.slug,
-    );
-    const { imageCount, videoCount } = tally(items);
-    return { ...group, items, count: items.length, imageCount, videoCount };
+    // Under `curated` the effect's stored `gallery_order` reaches this
+    // projection as each row's `effect_order_index` (the array itself never
+    // leaves Convex), so rebuild the editor's prefix from this effect's own
+    // positions and apply it the way `groupByArtist` applies a claimed
+    // contributor's stored order: curation is authoritative across media
+    // ranks. Ranking it inside `sortWithinGroup` instead confines the prefix
+    // to one audio-first media-rank bucket, so any uncurated sounded video
+    // outranks the editor's chosen opener and the browse rail contradicts the
+    // effect article's own showcase.
+    //
+    // Naming a direction retires the prefix entirely for as long as it is
+    // named. A reader asking for the oldest work has asked past the editor's
+    // pick, and a curated prefix that survived would leave the front of the
+    // rail out of chronological order while claiming to be sorted by date.
+    const items =
+      order === "curated"
+        ? applyCuratedOrder(
+            sortWithinGroup(group.items, group.key),
+            curatedPrefixOf(group),
+            (replication) => replication.slug,
+          )
+        : sortWorksByDate(group.items, order);
+    const { imageCount, videoCount, audioCount } = tally(items);
+    return { ...group, items, count: items.length, imageCount, videoCount, audioCount };
   });
 
   return groups.sort((a, b) => {
     if (a.count !== b.count) return b.count - a.count;
     return a.label.localeCompare(b.label);
   });
+}
+
+export const UNDATED_YEAR_LABEL = "Undated";
+
+/**
+ * "By year" browse groups: the archive as a timeline, one rail per year while
+ * the corpus is dense enough to fill one, then one rail per decade once it
+ * thins out.
+ *
+ * Granularity is derived from the data, never hardcoded. Walking back from the
+ * newest year, every year that carries at least `MIN_RAIL_SIZE` works gets its
+ * own rail; the first year too thin to fill one ends the per-year run, and
+ * everything older buckets by decade. Production runs 2026 back to 2009 as
+ * year rails (2008 holds two works and breaks the run), then decade rails into
+ * the 1930s. A fixed cutoff would rot as the deep tail grows; this one moves
+ * with it.
+ *
+ * Decade rails are labelled by the span they actually hold ("2000–2008", not
+ * "2000s", which would overclaim a decade whose 2009 is a rail of its own).
+ * A decade still too thin for a rail merges into the next decade up, so the
+ * oldest works keep a dated home instead of dropping into the undated pool:
+ * two 1952 works and one from 1939 read as a single "1939–1952" rail.
+ *
+ * Undated rows group last in both directions. An absent date is not a claim
+ * of being old, so "Oldest" must not open the page on unknown work.
+ */
+export function groupByYear(
+  replications: PublicGalleryReplicationPreview[],
+  order: GalleryOrder = "newest",
+): GalleryGroup[] {
+  const direction = order === "oldest" ? "oldest" : "newest";
+  const byYear = new Map<number, PublicGalleryReplicationPreview[]>();
+  const undated: PublicGalleryReplicationPreview[] = [];
+
+  for (const replication of replications) {
+    const ms = workDateMs(replication);
+    if (ms === null) {
+      undated.push(replication);
+      continue;
+    }
+    const year = new Date(ms).getUTCFullYear();
+    const bucket = byYear.get(year);
+    if (bucket) bucket.push(replication);
+    else byYear.set(year, [replication]);
+  }
+
+  const years = [...byYear.keys()].sort((a, b) => b - a);
+  // The newest unbroken run of years dense enough to each fill a rail.
+  let perYearFloor = Number.POSITIVE_INFINITY;
+  for (const year of years) {
+    if ((byYear.get(year) ?? []).length < MIN_RAIL_SIZE) break;
+    perYearFloor = year;
+  }
+
+  const buckets: Array<{ items: PublicGalleryReplicationPreview[]; years: number[] }> = [];
+  // Oldest first while merging, so a decade too thin to stand alone folds
+  // forward into the next one up rather than stranding the archive's tail.
+  let carried: { items: PublicGalleryReplicationPreview[]; years: number[] } | null = null;
+  for (const year of [...years].reverse()) {
+    const items = byYear.get(year) ?? [];
+    if (year >= perYearFloor) {
+      if (carried) {
+        buckets.push(carried);
+        carried = null;
+      }
+      buckets.push({ items, years: [year] });
+      continue;
+    }
+    const decade = Math.floor(year / 10) * 10;
+    const sameDecade =
+      carried !== null && Math.floor(carried.years[0] / 10) * 10 === decade;
+    if (carried && (sameDecade || carried.items.length < MIN_RAIL_SIZE)) {
+      carried.items.push(...items);
+      carried.years.push(year);
+    } else {
+      if (carried) buckets.push(carried);
+      carried = { items: [...items], years: [year] };
+    }
+  }
+  if (carried) buckets.push(carried);
+
+  const groups: GalleryGroup[] = buckets.map((bucket) => {
+    const span = [...bucket.years].sort((a, b) => a - b);
+    const first = span[0];
+    const last = span[span.length - 1];
+    const items = sortWorksByDate(bucket.items, direction);
+    const { imageCount, videoCount, audioCount } = tally(items);
+    return {
+      key: first === last ? `${first}` : `${first}-${last}`,
+      // En dash: a span, not a subtraction.
+      label: first === last ? `${first}` : `${first}\u2013${last}`,
+      count: items.length,
+      imageCount,
+      videoCount,
+      audioCount,
+      items,
+    };
+  });
+
+  const spanStart = (group: GalleryGroup) => Number(group.key.split("-")[0]);
+  const spanEnd = (group: GalleryGroup) => {
+    const parts = group.key.split("-");
+    return Number(parts[parts.length - 1]);
+  };
+  groups.sort((a, b) =>
+    direction === "oldest" ? spanStart(a) - spanStart(b) : spanEnd(b) - spanEnd(a),
+  );
+
+  if (undated.length) {
+    const items = sortWorksByDate(undated, direction);
+    const { imageCount, videoCount, audioCount } = tally(items);
+    groups.push({
+      key: UNDATED_YEAR_FILTER,
+      label: UNDATED_YEAR_LABEL,
+      count: items.length,
+      imageCount,
+      videoCount,
+      audioCount,
+      items,
+    });
+  }
+
+  return groups;
 }
 
 /**

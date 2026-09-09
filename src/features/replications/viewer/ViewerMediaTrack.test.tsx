@@ -427,4 +427,38 @@ describe("ViewerMediaTrack", () => {
     expect(pendingFrames.size).toBe(0);
     expect(players.every((video) => !video.hasAttribute("src"))).toBe(true);
   });
+
+  it("stages an audio work on its own player rather than an empty video pane", () => {
+    const clip = item({ slug: "hum", type: "audio", format: "ogg", url: "https://cdn.test/hum.ogg", preview_url: undefined });
+    const { view } = renderTrack({ activeItem: clip, positionKey: "group|hum" });
+
+    const player = view.container.querySelector<HTMLAudioElement>('audio[src="https://cdn.test/hum.ogg"]');
+    expect(player).not.toBeNull();
+    // The clip belongs to neither pooled layer: as a video source it presents
+    // no frame, and as an image source it never decodes.
+    expect(view.container.querySelector('video[src="https://cdn.test/hum.ogg"]')).toBeNull();
+    expect(view.container.querySelector('img[src="https://cdn.test/hum.ogg"]')).toBeNull();
+    expect(view.getByRole("button", { name: "Play Clip" })).toBeInTheDocument();
+  });
+
+  it("stops a clip once its slide leaves the centre pane", () => {
+    const clip = item({ slug: "hum", type: "audio", format: "ogg", url: "https://cdn.test/hum.ogg", preview_url: undefined });
+    const { view, ref, floor, handlers, rerender } = renderTrack({ activeItem: clip, positionKey: "group|hum" });
+    const player = view.container.querySelector<HTMLAudioElement>('audio[src="https://cdn.test/hum.ogg"]')!;
+    const pause = vi.fn();
+    Object.defineProperty(player, "pause", { configurable: true, value: pause });
+    handlers.onNavigateWork.mockImplementation(() => rerender({
+      activeItem: next,
+      previousItem: clip,
+      nextItem: null,
+      positionKey: "group|next",
+    }));
+
+    act(() => expect(ref.current!.slide(1)).toBe(true));
+    fireEvent.transitionEnd(floor, { propertyName: "transform" });
+
+    // Pooled slides stay mounted, so an unpaused clip would keep playing from
+    // a pane the reader has already left.
+    expect(pause).toHaveBeenCalled();
+  });
 });

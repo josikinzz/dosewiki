@@ -17,6 +17,7 @@ const group = (overrides: Partial<GalleryGroup> = {}): GalleryGroup => ({
   count: 0,
   imageCount: 0,
   videoCount: 0,
+  audioCount: 0,
   items: [],
   ...overrides,
 });

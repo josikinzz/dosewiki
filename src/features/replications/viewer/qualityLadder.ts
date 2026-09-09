@@ -4,7 +4,8 @@ import type { ReplicationType } from "@/types/replications";
  * The frame a slide shows while its first video frame is still arriving:
  * GIFs lead with their motion poster, videos with their thumbnail, stills
  * with the artwork itself. The poster overlays undecoded video and fades
- * once a frame has been presented.
+ * once a frame has been presented. Audio has no frame at all, and its `url`
+ * is the clip, so it never reaches the image layer.
  */
 export function slidePosterSource(replication: {
   type: ReplicationType;
@@ -13,13 +14,18 @@ export function slidePosterSource(replication: {
   thumbnail_url?: string | null;
   motion_poster_url?: string | null;
 }): string | null {
+  if (replication.type === "audio") return null;
   if (replication.format.toLowerCase() === "gif")
     return replication.motion_poster_url ?? null;
   if (replication.type === "video") return replication.thumbnail_url ?? null;
   return replication.url;
 }
 
-/** Full videos and controllable GIF motion keep one source for the whole work. */
+/**
+ * Full videos and controllable GIF motion keep one source for the whole work.
+ * Audio is not motion: its clip belongs to the stage's audio player, never to
+ * the pooled video element.
+ */
 export function slideMotionSource(replication: {
   type: ReplicationType;
   format: string;
@@ -27,6 +33,7 @@ export function slideMotionSource(replication: {
   motion_url?: string | null;
   motion_poster_url?: string | null;
 }): string | null {
+  if (replication.type === "audio") return null;
   if (replication.format.toLowerCase() === "gif") {
     return replication.motion_url && replication.motion_poster_url
       ? replication.motion_url

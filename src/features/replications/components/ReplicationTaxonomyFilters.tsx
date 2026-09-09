@@ -17,7 +17,11 @@ import {
 import { Icon } from "@/components/common/Icon";
 import {
   countActiveTaxonomyFilters,
+  UNDATED_YEAR_FILTER,
+  UNDATED_YEAR_LABEL,
   type GalleryTaxonomyFilterState,
+  type GalleryTypeFilter,
+  type GalleryYearFilter,
 } from "@/features/effects/gallery/galleryModel";
 import { cn } from "@/lib/utils";
 import {
@@ -92,9 +96,47 @@ const CHIP_LABELS: Record<FilterKey, string> = {
   drugClass: "Drug class in title",
 };
 
+/**
+ * Media type is a filter like any other, so it lives here rather than in a
+ * dropdown of its own on the control bar. It stays outside
+ * `GalleryTaxonomyFilterState` because that state is the *taxonomy* — tags an
+ * editor assigns — while media type is a property of the stored file, and the
+ * URL has always carried it as `?type=`.
+ */
+const MEDIA_OPTIONS: ReadonlyArray<FilterOption> = [
+  { value: "all", label: "All media" },
+  { value: "image", label: "Images" },
+  { value: "video", label: "Videos" },
+  { value: "audio", label: "Audio" },
+];
+
+const MEDIA_LABEL = "Media";
+
+function mediaValueLabel(type: GalleryTypeFilter): string {
+  return MEDIA_OPTIONS.find((option) => option.value === type)?.label ?? type;
+}
+
+/**
+ * A year filter's value is a year rail's own key, so its chip reads the same
+ * as that rail's heading: a year, a span with an en dash, or "Undated".
+ */
+function yearValueLabel(year: GalleryYearFilter): string {
+  if (year === UNDATED_YEAR_FILTER) return UNDATED_YEAR_LABEL;
+  const [from, to] = year.split("-");
+  return to === undefined ? from : `${from}\u2013${to}`;
+}
+
 export interface ReplicationTaxonomyFiltersProps {
   filters: GalleryTaxonomyFilterState;
   onChange: (filters: GalleryTaxonomyFilterState) => void;
+  type: GalleryTypeFilter;
+  onTypeChange: (type: GalleryTypeFilter) => void;
+  /**
+   * Set only by following a year rail, so this popover shows no control for
+   * it — but its Clear takes it off, so its badge counts it. A reader looking
+   * at one year with two filters on must not read "1 active".
+   */
+  year: GalleryYearFilter;
   onClear: () => void;
   drugOptions: ReadonlyArray<FilterOption>;
   effectOptions: ReadonlyArray<FilterOption>;
@@ -104,13 +146,19 @@ export interface ReplicationTaxonomyFiltersProps {
 export function ReplicationTaxonomyFilters({
   filters,
   onChange,
+  type,
+  onTypeChange,
+  year,
   onClear,
   drugOptions,
   effectOptions,
   className,
 }: ReplicationTaxonomyFiltersProps) {
   const [open, setOpen] = useState(false);
-  const activeCount = countActiveTaxonomyFilters(filters);
+  const activeCount =
+    countActiveTaxonomyFilters(filters) +
+    (type === "all" ? 0 : 1) +
+    (year === "all" ? 0 : 1);
 
   const update = (key: FilterKey, value: string) => {
     onChange({ ...filters, [key]: value } as GalleryTaxonomyFilterState);
@@ -208,10 +256,37 @@ export function ReplicationTaxonomyFilters({
         collisionPadding={8}
         className="max-h-[min(var(--radix-popover-content-available-height),38rem)] w-[calc(100vw-1rem)] space-y-2.5 overflow-y-auto sm:w-80"
       >
-        {/* The popover holds six axes, so it says what it is at the top:
-            without a heading the reader who pressed an unnamed glyph met six
+        {/* The popover holds seven axes, so it says what it is at the top:
+            without a heading the reader who pressed an unnamed glyph met
             unexplained dropdowns and a scrollbar. */}
         <p className="theme-text-primary text-sm font-semibold">Filter works</p>
+
+        {/* Media leads: it is the axis readers reach for most, and the one
+            that used to have the bar slot this popover absorbed. */}
+        <label className="flex items-center justify-between gap-3">
+          <span className="theme-text-secondary min-w-0 flex-1 text-xs font-medium">
+            {MEDIA_LABEL}
+          </span>
+          <Select
+            value={type}
+            onValueChange={(value) => onTypeChange(value as GalleryTypeFilter)}
+          >
+            <SelectTrigger
+              selectSize="sm"
+              aria-label={MEDIA_LABEL}
+              className="w-40 shrink-0 [@media(pointer:coarse)]:min-h-11"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MEDIA_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </label>
 
         {GENERAL_KEYS.map(renderSelect)}
 
@@ -262,21 +337,34 @@ export function ReplicationTaxonomyFilters({
 export interface ReplicationActiveFilterChipsProps {
   filters: GalleryTaxonomyFilterState;
   onChange: (filters: GalleryTaxonomyFilterState) => void;
+  type: GalleryTypeFilter;
+  onTypeChange: (type: GalleryTypeFilter) => void;
+  year: GalleryYearFilter;
+  onYearChange: (year: GalleryYearFilter) => void;
   drugOptions: ReadonlyArray<FilterOption>;
   effectOptions: ReadonlyArray<FilterOption>;
   className?: string;
 }
 
 /**
- * Slim row of removable chips, one per active taxonomy filter — the visible
+ * Slim row of removable chips, one per active filter — the visible
  * counterpart of the popover's count badge. Shares the popover's option
  * labels and the same whole-state `onChange`, so removing a chip is exactly
  * a select flipping back to "all" (URL params and corpus update together).
  * Renders nothing while every filter is at its default.
+ *
+ * Media leads the row for the same reason it leads the popover, and it is the
+ * one filter that used to be readable from the bar itself: once it moved into
+ * the popover, a chip is the only thing that still says "you are looking at
+ * videos only" without opening anything.
  */
 export function ReplicationActiveFilterChips({
   filters,
   onChange,
+  type,
+  onTypeChange,
+  year,
+  onYearChange,
   drugOptions,
   effectOptions,
   className,
@@ -284,7 +372,7 @@ export function ReplicationActiveFilterChips({
   const active = (Object.keys(OPTIONS) as FilterKey[]).filter(
     (key) => filters[key] !== "all",
   );
-  if (active.length === 0) return null;
+  if (active.length === 0 && type === "all" && year === "all") return null;
 
   // Corpus-derived facets (drug, effect) label from their live option lists;
   // a URL-typed value missing from the corpus falls back to its raw slug.
@@ -301,6 +389,46 @@ export function ReplicationActiveFilterChips({
 
   return (
     <ul className={cn("flex flex-wrap items-center gap-1.5", className)}>
+      {type === "all" ? null : (
+        <li>
+          <Button
+            type="button"
+            variant="pill"
+            size="pill"
+            aria-label={`Remove ${MEDIA_LABEL} filter: ${mediaValueLabel(type)}`}
+            onClick={() => onTypeChange("all")}
+            className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
+          >
+            <span className="theme-text-faint" aria-hidden>
+              {MEDIA_LABEL}:
+            </span>
+            <span className="font-medium" aria-hidden>
+              {mediaValueLabel(type)}
+            </span>
+            <Icon icon="lucide:x" className="h-3 w-3" aria-hidden />
+          </Button>
+        </li>
+      )}
+      {year === "all" ? null : (
+        <li>
+          <Button
+            type="button"
+            variant="pill"
+            size="pill"
+            aria-label={`Remove year filter: ${yearValueLabel(year)}`}
+            onClick={() => onYearChange("all")}
+            className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
+          >
+            <span className="theme-text-faint" aria-hidden>
+              Year:
+            </span>
+            <span className="font-medium" aria-hidden>
+              {yearValueLabel(year)}
+            </span>
+            <Icon icon="lucide:x" className="h-3 w-3" aria-hidden />
+          </Button>
+        </li>
+      )}
       {active.map((key) => (
         <li key={key}>
           <Button

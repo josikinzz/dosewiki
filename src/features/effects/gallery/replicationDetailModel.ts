@@ -1,6 +1,6 @@
 import type { ReplicationWithUrl } from '@/types/replications';
 import { applyCuratedOrder } from '@server/curatedOrder';
-import { sortArtistWorks, sortWithinGroup } from './galleryModel';
+import { sortWithinGroup, sortWorksByDate } from './galleryModel';
 
 /**
  * Ordering for the replication surfaces (article galleries, contributor rails,
@@ -34,14 +34,14 @@ export function orderEffectReplications(
 /**
  * Order one contributor's works: newest work first, nothing above the date.
  *
- * Shares `sortArtistWorks` with the gallery's artist rails so a profile and
+ * Shares `sortWorksByDate` with the gallery's artist rails so a profile and
  * the index agree. Unrenderable rows are dropped here rather than by the
  * caller, matching `orderEffectReplications`.
  */
 export function orderContributorReplications(
   replications: readonly ReplicationWithUrl[],
 ): ReplicationWithUrl[] {
-  return sortArtistWorks(
+  return sortWorksByDate(
     replications.filter((replication) => Boolean(replication.url)),
   );
 }

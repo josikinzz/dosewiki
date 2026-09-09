@@ -4,7 +4,6 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
   ARTIST_RAIL_PAGE,
   countGallery,
-  DEFAULT_GALLERY_ARTIST_SORT,
   groupByArtist,
   isDisplayable,
   isWithheldFromArtistViews,
@@ -88,17 +87,14 @@ export async function ReplicationsGalleryRoute({
     viewerSlug ? getPublicGalleryReplicationBySlug(viewerSlug) : null,
   ]);
   // The default artist view, computed against the complete corpus with the
-  // exact model the client uses: video-first artist order, curated in-group
-  // order, withheld effects excluded. Only what that view's first paint shows
-  // crosses into the RSC payload — the first rail page of artists, each
-  // sliced to its rail preview — while the digest and stats carry the
-  // complete-corpus ordering, per-artist counts, and archive totals.
+  // exact model the client uses: the approved/video-first artist rail order,
+  // newest work first inside each rail, withheld effects excluded. Only what
+  // that view's first paint shows crosses into the RSC payload — the first
+  // rail page of artists, each sliced to its rail preview — while the digest
+  // and stats carry the complete-corpus ordering, per-artist counts, and
+  // archive totals.
   const displayable = corpus.filter(isDisplayable);
-  const artistGroups = groupByArtist(
-    displayable,
-    DEFAULT_GALLERY_ARTIST_SORT,
-    contributorDirectory,
-  );
+  const artistGroups = groupByArtist(displayable, contributorDirectory);
   const railGroups = artistGroups.slice(0, ARTIST_RAIL_PAGE);
   const railWorks = railGroups.flatMap((group) =>
     group.items.slice(0, RAIL_PREVIEW_LIMIT),

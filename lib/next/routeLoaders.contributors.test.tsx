@@ -381,17 +381,21 @@ describe("contributor and replication route loaders", () => {
     });
   });
 
-  it("gives an audio row no permalink rather than describing it as an image", async () => {
-    // The detail page branches `type === "video"` with an image fallback, so an
-    // audio row would render `<AppImage src="….mp3">` beneath a pill reading
-    // "Image" and offer an "Open full size" link to the audio file.
+  it("gives an audio row a permalink, since the page now plays it", async () => {
+    // It used to resolve not-found: the detail page branched on `type ===
+    // "video"` with an image fallback, so a clip would have rendered
+    // `<AppImage src="….mp3">` beneath a pill reading "Image". The page has a
+    // real audio branch now, so the row is publishable and addressable.
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "a-recording", type: "audio", format: "mp3" }),
     );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce(null);
 
-    await expect(loadReplicationRoute("a-recording")).resolves.toEqual({
-      kind: "not-found",
-    });
+    const result = await loadReplicationRoute("a-recording");
+
+    if (result.kind !== "ok") throw new Error("expected an ok result");
+    expect(result.pageProps.replication.slug).toBe("a-recording");
+    expect(result.pageProps.replication.type).toBe("audio");
   });
 
   it("still renders an ordinary stored row, which carries no role at all", async () => {

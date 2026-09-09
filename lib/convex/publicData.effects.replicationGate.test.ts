@@ -130,7 +130,10 @@ describe("the replication publication gate", () => {
     expect((await getPublicReplicationsByEffect("external-hallucination")).map((item) => item.slug)).toEqual(["deliriant-work"]);
   });
 
-  it("withholds audio, which every surface would otherwise draw as an image", async () => {
+  it("publishes audio now that a tile and a viewer stage can draw it", async () => {
+    // The gate withheld audio for as long as every surface branched on video
+    // with an image fallback. The gallery tile now has an audio frame and the
+    // viewer an audio stage, so a clip is a work like any other here.
     const image = row({ slug: "a-picture", type: "image" });
     const audio = row({ slug: "a-recording", type: "audio", format: "mp3" });
 
@@ -139,10 +142,13 @@ describe("the replication publication gate", () => {
       audio,
     ]);
 
-    expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["a-picture"]);
-    expect((await getPublicReplicationsByEffect("geometry")).map((item) => item.slug)).toEqual([
+    expect((await getPublicReplications()).map((item) => item.slug).sort()).toEqual([
       "a-picture",
+      "a-recording",
     ]);
+    expect(
+      (await getPublicReplicationsByEffect("geometry")).map((item) => item.slug).sort(),
+    ).toEqual(["a-picture", "a-recording"]);
   });
 
   it("withholds only explicit non-replications while preserving unresolved rows", async () => {

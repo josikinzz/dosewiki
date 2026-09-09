@@ -14,7 +14,6 @@ import {
   isWithheldFromArtistViews,
   UNATTRIBUTED_KEY,
   type GalleryGroup,
-  type GalleryMode,
 } from "@/features/effects/gallery/galleryModel";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 import type { GalleryFocus } from "./galleryUrlState";
@@ -25,7 +24,7 @@ import type { GalleryFocus } from "./galleryUrlState";
  * exactly what the group's heading links to in browse mode.
  */
 export interface ResolvedGalleryFocus {
-  kind: GalleryMode;
+  kind: GalleryFocus["kind"];
   /** The canonical URL key this group answers to. */
   key: string;
   label: string;
@@ -67,7 +66,7 @@ export function resolveGalleryFocus(
 
   const groups =
     focus.kind === "artist"
-      ? groupByArtist(displayable, "count", context.contributorDirectory ?? [])
+      ? groupByArtist(displayable, context.contributorDirectory ?? [])
       : groupByEffect(
           displayable,
           effectNameLookup(context.effects),

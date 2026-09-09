@@ -7,13 +7,14 @@ import { Icon } from "@/components/common/Icon";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
+import { audioWaveformBars } from "@/features/replications/audioWaveform";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
 import { useMotionAllowed } from "./inViewPlayback";
 import { workDateMs } from "./galleryModel";
 
 /** `duration` in seconds as `m:ss`, or null when unusable. */
-function formatVideoDuration(seconds: number | undefined): string | null {
+function formatMediaDuration(seconds: number | undefined): string | null {
   if (seconds === undefined || !Number.isFinite(seconds) || seconds <= 0)
     return null;
   const total = Math.round(seconds);
@@ -138,6 +139,7 @@ export function GalleryMediaTile({
   }, []);
 
   const isVideo = replication.type === "video";
+  const isAudio = replication.type === "audio";
   const gifLike = replication.format.toLowerCase() === "gif";
   const gifReady =
     gifLike && Boolean(replication.motion_url && replication.motion_poster_url);
@@ -146,16 +148,24 @@ export function GalleryMediaTile({
     : gifReady
       ? replication.motion_url
       : undefined;
-  const thumbnailUrl = gifLike
-    ? replication.motion_poster_url
-    : isVideo
-      ? replication.thumbnail_url
-      : replication.url;
+  // An audio row has no poster and no still of its own: its `url` is the clip.
+  // Handing that to <AppImage> would wait forever on bytes that never decode,
+  // so audio never reaches the image path and draws its own frame below.
+  const thumbnailUrl = isAudio
+    ? undefined
+    : gifLike
+      ? replication.motion_poster_url
+      : isVideo
+        ? replication.thumbnail_url
+        : replication.url;
   const byline = getCreatorByline(replication);
+  // Audio carries no intrinsic frame; a shallower block keeps the bars from
+  // becoming a wall of empty tile beside real artwork.
+  const fallbackRatio = isAudio ? "3 / 2" : "4 / 3";
   const ratio =
     replication.width && replication.height
       ? `${replication.width} / ${replication.height}`
-      : "4 / 3";
+      : fallbackRatio;
 
   // Playback is strictly hover-gated: a hover-capable fine pointer starts the
   // low-resolution preview rendition (or the full source for legacy rows with
@@ -196,10 +206,16 @@ export function GalleryMediaTile({
     };
   }, [thumbnailUrl]);
 
-  const durationLabel = isVideo
-    ? formatVideoDuration(replication.duration)
-    : null;
+  const durationLabel =
+    isVideo || isAudio ? formatMediaDuration(replication.duration) : null;
   const workYear = formatWorkYear(replication);
+  const mediumLabel = isVideo
+    ? "Video"
+    : isAudio
+      ? "Audio"
+      : gifLike
+        ? "Animation"
+        : "Image";
 
   return (
     <figure className={cn("min-w-0", className)}>
@@ -224,7 +240,26 @@ export function GalleryMediaTile({
           frameClassName,
         )}
       >
-        {thumbnailUrl && poster !== "failed" ? (
+        {isAudio ? (
+          // The clip's own frame: a stable bar pattern, never sampled from the
+          // file, so the tile reads as audio at a glance instead of as a
+          // broken picture. The caption below and the corner chip carry every
+          // word of it, so the strip itself stays out of the accessible name.
+          <span
+            aria-hidden
+            className="theme-replication-media-well absolute inset-0 flex items-end justify-center gap-[3px] px-4 py-6"
+          >
+            {audioWaveformBars(replication.slug || replication.title).map(
+              (height, index) => (
+                <span
+                  key={index}
+                  className="theme-replication-waveform-bar w-[3px] flex-none rounded-full opacity-70"
+                  style={{ height: `${height.toFixed(0)}%` }}
+                />
+              ),
+            )}
+          </span>
+        ) : thumbnailUrl && poster !== "failed" ? (
           <>
             {poster === "pending" ? (
               <span
@@ -287,6 +322,8 @@ export function GalleryMediaTile({
               className="h-3 w-3 fill-current"
               aria-hidden
             />
+          ) : isAudio ? (
+            <Icon icon="lucide:audio-lines" className="h-3 w-3" aria-hidden />
           ) : gifLike ? (
             <span aria-hidden className="text-[10px] font-semibold tracking-wide">
               GIF
@@ -303,7 +340,7 @@ export function GalleryMediaTile({
               leading comma is the separator: the name computation concatenates
               its parts without one, and a leading space would be trimmed. */}
           <span className="sr-only">
-            {`, ${isVideo ? "Video" : gifLike ? "Animation" : "Image"}`}
+            {`, ${mediumLabel}`}
             {durationLabel ? `, ${durationLabel}` : ""}
             {workYear ? `, ${workYear}` : ""}
           </span>

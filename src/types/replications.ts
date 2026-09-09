@@ -93,19 +93,30 @@ export function isReplicationRow(row: { role?: MediaRole }): boolean {
 }
 
 /**
- * The media kinds a replication surface can actually draw today.
+ * The media kinds a replication surface can actually draw.
  *
- * `audio` is storable but nothing renders it: every tile, rail, carousel and the
- * permalink branch on `type === 'video'` with an *image* fallback, so an audio
- * row would be handed to `<AppImage src="….mp3">` beneath a pill reading
- * "Image". Until one of those surfaces grows a real audio branch, an audio row
- * is a row we cannot draw — the same category as a row whose storage id
- * resolves to no URL, which every surface already drops.
+ * `audio` joined the set once the gallery tile grew an audio frame and the
+ * canonical viewer grew an audio stage around the same `AudioReplicationPlayer`
+ * the effect articles already use. Before that it was storable and undrawable:
+ * every tile branched on `type === 'video'` with an *image* fallback, so an
+ * audio row was handed to `<AppImage src="….mp3">` beneath a pill reading
+ * "Image".
  *
- * Widen this set together with those branches, never ahead of them.
+ * The effect *article* carousel still drops audio, and deliberately: those
+ * articles present the same clips through their own `AudioReplicationCard`
+ * section, so publishing them into the carousel too would show one clip twice
+ * on one page. That is a per-surface presentation choice, made in
+ * `showcaseModel`, not a publication decision, which is why it does not live
+ * here.
+ *
+ * A set rather than a `!== 'audio'` comparison, so a kind added to the union
+ * later is withheld until a surface can draw it. Widen this together with the
+ * drawing branches, never ahead of them. `strictNullChecks` is off in both
+ * tsconfigs, so a row is not proof of its own shape; an absent or unrecognised
+ * `type` is not in the set and is withheld too.
  */
 const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
-  new Set<ReplicationType>(["image", "video"]);
+  new Set<ReplicationType>(["image", "video", "audio"]);
 
 /**
  * Whether the public replication surfaces may publish a stored row.

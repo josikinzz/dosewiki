@@ -15,7 +15,9 @@ import {
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
-import { ContentCard, NestedContentCard } from "@/components/ui/surface";
+import { ContentCard, NestedContentCard, Surface } from "@/components/ui/surface";
+import { AudioReplicationPlayer } from "@/features/effects/components/AudioReplicationPlayer";
+import { audioWaveformBars } from "@/features/replications/audioWaveform";
 import {
   getExternalSourceUrl,
   getRightsSummary,
@@ -78,7 +80,14 @@ export function ReplicationDetailPage({
     replication.slug,
   );
   const isVideo = replication.type === "video";
-  const previewSource = isVideo ? replication.thumbnail_url : replication.url;
+  const isAudio = replication.type === "audio";
+  // A clip has no frame to preview, so it never reaches the image layer: it
+  // gets the player itself, which is more use here than a poster would be.
+  const previewSource = isVideo
+    ? replication.thumbnail_url
+    : isAudio
+      ? undefined
+      : replication.url;
   const artistName =
     identityAttribution?.creator.display_name.trim() ||
     replication.artist?.trim() ||
@@ -117,7 +126,7 @@ export function ReplicationDetailPage({
         <Button asChild className="shrink-0">
           <Link href={viewerHref}>
             <Icon
-              icon={isVideo ? "lucide:play" : "lucide:maximize-2"}
+              icon={isVideo || isAudio ? "lucide:play" : "lucide:maximize-2"}
               className="h-4 w-4"
               aria-hidden
             />
@@ -127,7 +136,33 @@ export function ReplicationDetailPage({
       </header>
 
       <figure className="mt-5">
-        {previewSource ? (
+        {isAudio && replication.url ? (
+          <Surface
+            variant="card"
+            padding="lg"
+            radius="xl"
+            className="flex flex-col gap-4"
+          >
+            <span
+              aria-hidden
+              className="flex h-16 items-end justify-center gap-[3px]"
+            >
+              {audioWaveformBars(replication.slug || replication.title, 48).map(
+                (height, index) => (
+                  <span
+                    key={index}
+                    className="theme-replication-waveform-bar w-[3px] rounded-full"
+                    style={{ height: `${height}%` }}
+                  />
+                ),
+              )}
+            </span>
+            <AudioReplicationPlayer
+              src={replication.url}
+              label={replication.title}
+            />
+          </Surface>
+        ) : previewSource ? (
           // A sighted-user shortcut to the same viewer the header button
           // opens: hidden from the accessibility tree so the button stays the
           // single named route, and the play badge replaces the old "playback
@@ -171,10 +206,16 @@ export function ReplicationDetailPage({
         {/* The file's vital signs read as the preview's caption. */}
         <figcaption className="theme-text-faint mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
           <PublicPill
-            icon={isVideo ? "lucide:video" : "lucide:image"}
+            icon={
+              isVideo
+                ? "lucide:video"
+                : isAudio
+                  ? "lucide:audio-lines"
+                  : "lucide:image"
+            }
             size="sm"
           >
-            {isVideo ? "Video" : "Image"}
+            {isVideo ? "Video" : isAudio ? "Audio" : "Image"}
           </PublicPill>
           {replication.width && replication.height ? (
             <span className="tabular-nums">

@@ -1,15 +1,16 @@
 import {
-  DEFAULT_GALLERY_ARTIST_SORT,
+  defaultGalleryOrder,
   DEFAULT_GALLERY_TAXONOMY_FILTERS,
   type GalleryArtistTypeFilter,
-  type GalleryArtistSort,
   type GalleryContentFamilyFilter,
   type GalleryEffectFilter,
   type GalleryDrugFilter,
   type GalleryDrugClassFilter,
   type GalleryMode,
+  type GalleryOrder,
   type GalleryTypeFilter,
   type GalleryViewingFilter,
+  type GalleryYearFilter,
 } from "@/features/effects/gallery/galleryModel";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 
@@ -20,7 +21,8 @@ import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
  *
  *   /replications                       by-artist browse (default)
  *   /replications?view=effect          by-effect browse
- *   /replications?q=…&type=…&sort=…    search / media type / artist sort
+ *   /replications?view=year            by-year browse
+ *   /replications?q=…&type=…&sort=…    search / media type / time order
  *   /replications/artist/<key>[?type=] one artist's works
  *   /effects/<slug>                    one effect's article collection
  *
@@ -36,6 +38,7 @@ export const GALLERY_BROWSE_QUERY_KEYS = [
   "q",
   "type",
   "sort",
+  "year",
   "viewing",
   "artistType",
   "effect",
@@ -45,12 +48,15 @@ export const GALLERY_BROWSE_QUERY_KEYS = [
 ] as const;
 
 const REPLICATION_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
+/** A year rail's key: `2020`, a merged span `1939-1952`, or `undated`. */
+const YEAR_FILTER_PATTERN = /^(?:\d{4}(?:-\d{4})?|undated)$/;
 
 export interface GalleryBrowseState {
   view: GalleryMode;
   query: string;
   type: GalleryTypeFilter;
-  sort: GalleryArtistSort;
+  sort: GalleryOrder;
+  year: GalleryYearFilter;
   viewing: GalleryViewingFilter;
   artistType: GalleryArtistTypeFilter;
   effect: GalleryEffectFilter;
@@ -59,17 +65,30 @@ export interface GalleryBrowseState {
   family: GalleryContentFamilyFilter;
 }
 
+/**
+ * The canonical browse view: the by-artist axis, newest work first.
+ *
+ * `sort` is the artist axis's own default, not a global one. Each mode brings
+ * its own through `defaultGalleryOrder` — "By effect" defers to the editor's
+ * curation — so URL writing and parsing read the default against the view
+ * rather than against this object.
+ */
 export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
   view: "artist",
   query: "",
   type: "all",
-  sort: DEFAULT_GALLERY_ARTIST_SORT,
+  sort: defaultGalleryOrder("artist"),
+  year: "all",
   ...DEFAULT_GALLERY_TAXONOMY_FILTERS,
 };
 
-/** A focused gallery view: one artist's or one effect's works. */
+/**
+ * A focused gallery view: one artist's or one effect's works. A year has no
+ * focus page of its own — nothing in the corpus belongs to a year the way a
+ * work belongs to an artist or an effect, so a year is a browse grouping only.
+ */
 export interface GalleryFocus {
-  kind: GalleryMode;
+  kind: "artist" | "effect";
   /** Artist URL key (see `artistUrlKey`) or effect slug. */
   key: string;
 }
@@ -87,12 +106,25 @@ export function parseGalleryBrowseState(
   const drug = params.get("drug");
   const drugClass = params.get("drugClass");
   const family = params.get("family");
+  const year = params.get("year");
+  const view =
+    params.get("view") === "effect"
+      ? "effect"
+      : params.get("view") === "year"
+        ? "year"
+        : "artist";
   return {
-    view: params.get("view") === "effect" ? "effect" : "artist",
+    view,
     query: params.get("q") ?? "",
-    type: type === "image" || type === "video" ? type : "all",
+    type:
+      type === "image" || type === "video" || type === "audio" ? type : "all",
+    // `curated` is an effect-view answer only: there is no editorial playlist
+    // to defer to on an artist or a year, so it reads as that mode's default.
     sort:
-      sort === "alpha" || sort === "count" ? sort : DEFAULT_GALLERY_ARTIST_SORT,
+      sort === "newest" || sort === "oldest" || (sort === "curated" && view === "effect")
+        ? sort
+        : defaultGalleryOrder(view),
+    year: year && YEAR_FILTER_PATTERN.test(year) ? year : "all",
     viewing: viewing === "open-eye" || viewing === "closed-eye" ? viewing : "all",
     artistType:
       artistType === "replicator" || artistType === "traditional-psychedelic-artist"
@@ -151,21 +183,23 @@ export function buildGalleryBrowseUrl(
   state: Partial<GalleryBrowseState> = {},
 ): string {
   const params = new URLSearchParams();
-  if (state.view === "effect") {
-    params.set("view", "effect");
+  if (state.view === "effect" || state.view === "year") {
+    params.set("view", state.view);
   }
   if (state.query && state.query.trim()) {
     params.set("q", state.query);
   }
-  if (state.type === "image" || state.type === "video") {
+  if (state.type && state.type !== "all") {
     params.set("type", state.type);
   }
-  // `sort` only drives the by-artist grouping, but it survives in the URL
-  // across a round trip through effect view so toggling back does not silently
-  // lose the reader's ordering.
-  if (state.sort === "alpha" || state.sort === "count") {
+  // Omitted when it matches the view's own default, so the canonical URL of
+  // each mode stays clean: `/replications` and `?view=effect` carry no sort.
+  // A named direction survives a round trip through another view so toggling
+  // back does not silently lose the reader's ordering.
+  if (state.sort && state.sort !== defaultGalleryOrder(state.view ?? "artist")) {
     params.set("sort", state.sort);
   }
+  if (state.year && state.year !== "all") params.set("year", state.year);
   if (state.viewing && state.viewing !== "all") params.set("viewing", state.viewing);
   if (state.artistType && state.artistType !== "all") params.set("artistType", state.artistType);
   if (state.effect && state.effect !== "all") params.set("effect", state.effect);
@@ -192,7 +226,7 @@ export function buildGalleryFocusUrl(
     params: { key: focus.key },
   });
   const params = new URLSearchParams();
-  if (state.type === "image" || state.type === "video") {
+  if (state.type && state.type !== "all") {
     params.set("type", state.type);
   }
   const query = params.toString();

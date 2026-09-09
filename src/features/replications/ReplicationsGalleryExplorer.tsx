@@ -44,25 +44,30 @@ import { MediaRail } from "@/features/effects/gallery/MediaRail";
 import {
   ARTIST_RAIL_PAGE,
   DEFAULT_GALLERY_TAXONOMY_FILTERS,
+  defaultGalleryOrder,
   effectHrefBuilder,
   effectNameLookup,
   galleryGroupUrlKey,
   groupByArtist,
   groupByEffect,
+  groupByYear,
   isDisplayable,
   isWithheldFromArtistViews,
   matchesQuery,
   matchesTaxonomyFilters,
   matchesType,
+  matchesYear,
   sortWithinGroup,
+  sortWorksByDate,
   splitRailsAndPool,
   UNATTRIBUTED_KEY,
   type GalleryCounts,
   type GalleryGroup,
-  type GalleryArtistSort,
   type GalleryMode,
+  type GalleryOrder,
   type GalleryTypeFilter,
   type GalleryTaxonomyFilterState,
+  type GalleryYearFilter,
 } from "@/features/effects/gallery/galleryModel";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import { ReplicationViewerOverlay } from "./viewer/ReplicationViewerOverlay";
@@ -115,11 +120,12 @@ type GalleryPageLoadState = "idle" | "loading" | "error";
 /**
  * Artists get the site's person glyph; effects get the very icon the app
  * header and every effect heading already use, so the browse axes are named
- * by the same marks the rest of the site names them by.
+ * by the same marks the rest of the site names them by. A year is a date.
  */
 const MODE_ICON: Record<GalleryMode, IconName> = {
   artist: icons.userRound,
   effect: icons.subjectiveEffectIndex,
+  year: "lucide:calendar-days",
 };
 
 /**
@@ -131,26 +137,33 @@ const MODE_ICON: Record<GalleryMode, IconName> = {
 const MODE_LABEL: Record<GalleryMode, string> = {
   artist: "By artist",
   effect: "By effect",
+  year: "By year",
 };
 
-const TYPE_ICON: Record<GalleryTypeFilter, IconName> = {
-  all: "lucide:layers",
-  image: "lucide:image",
-  video: "lucide:video",
+const MODES: ReadonlyArray<GalleryMode> = ["artist", "effect", "year"];
+
+const ORDER_ICON: Record<GalleryOrder, IconName> = {
+  curated: "lucide:list-ordered",
+  newest: "lucide:arrow-down-wide-narrow",
+  oldest: "lucide:arrow-up-narrow-wide",
 };
 
-/** Menu rows name the set; the trigger names the current state. */
-const TYPE_LABEL: Record<GalleryTypeFilter, string> = {
-  all: "All media",
-  image: "Images",
-  video: "Videos",
+const ORDER_LABEL: Record<GalleryOrder, string> = {
+  curated: "Curated",
+  newest: "Newest",
+  oldest: "Oldest",
 };
 
-const ARTIST_SORT_OPTIONS: ReadonlyArray<[GalleryArtistSort, string]> = [
-  ["video-first", "Videos first"],
-  ["count", "Most works"],
-  ["alpha", "A–Z"],
-];
+/**
+ * What the order control offers per axis. Every mode reads in both time
+ * directions; only "By effect" has an editor's playlist to defer to, and that
+ * is its default, so its rails open on the same work as the effect article.
+ */
+const ORDER_OPTIONS: Record<GalleryMode, ReadonlyArray<GalleryOrder>> = {
+  artist: ["newest", "oldest"],
+  effect: ["curated", "newest", "oldest"],
+  year: ["newest", "oldest"],
+};
 
 /**
  * Effect names are article titles, and the corpus carries both `After images`
@@ -162,11 +175,6 @@ const ARTIST_SORT_OPTIONS: ReadonlyArray<[GalleryArtistSort, string]> = [
 function optionCase(name: string): string {
   return name ? name[0].toLocaleUpperCase() + name.slice(1) : name;
 }
-
-const ARTIST_SORT_LABEL = Object.fromEntries(ARTIST_SORT_OPTIONS) as Record<
-  GalleryArtistSort,
-  string
->;
 
 function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
   return (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[])
@@ -715,8 +723,8 @@ function GalleryExplorer({
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
   const typeFilter = browse.type;
-  const artistSort = browse.sort;
-
+  const order = browse.sort;
+  const yearFilter = browse.year;
   /**
    * The search box needs a per-keystroke value while the URL write debounces
    * behind it, so the input is a controlled mirror of `?q=` rather than being
@@ -791,11 +799,35 @@ function GalleryExplorer({
     }, QUERY_WRITE_DELAY_MS);
   };
 
+  /**
+   * The order to carry into `next`'s URL. A direction the reader named travels
+   * with them; an order they never chose does not. Carrying the resting value
+   * across would pin one axis's default as an explicit override on another —
+   * arriving at "By effect" sorted by date would silently retire the curation
+   * that view exists to show.
+   *
+   * Read against `browse.view`, the view the order was parsed for, not the
+   * effective `mode`: inside a focused collection the two differ, and an
+   * artist page's resting `newest` is not a choice about effect playlists.
+   */
+  const orderForView = (next: GalleryMode): GalleryOrder =>
+    order === defaultGalleryOrder(browse.view)
+      ? defaultGalleryOrder(next)
+      : order;
+
   const switchMode = (next: GalleryMode) => {
     const query = currentInputQuery();
     runWithCompleteCorpus(() => {
       lastWrittenQueryRef.current = query;
-      navigate(buildGalleryBrowseUrl({ ...browse, view: next, query }), "push");
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          view: next,
+          query,
+          sort: orderForView(next),
+        }),
+        "push",
+      );
     });
   };
 
@@ -817,7 +849,7 @@ function GalleryExplorer({
     });
   };
 
-  const setArtistSort = (next: GalleryArtistSort) => {
+  const setOrder = (next: GalleryOrder) => {
     const query = currentInputQuery();
     runWithCompleteCorpus(() => {
       lastWrittenQueryRef.current = query;
@@ -827,6 +859,45 @@ function GalleryExplorer({
           view: mode,
           query,
           sort: next,
+        }),
+        "push",
+      );
+    });
+  };
+
+  const setYearFilter = (next: GalleryYearFilter) => {
+    const query = currentInputQuery();
+    runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          view: mode === "year" ? "year" : mode,
+          query,
+          year: next,
+        }),
+        "push",
+      );
+    });
+  };
+
+  /**
+   * Every filter off in one navigation. Calling the individual setters in
+   * sequence would write three URLs from the same stale `browse`, and the last
+   * one would land having cleared only its own field.
+   */
+  const clearAllFilters = () => {
+    const query = currentInputQuery();
+    runWithCompleteCorpus(() => {
+      lastWrittenQueryRef.current = query;
+      navigate(
+        buildGalleryBrowseUrl({
+          ...browse,
+          ...DEFAULT_GALLERY_TAXONOMY_FILTERS,
+          view: mode === "year" ? "year" : mode,
+          query,
+          type: "all",
+          year: "all",
         }),
         "push",
       );
@@ -860,6 +931,15 @@ function GalleryExplorer({
   const hasActiveTaxonomyFilters = Object.values(taxonomyFilters).some(
     (value) => value !== "all",
   );
+  /**
+   * Everything the chip row can take back off. Media used to be readable from
+   * its own trigger on the bar; now that it lives in the filters popover, a
+   * chip is the only thing that says "videos only" while the popover is shut.
+   * A year is only ever set by following a year rail, so its chip is the way
+   * back out to the whole timeline.
+   */
+  const hasRemovableFilters =
+    hasActiveTaxonomyFilters || typeFilter !== "all" || browse.year !== "all";
   const drugOptions = useMemo(
     () =>
       [
@@ -928,15 +1008,22 @@ function GalleryExplorer({
 
   const query = focus ? "" : browse.query;
   const searching = query.trim().length > 0;
+  /**
+   * A year rail's "View all". Unlike an artist or an effect, a year owns no
+   * page of its own, so the overflow target is this same browse view narrowed
+   * to that rail's span: one flat grid that pages in the whole year.
+   */
+  const singleYear = !focus && !searching && yearFilter !== "all";
 
   const filtered = useMemo(
     () =>
       taxonomyDisplayable.filter(
         (item) =>
           matchesType(item, typeFilter) &&
+          matchesYear(item, yearFilter) &&
           matchesQuery(item, query, effectName),
       ),
-    [taxonomyDisplayable, typeFilter, query, effectName],
+    [taxonomyDisplayable, typeFilter, yearFilter, query, effectName],
   );
 
   /**
@@ -972,23 +1059,31 @@ function GalleryExplorer({
    */
   const searchResults = useMemo(() => sortWithinGroup(filtered), [filtered]);
 
+  /**
+   * One year rail opened in full. Same memoization reason as the search grid,
+   * and the same order the rail itself used, so following "View all" does not
+   * reshuffle the works the reader was just looking at.
+   */
+  const yearItems = useMemo(
+    () => sortWorksByDate(filtered, order === "oldest" ? "oldest" : "newest"),
+    [filtered, order],
+  );
+
   const groups = useMemo(() => {
-    if (mode !== "artist") {
-      return groupByEffect(filtered, effectName, effectHref);
+    if (mode === "year") {
+      return groupByYear(filtered, order);
     }
-    const artistGroups = groupByArtist(
-      filtered,
-      artistSort,
-      contributorDirectory,
-    );
-    return artistGroups;
+    if (mode === "effect") {
+      return groupByEffect(filtered, effectName, effectHref, order);
+    }
+    return groupByArtist(filtered, contributorDirectory, order);
   }, [
-    artistSort,
     contributorDirectory,
     effectHref,
     effectName,
     filtered,
     mode,
+    order,
   ]);
 
   /**
@@ -1068,7 +1163,7 @@ function GalleryExplorer({
   const [visibleRailCount, setVisibleRailCount] = useState(ARTIST_RAIL_PAGE);
   useEffect(() => {
     setVisibleRailCount(ARTIST_RAIL_PAGE);
-  }, [mode, typeFilter, artistSort, taxonomyFilterKey]);
+  }, [mode, typeFilter, order, taxonomyFilterKey]);
   const visibleRails =
     mode === "artist" ? displayRails.slice(0, visibleRailCount) : displayRails;
   const hiddenRailCount =
@@ -1109,21 +1204,11 @@ function GalleryExplorer({
         },
       ];
     }
-    if (mode === "artist") {
-      return groupByArtist(filtered, artistSort, contributorDirectory);
-    }
-    return groupByEffect(filtered, effectName, effectHref);
-  }, [
-    artistSort,
-    contributorDirectory,
-    effectHref,
-    effectName,
-    filtered,
-    focus,
-    focusedGroup,
-    focusedItems,
-    mode,
-  ]);
+    // The overlay walks exactly what the page shows. Recomputing the grouping
+    // here ran the whole corpus through it a second time and was one argument
+    // list away from disagreeing with the rails on every future change.
+    return groups;
+  }, [focus, focusedGroup, focusedItems, groups]);
   const viewerSourcePath = focus
     ? buildGalleryFocusUrl(focus, { type: typeFilter })
     : buildGalleryBrowseUrl({
@@ -1300,11 +1385,16 @@ function GalleryExplorer({
     ...browse,
     view: mode,
     type: typeFilter,
-    sort: artistSort,
+    sort: orderForView(mode),
   });
 
-  /** Sorting is an artist-rail affordance, so it exists only where rails do. */
-  const sortActive = mode === "artist" && !searching && !focus;
+  /**
+   * The order control governs the works inside a group, so it belongs to any
+   * grouped view and leaves only for the flat search grid and a single focused
+   * collection, neither of which is a set of playlists to order.
+   */
+  const orderActive = !searching && !focus;
+  const orderOptions = ORDER_OPTIONS[mode];
   /**
    * Two width thresholds, both about the same row.
    *
@@ -1321,8 +1411,7 @@ function GalleryExplorer({
    * is on, the resting corpus sentence on the tab row is no longer the number
    * the reader is asking about, so the bar's own line answers instead.
    */
-  const narrowing =
-    searching || typeFilter !== "all" || hasActiveTaxonomyFilters;
+  const narrowing = searching || hasRemovableFilters;
   const corpusLoading = pageLoadState === "loading";
   const resultSummary = statsComplete
     ? `${shown.length.toLocaleString("en-US")} of ${corpusTotal.toLocaleString("en-US")} works`
@@ -1427,7 +1516,7 @@ function GalleryExplorer({
                           switchMode(value as GalleryMode)
                         }
                       >
-                        {(["artist", "effect"] as const).map((value) => (
+                        {MODES.map((value) => (
                           <DropdownMenuRadioItem
                             key={value}
                             value={value}
@@ -1442,28 +1531,35 @@ function GalleryExplorer({
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
-                      {/* Below `md` the row has four glyph-width slots and the
-                          search field needs three of them, so sorting rides
-                          the axis it belongs to instead of taking a fifth.
-                          Hidden by CSS rather than by the media query hook so
-                          the server's markup is already correct. */}
-                      {sortActive ? (
+                      {/* Below `md` the row keeps the browse axis, the search
+                          field and the filters popover, and the search field
+                          needs the width the order trigger would take, so
+                          ordering rides the axis it belongs to instead of
+                          taking a fourth slot. Hidden by CSS rather than by
+                          the media query hook so the server's markup is
+                          already correct. */}
+                      {orderActive ? (
                         <DropdownMenuGroup className="md:hidden">
                           <DropdownMenuSeparator />
-                          <DropdownMenuLabel>Sort artists</DropdownMenuLabel>
+                          <DropdownMenuLabel>Order</DropdownMenuLabel>
                           <DropdownMenuRadioGroup
-                            value={artistSort}
+                            value={order}
                             onValueChange={(value) =>
-                              setArtistSort(value as GalleryArtistSort)
+                              setOrder(value as GalleryOrder)
                             }
                           >
-                            {ARTIST_SORT_OPTIONS.map(([value, label]) => (
+                            {orderOptions.map((value) => (
                               <DropdownMenuRadioItem
                                 key={value}
                                 value={value}
                                 className={CONTROL_MENU_ITEM_CLASS}
                               >
-                                {label}
+                                <Icon
+                                  icon={ORDER_ICON[value]}
+                                  className="h-4 w-4"
+                                  aria-hidden
+                                />
+                                {ORDER_LABEL[value]}
                               </DropdownMenuRadioItem>
                             ))}
                           </DropdownMenuRadioGroup>
@@ -1551,72 +1647,16 @@ function GalleryExplorer({
                     ) : null}
                   </div>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="pill"
-                        size="auto"
-                        className={CONTROL_TRIGGER_CLASS}
-                        aria-label={`Media: ${TYPE_LABEL[typeFilter]}`}
-                        title={`Media: ${TYPE_LABEL[typeFilter]}`}
-                      >
-                        {/* A control holding something other than its default
-                            tints its own glyph. The `pill` variant already
-                            declares a border colour, so a `border-*` utility
-                            beside it is a coin toss the accent loses; colour
-                            on the icon has nothing to compete with. */}
-                        <Icon
-                          icon={TYPE_ICON[typeFilter]}
-                          className={cn(
-                            "h-4 w-4 shrink-0",
-                            typeFilter !== "all" && "text-dose-accent-strong",
-                          )}
-                          aria-hidden
-                        />
-                        <span className={CONTROL_TRIGGER_LABEL_CLASS}>
-                          {TYPE_LABEL[typeFilter]}
-                        </span>
-                        <Icon
-                          icon="lucide:chevron-down"
-                          className={CONTROL_TRIGGER_CHEVRON_CLASS}
-                          aria-hidden
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Media</DropdownMenuLabel>
-                      <DropdownMenuRadioGroup
-                        value={typeFilter}
-                        onValueChange={(value) =>
-                          setTypeFilter(value as GalleryTypeFilter)
-                        }
-                      >
-                        {(["all", "image", "video"] as const).map((value) => (
-                          <DropdownMenuRadioItem
-                            key={value}
-                            value={value}
-                            className={CONTROL_MENU_ITEM_CLASS}
-                          >
-                            <Icon
-                              icon={TYPE_ICON[value]}
-                              className="h-4 w-4"
-                              aria-hidden
-                            />
-                            {TYPE_LABEL[value]}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Sorting applies to artist rails, so outside artist mode
-                      the control leaves rather than standing there inert: with
-                      labelled triggers the bar's width already differs per
-                      mode, so an invisible placeholder bought nothing and cost
-                      a 60px hole. Below `md` it is a row inside the browse
-                      menu instead of a slot on the bar. */}
-                  {sortActive ? (
+                  {/* Ordering is the second half of the browse axis: which
+                      end of time the playlists lead with, or the editor's
+                      curated pick under "By effect". It leaves for the flat
+                      search grid and a focused collection rather than
+                      standing there inert: with labelled triggers the bar's
+                      width already differs per mode, so an invisible
+                      placeholder bought nothing and cost a 60px hole. Below
+                      `md` it is a row inside the browse menu instead of a
+                      slot on the bar. */}
+                  {orderActive ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -1624,20 +1664,26 @@ function GalleryExplorer({
                           variant="pill"
                           size="auto"
                           className={cn(CONTROL_TRIGGER_CLASS, "max-md:hidden")}
-                          aria-label={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
-                          title={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
+                          aria-label={`Order: ${ORDER_LABEL[order]}`}
+                          title={`Order: ${ORDER_LABEL[order]}`}
                         >
+                          {/* A control holding something other than its
+                              default tints its own glyph. The `pill` variant
+                              already declares a border colour, so a `border-*`
+                              utility beside it is a coin toss the accent
+                              loses; colour on the icon has nothing to compete
+                              with. The default differs per axis, so the tint
+                              is read against this mode's own default. */}
                           <Icon
-                            icon="lucide:arrow-down-wide-narrow"
+                            icon={ORDER_ICON[order]}
                             className={cn(
                               "h-4 w-4 shrink-0",
-                              artistSort !== GALLERY_BROWSE_DEFAULTS.sort &&
+                              order !== defaultGalleryOrder(mode) &&
                                 "text-dose-accent-strong",
                             )}
-                            aria-hidden
                           />
                           <span className={CONTROL_TRIGGER_LABEL_CLASS}>
-                            {ARTIST_SORT_LABEL[artistSort]}
+                            {ORDER_LABEL[order]}
                           </span>
                           <Icon
                             icon="lucide:chevron-down"
@@ -1647,20 +1693,25 @@ function GalleryExplorer({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Sort artists</DropdownMenuLabel>
+                        <DropdownMenuLabel>Order</DropdownMenuLabel>
                         <DropdownMenuRadioGroup
-                          value={artistSort}
+                          value={order}
                           onValueChange={(value) =>
-                            setArtistSort(value as GalleryArtistSort)
+                            setOrder(value as GalleryOrder)
                           }
                         >
-                          {ARTIST_SORT_OPTIONS.map(([value, label]) => (
+                          {orderOptions.map((value) => (
                             <DropdownMenuRadioItem
                               key={value}
                               value={value}
                               className={CONTROL_MENU_ITEM_CLASS}
                             >
-                              {label}
+                              <Icon
+                                icon={ORDER_ICON[value]}
+                                className="h-4 w-4"
+                                aria-hidden
+                              />
+                              {ORDER_LABEL[value]}
                             </DropdownMenuRadioItem>
                           ))}
                         </DropdownMenuRadioGroup>
@@ -1668,14 +1719,19 @@ function GalleryExplorer({
                     </DropdownMenu>
                   ) : null}
 
+                  {/* Media joined the filters it always was one of. A separate
+                      dropdown made "is this a video" look like a different
+                      kind of question from "is this closed-eye", and spent a
+                      bar slot saying so. */}
                   <ReplicationTaxonomyFilters
                     filters={taxonomyFilters}
                     onChange={setTaxonomyFilters}
+                    type={typeFilter}
+                    onTypeChange={setTypeFilter}
+                    year={yearFilter}
                     drugOptions={drugOptions}
                     effectOptions={effectOptions}
-                    onClear={() =>
-                      setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
-                    }
+                    onClear={clearAllFilters}
                   />
                 </div>
               </div>
@@ -1718,10 +1774,14 @@ function GalleryExplorer({
                     <span className="sr-only">{completionAnnouncement}.</span>
                   ) : null}
                 </p>
-                {hasActiveTaxonomyFilters ? (
+                {hasRemovableFilters ? (
                   <ReplicationActiveFilterChips
                     filters={taxonomyFilters}
                     onChange={setTaxonomyFilters}
+                    type={typeFilter}
+                    onTypeChange={setTypeFilter}
+                    year={yearFilter}
+                    onYearChange={setYearFilter}
                     drugOptions={drugOptions}
                     effectOptions={effectOptions}
                   />
@@ -1852,20 +1912,29 @@ function GalleryExplorer({
                   description={`Nothing found for “${query.trim()}”. Try a different artist, effect, or title.`}
                 />
               )
-            ) : filtered.length === 0 && hasActiveTaxonomyFilters ? (
+            ) : singleYear && filtered.length > 0 ? (
+              /* One year rail, opened in full. A year owns no page of its own,
+                 so its overflow is this: the whole span as one flat grid that
+                 pages in, with the chip above as the way back to every year. */
+              <div className="mt-4 space-y-3">
+                <IncrementalMasonry
+                  items={yearItems}
+                  onOpen={openViewerAt}
+                  viewerSourcePath={viewerSourcePath}
+                />
+              </div>
+            ) : filtered.length === 0 && hasRemovableFilters ? (
               <div className="mt-8 flex flex-col items-center">
                 <SearchEmptyState
                   icon="lucide:list-filter"
                   title="No works match these filters"
-                  description="Clear one or more taxonomy filters to widen the gallery."
+                  description="Clear one or more filters to widen the gallery."
                 />
                 <Button
                   type="button"
                   variant="pill"
                   size="pill"
-                  onClick={() =>
-                    setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
-                  }
+                  onClick={clearAllFilters}
                 >
                   Clear filters
                 </Button>
@@ -1882,12 +1951,21 @@ function GalleryExplorer({
                     key={group.key}
                     group={group}
                     countIsComplete={!hasMore || digestActive}
-                    viewAllHref={buildGalleryFocusUrl(
-                      { kind: mode, key: galleryGroupUrlKey(mode, group) },
-                      /* The effect address is the playlist page now; it reads no
-                       type filter, so only artist focus links carry one. */
-                      mode === "artist" ? { type: typeFilter } : {},
-                    )}
+                    viewAllHref={
+                      mode === "year"
+                        ? buildGalleryBrowseUrl({
+                            ...browse,
+                            view: "year",
+                            year: group.key,
+                          })
+                        : buildGalleryFocusUrl(
+                            { kind: mode, key: galleryGroupUrlKey(mode, group) },
+                            /* The effect address is the playlist page now; it
+                             reads no type filter, so only artist focus links
+                             carry one. */
+                            mode === "artist" ? { type: typeFilter } : {},
+                          )
+                    }
                     /* Artist rails carry the artist in their heading, so tile
                      bylines would echo it fourteen times; effect rails keep
                      bylines as each work's attribution. An artist rail's tiles

@@ -144,10 +144,11 @@ describe("getReplicationsByContributor", () => {
     ]);
   });
 
-  it("leaves a figure out of a contributor's works rail", async () => {
+  it("leaves a figure out of a contributor's works rail, but keeps their audio", async () => {
     // The rail is headed "Replications" and prints its own count beside that
     // heading, and the permalink walks the same set — so a diagram credited to
     // this person would be presented as one of their works three times over.
+    // A clip is a work, though: it has a tile, a viewer stage and a permalink.
     mocks.queryConvex.mockResolvedValueOnce({ items: [
       { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
       { slug: "ecg-trace", artist: "Josie Kins", type: "image", role: "figure", url: "https://x/2" },
@@ -159,7 +160,7 @@ describe("getReplicationsByContributor", () => {
       contributor({ key: "JOSIE", displayName: "Josie Kins" }),
     );
 
-    expect(works.map((work) => work.slug)).toEqual(["drifting"]);
+    expect(works.map((work) => work.slug)).toEqual(["drifting", "a-recording"]);
   });
 
   it("returns an empty list for a contributor with no works", async () => {

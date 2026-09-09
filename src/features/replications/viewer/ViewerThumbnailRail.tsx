@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
+import { audioWaveformBars } from "@/features/replications/audioWaveform";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { RotatingIcon } from "./RotatingIcon";
@@ -197,11 +198,15 @@ export function ViewerThumbnailRail({
       const item = items[itemIndex];
       const selected = itemIndex === selectedIndex;
       const gifLike = item.replication.format.toLowerCase() === "gif";
-      const thumb = gifLike
-        ? item.replication.motion_poster_url
-        : (item.replication.motion_poster_url ??
-          item.replication.thumbnail_url ??
-          item.replication.url);
+      // A clip is not a picture: its own URL in an <img> is a broken tile.
+      const isAudio = item.replication.type === "audio";
+      const thumb = isAudio
+        ? null
+        : gifLike
+          ? item.replication.motion_poster_url
+          : (item.replication.motion_poster_url ??
+            item.replication.thumbnail_url ??
+            item.replication.url);
       children.push(
         <li key={item.replication.slug} className="shrink-0 snap-start">
           <button
@@ -218,7 +223,23 @@ export function ViewerThumbnailRail({
               focusRingClassName,
             )}
           >
-            {thumb ? (
+            {isAudio ? (
+              <span
+                aria-hidden
+                className="flex h-full w-full items-end justify-center gap-[2px] px-1.5 py-2"
+              >
+                {audioWaveformBars(
+                  item.replication.slug || item.replication.title,
+                  8,
+                ).map((barHeight, barIndex) => (
+                  <span
+                    key={barIndex}
+                    className="theme-replication-waveform-bar w-[2px] flex-none rounded-full opacity-80"
+                    style={{ height: `${barHeight.toFixed(0)}%` }}
+                  />
+                ))}
+              </span>
+            ) : thumb ? (
               <RotatingIcon rotated={rotated} className="h-full w-full">
                 <AppImage
                   src={thumb}

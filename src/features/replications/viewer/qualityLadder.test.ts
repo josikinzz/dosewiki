@@ -41,3 +41,14 @@ describe("slideMotionSource", () => {
     expect(slideMotionSource({ type: "image", format: "jpg", url: "art.jpg" })).toBeNull();
   });
 });
+
+describe("audio slides", () => {
+  it("keeps a clip off both the image and the video layer", () => {
+    const clip = { type: "audio" as const, format: "mp3", url: "clip.mp3" };
+
+    // `url` is the audio itself: as a poster it is a broken image, and as a
+    // motion source it is a black stage with no frames to present.
+    expect(slidePosterSource(clip)).toBeNull();
+    expect(slideMotionSource(clip)).toBeNull();
+  });
+});

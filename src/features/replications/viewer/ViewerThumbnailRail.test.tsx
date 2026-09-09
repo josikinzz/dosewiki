@@ -201,4 +201,27 @@ describe("ViewerThumbnailRail", () => {
       screen.queryByRole("button", { name: /Show Work 30,/ }),
     ).not.toBeInTheDocument();
   });
+
+  it("draws a bar strip for an audio work instead of a broken thumbnail", () => {
+    const [clip] = makeItems(1);
+    clip.replication = {
+      ...clip.replication,
+      type: "audio",
+      format: "ogg",
+      url: "https://cdn.test/hum.ogg",
+      thumbnail_url: undefined,
+    };
+    const { container } = render(
+      <ViewerThumbnailRail {...baseProps({ items: [clip], selectedIndex: 0 })} />,
+    );
+
+    // The clip URL in an <img> is a permanently broken rail tile.
+    expect(container.querySelector("img")).toBeNull();
+    expect(
+      container.querySelectorAll(".theme-replication-waveform-bar").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("button", { name: /Show Work 0,/ }),
+    ).toBeInTheDocument();
+  });
 });

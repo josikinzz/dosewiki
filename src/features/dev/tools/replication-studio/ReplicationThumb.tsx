@@ -11,6 +11,7 @@ import {
   useMotionAllowed,
   usePlaybackSlot,
 } from "@/features/effects/gallery/inViewPlayback";
+import { audioWaveformBars } from "@/features/replications/audioWaveform";
 
 import { formatDuration, type StudioMediaType } from "./replicationStudioModel";
 
@@ -37,19 +38,6 @@ const TYPE_ICON: Record<StudioMediaType, string> = {
 
 /** Playlist previews share a four-decoder budget, independent of public galleries. */
 const PLAYLIST_PREVIEW_SLOTS = createPlaybackSlotPool(4);
-
-/**
- * A deterministic bar pattern for audio rows.
- *
- * Audio has no frame to show, and a blank tile in a grid of pictures reads as a
- * broken image. The bars are derived from the slug so the same asset always
- * draws the same shape — it is a placeholder that is stable, not a waveform
- * that is true, and it never pretends to be sampled from the file.
- */
-function waveformBars(seedSource: string): number[] {
-  const seed = seedSource.length;
-  return Array.from({ length: 28 }, (_, index) => 14 + Math.abs(Math.sin((index + seed) * 1.7)) * 72);
-}
 
 function Placeholder({ type }: { type: StudioMediaType }) {
   return (
@@ -127,7 +115,7 @@ export function ReplicationThumb({
     >
       {row.type === "audio" ? (
         <div className="flex h-full w-full items-end justify-center gap-[3px] px-3 py-4">
-          {waveformBars(row.slug || row.title).map((height, index) => (
+          {audioWaveformBars(row.slug || row.title).map((height, index) => (
             <span
               key={index}
               aria-hidden="true"

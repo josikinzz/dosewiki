@@ -13,6 +13,9 @@ import {
 } from "react";
 
 import { AppImage } from "@/components/common/AppImage";
+import { AudioReplicationPlayer } from "@/features/effects/components/AudioReplicationPlayer";
+import { audioWaveformBars } from "@/features/replications/audioWaveform";
+import { Surface } from "@/components/ui/surface";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 import {
@@ -119,6 +122,7 @@ function ViewerSlide({
   controlsVisible,
 }: ViewerSlideProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioPanelRef = useRef<HTMLDivElement | null>(null);
   const [paintedSource, setPaintedSource] = useState<string | null>(null);
   const [posterAspect, setPosterAspect] = useState<{ source: string; width: number; height: number } | null>(null);
   const active = pane === CENTER;
@@ -128,14 +132,19 @@ function ViewerSlide({
   const source = replication ? slideMotionSource(replication) : null;
   const poster = replication ? slidePosterSource(replication) : null;
   const gifLike = replication?.format.toLowerCase() === "gif";
+  // A clip has no frame: the pooled <video> stays empty and the stage renders
+  // the shared audio player instead.
+  const isAudio = replication?.type === "audio";
   const paintKey = source ? `${replication?.slug}|${source}` : null;
   const knownPosterAspect = posterAspect?.source === poster ? posterAspect : null;
   const { canRotate, rotated, aspectSettled, mediaAspect, probeAspect } = useStageFit({
     mediaKey: replication ? `${replication.slug}|${replication.url}` : "",
     type: replication?.type ?? "image",
     rotateMode,
-    width: replication?.width ?? knownPosterAspect?.width,
-    height: replication?.height ?? knownPosterAspect?.height,
+    // Audio carries no intrinsic size. Reporting a square keeps rotate-to-fit
+    // from turning a transport on its side on a portrait phone.
+    width: isAudio ? 1 : (replication?.width ?? knownPosterAspect?.width),
+    height: isAudio ? 1 : (replication?.height ?? knownPosterAspect?.height),
   });
   const orientationPending = canRotate && rotateMode && !aspectSettled;
   const mediaGeometryClassName = cn(
@@ -258,11 +267,23 @@ function ViewerSlide({
     if (active && aspectSettled) onProbeAspect(mediaAspect, 1);
   }, [active, aspectSettled, mediaAspect, onProbeAspect, replication?.slug]);
 
+  // Slides stay mounted in the pool, so a clip left playing would keep going
+  // from an offscreen pane. Leaving the centre stops this slide's own player.
+  useEffect(() => {
+    if (active) return;
+    audioPanelRef.current?.querySelector("audio")?.pause();
+  }, [active]);
+
   const width = replication?.width ?? 1600;
   const height = replication?.height ?? Math.round(width / (4 / 3));
-  const stillSource = replication
-    ? gifLike ? (poster ?? replication.url) : replication.url
-    : null;
+  // Audio never reaches the still stage: `url` is the clip, and the image
+  // layer would sit forever on bytes that never decode.
+  const stillSource =
+    !replication || isAudio
+      ? null
+      : gifLike
+        ? (poster ?? replication.url)
+        : replication.url;
   const [x, y] = PANE_OFFSETS[pane];
 
   return (
@@ -321,6 +342,36 @@ function ViewerSlide({
             onToggleControls={onSurfaceTap}
             onProbeAspect={probeAspect}
           />
+        </div>
+      ) : null}
+      {isAudio && replication ? (
+        <div
+          ref={audioPanelRef}
+          className="absolute inset-0 flex items-center justify-center p-6"
+        >
+          <Surface variant="card" padding="md" radius="xl" className="w-full max-w-md">
+            {/* A stable bar pattern derived from the slug, never sampled from
+                the file. Without it the stage is a black rectangle with a
+                transport floating in it. */}
+            <div
+              aria-hidden
+              className="mb-4 flex h-24 items-end justify-center gap-[3px]"
+            >
+              {audioWaveformBars(replication.slug || replication.title, 40).map(
+                (barHeight, index) => (
+                  <span
+                    key={index}
+                    className="theme-replication-waveform-bar w-[3px] flex-none rounded-full opacity-70"
+                    style={{ height: `${barHeight.toFixed(0)}%` }}
+                  />
+                ),
+              )}
+            </div>
+            <AudioReplicationPlayer
+              src={replication.url}
+              label={replication.title}
+            />
+          </Surface>
         </div>
       ) : null}
     </div>

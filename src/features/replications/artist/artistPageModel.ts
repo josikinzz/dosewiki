@@ -24,15 +24,18 @@ export function buildArtistShowcaseGroup(
   items: readonly PublicGalleryReplicationPreview[],
 ): GalleryGroup {
   let videoCount = 0;
+  let audioCount = 0;
   for (const item of items) {
     if (item.type === "video") videoCount += 1;
+    else if (item.type === "audio") audioCount += 1;
   }
   return {
     key: ARTIST_WORKS_KEY,
     label: "All works",
     count: items.length,
-    imageCount: items.length - videoCount,
+    imageCount: items.length - videoCount - audioCount,
     videoCount,
+    audioCount,
     items: [...items],
   };
 }
@@ -75,19 +78,27 @@ export function showcaseWorkFromPreview(
 
 /**
  * The identity header's count line: always the works total, plus the media
- * split only when the body of work actually mixes media — "24 works" alone
- * for an all-image artist, never "24 works · 24 images · 0 videos".
+ * split only where it says something. One kind alone needs no split ("24
+ * works", never "24 works · 24 images · 0 videos"), and a kind the artist has
+ * none of is omitted rather than printed as a zero.
  */
 export function formatArtistWorksLine(counts: {
   count: number;
   imageCount: number;
   videoCount: number;
+  audioCount?: number;
 }): string {
   const works = `${counts.count} ${counts.count === 1 ? "work" : "works"}`;
-  if (counts.imageCount === 0 || counts.videoCount === 0) {
-    return works;
-  }
-  return `${works} · ${counts.imageCount} image${counts.imageCount === 1 ? "" : "s"} · ${counts.videoCount} video${counts.videoCount === 1 ? "" : "s"}`;
+  const parts = [
+    { n: counts.imageCount, one: "image", many: "images" },
+    { n: counts.videoCount, one: "video", many: "videos" },
+    { n: counts.audioCount ?? 0, one: "audio clip", many: "audio clips" },
+  ].filter((part) => part.n > 0);
+  if (parts.length < 2) return works;
+  return [
+    works,
+    ...parts.map((part) => `${part.n} ${part.n === 1 ? part.one : part.many}`),
+  ].join(" · ");
 }
 
 /**

@@ -12,15 +12,21 @@ import {
   galleryGroupUrlKey,
   groupByArtist,
   groupByEffect,
+  groupByYear,
   isWithheldFromArtistViews,
   matchesQuery,
   matchesTaxonomyFilters,
+  matchesYear,
+  matchesType,
   splitRailsAndPool,
   sortWithinGroup,
+  sortWorksByDate,
   workDateMs,
   UNATTRIBUTED_KEY,
   UNATTRIBUTED_LABEL,
+  UNDATED_YEAR_LABEL,
   UNKNOWN_ARTIST_URL_KEY,
+  type GalleryTypeFilter,
 } from './galleryModel';
 
 let seq = 0;
@@ -90,14 +96,6 @@ describe('groupByArtist', () => {
     expect(groups[0].count).toBe(2);
   });
 
-  it('sorts alphabetically when asked, unattributed still last', () => {
-    const groups = groupByArtist(
-      [rep({ artist: 'Zeta' }), rep({ artist: 'Alpha' }), rep({ artist: '' })],
-      'alpha',
-    );
-    expect(groups.map((g) => g.label)).toEqual(['Alpha', 'Zeta', UNATTRIBUTED_LABEL]);
-  });
-
   it('carries an artist portfolio url onto the group', () => {
     const [group] = groupByArtist([rep({ artist: 'Unity', artist_url: 'https://unity.test' })]);
     expect(group.externalUrl).toBe('https://unity.test');
@@ -109,11 +107,7 @@ describe('groupByArtist', () => {
   ];
 
   it("links an artist heading to their Artist Page, not their own site", () => {
-    const [group] = groupByArtist(
-      [rep({ artist: 'Symmetric Vision', artist_url: 'https://sv.test' })],
-      'count',
-      directory,
-    );
+    const [group] = groupByArtist([rep({ artist: 'Symmetric Vision', artist_url: 'https://sv.test' })], directory);
 
     // The internal href is what MediaRail prefers, so the name goes to the
     // artist's one public surface; the personal site survives as a separate
@@ -126,24 +120,20 @@ describe('groupByArtist', () => {
     // "Kaylee" resolves to the Kaytwo profile, so the rail wears the profile's
     // display name and address; /replications/artist/kaylee still forwards
     // here through `creditKeys` (see resolveGalleryFocus).
-    const [group] = groupByArtist([rep({ artist: 'Kaylee' })], 'count', directory);
+    const [group] = groupByArtist([rep({ artist: 'Kaylee' })], directory);
     expect(group.label).toBe('Kaytwo');
     expect(group.href).toBe('/replications/artist/kaytwo');
     expect(group.creditKeys).toEqual(['kaylee']);
   });
 
   it('folds every credit line a profile claims into one group', () => {
-    const groups = groupByArtist(
-      [
-        rep({ artist: 'josikins', slug: 'a', artist_url: 'https://www.reddit.com/user/josikins/' }),
-        rep({ artist: 'Josikins', slug: 'b' }),
-        rep({ artist: 'Josie', slug: 'c' }),
-        rep({ artist: 'Josie Kins', slug: 'd', artist_url: 'https://www.josiekins.xyz/' }),
-        rep({ artist: 'Unity', slug: 'e' }),
-      ],
-      'count',
-      [{ key: 'JOSIE', displayName: 'Josie Kins', aliases: ['josie', 'josikinz', 'josikins'] }],
-    );
+    const groups = groupByArtist([
+      rep({ artist: 'josikins', slug: 'a', artist_url: 'https://www.reddit.com/user/josikins/' }),
+      rep({ artist: 'Josikins', slug: 'b' }),
+      rep({ artist: 'Josie', slug: 'c' }),
+      rep({ artist: 'Josie Kins', slug: 'd', artist_url: 'https://www.josiekins.xyz/' }),
+      rep({ artist: 'Unity', slug: 'e' }),
+    ], [{ key: 'JOSIE', displayName: 'Josie Kins', aliases: ['josie', 'josikinz', 'josikins'] }]);
     expect(groups.map((g) => [g.label, g.count])).toEqual([['Josie Kins', 4], ['Unity', 1]]);
     const [josie] = groups;
     expect(josie.href).toBe('/replications/artist/josie-kins');
@@ -154,23 +144,19 @@ describe('groupByArtist', () => {
   });
 
   it('leaves an unclaimed credit line keyed by itself', () => {
-    const [group] = groupByArtist([rep({ artist: 'Nobody At All' })], 'count', directory);
+    const [group] = groupByArtist([rep({ artist: 'Nobody At All' })], directory);
     expect(group.creditKeys).toEqual(['nobody-at-all']);
   });
 
   it('gives an artist with no profile the same generated Artist Page link', () => {
-    const [group] = groupByArtist(
-      [rep({ artist: 'Nobody At All', artist_url: 'https://nobody.test' })],
-      'count',
-      directory,
-    );
+    const [group] = groupByArtist([rep({ artist: 'Nobody At All', artist_url: 'https://nobody.test' })], directory);
 
     expect(group.href).toBe('/replications/artist/nobody-at-all');
     expect(group.externalUrl).toBe('https://nobody.test');
   });
 
   it('never links the unattributed bucket heading anywhere', () => {
-    const [group] = groupByArtist([rep({ artist: 'Unknown' }), rep({ artist: '' })], 'count', [
+    const [group] = groupByArtist([rep({ artist: 'Unknown' }), rep({ artist: '' })], [
       // Even a profile that took the bucket's own label as a display name must
       // not collect everything nobody signed.
       { key: 'IMPOSTOR', displayName: UNATTRIBUTED_LABEL, aliases: ['unknown'] },
@@ -208,7 +194,7 @@ describe('groupByArtist', () => {
       }),
     ];
 
-    const [group] = groupByArtist(works, 'count', [
+    const [group] = groupByArtist(works, [
       { key: 'KAYTWO', displayName: 'Kaytwo', aliases: ['kaylee'] },
     ]);
 
@@ -220,17 +206,14 @@ describe('groupByArtist', () => {
   });
 
   it('sinks an undated work below every dated one in an artist section', () => {
-    const [group] = groupByArtist(
-      [
-        rep({ artist: 'Kaytwo', slug: 'undated' }),
-        rep({
-          artist: 'Kaytwo',
-          slug: 'ancient',
-          date_info: dateInfo('year', '2011'),
-        }),
-      ],
-      'count',
-    );
+    const [group] = groupByArtist([
+      rep({ artist: 'Kaytwo', slug: 'undated' }),
+      rep({
+        artist: 'Kaytwo',
+        slug: 'ancient',
+        date_info: dateInfo('year', '2011'),
+      }),
+    ]);
 
     expect(group.items.map((item) => item.slug)).toEqual(['ancient', 'undated']);
   });
@@ -238,25 +221,22 @@ describe('groupByArtist', () => {
   it('breaks a shared work date by ingest recency, not by title', () => {
     // Most of the corpus carries year-only dates, so the tiebreak decides most
     // adjacent pairs; alphabetical there would read as an arbitrary shuffle.
-    const [group] = groupByArtist(
-      [
-        rep({
-          artist: 'Kaytwo',
-          slug: 'a-ingested-first',
-          title: 'A',
-          created_at: '2024-01-01T00:00:00.000Z',
-          date_info: dateInfo('year', '2022'),
-        }),
-        rep({
-          artist: 'Kaytwo',
-          slug: 'z-ingested-later',
-          title: 'Z',
-          created_at: '2025-01-01T00:00:00.000Z',
-          date_info: dateInfo('year', '2022'),
-        }),
-      ],
-      'count',
-    );
+    const [group] = groupByArtist([
+      rep({
+        artist: 'Kaytwo',
+        slug: 'a-ingested-first',
+        title: 'A',
+        created_at: '2024-01-01T00:00:00.000Z',
+        date_info: dateInfo('year', '2022'),
+      }),
+      rep({
+        artist: 'Kaytwo',
+        slug: 'z-ingested-later',
+        title: 'Z',
+        created_at: '2025-01-01T00:00:00.000Z',
+        date_info: dateInfo('year', '2022'),
+      }),
+    ]);
 
     expect(group.items.map((item) => item.slug)).toEqual([
       'z-ingested-later',
@@ -288,7 +268,10 @@ describe('groupByArtist', () => {
     expect(groups[0].items.map((item) => item.effect_slug)).toEqual(['geometry']);
   });
 
-  describe('video-first default tier', () => {
+  // The rail order is no longer selectable: the reader's control chooses which
+  // end of time the works inside a rail lead with, never which artist leads
+  // the page, so these tiers are the only artist ordering there is.
+  describe('fixed rail tiers', () => {
     it('ranks any artist with a video above every image-only artist', () => {
       const groups = groupByArtist([
         rep({ artist: 'Prolific Painter' }),
@@ -299,7 +282,7 @@ describe('groupByArtist', () => {
       expect(groups.map((g) => g.label)).toEqual(['Motion Maker', 'Prolific Painter']);
     });
 
-    it('keeps the count-then-alpha order within each tier', () => {
+    it('keeps the count-then-label order within each tier', () => {
       const groups = groupByArtist([
         // Video tier: Zed (two works, one a video) outranks Ann (one video).
         rep({ artist: 'Zed', type: 'video', format: 'mp4' }),
@@ -320,18 +303,6 @@ describe('groupByArtist', () => {
       expect(groups.map((g) => g.label)).toEqual(['Still Lifer', UNATTRIBUTED_LABEL]);
     });
 
-    it('leaves the selectable sorts untiered', () => {
-      const works = [
-        rep({ artist: 'Zed', type: 'video', format: 'mp4' }),
-        rep({ artist: 'Ann' }),
-        rep({ artist: 'Ann' }),
-      ];
-      // Untiered count: Ann's two works beat Zed's video. Untiered alpha:
-      // Ann leads; a tiered alpha would have hoisted Zed to the front.
-      expect(groupByArtist(works, 'count').map((g) => g.label)).toEqual(['Ann', 'Zed']);
-      expect(groupByArtist(works, 'alpha').map((g) => g.label)).toEqual(['Ann', 'Zed']);
-    });
-
     it('lifts approved replicators above the video tier, in count order among themselves', () => {
       const works = [
         rep({ artist: 'Motion Maker', type: 'video', format: 'mp4' }),
@@ -347,7 +318,7 @@ describe('groupByArtist', () => {
         { key: 'PROLIFIC', displayName: 'Prolific Painter', aliases: [], approvedReplicator: true },
       ];
 
-      const groups = groupByArtist(works, 'video-first', directory);
+      const groups = groupByArtist(works, directory);
       expect(groups.map((g) => g.label)).toEqual([
         'Prolific Painter',
         'Still Lifer',
@@ -357,34 +328,12 @@ describe('groupByArtist', () => {
     });
 
     it('resolves the endorsement through the alias-aware profile match', () => {
-      const groups = groupByArtist(
-        [rep({ artist: 'wheressuede', type: 'video', format: 'mp4' }), rep({ artist: 'Zed', type: 'video', format: 'mp4' }), rep({ artist: 'Zed' })],
-        'video-first',
-        [{ key: 'LOKA', displayName: 'Loka', aliases: ['wheressuede'], approvedReplicator: true }],
-      );
+      const groups = groupByArtist([rep({ artist: 'wheressuede', type: 'video', format: 'mp4' }), rep({ artist: 'Zed', type: 'video', format: 'mp4' }), rep({ artist: 'Zed' })], [{ key: 'LOKA', displayName: 'Loka', aliases: ['wheressuede'], approvedReplicator: true }]);
       expect(groups.map((g) => g.label)).toEqual(['Loka', 'Zed']);
       expect(groups[0].approvedReplicator).toBe(true);
       expect(groups[1]).not.toHaveProperty('approvedReplicator');
     });
 
-    it('keeps the endorsement off the selectable sorts and the unattributed bucket', () => {
-      const works = [
-        rep({ artist: 'Zed', type: 'video', format: 'mp4' }),
-        rep({ artist: 'Ann' }),
-        rep({ artist: 'Ann' }),
-        rep({ artist: '' }),
-      ];
-      const directory = [
-        { key: 'ZED', displayName: 'Zed', aliases: [], approvedReplicator: true },
-        { key: 'UNKNOWN', displayName: '', aliases: [''], approvedReplicator: true },
-      ];
-      expect(groupByArtist(works, 'count', directory).map((g) => g.label)).toEqual(['Ann', 'Zed', UNATTRIBUTED_LABEL]);
-      expect(groupByArtist(works, 'alpha', directory).map((g) => g.label)).toEqual(['Ann', 'Zed', UNATTRIBUTED_LABEL]);
-      const tiered = groupByArtist(works, 'video-first', directory);
-      const unattributed = tiered[tiered.length - 1];
-      expect(unattributed.key).toBe(UNATTRIBUTED_KEY);
-      expect(unattributed).not.toHaveProperty('approvedReplicator');
-    });
   });
 
   it('withholds from the unattributed bucket too', () => {
@@ -395,15 +344,11 @@ describe('groupByArtist', () => {
   it('folds Anonymous works into the unattributed bucket, unlinked', () => {
     // "Anonymous" holds a marker profile, but its works belong in the
     // Unattributed bucket: no section of its own and no profile link.
-    const groups = groupByArtist(
-      [
-        rep({ artist: 'Anonymous', slug: 'anon-work' }),
-        rep({ artist: 'unknown', slug: 'unknown-work' }),
-        rep({ artist: 'Josie Kins' }),
-      ],
-      'count',
-      [{ key: 'ANONYMOUS', displayName: 'Anonymous', aliases: [] }],
-    );
+    const groups = groupByArtist([
+      rep({ artist: 'Anonymous', slug: 'anon-work' }),
+      rep({ artist: 'unknown', slug: 'unknown-work' }),
+      rep({ artist: 'Josie Kins' }),
+    ], [{ key: 'ANONYMOUS', displayName: 'Anonymous', aliases: [] }]);
 
     expect(groups.map((group) => group.label)).toEqual(['Josie Kins', UNATTRIBUTED_LABEL]);
     const bucket = groups[1];
@@ -573,6 +518,141 @@ describe('workDateMs', () => {
   });
 });
 
+describe('sortWorksByDate', () => {
+  const rows = [
+    rep({ slug: 'mid', date_info: dateInfo('exact_date', '2019-06-01') }),
+    rep({ slug: 'newest', date_info: dateInfo('exact_date', '2026-01-01') }),
+    rep({ slug: 'undated', date_info: undefined }),
+    rep({ slug: 'oldest', date_info: dateInfo('exact_date', '2011-01-01') }),
+  ];
+
+  it('reads the timeline in either direction', () => {
+    expect(sortWorksByDate(rows, 'newest').map((r) => r.slug)).toEqual([
+      'newest',
+      'mid',
+      'oldest',
+      'undated',
+    ]);
+    expect(sortWorksByDate(rows, 'oldest').map((r) => r.slug)).toEqual([
+      'oldest',
+      'mid',
+      'newest',
+      'undated',
+    ]);
+  });
+
+  it('sinks undated rows last in both directions', () => {
+    // An absent date is not a claim of being old, so "Oldest" must not open
+    // on unknown work.
+    for (const direction of ['newest', 'oldest'] as const) {
+      const ordered = sortWorksByDate(rows, direction);
+      expect(ordered[ordered.length - 1].slug).toBe('undated');
+    }
+  });
+
+  it('follows the direction through the ingest tiebreak on equal dates', () => {
+    // Most of the corpus carries year-only dates, so this tiebreak decides
+    // most adjacent pairs; keeping it newest-first under "Oldest" would flip
+    // era order inside every year.
+    const sameYear = [
+      rep({ slug: 'ingested-first', date_info: dateInfo('year', '2020'), created_at: '2021-01-01T00:00:00.000Z' }),
+      rep({ slug: 'ingested-later', date_info: dateInfo('year', '2020'), created_at: '2024-01-01T00:00:00.000Z' }),
+    ];
+    expect(sortWorksByDate(sameYear, 'newest').map((r) => r.slug)).toEqual(['ingested-later', 'ingested-first']);
+    expect(sortWorksByDate(sameYear, 'oldest').map((r) => r.slug)).toEqual(['ingested-first', 'ingested-later']);
+  });
+});
+
+describe('groupByEffect ordering', () => {
+  const rows = [
+    rep({ slug: 'curated-still', order: 0, date_info: dateInfo('exact_date', '2015-01-01') }),
+    rep({ slug: 'loud-video', type: 'video', format: 'mp4', has_audio: true, date_info: dateInfo('exact_date', '2020-01-01') }),
+    rep({ slug: 'recent-still', date_info: dateInfo('exact_date', '2026-01-01') }),
+  ];
+  const name = (slug: string) => slug;
+  const href = (slug: string) => `/effects/${slug}`;
+
+  it('opens on the editor’s curated pick by default', () => {
+    const [group] = groupByEffect(rows, name, href);
+    expect(group.items[0].slug).toBe('curated-still');
+  });
+
+  it('retires the curated prefix while a direction is named', () => {
+    // A reader asking for the oldest work has asked past the editor's pick; a
+    // prefix that survived would leave the front of the rail out of
+    // chronological order while claiming to be sorted by date.
+    expect(groupByEffect(rows, name, href, 'newest').map(() => 0)).toHaveLength(1);
+    expect(groupByEffect(rows, name, href, 'newest')[0].items.map((i) => i.slug)).toEqual([
+      'recent-still',
+      'loud-video',
+      'curated-still',
+    ]);
+    expect(groupByEffect(rows, name, href, 'oldest')[0].items.map((i) => i.slug)).toEqual([
+      'curated-still',
+      'loud-video',
+      'recent-still',
+    ]);
+  });
+});
+
+describe('groupByYear', () => {
+  const dated = (slug: string, value: string) =>
+    rep({ slug, date_info: dateInfo(value.length === 4 ? 'year' : 'exact_date', value) });
+  // Three works per recent year clears MIN_RAIL_SIZE; the thin tail does not.
+  const corpus = [
+    ...['2026-01-01', '2026-02-01', '2026-03-01'].map((d, i) => dated(`new-${i}`, d)),
+    ...['2025-01-01', '2025-02-01', '2025-03-01'].map((d, i) => dated(`mid-${i}`, d)),
+    dated('thin-2003', '2003'),
+    dated('thin-2001', '2001'),
+    dated('thin-2000', '2000'),
+    rep({ slug: 'no-date', date_info: undefined }),
+  ];
+
+  it('gives every dense year its own rail, newest first', () => {
+    const groups = groupByYear(corpus);
+    expect(groups.slice(0, 2).map((g) => g.label)).toEqual(['2026', '2025']);
+  });
+
+  it('reverses the years under oldest, keeping undated last', () => {
+    const oldestFirst = groupByYear(corpus, 'oldest').map((g) => g.label);
+    const newestFirst = groupByYear(corpus, 'newest').map((g) => g.label);
+    expect(oldestFirst[0]).not.toBe('2026');
+    expect(newestFirst[0]).toBe('2026');
+    expect(oldestFirst[oldestFirst.length - 1]).toBe(UNDATED_YEAR_LABEL);
+    expect(newestFirst[newestFirst.length - 1]).toBe(UNDATED_YEAR_LABEL);
+  });
+
+  it('buckets the thin tail by decade and labels the span it holds', () => {
+    // A fixed cutoff would rot as the archive's deep tail grows, so the
+    // per-year run ends at the first year too thin to fill a rail.
+    const labels = groupByYear(corpus).map((g) => g.label);
+    expect(labels).toContain('2000\u20132003');
+    expect(labels).not.toContain('2003');
+  });
+
+  it('merges a decade too thin to stand into the next one up', () => {
+    // Otherwise the oldest works in the archive drop into the pooled tail and
+    // lose their date entirely.
+    const groups = groupByYear([
+      ...['2026-01-01', '2026-02-01', '2026-03-01'].map((d, i) => dated(`new-${i}`, d)),
+      dated('lone-1952', '1952'),
+      dated('lone-1949', '1949'),
+      dated('lone-1939', '1939'),
+    ]);
+    expect(groups.map((g) => g.label)).toEqual(['2026', '1939\u20131952']);
+    expect(groups[1].count).toBe(3);
+  });
+
+  it('keys each rail so its own year filter reproduces it exactly', () => {
+    for (const group of groupByYear(corpus)) {
+      const narrowed = corpus.filter((row) => matchesYear(row, group.key));
+      expect(narrowed.map((row) => row.slug).sort()).toEqual(
+        group.items.map((row) => row.slug).sort(),
+      );
+    }
+  });
+});
+
 describe('sortWithinGroup', () => {
   it('prefers the curated position within a media rank, then falls through the tiers', () => {
     const items = [
@@ -688,6 +768,21 @@ describe('matchesTaxonomyFilters', () => {
   });
 });
 
+describe('matchesType', () => {
+  it('filters each stored media kind, audio included', () => {
+    const image = rep({ type: 'image' });
+    const video = rep({ type: 'video', format: 'mp4' });
+    const audio = rep({ type: 'audio', format: 'ogg' });
+    const corpus = [image, video, audio];
+    const kept = (filter: GalleryTypeFilter) =>
+      corpus.filter((row) => matchesType(row, filter)).map((row) => row.type);
+    expect(kept('all')).toEqual(['image', 'video', 'audio']);
+    expect(kept('image')).toEqual(['image']);
+    expect(kept('video')).toEqual(['video']);
+    expect(kept('audio')).toEqual(['audio']);
+  });
+});
+
 describe('splitRailsAndPool', () => {
   const groupsOf = (...counts: number[]) =>
     counts.map((count, index) => ({
@@ -696,6 +791,7 @@ describe('splitRailsAndPool', () => {
       count,
       imageCount: count,
       videoCount: 0,
+      audioCount: 0,
       items: Array.from({ length: count }, () => rep()),
     }));
 

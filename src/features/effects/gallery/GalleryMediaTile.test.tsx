@@ -21,6 +21,20 @@ const VIDEO: GalleryReplication = {
   height: 720,
 };
 
+const AUDIO: GalleryReplication = {
+  _id: "k57audioenhancement",
+  _creationTime: 0,
+  slug: "auditory-enhancement-emex",
+  title: "Auditory enhancement",
+  artist: "EmEx",
+  effect_slug: "auditory-enhancement",
+  type: "audio",
+  format: "ogg",
+  created_at: "2016-01-30",
+  url: "https://example.test/audio-enhancement.ogg",
+  duration: 45,
+};
+
 const VIEWER_HREF = `/replications?viewer=${VIDEO.slug}`;
 
 /**
@@ -266,6 +280,38 @@ describe("GalleryMediaTile", () => {
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector(".theme-skeleton-pulse")).toBeNull();
     expect(screen.getAllByText("Geometry Frog").length).toBeGreaterThan(0);
+  });
+});
+
+describe("GalleryMediaTile audio", () => {
+  it("draws its own frame instead of handing the clip to the image layer", () => {
+    const { container } = render(
+      <GalleryMediaTile replication={AUDIO} viewerHref="/replications?viewer=auditory-enhancement-emex" />,
+    );
+
+    // The clip URL in an <img> is a permanently broken image, and the tile
+    // would sit under a shimmer waiting for bytes that never decode.
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector(".theme-skeleton-pulse")).toBeNull();
+    expect(
+      container.querySelectorAll(".theme-replication-waveform-bar").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("stays a plain link to the viewer, with an audio chip and the clip length", () => {
+    const { container } = render(
+      <GalleryMediaTile replication={AUDIO} viewerHref="/replications?viewer=auditory-enhancement-emex" />,
+    );
+
+    // Nothing on the tile competes with opening the work: no transport here.
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/replications?viewer=auditory-enhancement-emex",
+    );
+    expect(container.querySelector("button")).toBeNull();
+    expect(container.querySelector("audio")).toBeNull();
+    expect(screen.getByText(/Audio/)).toBeInTheDocument();
+    expect(screen.getByText("0:45")).toBeInTheDocument();
   });
 });
 

@@ -62,7 +62,7 @@ export interface ReplicationViewerMediaItem extends Omit<
 export type ReplicationViewerCollectionKind =
   | ReplicationViewerScope
   | "gallery";
-export type ReplicationViewerGrouping = "none" | "artist" | "effect";
+export type ReplicationViewerGrouping = "none" | "artist" | "effect" | "year";
 
 export interface ReplicationViewerEditableTarget {
   kind: ReplicationViewerScope;
@@ -212,7 +212,12 @@ export function viewerCollectionFromGalleryGroups(
 ): ReplicationViewerCollection {
   return {
     sourcePath,
-    label: grouping === "artist" ? "Sorted by artist" : "Sorted by effect",
+    label:
+      grouping === "artist"
+        ? "Sorted by artist"
+        : grouping === "year"
+          ? "Sorted by year"
+          : "Sorted by effect",
     kind: "gallery",
     grouping,
     groups: groups.map((group) => ({
