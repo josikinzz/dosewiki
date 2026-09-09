@@ -1,3 +1,17 @@
+## 2026-09-09 How page editor-prose release
+
+Public DoseWiki serves `dpl_8FuAu9KYKZQag775Quzr7eGYce5W` on `dose.wiki` and
+`www.dose.wiki`. Its isolated source uses snapshot
+`65e4f167f9dca88afa9fb7b0397c0e604c828f6b` plus two files:
+`src/app/docs/how/page.tsx` (the editor-prose integration from three Josie
+drafts, commits `37689e12` and `6f5e5ac7`) and
+`src/data/content/aboutContent.md` (the About copy rewrite already live via
+Convex, commit `7dd7845f`). TypeScript, the full public static generation
+(1,188 pages), and live phrase checks on both public hosts passed. Convex
+deployment was skipped; the editor hosts and Effect Index were not released.
+Roll back to `dpl_6Bsn1JMaYttuYhJ62TrER1yWdM9L` using the explicit scope
+above. Evidence: `runs/how-page-release/2026-09-09-editor-prose.json`.
+
 # Deployment
 
 This repo is linked to Vercel. Treat this file as the repo-local deployment/account routing source of truth.
