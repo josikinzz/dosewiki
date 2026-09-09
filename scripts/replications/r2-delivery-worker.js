@@ -15,6 +15,7 @@
  *   shard repeating the digest's first two characters) are ever looked up;
  *   everything else is 404 without touching the bucket.
  * - Byte ranges are honored (video seeking); responses carry Accept-Ranges.
+ *   A GET with no Range header answers 200, never a full-object 206.
  * - Objects are immutable, so hits are `public, max-age=31536000, immutable`
  *   and conditional requests answer 304 via the object's etag.
  * - `Content-Disposition: inline` — media renders, never downloads.
@@ -75,8 +76,16 @@ export default {
       return new Response(null, { status: 200, headers });
     }
 
+    // Forward `range` only when the client actually sent one. R2 populates
+    // `R2ObjectBody.range` whenever the option is present, so passing the
+    // request headers unconditionally made every plain GET answer 206 with a
+    // whole-object Content-Range. RFC 9110 15.3.7 allows 206 only in reply to
+    // a range request, and strict consumers reject it: Twitter's card-image
+    // fetcher discards the response, which silently stripped the art from
+    // every dose.wiki link preview once the cards moved onto this worker.
+    const rangeRequested = request.headers.has("range");
     const object = await env.BUCKET.get(key, {
-      range: request.headers,
+      ...(rangeRequested ? { range: request.headers } : {}),
       onlyIf: request.headers,
     });
     if (!object) return new Response("Not Found", { status: 404 });
@@ -88,7 +97,7 @@ export default {
       return new Response(null, { status: 304, headers });
     }
 
-    if (object.range) {
+    if (rangeRequested && object.range) {
       const offset = object.range.offset ?? 0;
       const length = object.range.length ?? object.size - offset;
       headers.set("content-range", `bytes ${offset}-${offset + length - 1}/${object.size}`);
