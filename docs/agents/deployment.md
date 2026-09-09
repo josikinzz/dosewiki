@@ -486,6 +486,72 @@ pass. Seventeen explorer tests moved with the changed contract rather than being
 re-pinned. The theme token audit passed with 851 baseline findings and no new
 ones.
 
+The 2026-09-09 replication-ordering release serves these production deployments,
+all built from commit `f4b91ae5` on `no-corpus-drain`:
+
+| Surface | Deployment | Rollback deployment |
+| --- | --- | --- |
+| dose.wiki and www.dose.wiki | `dpl_DqqJGPMCw16whcxYt5DqBULh5NU1` | `dpl_S3rqW84P7xR86cuPwBnGMtCxEowy` |
+| dev.dose.wiki and dosewiki-admin.vercel.app | `dpl_4utomjXBHiCMV3wfLfMpseDBaaBd` | `dpl_8HY6omGkx3rsjkt8L9ts8y7BjKcC` |
+| effectindex.com | `dpl_ABn3dPyrG4zcTWpwRBoFdLgRXEhG` | `dpl_9o5QMXTB1ZLzQ7gNULfpRNEpfioU` |
+
+This release makes the replication index honour the 2026-09-08 curation orders
+it had never shown, and turns artist playlists into timelines. Convex now
+projects `effect_order_index`, one curated position per depicted effect,
+replacing a single `order_index` scalar that could only carry the owning
+effect's rank; `groupByEffect` buckets by every effect a work depicts, the same
+`depictsEffect` union the effect article uses, and applies each effect's own
+prefix above the audio-first media rank. Artist surfaces sort by work date
+alone through `sortArtistWorks`, so the Effect Index featured float and
+`contributorProfiles.replicationOrder` no longer reach them; that field is still
+stored and still writable from the contributor editor, but nothing public reads
+it, and its dead read plumbing is gone from the contributor directory payload.
+The public `/api/v1` `order_index` is derived from the map and unchanged.
+
+Each project uploaded from an isolated worktree at that commit, so the
+concurrent `scripts/` feedback-register work in the shared tree was excluded.
+The public and Effect Index projects hold no deploy key and the editor build ran
+with `--build-env CONVEX_DEPLOY_KEY=`, so all three logged `Convex functions
+will NOT be deployed by this build`. Convex was published separately and last,
+from a workstation through `npm run convex:deploy -- --prod
+--from-head-worktree --confirm`, after every app build was live: the new code
+ignores the old scalar, so app-first has no window where a live build reads a
+projection it does not understand, whereas Convex-first would have flattened
+curated order everywhere until the builds landed. The strict live inventory
+matched all 351 checkout functions before and after.
+
+`dose.wiki` was redeployed once (`dpl_8CmW6Q1jfmJmoF95G4GWLhQAYkGX` →
+`dpl_DqqJGPMCw16whcxYt5DqBULh5NU1`) purely to flush one CDN object. The gallery
+corpus route answers `Cache-Control: public, max-age=3600`, and a response
+captured between the app deploys and the Convex publish held pre-publish rows;
+the origin was already correct. `PUBLIC_CACHE_PUBLISH_SECRET` could not be used
+to expire the tag instead: `vercel env pull` returns an empty value for it, so
+the signal cannot be signed from a workstation.
+
+Live checks: the Convex projection drained through all 110 pages gives 6,627
+curated positions across 49 effects with 47 works at position 0, and both
+`dose.wiki` and `effectindex.com` serve exactly that. All 43 effect rails in
+`/replications?view=effect` open on their article's `showcase[0]`, verified
+against `/api/replications/showcase?effect=`. Artist rails descend by work date
+with media interleaved: Symmetric Vision opens on eleven 2026 works, Oracle
+Emissary places a 2024 image above nine 2022 sounded videos, Cold Wasabi is
+stills 2022 down to 2020. `/replications/artist/symmetric-vision` and
+`/contributors/SYMMETRIC VISION` both open on `balls-being-tripped-at-modem`.
+Authenticated production editing was not exercised.
+
+A verification caveat worth keeping: an intermediate audit reported 25 of 43
+rails mismatched. That was the headless browser replaying its own cached corpus
+response (`transferSize: 0`, 2ms) from before the Convex publish. Disabling the
+browser cache and clearing it fetched 1.53 MB fresh and reported 43 of 43. Any
+future audit of this surface must defeat the one-hour client cache on
+`/api/replications/gallery` before believing a mismatch.
+
+Local gates before the release: 613 test files and 5,868 tests passed with
+`tsc --noEmit` clean, and `npm run verify:app` built the public artifact with
+the audit reporting zero editorial browser modules. Six tests that pinned the
+removed curation contracts were deleted rather than re-pinned, and two viewer
+tests that hardcoded a fixture's sort position now assert the tile they click.
+
 Public caches are project-local, so an editor-side invalidation reaches only
 the editor project. Editorial writes therefore publish across deployments: the
 seam in `lib/next/publishPublicCache.ts` expires the editor project's own
