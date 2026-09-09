@@ -436,6 +436,56 @@ Local gates before the release: 613 test files and 5,873 tests passed, and
 rather than deferred, one in the copyBlocks write harness and one in the theme
 token audit baseline.
 
+The 2026-09-08 replications control-bar release serves these production
+deployments, all built from commit `ed20c6f2` on `no-corpus-drain`:
+
+| Surface | Deployment | Rollback deployment |
+| --- | --- | --- |
+| dose.wiki and www.dose.wiki | `dpl_S3rqW84P7xR86cuPwBnGMtCxEowy` | `dpl_G1pZgizxN2ogaHGBpURUmicTAayx` |
+| dev.dose.wiki and dosewiki-admin.vercel.app | `dpl_8HY6omGkx3rsjkt8L9ts8y7BjKcC` | `dpl_1n2ms6UkWP1Mt3sFpyS3zTzsx7j9` |
+| effectindex.com | `dpl_9o5QMXTB1ZLzQ7gNULfpRNEpfioU` | `dpl_17uYSRwMyxkjDUn8MQuxrqSADvDg` |
+
+This is an application-only release of the replications gallery chrome. Every
+control in the index's sticky bar is one labelled menu button (glyph, current
+value, chevron) from `md` up, and folds to its glyph below `md`, where the menu
+still carries every name; both desktop toggle groups and their phone twins are
+gone. The bar holds one 52px row at every width, replacing the 110px two-row
+layout it took across the whole 640-1023px band. The corpus census moved to the
+tab row, server-rendered, and a status line under the bar reports the filtered
+count against the archive only while something narrows the grid. Seven files
+changed; each project uploaded 5,037 source files from an isolated worktree at
+that commit, so the concurrent `scripts/` work in the shared tree was excluded.
+
+No Convex functions were published. The public and Effect Index projects hold no
+deploy key and the editor build ran with `--build-env CONVEX_DEPLOY_KEY=`, so all
+three logged `Convex functions will NOT be deployed by this build`. The
+checkout-only call-site integrity check passed in each.
+
+Two public upload attempts failed before the third succeeded: the Vercel CLI hit
+`SSL alert number 20` (`bad record mac`) against `api.vercel.com` on the file
+upload. The transport recovered on retry with unchanged source; no provider or
+account setting was touched.
+
+Live checks: `dose.wiki/replications` serves a 52px single-row bar with `By
+artist`, `All media`, `Videos first` and `Filters` as text, a 9px container
+radius and no border (the hairline is now the shadow's first layer alone), first
+artwork at y=246 where it was y=362; `?type=video&viewing=open-eye` reads `2,196
+of 6,607 works` beside its removable chip with the media and filter glyphs tinted
+accent; the tab row carries `6,607 works · 2,117 artists · 44 effects`; 390px
+serves three glyph triggers plus a 208px field on one row with the rail's sticky
+artist label resolving to `top: 128px`, matching
+`--replications-control-bar-height` exactly for the first time. Anonymous
+`dev.dose.wiki/dev` still redirects to sign-in, `POST
+/api/dev/revalidate-article` without a token still returns 401, and
+`effectindex.com/reports` still renders. Authenticated production editing was not
+exercised.
+
+Local gates before the release: 613 test files and 5,870 tests passed with
+`tsc --noEmit` clean, then 43 files and 548 tests re-run after the final geometry
+pass. Seventeen explorer tests moved with the changed contract rather than being
+re-pinned. The theme token audit passed with 851 baseline findings and no new
+ones.
+
 Public caches are project-local, so an editor-side invalidation reaches only
 the editor project. Editorial writes therefore publish across deployments: the
 seam in `lib/next/publishPublicCache.ts` expires the editor project's own
