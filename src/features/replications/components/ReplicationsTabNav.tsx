@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
@@ -42,15 +43,31 @@ const SUBREDDIT_URL = "https://www.reddit.com/r/replications";
  * (the gallery's fair-use notice does). It therefore carries the section
  * measure and its default top offset, keeping the bar on the same left edge
  * and at the same height on every tab that has nothing above it.
+ *
+ * `trailing` is where a tab states something about itself once: the gallery
+ * puts the archive's size there. It shares this row because the row is
+ * already the page's quietest line and, unlike the control bar below it, it
+ * does not stick to the top of every scroll position.
  */
-export function ReplicationsTabNav({ className }: { className?: string }) {
+export function ReplicationsTabNav({
+  className,
+  trailing,
+}: {
+  className?: string;
+  trailing?: ReactNode;
+}) {
   const pathname = usePathname();
 
   return (
-    <div className={cn("mx-auto mt-2 w-full max-w-7xl", className)}>
+    <div
+      className={cn(
+        "mx-auto mt-2 flex w-full max-w-7xl items-center gap-4",
+        className,
+      )}
+    >
       <nav
         aria-label="Replications sections"
-        className="-mx-4 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0"
+        className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0"
       >
         <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
           {SECTION_TABS.map((tab) => {
@@ -101,6 +118,14 @@ export function ReplicationsTabNav({ className }: { className?: string }) {
           </a>
         </div>
       </nav>
+      {/* From `lg` up only: at `md` the tabs plus the r/replications link
+          already fill the row, and the sentence pushed the link under a
+          scroll. It is a once-read statement, so it yields. */}
+      {trailing ? (
+        <p className="theme-text-faint hidden shrink-0 text-xs tabular-nums lg:block">
+          {trailing}
+        </p>
+      ) : null}
     </div>
   );
 }

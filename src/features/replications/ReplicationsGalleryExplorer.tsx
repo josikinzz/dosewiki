@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { icons } from "@/utils/iconNames";
 import {
   dismissPrePaintRouteStateCover,
   PrePaintRouteStateCover,
@@ -25,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -32,9 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { focusRingClassName } from "@/components/ui/surface";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -42,7 +43,6 @@ import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { MediaRail } from "@/features/effects/gallery/MediaRail";
 import {
   ARTIST_RAIL_PAGE,
-  countGallery,
   DEFAULT_GALLERY_TAXONOMY_FILTERS,
   effectHrefBuilder,
   effectNameLookup,
@@ -78,6 +78,12 @@ import {
   ReplicationTaxonomyFilters,
 } from "./components/ReplicationTaxonomyFilters";
 import {
+  CONTROL_MENU_ITEM_CLASS,
+  CONTROL_TRIGGER_CHEVRON_CLASS,
+  CONTROL_TRIGGER_CLASS,
+  CONTROL_TRIGGER_LABEL_CLASS,
+} from "./components/controlBarTrigger";
+import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
   buildReplicationViewerUrl,
@@ -106,21 +112,21 @@ interface EffectSummary {
 
 type GalleryPageLoadState = "idle" | "loading" | "error";
 
-/** Square icon control for the phone control bar (44px on coarse pointers). */
-const COMPACT_ICON = cn("h-10 w-10 shrink-0 p-0", TOUCH_ICON);
-
-/** Phone menu rows: finger-height, glyph before label. */
-const PHONE_MENU_ITEM = "min-h-11 gap-2";
-
+/**
+ * Artists get the site's person glyph; effects get the very icon the app
+ * header and every effect heading already use, so the browse axes are named
+ * by the same marks the rest of the site names them by.
+ */
 const MODE_ICON: Record<GalleryMode, IconName> = {
-  artist: "lucide:palette",
-  effect: "lucide:sparkles",
+  artist: icons.userRound,
+  effect: icons.subjectiveEffectIndex,
 };
 
 /**
- * Browse-mode names. The bar shows the glyph alone at every width now, so
- * these are what the control is *called*: its accessible name, its tooltip,
- * and its row in the phone menu.
+ * Browse-mode names. One string does every job: the trigger's visible label,
+ * its accessible name, its tooltip, and its row in the menu. "By artist"
+ * rather than "Artists" because this control chooses an axis to read the
+ * archive along, not a subset of it to keep.
  */
 const MODE_LABEL: Record<GalleryMode, string> = {
   artist: "By artist",
@@ -133,8 +139,9 @@ const TYPE_ICON: Record<GalleryTypeFilter, IconName> = {
   video: "lucide:video",
 };
 
+/** Menu rows name the set; the trigger names the current state. */
 const TYPE_LABEL: Record<GalleryTypeFilter, string> = {
-  all: "All",
+  all: "All media",
   image: "Images",
   video: "Videos",
 };
@@ -144,6 +151,17 @@ const ARTIST_SORT_OPTIONS: ReadonlyArray<[GalleryArtistSort, string]> = [
   ["count", "Most works"],
   ["alpha", "A–Z"],
 ];
+
+/**
+ * Effect names are article titles, and the corpus carries both `After images`
+ * and `aesthetic distillation`. Sorted by locale, the two casings interleave
+ * and the select reads like a list nobody edited. The stored name is the truth
+ * everywhere else, so only the option's first letter is lifted, and the sort
+ * runs on the lifted label so the order matches what the reader sees.
+ */
+function optionCase(name: string): string {
+  return name ? name[0].toLocaleUpperCase() + name.slice(1) : name;
+}
 
 const ARTIST_SORT_LABEL = Object.fromEntries(ARTIST_SORT_OPTIONS) as Record<
   GalleryArtistSort,
@@ -899,28 +917,12 @@ function GalleryExplorer({
       for (const tag of item.effect_tags ?? []) slugs.add(tag);
     }
     return [...slugs]
-      .map((slug) => ({ value: slug, label: effectName(slug) }))
+      .map((slug) => ({ value: slug, label: optionCase(effectName(slug)) }))
       .sort((left, right) => left.label.localeCompare(right.label));
   }, [displayable, effectName]);
 
   const query = focus ? "" : browse.query;
   const searching = query.trim().length > 0;
-
-  /**
-   * The header counts describe the corpus behind what is on screen. Artist
-   * browsing withholds the works of some effects (`isWithheldFromArtistViews`),
-   * so it counts its own narrower corpus: a header claiming more works than the
-   * grid can ever show is a bug. Search reaches across the whole displayable
-   * corpus in either mode, so while searching the counts do too.
-   */
-  const counted = useMemo(
-    () =>
-      mode === "artist" && !searching
-        ? taxonomyDisplayable.filter((item) => !isWithheldFromArtistViews(item))
-        : taxonomyDisplayable,
-    [mode, searching, taxonomyDisplayable],
-  );
-  const counts = useMemo(() => countGallery(counted), [counted]);
 
   const filtered = useMemo(
     () =>
@@ -930,6 +932,32 @@ function GalleryExplorer({
           matchesQuery(item, query, effectName),
       ),
     [taxonomyDisplayable, typeFilter, query, effectName],
+  );
+
+  /**
+   * The result line's two numbers.
+   *
+   * The numerator is what the grid actually renders. Artist browsing withholds
+   * some effects' works and `groupByArtist` drops them, so counting `filtered`
+   * alone would claim rows nobody can see. The denominator is the archive the
+   * current axis can show at all, ignoring every control in the bar: "247 of
+   * 6,607" only means something if the second number holds still while the
+   * first moves. Search reaches across the whole displayable corpus in either
+   * mode, so while searching both numbers do too.
+   */
+  const shown = useMemo(
+    () =>
+      mode === "artist" && !searching
+        ? filtered.filter((item) => !isWithheldFromArtistViews(item))
+        : filtered,
+    [filtered, mode, searching],
+  );
+  const archiveTotal = useMemo(
+    () =>
+      mode === "artist" && !searching
+        ? displayable.filter((item) => !isWithheldFromArtistViews(item)).length
+        : displayable.length,
+    [displayable, mode, searching],
   );
 
   /**
@@ -1016,13 +1044,14 @@ function GalleryExplorer({
   }, [digestActive, initialArtistRails, rails]);
 
   /**
-   * Header numbers: the client-side count of whatever is loaded, except in
-   * the digest-backed default view, where the server's complete-corpus stats
-   * are authoritative until the corpus arrives.
+   * The denominator: the client-side count of whatever is loaded, except in
+   * the digest-backed default view, where the server's complete-corpus total
+   * is authoritative until the corpus arrives. Until one of them is complete
+   * the line says "so far" instead of inventing a total.
    */
   const statsComplete = !hasMore || (digestActive && Boolean(corpusStats));
-  const displayCounts =
-    hasMore && digestActive && corpusStats ? corpusStats : counts;
+  const corpusTotal =
+    hasMore && digestActive && corpusStats ? corpusStats.total : archiveTotal;
 
   const [visibleRailCount, setVisibleRailCount] = useState(ARTIST_RAIL_PAGE);
   useEffect(() => {
@@ -1262,28 +1291,37 @@ function GalleryExplorer({
     sort: artistSort,
   });
 
-  /**
-   * The artist-sort toggle only applies to the artist browse view, but it
-   * stays mounted (inert + invisible) elsewhere so the control bar keeps one
-   * width across mode switches instead of jittering.
-   */
+  /** Sorting is an artist-rail affordance, so it exists only where rails do. */
   const sortActive = mode === "artist" && !searching && !focus;
-  // Below Tailwind's `sm` (640px) the control bar is the one-row icon layout.
-  const phone = useMediaQuery("(max-width: 639px)");
+  /**
+   * Two width thresholds, both about the same row.
+   *
+   * `md` (768px) is where each control's label unfolds beside its glyph;
+   * below it the label lives in the menu the glyph opens. `lg` is where the
+   * search field is wide enough for the placeholder to name all three things
+   * it searches; between them it names two, because a clipped placeholder
+   * reads as a bug in the one control that has to look trustworthy.
+   */
+  const compactBar = useMediaQuery("(max-width: 767px)");
+  const tightField = useMediaQuery("(max-width: 1023px)");
+  /**
+   * Anything that makes the grid smaller than the archive. While one of these
+   * is on, the resting corpus sentence on the tab row is no longer the number
+   * the reader is asking about, so the bar's own line answers instead.
+   */
+  const narrowing =
+    searching || typeFilter !== "all" || hasActiveTaxonomyFilters;
+  const corpusLoading = pageLoadState === "loading";
+  const resultSummary = statsComplete
+    ? `${shown.length.toLocaleString("en-US")} of ${corpusTotal.toLocaleString("en-US")} works`
+    : `${shown.length.toLocaleString("en-US")} works so far`;
 
   /**
-   * The search field rests at glyph width and opens on focus.
-   *
-   * Every other control in the bar is a glyph now, and a permanently open
-   * field with a sentence of placeholder in it was the one text run left. At
-   * rest it is a magnifier in a 36px box; focus widens it, and an active query
-   * holds it open through `searching` so a `?q=` deep link and a reader
-   * mid-search never meet a shut field. It is width, not mounting: the input
-   * stays in the DOM and in the tab order, so reaching it never costs a click
-   * and the placeholder is the only thing that has to wait.
+   * `/` focuses the gallery search from anywhere on the page. Every other
+   * control opens a menu, so this is the one accelerator the bar cannot get
+   * from its own chrome: the site-wide header field is the only other keyboard
+   * entry point to a search box here, and it queries a different corpus.
    */
-  const searchOpen = searching;
-
   useEffect(() => {
     if (chrome !== "full") return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -1328,69 +1366,109 @@ function GalleryExplorer({
               </Alert>
             ) : null}
 
-            {/* One row of glyphs at every width: browse mode, media type,
-                artist sort, filters, and a search field that folds into its
-                own magnifier. Phones drive browse/media through menus instead
-                of segmented groups because a menu row is a finger target and
-                a three-up segment is not; the two sets never render together.
-                Every glyph carries its name in `aria-label` and `title`, the
-                way the editor chrome's icon buttons do. */}
+            {/* One row at every width, and one control set at every width:
+                the browse axis, the search field, then the three controls that
+                narrow what the axis shows. Each is a menu button carrying its
+                own name and current value from `md` up; below `md` the label
+                folds into the glyph and the menu still names everything, which
+                is the only arrangement a 344px track can hold beside a
+                typeable field. The corpus census is not a control and no
+                longer rides here: it states the archive's size once, on the
+                tab row above, and the count that answers "what did I just do"
+                appears under the bar the moment anything narrows the grid. */}
             {chrome === "full" ? (
               <div className="sticky top-[calc(var(--site-header-height)+var(--site-header-sticky-gap))] z-20 mt-2 md:mt-0">
                 <div
                   data-testid="gallery-control-bar"
-                  className="theme-frosted-control-bar flex w-full min-w-0 items-center gap-1.5 rounded-2xl border border-[color:var(--theme-frosted-control-border)] p-1.5 backdrop-blur-md sm:flex-wrap sm:gap-3 sm:p-2"
+                  className="theme-frosted-control-bar flex w-full min-w-0 items-center gap-1.5 rounded-3xl p-1.5 backdrop-blur-md md:gap-2 md:p-2"
                 >
-                  <ToggleGroup
-                    type="single"
-                    variant="pill"
-                    value={mode}
-                    onValueChange={(value) =>
-                      value && switchMode(value as GalleryMode)
-                    }
-                    aria-label="Browse by"
-                    className="hidden shrink-0 sm:flex"
-                  >
-                    {(["artist", "effect"] as const).map((value) => (
-                      <ToggleGroupItem
-                        key={value}
-                        value={value}
-                        aria-label={MODE_LABEL[value]}
-                        title={MODE_LABEL[value]}
-                        className={cn(
-                          TOUCH_PILL,
-                          "px-2.5 data-[state=on]:border-dose-accent-strong",
-                        )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="pill"
+                        size="auto"
+                        className={CONTROL_TRIGGER_CLASS}
+                        aria-label={`Browse by: ${MODE_LABEL[mode]}`}
+                        title={`Browse by: ${MODE_LABEL[mode]}`}
                       >
                         <Icon
-                          icon={MODE_ICON[value]}
-                          className="h-4 w-4"
+                          icon={MODE_ICON[mode]}
+                          className="h-4 w-4 shrink-0"
                           aria-hidden
                         />
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
+                        <span className={CONTROL_TRIGGER_LABEL_CLASS}>
+                          {MODE_LABEL[mode]}
+                        </span>
+                        <Icon
+                          icon="lucide:chevron-down"
+                          className={CONTROL_TRIGGER_CHEVRON_CLASS}
+                          aria-hidden
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuLabel>Browse by</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={mode}
+                        onValueChange={(value) =>
+                          switchMode(value as GalleryMode)
+                        }
+                      >
+                        {(["artist", "effect"] as const).map((value) => (
+                          <DropdownMenuRadioItem
+                            key={value}
+                            value={value}
+                            className={CONTROL_MENU_ITEM_CLASS}
+                          >
+                            <Icon
+                              icon={MODE_ICON[value]}
+                              className="h-4 w-4"
+                              aria-hidden
+                            />
+                            {MODE_LABEL[value]}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                      {/* Below `md` the row has four glyph-width slots and the
+                          search field needs three of them, so sorting rides
+                          the axis it belongs to instead of taking a fifth.
+                          Hidden by CSS rather than by the media query hook so
+                          the server's markup is already correct. */}
+                      {sortActive ? (
+                        <DropdownMenuGroup className="md:hidden">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel>Sort artists</DropdownMenuLabel>
+                          <DropdownMenuRadioGroup
+                            value={artistSort}
+                            onValueChange={(value) =>
+                              setArtistSort(value as GalleryArtistSort)
+                            }
+                          >
+                            {ARTIST_SORT_OPTIONS.map(([value, label]) => (
+                              <DropdownMenuRadioItem
+                                key={value}
+                                value={value}
+                                className={CONTROL_MENU_ITEM_CLASS}
+                              >
+                                {label}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuGroup>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-                  <div
-                    className={cn(
-                      "group relative min-w-0 shrink-0 transition-[width,flex-basis] duration-200 ease-out motion-reduce:transition-none",
-                      "focus-within:w-full focus-within:flex-1 focus-within:basis-0 sm:focus-within:min-w-60 sm:focus-within:flex-[1_1_calc(100%_-_12rem)] lg:focus-within:flex-[1_1_15rem]",
-                      searchOpen
-                        ? "w-full flex-1 basis-0 sm:min-w-60 sm:flex-[1_1_calc(100%_-_12rem)] lg:flex-[1_1_15rem]"
-                        : "w-10 sm:w-9",
-                    )}
-                  >
+                  {/* The one control that stays a field. Shrunk to its
+                      magnifier a search box stops reading as somewhere you can
+                      type, so it keeps a single elastic rule from `md` up
+                      instead of the two-breakpoint basis that used to wrap the
+                      bar onto a second row for the whole 640-1023px band. */}
+                  <div className="relative min-w-0 flex-1 basis-0 md:min-w-48 lg:min-w-52">
                     <Icon
                       icon="lucide:search"
-                      className={cn(
-                        "theme-text-faint pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 transition-[left] duration-200 motion-reduce:transition-none",
-                        // Resting, the glyph is the control: it sits centred in
-                        // its square and slides to the field's left edge as the
-                        // field opens.
-                        searchOpen
-                          ? "left-3"
-                          : "left-1/2 -translate-x-1/2 group-focus-within:left-3 group-focus-within:translate-x-0",
-                      )}
+                      className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
                     />
                     <Input
                       ref={inputRef}
@@ -1407,20 +1485,20 @@ function GalleryExplorer({
                         inputRef.current.value = "";
                         updateQuery("");
                       }}
-                      placeholder="Search art, artist, effect"
+                      // Below `lg` the field bottoms out at 192px, where the
+                      // three-noun placeholder clipped mid-word, which reads
+                      // as a bug in the one control that has to look
+                      // trustworthy. It names two things there instead.
+                      placeholder={
+                        tightField
+                          ? "Search art, artist"
+                          : "Search art, artist, effect"
+                      }
                       className={cn(
-                        "h-10 [@media(pointer:coarse)]:h-11 sm:h-9",
-                        // Resting, the box is 36px wide, which is narrower than
-                        // the open field's own padding: with `box-sizing:
-                        // border-box` that padding becomes the used width and
-                        // the input overflows its square, so the padding (and
-                        // the placeholder it would reveal) arrives with focus.
-                        searchOpen
-                          ? cn(
-                              "pl-9 sm:pr-12",
-                              searching || queryWritePending ? "pr-10" : "pr-3",
-                            )
-                          : "theme-collapsed-search-input px-0 focus:pl-9 focus:pr-10 sm:focus:pr-12",
+                        "h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9",
+                        // The trailing slot only holds the clear button or the
+                        // pending spinner, so reserve it only while occupied.
+                        searching || queryWritePending ? "pr-10" : "pr-3",
                       )}
                       inputMode="search"
                       aria-label="Search replications"
@@ -1461,94 +1539,35 @@ function GalleryExplorer({
                     ) : null}
                   </div>
 
-                  {/* Phone: browse mode and (in artist mode) artist sort share
-                      one menu; the trigger's glyph is the current mode. */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
                         variant="pill"
                         size="auto"
-                        aria-label={
-                          mode === "artist"
-                            ? "Browse: by artist"
-                            : "Browse: by effect"
-                        }
-                        className={cn(COMPACT_ICON, "sm:hidden")}
-                      >
-                        <Icon
-                          icon={MODE_ICON[mode]}
-                          className="h-4 w-4"
-                          aria-hidden
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Browse by</DropdownMenuLabel>
-                      <DropdownMenuRadioGroup
-                        value={mode}
-                        onValueChange={(value) =>
-                          switchMode(value as GalleryMode)
-                        }
-                      >
-                        {(["artist", "effect"] as const).map((value) => (
-                          <DropdownMenuRadioItem
-                            key={value}
-                            value={value}
-                            className={PHONE_MENU_ITEM}
-                          >
-                            <Icon
-                              icon={MODE_ICON[value]}
-                              className="h-4 w-4"
-                              aria-hidden
-                            />
-                            {value === "artist" ? "Artist" : "Effect"}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                      {sortActive ? (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuLabel>Sort artists</DropdownMenuLabel>
-                          <DropdownMenuRadioGroup
-                            value={artistSort}
-                            onValueChange={(value) =>
-                              setArtistSort(value as GalleryArtistSort)
-                            }
-                          >
-                            {ARTIST_SORT_OPTIONS.map(([value, label]) => (
-                              <DropdownMenuRadioItem
-                                key={value}
-                                value={value}
-                                className={PHONE_MENU_ITEM}
-                              >
-                                {label}
-                              </DropdownMenuRadioItem>
-                            ))}
-                          </DropdownMenuRadioGroup>
-                        </>
-                      ) : null}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Phone: media type as a menu whose glyph is the current
-                      filter. */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="pill"
-                        size="auto"
+                        className={CONTROL_TRIGGER_CLASS}
                         aria-label={`Media: ${TYPE_LABEL[typeFilter]}`}
-                        className={cn(
-                          COMPACT_ICON,
-                          "sm:hidden",
-                          typeFilter !== "all" && "border-dose-accent-strong",
-                        )}
+                        title={`Media: ${TYPE_LABEL[typeFilter]}`}
                       >
+                        {/* A control holding something other than its default
+                            tints its own glyph. The `pill` variant already
+                            declares a border colour, so a `border-*` utility
+                            beside it is a coin toss the accent loses; colour
+                            on the icon has nothing to compete with. */}
                         <Icon
                           icon={TYPE_ICON[typeFilter]}
-                          className="h-4 w-4"
+                          className={cn(
+                            "h-4 w-4 shrink-0",
+                            typeFilter !== "all" && "text-dose-accent-strong",
+                          )}
+                          aria-hidden
+                        />
+                        <span className={CONTROL_TRIGGER_LABEL_CLASS}>
+                          {TYPE_LABEL[typeFilter]}
+                        </span>
+                        <Icon
+                          icon="lucide:chevron-down"
+                          className={CONTROL_TRIGGER_CHEVRON_CLASS}
                           aria-hidden
                         />
                       </Button>
@@ -1565,7 +1584,7 @@ function GalleryExplorer({
                           <DropdownMenuRadioItem
                             key={value}
                             value={value}
-                            className={PHONE_MENU_ITEM}
+                            className={CONTROL_MENU_ITEM_CLASS}
                           >
                             <Icon
                               icon={TYPE_ICON[value]}
@@ -1579,81 +1598,63 @@ function GalleryExplorer({
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <ToggleGroup
-                    type="single"
-                    variant="pill"
-                    value={typeFilter}
-                    onValueChange={(value) =>
-                      value && setTypeFilter(value as GalleryTypeFilter)
-                    }
-                    aria-label="Filter by media type"
-                    className="hidden shrink-0 sm:flex"
-                  >
-                    {(["all", "image", "video"] as const).map((value) => (
-                      <ToggleGroupItem
-                        key={value}
-                        value={value}
-                        aria-label={TYPE_LABEL[value]}
-                        title={TYPE_LABEL[value]}
-                        className={cn(
-                          TOUCH_PILL,
-                          "px-2.5 data-[state=on]:border-dose-accent-strong",
-                        )}
-                      >
-                        <Icon
-                          icon={TYPE_ICON[value]}
-                          className="h-4 w-4"
-                          aria-hidden
-                        />
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-
-                  {/* From `sm` up the artist sort stays mounted (inert +
-                      invisible) outside artist mode so the bar keeps one width
-                      across mode switches instead of jittering. */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="pill"
-                        size="auto"
-                        aria-label={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
-                        title={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
-                        aria-hidden={!sortActive || undefined}
-                        inert={!sortActive}
-                        className={cn(
-                          "hidden h-9 w-9 shrink-0 items-center justify-center p-0 sm:flex",
-                          TOUCH_ICON,
-                          // A changed sort is the only thing that distinguishes
-                          // this glyph from its default, so it says so.
-                          artistSort !== GALLERY_BROWSE_DEFAULTS.sort &&
-                            "border-dose-accent-strong",
-                          !sortActive && "invisible",
-                        )}
-                      >
-                        <Icon
-                          icon="lucide:arrow-down-wide-narrow"
-                          className="h-4 w-4"
-                          aria-hidden
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuRadioGroup
-                        value={artistSort}
-                        onValueChange={(value) =>
-                          setArtistSort(value as GalleryArtistSort)
-                        }
-                      >
-                        {ARTIST_SORT_OPTIONS.map(([value, label]) => (
-                          <DropdownMenuRadioItem key={value} value={value}>
-                            {label}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {/* Sorting applies to artist rails, so outside artist mode
+                      the control leaves rather than standing there inert: with
+                      labelled triggers the bar's width already differs per
+                      mode, so an invisible placeholder bought nothing and cost
+                      a 60px hole. Below `md` it is a row inside the browse
+                      menu instead of a slot on the bar. */}
+                  {sortActive ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="pill"
+                          size="auto"
+                          className={cn(CONTROL_TRIGGER_CLASS, "max-md:hidden")}
+                          aria-label={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
+                          title={`Sort artists: ${ARTIST_SORT_LABEL[artistSort]}`}
+                        >
+                          <Icon
+                            icon="lucide:arrow-down-wide-narrow"
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              artistSort !== GALLERY_BROWSE_DEFAULTS.sort &&
+                                "text-dose-accent-strong",
+                            )}
+                            aria-hidden
+                          />
+                          <span className={CONTROL_TRIGGER_LABEL_CLASS}>
+                            {ARTIST_SORT_LABEL[artistSort]}
+                          </span>
+                          <Icon
+                            icon="lucide:chevron-down"
+                            className={CONTROL_TRIGGER_CHEVRON_CLASS}
+                            aria-hidden
+                          />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Sort artists</DropdownMenuLabel>
+                        <DropdownMenuRadioGroup
+                          value={artistSort}
+                          onValueChange={(value) =>
+                            setArtistSort(value as GalleryArtistSort)
+                          }
+                        >
+                          {ARTIST_SORT_OPTIONS.map(([value, label]) => (
+                            <DropdownMenuRadioItem
+                              key={value}
+                              value={value}
+                              className={CONTROL_MENU_ITEM_CLASS}
+                            >
+                              {label}
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
 
                   <ReplicationTaxonomyFilters
                     filters={taxonomyFilters}
@@ -1664,64 +1665,56 @@ function GalleryExplorer({
                       setTaxonomyFilters(DEFAULT_GALLERY_TAXONOMY_FILTERS)
                     }
                   />
-
-                  {/* The corpus census rides at the end of the bar instead of
-                      on its own row: an Experience surface cannot spend a
-                      whole line of vertical budget on a sentence read once.
-                      Rendered exactly once, with no responsive twin. Below
-                      `md` the bar has no room for it, so it goes screen-reader
-                      only rather than display:none, keeping the background
-                      fetch's announcement alive without costing pixels. In the
-                      default artist view the numbers come from the server's
-                      complete-corpus stats, so the archive's true size shows
-                      before the corpus finishes loading and the sentence does
-                      not change when it does. */}
-                  <p
-                    role="status"
-                    aria-live="polite"
-                    className={cn(
-                      "theme-text-faint flex items-center gap-1.5 px-1 text-xs tabular-nums max-md:sr-only md:ml-auto",
-                      focusRingClassName,
-                    )}
-                  >
-                    <span>
-                      {displayCounts.total}{" "}
-                      {hasMore && !statsComplete ? "loaded " : ""}
-                      {displayCounts.total === 1 ? "work" : "works"} ·{" "}
-                      {displayCounts.artists} artists · {displayCounts.effects}{" "}
-                      effects
-                      {hasMore && !statsComplete ? " · more available" : ""}
-                    </span>
-                    {pageLoadState === "loading" ? (
-                      <>
-                        <Icon
-                          icon="svg-spinners:ring-resize"
-                          className="h-3 w-3 shrink-0"
-                          aria-hidden
-                        />
-                        <span className="sr-only">
-                          {" "}
-                          Loading the complete gallery…
-                        </span>
-                      </>
-                    ) : completionAnnouncement ? (
-                      <span className="sr-only"> {completionAnnouncement}.</span>
-                    ) : null}
-                  </p>
                 </div>
               </div>
             ) : null}
 
-            {/* Active taxonomy filters, made visible: one removable chip per
-              filter under the control bar, sharing the popover's state. */}
-            {chrome === "full" && hasActiveTaxonomyFilters ? (
-              <ReplicationActiveFilterChips
-                filters={taxonomyFilters}
-                onChange={setTaxonomyFilters}
-                drugOptions={drugOptions}
-                effectOptions={effectOptions}
-                className="mt-3 px-1"
-              />
+            {/* What the reader just did, in the slot the corpus census used to
+                spend on a number nobody asks twice. It appears only when
+                something narrows the grid, so the resting page pays no pixels
+                for it, and it shares its row with the removable chips because
+                a result count and the filters producing it are one statement.
+                `role="status"` finally announces something worth hearing: the
+                previous occupant recited the whole archive's size no matter
+                what the grid held. */}
+            {chrome === "full" ? (
+              <div
+                className={cn(
+                  "flex flex-wrap items-center gap-x-3 gap-y-2 px-1",
+                  (narrowing || corpusLoading || hasActiveTaxonomyFilters) &&
+                    "mt-3",
+                )}
+              >
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className="theme-text-faint flex items-center gap-1.5 text-xs tabular-nums"
+                >
+                  {narrowing ? <span>{resultSummary}</span> : null}
+                  {corpusLoading ? (
+                    <>
+                      <Icon
+                        icon="svg-spinners:ring-resize"
+                        className="h-3 w-3 shrink-0"
+                        aria-hidden
+                      />
+                      <span className={narrowing ? "sr-only" : undefined}>
+                        Loading the complete gallery…
+                      </span>
+                    </>
+                  ) : completionAnnouncement ? (
+                    <span className="sr-only">{completionAnnouncement}.</span>
+                  ) : null}
+                </p>
+                {hasActiveTaxonomyFilters ? (
+                  <ReplicationActiveFilterChips
+                    filters={taxonomyFilters}
+                    onChange={setTaxonomyFilters}
+                    drugOptions={drugOptions}
+                    effectOptions={effectOptions}
+                  />
+                ) : null}
+              </div>
             ) : null}
 
             {pageLoadState === "error" ? (
@@ -1902,12 +1895,14 @@ function GalleryExplorer({
                         replication.slug,
                       )
                     }
-                    /* Phones browse in a continuous three-column masonry: the
-                       rail loads fourteen tiles and reveals one at 390px,
-                       which is the throughput ceiling on the page. Desktop
-                       keeps the rail, where the horizontal gesture is cheap
-                       and the artist grouping earns its keep. */
-                    layout={phone ? "masonry" : "rail"}
+                    /* Touch widths browse in a continuous three-column
+                       masonry: a rail loads fourteen tiles and reveals one at
+                       390px, which is the throughput ceiling on the page. From
+                       `md` up the rail returns, where the horizontal gesture
+                       is cheap and the artist grouping earns its keep. The
+                       breakpoint is the bar's own, so the page has one
+                       compact/full line rather than two. */
+                    layout={compactBar ? "masonry" : "rail"}
                     mobileCompact
                     onTileOpen={openViewerAt}
                   />

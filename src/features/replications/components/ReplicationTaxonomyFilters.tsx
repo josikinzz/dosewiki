@@ -20,6 +20,11 @@ import {
   type GalleryTaxonomyFilterState,
 } from "@/features/effects/gallery/galleryModel";
 import { cn } from "@/lib/utils";
+import {
+  CONTROL_TRIGGER_CHEVRON_CLASS,
+  CONTROL_TRIGGER_CLASS,
+  CONTROL_TRIGGER_LABEL_CLASS,
+} from "./controlBarTrigger";
 
 type FilterKey = keyof GalleryTaxonomyFilterState;
 type FilterOption = { value: string; label: string };
@@ -111,16 +116,23 @@ export function ReplicationTaxonomyFilters({
     onChange({ ...filters, [key]: value } as GalleryTaxonomyFilterState);
   };
 
+  /**
+   * One row per axis: name on the left, current value on the right. Stacked
+   * label-above-control, the six axes stood 681px tall and the popover scrolled
+   * on a 900px screen, so the reader had to scroll to discover controls nobody
+   * had told them existed. Side by side they fit, and the column of values
+   * reads as a list of what is set.
+   */
   const renderSelect = (key: FilterKey) => (
-    <label key={key} className="block space-y-1.5">
-      <span className="theme-text-faint text-xs font-medium uppercase tracking-[0.14em]">
+    <label key={key} className="flex items-center justify-between gap-3">
+      <span className="theme-text-secondary min-w-0 flex-1 text-xs font-medium">
         {LABELS[key]}
       </span>
       <Select value={filters[key]} onValueChange={(value) => update(key, value)}>
         <SelectTrigger
           selectSize="sm"
           aria-label={CHIP_LABELS[key]}
-          className="min-h-11 sm:min-h-0"
+          className="w-40 shrink-0 [@media(pointer:coarse)]:min-h-11"
         >
           <SelectValue />
         </SelectTrigger>
@@ -143,27 +155,49 @@ export function ReplicationTaxonomyFilters({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {/* Phones get a square icon button (the count rides the glyph's corner)
-            so the control bar fits one row; from `sm` up the label and inline
-            count return. The aria-label carries the count at every width. */}
+        {/* The same object as its four neighbours in the control bar: glyph,
+            label, chevron from `md` up, glyph alone below it. The count reads
+            as part of the label where there is room for words, and rides the
+            glyph's corner where there is not. */}
         <Button
           type="button"
           variant="pill"
           size="auto"
-          className={cn(
-            "relative h-10 w-10 shrink-0 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 sm:h-9 sm:w-9 sm:[@media(pointer:coarse)]:h-11 sm:[@media(pointer:coarse)]:w-11",
-            className,
-          )}
+          className={cn("relative", CONTROL_TRIGGER_CLASS, className)}
           aria-label={
-            activeCount > 0
-              ? `Filters, ${activeCount} active`
-              : "Filters"
+            activeCount > 0 ? `Filters, ${activeCount} active` : "Filters"
           }
           title={activeCount > 0 ? `Filters, ${activeCount} active` : "Filters"}
         >
-          <Icon icon="lucide:sliders-horizontal" className="h-4 w-4" aria-hidden />
+          {/* Active filters tint the glyph. The `pill` variant declares its own
+              border colour, so a `border-*` utility beside it is a coin toss
+              the accent loses; colour on the icon has nothing to compete
+              with. */}
+          <Icon
+            icon="lucide:sliders-horizontal"
+            className={cn(
+              "h-4 w-4 shrink-0",
+              activeCount > 0 && "text-dose-accent-strong",
+            )}
+            aria-hidden
+          />
+          <span className={CONTROL_TRIGGER_LABEL_CLASS}>
+            {activeCount > 0 ? `Filters · ${activeCount}` : "Filters"}
+          </span>
+          <Icon
+            icon="lucide:chevron-down"
+            className={CONTROL_TRIGGER_CHEVRON_CLASS}
+            aria-hidden
+          />
           {activeCount > 0 ? (
-            <span className="theme-badge-surface absolute right-1 top-1 min-w-4 rounded-full px-1 text-[0.625rem] font-semibold leading-4 text-dose-accent-strong">
+            // Accent on the bar's own material rather than `theme-badge-surface`,
+            // whose appearance-matrix rule repaints it in body text colour: a
+            // white numeral was the weakest possible mark for the only state
+            // this control keeps while closed.
+            <span
+              aria-hidden
+              className="absolute right-0.5 top-0.5 min-w-4 rounded-full bg-dose-surface-muted px-1 text-[0.625rem] font-semibold leading-4 text-dose-accent-strong md:hidden"
+            >
               {activeCount}
             </span>
           ) : null}
@@ -172,11 +206,16 @@ export function ReplicationTaxonomyFilters({
       <PopoverContent
         align="end"
         collisionPadding={8}
-        className="max-h-[min(var(--radix-popover-content-available-height),38rem)] w-[calc(100vw-1rem)] space-y-4 overflow-y-auto sm:w-80"
+        className="max-h-[min(var(--radix-popover-content-available-height),38rem)] w-[calc(100vw-1rem)] space-y-2.5 overflow-y-auto sm:w-80"
       >
+        {/* The popover holds six axes, so it says what it is at the top:
+            without a heading the reader who pressed an unnamed glyph met six
+            unexplained dropdowns and a scrollbar. */}
+        <p className="theme-text-primary text-sm font-semibold">Filter works</p>
+
         {GENERAL_KEYS.map(renderSelect)}
 
-        <fieldset className="space-y-4 rounded-xl border border-dose-divider p-3">
+        <fieldset className="space-y-2.5 rounded-xl border border-dose-divider p-3">
           <legend className="theme-text-faint px-1 text-xs font-semibold uppercase tracking-[0.14em]">
             Named in the title
           </legend>
@@ -187,29 +226,33 @@ export function ReplicationTaxonomyFilters({
             negative margins let the row own the popover's bottom padding, and
             theme-overlay-surface repaints the popover's own opaque material
             (all four appearance matrix points restyle that class together). */}
-        <div className="theme-overlay-surface sticky bottom-0 z-10 -mx-4 -mb-4 flex items-center justify-between gap-3 border-t px-4 py-3">
-          <p className="theme-text-faint flex-1 text-xs">
+        <div className="theme-overlay-surface sticky bottom-0 z-10 -mx-4 -mb-4 space-y-2 border-t px-4 py-2.5">
+          {/* Full width: sharing a row with the buttons wrapped it to three
+              lines and squeezed both exits into the corner. */}
+          <p className="theme-text-faint text-xs">
             Filtering by a tag hides works nobody has tagged yet.
           </p>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="min-h-11 sm:min-h-0"
-            disabled={activeCount === 0}
-            onClick={onClear}
-          >
-            Clear
-          </Button>
-          <Button
-            type="button"
-            variant="accent"
-            size="sm"
-            className="min-h-11 sm:min-h-0"
-            onClick={() => setOpen(false)}
-          >
-            Done
-          </Button>
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="[@media(pointer:coarse)]:min-h-11"
+              disabled={activeCount === 0}
+              onClick={onClear}
+            >
+              Clear
+            </Button>
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              className="[@media(pointer:coarse)]:min-h-11"
+              onClick={() => setOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>

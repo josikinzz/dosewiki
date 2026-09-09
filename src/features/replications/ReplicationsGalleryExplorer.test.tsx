@@ -256,6 +256,33 @@ function stubMatchMedia(matches: boolean) {
   );
 }
 
+/**
+ * Every control in the bar is a labelled menu now, so choosing a value is two
+ * steps: open the trigger, pick the row. The rows are where the names live at
+ * every width, which is the point of the arrangement.
+ */
+async function chooseFromMenu(
+  trigger: string | RegExp,
+  item: string | RegExp,
+) {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: trigger }));
+  await user.click(await screen.findByRole("menuitemradio", { name: item }));
+}
+
+/**
+ * The same two steps without userEvent, whose async plumbing deadlocks under
+ * fake timers. Radix opens on `pointerdown` and selects on `click`.
+ */
+function chooseFromMenuSync(trigger: string | RegExp, item: string | RegExp) {
+  fireEvent.pointerDown(screen.getByRole("button", { name: trigger }), {
+    button: 0,
+    ctrlKey: false,
+    pointerType: "mouse",
+  });
+  fireEvent.click(screen.getByRole("menuitemradio", { name: item }));
+}
+
 beforeEach(() => {
   navMocks.push.mockReset();
   navMocks.replace.mockReset();
@@ -278,18 +305,17 @@ describe("URL → rendered state", () => {
   it("renders the default browse state from the bare path", () => {
     renderExplorer("");
 
-    expect(screen.getByRole("radio", { name: "By artist" })).toHaveAttribute(
-      "data-state",
-      "on",
-    );
-    expect(screen.getByRole("radio", { name: "All" })).toHaveAttribute(
-      "data-state",
-      "on",
-    );
-    // The current order is the control's name, since the glyph carries no text.
+    // Every control in the bar says what it is and what it currently holds,
+    // in text: the bar carried nothing but glyphs before this.
+    expect(
+      screen.getByRole("button", { name: "Browse by: By artist" }),
+    ).toHaveTextContent("By artist");
+    expect(
+      screen.getByRole("button", { name: "Media: All media" }),
+    ).toHaveTextContent("All media");
     expect(
       screen.getByRole("button", { name: "Sort artists: Videos first" }),
-    ).toBeInTheDocument();
+    ).toHaveTextContent("Videos first");
     // The spotlight row is gone: density-first, media starts immediately.
     expect(screen.queryByText("Spotlight")).toBeNull();
   });
@@ -327,10 +353,9 @@ describe("URL → rendered state", () => {
     expect(screen.getByText("Owned drift")).toBeInTheDocument();
     expect(screen.getByText("Tagged drift")).toBeInTheDocument();
     expect(screen.queryByText("Plain geometry")).toBeNull();
-    // The counts line describes the filtered set, not the whole corpus.
-    expect(
-      screen.getByText("2 works · 1 artists · 2 effects"),
-    ).toBeInTheDocument();
+    // The status line reports what the filter kept against the corpus it was
+    // drawn from, which is the question a reader who just filtered is asking.
+    expect(screen.getByRole("status")).toHaveTextContent("2 of 3 works");
   });
 
   it("composes the depicted-effect filter with the other taxonomy filters", () => {
@@ -371,14 +396,12 @@ describe("URL → rendered state", () => {
   it("reproduces a pasted ?view=effect&type=video&sort=alpha state exactly", () => {
     renderExplorer("view=effect&type=video&sort=alpha");
 
-    expect(screen.getByRole("radio", { name: "By effect" })).toHaveAttribute(
-      "data-state",
-      "on",
-    );
-    expect(screen.getByRole("radio", { name: "Videos" })).toHaveAttribute(
-      "data-state",
-      "on",
-    );
+    expect(
+      screen.getByRole("button", { name: "Browse by: By effect" }),
+    ).toHaveTextContent("By effect");
+    expect(
+      screen.getByRole("button", { name: "Media: Videos" }),
+    ).toHaveTextContent("Videos");
     // One video total: too thin for a rail, so it pools straight into the
     // masonry — and with no rails above it, the "More effects" heading is
     // dropped rather than describing everything as "more".
@@ -447,13 +470,17 @@ describe("un-carded gallery chrome", () => {
     expect(section.className).not.toMatch(/rounded|border|shadow|bg-/);
   });
 
-  it("renders the corpus summary exactly once, visible at every breakpoint", () => {
-    renderExplorer("");
+  it("states a result count only while something narrows the grid", () => {
+    const { unmount } = renderExplorer("");
 
-    // getByText throws on duplicates, so this also proves the md:hidden twin
-    // and the in-bar span are gone.
-    const summary = screen.getByText("4 works · 2 artists · 2 effects");
-    expect(summary.className).not.toMatch(/md:hidden|md:inline/);
+    // At rest the archive's size is the tab row's statement, not the bar's:
+    // this line used to recite the whole corpus over any grid at all.
+    expect(screen.getByRole("status")).toHaveTextContent("");
+    expect(screen.queryByText(/works/)).toBeNull();
+    unmount();
+
+    renderExplorer("type=video");
+    expect(screen.getByRole("status")).toHaveTextContent("1 of 4 works");
   });
 });
 
@@ -531,14 +558,13 @@ describe("hybrid browse layout", () => {
     }
   });
 
-  it("keeps the artist-sort control mounted but hidden in effect mode, so the bar cannot jitter", () => {
+  it("drops the artist sort outside artist mode, where rails have no sort", () => {
     renderExplorer("view=effect");
 
-    // `aria-hidden` takes it out of the accessible tree in effect mode, which
-    // is the point, so it is reached by its tooltip rather than by role.
-    const sort = screen.getByTitle(/^Sort artists/);
-    expect(sort).toHaveAttribute("aria-hidden", "true");
-    expect(sort.className).toContain("invisible");
+    // It used to stay mounted, inert and invisible, to keep the bar one width
+    // across mode switches. Labelled triggers make the widths differ anyway,
+    // so the placeholder only bought a hole where a control used to be.
+    expect(screen.queryByTitle(/^Sort artists/)).toBeNull();
   });
 });
 
@@ -787,25 +813,22 @@ describe("effects withheld from artist browsing", () => {
     }),
   ];
 
-  it("drops the work, its artist, and their share of the header counts", () => {
-    renderExplorer("", { replications: withCreature });
+  it("drops the work, its artist, and their share of the count", () => {
+    renderExplorer("type=image", { replications: withCreature });
 
     expect(screen.queryByText("Withheld work")).toBeNull();
     expect(screen.queryByText("Giger")).toBeNull();
-    // Four works, not five: the header describes what artist browsing can
-    // actually show, or it is claiming a work the grid will never render.
-    expect(
-      screen.getByText("4 works · 2 artists · 2 effects"),
-    ).toBeInTheDocument();
+    // Three of four, not four of five: both numbers describe what artist
+    // browsing can actually show, or the line is claiming rows the grid will
+    // never render.
+    expect(screen.getByRole("status")).toHaveTextContent("3 of 4 works");
   });
 
   it("keeps the work and the whole corpus count under effect browsing", () => {
-    renderExplorer("view=effect", { replications: withCreature });
+    renderExplorer("view=effect&type=image", { replications: withCreature });
 
     expect(screen.getByText("Withheld work")).toBeInTheDocument();
-    expect(
-      screen.getByText("5 works · 3 artists · 3 effects"),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("4 of 5 works");
   });
 
   it("searches the whole corpus in either mode, and counts it that way", () => {
@@ -814,27 +837,23 @@ describe("effects withheld from artist browsing", () => {
     renderExplorer("q=withheld", { replications: withCreature });
 
     expect(screen.getByText("Withheld work")).toBeInTheDocument();
-    expect(
-      screen.getByText("5 works · 3 artists · 3 effects"),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("1 of 5 works");
   });
 });
 
 describe("state → URL", () => {
-  it("pushes the mode toggle as navigation between browse URLs", async () => {
-    const user = userEvent.setup();
+  it("pushes the mode choice as navigation between browse URLs", async () => {
     renderExplorer("");
 
-    await user.click(screen.getByRole("radio", { name: "By effect" }));
+    await chooseFromMenu("Browse by: By artist", "By effect");
 
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
   });
 
   it("pushes the media-type filter into the query string", async () => {
-    const user = userEvent.setup();
     renderExplorer("view=effect");
 
-    await user.click(screen.getByRole("radio", { name: "Videos" }));
+    await chooseFromMenu("Media: All media", "Videos");
 
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect&type=video");
   });
@@ -886,8 +905,8 @@ describe("state → URL", () => {
     fireEvent.change(input, { target: { value: "drift" } });
     expect(screen.getByTestId("query-write-pending")).toBeInTheDocument();
 
-    // Toggles flush the whole state immediately, cancelling the pending write.
-    fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
+    // A menu choice flushes the whole state immediately, cancelling the write.
+    chooseFromMenuSync("Browse by: By artist", "By effect");
 
     expect(screen.queryByTestId("query-write-pending")).toBeNull();
     act(() => {
@@ -999,11 +1018,13 @@ describe("responsive gallery controls", () => {
   it("keeps grouping outside advanced filters", async () => {
     const user = userEvent.setup();
     renderExplorer("");
-    await user.click(screen.getByRole("radio", { name: "By effect" }));
+    await chooseFromMenu("Browse by: By artist", "By effect");
     expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
     await user.click(screen.getByRole("button", { name: /Filters/ }));
     expect(
-      within(screen.getByRole("dialog")).queryByRole("group", { name: "Browse by" }),
+      within(screen.getByRole("dialog")).queryByRole("menuitemradio", {
+        name: /^By /,
+      }),
     ).toBeNull();
   });
 
@@ -1214,10 +1235,10 @@ describe("complete corpus loading", () => {
     expect(
       screen.getByRole("link", { name: "View all 9" }),
     ).toBeInTheDocument();
-    // The header shows the archive's precomputed stats, not the subset's.
-    expect(
-      screen.getByText("40 works · 30 artists · 6 effects"),
-    ).toBeInTheDocument();
+    // The archive's size is the tab row's statement now, so the digest's
+    // precomputed total shows up here only as a denominator, and only once
+    // something narrows the grid.
+    expect(screen.getByRole("status")).not.toHaveTextContent("works");
     expect(screen.getByText("Showing 2 of 30 artists")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 
@@ -1229,7 +1250,6 @@ describe("complete corpus loading", () => {
       expect.objectContaining({ headers: { Accept: "application/json" } }),
     );
     const status = screen.getByRole("status");
-    expect(status).toHaveTextContent("4 works · 2 artists · 1 effects");
     expect(status).toHaveTextContent("Complete gallery loaded.");
   });
 
@@ -1271,7 +1291,7 @@ describe("complete corpus loading", () => {
     expect(screen.getAllByTestId("rail")).toHaveLength(3);
   });
 
-  it("keeps the visible stats line stable while the corpus loads and lands", async () => {
+  it("reports the corpus fetch in one line that leaves when it lands", async () => {
     const initial = rep({ title: "Initial work" });
     const withheld = rep({
       title: "Withheld work",
@@ -1306,16 +1326,17 @@ describe("complete corpus loading", () => {
 
     const status = screen.getByRole("status");
     const visibleLine = () =>
-      status.querySelector("span:not(.sr-only)")?.textContent;
-    expect(visibleLine()).toBe("1 work · 1 artists · 1 effects");
+      status.querySelector("span:not(.sr-only)")?.textContent ?? "";
+    // Nothing is being narrowed, so the resting page says nothing here: the
+    // archive's size is stated once on the tab row above.
+    expect(visibleLine()).toBe("");
     expect(screen.queryByRole("alert")).toBeNull();
 
     await runIdle();
 
-    // Loading is reported inside the same line — nothing above the rails
-    // appears or disappears — and only to assistive tech as text.
-    expect(visibleLine()).toBe("1 work · 1 artists · 1 effects");
-    expect(status).toHaveTextContent("Loading the complete gallery…");
+    // The fetch is reported in this same line rather than a new row, so
+    // nothing above the rails appears or disappears.
+    expect(visibleLine()).toBe("Loading the complete gallery…");
     expect(screen.queryByRole("alert")).toBeNull();
 
     await act(async () => {
@@ -1323,8 +1344,8 @@ describe("complete corpus loading", () => {
     });
 
     // The withheld work joins the corpus but not the artist view, and the
-    // visible sentence does not rewrite itself to say so.
-    expect(visibleLine()).toBe("1 work · 1 artists · 1 effects");
+    // line goes back to silence rather than reciting a total.
+    expect(visibleLine()).toBe("");
     expect(status).toHaveTextContent("Complete gallery loaded.");
     expect(status).not.toHaveTextContent("Loading");
   });
@@ -1348,7 +1369,6 @@ describe("complete corpus loading", () => {
     await runIdle();
 
     const status = screen.getByRole("status");
-    expect(status).toHaveTextContent("2 works · 1 artists · 1 effects");
     expect(status).toHaveTextContent("Complete gallery loaded.");
     expect(screen.getByText("Deferred work")).toBeInTheDocument();
     // Completion never steals focus — there is no control to return it to.
@@ -1622,8 +1642,8 @@ describe("complete corpus loading", () => {
       replications: [initial],
       completeCorpusUrl: "/api/replications/gallery",
     });
-    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
-    fireEvent.click(screen.getByRole("radio", { name: "By effect" }));
+    chooseFromMenuSync("Media: All media", "Videos");
+    chooseFromMenuSync("Browse by: By artist", "By effect");
     await act(async () => {
       resolveFirstResponse?.({ ok: false, status: 503 });
     });
@@ -1657,7 +1677,7 @@ describe("complete corpus loading", () => {
     };
 
     const view = renderExplorer("", props);
-    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
+    chooseFromMenuSync("Media: All media", "Videos");
 
     navMocks.params = new URLSearchParams("view=effect");
     view.rerender(<ReplicationsGalleryExplorer {...props} />);

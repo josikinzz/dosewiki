@@ -151,7 +151,14 @@ export async function ReplicationsGalleryRoute({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: itemListJsonLd }}
       />
-      <ReplicationsTabNav />
+      {/* The archive states its size once, on the quiet row above the control
+          bar, server-rendered from the same complete-corpus stats the explorer
+          gets. It used to ride inside the control bar, where it cost 229px of
+          the row the controls need for their labels and kept reciting the
+          whole corpus while the reader looked at a filtered grid. */}
+      <ReplicationsTabNav
+        trailing={`${corpusStats.total.toLocaleString("en-US")} works · ${corpusStats.artists.toLocaleString("en-US")} artists · ${corpusStats.effects.toLocaleString("en-US")} effects`}
+      />
       <ReplicationsGalleryExplorer
         replications={initialReplications}
         completeCorpusUrl="/api/replications/gallery"
