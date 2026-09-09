@@ -432,21 +432,6 @@ function SectionRef({
   );
 }
 
-/** Site-standard prose link for external destinations: proseLinkClassName
- *  treatment plus the external-link icon VCode's ExtLink uses. */
-function ExternalProseLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`${proseLinkClassName} inline-flex items-center gap-0.5`}
-    >
-      {children}
-      <Icon icon="lucide:external-link" size={12} className="opacity-60" />
-    </a>
-  );
-}
 
 export default async function DocsHowPage() {
   const [copy, previewSubstances, substanceDownload] = await Promise.all([
@@ -521,8 +506,9 @@ export default async function DocsHowPage() {
           Each section of a substance article is made by the method that suits its
           content. Code transcribes tables of numbers, and an LLM
           never paraphrases them. An LLM drafts narrative sections from word-for-word source
-          excerpts. People keep the judgment calls: classification trees, editorial notes,
-          and review.
+          excerpts. Research agents propose references and rebuild the legality sections
+          against primary sources. People keep the judgment calls: classification trees,
+          editorial notes, and review.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           Two kinds of outside material feed the site. The first is archived reference
@@ -630,8 +616,9 @@ export default async function DocsHowPage() {
                   <Method tone="review">curated</Method>
                 </td>
                 <td className="p-3">
-                  Class assignments come from parsed sources. Editors hand-curate the
-                  site-wide classification trees.
+                  Class assignments come from parsed sources, and the classes themselves can
+                  be scientific or political. Editors hand-curate the site-wide
+                  classification trees.
                 </td>
               </tr>
               <tr className={DOC_TR_CLASS}>
@@ -664,7 +651,8 @@ export default async function DocsHowPage() {
                   effect taxonomy and the subjective-effects excerpts, with her own projects
                   excluded as sources. Excerpts only fill documented gaps and never overwrite
                   an existing list (<SectionRef s="synthesis" />). Every effect links into
-                  the Subjective Effect Index.
+                  the Subjective Effect Index, and an asterisk on an effect marks text she
+                  wrote herself.
                 </td>
               </tr>
               <tr className={DOC_TR_CLASS}>
@@ -759,7 +747,8 @@ export default async function DocsHowPage() {
                 </td>
                 <td className="p-3">
                   First-person experience reports written by people, imported from the
-                  Effect Index corpus with attribution.
+                  Effect Index corpus with attribution. The encyclopedia-building dataset
+                  records which reports informed each article.
                 </td>
               </tr>
               <tr className={DOC_TR_CLASS}>
@@ -1080,7 +1069,8 @@ export default async function DocsHowPage() {
               it by hand, or aligns it to a template that a person drew once for the
               whole chemical class. The saved result is an editable MOL block, and the
               image is rendered from that. Each drawing records whether it is automatic,
-              hand-drawn, or template-aligned.
+              hand-drawn, or template-aligned. We intend to automate more of this
+              process over time.
             </p>
             <p className={`${DOC_PROSE_CLASS} mt-4`}>
               The drawing tool and the page image both use one engine: a dose.wiki fork
@@ -1254,13 +1244,21 @@ export default async function DocsHowPage() {
           An LLM writes each one from exactly two inputs: the excerpt document for that
           topic, and a section-specific prompt. The model differs by section and changes
           over time. The LLM writes original prose
-          from the excerpts; committed copies of the prompts appear below.
+          from the excerpts; committed copies of the prompts appear below. We are
+          experimenting with other ways to summarize the excerpts as well.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           The two remaining excerpt topics, dosage &amp; duration and subjective effects,
           serve a narrower purpose. Those sections come from parsed tables and from Josie
           Kins&apos; effect taxonomy. Their excerpts only fill documented gaps, and never
           overwrite what is already there.
+        </p>
+        <p className={`${DOC_PROSE_CLASS} mt-4`}>
+          Some sections are harder to get right than others. Pharmacology is tricky,
+          and its drafts are the most likely to be wrong. Dosage and interactions
+          demand the most care, because a paraphrased dose range or a missing
+          interaction can hurt someone. The other sections are easier and reach high
+          quality more reliably.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           The prompts share one skeleton: a style definition, a hard evidence rule, a fixed
@@ -1285,7 +1283,10 @@ export default async function DocsHowPage() {
               subject. Its instructions are to synthesize the information, not reproduce
               the source&apos;s sentences or lengthy phrases. Keeping the excerpts separate
               makes it possible to check both the factual basis of a draft and how it
-              uses the source material.
+              uses the source material. A script also appends the relevant excerpts
+              from each source, copied verbatim, after the paragraphs they informed, so
+              the output can be audited against exactly what the model was given. That
+              audit is still being improved.
             </p>
             <p className={`${DOC_PROSE_CLASS} mt-4`}>
               Later citation research checks claims against supporting references, and
@@ -1319,10 +1320,15 @@ export default async function DocsHowPage() {
         ))}
 
         <p className={`${DOC_PROSE_CLASS} mt-7`}>
-          The six prompts are version-controlled alongside the
-          code, and the live copies are editable by the editorial team. Prompt changes
-          affect future generation runs that use the revised version. The citation and legality workflows
-          carry their own prompt families; those live in the repository under{" "}
+          The six prompts are version-controlled alongside the code, and the live
+          copies are editable by the editorial team. The prompts have
+          been undergoing continuous improvement, and they are stable enough that
+          editors should feel empowered to adjust them as necessary. Prompt changes
+          affect future generation runs that use the revised version. Not every prompt
+          the site uses is published: besides the ones on this page, some exist as
+          template literals in code, and some are stored privately. The citation and
+          legality workflows carry their own prompt families; those live in the
+          repository under{" "}
           <code>scripts/citations/</code> and <code>scripts/legality/</code> and are not
           yet published on this page.
         </p></section>
@@ -1413,6 +1419,8 @@ export default async function DocsHowPage() {
           Citations render as numbered markers linked to the reference list. Behind each
           marker, the workflow retains the quote and rationale as review evidence, so a
           human can inspect exactly what the marker was based on.{" "}
+          Whatever a citation&apos;s review state, every source link stays followable, so
+          readers can always see where the information comes from.{" "}
           <SectionRef s="limits" cap /> states what a marker does and does not
           establish.
         </p>
@@ -1440,7 +1448,9 @@ export default async function DocsHowPage() {
           never the same agent. Every surviving claim is checked by an independent refuter,
           an agent that tries to disprove it without the research agent&apos;s prior conversation.
           A refuted claim becomes a recorded gap, or it re-enters research for at
-          most two recovery cycles. The diagram below shows the full sequence, from export
+          most two recovery cycles. The point of the adversarial loop is precision, so
+          that human verification of the finished section is efficient. The diagram
+          below shows the full sequence, from export
           packet through the cite, discovery, gap, and correction passes to the US state
           pass, merge, and human-confirmed write.
         </p>
@@ -1520,9 +1530,20 @@ export default async function DocsHowPage() {
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           Readers take part in this stage. The report-an-issue form at the bottom of
-          each article sends a note to the review queue. An editor reads each note and
-          decides whether the article changes. Reader feedback is the main way that
-          errors reach a reviewer.
+          each article, or the site-wide feedback form, sends a note to the review
+          queue. An editor reads each note and decides whether the article changes.
+          Reader feedback is the main way that errors reach a reviewer.
+        </p>
+        <p className={`${DOC_PROSE_CLASS} mt-4`}>
+          It took us about a year to build the pipeline, and editors have been
+          reviewing articles for months. Reviewing is ongoing work, and help is
+          welcome: checking citations and reporting errors and omissions both feed
+          the queue. Editors also add material that exists nowhere else: remarks and
+          caveats, hand-drawn structure images, and placement in the site&apos;s own
+          substance and effect taxonomies. The article editor works like Wikipedia&apos;s,
+          so you can view recent changes on any article and propose changes yourself.
+          All changes made through it are reflected in future releases of the open
+          dataset.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           Editorial review is a recorded human workflow with four steps.
@@ -1554,6 +1575,17 @@ export default async function DocsHowPage() {
           here. Step 3 is a human citation review that compares each claim with its
           source. Step 3 is the human pass planned as Phase 4 in{" "}
           <SectionRef s="status" />. No article has a completed citation review yet.
+        </p>
+        <p className={`${DOC_PROSE_CLASS} mt-4`}>
+          Updates to a published article can also start from the pipeline. Re-running
+          the extraction and synthesis prompts for a section produces a suggested edit
+          that an editor can review; citation markers are ignored during that pass, and
+          citation status is tracked separately. Different parts of an article get
+          different review tools: dosage tables are reviewed in a table editor,
+          interaction ratings are calculated and reviewed, and subjective effects are
+          reviewed in a taxonomy-based editor. Each tracks citation status through its
+          own prompt families. The principle throughout is to keep editorial review and
+          citation status decoupled.
         </p>
 
         <p className={`${DOC_PROSE_CLASS} mt-7`}>
@@ -1623,7 +1655,8 @@ export default async function DocsHowPage() {
           <strong>The working copies have a date.</strong>{" "}
           The pipeline reads working copies captured on the date given in{" "}
           <SectionRef s="sources" />. Source sites keep evolving after capture, and the
-          baseline is never re-captured. Later accuracy comes from the human and citation
+          baseline is never re-captured; automatic updating of the source baseline is
+          not yet available. Later accuracy comes from the human and citation
           stages in <SectionRef s="status" />.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
@@ -1706,7 +1739,10 @@ export default async function DocsHowPage() {
             </div>
             <p className={DOC_PROSE_CLASS}>
               A research pass over the audit&apos;s output, starting with pharmacology.
-              Each <em>citation needed</em> claim receives a source search. If a source is
+              Some errors in the corpus come from incorrect excerpts collected in
+              phase one, and others may have been overlooked in phase three; this
+              pass hunts both down. Each <em>citation needed</em> claim receives a
+              source search. If a source is
               found, the marker is restored. If none is found, or the source disagrees, the
               claim is changed or removed. A recorded human pass then reviews the results.
               The site tracks this separately from editorial review (<SectionRef s="review" />), so each carries
@@ -1748,7 +1784,8 @@ export default async function DocsHowPage() {
               </div>
             </div>
             <p className={DOC_PROSE_CLASS}>
-              Editor corrections, messages sent through the article feedback form,
+              dose.wiki is a wiki, and errors will always happen. Editor corrections,
+              messages sent through the article feedback form,
               replication evidence, and curated additions continue to build on the baseline.
             </p>
           </div>
@@ -1772,6 +1809,14 @@ export default async function DocsHowPage() {
           color sets, the dose.wiki brand colors and the standard textbook colors. The pack
           is rebuilt every night from the live depiction database.
         </p>
+        <p className={`${DOC_PROSE_CLASS} mt-4`}>
+          The drafts come with their receipts. The published prompts and the
+          encyclopedia-building dataset show what went into each draft and how it was
+          produced, so you can build your own encyclopedia pipeline or other things on
+          top of it. Running the same pipeline will not necessarily produce the same
+          article. Other sites and apps already make extensive use of the
+          encyclopedia&apos;s content.
+        </p>
 
 
         <div className="mt-6">
@@ -1789,7 +1834,13 @@ export default async function DocsHowPage() {
               Published article prose is drafted under instructions not to copy source
               wording. The citation and editorial workflows can identify support problems
               or wording that needs correction. Facts are not copyrightable, and
-              dose.wiki uses its own wording, schema, and article structure for the expression.
+              dose.wiki uses its own wording, schema, and article structure for the
+              expression. dose.wiki content should be considered an original work
+              interpreting its underlying sources, even when those sources are public
+              domain or openly licensed, and should not be presented as quotes from
+              them. dose.wiki attributes and links back to those sources wherever
+              possible; if you quote from them directly, it is your responsibility to
+              abide by their licenses.
             </p>
           </div>
           <div>
