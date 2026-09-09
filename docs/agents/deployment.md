@@ -1,3 +1,42 @@
+## 2026-09-09 How page review-status prose release
+
+Public DoseWiki serves `dpl_xYifqQTuUbqVhyGrgnNWMDQxAFg1` on `dose.wiki` and
+`www.dose.wiki`, built from commit `1c20a6ed` on `no-corpus-drain` in a detached
+`git worktree` at HEAD outside the repository. The shared tree carries
+uncommitted `gt-next`/translation scaffolding, About copy-block editor work, and
+`scripts/feedback` work; none of it was uploaded. The release is one file,
+`src/app/docs/how/page.tsx`, plus the two branch commits the previous public
+build predated (`4084e3a0` docs record, `f5392212` range-less media GET fix).
+
+The prose change: the header paragraph now leads with the completed Phase 3
+entailment audit and the `citation needed` outcome before naming the two human
+passes, instead of stacking three negative-status clauses that read as "nothing
+was checked". Section 07 drops the duplicated `Step 3` sentence and states that
+editorial review and citation status are recorded separately in each review
+tool. Register follows the stored formal voice card in `.unslop/voice/josie`:
+semicolons and colons removed to match the measured punctuation profile, vague
+evaluation (`less far along`, `shows where it stands`) replaced with the named
+mechanism. `voice_score` composite moved from 0.041 to -0.336 and GI from 0.50
+to 0.656; the unslop removal gates report zero hard and zero soft hits with
+preservation 3/3.
+
+No Convex functions were published: `dosewiki-public` has no
+`CONVEX_DEPLOY_KEY`, so the build logged checkout-only call-site integrity and
+read no live function list. The editor hosts and Effect Index were not released.
+`effectindex.com/docs/how` therefore still serves its older intro wording, which
+is a known divergence, not a failed release.
+
+Gates in the isolated worktree: `tsc --noEmit` clean, then 26 test files and 261
+tests across `src/app/docs`, `src/data/content`, and `lib/next`. The
+`lib/next/effectIndexRedirects.test.ts` failure seen in the shared tree does not
+reproduce at this commit; it comes from the uncommitted `next.config.ts`
+`withGTConfig` work. The remote build passed TypeScript and generated 596 pages.
+
+Live checks: both public hosts serve the three rewritten passages and zero
+matches for the removed wording. Roll back to
+`dpl_35Eg2EUxBmxPqXLeg4qQbvCLaWC7` with `--scope josies-projects-f217d517`.
+Evidence: `runs/how-page-release/2026-09-09-josie-voice-pass.json`.
+
 ## 2026-09-09 docs/code and About corrections release
 
 All three surfaces serve commit `2949c413` on `no-corpus-drain`, each uploaded
