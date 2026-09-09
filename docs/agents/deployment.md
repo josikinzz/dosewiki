@@ -1,3 +1,64 @@
+## 2026-09-09 docs/code and About corrections release
+
+All three surfaces serve commit `2949c413` on `no-corpus-drain`, each uploaded
+from its own isolated detached `git worktree` at that commit, so the concurrent
+About copy-block editor work and `scripts/feedback` work in the shared tree
+stayed out.
+
+| Surface | Deployment | Rollback deployment |
+| --- | --- | --- |
+| dose.wiki and www.dose.wiki | `dpl_35Eg2EUxBmxPqXLeg4qQbvCLaWC7` | `dpl_8FuAu9KYKZQag775Quzr7eGYce5W` |
+| dev.dose.wiki and dosewiki-admin.vercel.app | `dpl_9AaCiwWPB9ZqLJStzzgS649sLsTN` | `dpl_4utomjXBHiCMV3wfLfMpseDBaaBd` |
+| effectindex.com | `dpl_kga2GcvRX1ZmmETTaPEb84oLja1w` | `dpl_ABn3dPyrG4zcTWpwRBoFdLgRXEhG` |
+
+The release carries two things. The first is the `/docs/code` and About
+corrections: the repository tree, reading order, and diagram node now name
+`src/middleware.ts`, the page standardises on `next-auth` for the v4 dependency
+instead of alternating with Auth.js, it states that Convex never sees per-reader
+traffic, and it points at `scripts/chemistry/verify-openchemlib-fork.mjs`. The
+About copy now says citations are checked for each **cited** claim and that
+review state is tracked in the **Article Status** section, matching
+`ContributorsSection.tsx` and `REVIEW_STATUS_BANNER_FALLBACK`; that prose was
+already live through Convex `siteConfig` from 08:50Z, and this release brings
+the `aboutContent.md` fallback in line.
+
+The second is the branch itself. The preceding How page release built from
+snapshot `65e4f167f9dca88afa9fb7b0397c0e604c828f6b` plus two overlay files, and
+that snapshot forks from the branch at `f955725b` (2026-09-04). The public build
+was therefore 17 branch commits behind: `dose.wiki` was serving the
+pre-`d6751e4e` gallery, three columns wide on a phone, while Convex already
+carried the 2026-09-09 replication projections. A served chunk on the new
+deployment carries `columns-2 gap-1.5 sm:columns-3` and no longer the old
+layout. Prefer a branch commit over a snapshot overlay unless the tree cannot be
+made clean; a detached worktree at HEAD makes that unnecessary.
+
+No Convex functions were published. All three builds logged `Convex functions
+will NOT be deployed by this build`, the editor build through `--build-env
+CONVEX_DEPLOY_KEY=` and the two public projects through their absent key.
+`npm run convex:doctor` reported 351 checkout functions against 351 live on
+`glad-minnow-656` with no drift before the release. Both public artifact audits
+report zero editorial browser modules and zero browser Convex clients; the
+editor audit reports 298 and 10.
+
+Local gates ran in the isolated worktree: `tsc --noEmit` clean, then 36 test
+files and 531 tests across `src/app/docs`, `src/data/content`,
+`src/features/replications`, `src/features/effects/gallery`, and
+`lib/next/copyBlocks.test.ts`.
+
+Live checks: `/docs/code` on `dose.wiki`, `www.dose.wiki`, and
+`effectindex.com` serves all four corrections; `dose.wiki/about` serves the
+corrected sentences with no stale wording; anonymous `dev.dose.wiki/dev` still
+307s to `/sign-in` with `noindex, nofollow, noarchive`; `POST
+/api/dev/revalidate-article` without a token still returns 401;
+`effectindex.com/reports` and `/effects` render. Evidence:
+`runs/docs-code-release/2026-09-09-docs-code-and-about-corrections.json`.
+
+The first public upload failed with the known `SSL alert number 20` (`bad record
+mac`) against `api.vercel.com` and succeeded on retry with unchanged source.
+A `vercel link --yes` typo created an empty project named `dosewiki-effectindex`
+with no deployments; it was removed immediately. Effect Index remains
+`prj_ipLwrIeglsQb6obFIZAS1D9YJqXc`.
+
 ## 2026-09-09 How page editor-prose release
 
 Public DoseWiki serves `dpl_8FuAu9KYKZQag775Quzr7eGYce5W` on `dose.wiki` and
