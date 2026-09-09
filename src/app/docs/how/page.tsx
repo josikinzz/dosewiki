@@ -1255,10 +1255,10 @@ export default async function DocsHowPage() {
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           Some sections are harder to get right than others. Pharmacology is tricky,
-          and its drafts are the most likely to be wrong. Dosage and interactions
-          demand the most care, because a paraphrased dose range or a missing
-          interaction can hurt someone. The other sections are easier and reach high
-          quality more reliably.
+          and its drafts are the most likely to be wrong. The stakes are highest where
+          a wrong figure can hurt someone, which is exactly why doses are transcribed
+          by code and interaction ratings come from curated data rather than drafted
+          prose. The other sections are easier and reach high quality more reliably.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           The prompts share one skeleton: a style definition, a hard evidence rule, a fixed
@@ -1810,8 +1810,9 @@ export default async function DocsHowPage() {
           is rebuilt every night from the live depiction database.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
-          The drafts come with their receipts. The published prompts and the
-          encyclopedia-building dataset show what went into each draft and how it was
+          The drafts come with their receipts. The prompts published on this page and
+          the encyclopedia-building dataset show what went into each draft and how it
+          was
           produced, so you can build your own encyclopedia pipeline or other things on
           top of it. Running the same pipeline will not necessarily produce the same
           article. Other sites and apps already make extensive use of the
