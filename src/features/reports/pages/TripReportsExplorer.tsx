@@ -11,7 +11,13 @@ import {
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
-import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
+import {
+  CONTROL_MENU_ITEM_CLASS,
+  CONTROL_TRIGGER_CHEVRON_CLASS,
+  CONTROL_TRIGGER_CLASS,
+  CONTROL_TRIGGER_LABEL_CLASS,
+} from "@/components/ui/controlBarTrigger";
+import { focusRingClassName } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,11 +45,15 @@ import {
   type ReportsIndexView,
 } from "@/utils/indexViewRoutes";
 import { formatTripDateLabel } from "@/utils/tripReportDate";
-import { TripReportCard } from "../components/TripReportCard";
+import {
+  COMPACT_TRIP_REPORT_CARD_CLASS,
+  TripReportCard,
+} from "../components/TripReportCard";
 import {
   foldSparseGroups,
   groupTripReports,
-  selectSpotlightReports,
+  selectFeaturedReports,
+  selectRecentlyAddedReports,
   type ReportSortDirection,
   type ReportSortKey,
   type TripReportGroup,
@@ -57,11 +67,22 @@ interface TripReportsExplorerProps {
   initialView?: ReportsIndexView;
 }
 
-const VIEW_MODES: { key: ReportViewMode; label: string; icon: IconName }[] = [
-  { key: "substance", label: "Substance", icon: "lucide:flask-conical" },
-  { key: "title", label: "Title", icon: "lucide:layout-list" },
-  { key: "author", label: "Author", icon: "lucide:user" },
-];
+/**
+ * The grouping axis names itself the way the rest of the site names it: a
+ * report belongs to a substance, a title or an author, so the control reads
+ * "By substance" rather than repeating the word the filter beside it owns.
+ */
+const MODE_LABEL: Record<ReportViewMode, string> = {
+  substance: "By substance",
+  title: "By title",
+  author: "By author",
+};
+
+const MODE_ICON: Record<ReportViewMode, IconName> = {
+  substance: "lucide:flask-conical",
+  title: "lucide:layout-list",
+  author: "lucide:user",
+};
 
 const SORT_OPTIONS: {
   id: string;
@@ -69,8 +90,10 @@ const SORT_OPTIONS: {
   direction: ReportSortDirection;
   label: string;
 }[] = [
-  { id: "name-asc", key: "alphabetical", direction: "asc", label: "A to Z" },
-  { id: "name-desc", key: "alphabetical", direction: "desc", label: "Z to A" },
+  // "A to Z" alone named the wrong noun: every one of these orders the
+  // shelves, not the reports inside them.
+  { id: "name-asc", key: "alphabetical", direction: "asc", label: "Groups A to Z" },
+  { id: "name-desc", key: "alphabetical", direction: "desc", label: "Groups Z to A" },
   { id: "count-desc", key: "count", direction: "desc", label: "Most reports first" },
   { id: "count-asc", key: "count", direction: "asc", label: "Fewest reports first" },
   { id: "date-desc", key: "date", direction: "desc", label: "Newest experience first" },
@@ -86,7 +109,19 @@ const DEFAULT_SORT_ID = "name-asc";
  * masonry item that no column can balance against.
  */
 const OPEN_SHELF_MAX_REPORTS = 24;
-const SPOTLIGHT_LIMIT = 6;
+
+/**
+ * Five works plus the contribution tile fill the band's three-column grid
+ * exactly twice over, so the invitation costs no row of its own.
+ */
+const BAND_LIMIT = 5;
+
+type BandKey = "added" | "featured";
+
+const BAND_TABS: { key: BandKey; label: string }[] = [
+  { key: "added", label: "Recently added" },
+  { key: "featured", label: "Featured" },
+];
 
 export function TripReportsExplorer({
   reports,
@@ -100,6 +135,11 @@ export function TripReportsExplorer({
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [shelfOverrides, setShelfOverrides] = useState<Record<string, boolean>>({});
+  const [band, setBand] = useState<BandKey>("added");
+  const bandTabRefs = useRef<Record<BandKey, HTMLButtonElement | null>>({
+    added: null,
+    featured: null,
+  });
   const { count: columnCount, gate: columnGate, ref: panelRef } = useResponsiveColumnCount();
 
   // A phone measures one column, and leaving thirty shelves open there costs
@@ -218,10 +258,18 @@ export function TripReportsExplorer({
     return columns.filter((entries) => entries.length > 0);
   }, [groupedReports, columnCount, oneColumn]);
 
-  const spotlight = useMemo(
-    () => selectSpotlightReports(reports, SPOTLIGHT_LIMIT),
+  // Two lists, one band. `added` is the default because it is the only
+  // question the front door could not answer: with nineteen curated reports
+  // and five slots, a featured-first order could never show anything newer
+  // than the oldest curation decision.
+  const recentlyAdded = useMemo(
+    () => selectRecentlyAddedReports(reports, BAND_LIMIT),
     [reports],
   );
+  const featured = useMemo(() => selectFeaturedReports(reports, BAND_LIMIT), [reports]);
+  const bandTabs = featured.length > 0 ? BAND_TABS : BAND_TABS.slice(0, 1);
+  const activeBand = featured.length > 0 ? band : "added";
+  const bandReports = activeBand === "featured" ? featured : recentlyAdded;
 
   const reportHref = (slug: string) =>
     reportHrefPrefix ? `${reportHrefPrefix}${slug}` : publicHref.report(slug);
@@ -301,27 +349,58 @@ export function TripReportsExplorer({
 
   return (
     <>
-      <p className="theme-text-faint mb-6 text-center text-xs sm:text-sm">
-        {reports.length} reports · {substanceOptions.length} substances · {authorCount} authors
-      </p>
-
       {/* The control bar tracks the reader down the index: grouping, search,
           filter and sort are all needed most while deep in the list, and a
-          static bar left them thousands of pixels behind. */}
+          static bar left them thousands of pixels behind. One row at every
+          width, because two rows of pinned chrome cost a phone reader a fifth
+          of the screen for the whole scroll. */}
       <div
-        className="sticky top-[calc(var(--site-header-height)+var(--site-header-sticky-gap))] z-20 mx-auto mb-8 w-full max-w-4xl"
+        className="sticky top-[calc(var(--site-header-height)+var(--site-header-sticky-gap))] z-20 mx-auto mb-3 w-full max-w-4xl"
         data-nosnippet
       >
-        <div className="theme-frosted-control-bar flex w-full min-w-0 flex-wrap items-center gap-2 rounded-2xl p-1.5 backdrop-blur-md sm:p-2">
-          <PublicSegmentedTabs
-            value={viewMode}
-            onItemSelect={(item) => handleViewModeChange(item.id)}
-            items={VIEW_MODES.map(({ key, label, icon }) => ({ id: key, label, icon }))}
-            className="shrink-0 justify-start"
-            ariaLabel="Trip report grouping"
-          />
+        <div
+          data-testid="reports-control-bar"
+          className="theme-frosted-control-bar flex w-full min-w-0 items-center gap-1.5 rounded-3xl p-1.5 backdrop-blur-md md:gap-2 md:p-2"
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="pill"
+                size="auto"
+                className={CONTROL_TRIGGER_CLASS}
+                aria-label={`Group by: ${MODE_LABEL[viewMode]}`}
+                title={`Group by: ${MODE_LABEL[viewMode]}`}
+              >
+                <Icon icon={MODE_ICON[viewMode]} className="h-4 w-4 shrink-0" aria-hidden />
+                <span className={CONTROL_TRIGGER_LABEL_CLASS}>{MODE_LABEL[viewMode]}</span>
+                <Icon
+                  icon="lucide:chevron-down"
+                  className={CONTROL_TRIGGER_CHEVRON_CLASS}
+                  aria-hidden
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuLabel>Group reports by</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={viewMode}
+                onValueChange={(value) => handleViewModeChange(value as ReportViewMode)}
+              >
+                {(["substance", "title", "author"] as const).map((mode) => (
+                  <DropdownMenuRadioItem
+                    key={mode}
+                    value={mode}
+                    className={CONTROL_MENU_ITEM_CLASS}
+                  >
+                    {MODE_LABEL[mode]}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <div className="relative min-w-0 flex-1 basis-44">
+          <div className="relative min-w-0 flex-1">
             <Icon
               icon="lucide:search"
               className="theme-text-faint pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
@@ -335,9 +414,12 @@ export function TripReportsExplorer({
               inputSize="default"
               defaultValue=""
               onChange={(event) => handleQueryChange(event.target.value)}
-              placeholder="Search title, author, substance"
-              aria-label="Search reports"
-              className={cn("pl-9", query ? "pr-10" : "pr-3")}
+              // Names its own corpus: the site-wide field sits 330px above
+              // this one and leaves the page, and nothing else told a reader
+              // which of the two they were typing into.
+              placeholder={`Search ${reports.length} reports`}
+              aria-label="Search these reports"
+              className={cn("h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9", query ? "pr-10" : "pr-3")}
             />
             {query ? (
               <Button
@@ -369,36 +451,97 @@ export function TripReportsExplorer({
           ) : null}
 
           <SortMenu activeId={sort.id} activeLabel={sort.label} onChange={handleSortChange} />
-
-          {isNarrowed ? (
-            <span className="theme-text-faint shrink-0 px-1 text-xs" role="status">
-              {visibleReports.length} of {reports.length}
-            </span>
-          ) : null}
         </div>
       </div>
 
+      {/* What the reader just did, in its own line under the bar rather than
+          as a fifth control inside it. Rendered at every state so the region
+          exists to be announced when narrowing starts. */}
+      <p
+        role="status"
+        className="theme-text-faint mx-auto mb-5 w-full max-w-4xl px-1 text-xs tabular-nums empty:mb-0"
+      >
+        {isNarrowed ? `${visibleReports.length} of ${reports.length} reports` : ""}
+      </p>
+
       {isNarrowed ? null : (
-        <section aria-labelledby="reports-spotlight" className="mx-auto mb-10 w-full max-w-4xl">
-          <h2
-            id="reports-spotlight"
-            className="theme-text-faint mb-3 text-xs font-semibold uppercase tracking-[0.16em]"
-          >
-            Start here
+        <section aria-labelledby="reports-band-heading" className="mx-auto mb-8 w-full max-w-4xl">
+          <h2 id="reports-band-heading" className="sr-only">
+            Report highlights
           </h2>
+          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+            {/* Two lists behind one band: what arrived, and what was chosen.
+                Roving tabindex, so the pair costs one tab stop. */}
+            <div role="tablist" aria-label="Report highlights" className="flex items-center gap-1">
+              {bandTabs.map((tab) => {
+                const selected = tab.key === activeBand;
+                return (
+                  <button
+                    key={tab.key}
+                    ref={(node) => {
+                      bandTabRefs.current[tab.key] = node;
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`reports-band-tab-${tab.key}`}
+                    aria-selected={selected}
+                    aria-controls="reports-band-panel"
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => setBand(tab.key)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+                        return;
+                      }
+                      event.preventDefault();
+                      const index = bandTabs.findIndex((entry) => entry.key === tab.key);
+                      const step = event.key === "ArrowRight" ? 1 : -1;
+                      const next =
+                        bandTabs[(index + step + bandTabs.length) % bandTabs.length];
+                      setBand(next.key);
+                      bandTabRefs.current[next.key]?.focus();
+                    }}
+                    className={cn(
+                      focusRingClassName,
+                      "min-h-9 rounded-full px-3 text-xs font-semibold uppercase tracking-[0.1em] transition [@media(pointer:coarse)]:min-h-11",
+                      selected
+                        ? "theme-accent-heading bg-dose-surface-muted"
+                        : "theme-text-faint hover:text-dose-text-secondary",
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="theme-text-faint hidden text-xs tabular-nums sm:block">
+              {reports.length} reports · {substanceOptions.length} substances · {authorCount}{" "}
+              authors
+            </p>
+          </div>
           {/* Compact density: the full card lays avatar, title and substance
               chips out as one wide row, which collides with itself in a grid
               cell. The band's job is to make a reader open something, so title,
               byline and date carry it and the shelves carry the chemistry. */}
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {spotlight.map((report) => (
+          <div
+            role="tabpanel"
+            id="reports-band-panel"
+            aria-labelledby={`reports-band-tab-${activeBand}`}
+            className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {bandReports.map((report) => (
               <TripReportCard
                 key={report.slug}
                 report={report}
                 href={reportHref(report.slug)}
                 density="compact"
+                // Every card in the featured list is featured and none in the
+                // added list was chosen, so the star discriminated nothing
+                // here while looking exactly like a bookmark toggle. It still
+                // marks the minority of rows down in the shelves.
+                showFeatured={false}
               />
             ))}
+            <SubmitReportTile />
           </div>
         </section>
       )}
@@ -409,7 +552,13 @@ export function TripReportsExplorer({
             headingLevel="h2"
             icon="lucide:list-filter"
             title="No reports match"
-            description="Nothing in the archive matches this substance and search. Clear them to browse the full index."
+            description={`Nothing in the archive matches ${
+              substanceFilter && query.trim()
+                ? `${substanceFilter} and this search`
+                : substanceFilter
+                  ? substanceFilter
+                  : "this search"
+            }. Clear it to browse the full index.`}
           />
           <Button type="button" variant="pill" size="pill" className="mt-4" onClick={clearNarrowing}>
             Clear filters
@@ -442,6 +591,37 @@ export function TripReportsExplorer({
 }
 
 /**
+ * The invitation, in the band rather than in the footer.
+ *
+ * It used to render only at the very end of the page, which measured 93% of
+ * the scroll on a desktop and 96% on a phone: not a placement, a hiding
+ * place. Here it is a cell of the same grid as the reports it sits beside, so
+ * it costs no vertical chrome above the first card and arrives at the moment
+ * a reader is looking at other people's accounts. The sentence under the
+ * label is the one that answers the actual fear, and it lived two thousand
+ * pixels away behind a click until now.
+ */
+function SubmitReportTile() {
+  return (
+    <SmartLink
+      href={publicHref.reportSubmission()}
+      className={cn(
+        COMPACT_TRIP_REPORT_CARD_CLASS,
+        "min-h-[4.25rem] flex-col items-start justify-center gap-1",
+      )}
+    >
+      <span className="theme-accent-heading flex items-center gap-1.5 text-sm font-medium transition group-hover:opacity-90">
+        <Icon icon="lucide:file-pen-line" size={14} aria-hidden />
+        Submit a report
+      </span>
+      <span className="theme-text-faint text-xs leading-snug">
+        Stays private until an editor approves it.
+      </span>
+    </SmartLink>
+  );
+}
+
+/**
  * One grouping as an index panel: the kit's collapsible card carrying the
  * group's count, wrapped in the masonry item class so it never breaks across
  * columns, and given a stable anchor so the section is linkable.
@@ -461,7 +641,13 @@ function ReportShelf({
     group.kind === "author" ? group.reports[0]?.subject.profile_key : undefined;
 
   return (
-    <div id={group.anchor} className="scroll-mt-32">
+    // `scroll-mt-32` was 128px against 136px of pinned chrome, so a jumped-to
+    // heading landed under the bar. Derived from the same tokens the bar's
+    // own offset uses, plus its 3.25rem height and a 0.5rem breath.
+    <div
+      id={group.anchor}
+      className="scroll-mt-[calc(var(--site-header-height)+var(--site-header-sticky-gap)+3.75rem)]"
+    >
       <IndexCard
         title={group.name}
         icon="lucide:flask-conical"
@@ -546,9 +732,11 @@ function ReportIndexRow({
 }
 
 /**
- * Sort as one disclosed chip rather than a row of text buttons: every ordering
- * is named outright, so no state hides behind a re-click gesture, and the chip
- * label always reports the applied order.
+ * Sort as one disclosed menu rather than a row of text buttons: every ordering
+ * is named outright, so no state hides behind a re-click gesture, and the
+ * trigger label always reports the applied order. Same object as its three
+ * neighbours in the bar, at the same height, with a 44px coarse-pointer floor
+ * the old 34px pill did not have.
  */
 function SortMenu({
   activeId,
@@ -565,19 +753,29 @@ function SortMenu({
         <Button
           type="button"
           variant="pill"
-          size="pill"
-          className="shrink-0 gap-1.5"
+          size="auto"
+          className={CONTROL_TRIGGER_CLASS}
           aria-label={`Sort order, ${activeLabel}`}
+          title={`Sort order, ${activeLabel}`}
         >
-          <Icon icon="lucide:arrow-up-down" className="h-4 w-4" aria-hidden />
-          <span className="hidden sm:inline">{activeLabel}</span>
+          <Icon icon="lucide:arrow-up-down" className="h-4 w-4 shrink-0" aria-hidden />
+          <span className={CONTROL_TRIGGER_LABEL_CLASS}>{activeLabel}</span>
+          <Icon
+            icon="lucide:chevron-down"
+            className={CONTROL_TRIGGER_CHEVRON_CLASS}
+            aria-hidden
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Sort groups by</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={activeId} onValueChange={onChange}>
           {SORT_OPTIONS.map((option) => (
-            <DropdownMenuRadioItem key={option.id} value={option.id}>
+            <DropdownMenuRadioItem
+              key={option.id}
+              value={option.id}
+              className={CONTROL_MENU_ITEM_CLASS}
+            >
               {option.label}
             </DropdownMenuRadioItem>
           ))}
@@ -641,18 +839,25 @@ function SubstanceFilterControl({
           <Button
             type="button"
             variant={active !== null ? "pillActive" : "pill"}
-            size="pill"
-            className="shrink-0 gap-1.5"
+            size="auto"
+            className={CONTROL_TRIGGER_CLASS}
             aria-label={
               active !== null ? `Substance filter, ${active} active` : "Filter by substance"
             }
+            title={active !== null ? `Substance filter, ${active} active` : "Filter by substance"}
           >
-            <Icon icon="lucide:flask-conical" className="h-4 w-4" aria-hidden />
-            {/* Not "Substance": the grouping tab beside it already carries that
-                word, and two controls with one label did different things. */}
-            <span className={active === null ? "hidden sm:inline" : undefined}>
+            <Icon icon="lucide:flask-conical" className="h-4 w-4 shrink-0" aria-hidden />
+            {/* Not "Substance": the grouping control beside it already carries
+                that word, and two controls with one label did different
+                things. An active filter names itself instead. */}
+            <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "max-w-[9rem] truncate")}>
               {active ?? "Filter"}
             </span>
+            <Icon
+              icon="lucide:chevron-down"
+              className={CONTROL_TRIGGER_CHEVRON_CLASS}
+              aria-hidden
+            />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -738,12 +943,15 @@ function SubstanceFilterControl({
         <Button
           type="button"
           variant="pill"
-          size="pill"
-          className="shrink-0 px-2"
+          size="auto"
+          // A square at every width: it is the one control with nothing to
+          // name, so it never earns the label track its neighbours get.
+          className="h-10 w-10 shrink-0 justify-center p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 md:h-9 md:w-9"
           aria-label={`Clear substance filter, ${active}`}
+          title={`Clear substance filter, ${active}`}
           onClick={onClear}
         >
-          <Icon icon="lucide:x" className="h-3.5 w-3.5" aria-hidden />
+          <Icon icon="lucide:x" className="h-4 w-4" aria-hidden />
         </Button>
       ) : null}
     </div>

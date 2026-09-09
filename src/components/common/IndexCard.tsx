@@ -83,10 +83,13 @@ export function IndexCardCountBadge({
   return (
     <span
       className={cn(
+        // 0.62rem computed to 9.92px, under any legible floor for functional
+        // text; these are the only numbers three public indexes print, so
+        // both sizes now sit at or above 11px and the box grows with them.
         "theme-index-card-count inline-flex shrink-0 items-center justify-center rounded-[0.12rem] font-semibold tabular-nums tracking-normal",
         size === "sm"
-          ? "theme-index-card-count-sm h-[1.12rem] min-w-[1.35rem] px-1.5 text-[0.58rem] leading-[1.12rem]"
-          : "h-[1.15rem] min-w-[1.4rem] px-1.5 text-[0.62rem] leading-[1.15rem]",
+          ? "theme-index-card-count-sm h-[1.25rem] min-w-[1.5rem] px-1.5 text-[0.6875rem] leading-[1.25rem]"
+          : "h-[1.3rem] min-w-[1.55rem] px-1.5 text-[0.69rem] leading-[1.3rem]",
       )}
       aria-label={`${count} item${count === 1 ? "" : "s"}`}
     >

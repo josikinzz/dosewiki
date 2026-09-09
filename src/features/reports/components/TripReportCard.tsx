@@ -115,16 +115,23 @@ export const TripReportCard = memo(function TripReportCard({
   );
 });
 
+/**
+ * The compact card's surface, exported because the band's contribution tile
+ * is a cell of the same grid and must be the same object rather than a
+ * lookalike that drifts from it.
+ */
+export const COMPACT_TRIP_REPORT_CARD_CLASS = cn(
+  surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" }),
+  interactiveSurfaceVariants({ variant: "quiet" }),
+  "group flex w-full items-center gap-3 text-left",
+);
+
 function getTripReportCardClassName(
   density: TripReportCardDensity,
   surfaceTone: TripReportCardSurfaceTone,
 ) {
   if (density === "compact") {
-    return cn(
-      surfaceVariants({ variant: "subtle", padding: "xs", radius: "lg" }),
-      interactiveSurfaceVariants({ variant: "quiet" }),
-      "group flex w-full items-center gap-3 text-left",
-    );
+    return COMPACT_TRIP_REPORT_CARD_CLASS;
   }
 
   if (surfaceTone === "dense") {

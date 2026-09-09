@@ -90,7 +90,15 @@ export type TripReportPreviewRecord = Pick<
   // a contributor at all; see `lib/convex/publicData.reportProfileProjection`.
   | "attribution_review"
   | "attribution_locked"
->;
+> & {
+  /**
+   * When the report joined the archive, derived at the read edge from the
+   * row's creation time rather than stored on it. Optional because a read
+   * served by a Convex deployment older than the projection that adds it has
+   * no value to give, and the index falls back to the experience date.
+   */
+  published_at?: string;
+};
 
 export interface PublicReportPreview {
   title: string;
@@ -109,7 +117,14 @@ export interface PublicReportPreview {
   setting?: string;
   authorAvatarUrl?: string | null;
   authorProfileKey?: string;
+  /** Read-edge publication date; see `TripReportPreviewRecord.published_at`. */
+  publishedAt?: string;
 }
+
+/** A detail record as a read serves it, carrying the read-edge publication date. */
+export type TripReportDetailRecordWithPublication = TripReportDetailRecord & {
+  published_at?: string;
+};
 
 export interface ReportCardModel {
   slug: string;
@@ -117,6 +132,11 @@ export interface ReportCardModel {
   featured: boolean;
   subject: Pick<TripReportSubject, "name" | "avatar_url" | "profile_key" | "trip_date">;
   substances: TripReportSubstance[];
+  /**
+   * When the report joined the archive. The index's default band ranks on
+   * this and falls back to the experience date where it is absent.
+   */
+  publishedAt?: string;
 }
 
 export const toPublicReportPreview = (
@@ -143,11 +163,14 @@ export const toPublicReportPreview = (
   setting: report.subject.setting,
   authorAvatarUrl: options.authorAvatarUrl ?? null,
   authorProfileKey: options.authorProfileKey,
+  publishedAt: report.published_at,
 });
 
 export const toPublicReportDetail = (report: TripReportDetailRecord): TripReport => report;
 
-export const toReportCardModel = (report: PublicReportPreview | TripReportDetailRecord): ReportCardModel => {
+export const toReportCardModel = (
+  report: PublicReportPreview | TripReportDetailRecordWithPublication,
+): ReportCardModel => {
   if ("author" in report) {
     return {
       slug: report.slug,
@@ -163,6 +186,7 @@ export const toReportCardModel = (report: PublicReportPreview | TripReportDetail
         report.substances.length > 0
           ? report.substances.map((substance) => ({ ...substance }))
           : report.substanceNames.map((name) => ({ name })),
+      publishedAt: report.publishedAt,
     };
   }
 
@@ -177,6 +201,7 @@ export const toReportCardModel = (report: PublicReportPreview | TripReportDetail
       profile_key: report.subject.profile_key,
     },
     substances: report.substances,
+    publishedAt: report.published_at,
   };
 };
 

@@ -24,7 +24,7 @@ import {
   CONTROL_TRIGGER_CHEVRON_CLASS,
   CONTROL_TRIGGER_CLASS,
   CONTROL_TRIGGER_LABEL_CLASS,
-} from "./controlBarTrigger";
+} from "@/components/ui/controlBarTrigger";
 
 type FilterKey = keyof GalleryTaxonomyFilterState;
 type FilterOption = { value: string; label: string };

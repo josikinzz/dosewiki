@@ -1,10 +1,8 @@
 import type { SubstanceArticle } from "@/schema";
 import type {
-  PublicReportPreview,
   ReportCardModel,
   ReportViewMode,
   TripReport,
-  TripReportDetailRecord,
 } from "@/types/tripReport";
 import { slugify } from "@/utils/slug";
 import { tripDateSortValue } from "@/utils/tripReportDate";
@@ -51,42 +49,10 @@ export interface SubstanceLookupRecord {
   name: string;
 }
 
-type ReportLike = Pick<ReportCardModel, "slug" | "title" | "featured" | "subject" | "substances">;
-
-export const toTripReportPreviewModel = (report: PublicReportPreview | TripReportDetailRecord): ReportCardModel => {
-  if ("author" in report) {
-    return {
-      slug: report.slug,
-      title: report.title,
-      featured: report.featured,
-      subject: {
-        name: report.author,
-        trip_date: report.tripDate,
-        avatar_url: report.authorAvatarUrl ?? undefined,
-        profile_key: report.authorProfileKey,
-      },
-      // Keep dose and route: they are the index row's only product-specific
-      // detail, and `substanceNames` throws them away.
-      substances:
-        report.substances.length > 0
-          ? report.substances.map((substance) => ({ ...substance }))
-          : report.substanceNames.map((name) => ({ name })),
-    };
-  }
-
-  return {
-    slug: report.slug,
-    title: report.title,
-    featured: report.featured === true,
-    subject: {
-      name: report.subject.name,
-      trip_date: report.subject.trip_date,
-      avatar_url: report.subject.avatar_url,
-      profile_key: report.subject.profile_key,
-    },
-    substances: report.substances,
-  };
-};
+type ReportLike = Pick<
+  ReportCardModel,
+  "slug" | "title" | "featured" | "subject" | "substances"
+> & { publishedAt?: string };
 
 export function getSubstanceSearchNames(article: Pick<SubstanceArticle, "title" | "identification">): string[] {
   return uniqueTrimmed([
@@ -208,24 +174,55 @@ export function foldSparseGroups<TReport>(
 }
 
 /**
- * The index band's selection: curated reports first, then the most recently
- * dated experience. `trip_date` is author-typed free text, so an undatable
- * report sorts last rather than being treated as new.
+ * The band's two lists.
+ *
+ * `added` answers "what is new here", which is the only question the front
+ * door could not answer before: nineteen of the corpus's reports are featured
+ * and the band holds five, so a featured-first order could never surface
+ * anything newer than the oldest curation decision. It ranks on the read-edge
+ * publication date, then falls back to the experience date, so a deployment
+ * whose projection predates `published_at` still orders the band by the most
+ * recent thing it can prove rather than by nothing.
+ *
+ * `featured` is the curated shelf, still newest-experience-first inside it.
  */
-export function selectSpotlightReports<TReport extends ReportLike>(
+export function selectRecentlyAddedReports<TReport extends ReportLike>(
   reports: readonly TReport[],
   limit: number,
 ): TReport[] {
   return [...reports]
     .sort((left, right) => {
-      if (left.featured !== right.featured) {
-        return left.featured ? -1 : 1;
+      const delta = publicationValue(right) - publicationValue(left);
+      if (delta !== 0) {
+        return delta;
       }
+      const experience = reportDateValue(right) - reportDateValue(left);
+      return experience !== 0 ? experience : left.title.localeCompare(right.title);
+    })
+    .slice(0, Math.max(limit, 0));
+}
 
+export function selectFeaturedReports<TReport extends ReportLike>(
+  reports: readonly TReport[],
+  limit: number,
+): TReport[] {
+  return [...reports]
+    .filter((report) => report.featured)
+    .sort((left, right) => {
       const delta = reportDateValue(right) - reportDateValue(left);
       return delta !== 0 ? delta : left.title.localeCompare(right.title);
     })
     .slice(0, Math.max(limit, 0));
+}
+
+/**
+ * An unparseable or absent publication date sinks below every dated row
+ * rather than being treated as new, the same rule `workDateMs` applies to the
+ * replication gallery.
+ */
+function publicationValue<TReport extends ReportLike>(report: TReport): number {
+  const parsed = report.publishedAt ? Date.parse(report.publishedAt) : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function sortWithinGroup<TReport extends ReportLike>(

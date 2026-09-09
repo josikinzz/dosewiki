@@ -10,8 +10,8 @@ import {
   groupTripReports,
   prepareSubstanceTripReports,
   reportMatchesSubstance,
-  selectSpotlightReports,
-  toTripReportPreviewModel,
+  selectFeaturedReports,
+  selectRecentlyAddedReports,
 } from "./tripReportIndex";
 
 const reportCard = ({
@@ -21,6 +21,7 @@ const reportCard = ({
   substances,
   featured = false,
   tripDate,
+  publishedAt,
 }: {
   slug: string;
   title: string;
@@ -28,12 +29,14 @@ const reportCard = ({
   substances: string[];
   featured?: boolean;
   tripDate?: string;
+  publishedAt?: string;
 }): ReportCardModel => ({
   slug,
   title,
   featured,
   subject: { name: author, trip_date: tripDate },
   substances: substances.map((name) => ({ name })),
+  publishedAt,
 });
 
 const tripReport = (card: ReportCardModel): TripReport => ({
@@ -53,46 +56,64 @@ const article = {
 } as SubstanceArticle;
 
 describe("trip report index domain", () => {
-  it("keeps dose and route when normalizing public preview records", () => {
-    expect(
-      toTripReportPreviewModel({
-        title: "DMT Breakthrough",
-        slug: "dmt-breakthrough",
-        author: "Example Author",
-        featured: true,
-        substanceNames: ["DMT"],
-        substances: [{ name: "DMT", dose: "40 mg", roa: "Vaporized" }],
-        introduction: "Excerpt",
-        tripDate: "2026-04-01",
-        authorAvatarUrl: null,
-        authorProfileKey: "AUTHOR",
+  it("ranks the added band on publication date, whatever the experience date says", () => {
+    const reports = [
+      reportCard({
+        slug: "old-experience-new-here",
+        title: "Old experience",
+        substances: ["LSD"],
+        tripDate: "2013",
+        publishedAt: "2026-09-01T00:00:00.000Z",
       }),
-    ).toEqual({
-      title: "DMT Breakthrough",
-      slug: "dmt-breakthrough",
-      featured: true,
-      subject: {
-        name: "Example Author",
-        trip_date: "2026-04-01",
-        avatar_url: undefined,
-        profile_key: "AUTHOR",
-      },
-      substances: [{ name: "DMT", dose: "40 mg", roa: "Vaporized" }],
-    });
+      reportCard({
+        slug: "new-experience-old-here",
+        title: "New experience",
+        substances: ["LSD"],
+        tripDate: "2025/07/10",
+        publishedAt: "2020-01-01T00:00:00.000Z",
+      }),
+      reportCard({
+        slug: "curated",
+        title: "Curated",
+        substances: ["LSD"],
+        featured: true,
+        tripDate: "2013",
+        publishedAt: "2019-01-01T00:00:00.000Z",
+      }),
+    ];
+
+    expect(selectRecentlyAddedReports(reports, 3).map((report) => report.slug)).toEqual([
+      "old-experience-new-here",
+      "new-experience-old-here",
+      "curated",
+    ]);
   });
 
-  it("falls back to substance names when a preview carries no substance detail", () => {
-    const model = toTripReportPreviewModel({
-      title: "Untitled",
-      slug: "untitled",
-      author: "Author",
-      featured: false,
-      substanceNames: ["LSD"],
-      substances: [],
-      introduction: "",
-    });
+  it("falls back to the experience date where no publication date was served", () => {
+    const reports = [
+      reportCard({ slug: "recent", title: "Recent", substances: ["LSD"], tripDate: "2022/05/04" }),
+      reportCard({ slug: "undated", title: "Undated", substances: ["LSD"] }),
+      reportCard({ slug: "older", title: "Older", substances: ["LSD"], tripDate: "2013" }),
+    ];
 
-    expect(model.substances).toEqual([{ name: "LSD" }]);
+    expect(selectRecentlyAddedReports(reports, 3).map((report) => report.slug)).toEqual([
+      "recent",
+      "older",
+      "undated",
+    ]);
+  });
+
+  it("keeps the featured band to curated reports, newest experience first", () => {
+    const reports = [
+      reportCard({ slug: "plain", title: "Plain", substances: ["LSD"], tripDate: "2026" }),
+      reportCard({ slug: "old-pick", title: "Old pick", substances: ["LSD"], featured: true, tripDate: "2013" }),
+      reportCard({ slug: "new-pick", title: "New pick", substances: ["LSD"], featured: true, tripDate: "2019" }),
+    ];
+
+    expect(selectFeaturedReports(reports, 5).map((report) => report.slug)).toEqual([
+      "new-pick",
+      "old-pick",
+    ]);
   });
 
   it("groups reports by title initial, author, and substance with linkable anchors", () => {
@@ -166,19 +187,6 @@ describe("trip report index domain", () => {
     );
 
     expect(foldSparseGroups(groupTripReports(reports, "substance", "asc"))).toHaveLength(2);
-  });
-
-  it("puts curated reports ahead of the most recent experience in the spotlight", () => {
-    const reports = [
-      reportCard({ slug: "recent", title: "Recent", substances: ["LSD"], tripDate: "2022/05/04" }),
-      reportCard({ slug: "undated", title: "Undated", substances: ["LSD"] }),
-      reportCard({ slug: "curated", title: "Curated", substances: ["LSD"], featured: true, tripDate: "2013" }),
-    ];
-
-    expect(selectSpotlightReports(reports, 2).map((report) => report.slug)).toEqual([
-      "curated",
-      "recent",
-    ]);
   });
 
   it("sorts substance article reports by featured status and separates combinations", () => {

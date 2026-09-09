@@ -35,4 +35,13 @@ describe("public trip report privacy", () => {
     expect(visible.introduction).toBe("Original introduction.\n");
     expect(visible.license).toBe("author-retained");
   });
+
+  it("dates the publication from the row's creation, never from the moderation decision", () => {
+    const visible = publicTripReport(publishedReport());
+
+    // The row is inserted at promotion, so its creation time is the date the
+    // archive gained the report. `reviewed_at` would date an editor's shift.
+    expect(visible.published_at).toBe(new Date(1).toISOString());
+    expect(JSON.stringify(visible)).not.toContain("2026-09-05T00:00:00.000Z");
+  });
 });

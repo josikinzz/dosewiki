@@ -22,12 +22,11 @@ import {
   type EffectArticleModel,
 } from "../../src/features/effects/articleSectionModel";
 import { stripCitationTokens } from "../../src/lib/citations/citationTokens";
-import { toTripReportPreviewModel } from "../../src/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "../../src/schema";
 import type { MoleculeAsset, SubstanceContent } from "../../src/types/content";
 import type { NormalizedReagentData } from "../../src/types/reagent";
 import type { WarningBannerPreset } from "../../src/data/substanceWarningBanners";
-import type { ReportCardModel } from "../../src/types/tripReport";
+import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 import type {
   PublicEffectPreview,
   PublicReportPreview,
@@ -196,7 +195,7 @@ export function buildReportsIndexViewModel(input: {
     },
     pageProps: {
       reportHrefPrefix: REPORT_HREF_PREFIX,
-      reports: input.reports.map(toTripReportPreviewModel),
+      reports: input.reports.map(toReportCardModel),
     },
   };
 }

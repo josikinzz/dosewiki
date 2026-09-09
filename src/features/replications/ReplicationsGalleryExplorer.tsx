@@ -82,7 +82,7 @@ import {
   CONTROL_TRIGGER_CHEVRON_CLASS,
   CONTROL_TRIGGER_CLASS,
   CONTROL_TRIGGER_LABEL_CLASS,
-} from "./components/controlBarTrigger";
+} from "@/components/ui/controlBarTrigger";
 import {
   buildGalleryBrowseUrl,
   buildGalleryFocusUrl,
