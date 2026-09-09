@@ -1743,4 +1743,65 @@ describe("complete corpus loading", () => {
     expect(screen.getByText("First visible work")).toBeInTheDocument();
     expect(screen.queryByText("No replications yet")).toBeNull();
   });
+
+  it("accepts a corpus that carries audio rows", async () => {
+    // Audio became a published media kind while this guard still admitted
+    // only image and video, so eight ogg rows made the whole 6,600-row
+    // response "malformed" and every reader saw the failure banner instead
+    // of the archive.
+    const initial = rep({ title: "Initial work" });
+    const clip = rep({
+      title: "Deferred clip",
+      type: "audio",
+      format: "ogg",
+      duration: 30,
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(corpusResponse([initial, clip])),
+    );
+
+    renderExplorer("", {
+      replications: [initial],
+      completeCorpusUrl: "/api/replications/gallery",
+    });
+    await runIdle();
+
+    expect(
+      screen.queryByText(/complete gallery could not finish loading/i),
+    ).toBeNull();
+    expect(screen.getByText("Deferred clip")).toBeInTheDocument();
+  });
+
+  it("leaves the corpus unfetched on touch until an interaction needs it", async () => {
+    // Coarse pointer: the default view is entirely server-rendered, so the
+    // 1.6 MB corpus waits to be asked for instead of racing the grid's own
+    // media on a phone radio.
+    stubMatchMedia(true);
+    const initial = rep({ title: "Initial work" });
+    const deferred = rep({ title: "Deferred match" });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(corpusResponse([initial, deferred]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderExplorer("", {
+      replications: [initial],
+      completeCorpusUrl: "/api/replications/gallery",
+    });
+    await runIdle();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    // Typing is the shortest path to a state only the corpus can answer, and
+    // it starts the same request eagerly rather than waiting for idle.
+    await act(async () => {
+      fireEvent.change(
+        screen.getByRole("textbox", { name: "Search replications" }),
+        { target: { value: "deferred" } },
+      );
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

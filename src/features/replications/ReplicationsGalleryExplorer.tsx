@@ -181,6 +181,28 @@ function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
     .some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
 }
 
+/**
+ * Whether to spend the deferred corpus fetch — 1.6 MB compressed, ~6.8 MB of
+ * JSON to parse — before the reader has asked for anything it answers.
+ *
+ * The default browse view is served entirely by the server's rail digest, so
+ * until a search, a filter, "Show more artists" or a deep link needs the
+ * corpus, that download buys nothing; every one of those paths already loads
+ * it on demand through `runWithCompleteCorpus`. On a phone it is actively
+ * expensive: it competes with the grid's own media for a slow radio, and the
+ * state swap it lands regroups every row and re-renders every mounted tile
+ * mid-scroll. Coarse pointers and Save-Data readers therefore wait to be
+ * asked; hover-capable pointers keep the prefetch, where the bandwidth is
+ * cheap and the same page already opens a hover-playback budget.
+ */
+function shouldPrefetchCompleteCorpus(): boolean {
+  const connection = (
+    navigator as Navigator & { connection?: { saveData?: boolean } }
+  ).connection;
+  if (connection?.saveData) return false;
+  return !window.matchMedia?.("(pointer: coarse)").matches;
+}
+
 function isContributorDirectory(value: unknown): value is ContributorDirectory {
   return (
     Array.isArray(value) &&
@@ -212,7 +234,9 @@ function isGalleryReplicationPreview(
     typeof value.artist === "string" &&
     (!("artist_url" in value) || typeof value.artist_url === "string") &&
     "type" in value &&
-    (value.type === "image" || value.type === "video") &&
+    (value.type === "image" ||
+      value.type === "video" ||
+      value.type === "audio") &&
     "format" in value &&
     typeof value.format === "string" &&
     (!("effect_slug" in value) || typeof value.effect_slug === "string") &&
@@ -379,13 +403,17 @@ export interface ReplicationsGalleryExplorerProps {
 }
 
 /**
- * Phones get a denser, media-first masonry (three thin columns, hairline
- * gutters, and captions tightened by `mobileCompact` rather than hidden: a
- * title only a hover reveals is a title touch readers never get); from `sm`
- * up the grid relaxes back to the readable card layout.
+ * Phones get a denser, media-first masonry (two columns, hairline gutters,
+ * and captions tightened by `mobileCompact` rather than hidden: a title only
+ * a hover reveals is a title touch readers never get); from `sm` up the grid
+ * relaxes back to the readable card layout.
+ *
+ * Two columns, not three: a 390px phone gave each of three columns ~125px,
+ * so every tile was a thumbnail of a thumbnail and the page carried three
+ * full-resolution decodes per row of a grid nobody could read.
  */
 const MASONRY_CLASS =
-  "columns-3 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
+  "columns-2 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
 const MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid sm:mb-3";
 
 /** Debounce for search keystrokes → URL writes (history stays clean). */
@@ -658,9 +686,11 @@ function GalleryExplorer({
     }
     // The default view's prerendered rails are already complete, so the
     // corpus fetch waits for browser idle instead of competing with the
-    // first paint's media. Interactions that need the corpus sooner go
-    // through `runWithCompleteCorpus`, which starts the same deduplicated
-    // request eagerly.
+    // first paint's media — and on touch it waits to be asked for at all.
+    // Interactions that need the corpus sooner go through
+    // `runWithCompleteCorpus`, which starts the same deduplicated request
+    // eagerly on every device.
+    if (!shouldPrefetchCompleteCorpus()) return;
     const idleWindow = window as Window & {
       requestIdleCallback?: (
         callback: () => void,
@@ -2171,9 +2201,9 @@ function IncrementalMasonry({
             replication={replication}
             className={MASONRY_TILE_CLASS}
             frameClassName="w-full"
-            /* Masonry columns: 3 across until lg, then 4 across the max-w-7xl
-               measure — a column never exceeds ~320px. */
-            sizes="(max-width: 1024px) 33vw, 320px"
+            /* Masonry columns: 2 across on phones, 3 from sm, then 4 across
+               the max-w-7xl measure — a column never exceeds ~320px. */
+            sizes="(max-width: 639px) 50vw, (max-width: 1024px) 33vw, 320px"
             showByline={showByline}
             mobileCompact
             onOpen={onOpen}

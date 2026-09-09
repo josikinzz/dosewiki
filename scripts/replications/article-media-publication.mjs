@@ -11,7 +11,10 @@ import { mediaTypeFromContentType } from "./article-media-evidence.mjs";
  * this script's test rather than left as a comment claiming they agree.
  */
 export function expectsPublication(row) {
-  return row.role === "replication" && (row.type === "image" || row.type === "video");
+  return (
+    row.role === "replication" &&
+    (row.type === "image" || row.type === "video" || row.type === "audio")
+  );
 }
 
 /**

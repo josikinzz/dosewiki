@@ -18,10 +18,12 @@ describe("expectsPublication", () => {
     }
   });
 
-  it("reads a replication image or video as published and everything else as withheld", () => {
+  it("reads a replication of any drawable kind as published and a figure as withheld", () => {
     expect(expectsPublication({ role: "replication", type: "image" })).toBe(true);
+    // Audio is a published media kind: the tile draws a waveform frame and the
+    // viewer stages a player.
+    expect(expectsPublication({ role: "replication", type: "audio" })).toBe(true);
     expect(expectsPublication({ role: "figure", type: "image" })).toBe(false);
-    expect(expectsPublication({ role: "replication", type: "audio" })).toBe(false);
   });
 });
 describe("verifyInsertedRow", () => {

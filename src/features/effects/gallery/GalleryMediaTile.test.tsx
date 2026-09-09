@@ -248,6 +248,49 @@ describe("GalleryMediaTile", () => {
     expect(screen.getByText(/Animation/)).toBeInTheDocument();
   });
 
+  it("serves a still's own thumbnail rendition rather than its master", () => {
+    // The corpus stores 640px renditions beside multi-megabyte masters; a
+    // grid column is ~190px wide, so a tile that reaches for `url` downloads
+    // and decodes several times the picture it can show.
+    const { container } = render(
+      <GalleryMediaTile
+        replication={{
+          ...VIDEO,
+          type: "image",
+          format: "jpg",
+          url: "https://example.test/master.jpg",
+          thumbnail_url: "https://example.test/rendition.webp",
+        }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://example.test/rendition.webp",
+    );
+  });
+
+  it("falls back to a still's master when it has no rendition", () => {
+    const { container } = render(
+      <GalleryMediaTile
+        replication={{
+          ...VIDEO,
+          type: "image",
+          format: "jpg",
+          url: "https://example.test/master.jpg",
+          thumbnail_url: undefined,
+        }}
+        viewerHref={VIEWER_HREF}
+      />,
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://example.test/master.jpg",
+    );
+  });
+
   // jsdom never fetches images, so a fresh poster is "in flight" until the
   // test fires the element's own load or error event.
   it("shimmers over an in-flight poster and reveals it on load", async () => {

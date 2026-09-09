@@ -16,11 +16,13 @@ import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryModel";
 const ARROW_SCROLL_RATIO = 0.8;
 
 /**
- * Phone browse view. Three thin columns and hairline gutters, the same
- * geometry the search masonry uses, so a group reads as a continuous grid of
- * work instead of a rail that loads fourteen tiles and reveals one.
+ * Phone browse view. Two columns and hairline gutters, the same geometry the
+ * search masonry uses, so a group reads as a continuous grid of work instead
+ * of a rail that loads fourteen tiles and reveals one. Two rather than three:
+ * a third column left every tile ~125px wide on a 390px phone while still
+ * paying a full-resolution decode for each one.
  */
-const GROUP_MASONRY_CLASS = "columns-3 gap-1.5 [column-fill:_balance]";
+const GROUP_MASONRY_CLASS = "columns-2 gap-1.5 sm:columns-3 [column-fill:_balance]";
 const GROUP_MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid";
 
 /**
@@ -279,7 +281,7 @@ export function MediaRail({
               replication={replication}
               className={GROUP_MASONRY_TILE_CLASS}
               frameClassName="w-full"
-              sizes="33vw"
+              sizes="(max-width: 639px) 50vw, 33vw"
               showByline={tileBylines}
               mobileCompact={mobileCompact}
               onOpen={onTileOpen}

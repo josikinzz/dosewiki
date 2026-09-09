@@ -151,13 +151,21 @@ export function GalleryMediaTile({
   // An audio row has no poster and no still of its own: its `url` is the clip.
   // Handing that to <AppImage> would wait forever on bytes that never decode,
   // so audio never reaches the image path and draws its own frame below.
+  //
+  // A still's own `thumbnail_url` comes first, and `url` is only the fallback
+  // for the rows that have no derivative. The corpus stores 640px webp
+  // renditions beside 1280px (and occasionally 30 MB) masters, so serving the
+  // master into a grid column ~190px wide downloaded and decoded roughly
+  // three times the bytes of the picture the reader can actually see. The
+  // full-fidelity master stays where its detail is legible: the viewer stage
+  // (`slidePosterSource`) and the permalink.
   const thumbnailUrl = isAudio
     ? undefined
     : gifLike
       ? replication.motion_poster_url
       : isVideo
         ? replication.thumbnail_url
-        : replication.url;
+        : (replication.thumbnail_url ?? replication.url);
   const byline = getCreatorByline(replication);
   // Audio carries no intrinsic frame; a shallower block keeps the bars from
   // becoming a wall of empty tile beside real artwork.
