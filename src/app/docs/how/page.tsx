@@ -472,11 +472,14 @@ export default async function DocsHowPage() {
             whether they support the draft&apos;s claims.
           </p>
           <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7">
-            We spent about a year building the pipeline, followed by months of human
-            review before publication. This work did not complete individual editorial
-            review for every article. Each article&apos;s status subsection records its
-            editorial review and human citation review separately from the automated
-            citation checks. No article has a completed human citation review yet. The{" "}
+            We spent about a year building the pipeline, then months reviewing its
+            output before publication. Every citation on the site was fetched and tested
+            against the sentence it supports, and the markers that failed were removed,
+            so those sentences now read <em>citation needed</em>. The human passes are
+            further behind, in that some articles have had a full editorial read and no
+            article has yet had a person re-check its citations claim by claim. Each article
+            carries an Article Status panel recording which of those passes it has
+            received, and the{" "}
             <a href="/about" className={proseLinkClassName}>About page</a>{" "}
             describes the project&apos;s history.
           </p>
@@ -1571,10 +1574,10 @@ export default async function DocsHowPage() {
         </div>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           Each article shows this as a three-step Article Status. Step 1 is automated
-          synthesis, which creates the baseline draft. Step 2 is the editorial review described
-          here. Step 3 is a human citation review that compares each claim with its
-          source. Step 3 is the human pass planned as Phase 4 in{" "}
-          <SectionRef s="status" />. No article has a completed citation review yet.
+          synthesis, which creates the baseline draft. Step 2 is the editorial review
+          described here. Step 3 is a human citation review that compares each claim
+          with its source. It is the pass planned as Phase 4 in{" "}
+          <SectionRef s="status" />, and no article has completed it yet.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           Updates to a published article can also start from the pipeline. Re-running
@@ -1584,8 +1587,8 @@ export default async function DocsHowPage() {
           different review tools: dosage tables are reviewed in a table editor,
           interaction ratings are calculated and reviewed, and subjective effects are
           reviewed in a taxonomy-based editor. Each tracks citation status through its
-          own prompt families. The principle throughout is to keep editorial review and
-          citation status decoupled.
+          own prompt families. Editorial review and citation status are recorded
+          separately in each of these tools.
         </p>
 
         <p className={`${DOC_PROSE_CLASS} mt-7`}>
