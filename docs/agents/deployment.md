@@ -1,3 +1,44 @@
+## 2026-09-10 PlanetScale migration code release (still on Convex)
+
+All three surfaces serve commit `b152320a` on `no-corpus-drain`, uploaded from a
+detached `git worktree` at that commit, with `DATA_BACKEND` unset so every read
+and write still goes to `prod:glad-minnow-656`. This release ships the code of
+the Convex to PlanetScale migration ahead of the data cutover (plan:
+`notes-and-plans/plans/convex-to-planetscale/release-manifest.md`, cutover
+section 6), so the cutover itself is an environment change, not a build.
+
+| Surface | Deployment | Rollback deployment |
+| --- | --- | --- |
+| dose.wiki and www.dose.wiki | `dpl_99PsGWrrG5DYajHpiuG5eMtRh92n` | `dpl_6X2yX16uDSsv9KjnrUJDwsjJSsHt` |
+| dev.dose.wiki and dosewiki-admin.vercel.app | `dpl_3PnorC5HCZJF8FknekN8jFNXXvkD` | `dpl_9AaCiwWPB9ZqLJStzzgS649sLsTN` |
+| effectindex.com | `dpl_3FQAhrp6pP4LHs86UvVFUGpwpNhF` | `dpl_HfPndg7864cBJAcQqgY4CmeN2oaR` |
+
+What changed for a visitor on this backend: nothing intended. The editor
+surfaces read through `/api/editor/*` route handlers (TanStack Query, refetch
+on focus, 15 s list interval) instead of browser Convex subscriptions, so the
+bundle carries no `convex/react`. The mailing-list form posts to the
+same-origin `/api/subscribe`, which forwards to the Convex HTTP action until
+`DATA_BACKEND=postgres`; `https://dose.wiki/subscribe` rewrites to it for the
+sibling sites (`mindstate-site` is repointed in its own repository). The
+publication-delivery cron is a Vercel cron at `/api/cron/publication-delivery`
+behind `CRON_SECRET`: it answers 401 without the bearer on `dosewiki-admin` and
+503 on Effect Index, which has no secret and must not deliver.
+
+A first upload of `cd655b03` failed on all three projects: `src/loadTranslations.ts`
+imported `public/_gt`, which is gitignored, so the in-flight `gt-next` wiring
+built locally and nowhere else. `b152320a` withholds that wiring (deps and
+`gt.config.json` stay). Gates on the release commit: 614 app test files,
+132 workflow test files, three typechecks clean, `postgres:rehearse-release`
+78 checks with `Blockers: none`, and a clean-checkout `next build` (605 pages).
+Live checks after aliasing: `/2c-b`, `/replications`, `/api/v1/substances`,
+`/effects` on Effect Index all 200; `/api/subscribe` 400 on an invalid email
+from an allowed origin; the sibling rewrite 400 from `mindstate.design`.
+
+Postgres-side variables were staged on all three projects in the same session
+(`REPLICATION_MEDIA_BASE_URL`, `POSTGRES_POOLED_URL`, and on `dosewiki-admin`
+the write and intent-token tier mirrored from `npx convex env list`). They are
+inert until `DATA_BACKEND=postgres` is set.
+
 ## 2026-09-09 How page review-status prose release
 
 Public DoseWiki serves `dpl_xYifqQTuUbqVhyGrgnNWMDQxAFg1` on `dose.wiki` and
