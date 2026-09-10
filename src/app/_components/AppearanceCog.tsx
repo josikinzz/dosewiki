@@ -26,7 +26,7 @@ import { useT } from "@/i18n/client";
  * style axis is deliberately absent: it stays a Theme Lab authoring axis, not a reader
  * menu row.
  */
-export type AppearanceCogRows = Omit<AppearanceAxesRows, "showVisualStyle"> & {
+export type AppearanceCogRows = AppearanceAxesRows & {
   /** Opens the protected Theme Lab drawer when publication policy permits it. */
   showMoreSettings: boolean;
 };
@@ -42,6 +42,7 @@ export type AppearanceCogRows = Omit<AppearanceAxesRows, "showVisualStyle"> & {
 export function AppearanceCog({
   className,
   iconSize = 28,
+  showVisualStyle,
   showColorScheme,
   showAccent,
   showSurface,
@@ -144,6 +145,7 @@ export function AppearanceCog({
         />
         <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
           <AppearancePanel
+            showVisualStyle={showVisualStyle}
             showColorScheme={showColorScheme}
             showSurface={showSurface}
             showAccent={showAccent}

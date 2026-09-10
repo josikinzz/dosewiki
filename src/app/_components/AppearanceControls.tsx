@@ -42,7 +42,7 @@ export function AppearanceControls({
   iconSize?: number;
   allowThemeLab?: boolean;
 }) {
-  const { isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
+  const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
   // Undefined on the many pages that mount no SessionProvider; the hint covers those.
   const session = useContext(SessionContext);
   const sessionSaysDev =
@@ -65,6 +65,7 @@ export function AppearanceControls({
     <AppearanceCog
       className={className}
       iconSize={iconSize}
+      showVisualStyle={!isVisualStyleLocked}
       showColorScheme={SITE_FLAVOR_CONFIG.showColorSchemeToggle}
       showSurface={!isSurfaceLocked}
       showAccent={!isAccentLocked}
