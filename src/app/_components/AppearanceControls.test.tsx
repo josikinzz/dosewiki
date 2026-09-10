@@ -704,11 +704,11 @@ describe("AppearanceCog", () => {
       expect(
         document.documentElement.style.getPropertyValue(ACCENT_HUE_PROPERTY),
       ).toBe("249");
-      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
+      expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBe("249");
     });
     expect(accentHue.value).toBe("249");
     // The untouched axis did not move with it.
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBeNull();
     expect(
       screen.getByRole("dialog", { name: "Appearance settings" }),
     ).toBeInTheDocument();

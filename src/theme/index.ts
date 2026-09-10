@@ -381,6 +381,7 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
     /** An emitted lookup into the resolved style-and-scheme default matrix. */
     defaultLevel: string;
     defaultHue: string;
+    /** The BASE name of the look-scoped keys; "-fun"/"-pro" is appended. */
     levelKey: string;
     hueKey: string;
     legacyKey: string;
@@ -394,20 +395,41 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
     return `  let ${levelVariable} = ${defaultLevel};
   let ${hueVariable} = ${defaultHue};
   try {
-    const raw = window.localStorage.getItem(${JSON.stringify(levelKey)});
+    const raw = window.localStorage.getItem(${JSON.stringify(levelKey)} + "-" + style);
     const level = raw ? +raw : NaN;
     if (level >= 0 && level <= 1) ${levelVariable} = level;
   } catch {}
   try {
-    const raw = window.localStorage.getItem(${JSON.stringify(hueKey)});
+    const raw = window.localStorage.getItem(${JSON.stringify(hueKey)} + "-" + style);
     if (raw && /^\\d+$/.test(raw) && +raw <= 359) {
       ${hueVariable} = +raw;
-    } else {
-      const LEGACY = ${legacy};
-      const stored = window.localStorage.getItem(${JSON.stringify(legacyKey)});
-      if (Object.prototype.hasOwnProperty.call(LEGACY, stored)) {
-        ${hueVariable} = LEGACY[stored].hue;
-        if (LEGACY[stored].chroma === 0) ${levelVariable} = 0;
+    }
+  } catch {}
+  try {
+    // The Fun look inherits the pre-look-global keys exactly once: those keys were
+    // written before per-look storage existed, and Fun is the look the reader was
+    // almost certainly wearing. Clinical starts fresh — the looks are independent
+    // from this build on, while light and dark share a look's coordinates. The
+    // provider removes the global keys on hydration, so this fallback answers for
+    // one page load only.
+    if (style === "fun") {
+      const raw = window.localStorage.getItem(${JSON.stringify(levelKey)});
+      const level = raw ? +raw : NaN;
+      if (level >= 0 && level <= 1) ${levelVariable} = level;
+    }
+  } catch {}
+  try {
+    if (style === "fun") {
+      const raw = window.localStorage.getItem(${JSON.stringify(hueKey)});
+      if (raw && /^\\d+$/.test(raw) && +raw <= 359) {
+        ${hueVariable} = +raw;
+      } else {
+        const LEGACY = ${legacy};
+        const stored = window.localStorage.getItem(${JSON.stringify(legacyKey)});
+        if (Object.prototype.hasOwnProperty.call(LEGACY, stored)) {
+          ${hueVariable} = LEGACY[stored].hue;
+          if (LEGACY[stored].chroma === 0) ${levelVariable} = 0;
+        }
       }
     }
   } catch {}`;

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+﻿import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -392,7 +392,7 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
-      // The default is the ABSENT state: no attribute, no stored value — the document
+      // The default is the ABSENT state: no attribute, no stored value â€” the document
       // and storage look exactly as if the reader never picked.
       expect(document.documentElement.dataset.font).toBeUndefined();
       expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBeNull();
@@ -402,7 +402,7 @@ describe("ThemeProvider", () => {
 
   it("migrates the binary-toggle era's dyslexic pick onto the default face", async () => {
     // Exactly the state a reader of the old toggle could return with: the retired value
-    // in storage. Lexend is now the default face — which is what that pick reproduced —
+    // in storage. Lexend is now the default face â€” which is what that pick reproduced â€”
     // so the adoption clears the key and leaves no attribute behind.
     window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
     storage.forgetTraffic();
@@ -430,7 +430,7 @@ describe("ThemeProvider", () => {
     await waitFor(() => {
       expect(screen.getByTestId("has-custom-type")).toHaveTextContent("true");
       // The text-size axis is a unitless scale over the text tokens, never a root
-      // font-size — a font-size write would reproduce browser zoom.
+      // font-size â€” a font-size write would reproduce browser zoom.
       expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
       expect(document.documentElement.style.fontSize).toBe("");
       // The written values carry their CSS units: a bare number substitutes into
@@ -452,7 +452,7 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("text-size")).toHaveTextContent("null");
-      // The default is the ABSENT write: the axis disengages instead of painting ×1.
+      // The default is the ABSENT write: the axis disengages instead of painting Ã—1.
       expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
       expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBeNull();
       expect(storage.removals).toContain(TEXT_SIZE_STORAGE_KEY);
@@ -472,7 +472,7 @@ describe("ThemeProvider", () => {
       expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBe("1.55");
     });
 
-    // Dragging the thumb back to 1.7 — the resting default — must not save a copy of
+    // Dragging the thumb back to 1.7 â€” the resting default â€” must not save a copy of
     // the default: the axis disengages, the key is removed, and hasCustomType drops,
     // exactly as if the slider had never moved.
     await user.click(screen.getByRole("button", { name: "Set leading to default" }));
@@ -538,8 +538,8 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    // The effective level is the Fun-dark default, exposed as a number — the
-    // sliders park on it — while hue remains null so "never chose" stays
+    // The effective level is the Fun-dark default, exposed as a number â€” the
+    // sliders park on it â€” while hue remains null so "never chose" stays
     // observable through the context.
     const defaults = DEFAULT_APPEARANCE_COLORS.fun.dark;
     expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(defaults.surfaceLevel));
@@ -552,12 +552,12 @@ describe("ThemeProvider", () => {
     // But a default is never persisted: absence of the key IS the default, so a future
     // default change reaches every reader who never moved a slider.
     const writtenKeys = storage.writes.map(([key]) => key);
-    expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
-    expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+    expect(writtenKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_HUE_STORAGE_KEY}-fun`);
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBeNull();
+    expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBeNull();
   });
 
   it("recomputes all palette defaults when either appearance axis flips", async () => {
@@ -598,25 +598,50 @@ describe("ThemeProvider", () => {
     // Defaults are still never persisted: flipping either appearance axis
     // writes no colour-coordinate key.
     const writtenKeys = storage.writes.map(([key]) => key);
-    expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_HUE_STORAGE_KEY}-fun`);
 
-    // A saved decimal remains one knob for every combination.
+    // A saved decimal rides the look it was tuned under: Clinical does not read
+    // Vivid's key, so its own default level paints there (and no Clinical key is
+    // written — untouched slots persist as removes, never as defaults).
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
     await user.click(screen.getByRole("button", { name: "Toggle style" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("visual-style")).toHaveTextContent("pro");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
+        String(DEFAULT_APPEARANCE_COLORS.pro.dark.surfaceLevel),
+      );
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-pro`)).toBeNull();
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");
+    });
+
+    // Light and dark SHARE a look's coordinates: flipping the mode back to dark
+    // under Clinical never moves the hue.
+    await user.click(screen.getByRole("button", { name: "Toggle scheme" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("color-scheme")).toHaveTextContent("light");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Toggle style" }));
+    await waitFor(() => {
+      // Back on Vivid, the saved decimal is still there — and dark vs light of the
+      // SAME look reads one shared key, so a mode flip cannot move the hue.
+      expect(screen.getByTestId("visual-style")).toHaveTextContent("fun");
       expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+    });
+    await user.click(screen.getByRole("button", { name: "Toggle scheme" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("color-scheme")).toHaveTextContent("dark");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
     });
   });
 
   it("restores a saved level over the default, and null resets to the default", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(SURFACE_CHROMA_STORAGE_KEY, "0.4");
+    window.localStorage.setItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.4");
     storage.forgetTraffic();
 
     renderProvider();
@@ -632,7 +657,7 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
 
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");
     });
 
     // Null means "back to the default level": the key is removed, not written as the
@@ -643,7 +668,7 @@ describe("ThemeProvider", () => {
       expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
         String(DEFAULT_APPEARANCE_COLORS.fun.dark.surfaceLevel),
       );
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBeNull();
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBeNull();
     });
   });
 
@@ -658,17 +683,17 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
     });
     // The axes are independent: rotating the surface moved nothing else.
     expect(screen.getByTestId("accent-hue")).toHaveTextContent("null");
-    expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Rotate accent" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("accent-hue")).toHaveTextContent("249");
-      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
+      expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBe("249");
     });
 
     // Null means "back to the site default": the key is removed, never written as 0.
@@ -676,13 +701,13 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("surface-hue")).toHaveTextContent("null");
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBeNull();
     });
   });
 
   it("restores a saved hue over a lingering legacy id, and still retires the id", async () => {
     // A reader who migrated already (or chose a hue) while an old colourway id lingers.
-    window.localStorage.setItem(SURFACE_HUE_STORAGE_KEY, "40");
+    window.localStorage.setItem(`${SURFACE_HUE_STORAGE_KEY}-fun`, "40");
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
     storage.forgetTraffic();
 
@@ -693,7 +718,7 @@ describe("ThemeProvider", () => {
     });
     expect(storage.removals).toContain(SURFACE_STORAGE_KEY);
     expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("40");
   });
 
   it("translates the legacy colourway keys into hue coordinates and removes them", async () => {
@@ -715,10 +740,10 @@ describe("ThemeProvider", () => {
 
     // The translation is persisted and the old keys are gone: the migration runs once.
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe(
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe(
         String(LEGACY_SURFACE_TO_HUE.abyss.hue),
       );
-      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe(
+      expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBe(
         String(LEGACY_ACCENT_TO_HUE.teal.hue),
       );
       expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
@@ -727,10 +752,10 @@ describe("ThemeProvider", () => {
   });
 
   it("maps the retired achromatic ids to saturation 0, overriding a stored level", async () => {
-    // Graphite/Neutral were "grey", which is now just saturation 0: the stored level —
-    // saved back when the reader wore a chromatic colourway — must not resurrect colour.
+    // Graphite/Neutral were "grey", which is now just saturation 0: the stored level â€”
+    // saved back when the reader wore a chromatic colourway â€” must not resurrect colour.
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "graphite");
-    window.localStorage.setItem(SURFACE_CHROMA_STORAGE_KEY, "0.8");
+    window.localStorage.setItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.8");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, "neutral");
     storage.forgetTraffic();
 
@@ -743,8 +768,8 @@ describe("ThemeProvider", () => {
     });
 
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0");
-      expect(window.localStorage.getItem(ACCENT_CHROMA_STORAGE_KEY)).toBe("0");
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0");
+      expect(window.localStorage.getItem(`${ACCENT_CHROMA_STORAGE_KEY}-fun`)).toBe("0");
       expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
       expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull();
     });
@@ -752,10 +777,10 @@ describe("ThemeProvider", () => {
 
   it("never touches the colour keys while both colour axes are locked", async () => {
     // Effect Index: a dose.wiki reader's saved coordinates and un-migrated ids must
-    // survive a visit untouched — neither read, nor migrated, nor removed.
+    // survive a visit untouched â€” neither read, nor migrated, nor removed.
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, "teal");
-    window.localStorage.setItem(SURFACE_HUE_STORAGE_KEY, "40");
+    window.localStorage.setItem(`${SURFACE_HUE_STORAGE_KEY}-fun`, "40");
     storage.forgetTraffic();
 
     renderProvider({ isSurfaceLocked: true, isAccentLocked: true });
@@ -765,17 +790,17 @@ describe("ThemeProvider", () => {
     for (const key of [
       SURFACE_STORAGE_KEY,
       ACCENT_STORAGE_KEY,
-      SURFACE_HUE_STORAGE_KEY,
-      ACCENT_HUE_STORAGE_KEY,
-      SURFACE_CHROMA_STORAGE_KEY,
-      ACCENT_CHROMA_STORAGE_KEY,
+      `${SURFACE_HUE_STORAGE_KEY}-fun`,
+      `${ACCENT_HUE_STORAGE_KEY}-fun`,
+      `${SURFACE_CHROMA_STORAGE_KEY}-fun`,
+      `${ACCENT_CHROMA_STORAGE_KEY}-fun`,
     ]) {
       expect(storage.reads).not.toContain(key);
       expect(storage.writes.map(([written]) => written)).not.toContain(key);
       expect(storage.removals).not.toContain(key);
     }
     expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBe("abyss");
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("40");
     // Both colour axes null disengages the axis attribute entirely: the page renders
     // the authored palette, exactly what a locked publication wants.
     await waitFor(() => expect(document.documentElement.dataset.chroma).toBeUndefined());
@@ -793,25 +818,25 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Rotate surface" }));
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
 
-    // Mid-drag the context — and so the sliders — already moved, but storage heard
+    // Mid-drag the context â€” and so the sliders â€” already moved, but storage heard
     // nothing: localStorage writes are synchronous main-thread IO, and a tick is
     // not a decision.
     expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
     expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
     const midDragKeys = storage.writes.map(([key]) => key);
-    expect(midDragKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(midDragKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+    expect(midDragKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+    expect(midDragKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
 
-    // Once the drag rests, the settled coordinates persist — exactly once each.
+    // Once the drag rests, the settled coordinates persist â€” exactly once each.
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");
     });
-    expect(storage.writes.filter(([key]) => key === SURFACE_HUE_STORAGE_KEY)).toEqual([
-      [SURFACE_HUE_STORAGE_KEY, "120"],
+    expect(storage.writes.filter(([key]) => key === `${SURFACE_HUE_STORAGE_KEY}-fun`)).toEqual([
+      [`${SURFACE_HUE_STORAGE_KEY}-fun`, "120"],
     ]);
-    expect(storage.writes.filter(([key]) => key === SURFACE_CHROMA_STORAGE_KEY)).toEqual([
-      [SURFACE_CHROMA_STORAGE_KEY, "0.4"],
+    expect(storage.writes.filter(([key]) => key === `${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toEqual([
+      [`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.4"],
     ]);
   });
 
@@ -827,7 +852,7 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Rotate surface" }));
     unmount();
 
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
   });
 
   it("flushes a pending drag persist on pagehide", async () => {
@@ -842,6 +867,6 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Rotate surface" }));
     window.dispatchEvent(new Event("pagehide"));
 
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
   });
 });

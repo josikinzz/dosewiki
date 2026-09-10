@@ -529,9 +529,12 @@ describe("theme token interface", () => {
       }
     }
 
-    // A saved decimal keeps meaning one knob for both styles.
+    // Each look reads its own suffixed key: a saved Vivid coordinate never follows
+    // the reader into Clinical, and the flat pre-look key answers Vivid only.
     installMockStorage({
       [VISUAL_STYLE_STORAGE_KEY]: "pro",
+      [`${SURFACE_CHROMA_STORAGE_KEY}-pro`]: "0.55",
+      // The flat key is Vivid's legacy input; Clinical must not read it.
       [SURFACE_CHROMA_STORAGE_KEY]: "0.35",
     });
     ensureThemeMeta();
@@ -541,7 +544,21 @@ describe("theme token interface", () => {
       Function(buildThemeBootstrapScript(DOSEWIKI))();
 
       expect(document.documentElement.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe(
-        "0.35",
+        "0.55",
+      );
+
+      // Light and dark SHARE the look's key: the mode flip never changes the reads.
+      installMockStorage({
+        [COLOR_SCHEME_STORAGE_KEY]: "light",
+        [`${SURFACE_CHROMA_STORAGE_KEY}-fun`]: "0.4",
+      });
+      ensureThemeMeta();
+      document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
+
+      Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+      expect(document.documentElement.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe(
+        "0.4",
       );
     } finally {
       document.getElementById(CHROMA_STYLESHEET_LINK_ID)?.remove();
