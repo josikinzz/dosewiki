@@ -32,7 +32,7 @@
   const bySlug = (list) => Object.fromEntries(list.map((entry) => [entry.slug, entry]));
   const S = () => (S.cache ??= bySlug(D.substances));
   const pill = (n) => `<span class="pill">${n}</span>`;
-  const NAV = [["substances", "物质", "streamline-ultimate:science-molecule-strucutre-bold"], ["effects", "效应", "material-symbols:person-play-outline-rounded"], ["reports", "报告", "hugeicons:content-writing"], ["library", "资料库", "lucide:book-open-text"], ["downloads", "下载", "charm:download"]];
+  const NAV = [["substances", "物质", "streamline-ultimate:science-molecule-strucutre-bold"], ["effects", "效应", "material-symbols:person-play-outline-rounded"], ["reports", "报告", "hugeicons:content-writing"], ["library", "资料库", "lucide:book-open-text"], ["downloads", "下载", "charm:download"], ["about", "关于", "lucide:info"]];
   const SECTION_BY_HEADING = { "药理学": "pharmacology", "主观效应": "subjective-effects", "耐受性": "tolerance", "毒性与伤害潜力": "harm-potential", "相互作用": "interactions", "历史与文化": "history-culture", "法律地位": "legality", "试剂检测": "reagent-testing", "参考文献": "sources" };
   const sectionDef = (id) => D.sections.find((s) => s.id === id);
   const TIER_ORDER = ["threshold", "light", "moderate", "strong", "heavy"];
@@ -211,14 +211,14 @@
       const count = (c) => new Set(c.sections.flatMap((s) => s.drugs)).size;
       const filters = `<div class="filters">
         <a href="#/substances" class="${!chemical && !only ? "on" : ""}">${icon("streamline-ultimate:science-molecule-strucutre-bold")}全部</a>
-        ${D.psychoactive.map((c) => `<a href="#/substances/psychoactive/${c.key}" class="${only === c.key ? "on" : ""}">${icon(c.icon)}${esc(c.label)}</a>`).join("")}
+        ${D.psychoactive.filter(count).map((c) => `<a href="#/substances/psychoactive/${c.key}" class="${only === c.key ? "on" : ""}">${icon(c.icon)}${esc(c.label)}</a>`).join("")}
         <a href="#/substances/chemical" class="${chemical ? "on" : ""}">${icon("lucide:hexagon")}化学类别</a>
       </div>`;
       let cards;
       if (chemical) {
         cards = D.chemical.map((c) => `<section class="ccard"><header>${icon(c.icon, "badge")}<h2>${esc(c.label)}</h2>${pill(c.members.length)}</header><p class="cd">${inline(c.description)}</p><ul>${c.members.map(item).join("")}</ul></section>`);
       } else {
-        cards = D.psychoactive.filter((c) => !only || c.key === only).map((c) => `<section class="ccard"><header>${icon(c.icon, "badge")}<h2>${esc(c.label)}</h2>${pill(count(c))}</header>
+        cards = D.psychoactive.filter((c) => count(c) && (!only || c.key === only)).map((c) => `<section class="ccard"><header>${icon(c.icon, "badge")}<h2>${esc(c.label)}</h2>${pill(count(c))}</header>
           ${only ? `<p class="cd">${inline(c.description)}</p>${c.warning ? `<p class="warn">${inline(c.warning)}</p>` : ""}` : ""}
           ${c.sections.filter((s) => s.drugs.length).map((s) => `<h3>${esc(s.label)}${pill(s.drugs.length)}</h3><ul>${s.drugs.map(item).join("")}</ul>`).join("")}</section>`);
       }
@@ -230,27 +230,40 @@
       if (r.rest[0] === "category" && r.rest[1]) return doc(`effects/category/${r.rest[1]}`, { back });
       if (r.rest[0]) return doc(`effects/${r.rest[0]}`, { back });
       const intro = D.intro.effects.replace("{{effectCount}}", D.effects.length);
-      return { wide: true, html: `<div class="index-head">${pageTitle("主观效应索引", "material-symbols:person-play-outline-rounded")}<p class="lead">${inline(intro)}</p></div>
-        <div class="cards">${D.effectCategories.map((c) => `<a class="card" href="#/effects/category/${c.slug}"><div class="t">${icon(c.icon)}${esc(c.name)}${pill(c.effects.length)}</div><div class="s">${esc(c.description)}</div></a>`).join("")}</div>
-        <section class="ccard flat"><header>${icon("lucide:list", "badge")}<h2>全部效应</h2>${pill(D.effects.length)}</header><ul class="two">${D.effects.map((e) => `<li><a href="#/effects/${e.slug}">${esc(e.name)}</a></li>`).join("")}</ul></section>` };
+      const byCat = new Set(D.effectCategories.flatMap((c) => c.effects));
+      const item = (slug) => { const e = D.effects.find((x) => x.slug === slug); return e ? `<li><a href="#/effects/${slug}">${esc(e.name)}</a></li>` : ""; };
+      const cards = D.effectCategories.map((c) => `<section class="ccard"><header>${icon(c.icon, "badge")}<h2><a href="#/effects/category/${c.slug}">${esc(c.name)}</a></h2>${pill(c.effects.length)}</header><p class="cd">${esc(c.description)}</p><ul>${c.effects.map(item).join("")}</ul></section>`);
+      const rest = D.effects.filter((e) => !byCat.has(e.slug));
+      if (rest.length) cards.push(`<section class="ccard"><header>${icon("lucide:list", "badge")}<h2>其他效应</h2>${pill(rest.length)}</header><ul>${rest.map((e) => item(e.slug)).join("")}</ul></section>`);
+      return { wide: true, html: `<div class="index-head">${pageTitle("主观效应索引", "material-symbols:person-play-outline-rounded")}<p class="lead">${inline(intro)}</p></div><div class="masonry">${cards.join("")}</div>` };
     },
 
     reports(r) {
-      if (r.rest[0]) return doc(`reports/${r.rest[0]}`, { back: { href: "#/reports", label: "体验报告" } });
-      return `<div class="index-head">${pageTitle("体验报告", "hugeicons:content-writing")}<p class="lead">${inline(D.intro.reports.replace("(/effects)", "(#/effects)"))}</p></div>
-        <ul class="rows">${D.reports.map((p) => `<li><a href="#/reports/${p.slug}">${esc(p.title)}</a><span class="s">${p.substances.map((n) => `<span class="chip">${esc(n)}</span>`).join("")}</span><span class="m">${esc(p.date)}</span></li>`).join("")}</ul>`;
+      if (r.rest[0]) return reportPage(r.rest[0]);
+      return { wide: true, html: `<div class="index-head">${pageTitle("体验报告", "hugeicons:content-writing")}<p class="lead">${inline(D.intro.reports.replace("(/effects)", "(#/effects)"))}</p></div>
+        <ul class="rows cols">${D.reports.map((p) => `<li><a href="#/reports/${p.slug}">${esc(p.title)}</a><span class="s">${p.substances.map((n) => `<span class="chip">${esc(n)}</span>`).join("")}</span><span class="m">${esc(p.date)}</span></li>`).join("")}</ul>` };
     },
 
     library(r) {
       if (r.rest[0]) return doc(`library/${r.rest[0]}`, { back: { href: "#/library", label: "资料库" } });
-      const group = (key, title) => { const items = D.library.filter((x) => x.group === key); return items.length ? `<h2 class="sec-h">${icon("lucide:book-open")}<span>${title}</span><i></i></h2><div class="cards">${items.map((a) => `<a class="card" href="#/library/${a.slug}"><div class="t">${esc(a.title)}</div><div class="s">${esc(a.blurb)}</div></a>`).join("")}</div>` : ""; };
-      return `<div class="index-head">${pageTitle("资料库", "lucide:book-open-text")}<p class="lead">${inline(D.intro.library)}</p></div>${group("articles", "长篇文章")}${group("summaries", "各类物质效应总览")}`;
+      const group = (key, title) => { const items = D.library.filter((x) => x.group === key); return items.length ? `<h2 class="sec-h">${icon("lucide:book-open")}<span>${title}</span><i></i></h2><div class="cards masonry-cards">${items.map((a) => `<a class="card" href="#/library/${a.slug}"><div class="t">${esc(a.title)}</div><div class="s">${esc(a.blurb)}</div></a>`).join("")}</div>` : ""; };
+      return { wide: true, html: `<div class="index-head">${pageTitle("资料库", "lucide:book-open-text")}<p class="lead">${inline(D.intro.library)}</p></div>${group("articles", "长篇文章")}${group("summaries", "各类物质效应总览")}` };
     },
 
     downloads() {
       const embedded = { substances: ["substances", "SubstanceIndex"], effects: ["effects", "EffectIndex"] };
       return `<div class="index-head">${pageTitle("下载", "charm:download")}<p class="lead">完整数据包托管在 dose.wiki，JSON 与 Markdown 各有简体中文与英文两版；本文件内嵌的索引也可直接另存。</p></div>
-        ${D.downloads.map((d) => `<section class="dl"><h2>${esc(d.title)}</h2><p>${esc(d.summary)}</p><div class="btns">${d.files.map((f) => `<a class="btn" href="${f.href}" target="_blank" rel="noopener">${icon("charm:download")}${esc(f.label)}<small>${fmtBytes(f.bytes)}</small></a>`).join("")}${embedded[d.id] ? `<button class="btn p" data-embed="${embedded[d.id][0]}" data-name="${embedded[d.id][1]}">${icon("charm:download")}另存内嵌索引 · JSON</button>` : ""}</div></section>`).join("")}`;
+        ${D.downloads.map((d) => `<section class="dl"><h2>${esc(d.title)}</h2><p>${esc(d.summary)}</p><div class="btns">${d.files.map((f) => `<a class="btn" href="${f.href}" target="_blank" rel="noopener">${icon("charm:download")}${esc(f.label)}<small>${fmtBytes(f.bytes)}</small></a>`).join("")}${embedded[d.id] ? `<button class="btn p" data-embed="${embedded[d.id][0]}" data-name="${embedded[d.id][1]}">${icon("charm:download")}另存内嵌索引 · JSON</button>` : ""}</div></section>`).join("")}
+        <section class="dl stmt-card">${markdown(D.statement.zh.split("\n\n").slice(0, 3).join("\n\n"))}<div class="btns"><a class="btn p" href="#/about">${icon("lucide:info")}读完整声明 · Read the full statement</a></div></section>`;
+    },
+
+    about() {
+      return `<article class="doc statement">
+        <div class="index-head">${pageTitle("关于本文件", "lucide:info")}<p class="lead">这份离线版由 dose.wiki 的作者 Josie Kins 制作并赠予中文读者。下面是她写给 FreeODwiki 的话，中文在上，英文原文在下。</p></div>
+        <div class="hero-card stmt">${markdown(D.statement.zh)}</div>
+        <div class="hero-card stmt en" lang="en">${markdown(D.statement.en)}</div>
+        <p class="stmt-sig">— Josie Kins · <a href="${D.site}" target="_blank" rel="noopener">dose.wiki</a> · <a href="https://josiekins.xyz" target="_blank" rel="noopener">josiekins.xyz</a></p>
+      </article>`;
     },
 
     search(r) {
@@ -364,6 +377,43 @@
     }
     return out.join("\n").trim();
   }
+
+  // ---------- trip report ----------
+  const REPORT_META_ICON = { "投稿人": "lucide:user", "年龄": "lucide:calendar", "性别": "lucide:user", "体重": "lucide:scale", "身高": "lucide:ruler", "情境": "lucide:map-pin", "日期": "lucide:clock" };
+  /**
+   * The exporter writes the record header as a two-column Markdown table and
+   * repeats the "物质" row once per dose. The site shows those as labelled
+   * facts and dose chips, so the reader rebuilds them rather than printing a
+   * table with two meaningless column headings.
+   */
+  function reportPage(slug) {
+    const md = D.pages[`reports/${slug}`];
+    if (!md) return notFound();
+    const entry = D.reports.find((p) => p.slug === slug);
+    const parts = splitSections(md);
+    const facts = [], doses = [];
+    for (const line of parts[0].body.split("\n")) {
+      const cells = line.match(/^\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*$/);
+      if (!cells || cells[1] === "项目" || /^-+$/.test(cells[1])) continue;
+      if (cells[1] === "物质") doses.push(cells[2]); else facts.push([cells[1], cells[2]]);
+    }
+    const lead = parts[0].body.replace(/^# .*$/m, "").replace(/^\[.*?\]\(index\.md\)$/m, "").replace(/^\|.*$/gm, "").trim();
+    const sections = parts.slice(1).map((p) => {
+      const id = p.heading === "参考文献" ? "sources" : "report";
+      return `<section class="sec sec-${id}">${sectionHead(id === "sources" ? "sources" : "subjective-effects", p.heading)}${markdown(timeline(p.body))}</section>`;
+    });
+    return `<article class="doc report">
+      <a class="back" href="#/reports">${icon("lucide:arrow-left")}体验报告</a>
+      <div class="hero-card">
+        <h1>${esc(entry?.title ?? md.match(/^# (.*)$/m)?.[1] ?? slug)}</h1>
+        ${doses.length ? `<div class="doses">${doses.map((d) => `<span class="dose">${d.split(" · ").map((bit, i) => `<b class="${i ? "u" : "n"}">${esc(bit)}</b>`).join("")}</span>`).join("")}</div>` : ""}
+        ${facts.length ? `<dl class="facts">${facts.map(([k, v]) => `<div><dt>${icon(REPORT_META_ICON[k] ?? "lucide:info")}${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""}
+        ${lead ? markdown(lead) : ""}
+      </div>${sections.join("")}
+    </article>`;
+  }
+  /** `**T+00:15**` or `**11:23 PM**` alone on a line is a timeline stamp, not a bold paragraph. */
+  const timeline = (body) => body.replace(/^\*\*([T\d][^*]{0,24})\*\*\s*$/gm, "###### $1");
 
   // ---------- delegated interactions ----------
   document.addEventListener("click", (event) => {
