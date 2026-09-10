@@ -477,10 +477,10 @@ async function renderChinaCard(): Promise<Buffer> {
       ${renderDoseWikiWordmark(600, 214, 104)}
       <text x="600" y="286" text-anchor="middle" font-family="${cjk}" font-size="54" font-weight="600" fill="${SOCIAL_CARD_COLORS.accentStrong}">简体中文数据集</text>
       <defs>
-        <!-- Mirrors .theme-cutout-glow (6px accent 22%, 1.5px white 18% at a ~600px render); the card draws the banner ~1.75x that. CSS blur radius is twice the deviation. -->
-        <filter id="china-cutout-glow" x="-10%" y="-20%" width="120%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="5.2" flood-color="${SOCIAL_CARD_COLORS.accentStrong}" flood-opacity="0.22"/>
-          <feDropShadow dx="0" dy="0" stdDeviation="1.3" flood-color="${SOCIAL_CARD_COLORS.text}" flood-opacity="0.18"/>
+        <!-- Same recipe as .theme-cutout-glow (accent halo plus a thin white rim) but spread wider: the card is seen as a thumbnail, where the site's tight glow vanishes. -->
+        <filter id="china-cutout-glow" x="-15%" y="-30%" width="130%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="${SOCIAL_CARD_COLORS.accentStrong}" flood-opacity="0.34"/>
+          <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="${SOCIAL_CARD_COLORS.text}" flood-opacity="0.2"/>
         </filter>
       </defs>
       <image href="${bannerDataUri}" x="110" y="320" width="980" height="470" preserveAspectRatio="xMidYMid meet" filter="url(#china-cutout-glow)"/>
