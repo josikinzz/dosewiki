@@ -21,7 +21,7 @@
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -142,7 +142,7 @@ if (!write) {
 
 assertDataOpsWriteAllowed(runContext);
 const targetUrl = requireTargetUrl(runContext, "reviewed-decision apply target URL");
-const client = new ConvexHttpClient(targetUrl);
+const client = createDataClient({ target: targetUrl }).client;
 const adminToken = requireAdminIntentToken(INTENT, { env: process.env });
 
 const { path: auditLogPath } = writeAuditLog({

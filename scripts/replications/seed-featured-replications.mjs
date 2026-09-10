@@ -26,7 +26,7 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -62,7 +62,7 @@ async function seedFeaturedReplications() {
     throw new Error(`${CONFIG_PATH} lists no slugs; seeding it would blank the carousel.`);
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
 
   const [stored, replications] = await Promise.all([
     client.query(api.siteConfig.getFeaturedReplications, {}),

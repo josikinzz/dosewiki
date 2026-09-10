@@ -24,7 +24,7 @@
 
 import { stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { makeFunctionReference } from "convex/server";
 import {
   assertProductionWriteAllowed,
@@ -104,7 +104,7 @@ async function main() {
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("legacyAdmin");
 
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const rl = createInterface({ input: stdin, output: stdout });
 
   console.log(`Seeding admin accounts on ${command.targetUrl}`);

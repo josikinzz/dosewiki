@@ -2,7 +2,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -70,7 +70,7 @@ function mediaForKey(key) {
   return { ...item, body: readFileSync(join(recoveryDir, item.file)) };
 }
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const uploadStatePath = join(
   recoveryDir,
   `uploads-${new URL(command.targetUrl).hostname.split(".")[0]}.json`,

@@ -5,7 +5,6 @@ import { authOptions } from "@auth";
 import { getOwnedContributorProfile } from "@server/convex/publicData";
 import {
   CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR,
-  getEditorBrowserReadTarget,
   getEditorTargetAlignment,
 } from "@server/convex/serverWriteHealth";
 import {
@@ -109,11 +108,9 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
         })
     : undefined;
   const initialProfileKey = userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined;
-  const convexUrl = getEditorBrowserReadTarget().selectedUrl;
 
   return withSplitBanner(
     <NextDevRouteClient
-      convexUrl={convexUrl}
       initialTab={route.tab}
       initialSlug={route.slug}
       initialFilter={route.filter}

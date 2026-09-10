@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { createReadStream, existsSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import https from "node:https";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -143,7 +143,7 @@ async function main() {
     requireCondition(originalLedger.items[item.id]?.storageIds?.main, `${item.id}: original production storage ID is missing.`);
   }
 
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const liveRows = await client.query(api.replications.getAll, {});
   const liveById = new Map(liveRows.map((row) => [row._id, row]));
   const ledger = loadLedger(ledgerPath, manifestPath);

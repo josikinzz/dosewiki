@@ -22,7 +22,7 @@ import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import * as OCL from "openchemlib";
 import initRDKitModule, { type JSMol, type RDKitModule } from "@rdkit/rdkit";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api";
 import { renderMoleculeSvg } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
 import {
@@ -156,7 +156,7 @@ async function main() {
     : requireSourceUrl(runContext, "configured Convex read target");
 
   printDataOpsRunContext(runContext);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const existingSlugs = new Set(
     (await client.query(api.moleculeOverrides.listSlugs, {})).map((row) => row.slug),
   );

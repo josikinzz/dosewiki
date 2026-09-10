@@ -18,7 +18,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api";
 import {
   RefusalError,
@@ -179,7 +179,7 @@ const PROSE_LEAVES: Record<string, true> = {
   bioavailability_notes: true,
 };
 
-const client = new ConvexHttpClient(CONVEX_URL);
+const client = createDataClient({ target: CONVEX_URL }).client;
 const articleCache = new Map<string, unknown>();
 
 async function loadArticle(slug: string): Promise<unknown> {

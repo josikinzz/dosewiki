@@ -3,7 +3,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import * as OCL from "openchemlib";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { renderMoleculeSvg } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
@@ -120,7 +120,7 @@ async function main() {
     : requireSourceUrl(runContext, "configured Convex read target");
 
   printDataOpsRunContext(runContext);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const [articles, existingRows] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.moleculeOverrides.listSlugs, {}),

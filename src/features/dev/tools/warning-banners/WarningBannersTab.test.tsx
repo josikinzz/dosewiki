@@ -9,14 +9,9 @@ const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
 }));
 
-vi.mock("convex/react", () => ({
-  useQuery: useQueryMock,
-}));
-
-vi.mock("../../../../../convex/_generated/api", () => ({
-  api: {
-    siteConfig: { getBannerDisplay: "siteConfig.getBannerDisplay" },
-  },
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: useQueryMock,
+  useInvalidateEditorReads: () => async () => undefined,
 }));
 
 // The icon field resolves Iconify ids over the network on a debounce. Every
@@ -97,7 +92,7 @@ function stubApi({ prune = [] }: { prune?: string[] } = {}) {
 function stubPresets(presets: WarningBannerPreset[]) {
   storedPresets = presets;
   useQueryMock.mockImplementation((query: string) => {
-    if (query === "siteConfig.getBannerDisplay") {
+    if (query === "siteConfig:getBannerDisplay") {
       return { iconSize: 40 };
     }
     throw new Error(`Unexpected query ${query}`);

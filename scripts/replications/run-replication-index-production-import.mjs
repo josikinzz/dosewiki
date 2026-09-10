@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
@@ -271,7 +271,7 @@ export async function runProductionImport({
   argv = process.argv.slice(2),
   env = process.env,
   gitCommit,
-  clientFactory = (url) => new ConvexHttpClient(url),
+  clientFactory = (url) => createDataClient({ target: url }).client,
   now = () => new Date().toISOString(),
   logger = console,
 } = {}) {

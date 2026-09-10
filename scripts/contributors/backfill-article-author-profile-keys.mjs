@@ -27,7 +27,7 @@
  *       --expected-deployment=<deployment>
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -76,7 +76,7 @@ async function backfillAuthorProfileKeys() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
 
   const profile = await client.query(api.contributorProfiles.getByKey, {
     key: JOSIE_PROFILE_KEY,

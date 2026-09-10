@@ -16,7 +16,8 @@ if (buildSurface !== "public" && buildSurface !== "editor") {
   throw new Error("DOSEWIKI_BUILD_SURFACE must be public or editor.");
 }
 const editorBuild = buildSurface === "editor";
-const buildDirectory = editorBuild ? ".next-editor" : ".next";
+// `DOSEWIKI_BUILD_DIR` exists so a flavor or surface artifact can be built side by side without clobbering the directory a running server is serving; unset keeps the deployed paths byte-identical.
+const buildDirectory = process.env.DOSEWIKI_BUILD_DIR ?? (editorBuild ? ".next-editor" : ".next");
 if (process.env.NODE_ENV === "production" && process.argv.includes("build") && !process.argv.includes("--webpack")) {
   throw new Error("Public/editor artifact separation requires the audited webpack build. Use bun run build (next build --webpack).");
 }
@@ -188,6 +189,12 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // The mailing-list signup keeps the `/subscribe` path of the Convex HTTP
+      // action it replaces, so the public sites only change the origin at cutover.
+      {
+        source: "/subscribe",
+        destination: "/api/subscribe",
+      },
       {
         source: "/ingest/static/:path*",
         destination: "https://us-assets.i.posthog.com/static/:path*",

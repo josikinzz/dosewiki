@@ -21,7 +21,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -94,7 +94,7 @@ async function main() {
   printDataOpsRunContext(runContext);
 
   const targetUrl = requireTargetUrl(runContext);
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   const stored = await client.query(api.tripReports.getBySlug, { slug });
   if (!stored) {

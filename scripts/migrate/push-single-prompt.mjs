@@ -11,7 +11,7 @@
  *   node scripts/migrate/push-single-prompt.mjs --key=section_subjective_effects --dry-run
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
 import {
@@ -62,7 +62,7 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const adminKey = requireAdminIntentToken("promptMigrationWrite").token;
 
   const before = await client.query(api.prompts.getByKey, { key: promptKey });

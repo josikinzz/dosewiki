@@ -1,25 +1,20 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import {
   findProfileByAuthorNameInList,
   getProfileByKeyFromList,
   type NormalizedUserProfile,
 } from "@/data/userProfiles";
-import { isConvexEnabled } from "@/lib/convex";
+import { useEditorRead } from "./useEditorRead";
 
 /**
  * @param active - Callers that only need the directory on some surfaces pass
- * false to skip the subscription entirely; the shape of the result is
- * unchanged (an empty directory that is not loading).
+ * false to skip the read entirely; the shape of the result is unchanged (an
+ * empty directory that is not loading).
  */
 export function useContributorProfiles(active = true) {
-  const enabled = active && isConvexEnabled();
-  // "skip" on the args is the only supported way to disable a Convex query —
-  // an undefined function reference crashes getFunctionName at render time.
-  const queryResult = useQuery(api.contributorProfiles.getAll, enabled ? {} : "skip");
+  const queryResult = useEditorRead("contributorProfiles:getAll", active ? {} : "skip", "list");
 
   const profiles = useMemo<NormalizedUserProfile[]>(
     () => (Array.isArray(queryResult) ? queryResult : []),
@@ -31,7 +26,7 @@ export function useContributorProfiles(active = true) {
   return {
     profiles,
     byKey,
-    isLoading: enabled && queryResult === undefined,
+    isLoading: active && queryResult === undefined,
     findByAuthorName: (authorName: string) => findProfileByAuthorNameInList(profiles, authorName),
     getByKey: (key: string) => getProfileByKeyFromList(profiles, key),
   };

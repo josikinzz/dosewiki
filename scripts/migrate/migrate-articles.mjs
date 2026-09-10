@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -159,7 +159,7 @@ async function main() {
     url: requireTargetUrl(runContext),
   };
   const adminKey = requireAdminIntentToken("legacyAdmin").token;
-  const client = new ConvexHttpClient(target.url);
+  const client = createDataClient({ target: target.url }).client;
   const result = await client.mutation(api.effectIndexArticles.bulkImport, {
     apiKey: adminKey,
     articles: transformedArticles,

@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { getFunctionName } from "convex/server";
 import {
   compareCanonicalSmilesMock,
   compareInchiMock,
@@ -102,7 +101,7 @@ describe("MoleculeEditorTab substance canvas flows", () => {
       status: "Exhausted",
     });
     useQueryMock.mockImplementation((query, args) => {
-      const functionName = getFunctionName(query);
+      const functionName = query;
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "example" }, { slug: "donor" }];
       }

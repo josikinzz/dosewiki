@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -77,7 +77,7 @@ async function main() {
 
   const adminKey = requireAdminIntentToken("quoteMigrationWrite").token;
 
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
   const result = await client.mutation(api.quotes.save, {
     apiKey: adminKey,
     slug: options.slug,

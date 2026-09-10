@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -347,7 +347,7 @@ async function main(argv = process.argv.slice(2)) {
   const previousLedger = loadPreviousLedger(previousLedgerPath);
 
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const liveRows = await fetchLiveRows(client, apiKey);
   const existingArtists = await client.query(api.replicationTaxonomy.getArtistsByKeys, {
     apiKey,

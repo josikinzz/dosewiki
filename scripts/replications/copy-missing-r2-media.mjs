@@ -21,7 +21,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   findRepoRoot,
@@ -39,6 +39,9 @@ const EXTENSION_BY_CONTENT_TYPE = Object.freeze({
   "image/png": "png",
   "image/webp": "webp",
   "video/mp4": "mp4",
+  // Ticket 11: the legacy audio replications that are served only from Convex Storage.
+  "audio/ogg": "ogg",
+  "audio/mpeg": "mp3",
 });
 const URL_FIELD_BY_ROLE = Object.freeze({
   main: "url",
@@ -357,7 +360,7 @@ async function main() {
     (entry) => entry.status === "missing" && wantedShas.has(entry.sha256),
   );
   const resolvedRows = [];
-  const readClient = new ConvexHttpClient(readUrl);
+  const readClient = createDataClient({ target: readUrl }).client;
   await mapConcurrent([...new Set(relevantEntries.map((entry) => entry.id))], 12, async (id) => {
     const row = await readClient.query(api.replications.getResolvedById, { apiKey, id });
     if (!row) throw new Error(`Replication row disappeared: ${id}`);

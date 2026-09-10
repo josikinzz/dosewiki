@@ -20,7 +20,7 @@ import { createReadStream, existsSync, readFileSync, renameSync, statSync, write
 import https from "node:https";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -161,7 +161,7 @@ export async function main(argv = process.argv.slice(2)) {
   const limit = Number.parseInt(getFlagValue(argv, "--limit") ?? "2147483647", 10); required(limit > 0, "--limit must be positive.");
   const plan = readJson(planPath); const supplemental = supplementalPath ? readJson(path.resolve(supplementalPath)) : null;
   const actions = validateCampaignPlan(plan, planPath, supplemental); const ledger = loadLedger(ledgerPath, planPath, plan.planDigest);
-  const client = new ConvexHttpClient(command.targetUrl); const [liveRows, effects] = await Promise.all([client.query(api.replications.getAll, {}), client.query(api.subjectiveEffects.getPublicPreviews, {})]);
+  const client = createDataClient({ target: command.targetUrl }).client; const [liveRows, effects] = await Promise.all([client.query(api.replications.getAll, {}), client.query(api.subjectiveEffects.getPublicPreviews, {})]);
   const effectsSet = new Set(effects.map((effect) => effect.slug)); const liveById = new Map(liveRows.map((row) => [row._id, row])); const liveBySlug = new Map(liveRows.map((row) => [row.slug, row]));
   for (const { entry } of actions) {
     if (entry.proposedRow.effect_slug) required(effectsSet.has(entry.proposedRow.effect_slug), `${entry.id}: live primary effect missing.`);

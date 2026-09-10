@@ -28,9 +28,9 @@ import {
   printProductionWriteCommand,
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
+import { createDataClient } from "../lib/data-client.ts";
 
 const REPO = new URL("../..", import.meta.url).pathname;
-const { ConvexHttpClient } = await import(REPO + "node_modules/convex/dist/esm/browser/index.js");
 const { api } = await import(REPO + "convex/_generated/api.js");
 const { sanitizeObjectKeys, stripConvexMetadata } = await import(REPO + "scripts/batch/summary/articles.mjs");
 
@@ -53,7 +53,7 @@ const write = command.writeRequested;
 if (!targetUrl) { console.error("--target-url=<url> or TARGET_CONVEX_URL is required"); process.exit(1); }
 printProductionWriteCommand(command);
 
-const client = new ConvexHttpClient(targetUrl);
+const client = createDataClient({ target: targetUrl }).client;
 const clean = (a) => sanitizeObjectKeys(stripConvexMetadata(a));
 
 /** The lower of two tier bounds; null (unbounded) loses to any defined number. */

@@ -1,12 +1,21 @@
 /**
- * The portal-wide mailing-list signup endpoint, served as a Convex HTTP action by this
- * repo's production deployment (`prod:glad-minnow-656`). One endpoint serves every site
- * in the portal; the `list` value keeps each publication's signups on its own list, so
+ * The portal-wide mailing-list signup endpoint. Signups from this repository's
+ * publications POST to the same-origin Next route `/api/subscribe`
+ * (`src/app/api/subscribe/route.ts`), which forwards to the Convex HTTP action
+ * while `DATA_BACKEND` is Convex and writes directly once it is Postgres.
+ * Sibling sites use `https://dose.wiki/subscribe` (rewritten to the same route).
+ * The `list` value keeps each publication's signups on its own list, so
  * dose.wiki and Effect Index each hardcode their own value at their call site.
+ */
+
+/**
+ * The Convex HTTP-actions origin the route forwards to until cutover. Still
+ * named in the CSP `connect-src` (`lib/next/cspObservationPolicy.ts`); removed
+ * with the Convex deployment in ticket 24 of the PlanetScale plan.
  */
 export const MAILING_LIST_API_ORIGIN = "https://glad-minnow-656.convex.site";
 
-export const MAILING_LIST_SUBSCRIBE_URL = `${MAILING_LIST_API_ORIGIN}/subscribe`;
+export const MAILING_LIST_SUBSCRIBE_URL = "/api/subscribe";
 
 /** The two lists this repository's publications write to. */
 export type MailingList = "dosewiki" | "effectindex";

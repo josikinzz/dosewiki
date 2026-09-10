@@ -23,7 +23,7 @@
  *     --expected-deployment=glad-minnow-656
  */
 import fs from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
@@ -81,7 +81,7 @@ async function main() {
   }
 
   const bio = readBioFile(bioFile);
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const profile = await client.query(api.contributorProfiles.getByKey, { key });
   const plan = planBioChange(profile, bio);
 
@@ -103,7 +103,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   const live = await writeClient.query(api.contributorProfiles.getEditorProfile, { apiKey, key });
   if ((live?.bio ?? "") !== plan.before) {

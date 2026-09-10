@@ -1,6 +1,21 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
+import {
+  POSTGRES_EXPLICIT_TARGET_ENV_VAR,
+  POSTGRES_FALLBACK_TARGET_ENV_VARS,
+  getDataBackend,
+  isPostgresTargetExplicit,
+  postgresFingerprintFromUrl,
+  resolvePostgresTarget,
+} from "./data-client.ts";
+
+export const POSTGRES_URL_KEYS = [
+  "--target",
+  POSTGRES_EXPLICIT_TARGET_ENV_VAR,
+  ...POSTGRES_FALLBACK_TARGET_ENV_VARS,
+];
+
 export const CONVEX_URL_KEYS = [
   "TARGET_CONVEX_URL",
   "CONVEX_URL",
@@ -190,6 +205,14 @@ function deploymentFingerprint(targetUrl) {
   return fingerprint;
 }
 
+/**
+ * Convex (default): source and target come from the given env key lists.
+ * Postgres (DATA_BACKEND=postgres): one database serves both roles, resolved
+ * as `--target` > TARGET_POSTGRES_URL > POSTGRES_POOLED_URL > POSTGRES_DIRECT_URL.
+ * The loopback opt-in (`allowLocalTarget`) is Convex-only: a Postgres write,
+ * local or remote, always goes through the explicit-target, `--confirm-write`,
+ * and `--expected-deployment=<host>/<database>` ceremony.
+ */
 export function createDataOpsRunContext({
   operation,
   intent,
@@ -215,22 +238,36 @@ export function createDataOpsRunContext({
 
   const repoRoot = findRepoRoot(startDir);
   const envFiles = loadsEnvLocal ? loadEnvFiles({ rootDir: repoRoot, env }) : {};
+  const backend = getDataBackend(env);
   const dryRun = dryRunFlag ? hasFlag(argv, dryRunFlag) : false;
   const execute = executeFlag ? hasFlag(argv, executeFlag) : false;
   const writeRequested = hasFlag(argv, "--write");
-  const source = firstEnvValue(env, sourceUrlKeys);
-  const target = firstEnvValue(env, targetUrlKeys);
-  const targetUrl = target.value ?? defaultTargetUrl;
-  const targetUrlKey = target.key ?? (defaultTargetUrl ? "default" : null);
+  let source;
+  let target;
+  let targetUrl;
+  let targetUrlKey;
+  if (backend === "postgres") {
+    const resolved = resolvePostgresTarget({ argv, env });
+    source = sourceUrlKeys.length ? { value: resolved.url, key: resolved.source } : { value: null, key: null };
+    target = resolved;
+    targetUrl = resolved.url;
+    targetUrlKey = resolved.source;
+  } else {
+    source = firstEnvValue(env, sourceUrlKeys);
+    target = firstEnvValue(env, targetUrlKeys);
+    targetUrl = target.value ?? defaultTargetUrl;
+    targetUrlKey = target.key ?? (defaultTargetUrl ? "default" : null);
+  }
   const writeEnabled = !dryRun && writeRequested && (!requiresExecute || execute);
   const operationName = productionOperationName(operation);
-  const targetIsLocal = targetUrl
+  const targetIsLocal = backend === "convex" && targetUrl
     ? isLoopbackTargetUrl(targetUrl)
     : false;
 
   return {
     operation,
     intent,
+    backend,
     repoRoot,
     argv,
     envFiles,
@@ -250,23 +287,27 @@ export function createDataOpsRunContext({
     operationName,
     writeConfirmationPhrase: getFlagValue(argv, "--confirm-write"),
     expectedDeployment: getFlagValue(argv, "--expected-deployment"),
-    deploymentFingerprint: deploymentFingerprint(targetUrl),
+    deploymentFingerprint: backend === "postgres"
+      ? postgresFingerprintFromUrl(targetUrl)
+      : deploymentFingerprint(targetUrl),
     targetIsLocal,
     allowLocalTarget,
   };
 }
 
 export function printDataOpsRunContext(context, { logger = console } = {}) {
+  const backendLabel = context.backend === "postgres" ? "Postgres" : "Convex";
   logger.log(`Data operation: ${context.operation}`);
   logger.log(`Intent: ${context.intent}`);
+  logger.log(`Backend: ${backendLabel.toLowerCase()}`);
   logger.log(`Mode: ${context.dryRun ? "dry-run" : context.writeEnabled ? "write" : "read-only"}`);
   if (context.sourceUrl) {
-    logger.log(`Source Convex: ${context.sourceUrl} (${context.sourceUrlKey})`);
+    logger.log(`Source ${backendLabel}: ${redactUrl(context.sourceUrl)} (${context.sourceUrlKey})`);
   }
   if (context.targetUrl) {
     logger.log(
-      `${context.targetIsLocal ? "Local" : "Target"} Convex: ` +
-        `${context.targetUrl} (${context.targetUrlKey})`,
+      `${context.targetIsLocal ? "Local" : "Target"} ${backendLabel}: ` +
+        `${redactUrl(context.targetUrl)} (${context.targetUrlKey})`,
     );
   }
   if (context.selectedTables?.length) {
@@ -277,12 +318,17 @@ export function printDataOpsRunContext(context, { logger = console } = {}) {
   }
 }
 
+/** Postgres URLs carry credentials; Convex URLs never do. */
+function redactUrl(url) {
+  return url.replace(/\/\/[^@/]*@/, "//<redacted>@");
+}
+
 export function describeDestructivePolicy(context) {
   return [
     `operation=${context.operation}`,
     `intent=${context.intent}`,
-    `source=${context.sourceUrl ?? "none"}`,
-    `target=${context.targetUrl ?? "none"}`,
+    `source=${context.sourceUrl ? redactUrl(context.sourceUrl) : "none"}`,
+    `target=${context.targetUrl ? redactUrl(context.targetUrl) : "none"}`,
     `tables=${context.selectedTables?.length ? context.selectedTables.join(",") : "all/applicable"}`,
     `localArtifacts=${context.localArtifacts?.length ? context.localArtifacts.join(",") : "none"}`,
   ].join(" ");
@@ -314,9 +360,15 @@ export function assertDataOpsWriteAllowed(context) {
   }
 
   if (context.targetUrl) {
-    if (!["TARGET_CONVEX_URL", "--target-url"].includes(context.targetUrlKey)) {
+    const explicitTarget = context.backend === "postgres"
+      ? isPostgresTargetExplicit(context.targetUrlKey)
+      : ["TARGET_CONVEX_URL", "--target-url"].includes(context.targetUrlKey);
+    if (!explicitTarget) {
+      const required = context.backend === "postgres"
+        ? "--target or TARGET_POSTGRES_URL"
+        : "TARGET_CONVEX_URL or --target-url";
       throw new Error(
-        `${context.operation} requires TARGET_CONVEX_URL or --target-url for privileged writes; ` +
+        `${context.operation} requires ${required} for privileged writes; ` +
           `${context.targetUrlKey ?? "an ambiguous fallback"} is not allowed.`,
       );
     }
@@ -342,14 +394,16 @@ export function assertDataOpsWriteAllowed(context) {
 
 export function requireTargetUrl(context, label = "Convex target URL") {
   if (!context.targetUrl) {
-    throw new Error(`Missing ${label}. Set one of: ${CONVEX_URL_KEYS.join(", ")}`);
+    const keys = context.backend === "postgres" ? POSTGRES_URL_KEYS : CONVEX_URL_KEYS;
+    throw new Error(`Missing ${label}. Set one of: ${keys.join(", ")}`);
   }
   return context.targetUrl;
 }
 
 export function requireSourceUrl(context, label = "Convex source URL") {
   if (!context.sourceUrl) {
-    throw new Error(`Missing ${label}. Set one of: ${SOURCE_CONVEX_URL_KEYS.join(", ")}`);
+    const keys = context.backend === "postgres" ? POSTGRES_URL_KEYS : SOURCE_CONVEX_URL_KEYS;
+    throw new Error(`Missing ${label}. Set one of: ${keys.join(", ")}`);
   }
   return context.sourceUrl;
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -64,7 +64,7 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   if (options.write) assertProductionWriteAllowed(command);
   if (!options.actor) throw new Error("--actor-email is required.");
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  const client = adapters.client ?? new ConvexHttpClient(command.targetUrl);
+  const client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
   const query = adapters.query ?? ((reference, args) => client.query(reference, args));
   const mutate = adapters.mutate ?? ((reference, args) => client.mutation(reference, args));
   let ledger = loadLedger(options.ledger);

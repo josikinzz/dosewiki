@@ -13,13 +13,6 @@ const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
 }));
 
-vi.mock("convex/react", () => ({
-  useQuery: useQueryMock,
-}));
-
-vi.mock("../../../../../convex/_generated/api", () => ({
-  api: { siteConfig: { getAboutForEditor: "siteConfig.getAboutForEditor" } },
-}));
 vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: () => ({ data: useQueryMock(), error: null, reload: vi.fn() }) }));
 
 vi.mock("@/data/SubstanceIndexProvider", () => ({
@@ -56,7 +49,7 @@ describe("AboutEditorTab", () => {
     vi.unstubAllGlobals();
   });
 
-  it("links to the four About copy blocks in Copy Studio", () => {
+  it("links to the five About copy blocks in Copy Studio", () => {
     render(<AboutEditorTab availableProfiles={[]} canApprove />);
 
     const links = within(screen.getByRole("list", { name: "About copy blocks" })).getAllByRole("link");
@@ -65,6 +58,7 @@ describe("AboutEditorTab", () => {
       "/dev/copy-studio/about-reuse-notice-effect-index",
       "/dev/copy-studio/about-doc-link-blurbs",
       "/dev/copy-studio/about-mission-effect-index",
+      "/dev/copy-studio/about-community-intro",
     ]);
   });
 

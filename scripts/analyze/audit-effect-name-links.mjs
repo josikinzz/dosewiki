@@ -19,7 +19,7 @@
  * line once the backlog is at zero.
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { writeFileSync } from "node:fs";
 import { api } from "../../convex/_generated/api.js";
@@ -85,7 +85,7 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new ConvexHttpClient(url);
+  const client = createDataClient({ target: url }).client;
   const [effects, substances] = await Promise.all([
     client.query(api.subjectiveEffects.getAll, {}),
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),

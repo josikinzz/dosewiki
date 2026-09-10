@@ -96,7 +96,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api";
 import {
@@ -205,7 +205,7 @@ async function main() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const [profiles, replications] = (await Promise.all([
     client.query(api.contributorProfiles.getAll, {}),
     client.query(api.replications.getAll, {}),
@@ -472,7 +472,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   // The public read materializes rows, which loses avatarStorageId,
   // membershipEmail, createdAt, updatedAt and updatedBy — every one of which

@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { BackendClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   createBatchProposalReadContext,
@@ -78,7 +78,7 @@ export function proposalHelpText() {
 export async function generateSectionProposal({
   argv = process.argv.slice(2),
   env = process.env,
-  Client = ConvexHttpClient,
+  Client = BackendClient,
   convexApi = api,
   adapterRegistry = { get: getSectionProposalAdapter },
   callOpenRouter = null,

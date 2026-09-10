@@ -27,7 +27,7 @@
  *   node scripts/effects/repoint-recovered-article-embeds.mjs --target-url=<url> --apply ...
  */
 import { readFileSync } from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -95,7 +95,7 @@ function countOccurrences(value, from) {
   return spellings(from).reduce((total, spelling) => total + (serialized.split(JSON.stringify(spelling).slice(1, -1)).length - 1), 0);
 }
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const articles = await client.query(api.effectIndexArticles.getAll, {});
 const bySlug = new Map(articles.map((article) => [article.slug, article]));
 

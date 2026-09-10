@@ -44,7 +44,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { requiresStrictCitationReview } from "../../lib/citations/citationSafety.mjs";
@@ -565,7 +565,7 @@ export async function main(argv = process.argv.slice(2)) {
     article = loadArticleFixture(articleFile);
   } else {
     const targetUrl = requireTargetUrl(runContext, "Convex citation target URL");
-    client = new ConvexHttpClient(targetUrl);
+    client = createDataClient({ target: targetUrl }).client;
     article = await client.query(api.substanceIndex.getBySlug, { slug });
   }
   if (!article) throw new Error(`No article found for slug: ${slug}`);

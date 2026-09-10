@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -171,7 +171,7 @@ function resolveConvexUrl(args) {
 }
 
 function createConvexClient(convexUrl) {
-  return new ConvexHttpClient(convexUrl.value);
+  return createDataClient({ target: convexUrl.value }).client;
 }
 
 async function loadArticles({ dataSource, client, args }) {

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -288,7 +288,7 @@ export async function runApplyReferenceProvenanceBackfill(argv = process.argv.sl
   }
   const readUrl = command.targetUrl ?? proposal.sourceDeployment;
   if (!readUrl) throw new Error("No proposal source or explicit target URL is available.");
-  const client = dependencies.client ?? new ConvexHttpClient(readUrl);
+  const client = dependencies.client ?? createDataClient({ target: readUrl }).client;
   const queryApi = dependencies.api ?? api;
   const plan = [];
   for (const row of rows) {

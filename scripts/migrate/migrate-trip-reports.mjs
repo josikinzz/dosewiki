@@ -13,7 +13,7 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -173,7 +173,7 @@ async function main() {
 
   // Initialize Convex client
   console.log(`🔗 Connecting to Convex: ${convexUrl}`);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
 
   // Write audit log before making changes
   const { path: auditLogPath } = writeAuditLog({

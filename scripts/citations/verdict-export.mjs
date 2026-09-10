@@ -13,7 +13,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -106,7 +106,7 @@ async function main() {
   const sourceUrl = requireSourceUrl(runContext, "Convex packet source URL");
   const audit = loadAudit(resolve(runContext.repoRoot, auditPath));
 
-  const client = new ConvexHttpClient(sourceUrl);
+  const client = createDataClient({ target: sourceUrl }).client;
   const article = await client.query(api.substanceIndex.getBySlug, { slug });
   if (!article) throw new Error(`No article found for slug: ${slug}`);
   const evidenceRows = await fetchEvidenceRows(client);

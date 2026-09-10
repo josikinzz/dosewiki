@@ -3,7 +3,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -145,7 +145,7 @@ async function main() {
     throw new Error("--max-writes must be a positive integer.");
   }
   if (!command.targetUrl) throw new Error("Set TARGET_CONVEX_URL or --target-url.");
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
 
   if (command.dryRun) {
     const audit = loadJson(auditPath);

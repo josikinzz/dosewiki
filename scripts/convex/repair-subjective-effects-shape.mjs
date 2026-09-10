@@ -25,7 +25,7 @@
  *     --expected-deployment=<name>
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -133,7 +133,7 @@ async function main() {
   const onlySlug = getFlagValue(context.argv, "--slug");
   const targetUrl = requireTargetUrl(context);
   const adminKey = requireAdminIntentToken(INTENT).token;
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   const all = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const candidates = onlySlug ? all.filter((doc) => doc.slug === onlySlug) : all;

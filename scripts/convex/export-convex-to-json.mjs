@@ -14,7 +14,7 @@
  *   git add . && git commit -m "Sync articles from Convex" && git push
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { writeFileSync } from "fs";
@@ -47,7 +47,7 @@ async function main() {
   printDataOpsRunContext(runContext);
   console.log("");
 
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
 
   // Fetch all articles from Convex
   console.log("Fetching articles from Convex...");

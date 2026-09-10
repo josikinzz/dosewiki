@@ -17,7 +17,7 @@
  *   npm run generate:subjective-effects-provenance
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -110,7 +110,7 @@ async function main() {
   printDataOpsRunContext(runContext);
   console.log("");
 
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const substances = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
   if (!substances || substances.length === 0) {

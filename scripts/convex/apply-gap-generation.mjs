@@ -19,7 +19,7 @@
  *     --confirm-write=apply-gap-generation --expected-deployment=glad-minnow-656
  */
 import { readFileSync } from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import yaml from "../../node_modules/yaml/dist/index.js";
 import { api } from "../../convex/_generated/api.js";
 import { stripConvexMetadata } from "../batch/summary/articles.mjs";
@@ -300,7 +300,7 @@ async function main() {
   printDataOpsRunContext(runContext);
 
   const targetUrl = requireTargetUrl(runContext);
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   const doc = normalizeDraftDefaults(opts.section, yaml.parse(readFileSync(opts.draftPath, "utf8")));
   const existing = await client.query(api.substanceIndex.getBySlug, { slug: opts.slug });

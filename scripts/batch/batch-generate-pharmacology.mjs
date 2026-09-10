@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { createBatchTargetClient, createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
@@ -71,7 +71,7 @@ async function main(options) {
   let targetArticles;
   let pharmacologyQuoteSlugs;
   try {
-    const targetClient = new ConvexHttpClient(targetUrl);
+    const targetClient = createDataClient({ target: targetUrl }).client;
     [allArticles, targetArticles, pharmacologyQuoteSlugs] = await Promise.all([
       loadArticlesFromConvex(),
       sourceUrl === targetUrl ? loadArticlesFromConvex() : loadArticlesFromConvex(targetClient),

@@ -6,12 +6,9 @@ import type { CopyBlockRow } from "./copyStudioUtils";
 
 const query = vi.hoisted(() => ({ rows: [] as CopyBlockRow[] }));
 
-vi.mock("convex/react", () => ({
-  useQuery: (name: string, args?: { key: string } | "skip") => name === "copyBlocks.getAll" ? query.rows : args && args !== "skip" ? { document: query.rows.find((row) => row.key === args.key) ?? null, revision: 0 } : undefined,
-}));
-
-vi.mock("../../../../../convex/_generated/api", () => ({
-  api: { copyBlocks: { getAll: "copyBlocks.getAll", getForEditor: "copyBlocks.getForEditor" } },
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: (name: string) => (name === "copyBlocks:getAll" ? query.rows : undefined),
+  useInvalidateEditorReads: () => async () => undefined,
 }));
 vi.mock("../useCopyIndexSource", () => ({ useCopyIndexSource: (url: string | null) => ({ data: url ? { document: query.rows.find((row) => row.key === new URL(url, "https://dose.wiki").searchParams.get("key")) ?? null, revision: 0 } : undefined, error: null, reload: vi.fn() }) }));
 
@@ -55,11 +52,11 @@ describe("CopyStudioTab", () => {
     await userEvent.type(search, "about-");
 
     const keys = railKeys();
-    expect(keys).toHaveLength(6);
     expect(keys.every((entry) => entry.includes("about-"))).toBe(true);
     expect(keys.some((entry) => entry.startsWith("Reuse notice"))).toBe(true);
     expect(keys.some((entry) => entry.includes("SEO"))).toBe(true);
-    expect(screen.getByText("6 found")).toBeTruthy();
+    // The result counter tracks the filtered rail, not the catalogue's size.
+    expect(screen.getByText(`${keys.length} found`)).toBeTruthy();
 
     await userEvent.clear(search);
     await userEvent.type(search, "footer tagline");

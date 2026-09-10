@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -31,7 +30,7 @@ import {
 } from "@/features/dev/components";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { viewToPath } from "@/utils/routing";
-import { api } from "../../../../../convex/_generated/api";
+import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import { useCopyIndexOperation } from "../useCopyIndexOperation";
@@ -84,7 +83,8 @@ type CopyStudioTabProps = {
  * matches, across all groups, while the editor stays on the selected block.
  */
 export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
-  const rows = useQuery(api.copyBlocks.getAll) as CopyBlockRow[] | undefined;
+  const rows = useEditorRead("copyBlocks:getAll", {}, "list") as CopyBlockRow[] | undefined;
+  const invalidateEditorReads = useInvalidateEditorReads();
 
   const blocks = useMemo(() => buildCopyStudioBlocks(rows ?? []), [rows]);
   const groups = useMemo(() => groupCopyStudioBlocks(blocks), [blocks]);
@@ -272,6 +272,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       setBaselineRow({ ...block, revision: receipt.revision });
       setBaselineRevision(receipt.revision);
       detailSource.reload();
+      void invalidateEditorReads(["copyBlocks:getAll"]);
 
       setSaveState("saved");
       setNotice({
@@ -291,7 +292,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
               : "The proposal could not be submitted.",
       });
     }
-  }, [activeBlock, baselineRow, baselineRevision, canApprove, currentText, draft, draftText, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload]);
+  }, [activeBlock, baselineRow, baselineRevision, canApprove, currentText, draft, draftText, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload, invalidateEditorReads]);
 
   /** Reset drops the draft back to the checked-in default without saving. */
   const handleResetDraft = useCallback(() => {
@@ -328,6 +329,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       const receipt = acknowledge(response, payload);
       setBaselineRevision(receipt.revision);
       awaitingWrite.current = null; setBaselineRow(null); detailSource.reload();
+      void invalidateEditorReads(["copyBlocks:getAll"]);
 
       setSaveState("saved");
       setNotice({
@@ -342,7 +344,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         message: error instanceof Error ? error.message : "The copy block could not be reverted.",
       });
     }
-  }, [activeBlock, baselineRow, baselineRevision, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload]);
+  }, [activeBlock, baselineRow, baselineRevision, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource.reload, invalidateEditorReads]);
 
   if (rows === undefined) {
     return (

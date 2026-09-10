@@ -16,6 +16,7 @@ export const ABOUT_COPY_BLOCKS: readonly { key: string; label: string }[] = [
   { key: "about-reuse-notice-effect-index", label: "Reuse notice (Effect Index)" },
   { key: "about-doc-link-blurbs", label: "Documentation card blurbs" },
   { key: "about-mission-effect-index", label: "Mission statement (Effect Index)" },
+  { key: "about-community-intro", label: "Community intro" },
 ];
 
 /**

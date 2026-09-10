@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { createReadStream, existsSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -155,7 +155,7 @@ async function main() {
     }
   }
 
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const allRows = await client.query(api.replications.getAll, {});
   const rowsBySlug = new Map();

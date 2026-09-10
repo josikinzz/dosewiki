@@ -76,9 +76,8 @@ vi.mock("@/data/LightweightDataProvider", () => ({
   useLightweightData: () => ({ layout }),
 }));
 
-vi.mock("convex/react", () => ({
-  useQuery: () => undefined,
-  useMutation: () => vi.fn(),
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: () => undefined,
 }));
 
 vi.mock("next-auth/react", () => ({

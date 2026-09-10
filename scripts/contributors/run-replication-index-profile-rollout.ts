@@ -11,7 +11,7 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -454,7 +454,7 @@ export async function runProfileRollout({
     "Replication Index profile rollout requires CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE; the legacy broad admin key is not accepted.",
   );
   const token = credential.token;
-  const client = dependencies ? null : new ConvexHttpClient(EXPECTED_TARGET_URL);
+  const client = dependencies ? null : createDataClient({ target: EXPECTED_TARGET_URL }).client;
   const deps: RolloutDependencies = {
     dryRunBatch: dependencies?.dryRunBatch ?? (async (payload, apiKey) =>
       client!.mutation(api.contributorProfiles.importReviewedProfilePlan, { ...payload, apiKey } as never)),

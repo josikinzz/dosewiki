@@ -1,18 +1,17 @@
 /**
- * Hook for loading index layouts from Convex.
+ * Hook for loading index layouts through the editor read route.
  *
  * Loads the psychoactive, chemical, and mechanism index layouts
  * and parses them into the normalized format expected by buildLibrary.
  */
 
-import { useQuery } from "convex/react";
 import { useMemo } from "react";
-import { api } from "../../convex/_generated/api";
+import { useEditorRead } from "./useEditorRead";
 import { parseManualConfig } from "../data/builders/manualIndexLoader";
 import type { IndexConfigs } from "../data/builders/libraryBuilder";
 
 /**
- * Hook to load all index layouts from Convex.
+ * Hook to load all index layouts.
  * Uses a single query instead of 3 separate queries.
  *
  * @param enabled - Whether to load the layouts. When false, returns undefined.
@@ -23,7 +22,7 @@ export function useIndexLayouts(enabled: boolean): {
   isLoading: boolean;
 } {
   // Single query for all layouts
-  const allLayouts = useQuery(api.indexLayouts.getAll, enabled ? {} : "skip");
+  const allLayouts = useEditorRead("indexLayouts:getAll", enabled ? {} : "skip", "list");
 
   // Parse and normalize the configs
   const configs = useMemo<IndexConfigs | undefined>(() => {
@@ -47,7 +46,7 @@ export function useIndexLayouts(enabled: boolean): {
     // Any layout missing - fall back to bundled configs
     if (!psychoactive || !chemical || !mechanism) {
       console.warn(
-        "[useIndexLayouts] Some layouts missing from Convex, falling back to bundled"
+        "[useIndexLayouts] Some layouts missing from the server, falling back to bundled"
       );
       return undefined;
     }

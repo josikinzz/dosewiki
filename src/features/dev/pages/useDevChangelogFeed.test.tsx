@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { convexState } = vi.hoisted(() => ({
   convexState: {
-    enabled: false,
     lastArgs: undefined as undefined | "skip" | { limit: number },
     entries: undefined as
       | undefined
@@ -18,19 +17,11 @@ const { convexState } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("convex/react", () => ({
-  useQuery: (_reference: unknown, args: "skip" | { limit: number }) => {
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: (_name: unknown, args: "skip" | { limit: number }) => {
     convexState.lastArgs = args;
     return convexState.entries;
   },
-}));
-
-vi.mock("../../../../convex/_generated/api", () => ({
-  api: { changelog: { getRecent: "changelog:getRecent" } },
-}));
-
-vi.mock("@/lib/convex", () => ({
-  isConvexEnabled: () => convexState.enabled,
 }));
 
 vi.mock("@/data/changelog/changeLog", async (importOriginal) => {
@@ -84,7 +75,6 @@ const makeConvexEntries = (count: number, startIndex = 0) =>
 
 describe("useDevChangelogFeed", () => {
   beforeEach(() => {
-    convexState.enabled = false;
     convexState.entries = undefined;
     convexState.lastArgs = undefined;
   });
@@ -100,7 +90,6 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("hydrates Convex entries, drops duplicate static IDs, and sorts newest first", async () => {
-    convexState.enabled = true;
     convexState.entries = [
       {
         entryId: "convex-new",
@@ -151,7 +140,6 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("reports a closed window when Convex returns fewer rows than the page", async () => {
-    convexState.enabled = true;
     convexState.entries = makeConvexEntries(3);
 
     const { result } = renderHook(() => useDevChangelogFeed({}));
@@ -168,7 +156,6 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("offers older saves when a page comes back full and widens the query on loadMore", async () => {
-    convexState.enabled = true;
     convexState.entries = makeConvexEntries(CHANGELOG_FEED_PAGE_SIZE);
 
     const { result, rerender } = renderHook(() => useDevChangelogFeed({}));
@@ -205,7 +192,6 @@ describe("useDevChangelogFeed", () => {
   });
 
   it("stops paging at the server cap and says so", async () => {
-    convexState.enabled = true;
     convexState.entries = makeConvexEntries(CHANGELOG_FEED_MAX_ROWS);
 
     const { result } = renderHook(() => useDevChangelogFeed({}));

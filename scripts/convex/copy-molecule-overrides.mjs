@@ -24,7 +24,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -69,8 +69,8 @@ try {
 }
 
 const writeMode = runContext.writeEnabled && adminToken !== null;
-const sourceClient = new ConvexHttpClient(sourceUrl);
-const targetClient = new ConvexHttpClient(targetUrl);
+const sourceClient = createDataClient({ target: sourceUrl }).client;
+const targetClient = createDataClient({ target: targetUrl }).client;
 
 async function fetchFullRows(client, slugs) {
   const rows = new Map();

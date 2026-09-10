@@ -12,7 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
 
@@ -246,7 +246,7 @@ async function queryLiveReplications() {
   const failures = [];
   for (const endpoint of endpoints) {
     try {
-      const replications = await new ConvexHttpClient(endpoint.url).query(api.replications.getAll, {});
+      const replications = await createDataClient({ target: endpoint.url }).client.query(api.replications.getAll, {});
       return { replications, endpoint: endpoint.envKey, failures };
     } catch (error) {
       const hostname = new URL(endpoint.url).hostname;

@@ -2,7 +2,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 
@@ -34,7 +34,7 @@ async function main() {
     throw new Error(`Expected 357 unreviewed rows, found ${unreviewed.length}.`);
   }
 
-  const liveRows = await new ConvexHttpClient(TARGET).query(api.replications.getAll, {});
+  const liveRows = await createDataClient({ target: TARGET }).client.query(api.replications.getAll, {});
   const liveById = new Map(liveRows.map((row) => [row._id, row]));
   const items = unreviewed
     .map((taxonomy) => {

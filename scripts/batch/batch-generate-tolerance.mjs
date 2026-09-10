@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { createBatchTargetClient, createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
@@ -59,7 +59,7 @@ async function main(options) {
   console.log(`  Prompt loaded: ${systemPrompt.length.toLocaleString()} chars`);
 
   console.log("\nLoading authoritative articles and quote availability...");
-  const targetClient = targetUrl ? new ConvexHttpClient(targetUrl) : null;
+  const targetClient = targetUrl ? createDataClient({ target: targetUrl }).client : null;
   const [sourceArticles, targetArticles, toleranceQuoteSlugs] = await Promise.all([
     loadArticlesFromConvex(),
     targetClient ? loadArticlesFromConvex(targetClient) : Promise.resolve([]),

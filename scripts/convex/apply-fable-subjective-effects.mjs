@@ -11,7 +11,7 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import yaml from "../../node_modules/yaml/dist/index.js";
 
 import { api } from "../../convex/_generated/api.js";
@@ -213,7 +213,7 @@ async function main() {
   if (options.write) {
     assertDataOpsWriteAllowed(runContext);
   }
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
   const apiKey = options.write ? requireAdminIntentToken("editorArticleWrite").token : null;
   const outcomes = [];
   const counts = {

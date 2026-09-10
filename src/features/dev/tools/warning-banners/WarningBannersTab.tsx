@@ -22,7 +22,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery } from "convex/react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -41,7 +40,7 @@ import {
   type EditorActionStatusState,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
-import { api } from "../../../../../convex/_generated/api";
+import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import { WarningBannersBoundary } from "./WarningBannersBoundary";
 import {
   WarningBannersStudioView,
@@ -117,8 +116,8 @@ export type WarningBannersTabProps = {
 
 /**
  * Exported entry point. The boundary sits outside `WarningBannersStudio` because
- * `useQuery` throws during that component's render when Convex cannot answer, and
- * a boundary cannot catch a throw from itself.
+ * the display read throws during that component's render when the server cannot
+ * answer, and a boundary cannot catch a throw from itself.
  */
 export function WarningBannersTab(props: WarningBannersTabProps) {
   return (
@@ -183,7 +182,8 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
    * of them shared with `submitPreset`: an editor who saves a preset must not see
    * a pill claiming the size was stored, and vice versa.
    */
-  const display = useQuery(api.siteConfig.getBannerDisplay);
+  const display = useEditorRead("siteConfig:getBannerDisplay", {}, "list");
+  const invalidateEditorReads = useInvalidateEditorReads();
   const storedIconSize = display
     ? clampSafetyBannerIconSize(display.iconSize)
     : SAFETY_BANNER_ICON_SIZE_DEFAULT;
@@ -468,6 +468,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       // for the reactive query to come back round.
       const stored = clampSafetyBannerIconSize(payload.iconSize);
       setIconSizeDraft(String(stored));
+      void invalidateEditorReads(["siteConfig:getBannerDisplay"]);
       setIconSizeSaveState("saved");
       setIconSizeNotice({
         tone: "info",
@@ -482,7 +483,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         message: error instanceof Error ? error.message : "The icon size could not be saved.",
       });
     }
-  }, [iconSize]);
+  }, [iconSize, invalidateEditorReads]);
 
   if (rows === undefined) {
     if (rowsError) {

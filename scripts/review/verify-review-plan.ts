@@ -6,7 +6,7 @@
  * Usage: bun scripts/review/verify-review-plan.ts [--plan <path>]
  */
 import { readFileSync } from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api";
 import { getByPath, validateArticle, assertCitationsResolve } from "./lib/reviewDecisionTransforms";
 
@@ -16,7 +16,7 @@ const planIndex = argv.indexOf("--plan");
 const planPath = planIndex >= 0 ? argv[planIndex + 1] : "outputs/review-decisions/plan.json";
 const plan = JSON.parse(readFileSync(planPath, "utf8"));
 
-const client = new ConvexHttpClient(CONVEX_URL);
+const client = createDataClient({ target: CONVEX_URL }).client;
 
 let checked = 0;
 let matched = 0;

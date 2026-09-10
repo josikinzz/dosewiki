@@ -1,14 +1,12 @@
-import { useQuery as useConvexQuery } from "convex/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { api } from "../../../../convex/_generated/api";
 import {
   appendChangeLogEntry,
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
 } from "@/data/changelog/changeLog";
-import { isConvexEnabled } from "@/lib/convex";
+import { useEditorRead } from "@/hooks/useEditorRead";
 
 /** Server rows fetched per page; each "Load older saves" adds one more page. */
 export const CHANGELOG_FEED_PAGE_SIZE = 100;
@@ -67,9 +65,7 @@ function mergeStaticAndConvexChangelogEntries(
 }
 
 /**
- * @param active - Only the change log displays the feed, so only it subscribes.
- * `convexEnabled` is reported independently of this, because the save path
- * uses it to decide where a commit goes.
+ * @param active - Only the change log displays the feed, so only it reads it.
  */
 export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
@@ -77,15 +73,11 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   );
   const [limit, setLimit] = useState(CHANGELOG_FEED_PAGE_SIZE);
   const [loadedCount, setLoadedCount] = useState(0);
-  const convexEnabled = isConvexEnabled();
 
-  const convexChangelogEntries = useConvexQuery(
-    api.changelog.getRecent,
-    convexEnabled && active ? { limit } : "skip",
-  );
+  const convexChangelogEntries = useEditorRead("changelog:getRecent", active ? { limit } : "skip", "list");
 
   useEffect(() => {
-    if (!convexEnabled || !convexChangelogEntries) {
+    if (!convexChangelogEntries) {
       return;
     }
 
@@ -97,8 +89,8 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
       );
 
       // Keep locally appended entries (a save's entry can land here before
-      // the Convex subscription catches up) instead of rebuilding from the
-      // static snapshot.
+      // the server feed catches up) instead of rebuilding from the static
+      // snapshot.
       const mergedIds = new Set(merged.map((entry) => entry.id));
       const localOnlyEntries = previous.filter((entry) => !mergedIds.has(entry.id));
 
@@ -106,17 +98,17 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
         ? sortChangeLogEntries([...localOnlyEntries, ...merged])
         : merged;
     });
-  }, [convexChangelogEntries, convexEnabled]);
+  }, [convexChangelogEntries]);
 
   const appendChangeLogEntryToState = useCallback((entry: ChangeLogEntry) => {
     setChangeLogEntries((previous) => appendChangeLogEntry(previous, entry));
   }, []);
 
-  // A page is loading whenever the subscription is live but has no answer:
-  // Convex reports the changed `limit` as undefined until the wider page lands.
-  const loading = convexEnabled && active && convexChangelogEntries === undefined;
-  const atServerCap = convexEnabled && loadedCount >= CHANGELOG_FEED_MAX_ROWS;
-  const hasMore = convexEnabled && !atServerCap && loadedCount >= limit && limit < CHANGELOG_FEED_MAX_ROWS;
+  // A page is loading whenever the read is live but has no answer: a changed
+  // `limit` reads as undefined until the wider page lands.
+  const loading = active && convexChangelogEntries === undefined;
+  const atServerCap = loadedCount >= CHANGELOG_FEED_MAX_ROWS;
+  const hasMore = !atServerCap && loadedCount >= limit && limit < CHANGELOG_FEED_MAX_ROWS;
 
   const loadMore = useCallback(() => {
     if (loading) {
@@ -132,7 +124,6 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
 
   return {
     changeLogEntries,
-    convexEnabled,
     appendChangeLogEntryToState,
     feedWindow,
   };

@@ -70,7 +70,7 @@ describe("Review Flag apply command", () => {
     process.chdir(repoRoot);
     try {
       await runReviewApply(parseReviewApplyOptions([`--run-id=${runId}`]), {
-        env: {}, logger: { log }, createClient,
+        env: {} as unknown as NodeJS.ProcessEnv, logger: { log }, createClient,
       });
     } finally {
       process.chdir(cwd);
@@ -88,7 +88,7 @@ describe("Review Flag apply command", () => {
     process.chdir(repoRoot);
     try {
       const base = [`--run-id=${runId}`, "--write"];
-      const env = { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" };
+      const env = { NODE_ENV: "test", TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" } as const;
       await expect(runReviewApply(parseReviewApplyOptions(base), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--confirm-review-flags/);
       await expect(runReviewApply(parseReviewApplyOptions([...base, "--confirm-review-flags"]), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--confirm-write=apply-review-flags/);
       await expect(runReviewApply(parseReviewApplyOptions([...base, "--confirm-review-flags", "--confirm-write=apply-review-flags"]), { env, logger: { log: vi.fn() } })).rejects.toThrow(/--expected-deployment=test-deployment/);
@@ -111,7 +111,7 @@ describe("Review Flag apply command", () => {
         "--confirm-write=apply-review-flags",
         "--expected-deployment=test-deployment",
       ]), {
-        env: { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" },
+        env: { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" } as unknown as NodeJS.ProcessEnv,
         logger: { log: vi.fn() },
         createClient: () => ({ mutation } as never),
         writeAudit: () => ({ path: "/mock/audit.json", entry: {} }),
@@ -144,7 +144,7 @@ describe("Review Flag apply command", () => {
         "--confirm-write=apply-review-flags",
         "--expected-deployment=test-deployment",
       ]), {
-        env: { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" },
+        env: { TARGET_CONVEX_URL: "https://test-deployment.convex.cloud", CONVEX_ADMIN_KEY: "test-token" } as unknown as NodeJS.ProcessEnv,
         logger: { log: vi.fn() },
         createClient: () => ({ mutation } as never),
       })).rejects.toThrow(/findings validation failed/);

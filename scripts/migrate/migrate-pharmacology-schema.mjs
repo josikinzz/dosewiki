@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   getAllSubstanceDocuments,
@@ -225,7 +225,7 @@ async function main() {
   printProductionWriteCommand(command);
 
   const onlySlug = getFlagValue("--slug");
-  const sourceClient = new ConvexHttpClient(requireReadUrl());
+  const sourceClient = createDataClient({ target: requireReadUrl() }).client;
   const targetedArticle = onlySlug
     ? await getUniqueSubstanceDocumentBySlug(
         sourceClient,
@@ -265,7 +265,7 @@ async function main() {
 
   await executeProductionWrite(command, async () => {
     const credential = requireProductionWriteCredential("editorArticleWrite");
-    const targetClient = new ConvexHttpClient(command.targetUrl);
+    const targetClient = createDataClient({ target: command.targetUrl }).client;
     await saveInChunks(
       targetClient,
       credential.token,

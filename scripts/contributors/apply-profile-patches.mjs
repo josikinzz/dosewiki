@@ -40,7 +40,7 @@
  *     --expected-deployment=glad-minnow-656
  */
 import fs from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
@@ -197,7 +197,7 @@ async function main() {
   }
 
   const entries = loadPlan(planFile);
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const rows = planProfilePatches(entries, await readProfiles(client, entries.map((entry) => entry.key)));
   for (const row of rows) printRow(row);
 
@@ -220,7 +220,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   // The plan was checked against `readUrl`; check it once more against the
   // write target, immediately before writing, so a profile edited in between

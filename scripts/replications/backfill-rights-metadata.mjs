@@ -6,7 +6,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   readSimpleEnvFile,
@@ -81,7 +81,7 @@ if (!Array.isArray(metadata.replications)) {
   throw new Error(`Expected ${inputPath} to contain a replications array.`);
 }
 
-const sourceClient = new ConvexHttpClient(readUrl);
+const sourceClient = createDataClient({ target: readUrl }).client;
 const desiredBySlug = new Map(
   metadata.replications.map((replication) => [
     replication.slug,
@@ -118,7 +118,7 @@ if (command.dryRun) {
 let updated = 0;
 assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance", { env });
-const targetClient = new ConvexHttpClient(command.targetUrl);
+const targetClient = createDataClient({ target: command.targetUrl }).client;
 for (const replication of toProcess) {
   await targetClient.mutation(api.replications.updateRightsMetadata, {
     apiKey: credential.token,

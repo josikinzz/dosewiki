@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import type { InchiComparison } from "./stereoGuard";
 import { compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
@@ -54,7 +53,8 @@ export function useMoleculeQuickEditorLifecycle({
   const [refreshToken, setRefreshToken] = useState(0);
   const loadedSlugRef = useRef<string | null>(null);
 
-  const article = useQuery(api.substanceIndex.getBySlug, slug ? { slug } : "skip");
+  const article = useEditorRead("substanceIndex:getBySlug", slug ? { slug } : "skip", "document");
+  const invalidateEditorReads = useInvalidateEditorReads();
   const smiles = useMemo(() => extractSmiles(article), [article, extractSmiles]);
 
   useEffect(() => {
@@ -229,6 +229,7 @@ export function useMoleculeQuickEditorLifecycle({
         message: "Saved. This is now the live depiction. The substance page refreshes momentarily.",
       });
       setRefreshToken((token) => token + 1);
+      void invalidateEditorReads(["moleculeOverrides:listSlugs", "moleculeOverrides:getBySlug", "moleculeOverrides:getMetadataBySlug"]);
     } catch (error) {
       setSaveResult({
         tone: "danger",
@@ -237,7 +238,7 @@ export function useMoleculeQuickEditorLifecycle({
     } finally {
       setSaving(false);
     }
-  }, [slug, edited, ocl, smiles, boldBonds]);
+  }, [slug, edited, ocl, smiles, boldBonds, invalidateEditorReads]);
 
   const applyRevert = useCallback(() => {
     setVariant("auto");

@@ -154,6 +154,8 @@ interface AboutPageProps {
   sourcesContent?: ReactNode;
   historyContent?: ReactNode;
   reuseContent?: ReactNode;
+  /** Intro sentence above the Partners & Community roster. dose.wiki only; a Copy Studio slot. */
+  communityIntro?: ReactNode;
   docBlurbs?: string[];
   docCopyControl?: ReactNode;
   /** Editor-managed tagline from Convex siteConfig; falls back to the canonical line. */
@@ -171,6 +173,7 @@ export const AboutPage = memo(function AboutPage({
   sourcesContent,
   historyContent,
   reuseContent,
+  communityIntro,
   docBlurbs,
   docCopyControl,
   subtitle,
@@ -403,6 +406,7 @@ export const AboutPage = memo(function AboutPage({
         {ABOUT_CONFIG.showCommunity ? (
           <section id="community" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:handshake" title="Partners & Community" />
+            {communityIntro}
             <AboutCommunitySection />
           </section>
         ) : null}
@@ -415,15 +419,16 @@ export const AboutPage = memo(function AboutPage({
             <PublicSectionHeading icon="lucide:mail" title="Contact & Feedback" />
 
             <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">
-              If you notice a possible error or omission, use the report-an-issue box at the
-              bottom of the article or the feedback form. An editor reads each message.
-              Corrections are reflected in the article and the next dataset export.
+              Found an issue with one of our articles? You can suggest changes using
+              the box on any article, or with our feedback form. We review these
+              regularly, and will incorporate suggestions into articles and future
+              dataset releases.
             </p>
 
             <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">
-              For questions about dose.wiki, collaboration, legal or media inquiries,
-              or takedown requests, email us directly. The feedback form reaches the
-              same editors.
+              To reach dose.wiki with questions, legal, media, takedown requests,
+              collaboration, or any other needs, please use the form or write to
+              contact@dose.wiki.
             </p>
 
             <div className="flex flex-wrap items-center gap-3">

@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -144,7 +144,7 @@ function readInputFile(filePath) {
 }
 
 async function readConvexInput(convexUrl) {
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   return {
     sourcePath: `convex:${convexUrl}`,

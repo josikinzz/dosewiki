@@ -1,10 +1,9 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "convex/react";
 import { useSession } from "next-auth/react";
 
-import { api } from "../../../../../convex/_generated/api";
+import { useEditorRead } from "@/hooks/useEditorRead";
 
 import { Icon } from "@/components/common/Icon";
 import { useLightweightData } from "@/data/LightweightDataProvider";
@@ -106,7 +105,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     article,
     reviewedCount,
     allReviewed,
-    substances,
   } = queueState;
 
   // Hydrate the selected article's body; its slim library row has none.
@@ -155,12 +153,14 @@ export const ReviewExperience = memo(function ReviewExperience({
     [article, currentOverride],
   );
 
-  // The public route resolves the Convex depiction server-side; this surface is
-  // client-rendered, so it asks Convex directly. Reactivity means a save in the
-  // inline molecule panel re-versions the article image without a refresh.
-  const moleculeMeta = useQuery(
-    api.moleculeOverrides.getMetadataBySlug,
+  // The public route resolves the depiction server-side; this surface is
+  // client-rendered, so it reads the metadata through the editor route. A save
+  // in the inline molecule panel invalidates this key, so the article image
+  // re-versions without a refresh.
+  const moleculeMeta = useEditorRead(
+    "moleculeOverrides:getMetadataBySlug",
     current ? { slug: current.slug } : "skip",
+    "document",
   );
   const moleculeOverrideUrl =
     current && moleculeMeta ? moleculeOverrideImageUrl(current.slug, moleculeMeta.updatedAt) : null;

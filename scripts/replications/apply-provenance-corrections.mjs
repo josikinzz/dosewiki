@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -64,7 +64,7 @@ async function main() {
     throw new Error(`Write requires --write --confirm-provenance-write --digest=${payloadDigest}`);
   }
   const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const outcomes = [];
   for (const [index, record] of proposals.entries()) {
     process.stderr.write(`\rApplying correction ${index + 1}/${proposals.length}`);

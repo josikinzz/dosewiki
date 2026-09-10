@@ -1,30 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { substanceRouteAliases } from "@server/next/substanceRouteAliases";
 import {
-  authorizeWarmRequest,
   parseWarmSearchParams,
   planWarmTargets,
   WARM_ROTATION_STEP,
   WARM_TICK_MS,
   warmRotationForTick,
 } from "./warmPolicy";
-
-describe("authorizeWarmRequest", () => {
-  it("refuses to run when CRON_SECRET is unset", () => {
-    expect(authorizeWarmRequest("Bearer anything", {})).toMatchObject({
-      allowed: false,
-      status: 503,
-    });
-  });
-
-  it("requires the exact bearer secret", () => {
-    const env = { CRON_SECRET: "s3cret" };
-    expect(authorizeWarmRequest(null, env)).toMatchObject({ allowed: false, status: 401 });
-    expect(authorizeWarmRequest("Bearer wrong", env)).toMatchObject({ allowed: false, status: 401 });
-    expect(authorizeWarmRequest("s3cret", env)).toMatchObject({ allowed: false, status: 401 });
-    expect(authorizeWarmRequest("Bearer s3cret", env)).toMatchObject({ allowed: true });
-  });
-});
 
 describe("planWarmTargets", () => {
   const aliasSlug = Object.keys(substanceRouteAliases)[0];

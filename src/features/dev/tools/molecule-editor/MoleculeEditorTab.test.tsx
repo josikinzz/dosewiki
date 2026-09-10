@@ -1,13 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { getFunctionName } from "convex/server";
 import { DESKTOP_ONLY_NOTICE } from "@/features/dev/components";
 import {
   installMoleculeEditorTestHarness,
   seedExampleSubstance,
   stubOverrideFetch,
-  usePaginatedQueryMock,
+  useDrainedReadMock,
   useQueryMock,
   useSubstanceLookupMock,
 } from "./MoleculeEditorTab.testHarness";
@@ -24,24 +23,21 @@ describe("MoleculeEditorTab modes", () => {
     );
   });
 
-  it("uses and drains the paginated search projection for class templates", async () => {
-    const loadMore = vi.fn();
+  it("drains the paginated search projection only once class templates are open", async () => {
     useQueryMock.mockReturnValue(undefined);
-    usePaginatedQueryMock.mockReturnValue({
-      results: [],
-      status: "CanLoadMore",
-      loadMore,
-    });
+    useDrainedReadMock.mockReturnValue({ results: undefined, status: "LoadingFirstPage" });
     const user = userEvent.setup();
     render(<MoleculeEditorTab />);
 
-    const [query, args, options] = usePaginatedQueryMock.mock.calls[0];
-    expect(getFunctionName(query)).toBe("substanceIndex:getSearchInputPage");
+    const [query, args, options] = useDrainedReadMock.mock.calls[0];
+    expect(query).toBe("substanceIndex:getSearchInputPage");
     expect(args).toBe("skip");
-    expect(options).toEqual({ initialNumItems: 32 });
+    expect(options).toEqual({ initialNumItems: 200 });
 
     await user.click(screen.getByRole("button", { name: "Class templates" }));
-    await waitFor(() => expect(loadMore).toHaveBeenCalledWith(32));
+    await waitFor(() =>
+      expect(useDrainedReadMock).toHaveBeenLastCalledWith("substanceIndex:getSearchInputPage", {}, { initialNumItems: 200 }),
+    );
   });
 
   it("separates the saved-depiction pill from the published-article pill", async () => {
@@ -64,7 +60,7 @@ describe("MoleculeEditorTab modes", () => {
       status: "Exhausted",
     });
     useQueryMock.mockImplementation((query) => {
-      const functionName = getFunctionName(query);
+      const functionName = query;
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "unlisted-with-depiction" }];
       }
@@ -87,7 +83,7 @@ describe("MoleculeEditorTab modes", () => {
     expect(screen.getByText("saved")).toBeInTheDocument();
   });
 
-  it("shows the substance loading state while Convex data is pending", () => {
+  it("shows the substance loading state while server data is pending", () => {
     useSubstanceLookupMock.mockReturnValue({
       lookup: undefined,
       isLoading: true,
@@ -106,7 +102,7 @@ describe("MoleculeEditorTab modes", () => {
       status: "Exhausted",
     });
     useQueryMock.mockImplementation((query, args) => {
-      const functionName = getFunctionName(query);
+      const functionName = query;
       if (functionName === "moleculeOverrides:listSlugs") {
         return [{ slug: "1-4-butanediol" }];
       }

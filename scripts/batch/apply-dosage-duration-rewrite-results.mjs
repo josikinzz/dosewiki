@@ -23,7 +23,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertNoPublicProseArtifactLanguage,
@@ -224,7 +224,7 @@ function buildTimestamp() {
 
 async function syncToConvex(changedArticles, batchSize, writeCommand) {
   const credential = requireProductionWriteCredential("editorArticleWrite");
-  const client = new ConvexHttpClient(writeCommand.targetUrl);
+  const client = createDataClient({ target: writeCommand.targetUrl }).client;
   let created = 0;
   let updated = 0;
   const errors = [];

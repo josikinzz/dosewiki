@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 
 const target = "https://glad-minnow-656.convex.cloud";
@@ -16,7 +16,7 @@ if (manifest.status !== "validated" || manifest.completed !== 73) throw new Erro
 if (preparation.entries.length !== 73) throw new Error(`Expected 73 prepared entries, found ${preparation.entries.length}.`);
 const renditionById = new Map(manifest.items.map((item) => [item.id, item]));
 
-const client = new ConvexHttpClient(target);
+const client = createDataClient({ target: target }).client;
 const [liveRows, effects] = await Promise.all([
   client.query(api.replications.getAll, {}),
   client.query(api.subjectiveEffects.getPublicPreviews, {}),

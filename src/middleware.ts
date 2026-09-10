@@ -334,11 +334,15 @@ export async function middleware(request: NextRequest) {
   if (delivery === "public" ? isPresentationAsset(requestPath) : isEditorBootstrapAsset(requestPath)) {
     return browserPolicy.secure(NextResponse.next());
   }
-  // This exact POST authenticates its scoped admin token in the route handler.
-  // Keep host restrictions above and all other editor APIs behind session auth.
+  // These exact requests authenticate their own token in the route handler
+  // (a scoped admin token for the revalidation POST, CRON_SECRET for the
+  // Vercel cron). Keep host restrictions above and all other editor APIs
+  // behind session auth.
   const isArticleRevalidation = request.method === "POST"
     && requestPath === "/api/dev/revalidate-article";
-  if (delivery === "editor" && !isEditorAuthBootstrapPath(appPath) && !isArticleRevalidation) {
+  const isPublicationDeliveryCron = request.method === "GET"
+    && requestPath === "/api/cron/publication-delivery";
+  if (delivery === "editor" && !isEditorAuthBootstrapPath(appPath) && !isArticleRevalidation && !isPublicationDeliveryCron) {
     const token = await getToken({ req: request, secret: authSecret });
     const decision = getDevRouteDecision({
       pathname: appPath,

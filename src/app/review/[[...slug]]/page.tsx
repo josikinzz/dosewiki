@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@auth";
 import {
   CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR,
-  getEditorBrowserReadTarget,
   getEditorTargetAlignment,
 } from "@server/convex/serverWriteHealth";
 import {
@@ -68,8 +67,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     );
   }
 
-  const convexUrl = getEditorBrowserReadTarget().selectedUrl;
-  const workbench = <ReviewRouteClient convexUrl={convexUrl} initialSlug={initialSlug} />;
+  const workbench = <ReviewRouteClient initialSlug={initialSlug} />;
 
   if (alignment.status === "split") {
     return (

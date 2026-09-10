@@ -31,7 +31,7 @@
  *     --expected-deployment=<name>
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 
 import { api } from "../../convex/_generated/api.js";
@@ -112,8 +112,8 @@ async function main() {
   if (sourceUrl === targetUrl) throw new Error("Source and target must differ.");
   const adminKey = requireAdminIntentToken(INTENT).token;
 
-  const sourceClient = new ConvexHttpClient(sourceUrl);
-  const targetClient = new ConvexHttpClient(targetUrl);
+  const sourceClient = createDataClient({ target: sourceUrl }).client;
+  const targetClient = createDataClient({ target: targetUrl }).client;
 
   const [sourceDocs, targetDocs] = await Promise.all([
     getAllSubstanceDocuments(sourceClient, api.substanceIndex.getFullDocumentPage),

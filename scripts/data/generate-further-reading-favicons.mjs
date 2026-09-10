@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
@@ -240,7 +240,7 @@ async function readArticlesFromInput(inputPath) {
 }
 
 async function readArticlesFromConvex(convexUrl) {
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   return await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 }
 

@@ -22,7 +22,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -251,7 +251,7 @@ async function main() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const replications = await client.query(api.replications.getAll, {});
   const { renames, skipped, duplicates } = planSlugRenames(replications);
 
@@ -295,7 +295,7 @@ async function main() {
   // the mutation's requireAuth checks. `.token` is the string the arg validator
   // wants; the resolver returns provenance alongside it.
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   let renamed = 0;
   let galleryOrdersPatched = 0;

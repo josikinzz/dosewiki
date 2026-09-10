@@ -46,7 +46,6 @@ type UseDevModeSaveActionsArgs = {
   /** Admin: saves write production; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
   sessionProfileKey: string;
-  convexEnabled: boolean;
   datasetChangelog: DatasetChangelogResult;
   psychoactiveManualChangelog: { markdown: string; hasChanges: boolean };
   chemicalManualChangelog: { markdown: string; hasChanges: boolean };
@@ -75,7 +74,6 @@ const NOTICE_CLEAR_MS = { success: 5000, error: 10000 } as const;
  * the button being enabled, not a second label beside it.
  */
 function CommitButton({
-  convexEnabled,
   canDraft,
   canApprove,
   convexServerHealth,
@@ -85,7 +83,6 @@ function CommitButton({
   isCommitBlocked,
   onCommit,
 }: {
-  convexEnabled: boolean;
   canDraft: boolean;
   canApprove: boolean;
   convexServerHealth: EditorServerConfigHealth;
@@ -95,10 +92,6 @@ function CommitButton({
   isCommitBlocked: boolean;
   onCommit: () => void;
 }) {
-  if (!convexEnabled) {
-    return null;
-  }
-
   return (
     <div className="flex items-center gap-2">
       {canApprove && convexServerHealth.status !== "healthy" ? (
@@ -144,7 +137,6 @@ export function useDevModeSaveActions({
   canDraft,
   canApprove,
   sessionProfileKey,
-  convexEnabled,
   datasetChangelog,
   psychoactiveManualChangelog,
   chemicalManualChangelog,
@@ -158,7 +150,7 @@ export function useDevModeSaveActions({
   // Only an admin writes production, so only an admin polls the server health
   // that gates that write; an editor's proposal has no such precondition.
   const { health: convexServerHealth, refresh: refreshConvexServerHealth } =
-    useEditorServerConfigHealth(convexEnabled && canApprove);
+    useEditorServerConfigHealth(canApprove);
   // The session cookie is the credential; this only names who the save is
   // attributed to and refuses to start a save nobody is signed in for.
   const verifySaveSession = useCallback(async (): Promise<DevSaveCredentials> => {
@@ -412,7 +404,6 @@ export function useDevModeSaveActions({
   const commitButton = useMemo(
     () => (
       <CommitButton
-        convexEnabled={convexEnabled}
         canDraft={canDraft}
         canApprove={canApprove}
         convexServerHealth={convexServerHealth}
@@ -426,7 +417,6 @@ export function useDevModeSaveActions({
       />
     ),
     [
-      convexEnabled,
       convexServerHealth,
       handleCommit,
       canDraft,

@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getPublicSubstanceLookup } from "@server/convex/publicData";
 import { PUBLIC_SITE } from "@server/next/publicSite";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { authorizeCronRequest } from "@server/http/cronAuthorization";
 import {
   summarizeWarmResults,
   warmUrls,
 } from "../../../../scripts/deploy/warm-public-routes.lib.mjs";
 import {
-  authorizeWarmRequest,
   parseWarmSearchParams,
   planWarmTargets,
   warmRotationForTick,
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
   const rateLimited = await enforceRateLimit(request, "diagnosticRead");
   if (rateLimited) return rateLimited;
 
-  const decision = authorizeWarmRequest(request.headers.get("authorization"), {
+  const decision = authorizeCronRequest(request.headers.get("authorization"), {
     CRON_SECRET: process.env.CRON_SECRET,
   });
   if (!decision.allowed) {

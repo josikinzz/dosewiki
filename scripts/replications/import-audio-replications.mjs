@@ -14,7 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -155,7 +155,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("replicationMaintenance");
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
 
   for (const [slug, audioReplications] of payloadsByEffect) {
     await client.mutation(api.subjectiveEffects.update, {

@@ -8,7 +8,7 @@
  *   node scripts/migrate-trip-reports-between-deployments.mjs --confirm-cross-deployment-copy
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -39,8 +39,8 @@ try {
   process.exit(1);
 }
 
-const sourceClient = new ConvexHttpClient(sourceUrl);
-const targetClient = new ConvexHttpClient(targetUrl);
+const sourceClient = createDataClient({ target: sourceUrl }).client;
+const targetClient = createDataClient({ target: targetUrl }).client;
 
 const BATCH_SIZE = 10;
 

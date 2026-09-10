@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import {
   createProductionWriteCommand,
@@ -122,7 +122,7 @@ async function runQuery({ argv, functionName, parsedArgs }) {
   console.log(`Running query: ${functionName}`);
   console.log(`Source: ${new URL(sourceUrl).hostname}`);
   console.log("Args:", redactSensitiveArgs(parsedArgs));
-  const result = await new ConvexHttpClient(sourceUrl).query(functionName, parsedArgs);
+  const result = await createDataClient({ target: sourceUrl }).client.query(functionName, parsedArgs);
   console.log("Result:", JSON.stringify(result, null, 2));
 }
 
@@ -136,7 +136,7 @@ async function runMutation({ argv, functionName, parsedArgs }) {
   const result = await executeProductionWrite(command, async () => {
     const intent = getFlagValue(argv, "--intent") ?? intentForFunction(functionName);
     const credential = requireProductionWriteCredential(intent);
-    const client = new ConvexHttpClient(command.targetUrl);
+    const client = createDataClient({ target: command.targetUrl }).client;
     return await client.mutation(functionName, {
       ...parsedArgs,
       apiKey: credential.token,

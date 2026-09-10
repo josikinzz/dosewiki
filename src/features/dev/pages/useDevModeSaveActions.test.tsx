@@ -37,10 +37,6 @@ vi.mock("@/hooks/useEditorServerConfigHealth", () => ({
   }),
 }));
 
-vi.mock("@/lib/convex", () => ({
-  isConvexEnabled: () => true,
-}));
-
 const originalArticles = [
   {
     id: 1,
@@ -74,7 +70,6 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     canDraft: true,
     canApprove: true,
     sessionProfileKey: "JOSIE",
-    convexEnabled: true,
     datasetChangelog: {
       markdown: "# LSD\n\n+ Changed summary",
       articles: [{ id: 1, title: "LSD", slug: "lsd" }],

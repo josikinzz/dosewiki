@@ -83,7 +83,7 @@
 import fs from "node:fs";
 import { Agent } from "undici";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -481,7 +481,7 @@ async function main() {
     throw new Error("Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for a dry run).");
   }
 
-  const readClient = new ConvexHttpClient(readUrl);
+  const readClient = createDataClient({ target: readUrl }).client;
   const rows = (await readClient.query(api.replications.getPublicReplications, {}))
     .filter((row) => row.type === mediaType)
     .map((row) => ({ ...row, storageOnProduction: isProductionUrl(row.url) }));
@@ -535,7 +535,7 @@ async function main() {
 
   assertRepointAllowed(command, argv);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   // The ledger belongs next to whatever the run was reading: the renditions for
   // a video run, the manifest itself when there are no renditions.

@@ -1,10 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
-import { useQuery } from "convex/react";
 import { useSession } from "next-auth/react";
 import { canDraft, resolveSessionRole } from "@/lib/auth/roles";
 import { Button } from "@/components/ui";
 import { useCopyIndexSource } from "../tools/useCopyIndexSource";
-import { api } from "../../../../convex/_generated/api";
+import { useEditorRead } from "@/hooks/useEditorRead";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { DevModeContextValue } from "./devModeTypes";
@@ -31,7 +30,7 @@ export function DevModeProvider({
   const session = useSession();
   const canReadPrivateLayouts = session.status === "authenticated" && canDraft(resolveSessionRole({ role: session.data?.user?.role }));
   const privateLayouts = useCopyIndexSource<Array<ManualIndexConfig & { type: "psychoactive" | "chemical" | "mechanism" }>>(canReadPrivateLayouts ? "/api/dev/index-layout?type=all" : null);
-  const publicLayouts = useQuery(api.indexLayouts.getAll, canReadPrivateLayouts ? "skip" : {});
+  const publicLayouts = useEditorRead("indexLayouts:getAll", canReadPrivateLayouts ? "skip" : {}, "list");
   const indexLayouts = canReadPrivateLayouts ? privateLayouts.data : publicLayouts?.map((layout) => ({ ...layout, revision: 0 }));
 
   type IndexLayoutRow = NonNullable<typeof indexLayouts>[number];

@@ -12,7 +12,7 @@ import { createHash } from "node:crypto";
 import { createReadStream, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import https from "node:https";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -199,7 +199,7 @@ async function main() {
   const plan = readJson(planPath);
   const creates = validatePlan(plan);
   const ledger = loadLedger(ledgerPath, planPath);
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const [liveRows, effects] = await Promise.all([
     client.query(api.replications.getAll, {}),
     client.query(api.subjectiveEffects.getPublicPreviews, {}),

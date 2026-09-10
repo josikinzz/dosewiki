@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -123,7 +123,7 @@ async function main() {
   console.log(`Wikipedia enrichment: ${options.wikipediaEnrichment ? "enabled" : "disabled"}`);
 
   const sourceUrl = requireSourceUrl(runContext, "Convex citation source URL");
-  const sourceClient = new ConvexHttpClient(sourceUrl);
+  const sourceClient = createDataClient({ target: sourceUrl }).client;
   const article = await sourceClient.query(api.substanceIndex.getBySlug, { slug: options.slug });
   if (!article) throw new Error(`No article found for slug: ${options.slug}`);
 
@@ -302,7 +302,7 @@ async function main() {
 
   assertDataOpsWriteAllowed(runContext);
   const targetUrl = requireTargetUrl(runContext, "Convex citation write target URL");
-  const targetClient = new ConvexHttpClient(targetUrl);
+  const targetClient = createDataClient({ target: targetUrl }).client;
   const citationWriteToken = requireAdminIntentToken("citationEvidenceWrite");
   const promotionPlan = buildFormalCitationPromotionPlan({
     draft,

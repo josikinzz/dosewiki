@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from "fs";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../../lib/data-client.ts";
 
 import { api } from "../../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
@@ -11,7 +11,7 @@ import { CONFIG } from "./cli.mjs";
 let convexClient = null;
 
 export function initConvexClient(convexUrl) {
-  convexClient = new ConvexHttpClient(convexUrl);
+  convexClient = createDataClient({ target: convexUrl }).client;
   return convexClient;
 }
 

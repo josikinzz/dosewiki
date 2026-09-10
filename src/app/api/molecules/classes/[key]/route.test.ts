@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@server/convex/serverClient", () => ({
-  getServerConvexReadClient: () => ({ query: mocks.query }),
+  queryConvex: mocks.query,
 }));
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,

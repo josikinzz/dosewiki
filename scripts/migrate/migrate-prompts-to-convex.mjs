@@ -14,7 +14,7 @@
  *   node scripts/migrate-prompts-to-convex.mjs --dry-run
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
 import {
@@ -77,7 +77,7 @@ async function main() {
   }
 
   // Create Convex client
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
 
   console.log("\nImporting prompts to Convex...");
 

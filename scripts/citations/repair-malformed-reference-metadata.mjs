@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -358,7 +358,7 @@ function pendingProposalRows(articlesBySlug, proposal) {
 async function buildProposal(command, argv, dependencies) {
   const sourceUrl = command.targetUrl;
   if (!sourceUrl) throw new Error("Set TARGET_CONVEX_URL explicitly to build the repair proposal.");
-  const client = dependencies.client ?? new ConvexHttpClient(sourceUrl);
+  const client = dependencies.client ?? createDataClient({ target: sourceUrl }).client;
   const queryApi = dependencies.api ?? api;
   const articles = await getAllSubstanceDocuments(client, queryApi.substanceIndex.getFullDocumentPage);
   const proposal = await buildMalformedReferenceRepairProposal(articles, {
@@ -377,7 +377,7 @@ async function applyProposal(command, argv, dependencies) {
   if (proposal.sourceDeployment?.replace(/\/$/, "") !== command.targetUrl?.replace(/\/$/, "")) {
     throw new Error("The proposal source deployment does not match the explicit target deployment.");
   }
-  const client = dependencies.client ?? new ConvexHttpClient(command.targetUrl);
+  const client = dependencies.client ?? createDataClient({ target: command.targetUrl }).client;
   const queryApi = dependencies.api ?? api;
   const articles = await getAllSubstanceDocuments(client, queryApi.substanceIndex.getFullDocumentPage);
   const articlesBySlug = new Map(articles.map((article) => [article.slug, article]));

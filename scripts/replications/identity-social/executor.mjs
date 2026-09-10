@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../../lib/data-client.ts";
 import { api } from "../../../convex/_generated/api.js";
 import { createProductionWriteCommand, assertProductionWriteAllowed, requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
 import { appendLedger, assertPreviewMatches, batchesAfterCanaries, buildExecutionPlan, completedBatchesForRollback, indexProfiles, loadLedger, pendingBatches, PRODUCTION_DEPLOYMENT, rollbackManifest, selectCanaries, validatePinnedProfileSnapshot, verifyDeliveryReceiptSidecar } from "./executor-lib.mjs";
@@ -95,8 +95,8 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   if (!options.actor) throw new Error("--actor-email is required for writes.");
   if (!options.rollback && !["canary", "full"].includes(options.phase)) throw new Error("Write mode requires --phase=canary or --phase=full.");
   const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
-  let client = adapters.client ?? new ConvexHttpClient(command.targetUrl);
-  const recreateClient = () => { client = adapters.createClient ? adapters.createClient(command.targetUrl) : new ConvexHttpClient(command.targetUrl); };
+  let client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
+  const recreateClient = () => { client = adapters.createClient ? adapters.createClient(command.targetUrl) : createDataClient({ target: command.targetUrl }).client; };
   const query = (ref, args) => adapters.query ? adapters.query(ref, args) : client.query(ref, args);
   const mutate = (ref, args) => adapters.mutate ? adapters.mutate(ref, args) : client.mutation(ref, args);
   const verified = new Set(loadLedger(options.ledger).filter((x) => x.event === "batch-readback-verified").map((x) => x.operation_id));

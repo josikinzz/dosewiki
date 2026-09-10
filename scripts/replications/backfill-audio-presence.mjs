@@ -25,7 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
 import {
@@ -263,7 +263,7 @@ async function main() {
   // credential; without a configured target the dry run leaves ids null.
   let idsBySlug = new Map();
   if (command.targetUrl) {
-    const client = new ConvexHttpClient(command.targetUrl);
+    const client = createDataClient({ target: command.targetUrl }).client;
     const liveRows = await client.query(api.replications.getAll, {});
     idsBySlug = new Map(liveRows.map((row) => [row.slug, row]));
   }
@@ -332,7 +332,7 @@ async function main() {
   console.log(
     `Writing ${pending.length} rows (${entries.length - pending.length} already correct)...`,
   );
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const maintenanceKey = requireProductionWriteCredential(
     "replicationMaintenance",
   ).token;

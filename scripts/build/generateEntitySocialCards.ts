@@ -14,7 +14,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import sharp from "sharp";
 
 import { api } from "../../convex/_generated/api";
@@ -902,7 +902,7 @@ async function main(): Promise<void> {
   }
 
   console.log(`[entity-social-cards] Reading public entities from ${convexUrl}...`);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const [rawEffects, rawReplications, rawReports, rawProfiles] = await Promise.all([
     client.query(api.subjectiveEffects.getPublicPreviews, {}),
     client.query(api.replications.getPublicReplications, {}),

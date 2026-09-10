@@ -1,13 +1,12 @@
 /**
- * Hook for loading the category layout from Convex.
+ * Hook for loading the category layout through the editor read route.
  *
  * The category layout is a lightweight (~14KB) data structure containing
  * just the category/section/drug-slug hierarchy. Names are resolved
  * client-side using the slug-name map.
  */
 
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useEditorRead } from "./useEditorRead";
 
 export interface CategoryLayoutSection {
   key: string;
@@ -30,12 +29,12 @@ export interface CategoryLayout {
 }
 
 /**
- * Hook to load the category layout from Convex.
+ * Hook to load the category layout.
  *
  * @returns Layout data, loading state, and whether layout exists
  */
 export function useCategoryLayout() {
-  const layout = useQuery(api.categoryLayout.get);
+  const layout = useEditorRead("categoryLayout:get", {}, "list");
 
   return {
     layout: layout as CategoryLayout | null | undefined,

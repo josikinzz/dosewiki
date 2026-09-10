@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, chmodSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -203,7 +203,7 @@ function readbackById(rows, batch, mode) {
   }
 }
 
-export async function runAttributionRollout({ argv = process.argv.slice(2), env = process.env, clientFactory = (url) => new ConvexHttpClient(url), logger = console, pins = PINNED_PLAN } = {}) {
+export async function runAttributionRollout({ argv = process.argv.slice(2), env = process.env, clientFactory = (url) => createDataClient({ target: url }).client, logger = console, pins = PINNED_PLAN } = {}) {
   const planPath = path.resolve(value(argv, "--plan", DEFAULT_PLAN));
   const ledgerPath = path.resolve(value(argv, "--ledger", `${planPath}.rollout-ledger.json`));
   const bytes = readFileSync(planPath);

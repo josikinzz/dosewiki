@@ -254,8 +254,10 @@ page revalidation retains the displayed labels.
 
 ### Editor read flow
 
-Editor pages use client-side Convex queries against the sole deployment,
-`glad-minnow-656`:
+Editor pages hold no data-backend client in the browser. Every read is a
+TanStack Query over a session-gated Next route that runs the registered query
+through the server read client (`getServerConvexReadClient()`: Convex over
+HTTP, or the in-process Postgres runtime under `DATA_BACKEND=postgres`):
 
 1. user signs in through Auth.js
 2. `/dev` resolves the user's owned contributor profile with
@@ -263,16 +265,26 @@ Editor pages use client-side Convex queries against the sole deployment,
    otherwise uses `CONVEX_ADMIN_KEY`
 3. an unavailable profile lookup is logged but does not prevent
    `NextDevRouteClient` from loading
-4. client mounts a Convex React client from the configured browser URL, which
-   must resolve to `glad-minnow-656`
-5. editor reads category layout, slug map, and full article library from Convex
-6. article editing remains manual in the browser; scraped `articleSources`,
+4. `src/hooks/useEditorRead.ts` keys each read `["editor", "<module>:<fn>", args]`
+   and fetches it from the matching `GET /api/editor/*` route (index layouts,
+   category layout, contributor profiles, change log, copy blocks, molecule
+   depictions, substance documents and cursor pages, banner display); the
+   shared `editorReadRoute` helper applies the role floor, the
+   `editorPolledRead` rate policy, and refuses a foreign `Origin` or a
+   cross-site `Sec-Fetch-Site`
+5. freshness (fork F3, conservative option): refetch on window focus plus a
+   15 s interval for lists and 5 s for the open document; a caller's own write
+   invalidates its keys immediately; there is no push
+6. the editor library itself drains `/api/dev/editor-library`, and editor-only
+   projections keep their existing `/api/dev/*` routes
+7. article editing remains manual in the browser; scraped `articleSources`,
    extracted quote packs, and source-backed generation are not loaded by the
    article editor
-7. the editor config-health check verifies that the configured
+8. the editor config-health check verifies that the configured
    `CONVEX_ADMIN_KEY` is accepted by the selected deployment
-8. editor state is managed through `DevModeContext` and feature-local form/tool
-   state
+9. editor state is managed through `DevModeContext` and feature-local form/tool
+   state; a refetch only reaches the working set when the row's identity
+   changed, so unsaved drafts survive polling and tab switches
 
 ### Editor save-to-Convex flow
 

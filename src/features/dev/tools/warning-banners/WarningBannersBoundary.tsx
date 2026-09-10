@@ -3,9 +3,9 @@
 /**
  * Error boundary for rendering the Studio and its live display settings.
  *
- * `useQuery(api.siteConfig.getBannerDisplay)` throws during render when Convex
- * cannot answer — an outage, or a deployment where the function is not present
- * yet. Without a boundary that throw escapes to the `/dev` route's error UI and
+ * The `siteConfig:getBannerDisplay` editor read throws during render when the
+ * server cannot answer (an outage, or a deployment where the function is not
+ * present yet). Without a boundary that throw escapes to the `/dev` route's error UI and
  * the whole shell reads "Something went wrong", which loses the tab chrome, the
  * other tools, and any hint about what actually failed.
  *

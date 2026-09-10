@@ -153,10 +153,31 @@ environment elsewhere. `enchanted-echidna-791` is retired.
 The runtime resolution rules live in `lib/convex/runtimeTargets.ts`; script
 resolution and write guards live in
 `scripts/lib/data-ops-run-context.mjs` and
-`scripts/lib/production-write-command.mjs`. Configure every resolved URL to
+`scripts/lib/production-write-command.mjs`, and every script obtains its client
+from `scripts/lib/data-client.ts`. Configure every resolved URL to
 `https://glad-minnow-656.convex.cloud`. Privileged scripts must receive that URL
 explicitly through `TARGET_CONVEX_URL` or `--target-url`; do not rely on a browser
 or compatibility fallback to select a write target.
+
+### Postgres backend (migration rehearsals)
+
+With `DATA_BACKEND=postgres` the same scripts run their Convex functions
+in-process against Postgres (`lib/postgres/runtime/client.ts`). The credential
+model is unchanged: `CONVEX_ADMIN_KEY` and the scoped `CONVEX_ADMIN_TOKEN_*`
+variables are read from the process environment exactly as the Convex
+deployment reads its own, so a token that works locally works on Postgres. What
+changes is the target:
+
+| Convex | Postgres equivalent |
+| --- | --- |
+| `--target-url` or `TARGET_CONVEX_URL` | `--target <url>` or `TARGET_POSTGRES_URL` |
+| `CONVEX_URL`, `VITE_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_URL` (ignored for writes) | `POSTGRES_POOLED_URL`, `POSTGRES_DIRECT_URL` (ignored for writes) |
+| `--expected-deployment=glad-minnow-656` | `--expected-deployment=<host>/<database>` |
+| HTTPS `.convex.cloud` host check | `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM=<host>` for any non-loopback host |
+
+`npm run postgres:check-env-isolation` asserts that a `VERCEL_ENV=preview`
+environment cannot reach a production writer through a fallback variable on
+either backend. Run it after touching either guard module.
 
 ## Wrong-target and split detection
 

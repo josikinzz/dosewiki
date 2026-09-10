@@ -6,7 +6,7 @@
  * Usage: node scripts/remove-contributor.mjs "Gabriel"
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "./lib/data-client.ts";
 import { api } from "../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -50,7 +50,7 @@ async function main() {
   printProductionWriteCommand(command);
   console.log(`Planning removal of contributor "${contributorName}" from all effect articles...`);
   
-  const sourceClient = new ConvexHttpClient(requireReadUrl());
+  const sourceClient = createDataClient({ target: requireReadUrl() }).client;
   
   try {
     // Get all effects
@@ -61,7 +61,7 @@ async function main() {
     if (!command.dryRun) {
       assertProductionWriteAllowed(command);
       writeCredential = requireProductionWriteCredential("editorArticleWrite");
-      targetClient = new ConvexHttpClient(command.targetUrl);
+      targetClient = createDataClient({ target: command.targetUrl }).client;
     }
     
     let updated = 0;

@@ -3,7 +3,7 @@
 import { rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api";
 import { getPublicServerReadTarget } from "../../lib/convex/runtimeTargets";
@@ -71,7 +71,7 @@ async function main(): Promise<void> {
     );
   }
 
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const [substances, replications] = await Promise.all([
     drainPages((cursor) =>
       client.query(api.substanceIndex.getPublicLookupPage, {

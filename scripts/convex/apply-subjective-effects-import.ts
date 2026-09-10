@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient, type DataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
@@ -615,7 +615,7 @@ async function writePlans({
   plans,
   token,
 }: {
-  client: ConvexHttpClient;
+  client: DataClient;
   plans: PlannedArticle[];
   token: string;
 }) {
@@ -655,7 +655,7 @@ async function verifyImport({
   client,
   drafts,
 }: {
-  client: ConvexHttpClient;
+  client: DataClient;
   drafts: Draft[];
 }) {
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage) as Record<string, unknown>[];
@@ -731,7 +731,7 @@ async function main() {
 
   printDataOpsRunContext(runContext);
   const targetUrl = requireTargetUrl(runContext, "Convex subjective effects target URL");
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   if (options.verifyOnly) {
     await verifyImport({ client, drafts });

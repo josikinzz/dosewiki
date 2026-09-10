@@ -25,8 +25,7 @@
  *     Convex + revalidates the public substance page
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePaginatedQuery, useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+import { useEditorDrainedRead, useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import { useSubstanceLookup } from "@/hooks/useSubstanceLookup";
 import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
@@ -74,9 +73,10 @@ const SAVE_API = "/api/dev/molecule-override";
 const TEMPLATE_API = "/api/dev/molecule-class-template";
 
 
-/** If Convex data has not arrived after this long, stop promising "Loading…". */
+/** If server data has not arrived after this long, stop promising "Loading…". */
 const LOAD_TIMEOUT_MS = 8000;
-const SEARCH_INPUT_PAGE_SIZE = 32;
+/** The route clamps pages at 200 rows, so the drain (and each refresh) is a few round trips. */
+const SEARCH_INPUT_PAGE_SIZE = 200;
 
 /** Pull the article's SMILES from whichever shape the Convex doc carries. */
 function extractSmiles(article: unknown): string {
@@ -177,20 +177,22 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     };
   }, [mode]);
 
-  // --- live Convex data -----------------------------------------------------
+  // --- live server data -----------------------------------------------------
   const { lookup } = useSubstanceLookup();
-  const overrideList = useQuery(api.moleculeOverrides.listSlugs);
-  const article = useQuery(
-    api.substanceIndex.getBySlug,
+  const overrideList = useEditorRead("moleculeOverrides:listSlugs", {}, "list");
+  const invalidateEditorReads = useInvalidateEditorReads();
+  const article = useEditorRead(
+    "substanceIndex:getBySlug",
     selected && mode === "substances" ? { slug: selected } : "skip",
+    "document",
   );
   // Only the loading/loaded transition may re-resolve the baseline. Depending on
-  // `article` itself would re-run on every redelivery, since the live query hands
-  // back a fresh object identity each time even when nothing changed.
+  // `article` itself would re-run on every redelivery, since a polled read may
+  // hand back a fresh object identity even when nothing changed.
   const articleLoading = article === undefined;
   // Mirrors `source` so the resolver can tell a genuine baseline change from a
-  // re-run caused by a Convex query redelivering an equal value under a fresh
-  // object identity (a resubscribe, or any write touching the same row).
+  // re-run caused by a read redelivering an equal value under a fresh object
+  // identity (a refetch, or any write touching the same row).
   const sourceRef = useRef<string | null>(null);
 
   /**
@@ -252,26 +254,16 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     setSource(molblock);
   }, []);
 
-  const templateMemberOverride = useQuery(
-    api.moleculeOverrides.getBySlug,
+  const templateMemberOverride = useEditorRead(
+    "moleculeOverrides:getBySlug",
     mode === "templates" && templateMemberSlug ? { slug: templateMemberSlug } : "skip",
+    "document",
   );
-  const {
-    results: classMembershipPages,
-    status: classMembershipStatus,
-    loadMore: loadMoreClassMembership,
-  } = usePaginatedQuery(
-    api.substanceIndex.getSearchInputPage,
+  const { results: classMembershipInput } = useEditorDrainedRead(
+    "substanceIndex:getSearchInputPage",
     mode === "templates" ? {} : "skip",
     { initialNumItems: SEARCH_INPUT_PAGE_SIZE },
   );
-  useEffect(() => {
-    if (mode === "templates" && classMembershipStatus === "CanLoadMore") {
-      loadMoreClassMembership(SEARCH_INPUT_PAGE_SIZE);
-    }
-  }, [classMembershipStatus, loadMoreClassMembership, mode]);
-  const classMembershipInput =
-    classMembershipStatus === "Exhausted" ? classMembershipPages : undefined;
 
   const overrideSet = useMemo(
     () => new Set((overrideList ?? []).map((row) => row.slug)),
@@ -1142,6 +1134,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       });
       setBoldBaseline(boldBonds);
       setVariant("saved");
+      void invalidateEditorReads(["moleculeOverrides:listSlugs", "moleculeOverrides:getBySlug", "moleculeOverrides:getMetadataBySlug"]);
       setSaveResult({
         tone: "success",
         message:
@@ -1157,7 +1150,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     } finally {
       setSaving(false);
     }
-  }, [selected, edited, ocl, smiles, mode, previewAtomLabels, boldBonds]);
+  }, [selected, edited, ocl, smiles, mode, previewAtomLabels, boldBonds, invalidateEditorReads]);
 
   const revertToAuto = useCallback(() => {
     const run = () => {
@@ -1188,6 +1181,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
       setOverrideDoc(null);
       setVariant("auto");
+      void invalidateEditorReads(["moleculeOverrides:listSlugs", "moleculeOverrides:getBySlug", "moleculeOverrides:getMetadataBySlug"]);
       setSaveResult({
         tone: "success",
         message: "Override removed. Reverted to the automatic layout.",
@@ -1200,7 +1194,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     } finally {
       setSaving(false);
     }
-  }, [selected, mode]);
+  }, [selected, mode, invalidateEditorReads]);
 
   // Removing an override is destructive: always confirm, and warn about unsaved edits too.
   const requestRemove = useCallback(() => {

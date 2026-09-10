@@ -14,7 +14,7 @@
  *   TARGET_CONVEX_URL=https://dev-or-prod.convex.cloud node scripts/batch/batch-generate-summary.mjs --substance=lsd
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
 import { assertDataOpsWriteAllowed } from "../lib/data-ops-run-context.mjs";
@@ -76,8 +76,8 @@ async function main(options) {
 
   const runArtifacts = createRunArtifacts(options, sourceUrl, targetUrl, CONFIG);
   activeRunArtifacts = runArtifacts;
-  const sourceClient = new ConvexHttpClient(sourceUrl);
-  const targetClient = new ConvexHttpClient(targetUrl);
+  const sourceClient = createDataClient({ target: sourceUrl }).client;
+  const targetClient = createDataClient({ target: targetUrl }).client;
 
   printBatchBanner({
     title: "Batch Summary Section Generation",

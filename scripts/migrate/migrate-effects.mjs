@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync, existsSync } from "fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { loadGalleryOrderMapping } from "../replications/lib/reconciliation.mjs";
@@ -132,7 +132,7 @@ async function main() {
   }
 
   console.log(`\n🔗 Connecting to Convex: ${convexUrl}`);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
 
   console.log(`\n📤 Importing ${transformedEffects.length} effects in batches of ${BATCH_SIZE}...\n`);
   const { totalCreated, totalUpdated, allErrors } = await importEffectsInBatches({

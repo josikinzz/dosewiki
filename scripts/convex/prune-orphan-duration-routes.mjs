@@ -25,7 +25,7 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -218,7 +218,7 @@ async function main() {
   // requireAdminIntentToken returns a descriptor ({ token, envVar, source }), not
   // the bare secret the mutation validator expects.
   const adminKey = requireAdminIntentToken(INTENT).token;
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   console.log(`\nPlan: ${plan.length} duration route(s) to remove\n`);
 

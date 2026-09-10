@@ -32,7 +32,7 @@
  *       --expected-deployment=glad-minnow-656
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -66,7 +66,7 @@ async function repairBodies() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const articles = await client.query(api.effectIndexArticles.getAll, {});
   const slug = getFlag("slug");
   if (slug && !articles.some((article) => article.slug === slug)) {

@@ -10,7 +10,7 @@ import {
 import { dirname, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -264,7 +264,7 @@ export async function runPlanReferenceProvenanceBackfill(argv = process.argv.sli
   const evidenceBundle = JSON.parse(evidenceBundleBytes.toString("utf8"));
   const evidenceBundleFileSha256 = sha256Bytes(evidenceBundleBytes);
   assert(evidenceBundleFileSha256 === lineage.evidenceBundle.fileSha256, "Tracked evidence bundle file hash mismatch");
-  const client = dependencies.client ?? new ConvexHttpClient(sourceDeployment);
+  const client = dependencies.client ?? createDataClient({ target: sourceDeployment }).client;
   const queryApi = dependencies.api ?? api;
   const articles = await getAllReferenceMetadata(client, queryApi.substanceIndex.getReferenceMetadataPage);
   const proposal = buildReferenceProvenanceBackfillProposal({

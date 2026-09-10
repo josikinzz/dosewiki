@@ -77,7 +77,7 @@ function publicationHarness(planned = article(), latest = planned, conflictAfter
       env: {
         TARGET_CONVEX_URL: "https://test-target.convex.cloud",
         CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE: "test-scoped-token",
-      },
+      } as unknown as NodeJS.ProcessEnv,
       createClient: () => client,
       logger: { log: vi.fn() },
       writeAudit: vi.fn(() => ({
@@ -159,7 +159,7 @@ describe("runNormalizeDoseUnits", () => {
     const mutation = vi.spyOn(client, "mutation").mockRejectedValue(new Error("Dry run must not publish"));
     const writeAudit = vi.fn();
     const result = await runNormalizeDoseUnits([], {
-      env: { VITE_CONVEX_URL: "https://test-source.convex.cloud" },
+      env: { VITE_CONVEX_URL: "https://test-source.convex.cloud" } as unknown as NodeJS.ProcessEnv,
       createClient: () => client,
       logger: { log: vi.fn() },
       writeAudit,

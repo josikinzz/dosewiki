@@ -13,7 +13,7 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -115,7 +115,7 @@ function buildRow(definition, existing, seed) {
 
 const target = { key: runContext.targetUrlKey, url: requireTargetUrl(runContext) };
 const adminKey = requireAdminIntentToken("profileMediaWrite").token;
-const client = new ConvexHttpClient(target.url);
+const client = createDataClient({ target: target.url }).client;
 
 /**
  * Read the rows this run would merge into.

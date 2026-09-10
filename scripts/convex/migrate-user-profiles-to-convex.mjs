@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -91,7 +91,7 @@ try {
   process.exit(1);
 }
 
-const client = new ConvexHttpClient(convexUrl);
+const client = createDataClient({ target: convexUrl }).client;
 const adminKey = requireAdminIntentToken("profileMediaWrite").token;
 const result = await client.mutation(api.contributorProfiles.bulkImport, {
   apiKey: adminKey,

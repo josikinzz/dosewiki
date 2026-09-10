@@ -24,7 +24,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import type { Id } from "../../convex/_generated/dataModel.js";
@@ -1743,7 +1743,7 @@ export async function main(argv = process.argv.slice(2)) {
       );
     }
     const token = requireProductionWriteCredential("profileMediaWrite").token;
-    const client = new ConvexHttpClient(command.targetUrl);
+    const client = createDataClient({ target: command.targetUrl }).client;
     const lock = acquireLedgerLock(ledgerPath);
     try {
       const ledger = readOrCreateLedger(ledgerPath, inputs);
@@ -1777,7 +1777,7 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error(`This campaign is pinned to prod:${DEPLOYMENT}.`);
   }
   const token = requireProductionWriteCredential("profileMediaWrite").token;
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const lock = acquireLedgerLock(ledgerPath);
   try {
     const ledger = readOrCreateLedger(ledgerPath, inputs);

@@ -50,7 +50,7 @@
  *     --confirm-write=reassign-replication-credits \
  *     --expected-deployment=glad-minnow-656
  */
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -252,7 +252,7 @@ async function main() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const replications = await client.query(api.replications.getAll, {});
   console.log(`\nRead ${replications.length} replications.`);
 
@@ -272,7 +272,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   let applied = 0;
   for (const row of plan.rows) {

@@ -4,9 +4,10 @@
  * Build the public molecule download pack from the canonical Convex depiction
  * set (`moleculeOverrides`):
  *   public/dosewiki-molecules.json — manifest: slug, title, filename, smiles, represents, source
- *   public/dosewiki-molecules.zip  — molecules/ (stored brand SVGs, incl. classes/) +
- *                                    molecules-standard/ (standard textbook colourway,
- *                                    re-rendered at pack time) + the manifest
+ *   public/dosewiki-molecules.zip  — molecules-light/ and molecules-dark/ (the site's
+ *                                    neutral light-mode and dark-mode colourways, incl.
+ *                                    classes/) + molecules-standard/ (textbook element
+ *                                    colours, re-rendered at pack time) + the manifest
  *
  * Read-only: pulls rows over the public Convex queries and writes only local
  * files. Convex URL: --convex-url= > SOURCE_CONVEX_URL > CONVEX_PUBLIC_READ_URL
@@ -21,12 +22,13 @@ import { mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as OCL from "openchemlib";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api";
 import {
   OCL_COLOR_TO_STANDARD,
   renderMoleculeSvg,
 } from "../../src/features/dev/tools/molecule-editor/renderMoleculeSvg";
+import { applyMoleculeColorway } from "../../src/data/mappings/moleculePalette";
 import { drainConvexPageQuery } from "../lib/convex-pagination.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -104,7 +106,7 @@ async function main() {
   const convexUrl = convexUrlFromEnvironment(argv);
   console.log(`Reading moleculeOverrides from ${convexUrl}`);
 
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const slugRows: Array<{ slug: string }> = await client.query(api.moleculeOverrides.listSlugs, {});
   const slugs = slugRows.map((row) => row.slug).sort((a, b) => a.localeCompare(b));
 
@@ -168,9 +170,10 @@ async function main() {
     __comment:
       "dose.wiki molecule pack manifest. Every molecule SVG is rendered by OpenChemLib from the " +
       "canonical Convex depiction set (one editable MOL block per substance). The pack ZIP " +
-      "contains each structure in two colourways: molecules/ (dose.wiki brand colours, the " +
-      "stored depiction) and molecules-standard/ (standard textbook element colours — black " +
-      "skeleton, blue N, red O — derived from the same MOL block at pack time). `represents` " +
+      "contains each structure in three colourways: molecules-light/ (neutral, for a light " +
+      "background), molecules-dark/ (neutral, for a dark background) and molecules-standard/ " +
+      "(textbook element colours — black skeleton, blue N, red O — derived from the same MOL " +
+      "block at pack time). Class skeletons ship under classes/ in the light and dark sets. `represents` " +
       "names the active molecule when the substance is a plant, preparation, or brand name. " +
       "Pack ZIP: /dosewiki-molecules.zip",
     count: manifestMolecules.length,
@@ -197,7 +200,8 @@ async function main() {
   const staged: string[] = [];
   let standardCount = 0;
   for (const row of substanceRows) {
-    staged.push(stageFile(`molecules/${row.slug}.svg`, row.svg));
+    staged.push(stageFile(`molecules-light/${row.slug}.svg`, applyMoleculeColorway(row.svg, "pro-light")));
+    staged.push(stageFile(`molecules-dark/${row.slug}.svg`, applyMoleculeColorway(row.svg, "pro-dark")));
     const standard = renderMoleculeSvg(
       OCL,
       row.molblock,
@@ -215,7 +219,8 @@ async function main() {
 
   for (const row of classRows) {
     const key = row.slug.slice("class:".length);
-    staged.push(stageFile(`molecules/classes/${key}.svg`, row.svg));
+    staged.push(stageFile(`molecules-light/classes/${key}.svg`, applyMoleculeColorway(row.svg, "pro-light")));
+    staged.push(stageFile(`molecules-dark/classes/${key}.svg`, applyMoleculeColorway(row.svg, "pro-dark")));
   }
 
   staged.push(stageFile(MANIFEST_NAME, manifestJson));
@@ -233,7 +238,7 @@ async function main() {
   writeFileSync(MANIFEST_PATH, manifestJson);
 
   console.log(
-    `Packed ${substanceRows.length} substances (brand), ${standardCount} standard renders, ` +
+    `Packed ${substanceRows.length} substances (light + dark), ${standardCount} standard renders, ` +
       `${classRows.length} class skeletons.`,
   );
   console.log(`Wrote public/${MANIFEST_NAME} (${manifestMolecules.length} molecules) and public/dosewiki-molecules.zip`);

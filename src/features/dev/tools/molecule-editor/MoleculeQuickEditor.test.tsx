@@ -1,7 +1,6 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getFunctionName } from "convex/server";
 
 const useQueryMock = vi.hoisted(() => vi.fn());
 const useRdkitMock = vi.hoisted(() => vi.fn());
@@ -9,8 +8,9 @@ const useOclMock = vi.hoisted(() => vi.fn());
 const renderMoleculeSvgMock = vi.hoisted(() => vi.fn());
 const compareInchiMock = vi.hoisted(() => vi.fn());
 
-vi.mock("convex/react", () => ({
-  useQuery: useQueryMock,
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: useQueryMock,
+  useInvalidateEditorReads: () => async () => undefined,
 }));
 
 vi.mock("./useRdkit", () => ({
@@ -85,11 +85,11 @@ describe("MoleculeQuickEditor", () => {
       inchiOriginal: "InChI=1S/example",
       inchiEdited: "InChI=1S/example",
     });
-    // Stable object identity, like the real Convex `useQuery` — a fresh object per
+    // Stable object identity, like the structurally shared read: a fresh object per
     // render would retrigger the source-resolution effect and discard live edits.
     const article = { identification: { smiles: "CCO" } };
     useQueryMock.mockImplementation((query: unknown, args: unknown) => {
-      if (getFunctionName(query as never) === "substanceIndex:getBySlug") {
+      if (query === "substanceIndex:getBySlug") {
         return args === "skip" ? undefined : article;
       }
       return undefined;

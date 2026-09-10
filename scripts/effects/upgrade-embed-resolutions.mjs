@@ -51,7 +51,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -195,7 +195,7 @@ const curation = JSON.parse(readFileSync(
   "utf8",
 ));
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 const replications = await client.query(api.replications.getAll, {});
 const imageReplications = replications.filter((row) => row.type === "image");

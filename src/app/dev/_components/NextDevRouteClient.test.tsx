@@ -23,22 +23,8 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-vi.mock("convex/react", () => ({
-  ConvexProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  ConvexReactClient: vi.fn(),
-  useQuery: useQueryMock,
-}));
-
-vi.mock("@tanstack/react-query", () => ({
-  QueryClient: vi.fn(),
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
-vi.mock("../../../../convex/_generated/api", () => ({
-  api: {
-    categoryLayout: { get: "categoryLayout.get" },
-    substanceIndex: {},
-  },
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: useQueryMock,
 }));
 
 vi.mock("@/data/SubstanceIndexProvider", () => ({
@@ -81,11 +67,11 @@ describe("NextDevRouteClient", () => {
     });
   });
 
-  it("mounts the dev shell without issuing any Convex query", () => {
-    render(<NextDevRouteClient convexUrl="https://convex.test" initialTab="articles" />);
+  it("mounts the dev shell without issuing any editor read", () => {
+    render(<NextDevRouteClient initialTab="articles" />);
 
     expect(screen.getByText("Dev mode page")).toBeInTheDocument();
-    // The shell used to fetch categoryLayout.get and hard-fail on a null
+    // The shell used to fetch categoryLayout:get and hard-fail on a null
     // answer; nothing under /dev reads the layout, so the query set is empty.
     expect(useQueryMock).not.toHaveBeenCalled();
   });
@@ -95,7 +81,6 @@ describe("NextDevRouteClient", () => {
 
     render(
       <NextDevRouteClient
-        convexUrl="https://convex.test"
         initialTab="contributors"
         initialSlug="me"
         initialProfileKey="VIEWER"

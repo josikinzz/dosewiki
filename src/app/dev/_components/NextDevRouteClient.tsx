@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ConvexProvider as BaseConvexProvider, ConvexReactClient } from "convex/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { convex as sharedConvexClient, getConvexUrl } from "@/lib/convex";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
@@ -15,7 +13,6 @@ import { parsePath, viewToPath } from "@/utils/routing";
 import { useOwnedProfileKey } from "./useOwnedProfileKey";
 
 type NextDevRouteClientProps = {
-  convexUrl: string | null;
   initialTab: DevModeTab;
   initialSlug?: string;
   initialFilter?: string;
@@ -123,29 +120,16 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, navigat
 }
 
 export function NextDevRouteClient({
-  convexUrl,
   initialTab,
   initialSlug,
   initialFilter,
   initialProfileKey,
   ownedProfileKey,
 }: NextDevRouteClientProps) {
-  // The dev shell receives its Convex URL from the server (editor browser-read
-  // target, which can come from VITE_CONVEX_URL in server env), so it must win
-  // over the browser-resolved default client. Reuse the shared client from
-  // @/lib/convex when the URLs agree so the dev tree never opens a second
-  // Convex connection; only construct a dedicated client when the browser
-  // default is missing or points elsewhere. React Query and the auth session
-  // come from the layout-level AppProviders — do not remount them here.
-  const convexClient = useMemo(() => {
-    if (!convexUrl) {
-      return null;
-    }
-    if (sharedConvexClient && getConvexUrl() === convexUrl) {
-      return sharedConvexClient;
-    }
-    return new ConvexReactClient(convexUrl);
-  }, [convexUrl]);
+  // Every read the shell makes goes through the `/api/editor/*` routes on the
+  // TanStack Query client mounted by the layout-level AppProviders, alongside
+  // the auth session; nothing is remounted here and no data-backend client
+  // exists in the browser.
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams().toString();
@@ -173,24 +157,13 @@ export function NextDevRouteClient({
   const readCurrentPath = useCallback(() => pathname ?? "/dev", [pathname]);
   const profileKey = useOwnedProfileKey(initialProfileKey, ownedProfileKey);
 
-  if (!convexClient) {
-    return (
-      <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="text-2xl font-bold text-red-400">Convex is not configured</div>
-        <div className="theme-text-muted text-sm">Set `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL` for the Next `/dev` shell.</div>
-      </div>
-    );
-  }
-
   return (
-    <BaseConvexProvider client={convexClient}>
-      <NextDevDataLoader
-        routeState={routeState}
-        initialProfileKey={profileKey}
-        onTabChange={handleTabChange}
-        navigate={handleNavigate}
-        getCurrentPath={readCurrentPath}
-      />
-    </BaseConvexProvider>
+    <NextDevDataLoader
+      routeState={routeState}
+      initialProfileKey={profileKey}
+      onTabChange={handleTabChange}
+      navigate={handleNavigate}
+      getCurrentPath={readCurrentPath}
+    />
   );
 }

@@ -18,7 +18,7 @@
  */
 import fs from "fs";
 import path from "path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -71,7 +71,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
 
   const uploadUrl = await client.mutation(api.replications.generateUploadUrl, { apiKey });
   const upload = await fetch(uploadUrl, {

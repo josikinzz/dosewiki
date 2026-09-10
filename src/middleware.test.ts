@@ -74,6 +74,27 @@ describe("middleware role policy adapter", () => {
     }
   });
 
+  it("lets only the exact publication-delivery cron GET reach its CRON_SECRET gate without a session", async () => {
+    mocks.getToken.mockResolvedValue(null);
+    const { middleware } = await import("./middleware");
+    makeRequest("/");
+    const host = "dev.dose.wiki";
+    const response = await middleware(new NextRequest(
+      `https://${host}/api/cron/publication-delivery`,
+      { method: "GET", headers: { host } },
+    ));
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    for (const [path, method] of [
+      ["/api/cron/publication-delivery", "POST"],
+      ["/api/cron/publication-delivery/extra", "GET"],
+      ["/api/cron/other", "GET"],
+    ]) {
+      expect((await middleware(new NextRequest(
+        `https://${host}${path}`, { method, headers: { host } },
+      ))).status).toBe(401);
+    }
+  });
+
   it("does not expose article revalidation on public builds or unlisted editor hosts", async () => {
     mocks.getToken.mockResolvedValue(null);
     // Load through the same resettable module boundary as the flavor-policy cases below.

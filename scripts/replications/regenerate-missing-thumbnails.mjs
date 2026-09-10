@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -51,7 +51,7 @@ async function main() {
   assertProductionWriteAllowed(command);
   if (!WRITE || !CONFIRMED || requestedDigest !== payloadDigest) throw new Error(`Write requires --write --confirm-thumbnail-write --digest=${payloadDigest}`);
   const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "replication-thumbnails-"));
   const outcomes = [];
   try {

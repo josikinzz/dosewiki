@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { BackendClient } from "../../lib/data-client.ts";
 
 import { api } from "../../../convex/_generated/api.js";
 import {
@@ -316,7 +316,7 @@ export async function publishReviewedPublication({
   argv = process.argv.slice(2),
   env = process.env,
   repoRoot = process.cwd(),
-  Client = ConvexHttpClient,
+  Client = BackendClient,
   convexApi = api,
   logger = console,
 } = {}) {

@@ -20,7 +20,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -150,7 +150,7 @@ async function main() {
 
   const plan = JSON.parse(fs.readFileSync(PLAN_PATH, "utf8"));
   validatePlan(plan, command);
-  const readClient = new ConvexHttpClient(command.targetUrl);
+  const readClient = createDataClient({ target: command.targetUrl }).client;
   const before = await readStates(readClient, plan);
   console.log(`Read ${before.count} replication rows.`);
   for (const state of before.states) printRow(state.correction, state);
@@ -168,7 +168,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
   for (const state of pending) {
     const { correction } = state;
     await writeClient.mutation(api.replications.applyProvenanceCorrection, {

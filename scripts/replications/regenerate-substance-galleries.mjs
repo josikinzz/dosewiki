@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { registerHooks } from "node:module";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
@@ -237,7 +237,7 @@ async function main() {
   if (!command.targetUrl) {
     throw new Error("Set TARGET_CONVEX_URL explicitly for the regeneration audit.");
   }
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const [replications, substances] = await Promise.all([
     client.query(api.replications.getAll, {}),
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),

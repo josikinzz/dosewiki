@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import initRDKitModule, { type JSMol, type RDKitModule } from "@rdkit/rdkit";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -155,7 +155,7 @@ async function main() {
 
   console.log("IUPAC/SMILES audit: read-only Convex query; local report/cache writes only.");
   console.log(`Source: ${convexUrl}`);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   let chemistryRows = extractChemistryAuditRows(articles);
   if (slugFilter) {

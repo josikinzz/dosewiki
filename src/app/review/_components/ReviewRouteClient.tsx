@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { ConvexProvider as BaseConvexProvider, ConvexReactClient, useQuery } from "convex/react";
 import { usePathname, useRouter } from "next/navigation";
-import { api } from "../../../../convex/_generated/api";
-import { convex as sharedConvexClient, getConvexUrl } from "@/lib/convex";
 import { getSectionLoadingModel, RouteLoading } from "@/app/_components/RouteLoading";
 import { StateCard } from "@/components/common/StateCard";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
@@ -15,11 +12,10 @@ import { slugify } from "@/utils/slug";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { useDevModePageController } from "@/features/dev/pages/useDevModePageController";
 import { ReviewExperience } from "@/features/dev/tools/review-mode/ReviewExperience";
-import type { CategoryLayout } from "@/hooks/useCategoryLayout";
+import { useCategoryLayout, type CategoryLayout } from "@/hooks/useCategoryLayout";
 import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 
 type ReviewRouteClientProps = {
-  convexUrl: string | null;
   initialSlug?: string;
 };
 
@@ -63,7 +59,7 @@ function ReviewWorkbench({ initialSlug }: { initialSlug?: string }) {
 }
 
 function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
-  const categoryLayout = useQuery(api.categoryLayout.get);
+  const { layout: categoryLayout } = useCategoryLayout();
   const { library, isLoading: isLoadingLibrary } = useLazyLibrary(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -136,7 +132,7 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
     return (
       <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
         <div className="text-2xl font-bold text-red-400">Failed to load review data</div>
-        <div className="theme-text-muted text-sm">Category layout is missing from Convex.</div>
+        <div className="theme-text-muted text-sm">Category layout is missing from the server.</div>
       </div>
     );
   }
@@ -152,33 +148,10 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   );
 }
 
-export function ReviewRouteClient({ convexUrl, initialSlug }: ReviewRouteClientProps) {
-  // Reuse the shared Convex client when the server-selected URL matches the
-  // browser default, mirroring the /dev shell (see NextDevRouteClient).
-  const convexClient = useMemo(() => {
-    if (!convexUrl) {
-      return null;
-    }
-    if (sharedConvexClient && getConvexUrl() === convexUrl) {
-      return sharedConvexClient;
-    }
-    return new ConvexReactClient(convexUrl);
-  }, [convexUrl]);
-
-  if (!convexClient) {
-    return (
-      <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="text-2xl font-bold text-red-400">Convex is not configured</div>
-        <div className="theme-text-muted text-sm">
-          Set `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL` for the review workbench.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <BaseConvexProvider client={convexClient}>
-      <ReviewDataLoader initialSlug={initialSlug} />
-    </BaseConvexProvider>
-  );
+/**
+ * Reads go through the `/api/editor/*` routes on the layout-level TanStack
+ * Query client, mirroring the /dev shell (see NextDevRouteClient).
+ */
+export function ReviewRouteClient({ initialSlug }: ReviewRouteClientProps) {
+  return <ReviewDataLoader initialSlug={initialSlug} />;
 }

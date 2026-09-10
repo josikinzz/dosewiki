@@ -1,4 +1,4 @@
-import { ConvexHttpClient } from "convex/browser";
+import { BackendClient } from "../../lib/data-client.ts";
 
 import {
   assertDataOpsWriteAllowed,
@@ -103,7 +103,7 @@ export function requireBatchTargetUrl(context) {
   return requireTargetUrl(context, "batch target Convex URL");
 }
 
-export function createBatchTargetClient(context, { Client = ConvexHttpClient } = {}) {
+export function createBatchTargetClient(context, { Client = BackendClient } = {}) {
   assertDataOpsWriteAllowed(context);
   return new Client(requireBatchTargetUrl(context));
 }

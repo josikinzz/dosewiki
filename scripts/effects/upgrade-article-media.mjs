@@ -2,7 +2,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -36,7 +36,7 @@ const previousStorageIds = manifest.map(({ key }) => {
   if (!storageId) throw new Error(`Previous storage ID missing for ${key}.`);
   return storageId;
 });
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const previousUrls = await client.query(api.replications.resolveStorageUrls, {
   storageIds: previousStorageIds,
 });

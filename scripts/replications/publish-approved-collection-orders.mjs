@@ -17,7 +17,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   createProductionWriteCommand,
@@ -136,7 +136,7 @@ async function main() {
     throw new Error("Refusing to publish: some proposals are not clean permutations.");
   }
 
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const results = [];
   const requestPrefix = getFlagValue(argv, "--request-prefix") ?? randomUUID().replaceAll("-", "");
   const credential = requireProductionWriteCredential("replicationMaintenance");

@@ -9,7 +9,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { ConvexHttpClient } from 'convex/browser';
+import { createDataClient } from "../lib/data-client.ts";
 import sharp from 'sharp';
 import { api } from '../../convex/_generated/api.js';
 import {
@@ -50,7 +50,7 @@ if (!readUrl) {
   throw new Error('Set SOURCE_CONVEX_URL for dry-run or an explicit target for writes.');
 }
 
-let client = new ConvexHttpClient(readUrl);
+let client = createDataClient({ target: readUrl }).client;
 let writeCredential = null;
 
 const CONTENT_TYPES = {
@@ -412,7 +412,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   writeCredential = requireProductionWriteCredential('replicationMaintenance', { env });
-  client = new ConvexHttpClient(command.targetUrl);
+  client = createDataClient({ target: command.targetUrl }).client;
   
   // Process
   const results = { uploaded: 0, skipped: 0, error: 0, errors: [] };

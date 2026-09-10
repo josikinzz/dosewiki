@@ -11,6 +11,7 @@ dist-inline/
 public/share/
 .next/
 .next-editor/
+.next-effectindex/
 .generated/
 # Anchored: unanchored `coverage/` matches a directory of that name at any
 # depth, which silently swallowed `src/features/coverage/` — untracked by Git
@@ -28,6 +29,12 @@ public/images/social/pages/*.jpg
 public/images/social/entities/**/*.jpg
 output/
 outputs/
+
+# Project-local Postgres cluster for the Convex to PlanetScale rehearsal
+# (scripts/postgres/local-db.mjs) and raw Convex ZIP exports, which carry
+# private tables and must never be committed.
+/.postgres/
+/runs/postgres-import/
 
 # Logs & env
 npm-debug.log*
@@ -121,3 +128,6 @@ __pycache__/
 
 # Transient scheduler lock; local run state, not shared configuration.
 /.claude/scheduled_tasks.lock
+
+# Generated GT translation bundles (npx gt translate output)
+public/_gt/

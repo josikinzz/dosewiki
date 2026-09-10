@@ -1,6 +1,5 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
-import { getFunctionName } from "convex/server";
 import {
   parseOclCustomLabelSgroups,
   stripOclCustomLabelSgroups,
@@ -14,7 +13,7 @@ import {
 
 const mocks = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
-  usePaginatedQueryMock: vi.fn(),
+  useDrainedReadMock: vi.fn(),
   useSubstanceLookupMock: vi.fn(),
   useRdkitMock: vi.fn(),
   useOclMock: vi.fn(),
@@ -26,7 +25,7 @@ const mocks = vi.hoisted(() => ({
 
 export const {
   useQueryMock,
-  usePaginatedQueryMock,
+  useDrainedReadMock,
   useSubstanceLookupMock,
   useRdkitMock,
   useOclMock,
@@ -41,9 +40,10 @@ Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
   value: vi.fn(),
 });
 
-vi.mock("convex/react", () => ({
-  useQuery: useQueryMock,
-  usePaginatedQuery: usePaginatedQueryMock,
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: useQueryMock,
+  useEditorDrainedRead: useDrainedReadMock,
+  useInvalidateEditorReads: () => async () => undefined,
 }));
 vi.mock("@/hooks/useSubstanceLookup", () => ({
   useSubstanceLookup: useSubstanceLookupMock,
@@ -156,10 +156,9 @@ vi.mock("./OclEditor", () => ({
 
 export function installMoleculeEditorTestHarness() {
   beforeEach(() => {
-    usePaginatedQueryMock.mockReturnValue({
+    useDrainedReadMock.mockReturnValue({
       results: [],
       status: "Exhausted",
-      loadMore: vi.fn(),
     });
     useSubstanceLookupMock.mockReturnValue({
       lookup: [],
@@ -191,7 +190,7 @@ export function installMoleculeEditorTestHarness() {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     useQueryMock.mockReset();
-    usePaginatedQueryMock.mockReset();
+    useDrainedReadMock.mockReset();
     useSubstanceLookupMock.mockReset();
     useRdkitMock.mockReset();
     useOclMock.mockReset();
@@ -210,10 +209,9 @@ export function seedExampleSubstance() {
     status: "Exhausted",
   });
   useQueryMock.mockImplementation((query, args) => {
-    const functionName = getFunctionName(query);
-    if (functionName === "moleculeOverrides:listSlugs") return [{ slug: "example" }];
-    if (functionName === "substanceIndex:getBySlug") {
-      // A new-but-equal object every call, exactly like the real subscription.
+    if (query === "moleculeOverrides:listSlugs") return [{ slug: "example" }];
+    if (query === "substanceIndex:getBySlug") {
+      // A new-but-equal object every call, like a refetch that changed the row.
       return args === "skip" ? undefined : { identification: { smiles: "CCO" } };
     }
     return undefined;

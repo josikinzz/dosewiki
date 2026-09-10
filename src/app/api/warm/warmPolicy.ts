@@ -8,42 +8,6 @@ import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 import { getPublicRoutePath } from "@server/next/publicSite";
 import { isEditorHost } from "@server/next/publicHostPolicy";
 
-export type WarmAuthEnv = {
-  CRON_SECRET?: string;
-};
-
-export type WarmAuthDecision = {
-  allowed: boolean;
-  status: 200 | 401 | 503;
-  reason: string;
-};
-
-/**
- * Vercel invokes a cron path with `Authorization: Bearer <CRON_SECRET>` when
- * the project sets `CRON_SECRET`. The existing `/open-data` crons are public
- * downloads and need no gate; this handler drives outbound traffic, so it
- * refuses to run at all until the secret exists, and then only for callers
- * presenting it. An unset secret is a 503 rather than an open door.
- */
-export function authorizeWarmRequest(
-  authorizationHeader: string | null,
-  env: WarmAuthEnv,
-): WarmAuthDecision {
-  const secret = env.CRON_SECRET?.trim();
-  if (!secret) {
-    return {
-      allowed: false,
-      status: 503,
-      reason: "CRON_SECRET is not configured; the warmer is disabled.",
-    };
-  }
-  const presented = authorizationHeader?.trim() ?? "";
-  if (presented !== `Bearer ${secret}`) {
-    return { allowed: false, status: 401, reason: "Unauthorized." };
-  }
-  return { allowed: true, status: 200, reason: "ok" };
-}
-
 export type WarmTargetPriority = PublicSubstanceLookupEntry["priority"];
 
 /**

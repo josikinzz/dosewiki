@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { substanceVisibility } from "../../src/schema/substance/substanceVisibilityPolicy.ts";
@@ -102,7 +102,7 @@ function subsection({ slug, title, visibility, kind, jurisdiction, value }) {
 async function main() {
   printDataOpsRunContext(runContext);
   const sourceUrl = requireSourceUrl(runContext, "Convex audit source URL");
-  const client = new ConvexHttpClient(sourceUrl);
+  const client = createDataClient({ target: sourceUrl }).client;
   const [articles, layout] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.categoryLayout.get, {}),

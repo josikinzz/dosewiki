@@ -3,7 +3,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient, type DataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { SUBSTANCE_SECTION_IDS } from "../../src/schema/substance/sectionCatalog";
@@ -164,14 +164,14 @@ export function printReviewApplyPlan(plan: ArticleReviewFindings[], logger: Pick
 interface ApplyDependencies {
   env?: NodeJS.ProcessEnv;
   logger?: Pick<Console, "log">;
-  createClient?: (url: string) => Pick<ConvexHttpClient, "mutation">;
+  createClient?: (url: string) => Pick<DataClient, "mutation">;
   writeAudit?: typeof writeAuditLog;
   updateAudit?: typeof updateAuditLog;
 }
 
 export async function runReviewApply(
   options: ReviewApplyOptions,
-  { env = process.env, logger = console, createClient = (url) => new ConvexHttpClient(url), writeAudit = writeAuditLog, updateAudit = updateAuditLog }: ApplyDependencies = {},
+  { env = process.env, logger = console, createClient = (url) => createDataClient({ target: url }).client, writeAudit = writeAuditLog, updateAudit = updateAuditLog }: ApplyDependencies = {},
 ): Promise<{ plan: ArticleReviewFindings[]; auditLogPath?: string }> {
   const context = createDataOpsRunContext({
     operation: OPERATION,

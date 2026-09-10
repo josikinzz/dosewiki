@@ -27,7 +27,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -146,7 +146,7 @@ async function seedCopyBlocks() {
 
   assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("editorArticleWrite");
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
 
   const existingKeys = new Set(
     (await client.query(api.copyBlocks.getAll, {})).map((row) => row.key),

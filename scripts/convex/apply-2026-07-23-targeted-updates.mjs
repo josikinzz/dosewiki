@@ -11,9 +11,9 @@ import {
   printProductionWriteCommand,
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
+import { createDataClient } from "../lib/data-client.ts";
 
 const REPO = "/Users/josie/Documents/Utilities/mindstate-portal/dosewiki";
-const { ConvexHttpClient } = await import(REPO + "/node_modules/convex/dist/esm/browser/index.js");
 const { api } = await import(REPO + "/convex/_generated/api.js");
 const { sanitizeObjectKeys, stripConvexMetadata } = await import(REPO + "/scripts/batch/summary/articles.mjs");
 
@@ -45,7 +45,7 @@ const DCK_INTERACTIONS = {
   unsafe: [],
 };
 
-const client = new ConvexHttpClient(targetUrl);
+const client = createDataClient({ target: targetUrl }).client;
 const clean = (a) => sanitizeObjectKeys(stripConvexMetadata(a));
 const isEmptyInteractions = (i) =>
   !i || ["caution", "dangerous", "unsafe"].every((k) => !Array.isArray(i?.[k]) || i[k].length === 0);

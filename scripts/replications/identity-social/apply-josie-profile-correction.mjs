@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../../lib/data-client.ts";
 import { api } from "../../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -89,7 +89,7 @@ export async function runJosieProfileCorrection(argv = process.argv.slice(2), ad
   if (!options.actor) throw new Error("--actor-email is required for authenticated dry-run and write modes.");
   if (command.writeRequested) assertProductionWriteAllowed(command);
   const credential = adapters.credential ?? requireProductionWriteCredential("replicationMaintenance");
-  const client = adapters.client ?? new ConvexHttpClient(command.targetUrl);
+  const client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const mutate = adapters.mutate ?? ((ref, args) => client.mutation(ref, args));
   const readLedger = adapters.loadLedger ?? loadLedger;

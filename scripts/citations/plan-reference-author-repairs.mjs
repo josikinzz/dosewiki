@@ -4,7 +4,7 @@ import { mkdirSync, openSync, closeSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -318,7 +318,7 @@ export async function runCitationAuthorRepairProposal(argv = process.argv.slice(
   printDataOpsRunContext(context, { logger: dependencies.logger ?? console });
   const sourceUrl = context.sourceUrl;
   if (!sourceUrl) throw new Error("No read-only Convex source URL is configured.");
-  const client = dependencies.client ?? new ConvexHttpClient(sourceUrl);
+  const client = dependencies.client ?? createDataClient({ target: sourceUrl }).client;
   const queryApi = dependencies.api ?? api;
   const slug = getFlagValue(argv, "--slug");
   const limit = parsePositiveInteger(getFlagValue(argv, "--limit"), "--limit");

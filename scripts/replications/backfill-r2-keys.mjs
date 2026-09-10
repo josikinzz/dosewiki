@@ -32,7 +32,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -130,7 +130,7 @@ async function main() {
   if (!readUrl) {
     throw new Error("Set --target-url/TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL for a dry run).");
   }
-  const readClient = new ConvexHttpClient(readUrl);
+  const readClient = createDataClient({ target: readUrl }).client;
   const liveRows = await readClient.query(api.replications.getAll, {});
 
   const plan = planR2KeyBackfill(ledger.entries, liveRows, {
@@ -164,7 +164,7 @@ async function main() {
   }
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   let written = 0;
   for (const batch of chunk(plan.updates, WRITE_BATCH_SIZE)) {

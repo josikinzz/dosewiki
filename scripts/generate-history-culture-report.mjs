@@ -4,7 +4,7 @@
  */
 
 import { readFileSync, writeFileSync } from "fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "./lib/data-client.ts";
 import { api } from "../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "./lib/convex-pagination.mjs";
 
@@ -34,7 +34,7 @@ function loadEnv() {
 async function main() {
   loadEnv();
   const convexUrl = process.env.CONVEX_URL || process.env.VITE_CONVEX_URL;
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
 
   console.log("Fetching articles...");
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);

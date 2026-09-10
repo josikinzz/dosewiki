@@ -31,7 +31,7 @@ const FIXTURE_PINS: MaterializationPins = {
 const FIXTURE_ROWS = 8;
 const FIXTURE_BATCHES = 3;
 
-const scopedEnv = { CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE: "test-scoped-profile-token" };
+const scopedEnv = { CONVEX_ADMIN_TOKEN_PROFILE_MEDIA_WRITE: "test-scoped-profile-token" } as unknown as NodeJS.ProcessEnv;
 const targetFlags = [
   `--target-url=${EXPECTED_TARGET_URL}`,
   "--expected-deployment=glad-minnow-656",
@@ -140,7 +140,7 @@ describe("Replication Index profile rollout runner", () => {
 
   it("defaults to a local dry run with zero network calls", async () => {
     const deps = dependencies();
-    const result = await rollout({ argv: [], env: {}, dependencies: deps });
+    const result = await rollout({ argv: [], env: {} as unknown as NodeJS.ProcessEnv, dependencies: deps });
     expect(result).toMatchObject({ mode: "local-dry-run", rows: FIXTURE_ROWS, batches: FIXTURE_BATCHES, networkCalls: 0 });
     expect(deps.dryRunBatch).not.toHaveBeenCalled();
     expect(deps.writeBatch).not.toHaveBeenCalled();
@@ -166,12 +166,12 @@ describe("Replication Index profile rollout runner", () => {
     const deps = dependencies();
     await expect(rollout({
       argv: ["--live-dry-run", ...targetFlags],
-      env: {},
+      env: {} as unknown as NodeJS.ProcessEnv,
       dependencies: deps,
     })).rejects.toThrow(/Missing admin token/);
     await expect(rollout({
       argv: ["--live-dry-run", ...targetFlags],
-      env: { CONVEX_ADMIN_KEY: "legacy-broad-token" },
+      env: { CONVEX_ADMIN_KEY: "legacy-broad-token" } as unknown as NodeJS.ProcessEnv,
       dependencies: deps,
     })).rejects.toThrow(/legacy broad admin key is not accepted/);
     expect(deps.dryRunBatch).not.toHaveBeenCalled();

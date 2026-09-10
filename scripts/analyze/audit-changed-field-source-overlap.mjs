@@ -4,7 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -82,7 +82,7 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const proposalDoc = readJson(options.proposals);
   const proposals = proposalDoc.proposals ?? [];
-  const client = new ConvexHttpClient(options.convexUrl);
+  const client = createDataClient({ target: options.convexUrl }).client;
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const articlesBySlug = new Map(articles.map((article) => [getArticleSlug(article), article]));
   const sourceCache = new Map();

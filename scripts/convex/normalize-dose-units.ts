@@ -11,7 +11,7 @@
  * fresh revision baseline, after refusing stale or reordered dosage plans.
  * Dry-run by default; live writes follow the shared data-ops ceremony.
  */
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient, type DataClient } from "../lib/data-client.ts";
 import type { FunctionArgs } from "convex/server";
 import { isDeepStrictEqual } from "node:util";
 import { api } from "../../convex/_generated/api.js";
@@ -128,7 +128,7 @@ function printPlan(edits: DoseUnitEdit[], logger: Pick<Console, "log">): void {
 type RunDependencies = {
   env?: NodeJS.ProcessEnv;
   logger?: Pick<Console, "log">;
-  createClient?: (url: string) => Pick<ConvexHttpClient, "mutation" | "query">;
+  createClient?: (url: string) => Pick<DataClient, "mutation" | "query">;
   writeAudit?: typeof writeAuditLog;
   updateAudit?: typeof updateAuditLog;
 };
@@ -138,7 +138,7 @@ export async function runNormalizeDoseUnits(
   {
     env = process.env,
     logger = console,
-    createClient = (url) => new ConvexHttpClient(url),
+    createClient = (url) => createDataClient({ target: url }).client,
     writeAudit = writeAuditLog,
     updateAudit = updateAuditLog,
   }: RunDependencies = {},

@@ -26,7 +26,7 @@
  *     --expected-deployment=glad-minnow-656
  */
 import { readFileSync } from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -53,7 +53,7 @@ if (withPick.length !== picks.length) {
   }
 }
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 const bySlug = new Map(effects.map((effect) => [effect.slug, effect]));
 

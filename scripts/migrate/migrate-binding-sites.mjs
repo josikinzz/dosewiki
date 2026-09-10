@@ -3,7 +3,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -251,7 +251,7 @@ async function main() {
   console.log("=".repeat(50));
   printProductionWriteCommand(command);
 
-  const readClient = new ConvexHttpClient(sourceUrl());
+  const readClient = createDataClient({ target: sourceUrl() }).client;
   const articles = await auditArticles(readClient);
   const articleSummary = summarizeArticles(articles);
   const promptSummary = await auditPharmacologyPrompt(readClient);
@@ -298,7 +298,7 @@ async function main() {
     const articleApiKey = requireProductionWriteCredential("editorArticleWrite").token;
     const evidenceApiKey = requireProductionWriteCredential("citationEvidenceWrite").token;
     const promptApiKey = requireProductionWriteCredential("promptMigrationWrite").token;
-    const targetClient = new ConvexHttpClient(command.targetUrl);
+    const targetClient = createDataClient({ target: command.targetUrl }).client;
     const targetArticles = summarizeArticles(await auditArticles(targetClient));
     const targetEvidence = await auditEvidence(targetClient, evidenceApiKey);
     const targetPrompt = await auditPharmacologyPrompt(targetClient);

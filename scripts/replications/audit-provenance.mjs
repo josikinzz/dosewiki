@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
 import { buildProvenanceAudit } from "./lib/provenance-audit.mjs";
@@ -150,7 +150,7 @@ async function main() {
     ? process.env.VITE_CONVEX_URL
     : (process.env.CONVEX_PUBLIC_READ_URL || process.env.VITE_CONVEX_URL);
   if (!convexUrl) throw new Error(TARGET_DEPLOYMENT ? "VITE_CONVEX_URL is required for --target." : "CONVEX_PUBLIC_READ_URL or VITE_CONVEX_URL is required.");
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const [liveReplications, effects] = await Promise.all([
     client.query(api.replications.getPublicReplications, {}),
     client.query(api.subjectiveEffects.getAll, {}),

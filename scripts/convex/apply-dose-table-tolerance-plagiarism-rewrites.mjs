@@ -4,7 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -471,7 +471,7 @@ async function main() {
   const readUrl = write
     ? { value: requireTargetUrl(runContext, "Convex plagiarism rewrite target URL"), key: runContext.targetUrlKey }
     : { value: requireSourceUrl(runContext, "Convex plagiarism rewrite source URL"), key: runContext.sourceUrlKey };
-  const client = new ConvexHttpClient(readUrl.value);
+  const client = createDataClient({ target: readUrl.value }).client;
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const worklist = readJson(path.resolve(repoRoot, args.worklist ?? DEFAULT_WORKLIST_PATH));
   const proposals = readJson(path.resolve(repoRoot, args.proposals ?? DEFAULT_PROPOSALS_PATH));

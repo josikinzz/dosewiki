@@ -152,6 +152,9 @@ export default async function AboutPage() {
         contributorsSectionTitle={contributors.sectionTitle}
         previewSnapshots={previewSnapshots}
         reuseContent={<CopyBlock copyKey={flavoredCopyKey("about-reuse-notice")}><PublicMarkdownBody content={copy.text(flavoredCopyKey("about-reuse-notice"))} /></CopyBlock>}
+        communityIntro={SITE_FLAVOR_CONFIG.about.showCommunity
+          ? <CopyBlock copyKey="about-community-intro"><PublicMarkdownBody content={copy.text("about-community-intro")} /></CopyBlock>
+          : undefined}
         docBlurbs={!OWNS_ABOUT_PROSE ? copy.items("about-doc-link-blurbs") : undefined}
         docCopyControl={!OWNS_ABOUT_PROSE ? <CopyBlock copyKey="about-doc-link-blurbs" /> : undefined}
         missionContent={OWNS_ABOUT_PROSE

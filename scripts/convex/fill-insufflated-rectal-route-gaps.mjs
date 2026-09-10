@@ -2,7 +2,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -215,7 +215,7 @@ async function main() {
   const readUrl = getReadUrl(runContext, options);
   console.log(`Read Convex: ${readUrl.value} (${readUrl.key}, ${readUrl.role})`);
   console.log("");
-  const client = new ConvexHttpClient(readUrl.value);
+  const client = createDataClient({ target: readUrl.value }).client;
 
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const plan = buildRouteEquivalenceFillPlan(articles, options);

@@ -1,78 +1,64 @@
-import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const usePaginatedQueryMock = vi.hoisted(() => vi.fn());
-
-vi.mock("convex/react", () => ({
-  usePaginatedQuery: usePaginatedQueryMock,
-}));
-
-vi.mock("../../convex/_generated/api", () => ({
-  api: {
-    substanceIndex: {
-      getLookupPage: "substanceIndex.getLookupPage",
-    },
-  },
-}));
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useSubstanceLookup } from "./useSubstanceLookup";
 
+function createWrapper() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  };
+}
+
+/** Two keyset pages: the first hands back a cursor, the second is the end. */
+function stubLookupPages() {
+  const requested: string[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input), "https://dose.wiki");
+      requested.push(`${url.pathname}${url.search}`);
+      const cursor = url.searchParams.get("cursor");
+      const page = cursor === "after-a"
+        ? { page: [{ slug: "b", name: "B" }], continueCursor: "", isDone: true }
+        : { page: [{ slug: "a", name: "A" }], continueCursor: "after-a", isDone: false };
+      return Response.json(page);
+    }),
+  );
+  return requested;
+}
+
 describe("useSubstanceLookup", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
-  it("drains subsequent pages and publishes accumulated rows only when complete", () => {
-    const loadMore = vi.fn();
-    let response = {
-      results: [{ slug: "a", name: "A" }],
-      status: "CanLoadMore",
-      loadMore,
-    };
-    usePaginatedQueryMock.mockImplementation(() => response);
+  it("threads each continueCursor back and publishes the rows only once the drain is complete", async () => {
+    const requested = stubLookupPages();
 
-    const { result, rerender } = renderHook(() => useSubstanceLookup());
+    const { result } = renderHook(() => useSubstanceLookup(), { wrapper: createWrapper() });
 
-    expect(usePaginatedQueryMock).toHaveBeenCalledWith(
-      "substanceIndex.getLookupPage",
-      {},
-      { initialNumItems: 32 },
-    );
-    expect(loadMore).toHaveBeenCalledWith(32);
     expect(result.current).toMatchObject({ lookup: undefined, isLoading: true });
 
-    response = {
-      results: [
-        { slug: "a", name: "A" },
-        { slug: "b", name: "B" },
-      ],
-      status: "Exhausted",
-      loadMore,
-    };
-    act(() => rerender());
-
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.lookup).toEqual([
       { slug: "a", name: "A" },
       { slug: "b", name: "B" },
     ]);
-    expect(result.current.isLoading).toBe(false);
-    expect(loadMore).toHaveBeenCalledTimes(1);
+    expect(requested).toEqual([
+      "/api/editor/substances?page=lookup&numItems=200",
+      "/api/editor/substances?page=lookup&numItems=200&cursor=after-a",
+    ]);
   });
 
-  it("skips the query and reports no loading work when disabled", () => {
-    usePaginatedQueryMock.mockReturnValue({
-      results: [],
-      status: "Exhausted",
-      loadMore: vi.fn(),
-    });
+  it("skips the read and reports no loading work when disabled", () => {
+    const requested = stubLookupPages();
 
-    const { result } = renderHook(() => useSubstanceLookup(false));
+    const { result } = renderHook(() => useSubstanceLookup(false), { wrapper: createWrapper() });
 
-    expect(usePaginatedQueryMock).toHaveBeenCalledWith(
-      "substanceIndex.getLookupPage",
-      "skip",
-      { initialNumItems: 32 },
-    );
+    expect(requested).toEqual([]);
     expect(result.current.lookup).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
   });

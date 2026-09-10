@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider, useSession } from "next-auth/react";
 import { clearEditorHint, writeEditorHint } from "@/lib/auth/editorHint";
 import { canAccessDev } from "@/lib/auth/roles";
-import { ConvexProvider } from "@/lib/convex";
 
 const queryClientOptions = {
   defaultOptions: {
@@ -58,7 +57,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <EditorHint />
-        <ConvexProvider>{children}</ConvexProvider>
+        {children}
       </SessionProvider>
     </QueryClientProvider>
   );

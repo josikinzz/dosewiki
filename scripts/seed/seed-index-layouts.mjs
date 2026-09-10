@@ -9,7 +9,7 @@
  *   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/seed/seed-index-layouts.mjs --type psychoactive --dry-run
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import fs from "fs";
 import path from "path";
@@ -93,7 +93,7 @@ async function seedIndexLayouts() {
   try {
     assertProductionWriteAllowed(command);
     const credential = requireProductionWriteCredential("seed-index-layouts");
-    const client = new ConvexHttpClient(command.targetUrl);
+    const client = createDataClient({ target: command.targetUrl }).client;
     const result = await client.mutation(api.indexLayouts.bulkImport, {
       layouts,
       apiKey: credential.token,

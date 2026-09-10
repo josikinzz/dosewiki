@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../../lib/data-client.ts";
 import { api } from "../../../convex/_generated/api.js";
 import { requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
 import { PINNED_PROFILE_COUNT, PINNED_PROFILE_SNAPSHOT_DIGEST, validatePinnedProfileSnapshot } from "./executor-lib.mjs";
@@ -13,7 +13,7 @@ export async function exportPinnedProfileSnapshot(argv = process.argv.slice(2), 
   const actor = flag(argv, "--actor-email"); const out = flag(argv, "--out");
   if (!actor || !out) throw new Error("--actor-email and --out are required.");
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  const client = adapters.client ?? new ConvexHttpClient(TARGET_URL);
+  const client = adapters.client ?? createDataClient({ target: TARGET_URL }).client;
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const { profiles, metadata } = await drainPinnedProfileSnapshot({ query, apiKey, actor });
   const document = { artifactType: "identity-social-pinned-contributor-profile-snapshot", schemaVersion: 1, target: "glad-minnow-656", ...metadata, profiles };

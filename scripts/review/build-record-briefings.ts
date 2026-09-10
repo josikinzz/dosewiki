@@ -15,7 +15,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api";
 import { getByPath } from "./lib/reviewDecisionTransforms";
 import { describeShape } from "./lib/reviewEnvelopes";
@@ -93,7 +93,7 @@ const SECTION_PATHS: Record<string, string[]> = {
   identification: ["identification"],
 };
 
-const client = new ConvexHttpClient(CONVEX_URL);
+const client = createDataClient({ target: CONVEX_URL }).client;
 const cache = new Map<string, unknown>();
 
 async function loadArticle(slug: string): Promise<unknown> {

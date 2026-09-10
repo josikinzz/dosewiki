@@ -10,7 +10,7 @@
  *   node scripts/seed-category-layout.mjs --dry-run
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -78,7 +78,7 @@ async function main() {
   try {
     assertProductionWriteAllowed(command);
     const credential = requireProductionWriteCredential("seed-category-layout");
-    const client = new ConvexHttpClient(command.targetUrl);
+    const client = createDataClient({ target: command.targetUrl }).client;
     const result = await client.mutation(api.categoryLayout.save, {
       ...layoutData,
       apiKey: credential.token,

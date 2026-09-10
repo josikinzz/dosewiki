@@ -3,7 +3,7 @@
  * Export production Convex substanceIndex to JSON file.
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "./lib/data-client.ts";
 import { api } from "../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "./lib/convex-pagination.mjs";
 import { writeFileSync } from "fs";
@@ -15,7 +15,7 @@ async function main() {
   console.log("🔄 Fetching substances from production Convex...");
   console.log(`   URL: ${PROD_URL}\n`);
 
-  const client = new ConvexHttpClient(PROD_URL);
+  const client = createDataClient({ target: PROD_URL }).client;
 
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 

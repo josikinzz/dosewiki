@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -13,7 +13,7 @@ const command = createProductionWriteCommand({ operation: "merge-replication-unk
 if (!command.targetUrl) throw new Error("Pass an explicit --target-url for dry runs and writes.");
 printProductionWriteCommand(command);
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const before = await client.query(api.replications.getAll, {});
 const plan = planHighConfidenceDuplicateMerges(before);
 console.log(`High-confidence merges: ${plan.merges.length}`);

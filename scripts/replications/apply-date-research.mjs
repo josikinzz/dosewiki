@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { makeFunctionReference } from "convex/server";
 import {
   assertProductionWriteAllowed,
@@ -286,7 +286,7 @@ async function main() {
   const ids = items.map((item) => item.replication_id);
   if (new Set(ids).size !== ids.length) throw new Error("Date research contains duplicate live IDs.");
 
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const liveRows = await client.query(getAllReplications, {});
   const liveById = new Map(liveRows.map((row) => [row._id, row]));
   const missing = [];

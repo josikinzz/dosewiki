@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../../lib/data-client.ts";
 import { api } from "../../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -31,7 +31,7 @@ export async function materializeProfileTokens(argv = process.argv.slice(2), ada
   const command = adapters.command ?? createProductionWriteCommand({ operation: "materialize-identity-profile-tokens", argv });
   if (requestedMode !== "dry-run") assertProductionWriteAllowed(command);
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  const client = adapters.client ?? new ConvexHttpClient(TARGET_URL);
+  const client = adapters.client ?? createDataClient({ target: TARGET_URL }).client;
   const query = adapters.query ?? ((ref, args) => client.query(ref, args));
   const mutate = adapters.mutate ?? ((ref, args) => client.mutation(ref, args));
   const { profiles, metadata } = await drainPinnedProfileSnapshot({ query, apiKey, actor });

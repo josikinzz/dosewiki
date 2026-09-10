@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../../lib/data-client.ts";
 import { api } from "../../../convex/_generated/api.js";
 import { createProductionWriteCommand, requireProductionWriteCredential } from "../../lib/production-write-command.mjs";
 import { APPROVED_MERGES, assertExactReceipt, completedAppliedOperations, loadLedger as loadMergeLedger, mergeOperationId } from "../../contributors/approved-profile-merge-executor-lib.mjs";
@@ -155,8 +155,8 @@ export async function run(argv = process.argv.slice(2), adapters = {}) {
   const ledger = loadLedger(options.ledger);
   const { active } = activeLedgerOperations(ledger);
   const apiKey = adapters.apiKey ?? requireProductionWriteCredential("replicationMaintenance").token;
-  let client = adapters.client ?? new ConvexHttpClient(command.targetUrl);
-  const recreate = () => { client = adapters.createClient ? adapters.createClient(command.targetUrl) : new ConvexHttpClient(command.targetUrl); };
+  let client = adapters.client ?? createDataClient({ target: command.targetUrl }).client;
+  const recreate = () => { client = adapters.createClient ? adapters.createClient(command.targetUrl) : createDataClient({ target: command.targetUrl }).client; };
   const queryRef = (queryReference, args) => adapters.query
     ? adapters.query(queryReference, { apiKey, actor_email: options.actor, ...args })
     : client.query(queryReference, { apiKey, actor_email: options.actor, ...args });

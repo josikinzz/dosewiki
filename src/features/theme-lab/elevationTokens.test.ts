@@ -42,12 +42,13 @@ const shadowDesignSystem = await __unstable__loadDesignSystem(
  * The lookbehind rejects a preceding `-` or word character, which is what
  * keeps `drop-shadow-`, `text-shadow-`, `--tw-shadow-color` and
  * `--theme-shadow-soft` out of the results; Tailwind variant prefixes end in
- * `:` and pass.
+ * `:` and pass. `shadow-none` passes too: it removes elevation rather than
+ * hardcoding one, which is how a token-driven surface opts out.
  */
 function hardcodedShadows(text: string) {
   const candidates = text.match(/(?<![-\w])shadow-(?!\[var\(--theme-)[^\s"'`]*/g) ?? [];
   const compiled = shadowDesignSystem.candidatesToCss(candidates);
-  return candidates.filter((_, index) => compiled[index] !== null);
+  return candidates.filter((candidate, index) => compiled[index] !== null && candidate !== "shadow-none");
 }
 
 const SOURCE_FILES = readSourceFiles(["src/app", "src/components", "src/features", "src/hooks"], {

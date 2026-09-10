@@ -144,7 +144,9 @@ const enforceEnvPrefix = {
       filename.includes('/src/') &&
       !filename.includes('/api/') &&
       !filename.includes('.server.') &&
-      !filename.includes('/server/');
+      !filename.includes('/server/') &&
+      // Next middleware runs on the server (Edge); its process.env reads are inlined at build time.
+      !/\/middleware\.tsx?$/.test(filename);
 
     if (!isClientCode) return {};
 
@@ -296,6 +298,12 @@ const requireRateLimit = {
       'protectedRouteOperation',
       'citationEvidenceRouteOperation',
       'feedbackStatusRoute',
+      // Editor read routes wrap protectedRouteOperation with rateLimit: "editorPolledRead".
+      'editorReadRoute',
+      // /api/subscribe applies per-IP and global limits through this limiter's limit() calls.
+      'createSubscribeRateLimiter',
+      // Cron routes are gated by CRON_SECRET; the caller is Vercel's scheduler, not the public.
+      'authorizeCronRequest',
     ]);
 
     return {

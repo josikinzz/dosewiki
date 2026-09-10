@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -142,7 +142,7 @@ export async function main(argv = process.argv.slice(2)) {
   assertDataOpsWriteAllowed(runContext);
   const targetUrl = requireTargetUrl(runContext);
   const apiKey = requireAdminIntentToken(INTENT, { env }).token;
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
   const importedAt = Date.now();
   const { path: auditLogPath } = writeAuditLog({
     operation: "reagent-test-import",

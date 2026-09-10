@@ -16,9 +16,8 @@ const SPLIT = {
   summary: "split",
 };
 
-const { getEditorBrowserReadTargetMock, getEditorTargetAlignmentMock, getServerSessionMock } =
+const { getEditorTargetAlignmentMock, getServerSessionMock } =
   vi.hoisted(() => ({
-    getEditorBrowserReadTargetMock: vi.fn(),
     getEditorTargetAlignmentMock: vi.fn(),
     getServerSessionMock: vi.fn(),
   }));
@@ -39,7 +38,6 @@ vi.mock("@auth", () => ({
 
 vi.mock("@server/convex/serverWriteHealth", () => ({
   CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR: "CONVEX_ALLOW_TARGET_SPLIT",
-  getEditorBrowserReadTarget: getEditorBrowserReadTargetMock,
   getEditorTargetAlignment: getEditorTargetAlignmentMock,
 }));
 
@@ -66,7 +64,6 @@ describe("ReviewPage Convex target alignment gate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getEditorTargetAlignmentMock.mockReturnValue(ALIGNED);
-    getEditorBrowserReadTargetMock.mockReturnValue({ selectedUrl: "https://convex.test" });
     getServerSessionMock.mockResolvedValue({
       user: { email: "editor@example.com", role: "editor" },
     });
@@ -76,10 +73,7 @@ describe("ReviewPage Convex target alignment gate", () => {
     const element = await ReviewPage({ params: Promise.resolve({ slug: ["2c-b"] }) });
 
     expect(element.type).toBe(ReviewRouteClient);
-    expect(element.props).toMatchObject({
-      convexUrl: "https://convex.test",
-      initialSlug: "2c-b",
-    });
+    expect(element.props).toEqual({ initialSlug: "2c-b" });
   });
 
   it("refuses to render the workbench on a read/write split", async () => {
@@ -89,7 +83,6 @@ describe("ReviewPage Convex target alignment gate", () => {
 
     expect(element.type).toBe(ConvexTargetSplitRefusal);
     expect(element.props).toMatchObject({ alignment: SPLIT, surface: "review workbench" });
-    expect(getEditorBrowserReadTargetMock).not.toHaveBeenCalled();
   });
 
   it("renders the workbench under a banner when the split is acknowledged", async () => {

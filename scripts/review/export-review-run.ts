@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
@@ -338,7 +338,7 @@ async function main(): Promise<void> {
   });
   const sourceUrl = requireSourceUrl(runContext, "Review Run Convex source URL");
   printDataOpsRunContext(runContext);
-  const client = new ConvexHttpClient(sourceUrl);
+  const client = createDataClient({ target: sourceUrl }).client;
   const allArticles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
   const articles = selectReviewArticles(allArticles, options);
   const requested = new Set(options.articles);

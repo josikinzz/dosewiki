@@ -5,7 +5,7 @@ import { access, mkdir, readdir, rename, rm, writeFile } from "node:fs/promises"
 import { availableParallelism } from "node:os";
 import path from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import sharp from "sharp";
 
 import { api } from "../../convex/_generated/api";
@@ -102,7 +102,7 @@ async function main(): Promise<void> {
   }
 
   console.log(`[social-cards] Reading substances and molecule revisions from ${convexUrl}...`);
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
   const [rawArticles, moleculeRevisions] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.moleculeOverrides.listSlugs, {}),

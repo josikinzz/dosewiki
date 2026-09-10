@@ -4,7 +4,7 @@
  * Can read from local JSON or Convex (--convex flag)
  */
 import fs from 'fs';
-import { ConvexHttpClient } from 'convex/browser';
+import { createDataClient } from "./lib/data-client.ts";
 import { api } from '../convex/_generated/api.js';
 import { getAllSubstanceDocuments } from './lib/convex-pagination.mjs';
 
@@ -14,7 +14,7 @@ let articles;
 if (useConvex) {
   const CONVEX_URL = process.env.VITE_CONVEX_URL || 'https://enchanted-echidna-791.convex.cloud';
   console.log(`Fetching from Convex: ${CONVEX_URL}\n`);
-  const client = new ConvexHttpClient(CONVEX_URL);
+  const client = createDataClient({ target: CONVEX_URL }).client;
   articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 } else {
   articles = JSON.parse(fs.readFileSync('src/data/SubstanceIndex.json', 'utf-8'));

@@ -10,7 +10,7 @@
  */
 
 import { pathToFileURL } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   createDataOpsRunContext,
@@ -130,7 +130,7 @@ export async function runComparePrompts({ convexPrompts, convexUrl, log = consol
 
   let promptRecords = convexPrompts;
   if (!promptRecords) {
-    const client = new ConvexHttpClient(resolvedConvexUrl);
+    const client = createDataClient({ target: resolvedConvexUrl }).client;
     promptRecords = await client.query(api.prompts.getAll);
   }
 

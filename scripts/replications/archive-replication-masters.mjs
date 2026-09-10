@@ -81,7 +81,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   createProductionWriteCommand,
@@ -451,7 +451,7 @@ async function main() {
   }
   const availableBytes = availableBytesOn(measuredAgainst);
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const rows = (await client.query(api.replications.getPublicReplications, {})).filter(
     (row) => row.type === mediaType,
   );

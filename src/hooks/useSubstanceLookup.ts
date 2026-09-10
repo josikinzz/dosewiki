@@ -1,32 +1,27 @@
-import { useEffect } from "react";
-import { usePaginatedQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useEditorDrainedRead } from "./useEditorRead";
 
-const SUBSTANCE_LOOKUP_PAGE_SIZE = 32;
+/**
+ * The route clamps pages at 200 rows, so the whole corpus lands in a few
+ * keyset round trips and each 15 s refresh replays only those.
+ */
+const SUBSTANCE_LOOKUP_PAGE_SIZE = 200;
 
 /**
  * Drain the bounded editor lookup projection while preserving the old lookup's
- * all-or-loading contract. Convex accumulates pages in stable table order.
- * Query failures intentionally propagate through the normal Convex hook path.
+ * all-or-loading contract: pages accumulate in stable table order and
+ * `lookup` stays `undefined` until the last one lands. Query failures
+ * propagate through render exactly as the Convex hook's did.
  */
 export function useSubstanceLookup(enabled = true) {
-  const { results, status, loadMore } = usePaginatedQuery(
-    api.substanceIndex.getLookupPage,
+  const { results, status } = useEditorDrainedRead(
+    "substanceIndex:getLookupPage",
     enabled ? {} : "skip",
     { initialNumItems: SUBSTANCE_LOOKUP_PAGE_SIZE },
   );
 
-  useEffect(() => {
-    if (enabled && status === "CanLoadMore") {
-      loadMore(SUBSTANCE_LOOKUP_PAGE_SIZE);
-    }
-  }, [enabled, loadMore, status]);
-
-  const isComplete = enabled && status === "Exhausted";
-
   return {
-    lookup: isComplete ? results : undefined,
-    isLoading: enabled && !isComplete,
+    lookup: results,
+    isLoading: enabled && results === undefined,
     status,
   };
 }

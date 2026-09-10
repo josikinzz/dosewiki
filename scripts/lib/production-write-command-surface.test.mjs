@@ -42,10 +42,28 @@ const activeScriptDetections = walk(scriptsRoot).map((path) => ({
   ),
 }));
 
+const SHARED_CLIENT_LIBRARIES = new Set([
+  "scripts/lib/data-ops-run-context.mjs",
+  "scripts/lib/data-client.ts",
+]);
+
+// Local-Postgres rehearsals and parity harnesses write scratch rows through
+// the runtime and are gated by targetGuard (loopback only unless
+// --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Convex deployment
+// ceremony. The `it.each` below holds them to that guard.
+const POSTGRES_REHEARSAL_PATTERN = /^scripts\/postgres\/(?:rehearse-[^/]+|parity[^/]*)\.ts$/;
+
 function activeDirectMutationWriters() {
   return activeScriptDetections
-    .filter(({ path }) => path !== "scripts/lib/data-ops-run-context.mjs")
+    .filter(({ path }) => !SHARED_CLIENT_LIBRARIES.has(path) && !POSTGRES_REHEARSAL_PATTERN.test(path))
     .filter(({ detection }) => detection.kinds.includes("convex-mutation"))
+    .map(({ path }) => path)
+    .sort();
+}
+
+function postgresRehearsalWriters() {
+  return activeScriptDetections
+    .filter(({ path, detection }) => POSTGRES_REHEARSAL_PATTERN.test(path) && detection.kinds.includes("convex-mutation"))
     .map(({ path }) => path)
     .sort();
 }
@@ -72,6 +90,11 @@ function sourceWithoutGuardedDryRunReadFallbacks(source) {
 describe("production writer command surface", () => {
   it("classifies every active direct Convex mutation file", () => {
     expect(activeDirectMutationWriters()).toEqual(classifiedDirectProductionWriterPaths);
+  });
+
+  it.each(postgresRehearsalWriters())("%s writes only behind the Postgres target guard", (path) => {
+    const source = readFileSync(resolve(repoRoot, path), "utf8");
+    expect(source).toMatch(/guardTarget\(|createDataClient\(/);
   });
 
   it("classifies indirect Convex CLI and HTTP mutation entrypoints", () => {

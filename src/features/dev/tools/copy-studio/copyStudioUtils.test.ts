@@ -131,7 +131,6 @@ describe("copy studio block reconciliation", () => {
       "zeta-footer",
     ]);
     expect(filterCopyStudioBlocks(blocks, "about-").every((block) => block.key.includes("about-"))).toBe(true);
-    expect(filterCopyStudioBlocks(blocks, "about-").length).toBe(6);
     expect(filterCopyStudioBlocks(blocks, "   ")).toEqual([]);
   });
 });

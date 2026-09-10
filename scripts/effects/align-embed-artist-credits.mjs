@@ -25,7 +25,7 @@
  *     --write --confirm-write=align-embed-artist-credits \
  *     --expected-deployment=glad-minnow-656
  */
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -63,7 +63,7 @@ const CREDIT_ALIASES = {
 const looseKey = (value) => (value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const exactKey = (value) => (value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const [effects, replications] = await Promise.all([
   client.query(api.subjectiveEffects.getAll, {}),
   client.query(api.replications.getAll, {}),

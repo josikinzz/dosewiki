@@ -2,7 +2,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
@@ -89,7 +89,7 @@ async function main() {
   printDataOpsRunContext(runContext);
   console.log(`Archive label: ${options.label}`);
 
-  const client = new ConvexHttpClient(sourceUrl);
+  const client = createDataClient({ target: sourceUrl }).client;
   const articles = sortArticles((await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage)).map(stripConvexFields));
   if (articles.length === 0) {
     throw new Error("No articles found in the source Convex deployment.");

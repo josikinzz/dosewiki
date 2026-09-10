@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -261,7 +261,7 @@ export async function runLiveTaxonomyCasRepair({
   expectedPlanPath = DEFAULT_PLAN_PATH,
   expectedPlanFileSha256 = PLAN_FILE_SHA256,
   expectedDeclaredPlanSha256 = DECLARED_PLAN_SHA256,
-  clientFactory = (url) => new ConvexHttpClient(url),
+  clientFactory = (url) => createDataClient({ target: url }).client,
   logger = console,
 } = {}) {
   const planPath = path.resolve(flagValue(argv, "--plan") ?? DEFAULT_PLAN_PATH);

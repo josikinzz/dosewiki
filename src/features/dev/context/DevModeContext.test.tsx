@@ -7,9 +7,8 @@ const { useQueryMock, useLibraryMock } = vi.hoisted(() => ({
   useLibraryMock: vi.fn(),
 }));
 
-vi.mock("convex/react", () => ({
-  ConvexReactClient: vi.fn(),
-  useQuery: useQueryMock,
+vi.mock("@/hooks/useEditorRead", () => ({
+  useEditorRead: useQueryMock,
 }));
 
 vi.mock("@/data/SubstanceIndexProvider", () => ({
@@ -17,17 +16,6 @@ vi.mock("@/data/SubstanceIndexProvider", () => ({
 }));
 vi.mock("next-auth/react", () => ({ useSession: () => ({ status: "authenticated", data: { user: { role: "editor" } } }) }));
 vi.mock("../tools/useCopyIndexSource", () => ({ useCopyIndexSource: () => ({ data: useQueryMock(), error: null, reload: vi.fn() }) }));
-
-vi.mock("../../../../convex/_generated/api", () => ({
-  api: {
-    indexLayouts: {
-      getAll: "indexLayouts.getAll",
-    },
-    prompts: {
-      getByKey: "prompts.getByKey",
-    },
-  },
-}));
 
 import { DevModeProvider, useDevMode } from "./DevModeContext";
 

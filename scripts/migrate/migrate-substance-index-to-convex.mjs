@@ -16,7 +16,7 @@
  */
 
 import { readFileSync } from "fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -171,7 +171,7 @@ async function main() {
   }
 
   // Create Convex client
-  const client = new ConvexHttpClient(convexUrl);
+  const client = createDataClient({ target: convexUrl }).client;
 
   try {
     assertDataOpsWriteAllowed(runContext);

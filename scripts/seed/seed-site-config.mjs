@@ -8,7 +8,7 @@
  * Write: add --write --confirm-write=seed-site-config --expected-deployment=<fingerprint>.
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import fs from "fs";
 import path from "path";
@@ -58,7 +58,7 @@ if (command.dryRun) {
 try {
   assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("editorArticleWrite");
-  const client = new ConvexHttpClient(command.targetUrl);
+  const client = createDataClient({ target: command.targetUrl }).client;
   const result = await client.mutation(api.siteConfig.saveAbout, {
     apiKey: credential.token,
     aboutMarkdown,

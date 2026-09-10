@@ -16,7 +16,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -258,7 +258,7 @@ async function main() {
 
   let live = null;
   if (!skipDownload) {
-    live = indexLiveReplications(await new ConvexHttpClient(readUrl).query(api.replications.getAll, {}));
+    live = indexLiveReplications(await createDataClient({ target: readUrl }).client.query(api.replications.getAll, {}));
     console.log(`Live duplicate guard: checked ${live.bySlug.size} unique slug(s).`);
   } else {
     console.log("Live duplicate guard: not queried in --skip-download mode (writes are blocked unless checks run).");
@@ -292,7 +292,7 @@ async function main() {
 
   assertDataOpsWriteAllowed(runContext);
   const credential = requireAdminIntentToken("replicationMaintenance");
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
   for (const { candidate, bytes } of planned) {
     // Re-check immediately before each insert so this importer never updates or
     // adds a row when another writer created a matching item during the run.

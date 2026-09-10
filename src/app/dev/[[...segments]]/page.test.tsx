@@ -17,12 +17,10 @@ const SPLIT = {
 };
 
 const {
-  getEditorBrowserReadTargetMock,
   getEditorTargetAlignmentMock,
   getOwnedContributorProfileMock,
   getServerSessionMock,
 } = vi.hoisted(() => ({
-  getEditorBrowserReadTargetMock: vi.fn(() => ({ selectedUrl: "https://convex.test" })),
   getEditorTargetAlignmentMock: vi.fn(),
   getOwnedContributorProfileMock: vi.fn(),
   getServerSessionMock: vi.fn(),
@@ -48,7 +46,6 @@ vi.mock("@server/convex/publicData", () => ({
 
 vi.mock("@server/convex/serverWriteHealth", () => ({
   CONVEX_TARGET_SPLIT_OVERRIDE_ENV_VAR: "CONVEX_ALLOW_TARGET_SPLIT",
-  getEditorBrowserReadTarget: getEditorBrowserReadTargetMock,
   getEditorTargetAlignment: getEditorTargetAlignmentMock,
 }));
 
@@ -76,7 +73,6 @@ describe("NextDevPage shell selection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getEditorTargetAlignmentMock.mockReturnValue(ALIGNED);
-    getEditorBrowserReadTargetMock.mockReturnValue({ selectedUrl: "https://convex.test" });
   });
 
   it("mounts the one shell on Contributors for an authenticated contributor", async () => {
@@ -93,7 +89,6 @@ describe("NextDevPage shell selection", () => {
     expect(element.type).toBe(NextDevRouteClient);
     expect(element.props).toEqual(
       expect.objectContaining({
-        convexUrl: "https://convex.test",
         initialTab: "contributors",
         initialSlug: "me",
         initialProfileKey: "MEMBER",
@@ -124,7 +119,6 @@ describe("NextDevPage shell selection", () => {
         "redirect:/unauthorized",
       );
     }
-    expect(getEditorBrowserReadTargetMock).not.toHaveBeenCalled();
   });
 
   it("keeps editor users on the same shell for Contributors", async () => {
@@ -141,7 +135,6 @@ describe("NextDevPage shell selection", () => {
     expect(element.type).toBe(NextDevRouteClient);
     expect(element.props).toEqual(
       expect.objectContaining({
-        convexUrl: "https://convex.test",
         initialProfileKey: "EDITOR",
         initialTab: "contributors",
       }),
@@ -190,9 +183,7 @@ describe("NextDevPage shell selection", () => {
 
     expect(element.type).toBe(ConvexTargetSplitRefusal);
     expect(element.props).toMatchObject({ alignment: SPLIT, surface: "/dev editor shell" });
-    // The shell is never constructed, so no browser read URL is resolved and no
-    // Convex round-trip is made on a split.
-    expect(getEditorBrowserReadTargetMock).not.toHaveBeenCalled();
+    // The shell is never constructed, so no Convex round-trip is made on a split.
     expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
   });
 

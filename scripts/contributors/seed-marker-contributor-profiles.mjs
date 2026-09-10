@@ -38,7 +38,7 @@
  *       --expected-deployment=enchanted-echidna-791
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -113,7 +113,7 @@ async function seedMarkerProfiles() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
 
   const [replications, existingKeys] = await Promise.all([
     client.query(api.replications.getAll, {}),

@@ -24,7 +24,7 @@
  *     --write --confirm-write=prune-image-route-variants \
  *     --expected-deployment=glad-minnow-656
  */
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -104,7 +104,7 @@ function pruneTree(value, counter, slug) {
   return next;
 }
 
-const client = new ConvexHttpClient(command.targetUrl);
+const client = createDataClient({ target: command.targetUrl }).client;
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 
 const plans = [];

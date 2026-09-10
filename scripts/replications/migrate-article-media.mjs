@@ -76,7 +76,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Agent } from "undici";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -342,7 +342,7 @@ async function main() {
   const inventoryById = new Map(inventory.assets.map((row) => [row.id, row]));
   const assetsById = new Map(curation.assets.map((asset) => [asset.id, asset]));
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const [existingRows, effects] = await Promise.all([
     client.query(api.replications.getAll, {}),
     client.query(api.subjectiveEffects.getPublicPreviews, {}),
@@ -417,7 +417,7 @@ async function main() {
   }
 
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   const batch = plan.insert.slice(0, limit);
   console.log(`\nInserting ${batch.length} of ${plan.insert.length} planned row(s).`);

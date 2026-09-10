@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { DISSOCIATIVE_TITLE_DRUG_RULES } from "../../src/data/replicationTitleDrugAliases.ts";
@@ -560,7 +560,7 @@ function countsBy(rows, key) {
   );
 }
 
-export async function buildManifest(client = new ConvexHttpClient(TARGET)) {
+export async function buildManifest(client = createDataClient({ target: TARGET }).client) {
   const [rows, existing, channelReview, channelPlan, channelLedger, feetPlan, feetLedger] = await Promise.all([
     client.query(api.replications.getAll, {}),
     Promise.resolve(readJson(PATHS.existing)),

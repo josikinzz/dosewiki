@@ -52,7 +52,7 @@
  *     --confirm-write=seed-credited-contributor-profiles \
  *     --expected-deployment=<fingerprint>
  */
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import {
@@ -328,7 +328,7 @@ async function main() {
     );
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   // `subjectiveEffects` is read only for the roster preview: its `contributors[]`
   // and `audio_replications[].artist` are credit sources the About page counts,
   // so leaving them out would understate where each new name ranks.
@@ -374,7 +374,7 @@ async function main() {
 
   assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   // The public read materializes rows, which loses avatarStorageId, membershipEmail
   // and createdAt — all of which bulkImport would then clear. Re-plan the merge

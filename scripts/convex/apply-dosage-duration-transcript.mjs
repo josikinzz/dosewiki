@@ -40,7 +40,7 @@ import { readFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { substanceArticleSchema } from "../../src/schema/substance.schema.ts";
@@ -176,7 +176,7 @@ async function main() {
   const transcriptPath = resolve(process.cwd(), runDirectory, "dd", "verified.json");
   const transcript = JSON.parse(readFileSync(transcriptPath, "utf-8"));
   const targetUrl = requireTargetUrl(context);
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   const entries = Object.entries(transcript).filter(([slug]) => !onlySlug || slug === onlySlug);
   console.log(`\n${entries.length} transcript(s) from ${transcriptPath}`);

@@ -78,7 +78,6 @@ export function useDevModePageController({
 
   const {
     changeLogEntries,
-    convexEnabled,
     appendChangeLogEntryToState,
     feedWindow,
   } = useDevChangelogFeed({ active: tabNeedsChangelogFeed(activeTab) });
@@ -117,7 +116,6 @@ export function useDevModePageController({
     canDraft: routeAccess.canDraft,
     canApprove: routeAccess.canApprove,
     sessionProfileKey: routeAccess.sessionProfileKey,
-    convexEnabled,
     datasetChangelog: changelogState.datasetChangelog,
     psychoactiveManualChangelog: changelogState.psychoactiveManualChangelog,
     chemicalManualChangelog: changelogState.chemicalManualChangelog,

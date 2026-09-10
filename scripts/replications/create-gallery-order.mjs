@@ -13,7 +13,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   loadGalleryOrderMapping,
@@ -57,7 +57,7 @@ if (!fs.existsSync(metadataFile)) {
 
 const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
 const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
-const sourceClient = new ConvexHttpClient(readUrl);
+const sourceClient = createDataClient({ target: readUrl }).client;
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
@@ -112,7 +112,7 @@ async function main() {
   assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("replicationMaintenance", { env });
   const replicationMedia = createConvexReplicationMediaAdapter({
-    client: new ConvexHttpClient(command.targetUrl),
+    client: createDataClient({ target: command.targetUrl }).client,
     api,
     apiKey: credential.token,
   });

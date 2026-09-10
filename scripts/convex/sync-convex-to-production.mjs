@@ -35,7 +35,7 @@ function shouldSync(tableName) {
   return selectedTables === null || selectedTables.includes(tableName);
 }
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizeQuoteSectionId } from "../../lib/quoteSections.mjs";
@@ -75,8 +75,8 @@ try {
   process.exit(1);
 }
 
-const sourceClient = new ConvexHttpClient(sourceUrl);
-const targetClient = new ConvexHttpClient(targetUrl);
+const sourceClient = createDataClient({ target: sourceUrl }).client;
+const targetClient = createDataClient({ target: targetUrl }).client;
 
 let tableCredentials;
 try {

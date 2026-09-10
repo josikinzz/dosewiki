@@ -23,7 +23,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   createDataOpsRunContext,
@@ -133,7 +133,7 @@ async function main() {
   const sourceUrl = requireSourceUrl(runContext, "Convex audit source URL");
   printDataOpsRunContext(runContext);
 
-  const client = new ConvexHttpClient(sourceUrl);
+  const client = createDataClient({ target: sourceUrl }).client;
   const [articles, layout] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
     client.query(api.categoryLayout.get, {}),

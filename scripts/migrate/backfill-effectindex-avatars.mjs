@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import { assertDataOpsWriteAllowed, createDataOpsRunContext, printDataOpsRunContext, requireAdminIntentToken, requireTargetUrl } from "../lib/data-ops-run-context.mjs";
 
@@ -67,7 +67,7 @@ async function main() {
   if (!runContext.targetUrl) throw new Error("--online and --write require an explicit TARGET_CONVEX_URL.");
   if (writeRequested) assertDataOpsWriteAllowed(runContext);
   const credential = requireAdminIntentToken("profileMediaWrite");
-  const client = new ConvexHttpClient(requireTargetUrl(runContext));
+  const client = createDataClient({ target: requireTargetUrl(runContext) }).client;
   const existing = new Map((await client.query(api.contributorProfiles.getForBulkImport, { apiKey: credential.token, keys: selected.map((candidate) => candidate.identity.key) })).map((row) => [row.key.toUpperCase(), row]));
   const updates = [];
   for (const candidate of selected) {

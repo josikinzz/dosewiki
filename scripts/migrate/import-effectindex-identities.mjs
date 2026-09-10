@@ -17,7 +17,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertDataOpsWriteAllowed,
@@ -138,7 +138,7 @@ let existingMode;
 if (shouldQueryExisting) {
   const target = { key: runContext.targetUrlKey, url: requireTargetUrl(runContext) };
   const adminKey = requireAdminIntentToken("profileMediaWrite").token;
-  const client = new ConvexHttpClient(target.url);
+  const client = createDataClient({ target: target.url }).client;
   let stored;
   try {
     stored = await client.query(api.contributorProfiles.getForBulkImport, {
@@ -231,7 +231,7 @@ if (!writeRequested) {
 assertDataOpsWriteAllowed(runContext);
 const target = { key: runContext.targetUrlKey, url: requireTargetUrl(runContext) };
 const adminKey = requireAdminIntentToken("profileMediaWrite").token;
-const client = new ConvexHttpClient(target.url);
+const client = createDataClient({ target: target.url }).client;
 const archiveResult = await client.mutation(api.effectIndexArchive.bulkImport, {
   apiKey: adminKey,
   entries: archiveEntries,

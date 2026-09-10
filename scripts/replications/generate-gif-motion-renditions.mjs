@@ -20,7 +20,7 @@ import { spawnSync } from "node:child_process";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
@@ -293,7 +293,7 @@ async function main() {
     );
   }
 
-  const readClient = new ConvexHttpClient(readUrl);
+  const readClient = createDataClient({ target: readUrl }).client;
   const rows = await readClient.query(
     api.replications.getPublicReplications,
     {},
@@ -329,7 +329,7 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential(
     "replicationMaintenance",
   );
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
   fs.mkdirSync(scratchDir, { recursive: true });
   const ledgerPath = path.join(
     scratchDir,

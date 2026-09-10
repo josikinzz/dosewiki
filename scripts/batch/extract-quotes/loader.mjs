@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { BackendClient } from "../../lib/data-client.ts";
 
 import { api } from "../../../convex/_generated/api.js";
 import { CONFIG } from "./cli.mjs";
@@ -58,7 +58,7 @@ export function loadSourceFile(slug) {
   return loadLocalArticleSourceDocument(filePath, slug);
 }
 
-export function createConvexClient(url, { Client = ConvexHttpClient } = {}) {
+export function createConvexClient(url, { Client = BackendClient } = {}) {
   return new Client(url);
 }
 

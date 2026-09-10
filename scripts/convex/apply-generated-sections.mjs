@@ -36,7 +36,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { resolve } from "node:path";
 
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { substanceArticleSchema } from "../../src/schema/substance.schema.ts";
@@ -140,7 +140,7 @@ async function main() {
   const onlySlug = getFlagValue(context.argv, "--slug");
   const allowOverwrite = new Set(collectFlagValues(context.argv, "--overwrite"));
   const targetUrl = requireTargetUrl(context);
-  const client = new ConvexHttpClient(targetUrl);
+  const client = createDataClient({ target: targetUrl }).client;
 
   const drafts = loadDrafts(runDirectory).filter((draft) => !onlySlug || draft.slug === onlySlug);
   if (drafts.length === 0) throw new Error(`No drafts found in ${runDirectory}${onlySlug ? ` for ${onlySlug}` : ""}`);

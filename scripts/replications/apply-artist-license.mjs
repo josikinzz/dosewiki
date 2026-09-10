@@ -22,7 +22,7 @@
  *     --confirm-write=apply-replication-license \
  *     --expected-deployment=<fingerprint>
  */
-import { ConvexHttpClient } from "convex/browser";
+import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
 import {
   assertProductionWriteAllowed,
@@ -132,7 +132,7 @@ async function main() {
     throw new Error("Set TARGET_CONVEX_URL (or CONVEX_PUBLIC_READ_URL).");
   }
 
-  const client = new ConvexHttpClient(readUrl);
+  const client = createDataClient({ target: readUrl }).client;
   const replications = await client.query(api.replications.getAll, {});
   const plan = planLicenseUpdates(replications, { artist, license });
 
@@ -164,7 +164,7 @@ async function main() {
   // the mutation's requireAuth checks. `.token` is the string the arg validator
   // wants; the resolver returns provenance alongside it.
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
-  const writeClient = new ConvexHttpClient(command.targetUrl);
+  const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   let updated = 0;
   for (const entry of pending) {
