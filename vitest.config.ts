@@ -41,6 +41,9 @@ export default defineConfig({
       '@auth': path.resolve(__dirname, './auth.ts'),
       '@server': path.resolve(__dirname, './lib'),
       'server-only': path.resolve(__dirname, './src/test/server-only.ts'),
+      // gt-next's ESM build calls a bare `require`, which Next's config loader
+      // provides and vitest's ESM runtime does not. Its CJS build is fine.
+      'gt-next/config': path.resolve(__dirname, './node_modules/gt-next/dist/config.js'),
     },
   },
 });

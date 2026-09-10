@@ -6,6 +6,7 @@ import { getPublicBrowserRuntimeConfig } from "./lib/runtime/envContract";
 // page) can read the invite URL from it without importing this config.
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
+import { withGTConfig } from "gt-next/config";
 
 const publicBrowserConfig = getPublicBrowserRuntimeConfig();
 
@@ -286,11 +287,11 @@ const nextConfig: NextConfig = {
 };
 
 export default async function configureNext(): Promise<NextConfig> {
-  return {
+  return withGTConfig({
     ...nextConfig,
     outputFileTracingIncludes: {
       ...nextConfig.outputFileTracingIncludes,
       "/*": await getServerRuntimeIncludes(),
     },
-  };
+  });
 }
