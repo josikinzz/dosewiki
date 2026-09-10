@@ -18,6 +18,9 @@
   "surfaceHueStorageKey": "dosewiki-surface-hue",
   "accentHueStorageKey": "dosewiki-accent-hue",
   "fontStorageKey": "dosewiki-font",
+  "textSizeStorageKey": "dosewiki-text-size",
+  "letterSpacingStorageKey": "dosewiki-letter-spacing",
+  "lineHeightStorageKey": "dosewiki-line-height",
   "metaId": "theme-color-meta",
   "metaColors": {
     "fun": {

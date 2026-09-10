@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -15,13 +16,16 @@ import {
 } from "@/components/ui/popover";
 import { setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { cn } from "@/lib/utils";
-import { AppearanceAxes, type AppearanceAxesRows } from "./AppearanceAxes";
+import type { AppearanceAxesRows } from "./AppearanceAxes";
+import { AppearancePanel } from "./AppearancePanel";
 
 /**
- * Which controls this instrument offers. AppearanceAxes owns reader preferences;
- * the cog adds the dev-only Theme Lab action that is not an appearance axis.
+ * Which controls this instrument offers. The reader panel owns the reader preferences;
+ * the cog adds the dev-only Theme Lab action that is not an appearance axis. The Fun/Pro
+ * style axis is deliberately absent: it stays a Theme Lab authoring axis, not a reader
+ * menu row.
  */
-export type AppearanceCogRows = AppearanceAxesRows & {
+export type AppearanceCogRows = Omit<AppearanceAxesRows, "showVisualStyle"> & {
   /** Opens the protected Theme Lab drawer when publication policy permits it. */
   showMoreSettings: boolean;
 };
@@ -29,14 +33,14 @@ export type AppearanceCogRows = AppearanceAxesRows & {
 /**
  * One 44px trigger for every reader-facing appearance choice.
  *
- * The popover owns its compact, permanently dark shell. `AppearanceAxes` supplies the
- * same named controls used by Theme Lab; the optional dev-only Theme Lab action follows
- * those reader preferences rather than competing with them.
+ * The popover owns its compact, permanently dark shell. `AppearancePanel` supplies the
+ * two-tab reader menu — Font first, Colour behind the paintbrush — and the optional
+ * dev-only Theme Lab action follows those reader preferences rather than competing
+ * with them.
  */
 export function AppearanceCog({
   className,
   iconSize = 28,
-  showVisualStyle,
   showColorScheme,
   showAccent,
   showSurface,
@@ -46,17 +50,30 @@ export function AppearanceCog({
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
+  // The panel anchors to one of two header mounts (desktop bar, mobile cluster) and the
+  // bars trade places at the lg breakpoint. A panel left open across that crossing would
+  // keep floating against an anchor the layout just hid — pinned to a corner its trigger
+  // no longer occupies. When the open trigger's hit area collapses to zero, the panel
+  // closes; the reader reopens it from the mount they can actually see.
+  useEffect(() => {
+    if (!popoverOpen) {
+      return;
+    }
+
+    const closeIfTriggerHidden = () => {
+      if (appearanceTriggerRef.current && appearanceTriggerRef.current.getBoundingClientRect().width === 0) {
+        setPopoverOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", closeIfTriggerHidden);
+    return () => window.removeEventListener("resize", closeIfTriggerHidden);
+  }, [popoverOpen]);
+
   // A cog that opens an empty panel is worse than no cog. Effect Index with its style locked
   // and its accent locked still has day/night, so this is reached only by a build that offers
   // a reader nothing at all.
-  if (
-    !showVisualStyle &&
-    !showColorScheme &&
-    !showSurface &&
-    !showAccent &&
-    !showFont &&
-    !showMoreSettings
-  ) {
+  if (!showColorScheme && !showSurface && !showAccent && !showFont && !showMoreSettings) {
     return null;
   }
 
@@ -124,13 +141,11 @@ export function AppearanceCog({
           className="theme-popover-arrow"
         />
         <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
-          <AppearanceAxes
-            showVisualStyle={showVisualStyle}
+          <AppearancePanel
             showColorScheme={showColorScheme}
             showSurface={showSurface}
             showAccent={showAccent}
             showFont={showFont}
-            discloseColorGroups
             surfaceLabel="Background"
             footerAction={
               showMoreSettings ? (

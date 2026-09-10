@@ -237,3 +237,49 @@
       transition: background-color 5000s ease-in-out 0s;
     }
   }
+
+  /* ------------------------------------------------------------------
+     Reader text scale (the appearance cog's Text size axis).
+
+     The axis writes --dw-reader-text-scale on <html>; this block re-seats
+     the Tailwind text-size variables and the repo's type tokens as their
+     authored value multiplied by the reader's scale. Font sizes move;
+     nothing else does. Tailwind's spacing utilities are built on
+     --spacing: 0.25rem (untouched), every margin/padding/gap is rem-based
+     (untouched), and the type tokens' line-height/tracking companions are
+     unitless or em (they follow the glyphs, not the scale). The result is
+     reading comfort WITHOUT reproducing browser zoom: containers, rhythm
+     and chrome hold their layout while the text grows or shrinks inside
+     them.
+
+     Layer arithmetic: Tailwind emits its theme variables in layer(theme);
+     this file is imported as layer(base), declared after theme, so these
+     re-seats win the custom-property cascade at :root without needing
+     !important. With the axis at its default (no property on the root),
+     var(--dw-reader-text-scale, 1) is a no-op multiplication.
+     ------------------------------------------------------------------ */
+  :root {
+    --text-xs: calc(0.75rem * var(--dw-reader-text-scale, 1));
+    --text-sm: calc(0.875rem * var(--dw-reader-text-scale, 1));
+    --text-base: calc(1rem * var(--dw-reader-text-scale, 1));
+    --text-lg: calc(1.125rem * var(--dw-reader-text-scale, 1));
+    --text-xl: calc(1.25rem * var(--dw-reader-text-scale, 1));
+    --text-2xl: calc(1.5rem * var(--dw-reader-text-scale, 1));
+    --text-3xl: calc(1.875rem * var(--dw-reader-text-scale, 1));
+    --text-4xl: calc(2.25rem * var(--dw-reader-text-scale, 1));
+    --text-5xl: calc(3rem * var(--dw-reader-text-scale, 1));
+    --text-6xl: calc(3.75rem * var(--dw-reader-text-scale, 1));
+    --text-7xl: calc(4.5rem * var(--dw-reader-text-scale, 1));
+    --text-8xl: calc(6rem * var(--dw-reader-text-scale, 1));
+    --text-9xl: calc(8rem * var(--dw-reader-text-scale, 1));
+    --type-size-caption: calc(0.75rem * var(--dw-reader-text-scale, 1));
+    --type-size-chip-label: calc(0.6875rem * var(--dw-reader-text-scale, 1));
+    --type-size-sm: calc(0.875rem * var(--dw-reader-text-scale, 1));
+    --type-size-body: calc(1rem * var(--dw-reader-text-scale, 1));
+    --type-size-lead: calc(1.0625rem * var(--dw-reader-text-scale, 1));
+    --type-size-deck: calc(clamp(1.1875rem, 1.11rem + 0.34vw, 1.375rem) * var(--dw-reader-text-scale, 1));
+    --type-size-title: calc(clamp(3rem, 2.5rem + 2.25vw, 4.5rem) * var(--dw-reader-text-scale, 1));
+    --type-size-section: calc(clamp(1.5rem, 1.28rem + 0.7vw, 2rem) * var(--dw-reader-text-scale, 1));
+    --type-size-doc-title: calc(clamp(2rem, 1.7rem + 1.35vw, 2.75rem) * var(--dw-reader-text-scale, 1));
+    --type-size-doc-section: calc(clamp(1.375rem, 1.3rem + 0.35vw, 1.5rem) * var(--dw-reader-text-scale, 1));
+  }

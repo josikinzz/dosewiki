@@ -123,6 +123,22 @@
     max-width: var(--type-measure-reading);
   }
 
+  /*
+   * The reading rhythm of an article section. Paragraph spacing is a FIXED site
+   * value, not a reader preference: the gap between two consecutive paragraphs is
+   * 2x the font size — authored in rem, so it rides the reader's text-size choice —
+   * and no slider offers it. Headings, lists, tables and callouts keep the authored
+   * 1.5rem sibling rhythm, so the chapter structure never moves and a wide paragraph
+   * gap can never read as a line-height change.
+   */
+  .theme-article-flow > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .theme-article-flow > p + p {
+    margin-top: 2rem;
+  }
+
   .numeric-tabular {
     font-variant-numeric: tabular-nums;
   }

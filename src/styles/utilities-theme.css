@@ -463,10 +463,24 @@ html[data-theme="light"]
     color-mix(in srgb, var(--theme-text-primary) 14%, transparent);
 }
 
+/* The appearance panel's reading-type sliders are meters, not legends: the filled
+   portion wears the reader's accent — repainting the accent repaints the meters,
+   answering the colour tab — while the remainder stays a faint ink step. The
+   component carries only the fill position in --dw-type-fill; the gradient lives
+   here so the accent resolves through the token system. At accent saturation 0
+   the token greys out and the fill follows, the honest unmuted signal. */
+[data-appearance-type] .theme-chroma-track::before {
+  background: linear-gradient(
+    90deg,
+    var(--theme-accent-strong) var(--dw-type-fill, 50%),
+    color-mix(in srgb, var(--theme-text-primary) 12%, transparent) var(--dw-type-fill, 50%)
+  );
+}
+
 /* Where the authored colour sits: the authored saturation level as a
-     unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail.
-     The inset follows half the responsive thumb size because a range thumb's
-     centre travels between those insets rather than from 0 to 100%. */
+      unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail.
+      The inset follows half the responsive thumb size because a range thumb's
+      centre travels between those insets rather than from 0 to 100%. */
 .theme-chroma-tick {
   position: absolute;
   top: 1px;
@@ -5385,7 +5399,12 @@ html:not([data-visual-style="pro"])
   color: var(--theme-text-primary);
   border-color: var(--theme-frosted-panel-border) !important;
   background: var(--theme-chrome-rail-bg) !important;
+  /* The 1px inset rim sharpens the panel edge over the near-black article hero —
+     the same treatment the frosted controls and swatch dots get — layered inside
+     the elevation shadow rather than replacing it. Derived from the ink token, so
+     Pro's re-pointed on-dark values rim it too. */
   box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--theme-text-primary) 9%, transparent),
     0 26px 64px -20px rgb(0 0 0 / 0.78),
     0 10px 26px -18px rgb(0 0 0 / 0.72) !important;
   backdrop-filter: none !important;

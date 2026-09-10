@@ -28,7 +28,10 @@ type ArticleSectionSpacing = "article" | "effect" | "none";
 // the sticky header (and the mobile TOC strip) for anchor navigation, so it
 // stays generous even though the padding is gone.
 const articleSectionSpacingClasses = {
-  article: "space-y-6 scroll-mt-20 theme-offscreen-defer",
+  // "article" uses the reader-spacing flow class (utilities-typography.css) in place of
+  // a fixed `space-y-6`: same 1.5rem gap by default, and the paragraph-spacing axis can
+  // re-space the reading surface without touching this file.
+  article: "theme-article-flow scroll-mt-20 theme-offscreen-defer",
   effect: "space-y-6 pt-6 scroll-mt-24 theme-offscreen-defer",
   none: "",
 } satisfies Record<ArticleSectionSpacing, string>;

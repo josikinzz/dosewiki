@@ -7,9 +7,12 @@ import {
   ACCENT_HUE_STORAGE_KEY,
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
+  LETTER_SPACING_STORAGE_KEY,
+  LINE_HEIGHT_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
+  TEXT_SIZE_STORAGE_KEY,
   DEFAULT_COLOR_SCHEME,
   DEFAULT_VISUAL_STYLE,
   LEGACY_ACCENT_TO_HUE,
@@ -36,6 +39,12 @@ import {
   SURFACE_HUE_PROPERTY,
   SURFACE_LEVEL_PROPERTY,
 } from "./appearanceChroma";
+import {
+  READER_LEADING_ATTRIBUTE,
+  READER_LEADING_PROPERTY,
+  READER_TRACKING_PROPERTY,
+  TEXT_SIZE_PROPERTY,
+} from "./appearanceTypography";
 import {
   LIGHT_MODE_STYLESHEET_HREF,
   LIGHT_MODE_STYLESHEET_LINK_ID,
@@ -83,6 +92,10 @@ describe("theme token interface", () => {
     document.documentElement.style.removeProperty(SURFACE_HUE_PROPERTY);
     document.documentElement.style.removeProperty(ACCENT_HUE_PROPERTY);
     delete document.documentElement.dataset.font;
+    document.documentElement.style.removeProperty(TEXT_SIZE_PROPERTY);
+    document.documentElement.style.removeProperty(READER_TRACKING_PROPERTY);
+    document.documentElement.removeAttribute(READER_LEADING_ATTRIBUTE);
+    document.documentElement.style.removeProperty(READER_LEADING_PROPERTY);
   });
 
   it("names both appearance axes, their storage keys, and the meta-colour matrix", () => {
@@ -106,8 +119,14 @@ describe("theme token interface", () => {
     // The retired colourway keys survive as migration inputs only.
     expect(SURFACE_STORAGE_KEY).toBe("dosewiki-surface");
     expect(ACCENT_STORAGE_KEY).toBe("dosewiki-accent");
-    // The type axis's key. Only ever holds "dyslexic"; the default stores nothing.
+    // The type axis's key. Holds one of the paintable faces; the default (Lexend) stores
+    // nothing, and the binary-toggle era's "dyslexic" reads as the default.
     expect(FONT_STORAGE_KEY).toBe("dosewiki-font");
+    // The reading-type axes' keys. Each holds only a saved slider value; paragraph
+    // spacing has no key — that rhythm is a fixed site value, not a preference.
+    expect(TEXT_SIZE_STORAGE_KEY).toBe("dosewiki-text-size");
+    expect(LETTER_SPACING_STORAGE_KEY).toBe("dosewiki-letter-spacing");
+    expect(LINE_HEIGHT_STORAGE_KEY).toBe("dosewiki-line-height");
 
     expect(isColorScheme("light")).toBe(true);
     expect(isColorScheme("sepia")).toBe(false);
@@ -116,9 +135,14 @@ describe("theme token interface", () => {
     // The axes are not interchangeable: a scheme value is not a style value.
     expect(isVisualStyle("dark")).toBe(false);
     expect(isColorScheme("pro")).toBe(false);
-    expect(isFontPreference("dyslexic")).toBe(true);
-    expect(isFontPreference("default")).toBe(true);
-    expect(isFontPreference("pro")).toBe(false);
+    expect(isFontPreference("lexend")).toBe(true);
+    expect(isFontPreference("inter")).toBe(true);
+    expect(isFontPreference("blinker")).toBe(true);
+    expect(isFontPreference("titillium")).toBe(true);
+    expect(isFontPreference("system")).toBe(true);
+    // The retired binary-toggle value maps onto the default, never a face.
+    expect(isFontPreference("dyslexic")).toBe(false);
+    expect(isFontPreference("papyrus")).toBe(false);
 
     // A complete matrix, because the pre-paint script uses it as the validity set for both
     // stored preferences — a missing row would make a supported value look unsupported.
@@ -606,32 +630,87 @@ describe("theme token interface", () => {
     expect(script).not.toContain(ACCENT_STORAGE_KEY);
   });
 
-  it("restores the saved dyslexic type pre-paint, and treats anything else as the default", () => {
-    installMockStorage({ [FONT_STORAGE_KEY]: "dyslexic" });
+  it("restores a saved face pre-paint, and treats anything else as the default", () => {
+    installMockStorage({ [FONT_STORAGE_KEY]: "inter" });
     ensureThemeMeta();
 
     Function(buildThemeBootstrapScript(DOSEWIKI))();
 
-    expect(document.documentElement.dataset.font).toBe("dyslexic");
+    expect(document.documentElement.dataset.font).toBe("inter");
 
-    // The default is the ABSENCE of the attribute — the key either holds exactly
-    // "dyslexic" or the axis contributes nothing to the painted frame.
+    // The default is the ABSENCE of the attribute — the key either holds a paintable
+    // face or the axis contributes nothing to the painted frame. The retired
+    // binary-toggle value maps onto the default face, which is what it reproduced.
     delete document.documentElement.dataset.font;
     installMockStorage({ [FONT_STORAGE_KEY]: "papyrus" });
 
     Function(buildThemeBootstrapScript(DOSEWIKI))();
 
     expect(document.documentElement.dataset.font).toBeUndefined();
+
+    delete document.documentElement.dataset.font;
+    installMockStorage({ [FONT_STORAGE_KEY]: "dyslexic" });
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    expect(document.documentElement.dataset.font).toBeUndefined();
   });
 
-  it("emits no font-axis machinery for a publication that locks the type axis", () => {
+  it("restores the saved reading-type numbers pre-paint", () => {
+    installMockStorage({
+      [TEXT_SIZE_STORAGE_KEY]: "1.05",
+      [LETTER_SPACING_STORAGE_KEY]: "-0.02",
+      [LINE_HEIGHT_STORAGE_KEY]: "1.55",
+    });
+    ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    // The text-size axis is a unitless scale over the text tokens, not a root
+    // font-size: it must never write `font-size`, which would reproduce zoom.
+    expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
+    expect(document.documentElement.style.fontSize).toBe("");
+    // The written values carry their CSS units — a bare number would substitute
+    // into letter-spacing as an invalid value and silently knock the
+    // property back to its inherited value.
+    expect(document.documentElement.style.getPropertyValue(READER_TRACKING_PROPERTY)).toBe("-0.02em");
+    expect(document.documentElement).toHaveAttribute(READER_LEADING_ATTRIBUTE, "");
+    expect(document.documentElement.style.getPropertyValue(READER_LEADING_PROPERTY)).toBe("1.55");
+  });
+
+  it("costs a saved value nothing when it falls outside its slider domain", () => {
+    installMockStorage({
+      [TEXT_SIZE_STORAGE_KEY]: "44",
+      [LETTER_SPACING_STORAGE_KEY]: "2",
+      [LINE_HEIGHT_STORAGE_KEY]: "9",
+    });
+    ensureThemeMeta();
+
+    Function(buildThemeBootstrapScript(DOSEWIKI))();
+
+    expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
+    expect(document.documentElement.style.getPropertyValue(READER_TRACKING_PROPERTY)).toBe("");
+    expect(document.documentElement).not.toHaveAttribute(READER_LEADING_ATTRIBUTE);
+  });
+
+  it("emits no type-axis machinery for a publication that locks the type axis", () => {
     // The pinned Effect Index CSP hash (lib/next/cspObservationPolicy.ts) holds the
     // byte-identity line; this states the same contract in the script's own terms.
     const script = buildThemeBootstrapScript(EFFECT_INDEX);
 
     expect(script).not.toContain(FONT_STORAGE_KEY);
     expect(script).not.toContain("dataset.font");
-    expect(script).not.toContain("dyslexic");
+    expect(script).not.toContain("FACES");
+    for (const key of [
+      TEXT_SIZE_STORAGE_KEY,
+      LETTER_SPACING_STORAGE_KEY,
+      LINE_HEIGHT_STORAGE_KEY,
+    ]) {
+      expect(script).not.toContain(key);
+    }
+    // The paragraph-gap key is retired outright: a locked script carries no trace of
+    // an axis that no longer exists.
+    expect(script).not.toContain("dosewiki-paragraph-spacing");
   });
 
   it("injects the appearance sheets a saved preference needs, ordered light → pro → chroma", () => {

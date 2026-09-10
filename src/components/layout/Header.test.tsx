@@ -141,12 +141,16 @@ describe("Header", () => {
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
       const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
 
+      // The panel opens on the font tab: the face picker publishes its axis, and the
+      // paintbrush beside it leads to the colour tab.
       expect(
         [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
           control.getAttribute("data-appearance-axis"),
         ),
-      ).toEqual(["color-scheme", "visual-style", "font"]);
-      expect(within(panel).getByRole("radiogroup", { name: "Font" })).toBeInTheDocument();
+      ).toEqual(["font"]);
+      expect(
+        within(panel).getByRole("button", { name: "Show colour controls" }),
+      ).toBeInTheDocument();
 
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
       await waitFor(() => {
