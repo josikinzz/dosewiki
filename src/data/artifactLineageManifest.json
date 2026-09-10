@@ -690,6 +690,28 @@
       "schemaVersion": "convex module list",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run generate:postgres-functions"
+    },
+    {
+      "id": "effect-category-definitions",
+      "path": "src/data/effectCategoryDefinitions.ts",
+      "role": "authored-taxonomy-config",
+      "producer": "effect taxonomy maintainers",
+      "consumers": [
+        "src/app/effects/category/[categorySlug]/page.tsx",
+        "src/features/effects/pages/EffectCategoryPage.tsx",
+        "src/features/effects/effectGuideClass.ts",
+        "src/features/effects/articleSectionModel.ts",
+        "src/features/effects/pages/replicationSubject.ts"
+      ],
+      "inputs": [
+        "the 24 Effect Index category descriptions, reviewed by hand"
+      ],
+      "freshnessRule": "Update deliberately when an effect category is added, renamed or redescribed; the category pages render this file directly.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/effectCategoryDefinitions.ts (EffectCategoryDefinition)",
+      "editPolicy": "editable-by-effect-taxonomy-maintainers",
+      "refreshCommand": "edit src/data/effectCategoryDefinitions.ts by hand; no generator"
     }
   ]
 }

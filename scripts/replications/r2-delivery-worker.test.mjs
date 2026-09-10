@@ -24,7 +24,7 @@ function fixture() {
         const value = objects.get(name);
         if (value === undefined) return null;
         if (options.onlyIf.get("if-none-match") === '"original"') return metadata(value);
-        if (options.range.get("range")) {
+        if (options.range?.get("range")) {
           return { ...metadata(value), body: value.slice(0, 4), range: { offset: 0, length: 4 } };
         }
         return { ...metadata(value), body: value };

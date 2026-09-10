@@ -74,7 +74,11 @@ function hasStrongBoundary(source) {
       /assertProductionWriteAllowed|executeProductionWrite/.test(source)) ||
     (source.includes("assertDataOpsWriteAllowed") &&
       source.includes("data-ops-run-context.mjs")) ||
-    source.includes("createBatchTargetClient")
+    source.includes("createBatchTargetClient") ||
+    // Postgres-to-Convex rollback tooling: every `npx convex import` goes
+    // through convexTargetGuard, which refuses the production deployment
+    // without both --allow-production and CONVEX_REVERSE_IMPORT_CONFIRM.
+    (source.includes("convexTargetGuard") && /guardConvexTarget\(/.test(source))
   );
 }
 

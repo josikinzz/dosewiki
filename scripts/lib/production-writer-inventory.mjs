@@ -182,6 +182,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/prepopulate/prepopulate-legality.mjs",
     "scripts/prepopulate/prepopulate-pharmacology.mjs",
     "scripts/prepopulate/prepopulate-source-citations.mjs",
+    "scripts/postgres/rehearse-rollback.ts",
     "scripts/prepopulate/prepopulate-tolerance.mjs",
     "scripts/replications/create-gallery-order.mjs",
     "scripts/replications/repoint-renditions.mjs",
