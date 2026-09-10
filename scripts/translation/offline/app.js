@@ -304,6 +304,14 @@
       <div class="panel"><h3>${icon("lucide:chart-line")}时长</h3>${stages || '<p class="note">暂无该途径的时长数据。</p>'}${t?.halfLife ? `<div class="stage hl"><span>半衰期</span><code>${esc(zhUnits(t.halfLife))}</code></div>` : ""}</div>
     </div>`;
   }
+  /** The site's rule: presets are enabled on named slugs, tone-ordered, at most two per article. */
+  const bannersFor = (slug) => D.banners.filter((b) => b.slugs.includes(slug)).slice(0, 2);
+  const bannerHtml = (b) => `<aside class="banner banner--${b.tone}" role="${b.tone === "danger" ? "alert" : "status"}">
+    <div class="bi">${icon(b.icon, "")}</div>
+    <div class="bb"><p class="bh"><span class="sev">${esc(b.severityLabel)}</span>${esc(b.headline)}</p>
+    ${b.points.map((point) => `<p class="bp">${inline(point)}</p>`).join("")}</div>
+  </aside>`;
+
   function substancePage(slug) {
     const s = S()[slug];
     const md = D.pages[`substances/${slug}`];
@@ -339,7 +347,7 @@
       return html;
     });
     const toc = `<aside class="toc"><div class="toc-in"><p>目录</p><a href="#/substances/${slug}#sec-overview">${icon("lucide:file-text")}简介</a>${D.sections.filter((x) => x.toc && present.has(x.id)).map((x) => `<a href="#/substances/${slug}#sec-${x.id}">${icon(x.icon)}${esc(x.label)}</a>`).join("")}</div></aside>`;
-    return { wide: true, html: `<div class="article">${toc}<article class="doc" id="sec-overview">${beta()}${hero}${dd}${sections.join("")}</article></div>`, sub: s };
+    return { wide: true, html: `<div class="article">${toc}<article class="doc" id="sec-overview">${beta()}${bannersFor(slug).map(bannerHtml).join("")}${hero}${dd}${sections.join("")}</article></div>`, sub: s };
   }
   /**
    * The exporter writes the country table and then a "各国备注" list of each

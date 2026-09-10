@@ -457,6 +457,40 @@ const EFFECT_CATEGORY_CORPUS = {
   markupFields: Object.freeze({}),
 };
 
+/**
+ * The drug-class safety banners. Five presets carry reader-facing text
+ * (severity word, headline, one or more mechanism lines); the citation-overhaul
+ * notices are site maintenance about the live audit and never leave the site,
+ * so they are dropped at load rather than translated. `enabledSlugs` is the
+ * membership list a renderer joins on and `icon`/`tone`/`key` are machine
+ * fields, so all four travel untouched.
+ */
+const BANNER_CORPUS = {
+  id: "banners",
+  label: "Safety banners",
+  dataset: "WarningBanners",
+  itemKey: "key",
+  defaultSource: "convex:warningBanners:listPresets",
+  load: async (source) => {
+    const origin = source ?? "convex:warningBanners:listPresets";
+    if (!origin.startsWith("convex:")) {
+      const absolute = path.resolve(repoRoot, origin);
+      return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
+    }
+    const rows = await convexQuery("warningBanners:listPresets");
+    const items = rows
+      .filter((row) => row.enabled && !String(row.key).startsWith("citation-system-overhaul"))
+      .map(({ _id: _identifier, _creationTime: _created, updatedAt: _updatedAt, ...rest }) => rest)
+      .sort((a, b) => String(a.key).localeCompare(String(b.key)));
+    return { dataset: envelope("WarningBanners", items, `${CONVEX_URL} warningBanners:listPresets`), origin };
+  },
+  excludedGroups: Object.freeze([]),
+  excludedKeys: Object.freeze(["key", "icon", "tone", "enabled", "enabledSlugs"]),
+  conditionalKeys: Object.freeze({}),
+  safetyGroups: Object.freeze([]),
+  markupFields: Object.freeze({}),
+};
+
 export const CORPORA = Object.freeze({
   substances: SUBSTANCE_CORPUS,
   effects: EFFECT_CORPUS,
@@ -466,6 +500,7 @@ export const CORPORA = Object.freeze({
   layout: LAYOUT_CORPUS,
   summaries: SUMMARY_CORPUS,
   effectCategories: EFFECT_CATEGORY_CORPUS,
+  banners: BANNER_CORPUS,
 });
 
 export function resolveCorpus(id) {

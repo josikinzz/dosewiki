@@ -1026,6 +1026,14 @@ inflated with `DecompressionStream`, so the file stays under 4 MB. Run it after
 `translate:freeodwiki` and `translate:packs`; the `/china` page lists the file
 when it exists.
 
+`--corpus banners` translates the drug-class safety banners
+(`warningBanners:listPresets`). Only the severity word, headline and mechanism
+lines are prose; `key`, `icon`, `tone` and `enabledSlugs` travel untouched
+because a renderer joins on them. The three citation-overhaul notices are site
+maintenance about the live audit and are dropped at load. The offline edition
+renders the result under the same rule as the site: enabled on a named slug,
+tone order, at most two per article.
+
 `translate:charset` regenerates `scripts/translation/traditional-charset.json`
 from OpenCC's TSCharacters table; the script gate reads that file rather than a
 hand-written character list.

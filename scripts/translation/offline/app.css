@@ -183,6 +183,23 @@ sup a:hover { text-decoration: none; background: var(--sel); }
 .sec-subjective-effects h4 { display: flex; align-items: center; gap: 6px; }
 .sec-subjective-effects h5 { color: var(--muted); font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; }
 
+/* Drug-class safety banners: the site's three tones, same severity gutter. */
+.banner { display: flex; gap: 16px; align-items: flex-start; padding: 16px 20px; border-radius: 16px; border: 1px solid; margin: 0 0 14px; }
+.banner .bi { flex: none; display: grid; place-items: center; }
+.banner .bi svg { width: 42px; height: 42px; }
+.banner .bh { margin: 0 0 4px; font-size: 17px; font-weight: 700; line-height: 1.35; color: #fff; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.banner .sev { font-size: 11px; letter-spacing: .18em; font-weight: 800; padding: 2px 9px; border-radius: 6px; }
+.banner .bp { margin: 4px 0 0; font-size: 14.5px; line-height: 1.6; }
+.banner--danger { background: linear-gradient(120deg, #43101f 0%, #1c1015 62%, #141014 100%); border-color: #7c1430; color: #ffc9d5; }
+.banner--danger .bi svg, .banner--danger .sev { color: #ff8fa8; }
+.banner--danger .sev { background: #7c143055; }
+.banner--unsafe { background: linear-gradient(120deg, #452a0d 0%, #1e1711 62%, #141014 100%); border-color: #7c3e0c; color: #ffd9b0; }
+.banner--unsafe .bi svg, .banner--unsafe .sev { color: #ffb56b; }
+.banner--unsafe .sev { background: #7c3e0c55; }
+.banner--caution { background: linear-gradient(120deg, #3d3210 0%, #1d1a11 62%, #141014 100%); border-color: #704e10; color: #ffe9a8; }
+.banner--caution .bi svg, .banner--caution .sev { color: #ffd465; }
+.banner--caution .sev { background: #704e1055; }
+
 /* Trip reports: labelled facts and dose chips instead of a two-column table. */
 .report .hero-card h1 { font-size: 40px; }
 .report .doses { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }

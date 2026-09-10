@@ -118,12 +118,14 @@ function resolveIcon(name, used) {
   return name;
 }
 
+const TONE_ORDER = ["danger", "unsafe", "caution"];
+
 async function main() {
   const outArg = process.argv.indexOf("--out");
   const outPath = outArg > 0 ? path.resolve(process.argv[outArg + 1]) : OUT_DEFAULT;
 
   await loadCustomIcons();
-  const [report, substances, effects, categories, reports, articles, summaries, layout, copy, manifest] = await Promise.all([
+  const [report, substances, effects, categories, reports, articles, summaries, layout, copy, bannerPresets, manifest] = await Promise.all([
     readJson("freeodwiki/export-report.json"),
     readJson("substances/SubstanceIndex.zh-Hans.json"),
     readJson("effects/EffectIndex.zh-Hans.json"),
@@ -133,6 +135,7 @@ async function main() {
     readJson("summaries/PsychoactiveSummaries.zh-Hans.json"),
     readJson("layout/Layout.zh-Hans.json"),
     readJson("copy/CopyBlocks.zh-Hans.json"),
+    readJson("banners/WarningBanners.zh-Hans.json"),
     JSON.parse(await readFile(path.join(repoRoot, "public/downloads/zh-Hans/manifest.json"), "utf8")),
   ]);
 
@@ -292,6 +295,21 @@ async function main() {
       library: copyOf("effects-index-tab-library"),
     },
     tiles: HOME_TILES,
+    /**
+     * Same render rule as the site: a preset applies to a named slug, never to
+     * a classification. Sorted by tone then key, exactly as
+     * `compareWarningBanners` in src/data/substanceWarningBanners.ts does; the
+     * reader applies the same two-banner cap per article.
+     */
+    banners: bannerPresets.items.map((preset) => ({
+      key: preset.key,
+      tone: preset.tone,
+      icon: resolveIcon(preset.icon, icons),
+      severityLabel: preset.severityLabel,
+      headline: preset.headline,
+      points: preset.points,
+      slugs: preset.enabledSlugs,
+    })).sort((a, b) => (TONE_ORDER.indexOf(a.tone) - TONE_ORDER.indexOf(b.tone)) || a.key.localeCompare(b.key)),
     statement: { zh: copyOf("china-statement-zh"), en: copyOf("china-statement-en") },
     enums,
     sections,
