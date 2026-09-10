@@ -449,5 +449,6 @@ export const DATASET_OF = Object.freeze({
   summaries: "PsychoactiveSummaries",
   effectCategories: "EffectCategories",
   reports: "TripReports",
+  banners: "WarningBanners",
 });
 

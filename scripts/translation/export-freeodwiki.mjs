@@ -62,6 +62,8 @@ function newCounters() {
   };
 }
 
+const BANNER_TONE_ORDER = ["danger", "unsafe", "caution"];
+const MAX_BANNERS_PER_PAGE = 2;
 const MARKDOWN_LINK = /\]\((\/[^)\s]+)\)/g;
 
 /**
@@ -218,6 +220,15 @@ async function main() {
     .filter((identity) => identity.kind === "effect")
     .map((identity) => [identity.slug, { title: identity.title, href: `/${identity.tree}/${linkSafe(identity.file)}` }]));
 
+  // Banners are not a page corpus: they are chrome that belongs at the top of
+  // the substance pages they are enabled on, in the locale being written.
+  const bannerArtifact = (await readArtifact(root, "banners", locale)).artifact;
+  const bannerPresets = (Array.isArray(bannerArtifact?.items) ? bannerArtifact.items : [])
+    .filter((preset) => preset.enabled)
+    .sort((a, b) => (BANNER_TONE_ORDER.indexOf(a.tone) - BANNER_TONE_ORDER.indexOf(b.tone)) || String(a.key).localeCompare(String(b.key)));
+  const bannersFor = (slug) => bannerPresets.filter((preset) => (preset.enabledSlugs ?? []).includes(slug)).slice(0, MAX_BANNERS_PER_PAGE);
+  console.log(`Banners       ${bannerPresets.length} presets${bannerArtifact ? "" : " (none found)"}`);
+
   const counters = newCounters();
   const pages = [];
   const emitted = {};
@@ -261,6 +272,7 @@ async function main() {
         effectPagesByTitle,
         effectPagesBySlug,
         generatedAt: entry.artifact.generatedAt,
+        bannersFor,
       };
 
       const page = build(item, ctx);

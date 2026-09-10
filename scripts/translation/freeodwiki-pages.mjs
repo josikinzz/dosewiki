@@ -206,6 +206,19 @@ export function substancePage(item, ctx) {
   const title = String(item.title ?? item.slug);
   const blocks = [];
 
+  // The drug-class safety banners the site shows above the hero. Same rule as
+  // everywhere else: enabled on this named slug, never inferred from a class.
+  // A blockquote, for the reason `sourceStatement` gives: the target's enabled
+  // Markdown extension set cannot be asserted, and a blockquote survives all
+  // of them.
+  for (const banner of ctx.bannersFor?.(String(item.slug ?? "")) ?? []) {
+    blocks.push([
+      `> **${escapeProse(banner.severityLabel)} — ${escapeProse(banner.headline)}**`,
+      ">",
+      ...banner.points.map((point) => `> ${escapeProse(point)}`),
+    ].join("\n"));
+  }
+
   const summary = renderPlainProse(item.summary, ctx);
   blocks.push(...summary);
   blocks.push(...substanceTables(item, ctx));

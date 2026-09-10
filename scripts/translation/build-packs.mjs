@@ -93,6 +93,15 @@ const PACKS = [
     summary: "Taglines, category introductions, docs pages, empty states, the about and licence pages.",
     summaryZh: "标语、类别介绍、文档页、空状态、关于页与许可页。",
   },
+  {
+    id: "banners",
+    noun: "banners",
+    nounZh: "条警示",
+    title: "Safety banners",
+    titleZh: "安全警示横幅",
+    summary: "The drug-class warnings that head an article, each with the substance slugs it is enabled on.",
+    summaryZh: "置于条目顶部的类别安全警示，每条附有其启用的物质条目标识。",
+  },
 ];
 const PACK_ORDER = new Map(PACKS.map((pack, index) => [pack.id, index]));
 
