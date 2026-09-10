@@ -35,6 +35,8 @@ const RENDER_INPUT_PATHS = [
   "src/assets/dosewiki-logo.svg",
   "src/assets/replications-after-images-chelsea-morgan.webp",
   "public/profile-avatars/josie/avatar.webp",
+  "public/images/downloads/dosewiki-freeodwiki-banner.webp",
+  "public/fonts/NotoSansCJKsc-Bold.china-card-subset.otf",
   "public/fonts/Blinker-Regular.ttf",
   "public/fonts/Blinker-SemiBold.ttf",
 ] as const;

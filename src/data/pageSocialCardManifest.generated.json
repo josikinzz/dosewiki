@@ -1,20 +1,21 @@
 {
   "version": 1,
-  "rendererVersion": "7",
+  "rendererVersion": "8",
   "cards": {
     "home": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/36/36e33475ce436e1e93cc34dc643ac120164043ffeab894d8bd7bd4506ef0ae8c.jpg",
     "substances": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/be/be499727d3b3be9ced460b2687e8ac19b57577a2bdfd451918b2491679ad210a.jpg",
     "effects": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/eb/eb8c3a8f926efd8f2fed6045574cc8aa1a14ea9176e2746b3abdbffd12d039d3.jpg",
     "replications": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/64/64f0974df66b45af4ba401c2290a05c63ecefc6bc694db4ed9196162baf4b79b.jpg",
     "chemical-classes": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/80/809d88009068d44ff41930ca49cd5a91aab9bfa6b4f1e618cc72289f594d4fc7.jpg",
-    "about": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/eb/eb54403830b6ce4ac13898527fb58524a152911451e7381f5675c389a0d949a8.jpg"
+    "about": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/eb/eb54403830b6ce4ac13898527fb58524a152911451e7381f5675c389a0d949a8.jpg",
+    "china": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/1e/1e020a53762b2d93634979d5093273166dd389eaed6d705975441a71f541f195.jpg"
   },
   "promotion": {
     "operation": "publish-social-cards",
-    "planDigest": "62e6e2f5181b8cab8f02996b8998009eeeaa5f725cc7801e8657156e7ea08341",
-    "inputManifestSha256": "f18905d2c509d1ca2bbd8977f7de27bf7c1f4f9c7637d99c43d9a1d6f9857add",
-    "logicalCardCount": 6,
-    "publishedCardCount": 5,
+    "planDigest": "4c358fdd923b80dfb42891196537c919db30a91bc91c93d814aadde8a09c3aae",
+    "inputManifestSha256": "7fc7e3f4ef4ba8c74062fa8833573a4aeacb415fdba9c6127c27742c4dd1af39",
+    "logicalCardCount": 7,
+    "publishedCardCount": 6,
     "uniqueObjectCount": 1
   }
 }

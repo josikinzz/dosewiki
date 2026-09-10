@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { buildPublicPageMetadata } from "@server/next/publicSite";
+import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import { getMoleculePackDownloadStats, getMoleculePackSlugs } from "@server/open-data/downloadStats";
 import { getTranslationPacks, getTranslationSamples } from "@server/next/translationPacks";
 import { Bilingual, DownloadsCatalogue, ExternalLink } from "./DownloadsCatalogue";
@@ -52,10 +53,11 @@ export async function generateMetadata() {
   }
 
   return buildPublicPageMetadata({
-    title: "dose.wiki 中文",
+    title: "dose.wiki/china",
     description: "The dose.wiki datasets, each in Simplified Chinese and in English, as JSON and as FreeODwiki Markdown.",
     pathname: "/china",
     noIndex: true,
+    socialImage: pageSocialCardImage("china", "dose.wiki 简体中文数据集 · Download the dataset"),
   });
 }
 

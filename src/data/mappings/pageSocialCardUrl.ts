@@ -10,6 +10,7 @@ export const PAGE_SOCIAL_CARD_KEYS = [
   "replications",
   "chemical-classes",
   "about",
+  "china",
 ] as const;
 
 export type PageSocialCardKey = (typeof PAGE_SOCIAL_CARD_KEYS)[number];

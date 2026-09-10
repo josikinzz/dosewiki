@@ -38,10 +38,15 @@ export const SOCIAL_CARD_FONT = {
   fontFiles: [
     path.join(FONT_DIR, "Blinker-Regular.ttf"),
     path.join(FONT_DIR, "Blinker-SemiBold.ttf"),
+    // Noto Sans CJK SC Bold (SIL OFL), subset to the glyphs the /china card sets.
+    path.join(FONT_DIR, "NotoSansCJKsc-Bold.china-card-subset.otf"),
   ],
   defaultFontFamily: "Blinker",
   sansSerifFamily: "Blinker",
 };
+
+/** Latin in Blinker, Han in the bundled Noto subset. */
+export const SOCIAL_CARD_CJK_FONT_FAMILY = "Blinker, 'Noto Sans CJK SC'";
 
 const doseWikiLogoSvg = readFileSync(
   path.join(process.cwd(), "src/assets/dosewiki-logo.svg"),
