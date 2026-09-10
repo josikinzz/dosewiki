@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import sharp from "sharp";
@@ -450,11 +451,31 @@ async function renderChinaCard(): Promise<Buffer> {
     .toBuffer();
   const bannerDataUri = `data:image/png;base64,${banner.toString("base64")}`;
   const cjk = SOCIAL_CARD_CJK_FONT_FAMILY;
+  // Counts come from the published pack manifest so the card never drifts from the download page.
+  const manifest = JSON.parse(
+    await readFile(path.join(process.cwd(), "public/downloads/zh-Hans/manifest.json"), "utf8"),
+  ) as { datasets: { id: string; packs: Record<string, { items: number }> }[] };
+  const countOf = (id: string): number => {
+    const dataset = manifest.datasets.find((entry) => entry.id === id);
+    if (!dataset) throw new Error(`China card: dataset ${id} missing from the pack manifest`);
+    return dataset.packs["zh-Hans"].items;
+  };
+  const stats = [
+    ["Substances", "物质", countOf("substances")],
+    ["Effects", "效应", countOf("effects")],
+    ["Reports", "报告", countOf("reports")],
+    ["Articles", "文章", countOf("articles")],
+  ] as const;
+  const statsMarkup = stats.map(([label, labelZh, count], index) => {
+    const x = 210 + index * 260;
+    return `<text x="${x}" y="898" text-anchor="middle" font-family="Blinker" font-size="60" font-weight="600" letter-spacing="-1" fill="${SOCIAL_CARD_COLORS.accentStrong}">${count.toLocaleString("en-GB")}</text>
+      <text x="${x}" y="936" text-anchor="middle" font-family="${cjk}" font-size="26" fill="${SOCIAL_CARD_COLORS.textMuted}">${label}&#160;&#160;${labelZh}</text>`;
+  }).join("");
 
   return renderSocialCardSvgPng(
     cardSvg(`
-      ${renderDoseWikiWordmark(600, 226, 104)}
-      <text x="600" y="300" text-anchor="middle" font-family="${cjk}" font-size="54" font-weight="600" fill="${SOCIAL_CARD_COLORS.accentStrong}">简体中文数据集</text>
+      ${renderDoseWikiWordmark(600, 214, 104)}
+      <text x="600" y="286" text-anchor="middle" font-family="${cjk}" font-size="54" font-weight="600" fill="${SOCIAL_CARD_COLORS.accentStrong}">简体中文数据集</text>
       <defs>
         <!-- Mirrors .theme-cutout-glow (6px accent 22%, 1.5px white 18% at a ~600px render); the card draws the banner ~1.75x that. CSS blur radius is twice the deviation. -->
         <filter id="china-cutout-glow" x="-10%" y="-20%" width="120%" height="140%">
@@ -462,10 +483,10 @@ async function renderChinaCard(): Promise<Buffer> {
           <feDropShadow dx="0" dy="0" stdDeviation="1.3" flood-color="${SOCIAL_CARD_COLORS.text}" flood-opacity="0.18"/>
         </filter>
       </defs>
-      <image href="${bannerDataUri}" x="80" y="360" width="1040" height="490" preserveAspectRatio="xMidYMid meet" filter="url(#china-cutout-glow)"/>
-      <text x="600" y="946" text-anchor="middle" font-family="${cjk}" font-size="46" font-weight="600" fill="${SOCIAL_CARD_COLORS.text}">Download the dataset<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>下载数据集</text>
-      <text x="600" y="1014" text-anchor="middle" font-family="${cjk}" font-size="32" fill="${SOCIAL_CARD_COLORS.textMuted}">Packs in Chinese and English<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>中英文数据包</text>
-      <text x="600" y="1072" text-anchor="middle" font-family="Blinker" font-size="28" fill="${SOCIAL_CARD_COLORS.textFaint}">dose.wiki/china</text>
+      <image href="${bannerDataUri}" x="110" y="320" width="980" height="470" preserveAspectRatio="xMidYMid meet" filter="url(#china-cutout-glow)"/>
+      ${statsMarkup}
+      <text x="600" y="1030" text-anchor="middle" font-family="${cjk}" font-size="44" font-weight="600" fill="${SOCIAL_CARD_COLORS.text}">Download the dataset<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>下载数据集</text>
+      <text x="600" y="1088" text-anchor="middle" font-family="${cjk}" font-size="30" fill="${SOCIAL_CARD_COLORS.textMuted}">Packs in Chinese and English<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>中英文数据包<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan><tspan font-family="Blinker">dose.wiki/china</tspan></text>
     `),
   );
 }

@@ -8,12 +8,12 @@
     "replications": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/64/64f0974df66b45af4ba401c2290a05c63ecefc6bc694db4ed9196162baf4b79b.jpg",
     "chemical-classes": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/80/809d88009068d44ff41930ca49cd5a91aab9bfa6b4f1e618cc72289f594d4fc7.jpg",
     "about": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/eb/eb54403830b6ce4ac13898527fb58524a152911451e7381f5675c389a0d949a8.jpg",
-    "china": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/1e/1e020a53762b2d93634979d5093273166dd389eaed6d705975441a71f541f195.jpg"
+    "china": "https://dosewiki-media.gremblinzuwu.workers.dev/media/sha256/e0/e071cc5fb55c71cf7953408347a179b5f8ebb446a9c6b5c3adb050353de069fd.jpg"
   },
   "promotion": {
     "operation": "publish-social-cards",
-    "planDigest": "4c358fdd923b80dfb42891196537c919db30a91bc91c93d814aadde8a09c3aae",
-    "inputManifestSha256": "7fc7e3f4ef4ba8c74062fa8833573a4aeacb415fdba9c6127c27742c4dd1af39",
+    "planDigest": "c79c80a1cde59ffdb891aac048d58b878fd82cd812c35261725f35247bb0758c",
+    "inputManifestSha256": "552708b9c2d5087e13a4755d61c9e0196306b27f68a147c63af5c046a4f54f07",
     "logicalCardCount": 7,
     "publishedCardCount": 6,
     "uniqueObjectCount": 1

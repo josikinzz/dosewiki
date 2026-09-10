@@ -37,6 +37,7 @@ const RENDER_INPUT_PATHS = [
   "public/profile-avatars/josie/avatar.webp",
   "public/images/downloads/dosewiki-freeodwiki-banner.webp",
   "public/fonts/NotoSansCJKsc-Bold.china-card-subset.otf",
+  "public/downloads/zh-Hans/manifest.json",
   "public/fonts/Blinker-Regular.ttf",
   "public/fonts/Blinker-SemiBold.ttf",
 ] as const;
