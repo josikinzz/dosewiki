@@ -19,7 +19,6 @@ import {
   PRO_THEME_STYLESHEET_HREF,
   PRO_THEME_STYLESHEET_LINK_ID,
 } from "@/theme/appearanceSheets";
-import { GTProvider, useLocale } from "gt-next";
 import { DocumentRuntime } from "./_components/DocumentRuntime";
 import { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
 import "@site-styles";
@@ -91,10 +90,9 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = useLocale();
   return (
     <html
-      lang={locale}
+      lang="en"
       data-site={SITE_FLAVOR}
       data-theme={initialAppearance.colorScheme}
       data-visual-style={initialAppearance.visualStyle}
@@ -161,9 +159,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">
           {zodJitlessBootstrap}
         </Script>
-        <GTProvider>
-          <DocumentRuntime>{children}</DocumentRuntime>
-        </GTProvider>
+        <DocumentRuntime>{children}</DocumentRuntime>
       </body>
     </html>
   );
