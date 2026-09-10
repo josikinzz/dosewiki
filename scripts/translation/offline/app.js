@@ -43,9 +43,11 @@
   function inline(text) {
     let s = text
       .replace(/<sup>/g, "\uE000sup\uE001").replace(/<\/sup>/g, "\uE000/sup\uE001")
-      .replace(/<a name="([^"]+)"><\/a>/g, "\uE000a $1\uE001");
+      .replace(/<a name="([^"]+)"><\/a>/g, "\uE000a $1\uE001")
+      .replace(/<span class="cnote">/g, "\uE000cnote\uE001").replace(/<\/span>/g, "\uE000/cnote\uE001");
     s = esc(s);
-    s = s.replace(/\uE000sup\uE001/g, "<sup>").replace(/\uE000\/sup\uE001/g, "</sup>").replace(/\uE000a ([^\uE001]+)\uE001/g, '<a id="$1"></a>');
+    s = s.replace(/\uE000sup\uE001/g, "<sup>").replace(/\uE000\/sup\uE001/g, "</sup>").replace(/\uE000a ([^\uE001]+)\uE001/g, '<a id="$1"></a>')
+      .replace(/\uE000cnote\uE001/g, '<span class="cnote">').replace(/\uE000\/cnote\uE001/g, "</span>");
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
     // Citation markers: [\[3\]](#ref-x-3) -> superscript reference.
     s = s.replace(/\[\\\[(\d+)\\\]\]\((#[^)\s]+)\)/g, '<sup class="ref"><a href="$2">$1</a></sup>');
@@ -318,13 +320,39 @@
       const id = SECTION_BY_HEADING[p.heading] ?? p.heading;
       present.add(id);
       list.chips = id === "subjective-effects";
-      const html = `<section class="sec sec-${id}" id="sec-${id}">${sectionHead(id, p.heading)}${markdown(p.body)}</section>`;
+      const body = id === "legality" ? legalityBody(p.body) : p.body;
+      const html = `<section class="sec sec-${id}" id="sec-${id}">${sectionHead(id, p.heading)}${markdown(body)}</section>`;
       list.chips = false;
       return html;
     });
     const toc = `<aside class="toc"><div class="toc-in"><p>目录</p><a href="#/substances/${slug}#sec-overview">${icon("lucide:file-text")}简介</a>${D.sections.filter((x) => x.toc && present.has(x.id)).map((x) => `<a href="#/substances/${slug}#sec-${x.id}">${icon(x.icon)}${esc(x.label)}</a>`).join("")}</div></aside>`;
     return { wide: true, html: `<div class="article">${toc}<article class="doc" id="sec-overview">${beta()}${hero}${dd}${sections.join("")}</article></div>`, sub: s };
   }
+  /**
+   * The exporter writes the country table and then a "各国备注" list of each
+   * country's note. The site keeps the note inside the country's row, so fold
+   * the list back into the table and drop the second listing.
+   */
+  function legalityBody(body) {
+    const marker = body.indexOf("#### 各国备注");
+    if (marker < 0) return body;
+    const notes = new Map();
+    const tail = body.slice(marker).split("\n").slice(1);
+    let rest = [];
+    for (const line of tail) {
+      const m = line.match(/^- \*\*(.+?)\*\*\s*[：:]\s*(.+)$/);
+      if (m) notes.set(m[1].trim(), m[2].trim()); else if (line.trim()) rest.push(line);
+    }
+    if (!notes.size) return body;
+    const head = body.slice(0, marker).split("\n").map((line) => {
+      const m = line.match(/^\| ([^|]+?) \|(.*)$/);
+      if (!m || /^\| *-|^\| 国家/.test(line)) return line;
+      const note = notes.get(m[1].trim());
+      return note ? `| ${m[1]} |${m[2].replace(/\|\s*$/, "")}<span class="cnote">${note.replace(/\|/g, "&#124;")}</span> |` : line;
+    });
+    return [...head, ...rest].join("\n");
+  }
+
   /** The exporter's lead block minus the title and its own dosage/duration tables, which the reader draws itself. */
   function leadOf(body) {
     const lines = body.replace(/^# .*\n?/, "").split("\n");
