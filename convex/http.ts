@@ -39,6 +39,20 @@ const OK_RESPONSE = () => new Response(JSON.stringify({ ok: true }), { status: 2
 const FAIL_RESPONSE = (status: number) =>
   new Response(JSON.stringify({ ok: false }), { status, headers: JSON_HEADERS });
 
+/**
+ * Cutover forward. While `MAILING_LIST_FORWARD_URL` is set on the Convex
+ * deployment (set at step 10 of the PlanetScale cutover, together with
+ * `DATA_BACKEND=postgres` on Vercel), signups that still arrive here from a
+ * sibling site that has not repointed are forwarded to the Next route that
+ * now owns the list, instead of being written to a deployment that is no
+ * longer runtime truth. The Next route forwards here only while
+ * `DATA_BACKEND` is Convex, so the two forwards are never active together.
+ */
+function mailingListForwardUrl(): string | null {
+  const raw = process.env.MAILING_LIST_FORWARD_URL?.trim();
+  return raw && /^https:\/\/\S+$/.test(raw) ? raw : null;
+}
+
 const subscribeHandler = httpAction(async (ctx, request) => {
   let body: unknown;
   try {
@@ -53,6 +67,27 @@ const subscribeHandler = httpAction(async (ctx, request) => {
   const { email, list, website } = body as Record<string, unknown>;
   if (typeof email !== "string" || !(MAILING_LISTS as readonly unknown[]).includes(list)) {
     return FAIL_RESPONSE(400);
+  }
+
+  const forwardUrl = mailingListForwardUrl();
+  if (forwardUrl) {
+    const origin = request.headers.get("origin");
+    let upstream: Response;
+    try {
+      upstream = await fetch(forwardUrl, {
+        method: "POST",
+        headers: {
+          ...JSON_HEADERS,
+          ...(origin ? { Origin: origin } : {}),
+          "X-Forwarded-For": request.headers.get("x-forwarded-for") ?? "",
+          ...(request.headers.get("user-agent") ? { "User-Agent": request.headers.get("user-agent")! } : {}),
+        },
+        body: JSON.stringify({ email, list, website }),
+      });
+    } catch {
+      return FAIL_RESPONSE(502);
+    }
+    return new Response(await upstream.text(), { status: upstream.status, headers: JSON_HEADERS });
   }
 
   // Convex fronts every request with a proxy, so the first x-forwarded-for
