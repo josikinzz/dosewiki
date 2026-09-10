@@ -83,7 +83,17 @@ export type TranslationPackIndex = {
   note: string;
   packs: TranslationPack[];
   markdownTree: (TranslationPackFile & { target: string; targetLicense: string }) | null;
+  /** The single-file offline reader (`translate:offline`), or null when it has not been built. */
+  offline: { file: string; bytes: number; href: string } | null;
 };
+
+const OFFLINE_FILE = "dose.wiki.zh-Hans.html";
+
+function offlineEdition(): TranslationPackIndex["offline"] {
+  const absolute = path.join(process.cwd(), PACK_DIR, OFFLINE_FILE);
+  if (!existsSync(absolute)) return null;
+  return { file: OFFLINE_FILE, bytes: statSync(absolute).size, href: `/${path.posix.join("downloads", TRANSLATION_PACK_LOCALE, OFFLINE_FILE)}` };
+}
 
 function provenFile(file: z.infer<typeof packFileSchema>): TranslationPackFile {
   let bytes: number;
@@ -148,6 +158,7 @@ function readTranslationPacks(): TranslationPackIndex | null {
     markdownTree: parsed.data.markdown
       ? { ...provenFile(parsed.data.markdown), target: parsed.data.markdown.target, targetLicense: parsed.data.markdown.targetLicense }
       : null,
+    offline: offlineEdition(),
   };
 }
 

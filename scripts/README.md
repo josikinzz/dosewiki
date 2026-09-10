@@ -39,8 +39,11 @@ after `--`; for example, `npm run batch:legality -- --dry-run`. The manifest at
 `scripts/lib/workflow-command-surface.mjs` records each stable command's purpose,
 required environment, script path, read/write targets, dry-run policy, Convex URL
 policy, confirmation flag, and shared data-ops context requirement.
-Direct `node scripts/...` invocations remain supported for low-level adapters and
-existing operator shell history.
+Direct `bun scripts/...` invocations remain supported for low-level adapters and
+existing operator shell history. Every script that talks to the database imports
+`scripts/lib/data-client.ts`, so `bun` is the operator runtime; `node scripts/...`
+still works for the Convex backend on Node 24+ (type stripping), but the Postgres
+backend loads the in-process runtime and needs `bun`.
 
 ### Production write command boundary
 
@@ -107,6 +110,49 @@ than failing usefully:
 npx vitest run --config scripts/test/vitest.workflow.config.ts \
   scripts/replications/transcode-videos.test.mjs
 ```
+
+### Data backend selection (Convex or Postgres)
+
+Scripts never construct `ConvexHttpClient` directly. `createDataClient()` in
+`scripts/lib/data-client.ts` returns the same `query` / `mutation` surface for
+whichever backend `DATA_BACKEND` selects, and every `api.*` call site is
+unchanged:
+
+| Backend | Selected by | Target resolution | Fingerprint |
+| --- | --- | --- | --- |
+| Convex (default) | `DATA_BACKEND` unset or any value other than `postgres` | URL passed by the script, else `--target-url`, else `TARGET_CONVEX_URL` | deployment slug (`glad-minnow-656`) |
+| Postgres | `DATA_BACKEND=postgres` | `--target <url>`, else `TARGET_POSTGRES_URL`, else `POSTGRES_POOLED_URL`, else `POSTGRES_DIRECT_URL` | `<host>/<database>` (`localhost/dosewiki`) |
+
+The Postgres branch keeps the production write ceremony intact with one
+substitution per column: `--target` or `TARGET_POSTGRES_URL` is the explicit
+target (the pooled and direct app variables are compatibility fallbacks that
+privileged writes ignore, exactly as `CONVEX_URL` is ignored today),
+`--confirm-write=<operation-name>` is unchanged, and `--expected-deployment`
+takes the `<host>/<database>` fingerprint. There is no loopback opt-in for
+Postgres: a local rehearsal spells out `--target postgres://localhost:5432/dosewiki
+--expected-deployment=localhost/dosewiki` like any other target. Any non-loopback
+host additionally requires `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM=<host>`
+(`scripts/postgres/targetGuard.ts`), for reads as well as writes.
+
+```bash
+# Same command, Postgres backend, local rehearsal database.
+DATA_BACKEND=postgres npm run legality:apply -- --slug=<slug> --dry-run \
+  --target postgres://localhost:5432/dosewiki
+DATA_BACKEND=postgres npm run legality:apply -- --slug=<slug> --write \
+  --target postgres://localhost:5432/dosewiki --confirm-legality-write \
+  --confirm-write=apply-legality-research-draft --expected-deployment=localhost/dosewiki
+```
+
+Environment isolation rule (ticket 19): a preview-shaped environment
+(`VERCEL_ENV=preview`) must not be able to reach a production writer through a
+fallback variable on either backend. `npm run postgres:check-env-isolation`
+proves it against both guard modules with synthetic environments and exits
+non-zero on any leak; `npm run postgres:verify-migrations` fails when
+`lib/postgres/schema.generated.ts` drifts from the latest drizzle snapshot, so
+`npm run postgres:migrate` stays the only schema path. `npm run
+postgres:rehearse-exports` and `npm run postgres:rehearse-commands` drive the
+public export and the citation, legality, media, and identity command families
+against local Postgres.
 
 ### Bounded substance corpus reads
 
@@ -971,6 +1017,15 @@ headings, table labels, source notes) follows `labelsFor("en")` so the two trees
 compare line for line. Nothing is withheld on licence grounds; each page states
 the terms its record carries (author-retained reports say so on the page).
 
+`translate:offline` writes `public/downloads/zh-Hans/dose.wiki.zh-Hans.html`,
+the single-file offline reader: the Chinese Markdown tree, the index metadata,
+the dark-colourway molecule drawings, the site's icons and logo, and a vanilla
+JS reader (`scripts/translation/offline/`) whose home, substance index and
+article layouts follow dose.wiki. Data rides as one gzipped base64 blob
+inflated with `DecompressionStream`, so the file stays under 4 MB. Run it after
+`translate:freeodwiki` and `translate:packs`; the `/china` page lists the file
+when it exists.
+
 `translate:charset` regenerates `scripts/translation/traditional-charset.json`
 from OpenCC's TSCharacters table; the script gate reads that file rather than a
 hand-written character list.
@@ -1563,6 +1618,11 @@ export CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE="..." # Reviewed section C
 export GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT="target-deployment" # Server-side replay boundary
 export OPENROUTER_API_KEY="sk-or-..."          # OpenRouter-backed batch generation
 export SCRY_API_KEY="..."                      # Scry read-only public corpus queries
+export DATA_BACKEND="postgres"                 # Opt in to the Postgres backend; unset means Convex
+export TARGET_POSTGRES_URL="postgres://..."    # Explicit Postgres write target (or --target <url>)
+export POSTGRES_POOLED_URL="postgres://..."    # App read fallback; never selects a privileged write
+export POSTGRES_DIRECT_URL="postgres://..."    # Migrations and imports; same fallback rule
+export POSTGRES_IMPORT_CONFIRM="<host>"        # Required with --allow-remote for any non-loopback Postgres host
 ```
 
 Batch generation and quote extraction scripts use the shared OpenRouter SDK helper at `scripts/lib/openrouter-sdk.mjs`.

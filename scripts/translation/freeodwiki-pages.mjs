@@ -117,6 +117,17 @@ function substanceEffects(item, ctx) {
   return blocks;
 }
 
+/** `{ start, end }` from the history schema, or a plain string; anything else renders no range. */
+function formatDateRange(range) {
+  if (!range) return "";
+  if (typeof range === "string") return range.trim();
+  if (typeof range !== "object") return "";
+  const start = String(range.start ?? "").trim();
+  const end = String(range.end ?? "").trim();
+  if (start && end) return start === end ? start : `${start}–${end}`;
+  return start || end;
+}
+
 function substanceHarm(item, ctx) {
   const harm = item.harm_potential;
   if (!harm || typeof harm !== "object") return [];
@@ -141,7 +152,7 @@ function substanceHarm(item, ctx) {
     }
     for (const [key, child] of Object.entries(value)) {
       if (key === "description" || key === "level") continue;
-      walk(child, `${label} · ${key}`, level + 1);
+      walk(child, `${label} · ${ui.harmSub[key] ?? key}`, level + 1);
     }
   };
   for (const [key, label] of Object.entries(ui.harm)) {
@@ -251,7 +262,8 @@ export function substancePage(item, ctx) {
       const sections = Array.isArray(item.history_culture?.sections) ? item.history_culture.sections : [];
       for (const section of sections) {
         const heading = prose(section?.heading, ctx.counters);
-        if (heading) out.push(`### ${section?.date_range ? ui.withRoute(heading, escapeProse(String(section.date_range))) : heading}`);
+        const dateRange = formatDateRange(section?.date_range);
+        if (heading) out.push(`### ${dateRange ? ui.withRoute(heading, escapeProse(dateRange)) : heading}`);
         out.push(...renderPlainProse(section?.content, ctx));
         for (const sub of Array.isArray(section?.subsections) ? section.subsections : []) {
           const subHeading = prose(sub?.heading, ctx.counters);

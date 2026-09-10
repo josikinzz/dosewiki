@@ -123,6 +123,40 @@ export default async function DownloadsPage() {
         </div>
       </section>
 
+      {translations?.offline && (
+        <section aria-label="Offline edition" className="space-y-2">
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <Icon icon="lucide:file-text" size={40} className="theme-accent-heading shrink-0" aria-hidden="true" />
+              <Bilingual
+                as="h2"
+                zh="单文件离线版"
+                en="Single-file offline edition"
+                className="theme-accent-heading font-display text-2xl font-semibold leading-tight"
+              />
+            </div>
+            <Bilingual
+              as="p"
+              zh="整个中文站装进一个 HTML 文件：全部物质、效应、体验报告与文章，附分子结构图与搜索，界面仿照 dose.wiki。下载后直接用浏览器打开，无需联网。"
+              en="The whole Chinese site in one HTML file: every substance, effect, report and article, with molecule drawings and search, laid out like dose.wiki. Download it and open it in a browser; no connection needed."
+              className="theme-text-secondary max-w-[68ch] text-sm leading-6"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button asChild variant="default" size="lg" className="justify-start self-start">
+              <a href={translations.offline.href} download={translations.offline.file}>
+                <Icon icon="charm:download" size={18} aria-hidden="true" />
+                HTML
+              </a>
+            </Button>
+            <p className="theme-text-faint text-xs">
+              <CountUp value={translations.packs.reduce((total, pack) => total + pack.translated.items, 0)} /> 条 ·{" "}
+              {formatFileSize(translations.offline.bytes)}
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Josie's statement to FreeODwiki: Chinese left, English right, the author between them. */}
       <section aria-label="Josie Kins 致 FreeODwiki · A statement from Josie Kins" className="border-dose-divider space-y-8 border-t pt-12">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-12">
