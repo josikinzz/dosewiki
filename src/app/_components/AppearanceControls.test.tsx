@@ -70,6 +70,7 @@ const COLOR_SLIDER_NAMES = [
 
 /** Every row on. The policy that decides these is asserted separately, below. */
 const ALL_ROWS: AppearanceCogRows = {
+  showVisualStyle: true,
   showColorScheme: true,
   showSurface: true,
   showAccent: true,
@@ -318,13 +319,13 @@ describe("AppearanceCog", () => {
     const panel = await openCog(user);
     await swapTab(user, panel, "colour");
 
-    // The colour tab: the two-way Mode pill, both rails always open, and the swap
-    // control offering the way back.
+    // The colour tab: the Style picker, the two-way Mode pill, both rails always
+    // open, and the swap control offering the way back.
     expect(
       [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
         control.getAttribute("data-appearance-axis"),
       ),
-    ).toEqual(["color-scheme"]);
+    ).toEqual(["visual-style", "color-scheme"]);
     expect(within(panel).getAllByRole("slider").map((slider) => slider.getAttribute("aria-label"))).toEqual(
       COLOR_SLIDER_NAMES,
     );
@@ -606,11 +607,13 @@ describe("AppearanceCog", () => {
     }
 
     // The swap hands the panel to the colour tab. The click lands focus on the swap
-    // control itself — the same slot in the new tab's first row — and one tab reaches
-    // the first colour rail, then the permanent Reset colors fixture, then the
-    // dev-only Theme Lab action.
+    // control itself — the same slot in the new tab's first row. The Style picker sits
+    // BEFORE the swap in DOM order, so the forward walk starts at the Mode pill's
+    // checked radio: first colour rail, permanent Reset colors fixture, dev-only
+    // Theme Lab action. A shift-tab confirms the Style picker behind the focus point.
     await swapTab(user, panel, "colour");
     const colourTabSequence = [
+      within(panel).getByRole("radio", { name: "Dark" }),
       within(panel).getByRole("slider", { name: "Background hue" }),
       within(panel).getByRole("slider", { name: "Background saturation" }),
       within(panel).getByRole("slider", { name: "Accent hue" }),
@@ -618,6 +621,12 @@ describe("AppearanceCog", () => {
       within(panel).getByRole("button", { name: "Reset colors" }),
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ];
+    expect(within(panel).getByRole("button", { name: "Show font controls" })).toHaveFocus();
+    // The Style picker sits immediately before the swap in DOM order — shift-tab
+    // from the focus point confirms it, then tab returns to the swap.
+    await user.tab({ shift: true });
+    expect(within(panel).getByRole("combobox", { name: "Style" })).toHaveFocus();
+    await user.tab();
     expect(within(panel).getByRole("button", { name: "Show font controls" })).toHaveFocus();
     for (const control of colourTabSequence) {
       await user.tab();
@@ -749,6 +758,7 @@ describe("AppearanceCog", () => {
   it("drops a locked row rather than rendering it inert", async () => {
     const user = userEvent.setup();
     renderCog({
+      showVisualStyle: false,
       showSurface: false,
       showAccent: false,
       showFont: false,
@@ -759,6 +769,9 @@ describe("AppearanceCog", () => {
 
     expect(
       within(panel).queryByRole("combobox", { name: "Font" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(panel).queryByRole("combobox", { name: "Style" }),
     ).not.toBeInTheDocument();
     expect(
       within(panel).queryByRole("slider", { name: "Accent hue" }),
@@ -829,7 +842,7 @@ describe("AppearanceCog", () => {
       await swapTab(user, panel, "colour");
 
       expect(panel).toHaveClass("theme-overlay-surface");
-      expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(1);
+      expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
       // Both colour axes work on both visual styles: the accent pair rotates
       // and re-saturates the Pro --ei-* ramp, and the surface pair drives the
       // additive Pro surface blocks (c + K × level over the authored

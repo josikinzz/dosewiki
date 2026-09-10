@@ -25,6 +25,7 @@ import { proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
 import { FontPicker } from "./FontPicker";
 import { SchemeToggle } from "./SchemeToggle";
+import { StylePicker } from "./StylePicker";
 import {
   ColorAxisSliders,
   axisDot,
@@ -53,6 +54,11 @@ function signedEm(value: number): string {
  * appearance without standing up a flavor config or a session.
  */
 export type AppearancePanelRows = {
+  /**
+   * The Vivid/Clinical look picker. Absent where the publication's identity is one
+   * style (the provider's setter is a no-op under that lock).
+   */
+  showVisualStyle: boolean;
   /** Dark/Light page scheme. */
   showColorScheme: boolean;
   /** The surface colour pair: hue and saturation. */
@@ -81,6 +87,7 @@ export type AppearancePanelRows = {
  * option that this reader panel leaves out.
  */
 export function AppearancePanel({
+  showVisualStyle,
   showColorScheme,
   showSurface,
   showAccent,
@@ -230,15 +237,17 @@ export function AppearancePanel({
 
   return (
     <div className="flex flex-col gap-3">
-      {showColorScheme || swapTarget ? (
+      {/* First row: the look picker with the swap beside it, on the font tab's exact
+          geometry (dropdown flex-1, bare swap control). Mode follows beneath. */}
+      {showVisualStyle || swapTarget ? (
         <div className="flex items-center gap-1">
-          {showColorScheme ? (
-            <div className="min-w-0 flex-1">
-              <SchemeToggle />
-            </div>
-          ) : null}
+          {showVisualStyle ? <StylePicker className="min-w-0 flex-1" /> : null}
           {swapTarget ? <TabSwapButton target={swapTarget} onSwap={setTab} /> : null}
         </div>
+      ) : null}
+
+      {showColorScheme ? (
+        <SchemeToggle />
       ) : null}
 
       {showSurface ? (
