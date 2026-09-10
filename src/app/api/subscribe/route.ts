@@ -12,6 +12,7 @@
  * `next.config.ts` rewrites `/subscribe` here so the public sites only swap the
  * origin at cutover.
  */
+import { isDataWriteFreezeActive } from "@server/runtime/dataWriteFreeze";
 import { makeFunctionReference } from "convex/server";
 import { getConvexDeploymentName, getPrivilegedWriteTarget } from "@server/convex/runtimeTargets";
 import { getPublicIntakeWriteCapability } from "@server/convex/serverWriteCapability";
@@ -65,6 +66,10 @@ export async function POST(request: Request) {
 
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get("user-agent") ?? undefined;
+
+  // The Convex forward bypasses `serverWriteCapability`, so the freeze must be
+  // honoured here or a frozen window still writes into Convex (manifest, s7).
+  if (isDataWriteFreezeActive()) return respond(origin, false, 503);
 
   if (getDataBackend() !== "postgres") {
     return forwardToConvexAction(origin, parsed, clientIp, userAgent);
