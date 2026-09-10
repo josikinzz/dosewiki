@@ -159,6 +159,7 @@
     "postgres:migrate": "drizzle-kit migrate",
     "postgres:synthesize-export": "bun scripts/postgres/synthesizeConvexExport.ts",
     "postgres:import": "bun scripts/postgres/import-convex-export.ts",
+    "postgres:rebuild-derived": "bun scripts/postgres/rebuild-derived-tables.ts",
     "postgres:rehearse-publication": "bun scripts/postgres/rehearse-article-publication.ts",
     "postgres:rehearse-auth": "bun scripts/postgres/rehearse-auth.ts",
     "postgres:rehearse-article-lifecycle": "bun scripts/postgres/rehearse-article-lifecycle.ts",
