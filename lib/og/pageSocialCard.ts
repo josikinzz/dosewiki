@@ -478,7 +478,7 @@ async function renderChinaCard(): Promise<Buffer> {
 
   return renderSocialCardSvgPng(
     cardSvg(`
-      ${renderDoseWikiWordmark(600, 214, 104)}
+      <text x="600" y="214" text-anchor="middle" font-family="Blinker" font-size="104" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.text}">dose<tspan fill="${SOCIAL_CARD_COLORS.accentStrong}">.wiki/</tspan>china</text>
       <text x="600" y="286" text-anchor="middle" font-family="${cjk}" font-size="54" font-weight="600" fill="${SOCIAL_CARD_COLORS.accentStrong}">简体中文数据集</text>
       <defs>
         <!-- Same recipe as .theme-cutout-glow (accent halo plus a thin white rim) but spread wider: the card is seen as a thumbnail, where the site's tight glow vanishes. -->
@@ -490,7 +490,7 @@ async function renderChinaCard(): Promise<Buffer> {
       <image href="${bannerDataUri}" x="110" y="320" width="980" height="470" preserveAspectRatio="xMidYMid meet" filter="url(#china-cutout-glow)"/>
       ${statsMarkup}
       <text x="600" y="1030" text-anchor="middle" font-family="${cjk}" font-size="44" font-weight="600" fill="${SOCIAL_CARD_COLORS.text}">Download the dataset<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>下载数据集</text>
-      <text x="600" y="1088" text-anchor="middle" font-family="${cjk}" font-size="30" fill="${SOCIAL_CARD_COLORS.textMuted}">Packs in Chinese and English<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>中英文数据包<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan><tspan font-family="Blinker">dose.wiki/china</tspan></text>
+      <text x="600" y="1088" text-anchor="middle" font-family="${cjk}" font-size="30" fill="${SOCIAL_CARD_COLORS.textMuted}">Packs in Chinese and English<tspan fill="${SOCIAL_CARD_COLORS.textFaint}">&#160;&#160;·&#160;&#160;</tspan>中英文数据包</text>
     `),
   );
 }
