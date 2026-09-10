@@ -1,0 +1,777 @@
+/**
+ * Ticket 21: public contract parity, freshness, and backend identity.
+ *
+ * Read-only against both real backends:
+ *   1. every `publicDataReadCatalog` query, run on Convex production
+ *      (`CONVEX_PUBLIC_READ_URL`, public queries only) and on the PlanetScale
+ *      2026-09-09 snapshot (`POSTGRES_DIRECT_URL`) through
+ *      `PostgresConvexClient`, deep-compared after Convex-wire normalisation;
+ *   2. the API v1 and open-data route handlers, run in-process under
+ *      `DATA_BACKEND=postgres` (PlanetScale) and diffed against the live
+ *      https://dose.wiki responses, with an in-process Convex run as arbiter;
+ *   3. freshness on LOCAL Postgres: a `saveSubstances` mutation through the
+ *      runtime, the write path's own revalidation, and the adapter read;
+ *   4. backend identity of the persistent cache and the middleware rules that
+ *      keep editorial APIs off public hosts.
+ *
+ * Mismatches are `drift` when Convex moved after the snapshot (row timestamp
+ * or changelog after 2026-09-09T20:32Z, or the live site disagreeing with an
+ * in-process Convex run) and `defect` otherwise. Convex is never written.
+ * PlanetScale is never written: only `query` and SELECTs, and
+ * `POSTGRES_IMPORT_CONFIRM` is cleared for the whole run.
+ *
+ *   bun scripts/postgres/parity-public-reads.ts --target postgres://localhost:5432/dosewiki
+ */
+
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
+import { fileURLToPath } from "node:url";
+import { ConvexHttpClient } from "convex/browser";
+import { makeFunctionReference } from "convex/server";
+import { publicDataReadCatalog } from "../../lib/convex/publicData.readCatalog";
+import { isPublicRestrictedPath } from "../../lib/next/publicHostPolicy";
+import { getEditorDeliveryDecision } from "../../lib/next/editorDeliveryPolicy";
+import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
+import type { RouteResult } from "./parityInProcess";
+import {
+  canonical,
+  classifyMismatch,
+  firstDifference,
+  identityOf,
+  newestTimestamp,
+  omitKeys,
+  percentile,
+  redact,
+  setMediaBaseUrl,
+  SNAPSHOT_AT,
+  sortInsensitive,
+  stableStringify,
+  type Difference,
+  type Json,
+  type RowMismatch,
+} from "./parityShared";
+import { guardTarget, resolveTarget } from "./targetGuard";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const LIVE_ORIGIN = "https://dose.wiki";
+// Runaway stop only: every drain runs to the query's own `isDone`. The largest
+// public page walk is the 7,021-row replication table at 64 rows per page.
+const MAX_DRAIN_PAGES = 400;
+const USER_AGENT = "dosewiki-ticket-21-parity/1 (read-only contract check)";
+
+type CatalogKey = keyof typeof publicDataReadCatalog;
+type Args = Record<string, unknown>;
+type Backend = "convex" | "postgres";
+
+type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
+const checks: Check[] = [];
+function expect(scenario: string, check: string, pass: boolean, detail?: unknown): void {
+  checks.push({ scenario, check, pass, detail });
+  console.log(`${pass ? "PASS" : "FAIL"}  [${scenario}] ${check}`);
+}
+
+type Samples = {
+  substanceSlugs: string[];
+  effectSlugs: string[];
+  reportSlugs: string[];
+  replicationIds: string[];
+  replicationSlugs: string[];
+  contributorKeys: string[];
+  artistNames: string[];
+  authorNames: string[];
+  substanceNames: string[];
+  moleculeSlugs: string[];
+  effectIndexArticleSlugs: string[];
+  effectIndexPostSlugs: string[];
+};
+
+type Call = { label: string; args: Args };
+type Plan = {
+  orderPromised: boolean;
+  /** Top-level keys that are backend-opaque by contract. */
+  ignore?: readonly string[];
+  calls?: Call[];
+  /** Follow each backend's own cursor; compare the concatenated items. */
+  drain?: { args: Args; cursorArg: "cursor" | "paginationOpts"; label: string }[];
+};
+
+function planFor(samples: Samples): Record<CatalogKey, Plan> {
+  const c = publicDataReadCatalog;
+  const single = (args: Args, label = JSON.stringify(args)): Call => ({ label, args });
+  const each = <T,>(values: T[], build: (value: T) => Args): Call[] => values.map((value) => single(build(value), String(value)));
+  return {
+    publicSubstanceLibraryInput: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicSubstanceLibraryInput.args(), cursorArg: "cursor" }] },
+    publicSubstanceCoverageInput: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicSubstanceCoverageInput.args(), cursorArg: "cursor" }] },
+    publicSubstanceMechanismRouteInput: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicSubstanceMechanismRouteInput.args(), cursorArg: "cursor" }] },
+    publicAboutPreviewCandidates: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicAboutPreviewCandidates.args(), cursorArg: "cursor" }] },
+    publicCategoryLayout: { orderPromised: true, calls: [single({})] },
+    publicSubstanceLookup: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicSubstanceLookup.args(), cursorArg: "cursor" }] },
+    publicSubstancePreviews: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicSubstancePreviews.args(), cursorArg: "cursor" }] },
+    publicSubstanceSlugs: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicSubstanceSlugs.args(), cursorArg: "cursor" }] },
+    publicSubstanceBySlug: { orderPromised: true, calls: each(samples.substanceSlugs, (slug) => c.publicSubstanceBySlug.args(slug)) },
+    publicReviewedArticlesByContributor: { orderPromised: true, ignore: ["cursor"], drain: samples.contributorKeys.map((key) => ({ label: key, args: c.publicReviewedArticlesByContributor.args(key), cursorArg: "cursor" as const })) },
+    publicReviewedArticleCredits: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicReviewedArticleCredits.args(), cursorArg: "cursor" }] },
+    publicSubstanceFullDocuments: { orderPromised: true, ignore: ["continueCursor", "splitCursor", "pageStatus"], drain: [{ label: "all", args: c.publicSubstanceFullDocuments.args(null), cursorArg: "paginationOpts" }] },
+    publicEffectRecords: { orderPromised: false, calls: [single({})] },
+    publicEffectBySlug: { orderPromised: true, calls: each(samples.effectSlugs, (slug) => c.publicEffectBySlug.args(slug)) },
+    publicEffectArticles: { orderPromised: false, calls: [single({})] },
+    publicEffectsByCategory: { orderPromised: false, calls: each(["visual-effects", "cognitive-effects", "physical-effects"], (category) => c.publicEffectsByCategory.args(category)) },
+    publicEffectIndexArticles: { orderPromised: false, calls: [single({})] },
+    publicEffectIndexArticleBySlug: { orderPromised: true, calls: each(samples.effectIndexArticleSlugs, (slug) => c.publicEffectIndexArticleBySlug.args(slug)) },
+    publicEffectIndexPosts: { orderPromised: false, calls: [single({})] },
+    publicEffectIndexPostBySlug: { orderPromised: true, calls: each(samples.effectIndexPostSlugs, (slug) => c.publicEffectIndexPostBySlug.args(slug)) },
+    publicReplicationGalleryPage: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicReplicationGalleryPage.args(), cursorArg: "cursor" }] },
+    publicReplicationArtistsByKeys: { orderPromised: false, calls: [single(c.publicReplicationArtistsByKeys.args(samples.artistNames.map((name) => name.trim().toLowerCase())), "sample artist keys")] },
+    publicReplicationBySlug: { orderPromised: true, calls: each(samples.replicationSlugs, (slug) => c.publicReplicationBySlug.args(slug)) },
+    publicReplicationsBySlugs: { orderPromised: false, calls: [single(c.publicReplicationsBySlugs.args(samples.replicationSlugs), "sample slugs")] },
+    publicReplicationsByArtistNames: { orderPromised: false, calls: [single(c.publicReplicationsByArtistNames.args(samples.artistNames), "sample artists"), ...each(samples.artistNames.slice(0, 5), (name) => c.publicReplicationsByArtistNames.args([name]))] },
+    publicReplicationsByArtistNamesPage: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "sample artists", args: c.publicReplicationsByArtistNamesPage.args(samples.artistNames), cursorArg: "cursor" }] },
+    publicMatchableReplicationsPage: { orderPromised: true, ignore: ["cursor"], drain: [{ label: "all", args: c.publicMatchableReplicationsPage.args(), cursorArg: "cursor" }] },
+    publicSubstanceGalleryCuration: { orderPromised: true, calls: each(samples.substanceSlugs, (slug) => c.publicSubstanceGalleryCuration.args(slug)) },
+    publicSubstanceGallery: { orderPromised: true, calls: each(samples.substanceSlugs, (slug) => c.publicSubstanceGallery.args(slug)) },
+    publicTripReportRecords: { orderPromised: false, calls: [single({})] },
+    publicTripReportBySlug: { orderPromised: true, calls: each(samples.reportSlugs, (slug) => c.publicTripReportBySlug.args(slug)) },
+    publicTripReportsByAuthor: { orderPromised: false, calls: each(samples.authorNames, (name) => c.publicTripReportsByAuthor.args(name)) },
+    publicTripReportsByContributor: { orderPromised: false, calls: each(samples.contributorKeys, (key) => c.publicTripReportsByContributor.args(key, samples.authorNames)) },
+    publicTripReportsBySubstanceNames: { orderPromised: false, calls: [single(c.publicTripReportsBySubstanceNames.args(samples.substanceNames), "sample substance names")] },
+    publicContributorProfiles: { orderPromised: false, calls: [single({})] },
+    publicAboutConfig: { orderPromised: true, calls: [single({})] },
+    publicFeaturedReplications: { orderPromised: true, calls: [single({})] },
+    publicIndexLayoutByType: { orderPromised: true, calls: each(["psychoactive", "chemical", "mechanism"] as const, (type) => c.publicIndexLayoutByType.args(type)) },
+    publicMoleculeOverrideSummaries: { orderPromised: false, calls: [single({})] },
+    publicMoleculeMetadataBySlug: { orderPromised: true, calls: each(samples.moleculeSlugs, (slug) => c.publicMoleculeMetadataBySlug.args(slug)) },
+    publicMoleculeBySlug: { orderPromised: true, calls: each(samples.moleculeSlugs, (slug) => c.publicMoleculeBySlug.args(slug)) },
+    publicChangelogBySubmitters: { orderPromised: true, calls: [single(c.publicChangelogBySubmitters.args(samples.contributorKeys, 50), "sample contributors")] },
+    publicChangelogByArticleSlug: { orderPromised: true, calls: each(samples.substanceSlugs, (slug) => c.publicChangelogByArticleSlug.args(slug, 50)) },
+    publicChangelogRecent: { orderPromised: true, calls: [single(c.publicChangelogRecent.args(50))] },
+    publicReplicationIdentityAttribution: { orderPromised: true, calls: each(samples.replicationIds, (id) => c.publicReplicationIdentityAttribution.args(id)) },
+    publicContributorIdentityByKey: { orderPromised: true, calls: each(samples.contributorKeys, (key) => c.publicContributorIdentityByKey.args(key)) },
+    publicReagentTestBySlug: { orderPromised: true, calls: each(samples.substanceSlugs, (slug) => c.publicReagentTestBySlug.args(slug)) },
+    publicCopyBlocks: { orderPromised: false, calls: [single({})] },
+    publicWarningBannerPresets: { orderPromised: false, calls: [single({})] },
+    publicBannerDisplayConfig: { orderPromised: true, calls: [single({})] },
+  };
+}
+
+type Timed = { value: Json; ms: number; error?: string };
+
+class Backends {
+  readonly latencies: Record<Backend, Record<string, number[]>> = { convex: {}, postgres: {} };
+  readonly retries: Record<Backend, number> = { convex: 0, postgres: 0 };
+  constructor(private readonly convex: ConvexHttpClient, private readonly postgres: PostgresConvexClient) {}
+
+  /**
+   * One query, timed. Both backends are reached over the WAN, so a failed call
+   * is retried twice before it counts: a dropped socket or a pool timeout is a
+   * property of this workstation's uplink, not of the contract under test.
+   */
+  async run(backend: Backend, method: string, functionName: string, args: Args): Promise<Timed> {
+    const reference = makeFunctionReference<"query", Args, unknown>(functionName);
+    let last = "";
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const started = performance.now();
+      try {
+        const value = backend === "convex" ? await this.convex.query(reference, args) : await this.postgres.query(reference, args);
+        const ms = performance.now() - started;
+        (this.latencies[backend][method] ??= []).push(ms);
+        return { value: canonical(value), ms };
+      } catch (error) {
+        const ms = performance.now() - started;
+        last = error instanceof Error ? error.message : String(error);
+        if (attempt === 3) {
+          (this.latencies[backend][method] ??= []).push(ms);
+          return { value: null, ms, error: `${last} (3 attempts)` };
+        }
+        this.retries[backend] += 1;
+        await sleep(1000 * attempt);
+      }
+    }
+    return { value: null, ms: 0, error: last };
+  }
+
+  /**
+   * Follow one backend's own cursors; opaque cursors never cross backends.
+   * The continuation field is whatever the query itself returned (`cursor` for
+   * the hand-rolled public pages, `continueCursor` for `paginate` envelopes),
+   * and every page is followed until the query says `isDone`, so the two
+   * backends are drained by the same rule rather than by a page budget.
+   * `MAX_DRAIN_PAGES` is a runaway stop, not a sample cap: a drain that hits it
+   * is reported as an error instead of a short comparison.
+   */
+  async drain(backend: Backend, method: string, functionName: string, first: Args, cursorArg: "cursor" | "paginationOpts"): Promise<Timed & { pages: number }> {
+    const items: Json[] = [];
+    let args = first;
+    let pages = 0;
+    let isDone = false;
+    let ms = 0;
+    for (; pages < MAX_DRAIN_PAGES && !isDone; pages += 1) {
+      const result = await this.run(backend, method, functionName, args);
+      ms += result.ms;
+      if (result.error) return { value: null, ms, error: result.error, pages };
+      const page = result.value as { items?: Json[]; page?: Json[]; cursor?: string | null; continueCursor?: string | null; isDone?: boolean };
+      items.push(...(page.items ?? page.page ?? []));
+      // The query's own field name decides continuation; `isDone` is authoritative when present.
+      const cursor = page.cursor ?? page.continueCursor ?? null;
+      isDone = typeof page.isDone === "boolean" ? page.isDone : cursor === null;
+      if (cursorArg === "cursor") args = { ...first, cursor: cursor ?? undefined };
+      else args = { paginationOpts: { ...(first.paginationOpts as Args), cursor } };
+      if (!isDone && cursor === null) {
+        return { value: null, ms, error: `${functionName} reported isDone=false without a continuation cursor after page ${pages}`, pages: pages + 1 };
+      }
+    }
+    if (!isDone) {
+      return { value: null, ms, error: `${functionName} was still paging after the ${MAX_DRAIN_PAGES}-page runaway stop (${items.length} items); raise MAX_DRAIN_PAGES rather than compare a partial drain`, pages };
+    }
+    return { value: { items, isDone, pages }, ms, pages };
+  }
+}
+
+type MethodReport = {
+  method: string;
+  functionName: string;
+  orderPromised: boolean;
+  calls: number;
+  rowsCompared: number;
+  orderMatched: boolean;
+  mismatches: RowMismatch[];
+  drift: number;
+  defect: number;
+  storagePending: number;
+  errors: { backend: Backend; label: string; error: string }[];
+  p50ConvexMs: number | null;
+  p50PostgresMs: number | null;
+  firstDifference: Difference | null;
+};
+
+function rowCount(value: Json): number {
+  if (Array.isArray(value)) return value.length;
+  if (value && typeof value === "object" && Array.isArray(value.items)) return value.items.length;
+  return 1;
+}
+
+function listOf(value: Json): Json[] | null {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "object" && Array.isArray(value.items)) return value.items;
+  return null;
+}
+
+/**
+ * Compare one call. Order is judged on the sequence of row identities, not on
+ * deep equality, so a storage-pending URL difference inside a row can never be
+ * reported as a reordering, and a genuine collation difference still is.
+ */
+function compareValues(plan: Plan, convex: Json, postgres: Json, changed: ReadonlySet<string>, label: string): { mismatches: RowMismatch[]; orderMatched: boolean; difference: Difference | null } {
+  const left = omitKeys(convex, plan.ignore ?? []);
+  const right = omitKeys(postgres, plan.ignore ?? []);
+  const ordered = firstDifference(left, right);
+  if (!ordered) return { mismatches: [], orderMatched: true, difference: null };
+  const sortedEqual = firstDifference(sortInsensitive(left), sortInsensitive(right)) === null;
+  const leftIds = listOf(left)?.map(identityOf) ?? null;
+  const rightIds = listOf(right)?.map(identityOf) ?? null;
+  let orderMatched = true;
+  if (leftIds && rightIds && !leftIds.includes(null) && !rightIds.includes(null)) {
+    // Compare the shared rows in their served order; membership differences are separate rows.
+    const inLeft = new Set(leftIds as string[]);
+    const inRight = new Set(rightIds as string[]);
+    orderMatched = (leftIds as string[]).filter((id) => inRight.has(id)).join("\u0000") === (rightIds as string[]).filter((id) => inLeft.has(id)).join("\u0000");
+  } else if (sortedEqual) {
+    // No usable identities, but the same rows in a different sequence.
+    orderMatched = false;
+  }
+  if (sortedEqual && !plan.orderPromised) return { mismatches: [], orderMatched, difference: null };
+  const rows = classifyMismatch(left, right, changed, ordered).map((row) => ({ ...row, path: `${label}: ${row.path}` }));
+  return { mismatches: rows, orderMatched, difference: ordered };
+}
+
+async function compareCatalog(backends: Backends, samples: Samples, changed: ReadonlySet<string>, only: ReadonlySet<string> | null): Promise<MethodReport[]> {
+  const plans = planFor(samples);
+  const keys = (Object.keys(plans) as CatalogKey[]).filter((key) => only === null || only.has(key));
+  const reports: MethodReport[] = [];
+  let next = 0;
+  const worker = async () => {
+    while (next < keys.length) {
+      const key = keys[next++];
+      const plan = plans[key];
+      const functionName = publicDataReadCatalog[key].functionName;
+      const report: MethodReport = { method: key, functionName, orderPromised: plan.orderPromised, calls: 0, rowsCompared: 0, orderMatched: true, mismatches: [], drift: 0, defect: 0, storagePending: 0, errors: [], p50ConvexMs: null, p50PostgresMs: null, firstDifference: null };
+      const record = (label: string, convex: Timed, postgres: Timed) => {
+        if (convex.error) report.errors.push({ backend: "convex", label, error: convex.error });
+        if (postgres.error) report.errors.push({ backend: "postgres", label, error: postgres.error });
+        if (convex.error || postgres.error) {
+          console.log(`  ERROR ${key} [${label}] convex=${convex.error ?? "-"} postgres=${postgres.error ?? "-"}`);
+          return;
+        }
+        report.rowsCompared += Math.max(rowCount(convex.value), rowCount(postgres.value));
+        const outcome = compareValues(plan, convex.value, postgres.value, changed, label);
+        if (!outcome.orderMatched) report.orderMatched = false;
+        report.mismatches.push(...outcome.mismatches);
+        report.firstDifference ??= outcome.difference;
+      };
+      for (const call of plan.calls ?? []) {
+        const [convex, postgres] = await Promise.all([backends.run("convex", key, functionName, call.args), backends.run("postgres", key, functionName, call.args)]);
+        report.calls += 1;
+        record(call.label, convex, postgres);
+      }
+      for (const drain of plan.drain ?? []) {
+        const [convex, postgres] = await Promise.all([backends.drain("convex", key, functionName, drain.args, drain.cursorArg), backends.drain("postgres", key, functionName, drain.args, drain.cursorArg)]);
+        report.calls += Math.max(convex.pages, postgres.pages);
+        record(drain.label, convex, postgres);
+      }
+      report.drift = report.mismatches.filter((row) => row.classification === "drift").length;
+      report.storagePending = report.mismatches.filter((row) => row.classification === "storage-pending").length;
+      report.defect = report.mismatches.filter((row) => row.classification === "defect").length + report.errors.length;
+      report.p50ConvexMs = percentile(backends.latencies.convex[key] ?? [], 0.5);
+      report.p50PostgresMs = percentile(backends.latencies.postgres[key] ?? [], 0.5);
+      reports.push(report);
+      console.log(`${key.padEnd(40)} calls=${String(report.calls).padStart(3)} rows=${String(report.rowsCompared).padStart(5)} drift=${report.drift} storage-pending=${report.storagePending} defect=${report.defect} order=${report.orderMatched ? "same" : "differs"} p50 convex=${report.p50ConvexMs}ms postgres=${report.p50PostgresMs}ms`);
+    }
+  };
+  // Two workers, matching the two-connection pool: the snapshot instance allows
+  // 25 direct connections in total and the editor build holds most of them.
+  await Promise.all([worker(), worker()]);
+  return reports.sort((a, b) => keys.indexOf(a.method as CatalogKey) - keys.indexOf(b.method as CatalogKey));
+}
+
+async function collectSamples(convex: ConvexHttpClient): Promise<{ samples: Samples; changedSinceSnapshot: Set<string>; mediaBaseUrl: string | null }> {
+  const q = <T,>(name: string, args: Args) => convex.query(makeFunctionReference<"query", Args, T>(name), args);
+  type Page<T> = { items: T[] };
+  type Gallery = { _id: string; slug: string; artist: string; url?: string; thumbnail_url?: string };
+  type Report = { slug: string; subject?: { name?: string }; substances?: { name?: string }[] };
+  const [slugPage, effects, reports, gallery, profiles, articles, posts, molecules, changelog] = await Promise.all([
+    q<Page<string>>("substanceIndex:getPublicSlugsPage", publicDataReadCatalog.publicSubstanceSlugs.args()),
+    q<{ slug: string }[]>("subjectiveEffects:getPublicPreviews", {}),
+    q<Report[]>("tripReports:getAll", {}),
+    q<Page<Gallery>>("replications:getPublicGalleryPage", publicDataReadCatalog.publicReplicationGalleryPage.args()),
+    q<{ key: string }[]>("contributorProfiles:getAll", {}),
+    q<{ slug: string }[]>("effectIndexArticles:getAll", {}),
+    q<{ key: string }[]>("effectIndexArchive:listPosts", {}),
+    q<{ slug: string }[]>("moleculeOverrides:listSlugs", {}),
+    q<{ createdAt: string; articles: { slug: string }[] }[]>("changelog:getRecent", { limit: 500 }),
+  ]);
+  const unique = (values: (string | undefined)[], count: number) => [...new Set(values.filter((value): value is string => typeof value === "string" && value.length > 0))].slice(0, count);
+  const samples: Samples = {
+    substanceSlugs: slugPage.items.slice(0, 25),
+    effectSlugs: unique(effects.map((effect) => effect.slug), 10),
+    reportSlugs: unique(reports.map((report) => report.slug), 10),
+    replicationIds: unique(gallery.items.map((item) => item._id), 10),
+    replicationSlugs: unique(gallery.items.map((item) => item.slug), 10),
+    contributorKeys: unique(profiles.map((profile) => profile.key), 10),
+    artistNames: unique(gallery.items.map((item) => item.artist), 10),
+    authorNames: unique(reports.map((report) => report.subject?.name), 10),
+    substanceNames: unique(reports.flatMap((report) => (report.substances ?? []).map((substance) => substance.name)), 10),
+    moleculeSlugs: unique(molecules.map((molecule) => molecule.slug), 10),
+    effectIndexArticleSlugs: unique(articles.map((article) => article.slug), 10),
+    effectIndexPostSlugs: unique(posts.map((post) => post.key), 10),
+  };
+  const changedSinceSnapshot = new Set<string>();
+  for (const entry of changelog) {
+    if (Date.parse(entry.createdAt) > SNAPSHOT_AT) for (const article of entry.articles) changedSinceSnapshot.add(article.slug);
+  }
+  // The delivery base production Convex is actually serving, read back off its
+  // own content-addressed media URLs (`<base>/media/sha256/<shard>/<digest>.<ext>`).
+  const served = gallery.items.flatMap((item) => [item.url, item.thumbnail_url]).find((url) => typeof url === "string" && url.includes("/media/sha256/"));
+  const mediaBaseUrl = served === undefined ? null : served.slice(0, served.indexOf("/media/sha256/"));
+  return { samples, changedSinceSnapshot, mediaBaseUrl };
+}
+
+// Both members carry both keys so a caller can read `.error` without narrowing first.
+type ChildResult<T> = { ok: true; value: T; error?: undefined } | { ok: false; value?: undefined; error: string };
+
+async function spawnChild<T>(phase: string, args: string[], env: Record<string, string | undefined>, stripCredentials = false): Promise<ChildResult<T>> {
+  const outFile = path.join(os.tmpdir(), `t21-${phase}-${process.pid}-${Math.random().toString(36).slice(2, 8)}.json`);
+  // `NodeJS.ProcessEnv` (not a plain record) is what `spawn` accepts once the Next global types enter the scripts program.
+  const childEnv: NodeJS.ProcessEnv = { ...process.env };
+  for (const [key, value] of Object.entries(env)) {
+    if (value === undefined) delete childEnv[key];
+    else childEnv[key] = value;
+  }
+  if (stripCredentials) {
+    for (const key of Object.keys(childEnv)) if (/^CONVEX_(ADMIN|DEPLOY|AGENT)/.test(key)) delete childEnv[key];
+  }
+  // `--env-file=/dev/null` stops Bun from re-loading `.env.local` into the child, so stripped credentials stay stripped.
+  const child = spawn("bun", ["--env-file=/dev/null", path.join(ROOT, "scripts/postgres/parityInProcess.ts"), phase, ...args, outFile], { cwd: ROOT, env: childEnv, stdio: ["ignore", "pipe", "pipe"] });
+  let stdout = "";
+  let stderr = "";
+  child.stdout?.on("data", (chunk: Buffer) => { stdout += chunk.toString(); });
+  child.stderr?.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
+  // `Promise.withResolvers` is outside the scripts tsconfig lib (ES2020); `events.once` gives the same linear flow.
+  const [code] = (await once(child, "close").catch(() => [-1])) as [number | null];
+  try {
+    if (code !== 0) return { ok: false, error: `${phase} exited ${code}\n${stderr.slice(-4000)}\n${stdout.slice(-2000)}` };
+    return { ok: true, value: JSON.parse(fs.readFileSync(outFile, "utf8")) as T };
+  } catch (error) {
+    // A child that dies after its own top-level catch still exits 0 without a result file.
+    return { ok: false, error: `${phase} produced no result (${error instanceof Error ? error.message : String(error)})\n${stderr.slice(-4000)}\n${stdout.slice(-2000)}` };
+  } finally {
+    fs.rmSync(outFile, { force: true });
+  }
+}
+
+type LiveResponse = { status: number; contentType: string | null; body: unknown; ms: number; cache: string | null; age: string | null; error?: string };
+
+async function fetchLive(routePath: string): Promise<LiveResponse> {
+  const started = performance.now();
+  try {
+    const response = await fetch(`${LIVE_ORIGIN}${routePath}`, { headers: { "user-agent": USER_AGENT, accept: "application/json, image/svg+xml, */*" }, redirect: "manual" });
+    const contentType = response.headers.get("content-type");
+    const body = contentType?.includes("json") ? await response.json() : await response.text();
+    return { status: response.status, contentType, body, ms: performance.now() - started, cache: response.headers.get("x-vercel-cache"), age: response.headers.get("age") };
+  } catch (error) {
+    return { status: 0, contentType: null, body: null, ms: performance.now() - started, cache: null, age: null, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+type RouteReport = {
+  key: string;
+  path: string;
+  statuses: { postgres: number; live: number; convex: number | null };
+  rowsCompared: number;
+  mismatches: RowMismatch[];
+  drift: number;
+  defect: number;
+  storagePending: number;
+  liveUnavailable: boolean;
+  liveCache: string | null;
+  postgresMs: number;
+  liveMs: number;
+  postgresEqualsConvex: boolean | null;
+  note?: string;
+};
+
+/**
+ * Route bodies are plain JSON from `Response.json()` on both sides, so they are
+ * compared as-is. Running them through the Convex value encoder would reject
+ * legitimate payloads: the OpenAPI document uses reserved `$ref` keys.
+ */
+function routeBody(result: { body: unknown } | undefined, key: string): Json {
+  if (!result) return null;
+  const body = result.body as Json;
+  return key.startsWith("open-data/") ? omitKeys(body, ["generatedAt"]) : body;
+}
+
+async function compareRoutes(postgresRoutes: RouteResult[], convexRoutes: RouteResult[] | null, changed: ReadonlySet<string>, omittedByStorage: number): Promise<RouteReport[]> {
+  const reports: RouteReport[] = [];
+  const convexByPath = new Map<string, RouteResult>((convexRoutes ?? []).map((route) => [route.path, route]));
+  let index = 0;
+  const worker = async () => {
+    while (index < postgresRoutes.length) {
+      const route = postgresRoutes[index++];
+      // One unexpected shape must cost its own row, never the whole route section.
+      try {
+        reports.push(await compareRoute(route, convexByPath.get(route.path), changed, omittedByStorage));
+      } catch (error) {
+        reports.push({
+          key: route.key, path: route.path,
+          statuses: { postgres: route.status, live: 0, convex: null },
+          rowsCompared: 0, drift: 0, defect: 1, storagePending: 0,
+          mismatches: [{ identity: null, path: route.path, convex: null, postgres: null, classification: "defect", reason: `parity harness failed to compare this route: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}` }],
+          liveUnavailable: true, liveCache: null, postgresMs: Math.round(route.ms), liveMs: 0, postgresEqualsConvex: null,
+        });
+        console.log(`${route.key.padEnd(36)} ${route.path.slice(0, 48).padEnd(48)} comparison error: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      await sleep(150);
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  return reports.sort((a, b) => postgresRoutes.findIndex((r) => r.path === a.path) - postgresRoutes.findIndex((r) => r.path === b.path));
+}
+
+async function compareRoute(route: RouteResult, convex: RouteResult | undefined, changed: ReadonlySet<string>, omittedByStorage: number): Promise<RouteReport> {
+  const live = await fetchLive(route.path);
+  const postgresBody = routeBody(route, route.key);
+  const liveBody = routeBody(live, route.key);
+  const convexBody = convex ? routeBody(convex, route.key) : null;
+  const postgresEqualsConvex = convex ? firstDifference(postgresBody, convexBody) === null && route.status === convex.status : null;
+  const report: RouteReport = {
+    key: route.key, path: route.path,
+    statuses: { postgres: route.status, live: live.status, convex: convex?.status ?? null },
+    rowsCompared: 0, mismatches: [], drift: 0, defect: 0, storagePending: 0,
+    liveUnavailable: live.status === 0 || live.status === 429 || live.status >= 500,
+    liveCache: live.cache, postgresMs: Math.round(route.ms), liveMs: Math.round(live.ms), postgresEqualsConvex,
+  };
+  if (route.error) {
+    report.mismatches.push({ identity: null, path: route.path, convex: null, postgres: route.error, classification: "defect", reason: "route handler threw under DATA_BACKEND=postgres" });
+  } else if (report.liveUnavailable) {
+    report.note = `live site answered ${live.status}${live.error ? ` (${live.error})` : ""}; compared against the in-process Convex run instead`;
+    if (convex) {
+      report.rowsCompared = rowCount(pickData(postgresBody));
+      report.mismatches.push(...compareBodies(postgresBody, convexBody, route.status, convex.status, changed, route.path, omittedByStorage));
+    }
+  } else {
+    report.rowsCompared = Math.max(rowCount(pickData(postgresBody)), rowCount(pickData(liveBody)));
+    const rows = compareBodies(postgresBody, liveBody, route.status, live.status, changed, route.path, omittedByStorage);
+    for (const row of rows) {
+      if (row.classification === "defect" && postgresEqualsConvex === true) {
+        report.mismatches.push({ ...row, classification: "drift", reason: "live deployment differs, but the in-process Convex run equals Postgres: live cache or deployed build lags the working tree" });
+      } else if (row.classification === "defect" && convex && convexBody !== null) {
+        // Postgres differs from live and from current Convex: is the current Convex row newer than the snapshot?
+        const convexRow = findRow(convexBody, row.identity);
+        const newest = convexRow === undefined ? null : newestTimestamp(convexRow);
+        if (newest !== null && newest > SNAPSHOT_AT) report.mismatches.push({ ...row, classification: "drift", reason: `current Convex row is dated ${new Date(newest).toISOString()}, after the snapshot` });
+        else report.mismatches.push(row);
+      } else {
+        report.mismatches.push(row);
+      }
+    }
+  }
+  report.drift = report.mismatches.filter((row) => row.classification === "drift").length;
+  report.storagePending = report.mismatches.filter((row) => row.classification === "storage-pending").length;
+  report.defect = report.mismatches.filter((row) => row.classification === "defect").length;
+  console.log(`${route.key.padEnd(36)} ${route.path.slice(0, 48).padEnd(48)} pg=${route.status} live=${live.status}${live.cache ? `/${live.cache}` : ""} convex=${convex?.status ?? "-"} rows=${report.rowsCompared} drift=${report.drift} storage-pending=${report.storagePending} defect=${report.defect}`);
+  return report;
+}
+
+/** The comparable payload of an API envelope: `data` for v1, `items` for open-data, else the body. */
+function pickData(body: Json): Json {
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    if ("data" in body) return body.data;
+    if ("items" in body) return body.items;
+  }
+  return body;
+}
+
+function findRow(body: Json, identity: string | null): Json | undefined {
+  const data = pickData(body);
+  if (identity === null || !Array.isArray(data)) return data ?? undefined;
+  return data.find((item) => identityOf(item) === identity);
+}
+
+function compareBodies(postgres: Json, other: Json, postgresStatus: number, otherStatus: number, changed: ReadonlySet<string>, label: string, omittedByStorage: number): RowMismatch[] {
+  if (postgresStatus !== otherStatus) {
+    const rows = classifyMismatch(pickData(other), pickData(postgres), changed, { path: `${label}: status`, left: otherStatus, right: postgresStatus });
+    return rows.map((row) => ({ ...row, path: `${label}: status ${otherStatus} vs ${postgresStatus}` }));
+  }
+  const difference = firstDifference(other, postgres);
+  if (!difference) return [];
+  // Envelope-level counters (`meta.total`, `count`) follow the data rows; classify the rows, then the envelope if nothing else explains it.
+  const dataDifference = firstDifference(pickData(other), pickData(postgres));
+  if (dataDifference) return classifyMismatch(pickData(other), pickData(postgres), changed, dataDifference).map((row) => ({ ...row, path: `${label}: ${row.path}` }));
+  // Identical rows, smaller total: the catalog phase already measured how many
+  // rows Postgres omits because Convex Storage is their only media source, and
+  // a counter short by exactly that many is the same storage gap, not a defect.
+  if (
+    omittedByStorage > 0 &&
+    /\.(total|count)$/.test(difference.path) &&
+    typeof difference.left === "number" &&
+    typeof difference.right === "number" &&
+    difference.left - difference.right === omittedByStorage
+  ) {
+    return [{ identity: null, path: `${label}: ${difference.path}`, convex: difference.left, postgres: difference.right, classification: "storage-pending", reason: `envelope counter is short by exactly the ${omittedByStorage} row(s) whose only media source is an uncopied Convex Storage object (ticket 11); every served row is identical` }];
+  }
+  return classifyMismatch(other, postgres, changed, difference).map((row) => ({ ...row, path: `${label}: ${row.path}` }));
+}
+
+function middlewareChecks(): void {
+  const editorialPaths = ["/api/auth/session", "/api/dev/proposals", "/api/invite/redeem", "/api/reset-password"];
+  const under = (backend: string, run: () => boolean) => {
+    const previous = process.env.DATA_BACKEND;
+    process.env.DATA_BACKEND = backend;
+    try { return run(); } finally { if (previous === undefined) delete process.env.DATA_BACKEND; else process.env.DATA_BACKEND = previous; }
+  };
+  for (const backend of ["convex", "postgres"]) {
+    expect("middleware", `public host rejects every editorial API prefix under DATA_BACKEND=${backend}`, under(backend, () => editorialPaths.every((route) => isPublicRestrictedPath(route))), editorialPaths);
+    expect("middleware", `public build on dose.wiki is delivered as public under DATA_BACKEND=${backend}`, under(backend, () => getEditorDeliveryDecision({ host: "dose.wiki", editorBuild: false, development: false }) === "public"));
+    expect("middleware", `editor build refuses public hosts (closed) under DATA_BACKEND=${backend}`, under(backend, () => getEditorDeliveryDecision({ host: "dose.wiki", editorBuild: true, development: false }) === "closed" && getEditorDeliveryDecision({ host: "effectindex.com", editorBuild: true, development: false }) === "closed"));
+  }
+  const sources = ["src/middleware.ts", "lib/next/publicHostPolicy.ts", "lib/next/editorDeliveryPolicy.ts", "lib/next/flavorGatedRoutes.ts", "src/lib/auth/roles.ts"].filter((file) => fs.existsSync(path.join(ROOT, file)));
+  const offenders = sources.filter((file) => /DATA_BACKEND|POSTGRES_|PostgresConvexClient|getDataBackend/.test(fs.readFileSync(path.join(ROOT, file), "utf8")));
+  expect("middleware", "middleware and its host, delivery, and role policies never read the data backend", offenders.length === 0, { sources, offenders });
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const localTarget = resolveTarget(argv.includes("--target") ? argv : [...argv, "--target", "postgres://localhost:5432/dosewiki"]);
+  // `--only=<method,method>` reruns just those catalog methods against both
+  // backends: a classification change needs the affected rows re-judged, not a
+  // second full sweep of 111 checks over the WAN. Scoped runs skip the route,
+  // freshness, flavor and middleware phases and say so in the report.
+  const onlyArg = argv.find((entry) => entry.startsWith("--only="));
+  const only = onlyArg === undefined ? null : new Set(onlyArg.slice("--only=".length).split(",").map((name) => name.trim()).filter(Boolean));
+  if (only !== null) {
+    const unknown = [...only].filter((name) => !(name in publicDataReadCatalog));
+    if (unknown.length) throw new Error(`--only names methods that are not in the catalog: ${unknown.join(", ")}`);
+  }
+  guardTarget(localTarget, false);
+  // The whole run is read-only against PlanetScale: nothing may carry a write confirmation.
+  delete process.env.POSTGRES_IMPORT_CONFIRM;
+  const convexUrl = process.env.CONVEX_PUBLIC_READ_URL;
+  const directUrl = process.env.POSTGRES_DIRECT_URL;
+  // App-shaped read traffic goes through pgbouncer on 6432: the PS-5 instance
+  // allows 25 direct connections in total and the editor build already holds
+  // most of them, so a direct pool loses pages to "remaining connection slots
+  // are reserved for roles with the SUPERUSER attribute".
+  const snapshotUrl = process.env.POSTGRES_POOLED_URL || directUrl;
+  if (!convexUrl || !directUrl || !snapshotUrl) throw new Error("CONVEX_PUBLIC_READ_URL, POSTGRES_POOLED_URL and POSTGRES_DIRECT_URL are required (.env.local)");
+  if (new URL(snapshotUrl).hostname === "localhost") throw new Error("POSTGRES_POOLED_URL must be the PlanetScale snapshot, not the local rehearsal database");
+
+  const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-parity`);
+  const started = performance.now();
+  const convex = new ConvexHttpClient(convexUrl);
+  // The Postgres client is opened only after the media base is known: the runtime
+  // refuses to construct one while a required deployment variable is absent.
+  let postgres: PostgresConvexClient | null = null;
+  let backends: Backends | null = null;
+  let methods: MethodReport[] = [];
+  let routes: RouteReport[] = [];
+  let freshness: ChildResult<{ checks: { check: string; pass: boolean; detail?: unknown }[]; slug: string }> | null = null;
+  let flavor: ChildResult<{ checks: { check: string; pass: boolean; detail?: unknown }[]; credentialEnv: string[]; intentTokenEnv: string[]; placeholders: string[] }> | null = null;
+  let samples: Samples | null = null;
+  let media: { configured: string | null; servedByConvex: string | null; effective: string | null } = { configured: null, servedByConvex: null, effective: null };
+  let changedSinceSnapshot = new Set<string>();
+  try {
+    console.log("Collecting samples from Convex...");
+    let servedMediaBase: string | null;
+    ({ samples, changedSinceSnapshot, mediaBaseUrl: servedMediaBase } = await collectSamples(convex));
+    console.log(`Samples: ${samples.substanceSlugs.length} substances, ${samples.effectSlugs.length} effects, ${samples.reportSlugs.length} reports, ${samples.replicationIds.length} replications, ${samples.contributorKeys.length} contributors; ${changedSinceSnapshot.size} article slugs changed on Convex since the snapshot`);
+
+    // `convex/lib/replicationUrls.ts` reads REPLICATION_MEDIA_BASE_URL from the
+    // serving deployment's environment. Unset, every r2_key is ignored,
+    // `projectGalleryRow` drops the row for lack of a URL, and the gallery
+    // loses ~96% of its items. Parity therefore runs the Postgres side with the
+    // base production Convex is observably serving.
+    const configuredMediaBase = process.env.REPLICATION_MEDIA_BASE_URL?.trim().replace(/\/+$/, "") || null;
+    const effectiveMediaBase = configuredMediaBase ?? servedMediaBase;
+    media = { configured: configuredMediaBase, servedByConvex: servedMediaBase, effective: effectiveMediaBase };
+    if (effectiveMediaBase) process.env.REPLICATION_MEDIA_BASE_URL = effectiveMediaBase;
+    setMediaBaseUrl(effectiveMediaBase);
+    expect("media", "R2 delivery base for the Postgres runtime matches what production Convex serves", effectiveMediaBase !== null && (configuredMediaBase === null || configuredMediaBase === servedMediaBase), media);
+    postgres = PostgresConvexClient.fromUrl(snapshotUrl, 2);
+    backends = new Backends(convex, postgres);
+
+    const samplesFile = path.join(os.tmpdir(), `t21-samples-${process.pid}.json`);
+    fs.writeFileSync(samplesFile, JSON.stringify(samples));
+
+    // The children that do not touch PlanetScale start now and overlap the
+    // catalog comparison; the Postgres route run waits for it, so the snapshot
+    // never serves two pools of this harness at once. A scoped rerun runs no
+    // child at all.
+    const childMedia = effectiveMediaBase ?? undefined;
+    const routesConvex = only === null ? spawnChild<{ routes: RouteResult[] }>("routes", [samplesFile], { DATA_BACKEND: "convex", CONVEX_PUBLIC_READ_URL: convexUrl, REPLICATION_MEDIA_BASE_URL: childMedia }) : null;
+    const freshnessRun = only === null ? spawnChild<{ checks: { check: string; pass: boolean; detail?: unknown }[]; slug: string }>("freshness", [], { DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: localTarget, POSTGRES_DIRECT_URL: localTarget, REPLICATION_MEDIA_BASE_URL: childMedia }) : null;
+    const flavorRun = only === null ? spawnChild<{ checks: { check: string; pass: boolean; detail?: unknown }[]; credentialEnv: string[]; intentTokenEnv: string[]; placeholders: string[] }>("flavor", [samplesFile], { DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: localTarget, POSTGRES_DIRECT_URL: localTarget, NEXT_PUBLIC_SITE_FLAVOR: "effectindex", REPLICATION_MEDIA_BASE_URL: childMedia }, true) : null;
+
+    console.log(only === null ? "\n1. Catalog parity (Convex production vs PlanetScale snapshot)" : `\n1. Catalog parity, scoped to ${[...only].join(", ")}`);
+    methods = await compareCatalog(backends, samples, changedSinceSnapshot, only);
+    for (const report of methods) {
+      expect("catalog", `${report.method} (${report.functionName}): no defect mismatches`, report.defect === 0, { drift: report.drift, storagePending: report.storagePending, defect: report.defect, errors: report.errors, firstDifference: report.firstDifference });
+    }
+    const reordered = methods.filter((report) => report.orderPromised && !report.orderMatched);
+    expect("catalog", "every order-promising method served its rows in the same order on both backends", reordered.length === 0, reordered.map((report) => ({ method: report.method, firstDifference: report.firstDifference })));
+
+    if (only !== null) {
+      console.log("Scoped rerun: route, freshness, flavor and middleware phases skipped.");
+      fs.rmSync(samplesFile, { force: true });
+    } else {
+      // The catalog pool is done with the snapshot; hand it to the route run.
+      await postgres.end();
+      postgres = null;
+      const routesPostgres = spawnChild<{ routes: RouteResult[] }>("routes", [samplesFile], { DATA_BACKEND: "postgres", POSTGRES_POOLED_URL: snapshotUrl, REPLICATION_MEDIA_BASE_URL: childMedia });
+
+      console.log("\n2. Route parity (in-process DATA_BACKEND=postgres vs live dose.wiki)");
+      const [pgRoutes, cxRoutes] = await Promise.all([routesPostgres, routesConvex]);
+      expect("routes", "in-process route run under DATA_BACKEND=postgres completed", pgRoutes.ok, pgRoutes.ok ? undefined : pgRoutes.error);
+      expect("routes", "in-process route run under DATA_BACKEND=convex completed (arbiter)", cxRoutes.ok, cxRoutes.ok ? undefined : cxRoutes.error);
+      if (pgRoutes.ok) {
+        // Rows the catalog phase saw Postgres omit because Convex Storage was their only media source.
+        const omittedByStorage = methods.flatMap((report) => report.mismatches).filter((row) => row.classification === "storage-pending" && row.reason.startsWith("row is served only from Convex Storage")).length;
+        routes = await compareRoutes(pgRoutes.value.routes, cxRoutes.ok ? cxRoutes.value.routes : null, changedSinceSnapshot, omittedByStorage);
+        expect("routes", "every API v1 and open-data route was compared", routes.length > 0 && routes.length === pgRoutes.value.routes.length, { compared: routes.length, requested: pgRoutes.value.routes.length });
+        const byKey = new Map<string, RouteReport[]>();
+        for (const report of routes) byKey.set(report.key, [...(byKey.get(report.key) ?? []), report]);
+        for (const [key, group] of byKey) {
+          const defects = group.reduce((sum, report) => sum + report.defect, 0);
+          const drift = group.reduce((sum, report) => sum + report.drift, 0);
+          const storagePending = group.reduce((sum, report) => sum + report.storagePending, 0);
+          expect("routes", `${key}: no defect mismatches across ${group.length} request(s)`, defects === 0, { drift, storagePending, defects, unavailable: group.filter((r) => r.liveUnavailable).map((r) => r.path) });
+        }
+      }
+
+      console.log("\n3. Freshness (local Postgres)");
+      freshness = await freshnessRun;
+      expect("freshness", "freshness child completed", freshness.ok, freshness.ok ? undefined : freshness.error);
+      if (freshness.ok) for (const check of freshness.value.checks) expect("freshness", check.check, check.pass, check.detail);
+
+      console.log("\n3b. Effect Index flavor without credentials (local Postgres)");
+      flavor = await flavorRun;
+      expect("flavor", "effectindex child completed", flavor.ok, flavor.ok ? undefined : flavor.error);
+      if (flavor.ok) for (const check of flavor.value.checks) expect("flavor", check.check, check.pass, check.detail);
+
+      console.log("\n4. Backend identity and middleware");
+      middlewareChecks();
+      fs.rmSync(samplesFile, { force: true });
+    }
+  } finally {
+    const passed = checks.filter((check) => check.pass).length;
+    // The report must survive a failure before the Postgres client was opened.
+    const allConvex = Object.values(backends?.latencies.convex ?? {}).flat();
+    const allPostgres = Object.values(backends?.latencies.postgres ?? {}).flat();
+    const methodP50s = (pick: (report: MethodReport) => number | null) => methods.map(pick).filter((value): value is number => value !== null);
+    const totals = {
+      drift: methods.reduce((sum, r) => sum + r.drift, 0) + routes.reduce((sum, r) => sum + r.drift, 0),
+      storagePending: methods.reduce((sum, r) => sum + r.storagePending, 0) + routes.reduce((sum, r) => sum + r.storagePending, 0),
+      defect: methods.reduce((sum, r) => sum + r.defect, 0) + routes.reduce((sum, r) => sum + r.defect, 0),
+      rowsCompared: methods.reduce((sum, r) => sum + r.rowsCompared, 0) + routes.reduce((sum, r) => sum + r.rowsCompared, 0),
+    };
+    const summary = {
+      snapshotAt: new Date(SNAPSHOT_AT).toISOString(),
+      convexUrl,
+      postgresSnapshot: redact(snapshotUrl),
+      localTarget,
+      liveOrigin: LIVE_ORIGIN,
+      mediaBase: media,
+      elapsedMs: Math.round(performance.now() - started),
+      passed,
+      failed: checks.length - passed,
+      samples,
+      changedSinceSnapshot: [...changedSinceSnapshot],
+      orderPolicy: "Every cursor query is drained to its own isDone, following the field name it returns, so both backends walk the whole corpus. Order is judged on the sequence of row identities: orderMatched is false only when the shared rows are served in a different sequence, and for an order-promising method that is a defect.",
+      classificationPolicy: "defect: same identity, different content, nothing on Convex dated after the snapshot and no changelog entry naming the row's article after it. drift: the Convex row (or the live deployment) moved after the 2026-09-09 snapshot, including a capped list whose window slid past a row the snapshot still holds. storage-pending: the rows are identical apart from storage-served URL fields; since ticket 11 (2026-09-10) the bytes are in R2 and Postgres serves the content-addressed copy while Convex still serves its own Storage URL for the seven objects whose row carries no r2_key, so reaching zero needs r2_key written on those rows (a Convex data fix, ticket 23).",
+      scope: only === null ? "full" : [...only],
+      totals,
+      latency: {
+        // Aggregate p50 and p95 over every catalog call, plus the median of the per-method p50s.
+        p50ConvexMs: percentile(allConvex, 0.5),
+        p50PostgresMs: percentile(allPostgres, 0.5),
+        convex: { calls: allConvex.length, p50Ms: percentile(allConvex, 0.5), p95Ms: percentile(allConvex, 0.95), medianMethodP50Ms: percentile(methodP50s((report) => report.p50ConvexMs), 0.5) },
+        postgres: { calls: allPostgres.length, p50Ms: percentile(allPostgres, 0.5), p95Ms: percentile(allPostgres, 0.95), medianMethodP50Ms: percentile(methodP50s((report) => report.p50PostgresMs), 0.5) },
+        retriedCalls: backends?.retries ?? { convex: 0, postgres: 0 },
+      },
+      methods: methods.map((report) => ({ ...report, mismatches: report.mismatches.map((row) => ({ ...row, convex: truncate(row.convex), postgres: truncate(row.postgres) })) })),
+      routes: routes.map((report) => ({ ...report, mismatches: report.mismatches.map((row) => ({ ...row, convex: truncate(row.convex), postgres: truncate(row.postgres) })) })),
+      freshness: freshness === null ? null : freshness.ok ? freshness.value : { error: freshness.error },
+      flavor: flavor === null ? null : flavor.ok ? flavor.value : { error: flavor.error },
+      checks,
+    };
+    fs.mkdirSync(runDirectory, { recursive: true });
+    fs.writeFileSync(path.join(runDirectory, "report.json"), JSON.stringify(summary, null, 2));
+    console.log("\nMethod                                   calls  rows  drift  stor defect order  p50 convex  p50 postgres");
+    for (const report of methods) {
+      console.log(`${report.method.padEnd(40)} ${String(report.calls).padStart(5)} ${String(report.rowsCompared).padStart(5)} ${String(report.drift).padStart(6)} ${String(report.storagePending).padStart(5)} ${String(report.defect).padStart(6)} ${(report.orderMatched ? "same" : "differs").padStart(7)}  ${String(report.p50ConvexMs).padStart(8)}ms  ${String(report.p50PostgresMs).padStart(10)}ms`);
+    }
+    console.log(`\nOverall p50: convex ${summary.latency.p50ConvexMs}ms (${allConvex.length} calls), postgres ${summary.latency.p50PostgresMs}ms (${allPostgres.length} calls)`);
+    console.log(`Median of per-method p50: convex ${summary.latency.convex.medianMethodP50Ms}ms, postgres ${summary.latency.postgres.medianMethodP50Ms}ms`);
+    console.log(`Rows compared: ${totals.rowsCompared}; drift ${totals.drift}, storage-pending ${totals.storagePending}, defect ${totals.defect}`);
+    console.log(`Report: ${path.relative(ROOT, runDirectory)}/report.json`);
+    console.log(JSON.stringify({ passed, failed: summary.failed, elapsedMs: summary.elapsedMs }));
+    process.exitCode = summary.failed === 0 ? 0 : 1;
+    await postgres?.end();
+  }
+}
+
+function truncate(value: unknown): unknown {
+  // Mismatch payloads are already canonical JSON; re-encoding them through the
+  // Convex value codec would throw on reserved keys such as `$ref`. A row that
+  // exists on one side only arrives here as `undefined`, which JSON drops.
+  if (value === undefined) return null;
+  const text = stableStringify(value as Json);
+  return text.length > 600 ? `${text.slice(0, 600)}... (${text.length} chars)` : value;
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? `${error.name}: ${error.message}\n${error.stack ?? ""}` : error);
+  process.exit(1);
+});

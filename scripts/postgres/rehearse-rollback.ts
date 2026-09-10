@@ -1,0 +1,405 @@
+/**
+ * Ticket 22, `blocker:post-write-rollback`: rehearse rolling back from
+ * Postgres to Convex after writes have reopened.
+ *
+ *   bun scripts/postgres/rehearse-rollback.ts --target postgres://localhost:5432/dosewiki
+ *       --convex-scratch <deployment-name> [--convex-env-file runs/postgres-import/rollback-scratch.env]
+ *       [--convex-source <postgres url>] [--table-numbers <convex export zip>]
+ *       [--round-trip-db dosewiki_rt] [--sample 200] [--skip-convex] [--keep] [--allow-remote]
+ *
+ * What it proves:
+ *
+ *   export      `export-postgres-to-convex.ts` reads every one of the 61
+ *               application tables of --target into a Convex snapshot ZIP,
+ *               skips the three runtime-only tables by name, and leaves no
+ *               table in the database unaccounted for.
+ *   round trip  the ZIP goes back through the forward importer
+ *               (`import-convex-export.ts`) into a database created from the
+ *               migrations: 0 rejects, 0 duplicate ids, 0 hash mismatches,
+ *               identical counts, and a second export of that database has the
+ *               same per-table digest and `_tables` file as the first. That is
+ *               the byte-for-byte proof at the document level, with no Convex
+ *               involved.
+ *   convex      a row is written on --convex-source (defaults to --target)
+ *               through `PostgresConvexClient` with the real
+ *               `siteFeedback:create` mutation, the source is exported, the
+ *               functions are deployed to the scratch deployment and the ZIP is
+ *               imported with `npx convex import --replace`. Every table count
+ *               on the deployment equals the export, a sample of documents per
+ *               table (all of a small table, --sample of a large one) hashes
+ *               equal to the export manifest, and the written row exists on the
+ *               deployment under the id the export minted for it (Convex
+ *               refuses ids minted on Postgres; see the exporter header).
+ *
+ * The scratch deployment is named explicitly and its deploy key is read from
+ * --convex-env-file; the production deployment is refused unconditionally
+ * (`convexTargetGuard.ts`), and so is any deployment named by the CONVEX_*
+ * variables of the calling environment. Never run this against
+ * glad-minnow-656: it replaces every table of the deployment it targets.
+ *
+ * The local fixture (`postgres:synthesize-export`) deliberately writes unique
+ * keys such as `entity_kind_10` over literal unions, which Convex's schema
+ * validation refuses on import; the convex phase therefore needs a
+ * --convex-source holding schema-valid data, such as a local forward import
+ * of a production snapshot.
+ *
+ * Report: runs/postgres-import/<timestamp>-rollback/report.json with
+ * `passed` / `failed` / `checks`, the measured durations, and `schemaTag`,
+ * the migration journal tag it ran against (`rehearse-release.ts` clears the
+ * blocker only from a passing report at the current tag).
+ */
+
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { Pool } from "pg";
+import { api } from "../../convex/_generated/api";
+import { PostgresConvexClient } from "../../lib/postgres/runtime/client";
+import { decodeFloat, decodeInteger, documentHash, type ConvexDocument } from "../../lib/postgres/convexDocumentCodec";
+import { mintDocumentId } from "../../lib/postgres/documentStore";
+import { tableNames } from "../../lib/postgres/schema.generated";
+import { RUNTIME_ONLY_TABLES, type ExportReport } from "./export-postgres-to-convex";
+import { deploymentNameFrom, guardConvexTarget } from "./convexTargetGuard";
+import { convexCliEnv, importSnapshotIntoConvex, readScratchDeployKey } from "./convexSnapshotImport";
+import { guardTarget, resolveTarget } from "./targetGuard";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const argv = process.argv.slice(2);
+const flag = (name: string) => argv.includes(`--${name}`);
+const value = (name: string) => {
+  const index = argv.indexOf(`--${name}`);
+  return index >= 0 ? argv[index + 1] : undefined;
+};
+
+const target = resolveTarget(argv);
+const allowRemote = flag("allow-remote");
+guardTarget(target, allowRemote);
+const convexSource = value("convex-source") ?? target;
+guardTarget(convexSource, allowRemote);
+const convexScratch = value("convex-scratch") ?? null;
+const skipConvex = flag("skip-convex");
+const keep = flag("keep");
+const sampleSize = Number(value("sample") ?? 200);
+const roundTripDb = value("round-trip-db") ?? "dosewiki_rt";
+const convexEnvFile = path.resolve(value("convex-env-file") ?? path.join(ROOT, "runs/postgres-import/rollback-scratch.env"));
+const defaultTableNumbers = path.join(ROOT, "runs/postgres-import/prod-snapshot-2026-09-09.zip");
+const tableNumbers = value("table-numbers") ? path.resolve(value("table-numbers")!) : fs.existsSync(defaultTableNumbers) ? defaultTableNumbers : null;
+
+type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
+const checks: Check[] = [];
+function expect(scenario: string, check: string, pass: boolean, detail?: unknown): void {
+  checks.push(detail === undefined ? { scenario, check, pass } : { scenario, check, pass, detail });
+  console.log(`${pass ? "PASS" : "FAIL"} ${scenario}: ${check}${pass || detail === undefined ? "" : ` ${JSON.stringify(detail)}`}`);
+}
+const redact = (url: string) => url.replace(/\/\/[^@]*@/, "//<redacted>@");
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
+function runCommand(label: string, command: string, args: string[], env: NodeJS.ProcessEnv): { status: number | null; stdout: string; stderr: string; ms: number } {
+  const startedAt = performance.now();
+  const result = spawnSync(command, args, { cwd: ROOT, encoding: "utf8", env, maxBuffer: 64 * 1024 * 1024 });
+  const ms = Math.round(performance.now() - startedAt);
+  const stderr = (result.stderr ?? "").replace(/^\(node:\d+\) ExperimentalWarning.*\n(\(Use .*\n)?/gm, "");
+  console.log(`${label}: exit=${result.status} ${ms}ms`);
+  if (result.status !== 0) console.log((result.stdout ?? "").split("\n").slice(-8).join("\n"), stderr.split("\n").slice(-8).join("\n"));
+  return { status: result.status, stdout: result.stdout ?? "", stderr, ms };
+}
+
+function readJson<T>(file: string): T {
+  return JSON.parse(fs.readFileSync(file, "utf8")) as T;
+}
+
+/** Newest journal tag: the schema the rehearsal ran against. */
+function currentSchemaTag(): string {
+  const journal = readJson<{ entries: Array<{ tag: string }> }>(path.join(ROOT, "lib/postgres/migrations/meta/_journal.json"));
+  return journal.entries[journal.entries.length - 1].tag;
+}
+
+
+/** `export_json` document as the deployment serves it in clean JSON: int64 as decimal string, bytes as base64, non-finite floats as strings. */
+function cleanForm(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(cleanForm);
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const keys = Object.keys(record);
+    if (keys.length === 1) {
+      if (keys[0] === "$integer" && typeof record.$integer === "string") return decodeInteger(record.$integer).toString();
+      if (keys[0] === "$bytes" && typeof record.$bytes === "string") return record.$bytes;
+      if (keys[0] === "$float" && typeof record.$float === "string") {
+        const n = decodeFloat(record.$float);
+        return Number.isNaN(n) ? "NaN" : Number.isFinite(n) ? n : n > 0 ? "Infinity" : "-Infinity";
+      }
+    }
+    const out: Record<string, unknown> = {};
+    for (const key of keys) out[key] = cleanForm(record[key]);
+    return out;
+  }
+  return value;
+}
+
+type ImportReport = {
+  elapsedMs: number;
+  tables: Array<{ table: string; exportedRows: number; importedRows: number; rejectedRows: number; duplicateIds: number; storedRows: number | null; hashMismatches: number }>;
+  totals: { exported: number; imported: number; rejected: number; duplicateIds: number; hashMismatches: number; danglingReferences: number };
+};
+
+async function main(): Promise<void> {
+  const runDirectory = path.join(ROOT, "runs/postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-rollback`);
+  fs.mkdirSync(runDirectory, { recursive: true });
+  const started = performance.now();
+  const measurements: Record<string, unknown> = {};
+  const schemaTag = currentSchemaTag();
+  const tag = `t22r-${mintDocumentId().slice(0, 8)}`;
+  let convexPhase: Record<string, unknown> = { skipped: true, reason: skipConvex ? "--skip-convex" : "no --convex-scratch" };
+
+  // ------------------------------------------------------------------ guards
+  let scratchKey: string | null = null;
+  if (convexScratch && !skipConvex) {
+    guardConvexTarget(convexScratch, false);
+    const ambient = ["CONVEX_URL", "VITE_CONVEX_URL", "NEXT_PUBLIC_CONVEX_URL", "CONVEX_PUBLIC_READ_URL", "CONVEX_DEPLOYMENT", "CONVEX_DEPLOY_KEY", "CONVEX_DEPLOY_KEY_PROD"]
+      .map((name) => ({ name, deployment: deploymentNameFrom(process.env[name]) }))
+      .filter((entry) => entry.deployment === convexScratch);
+    if (ambient.length) throw new Error(`Refusing ${convexScratch}: it is the deployment named by ${ambient.map((e) => e.name).join(", ")} in this environment`);
+    scratchKey = readScratchDeployKey(convexEnvFile, convexScratch);
+    expect("guard", "the scratch deploy key names the scratch deployment and nothing in the environment does", true, { convexScratch });
+  }
+  const production = (() => {
+    try {
+      guardConvexTarget("glad-minnow-656", true, { ...process.env, CONVEX_REVERSE_IMPORT_CONFIRM: "glad-minnow-656" });
+      return "accepted";
+    } catch (error) {
+      return errorMessage(error);
+    }
+  })();
+  const productionWithoutFlag = (() => {
+    try {
+      guardConvexTarget("glad-minnow-656", false);
+      return "accepted";
+    } catch (error) {
+      return errorMessage(error);
+    }
+  })();
+  expect("guard", "the Convex target guard refuses production without --allow-production and the confirm variable", productionWithoutFlag !== "accepted" && production === "accepted", { productionWithoutFlag });
+
+  const exportEnv = { ...process.env };
+  const rtUrlObject = new URL(target);
+  rtUrlObject.pathname = `/${roundTripDb}`;
+  const rtUrl = rtUrlObject.toString();
+  const maintenanceUrl = new URL(target);
+  maintenanceUrl.pathname = "/postgres";
+  const maintenance = new Pool({ connectionString: maintenanceUrl.toString(), max: 1 });
+  const sourcePool = new Pool({ connectionString: convexSource, max: 2 });
+  let seededId: string | null = null;
+  try {
+    // ------------------------------------------------------------------ export
+    const exportOut = path.join(runDirectory, "export-target");
+    const exportArgs = ["scripts/postgres/export-postgres-to-convex.ts", "--target", target, "--out", exportOut, ...(tableNumbers ? ["--table-numbers", tableNumbers] : []), ...(allowRemote ? ["--allow-remote"] : [])];
+    const exportRun = runCommand("export target", "bun", exportArgs, exportEnv);
+    expect("export", "the exporter exits 0 against the target", exportRun.status === 0, { stderr: exportRun.stderr.slice(-400) });
+    if (exportRun.status !== 0) throw new Error("export failed");
+    const exportA = readJson<ExportReport>(path.join(exportOut, "report.json"));
+    expect("export", `all ${tableNames.length} application tables are exported`, exportA.tables.length === tableNames.length && tableNames.every((name) => exportA.tables.some((t) => t.table === name)), exportA.tables.length);
+    expect("export", "the runtime-only tables are skipped by name and reported", exportA.skippedRuntimeTables.length === RUNTIME_ONLY_TABLES.length && exportA.skippedRuntimeTables.every((t) => RUNTIME_ONLY_TABLES.some((r) => r.table === t.table && r.schema === t.schema)), exportA.skippedRuntimeTables.map((t) => `${t.schema}.${t.table}`));
+    expect("export", "no other table exists in the database without a Convex counterpart", exportA.unexportedTables.length === 0, exportA.unexportedTables);
+    expect("export", "every table has a table number in _tables", exportA.tableNumbers.unknown.length === 0 && exportA.tablesInSnapshotTable === tableNames.length, exportA.tableNumbers);
+    expect("export", "the snapshot ZIP was written", exportA.zip !== null && fs.existsSync(exportA.zip) && (exportA.zipBytes ?? 0) > 0, exportA.zipBytes);
+    measurements.exportTarget = { target: redact(target), rows: exportA.totals.rows, bytes: exportA.totals.bytes, zipBytes: exportA.zipBytes, exportMs: exportA.exportMs, zipMs: exportA.zipMs, remappedIds: exportA.totals.remappedIds, referencesRewritten: exportA.totals.referencesRewritten, report: path.relative(ROOT, path.join(exportOut, "report.json")) };
+
+    // ------------------------------------------------------------------ round trip
+    await maintenance.query(`DROP DATABASE IF EXISTS "${roundTripDb}" WITH (FORCE)`);
+    await maintenance.query(`CREATE DATABASE "${roundTripDb}"`);
+    const migrate = runCommand("migrate round-trip database", "bunx", ["drizzle-kit", "migrate"], { ...process.env, POSTGRES_DIRECT_URL: rtUrl });
+    expect("round-trip", `${roundTripDb} is created from the migrations`, migrate.status === 0, migrate.stderr.slice(-300));
+    const importRun = runCommand("forward import into round-trip database", "bun", ["scripts/postgres/import-convex-export.ts", "--export", exportA.zip!, "--target", rtUrl], exportEnv);
+    const reportLine = importRun.stdout.split("\n").find((line) => line.startsWith("Report: "));
+    const importReport = reportLine ? readJson<ImportReport>(path.join(ROOT, reportLine.slice("Report: ".length).trim())) : null;
+    expect("round-trip", "the forward importer accepted the ZIP", importReport !== null, importRun.stderr.slice(-300));
+    if (!importReport) throw new Error("forward import failed");
+    expect("round-trip", "0 rejected, 0 duplicate ids, 0 hash mismatches", importReport.totals.rejected === 0 && importReport.totals.duplicateIds === 0 && importReport.totals.hashMismatches === 0, importReport.totals);
+    const countsAgree = exportA.tables.every((t) => {
+      const imported = importReport.tables.find((i) => i.table === t.table);
+      return imported && imported.exportedRows === t.rows && imported.importedRows === t.rows && imported.storedRows === t.rows;
+    });
+    expect("round-trip", `every table's exported, imported and stored counts equal the export (${exportA.totals.rows} rows)`, countsAgree && importReport.totals.imported === exportA.totals.rows);
+    const exportRtOut = path.join(runDirectory, "export-roundtrip");
+    const exportRtRun = runCommand("export round-trip database", "bun", ["scripts/postgres/export-postgres-to-convex.ts", "--target", rtUrl, "--out", exportRtOut, "--no-zip", ...(tableNumbers ? ["--table-numbers", tableNumbers] : [])], exportEnv);
+    expect("round-trip", "the round-trip database exports again", exportRtRun.status === 0, exportRtRun.stderr.slice(-300));
+    const exportB = readJson<ExportReport>(path.join(exportRtOut, "report.json"));
+    const digestDiff = exportA.tables.filter((t) => exportB.tables.find((b) => b.table === t.table)?.digest !== t.digest).map((t) => t.table);
+    expect("round-trip", "every table's document digest is identical after the round trip", digestDiff.length === 0, digestDiff);
+    const tablesFileA = fs.readFileSync(path.join(exportA.snapshotDirectory, "_tables/documents.jsonl"), "utf8");
+    const tablesFileB = fs.readFileSync(path.join(exportB.snapshotDirectory, "_tables/documents.jsonl"), "utf8");
+    expect("round-trip", "_tables/documents.jsonl is identical after the round trip", tablesFileA === tablesFileB);
+    expect("round-trip", "every id in the round-trip database is a Convex id (no remap on re-export)", exportB.totals.remappedIds === 0 && exportB.totals.referencesRewritten === 0, exportB.totals);
+    measurements.roundTrip = { database: redact(rtUrl), migrateMs: migrate.ms, importMs: importRun.ms, importerElapsedMs: importReport.elapsedMs, importTotals: importReport.totals, reExportMs: exportB.exportMs };
+
+    // ------------------------------------------------------------------ convex
+    if (convexScratch && !skipConvex && scratchKey) {
+      const S = "convex";
+      // The rollback contract of release-manifest.md step 12: a row written on Postgres after the cutover reaches Convex.
+      process.env.DATA_BACKEND = "postgres";
+      process.env.POSTGRES_POOLED_URL = convexSource;
+      const intakeToken = `${tag}-intake-token`;
+      process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = intakeToken;
+      const runtime = PostgresConvexClient.fromUrl(convexSource);
+      const createdAt = new Date().toISOString();
+      const feedback = { id: `${tag}-site-feedback`, status: "new" as const, schema_version: 1, category: "misc" as const, urgency: "normal" as const, details: `${tag} written on Postgres after the cutover`, page: "/lsd", honeypot_triggered: false, created_at: createdAt, updated_at: createdAt };
+      try {
+        await runtime.mutation(api.siteFeedback.create, { apiKey: intakeToken, feedback });
+      } finally {
+        await runtime.end();
+      }
+      const seededRows = await sourcePool.query<{ _id: string }>('SELECT "_id" FROM "siteFeedback" WHERE "id" = $1', [feedback.id]);
+      seededId = seededRows.rows[0]?._id ?? null;
+      expect(S, "a siteFeedback row is written on the Postgres source through siteFeedback:create", seededId !== null, seededId);
+
+      const exportConvexOut = path.join(runDirectory, "export-convex-source");
+      const exportSourceRun = runCommand("export convex source", "bun", ["scripts/postgres/export-postgres-to-convex.ts", "--target", convexSource, "--out", exportConvexOut, ...(tableNumbers ? ["--table-numbers", tableNumbers] : []), ...(allowRemote ? ["--allow-remote"] : [])], exportEnv);
+      expect(S, "the source exports with the new row", exportSourceRun.status === 0, exportSourceRun.stderr.slice(-300));
+      if (exportSourceRun.status !== 0) throw new Error("convex source export failed");
+      const exportC = readJson<ExportReport>(path.join(exportConvexOut, "report.json"));
+      const remapLines = fs.readFileSync(exportC.files.idRemap, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line) as { table: string; from: string; to: string });
+      const remapped = remapLines.find((line) => line.from === seededId) ?? null;
+      expect(S, "the Postgres-born id of the new row is remapped to a Convex id for siteFeedback's table number", remapped !== null && remapped.table === "siteFeedback", remapped);
+      const manifest = new Map<string, string>();
+      for (const line of fs.readFileSync(exportC.files.hashes, "utf8").split("\n")) {
+        if (!line) continue;
+        const entry = JSON.parse(line) as { table: string; id: string; hash: string };
+        manifest.set(`${entry.table}/${entry.id}`, entry.hash);
+      }
+
+      const convexEnv = convexCliEnv(scratchKey);
+      const deploy = runCommand("deploy functions to scratch", "npx", ["convex", "deploy", "--env-file", convexEnvFile, "--typecheck", "disable", "--codegen", "disable"], convexEnv);
+      const deployedTo = `Deployed Convex functions to https://${convexScratch}.convex.cloud`;
+      expect(S, `the repository's functions deploy to ${convexScratch}`, deploy.status === 0 && `${deploy.stdout}${deploy.stderr}`.includes(deployedTo), { status: deploy.status, tail: deploy.stderr.slice(-300) });
+      const convexImport = importSnapshotIntoConvex({ zip: exportC.zip!, deployment: convexScratch, envFile: convexEnvFile, allowProduction: false, cwd: ROOT });
+      console.log(`convex import --replace: exit=${convexImport.status} ${convexImport.ms}ms`);
+      expect(S, "npx convex import --replace accepts the snapshot ZIP", convexImport.status === 0, { status: convexImport.status, tail: `${convexImport.stdout.slice(-300)} ${convexImport.stderr.slice(-300)}` });
+      if (convexImport.status !== 0) throw new Error("convex import failed");
+
+      const deploymentUrl = `https://${convexScratch}.convex.cloud`;
+      async function systemQuery<T>(fn: string, args: Record<string, unknown>): Promise<T> {
+        const response = await fetch(`${deploymentUrl}/api/query`, {
+          method: "POST",
+          headers: { Authorization: `Convex ${scratchKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ path: fn, args, format: "json" }),
+        });
+        const body = (await response.json()) as { status: string; value?: T; errorMessage?: string };
+        if (body.status !== "success") throw new Error(`${fn}: ${body.errorMessage ?? response.status}`);
+        return body.value as T;
+      }
+      const countStarted = performance.now();
+      const counts: Array<{ table: string; exported: number; deployed: number }> = [];
+      for (const t of exportC.tables) {
+        const deployed = await systemQuery<number>("_system/cli/tableSize:default", { tableName: t.table });
+        counts.push({ table: t.table, exported: t.rows, deployed });
+      }
+      const countMismatch = counts.filter((c) => c.exported !== c.deployed);
+      expect(S, `every table count on ${convexScratch} equals the export (${exportC.totals.rows} rows over ${counts.length} tables)`, countMismatch.length === 0, countMismatch);
+      const deployedTables = await systemQuery<{ page: Array<{ name: string }>; isDone: boolean }>("_system/cli/tables", { paginationOpts: { cursor: null, numItems: 500 } });
+      const extraTables = deployedTables.page.map((t) => t.name).filter((name) => !exportC.tables.some((t) => t.table === name));
+      expect(S, "the deployment holds no table outside the export", extraTables.length === 0, extraTables);
+      const countMs = Math.round(performance.now() - countStarted);
+
+      const sampleStarted = performance.now();
+      const samples: Array<{ table: string; sampled: number; mismatched: number }> = [];
+      for (const t of exportC.tables) {
+        if (t.rows === 0) continue;
+        const want = Math.min(t.rows, sampleSize);
+        const page: ConvexDocument[] = [];
+        let cursor: string | null = null;
+        while (page.length < want) {
+          const result = await systemQuery<{ page: ConvexDocument[]; isDone: boolean; continueCursor: string }>("_system/cli/tableData", { table: t.table, order: "asc", paginationOpts: { cursor, numItems: want - page.length } });
+          page.push(...result.page);
+          cursor = result.continueCursor;
+          if (result.isDone || result.page.length === 0) break;
+        }
+        const mismatched = page.filter((document) => manifest.get(`${t.table}/${String(document._id)}`) !== documentHash(cleanForm(document) as ConvexDocument)).length;
+        samples.push({ table: t.table, sampled: page.length, mismatched });
+        expect(S, `${t.table}: ${page.length} of ${t.rows} deployed documents hash equal to the export manifest`, page.length === want && mismatched === 0, { want, sampled: page.length, mismatched });
+      }
+      // Because the sample compares clean JSON, prove the comparison can fail: a tampered copy must not match.
+      const someTable = exportC.tables.find((t) => t.rows > 0)!;
+      const probe = await systemQuery<{ page: ConvexDocument[] }>("_system/cli/tableData", { table: someTable.table, order: "asc", paginationOpts: { cursor: null, numItems: 1 } });
+      const tampered = { ...cleanForm(probe.page[0]) as ConvexDocument, _creationTime: 1 };
+      expect(S, "the sample comparison is sensitive (a tampered document does not match its manifest hash)", manifest.get(`${someTable.table}/${String(probe.page[0]._id)}`) !== documentHash(tampered));
+      const sampleMs = Math.round(performance.now() - sampleStarted);
+
+      // The written row exists on the deployment under its minted id, byte-identical apart from the id.
+      let found: ConvexDocument | null = null;
+      let originalIdPresent = false;
+      let cursor: string | null = null;
+      for (;;) {
+        const result = await systemQuery<{ page: ConvexDocument[]; isDone: boolean; continueCursor: string }>("_system/cli/tableData", { table: "siteFeedback", order: "desc", paginationOpts: { cursor, numItems: 500 } });
+        found = result.page.find((document) => document._id === remapped?.to) ?? found;
+        originalIdPresent ||= result.page.some((document) => document._id === seededId);
+        cursor = result.continueCursor;
+        if (found || result.isDone || result.page.length === 0) break;
+      }
+      const sourceRow = (await sourcePool.query<{ document: string }>('SELECT row_to_json(s)::text AS document FROM "siteFeedback" s WHERE "_id" = $1', [seededId])).rows[0];
+      const { _id: _foundId, _creationTime: foundCreationTime, ...foundBody } = found ?? {};
+      const sourceDocument = sourceRow ? (JSON.parse(sourceRow.document) as Record<string, unknown>) : null;
+      const sourceBody = sourceDocument ? Object.fromEntries(Object.entries(sourceDocument).filter(([key, v]) => key !== "_id" && key !== "_creationTime" && v !== null)) : null;
+      expect(S, "the row written on Postgres exists on the deployment under the minted id with the same content and _creationTime", found !== null && sourceDocument !== null && documentHash(foundBody) === documentHash(sourceBody!) && foundCreationTime === sourceDocument!._creationTime, { minted: remapped?.to, sourceId: seededId, found: found !== null });
+      expect(S, "the Postgres-born id itself is not on the deployment (Convex refuses non-v6 ids; the remap is the contract)", !originalIdPresent);
+
+      convexPhase = {
+        skipped: false,
+        deployment: convexScratch,
+        source: redact(convexSource),
+        exportReport: path.relative(ROOT, path.join(exportConvexOut, "report.json")),
+        rows: exportC.totals.rows,
+        zipBytes: exportC.zipBytes,
+        deployMs: deploy.ms,
+        importMs: convexImport.ms,
+        countMs,
+        sampleMs,
+        sampleSize,
+        sampled: samples.reduce((n, s) => n + s.sampled, 0),
+        remappedIds: exportC.totals.remappedIds,
+        referencesRewritten: exportC.totals.referencesRewritten,
+        writtenRow: { table: "siteFeedback", publicId: feedback.id, postgresId: seededId, convexId: remapped?.to ?? null },
+      };
+      measurements.convex = convexPhase;
+    } else {
+      measurements.convex = convexPhase;
+    }
+  } finally {
+    if (!keep) {
+      if (seededId) {
+        await sourcePool.query('DELETE FROM "documentIds" WHERE "_id" = $1', [seededId]);
+        await sourcePool.query('DELETE FROM "siteFeedback" WHERE "_id" = $1', [seededId]);
+      }
+      await maintenance.query(`DROP DATABASE IF EXISTS "${roundTripDb}" WITH (FORCE)`).catch(() => undefined);
+    }
+    await sourcePool.end();
+    await maintenance.end();
+    const passed = checks.filter((check) => check.pass).length;
+    const summary = {
+      ticket: 22,
+      scenario: "rollback",
+      target: redact(target),
+      convexSource: redact(convexSource),
+      convexScratch,
+      schemaTag,
+      tableNumbers: tableNumbers ? path.relative(ROOT, tableNumbers) : null,
+      kept: keep,
+      elapsedMs: Math.round(performance.now() - started),
+      passed,
+      failed: checks.length - passed,
+      incremental: "not implemented: rollback is a full re-import of the newest export with npx convex import --replace (atomic per table); there is no --since mode",
+      convex: convexPhase,
+      measurements,
+      checks,
+    };
+    fs.writeFileSync(path.join(runDirectory, "report.json"), JSON.stringify(summary, null, 2));
+    console.log(`\nReport: ${path.relative(ROOT, runDirectory)}/report.json`);
+    console.log(JSON.stringify({ passed, failed: summary.failed, elapsedMs: summary.elapsedMs }));
+    process.exitCode = summary.failed === 0 ? 0 : 1;
+  }
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.stack ?? error.message : error);
+  process.exit(1);
+});

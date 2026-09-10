@@ -1,0 +1,182 @@
+/**
+ * Ticket 11: describe, and optionally checksum, the Convex Storage to R2 copy
+ * that `build-storage-manifest.ts` planned. Dry-run by construction.
+ *
+ *   bun scripts/postgres/verify-storage-manifest.ts --manifest <path> [--dry-run] [--export <dir>] [--out <plan.json>]
+ *
+ * For every manifest entry the plan states: the source (the `_storage/<id>`
+ * file of a Convex snapshot export taken with `--include-file-storage`,
+ * unzipped at `--export <dir>`), the destination R2 key, how the checksum is
+ * verified, and the `storageObjects` identity row the cutover would write.
+ * With `--export`, sha256, size, and content type are computed from the local
+ * files and written back into the manifest (`verify: "computed"`); without
+ * one every entry stays `unknown`. No network access in any mode.
+ *
+ * Applying is not this script's job and never was: `--apply` requires
+ * `STORAGE_MIGRATION_CONFIRM=<r2 bucket>` and then still throws
+ * `not authorized in this session`. Nothing here imports an S3 client, so
+ * there is no code path that could upload. The copy was authorized and run on
+ * 2026-09-10 by `scripts/postgres/copy-storage-objects-to-r2.mjs`, which took
+ * the 7 objects that had no other locator and wrote them under the archive's
+ * content-addressed convention (`media/sha256/<xx>/<digest>.<ext>`), not under
+ * the `convex-storage/<id>` destination this plan prints; read the ticket 11
+ * row of notes-and-plans/plans/convex-to-planetscale/decisions.md for what
+ * landed. This script remains the read-only inventory view.
+ */
+
+import { createHash } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { replicationMediaBaseUrl } from "../../convex/lib/replicationUrls";
+import type { ManifestEntry, StorageManifest } from "./build-storage-manifest";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+type ExportMetadata = { contentType?: string; sha256?: string; size?: number };
+type PlanStep = {
+  storage_id: string;
+  action: "copy" | "manifest-only" | "skip";
+  reason: string;
+  source: string;
+  destination: string;
+  checksum: string;
+  identity: { storage_id: string; url: string; content_type: string | null; size: number | null; sha256: string | null; r2_key: string };
+  references: number;
+  privacy_classes: string[];
+};
+
+function arg(argv: string[], name: string): string | undefined {
+  const index = argv.indexOf(name);
+  return index >= 0 ? argv[index + 1] : undefined;
+}
+
+/** `_storage/documents.jsonl` from a `--include-file-storage` export; `sha256` there is base64. */
+function readExportMetadata(exportDir: string): Record<string, ExportMetadata> {
+  const file = path.join(exportDir, "_storage", "documents.jsonl");
+  const metadata: Record<string, ExportMetadata> = {};
+  if (!fs.existsSync(file)) return metadata;
+  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+    if (!line.trim()) continue;
+    const row = JSON.parse(line) as { _id: string } & ExportMetadata;
+    metadata[row._id] = {
+      contentType: row.contentType,
+      sha256: row.sha256 ? Buffer.from(row.sha256, "base64").toString("hex") : undefined,
+      size: row.size,
+    };
+  }
+  return metadata;
+}
+
+function fillFromExport(entry: ManifestEntry, exportDir: string, metadata: Record<string, ExportMetadata>): string {
+  const file = path.join(exportDir, "_storage", entry.storage_id);
+  if (!fs.existsSync(file)) {
+    entry.verify = "missing-in-export";
+    return `${path.relative(ROOT, file)} (missing from export)`;
+  }
+  const bytes = fs.readFileSync(file);
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const meta = metadata[entry.storage_id];
+  if (meta?.sha256 && meta.sha256 !== sha256) throw new Error(`${entry.storage_id}: export metadata sha256 ${meta.sha256} does not match file bytes ${sha256}`);
+  if (meta?.size !== undefined && meta.size !== bytes.length) throw new Error(`${entry.storage_id}: export metadata size ${meta.size} does not match file bytes ${bytes.length}`);
+  entry.sha256 = sha256;
+  entry.size = bytes.length;
+  entry.content_type = meta?.contentType ?? null;
+  entry.verify = "computed";
+  return path.relative(ROOT, file);
+}
+
+export function planEntry(entry: ManifestEntry, source: string, bucket: string, baseUrl: string): PlanStep {
+  const url = `${baseUrl}/${entry.r2_key}`;
+  const identity = { storage_id: entry.storage_id, url, content_type: entry.content_type, size: entry.size, sha256: entry.sha256, r2_key: entry.r2_key };
+  const shared = { storage_id: entry.storage_id, source, destination: `r2://${bucket}/${entry.r2_key}`, identity, references: entry.references.length, privacy_classes: entry.privacy_classes };
+  if (!entry.well_formed) {
+    return { ...shared, action: "skip", reason: "not a Convex storage id (no such object can exist in Convex Storage); the referencing row needs a data fix, not a copy", checksum: "n/a" };
+  }
+  if (entry.only_indirect) {
+    return { ...shared, action: "skip", reason: "referenced only inside historical jsonb snapshots; no live row resolves it", checksum: "n/a" };
+  }
+  if (entry.already_delivered_elsewhere) {
+    return {
+      ...shared,
+      action: "manifest-only",
+      reason: "every referencing row already carries a canonical media/sha256 R2 key or a non-Convex public URL; the runtime never consults storageObjects for it while REPLICATION_MEDIA_BASE_URL is set. Optional rollback insurance only",
+      checksum: entry.sha256 ? `sha256 ${entry.sha256} recorded from export; compare with the existing R2 object's checksum before trusting the mapping` : "unknown until --export is supplied",
+    };
+  }
+  return {
+    ...shared,
+    action: "copy",
+    reason: "live row resolves this object through ctx.storage.getUrl and has no other locator",
+    checksum: entry.sha256
+      ? `upload with x-amz-checksum-sha256 / verify GET body sha256 == ${entry.sha256} and Content-Length == ${entry.size}`
+      : "unknown until --export is supplied: cannot verify a copy without a source digest",
+  };
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const manifestPath = arg(argv, "--manifest");
+  if (!manifestPath) throw new Error("--manifest <path> is required");
+  const exportDir = arg(argv, "--export");
+  const apply = argv.includes("--apply");
+  const bucket = process.env.CLOUDFLARE_R2_BUCKET ?? "unknown";
+  const baseUrl = replicationMediaBaseUrl() ?? "https://<REPLICATION_MEDIA_BASE_URL unset>";
+  const mode = apply ? "apply" : "dry-run";
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as StorageManifest;
+  if (manifest.version !== 1) throw new Error(`unsupported manifest version ${manifest.version}`);
+  const metadata = exportDir ? readExportMetadata(exportDir) : {};
+  if (exportDir && !fs.existsSync(path.join(exportDir, "_storage"))) {
+    throw new Error(`${exportDir} has no _storage/ folder; take the snapshot with \`npx convex export --include-file-storage\` and unzip it`);
+  }
+
+  const plan: PlanStep[] = [];
+  for (const entry of manifest.entries) {
+    let source = "Convex snapshot export with --include-file-storage (not provided: pass --export <dir>)";
+    if (exportDir) source = fillFromExport(entry, exportDir, metadata);
+    else entry.verify = "unknown";
+    plan.push(planEntry(entry, source, bucket, baseUrl));
+  }
+
+  const counts = plan.reduce<Record<string, number>>((acc, step) => ({ ...acc, [step.action]: (acc[step.action] ?? 0) + 1 }), {});
+  const verify = manifest.entries.reduce<Record<string, number>>((acc, entry) => ({ ...acc, [entry.verify]: (acc[entry.verify] ?? 0) + 1 }), {});
+  const bytes = manifest.entries.reduce((n, entry) => n + (entry.size ?? 0), 0);
+  const out = arg(argv, "--out") ?? path.join(path.dirname(manifestPath), "verify-plan.json");
+  const report = {
+    mode,
+    generated_at: new Date().toISOString(),
+    manifest: path.relative(ROOT, manifestPath),
+    export: exportDir ? path.relative(ROOT, exportDir) : null,
+    bucket,
+    base_url: baseUrl,
+    actions: counts,
+    verify,
+    bytes_known: bytes,
+    gate: "Uploads run only with --apply and STORAGE_MIGRATION_CONFIRM=<bucket>; this session is not authorized to apply.",
+    steps: plan,
+  };
+  fs.writeFileSync(out, JSON.stringify(report, null, 2));
+  if (exportDir) fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  for (const step of plan.filter((s) => s.action !== "manifest-only").slice(0, 25)) {
+    console.log(`${step.action.padEnd(13)} ${step.storage_id} -> ${step.destination} [${step.privacy_classes.join(",")}] ${step.reason.split(";")[0]}`);
+  }
+  console.log(`Plan: ${path.relative(ROOT, out)}`);
+  console.log(JSON.stringify({ mode, entries: plan.length, ...counts, verify, bytes_known: bytes }));
+
+  if (apply) {
+    if (process.env.STORAGE_MIGRATION_CONFIRM !== bucket || bucket === "unknown") {
+      throw new Error(`--apply requires STORAGE_MIGRATION_CONFIRM=${bucket} (CLOUDFLARE_R2_BUCKET)`);
+    }
+    // Human gate (ticket 11): the copy is approved per manifest by the owner, outside this session.
+    throw new Error("not authorized in this session: the R2 copy is human-gated; see decisions.md ticket 11");
+  }
+}
+
+if (import.meta.main) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    process.exit(1);
+  });
+}
