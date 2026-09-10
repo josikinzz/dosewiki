@@ -112,52 +112,25 @@ export const proFont = localFont({
 });
 
 /**
- * Dyslexic-friendly face — Lexend, offered as a reader preference behind the
- * appearance popout's type toggle (`data-font="dyslexic"`, see
- * `src/styles/dyslexic-type.css`). Registered on the Pro face's terms:
- * `preload: false` plus `display: "swap"` means an untoggled reader pays only the
- * `@font-face` block — a woff2 is fetched the first time a rendered element
- * actually resolves to the family, which cannot happen until the toggle sets the
- * root attribute.
+ * The default reading face — Lexend, the face every dose.wiki reader opens on
+ * (`data-font` absent, see `src/styles/font-type.css`) and the first option in the
+ * appearance popout's font picker. Registered on the body face's terms: `preload: true`
+ * (the default, written out because it is the whole point) plus `display: "swap"` — it
+ * paints on every page, so it carries the same preload the Inter body face does.
  *
  * One source, not four: Google serves Lexend as a single variable font (wght
  * 100–900), so the committed latin subset covers every weight the sheets ask
  * for — 400/600/700 under `font-synthesis: none` — in ~39 KB. Lexend has no
- * italic; with synthesis off, italic runs render upright in the same face,
- * which suits the toggle's whole purpose. See `public/fonts/lexend/README.md`.
+ * italic; with synthesis off, italic runs render upright in the same face.
+ * See `public/fonts/lexend/README.md`.
  */
 export const dyslexicFont = localFont({
   variable: "--font-dyslexic",
   display: "swap",
-  preload: false,
+  preload: true,
   src: [
     {
       path: "../../../public/fonts/lexend/lexend-variable-normal-latin.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-  ],
-});
-
-/**
- * The picker's preview face — an 8-glyph subset of the face above carrying exactly
- * the "Dyslexic" option label (`--text="Dyslexic"`, regeneration
- * command in `public/fonts/lexend/README.md`). It exists so the appearance panel can
- * set that one label in the face the option selects: ~4 KB fetched only when the panel
- * first renders the picker, versus ~40 KB for the full face. Same registration terms —
- * `preload: false`, `display: "swap"` — so a reader who never opens the panel pays
- * nothing but the `@font-face` block.
- *
- * The subset is a label preview, not a second font axis: selecting the option still
- * loads the full face through `--font-dyslexic` on the root attribute's terms.
- */
-export const dyslexicPreviewFont = localFont({
-  variable: "--font-dyslexic-preview",
-  display: "swap",
-  preload: false,
-  src: [
-    {
-      path: "../../../public/fonts/lexend/lexend-dyslexic-label-preview.woff2",
       weight: "100 900",
       style: "normal",
     },

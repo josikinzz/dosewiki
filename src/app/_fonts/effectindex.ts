@@ -71,17 +71,10 @@ export const proFont = siteFont;
 export const bodyFont = null;
 
 /**
- * Effect Index offers no dyslexic type toggle (`showFontToggle: false`), so this build
+ * Effect Index offers no font axis (`showFontToggle: false`), so this build
  * registers no Lexend face at all: a `localFont` call here would emit an `@font-face`
  * block and fallback metrics no selector on this publication can ever resolve. The
  * dose.wiki module exports a real registration under the same name; the root layout
  * only appends the variable when this is non-null.
  */
 export const dyslexicFont = null;
-
-/**
- * The label-preview subset is gated on the same axis: with no picker on this
- * publication there is no label to preview, so no registration either. The dose.wiki
- * module exports a real registration under the same name.
- */
-export const dyslexicPreviewFont = null;

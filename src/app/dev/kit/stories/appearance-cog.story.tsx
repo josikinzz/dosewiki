@@ -8,7 +8,7 @@ export const appearanceCogStory: StoryDef = {
   tier: "layout",
   status: "stable",
   summary:
-    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel with named Style, Mode, and Font selectors; Background and Accent colour axes collapsed behind summary rows that expand to hue/saturation sliders; a scoped color reset; and an explicit Theme Lab action.",
+    "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel that opens on a Font tab (face picker, reading-type sliders, reset to defaults) and swaps through one bare icon to a Colour tab (Dark/Light, the Background and Accent rails, a scoped color reset, and an explicit Theme Lab action).",
   source: "src/app/_components/AppearanceCog.tsx",
   importLine:
     'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
@@ -19,11 +19,10 @@ export const appearanceCogStory: StoryDef = {
   examples: [
     {
       label: "DoseWiki",
-      note: "The shipped DoseWiki panel: three labeled preference rows, both labeled color axes, a scoped color reset, and the Theme Lab action.",
+      note: "The shipped DoseWiki panel: the font tab first, the colour tab behind the paintbrush, a scoped color reset, and the Theme Lab action.",
       background: "plain",
       render: () => (
         <AppearanceCog
-          showVisualStyle
           showColorScheme
           showSurface
           showAccent
@@ -38,7 +37,6 @@ export const appearanceCogStory: StoryDef = {
       background: "plain",
       render: () => (
         <AppearanceCog
-          showVisualStyle
           showColorScheme
           showSurface
           showAccent
@@ -48,12 +46,11 @@ export const appearanceCogStory: StoryDef = {
       ),
     },
     {
-      label: "Style and accent locked",
-      note: "Effect Index: its identity and accent are locked, so only its available Darkness control remains — omitted axes are never rendered inert.",
+      label: "Accent and type locked",
+      note: "Effect Index: its identity and accent are locked and it offers no font axis, so only its Darkness control remains — omitted axes are never rendered inert, and the panel never offers tab navigation for a tab it does not have.",
       background: "plain",
       render: () => (
         <AppearanceCog
-          showVisualStyle={false}
           showColorScheme
           showSurface={false}
           showAccent={false}
@@ -71,22 +68,16 @@ export const appearanceCogStory: StoryDef = {
         "Lands on the trigger button, with no wrapper in between, so a caller positioning the control directly can do so without an intermediate box taking the offset.",
     },
     {
-      name: "showVisualStyle",
-      type: "boolean",
-      description:
-        "Renders the labeled Style selector with stable Fun and Pro radio options. A locked axis is omitted rather than disabled.",
-    },
-    {
       name: "showColorScheme",
       type: "boolean",
       description:
-        "Renders the labeled Darkness selector with stable Dark and Light options.",
+        "Renders the labeled Darkness selector with stable Dark and Light options on the colour tab.",
     },
     {
       name: "showSurface",
       type: "boolean",
       description:
-        "Renders the Surface hue and saturation sliders. Live on both visual styles: Pro's additive surface blocks tint the authored charcoal, whose own position is level 0.",
+        "Renders the Surface hue and saturation sliders, always open on the colour tab. Live on both visual styles: Pro's additive surface blocks tint the authored charcoal, whose own position is level 0.",
     },
     {
       name: "showAccent",
@@ -98,7 +89,7 @@ export const appearanceCogStory: StoryDef = {
       name: "showFont",
       type: "boolean",
       description:
-        "Renders the labeled Font selector: Standard / Dyslexic as named radio options, the latter set in an 8-glyph Lexend label subset so the preview costs nobody the full face.",
+        "Renders the font tab: the five-face picker (Lexend by default), the four reading-type sliders, and their reset.",
     },
     {
       name: "showMoreSettings",
@@ -117,7 +108,8 @@ export const appearanceCogStory: StoryDef = {
   notes: [
     "Mount AppearanceControls, not AppearanceCog: the row props are publication policy, not a caller decision.",
     "The panel uses the sticky header's dark chrome palette in both page schemes and a drop shadow, never a modal backdrop.",
-    "Each colour axis is a labelled (hue, saturation) pair over the authored palette, collapsed behind a summary row in the reader panel (the Theme Lab authoring surface keeps them open). Reset colors restores only Background and Accent defaults.",
+    "Two tabs, font first: the face picker and the reading-type sliders, then the colour rails. One bare icon swaps between them — paintbrush on the font tab, type glyph on the colour tab — with no card of its own. The Fun/Pro style axis and the System scheme option remain authoring/Theme Lab surfaces, not reader rows.",
+    "Each colour axis is a labelled (hue, saturation) pair over the authored palette, always open inside its tab. Reset to defaults is the font tab's permanent fixture; Reset colors appears only while a colour axis carries a saved coordinate. Each restores only its own tab's axes.",
     "Escape closes the panel and is stopped inside it, so it cannot also reach a page-level Escape handler above the portal. Closing returns focus to the cog.",
   ],
 };

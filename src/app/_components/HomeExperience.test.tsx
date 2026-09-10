@@ -185,12 +185,17 @@ describe("dose.wiki holding surface", () => {
     await user.click(settings);
     const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
 
+    // The panel opens on the font tab: the face picker publishes its axis.
     expect(
       [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
         control.getAttribute("data-appearance-axis"),
       ),
-    ).toEqual(["color-scheme", "visual-style", "font"]);
-    // Palette authoring and sharing are intentionally absent from the blocked surface.
+    ).toEqual(["font"]);
+    // Palette authoring and sharing are intentionally absent from the blocked surface —
+    // the Theme Lab entry shares the colour tab's footer, so it leads there.
+    await user.click(
+      within(panel).getByRole("button", { name: "Show colour controls" }),
+    );
     expect(within(panel).queryByRole("button", { name: "Open Theme Lab" })).not.toBeInTheDocument();
   });
 

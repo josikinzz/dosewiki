@@ -144,14 +144,15 @@ describe("site font selection", () => {
     expect(read("src/styles/pro-theme.css")).toContain("var(--font-pro, var(--font-display))");
   });
 
-  it("registers the dyslexic face lazily, and only where the toggle exists", () => {
+  it("registers the default face preloaded, and only where the font axis exists", () => {
     const source = stripComments(read(FLAVOR_MODULES.dosewiki));
     const dyslexicRegistration = source.slice(source.indexOf("export const dyslexicFont"));
 
-    // The whole deal: zero Lexend bytes for an untoggled reader. No preload link, swap
-    // display, and the one committed variable-font subset covering 400/600/700.
+    // Lexend is the site's default reading face: it paints on every page, so it carries
+    // the body face's preload rather than the Pro face's lazy terms. Swap display, and
+    // the one committed variable-font subset covering 400/600/700.
     expect(dyslexicRegistration).toContain('variable: "--font-dyslexic"');
-    expect(dyslexicRegistration).toContain("preload: false");
+    expect(dyslexicRegistration).toContain("preload: true");
     expect(dyslexicRegistration).toContain('display: "swap"');
     expect(dyslexicRegistration).toContain('weight: "100 900"');
     const face = "public/fonts/lexend/lexend-variable-normal-latin.woff2";
@@ -165,37 +166,53 @@ describe("site font selection", () => {
     expect(effectindex.toLowerCase()).not.toContain("lexend");
   });
 
-  it("registers the label-preview subset on the same terms as the full face", () => {
-    const source = stripComments(read(FLAVOR_MODULES.dosewiki));
-    const previewRegistration = source.slice(source.indexOf("export const dyslexicPreviewFont"));
-
-    // Same deal as the full face: zero preview bytes for a reader who never opens the
-    // panel — no preload link, swap display, the committed 14-glyph subset.
-    expect(previewRegistration).toContain('variable: "--font-dyslexic-preview"');
-    expect(previewRegistration).toContain("preload: false");
-    expect(previewRegistration).toContain('display: "swap"');
-    const preview = "public/fonts/lexend/lexend-dyslexic-label-preview.woff2";
-    expect(previewRegistration).toContain(preview.replace("public/", "../../../public/"));
-    expect(fs.existsSync(path.join(REPO_ROOT, preview))).toBe(true);
-
-    // The subset was generated with --text pinned to this label; if the picker's copy
-    // changes, the subset (public/fonts/lexend/README.md has the command) must change
-    // with it or the label falls back to the body face. On a locale mirror the
-    // translated label has no glyphs in the subset and falls back by design.
+  it("offers the five bundled faces from the picker, each label set in its face", () => {
+    // The picker is the font axis's whole surface: the default first (re-selecting it is
+    // "removing" the choice, on the never-write-a-default rule), then the other faces
+    // this build already ships, then the reader's own system sans. No option may name a
+    // face the repo does not commit.
     const pickerSource = stripComments(read("src/app/_components/FontPicker.tsx"));
-    expect(pickerSource).toContain('label: msg("Dyslexic")');
-    expect(pickerSource).toContain('labelClassName: "theme-font-preview-dyslexic"');
 
-    // Effect Index has no picker, so no preview registration either.
-    const effectindex = stripComments(read(FLAVOR_MODULES.effectindex));
-    expect(effectindex).toContain("export const dyslexicPreviewFont = null;");
+    const options = [...pickerSource.matchAll(/value: "([a-z]+)",\s*\n\s*label: "([^"]+)",\s*\n\s*labelClassName: "([^"]+)"/g)];
+    expect(options.map(([, value]) => value)).toEqual([
+      "lexend",
+      "inter",
+      "blinker",
+      "titillium",
+      "system",
+    ]);
+    expect(options.map(([, , label]) => label)).toEqual([
+      "Lexend",
+      "Inter",
+      "Blinker",
+      "Titillium Web",
+      "System UI",
+    ]);
+    for (const [, , , className] of options) {
+      expect(read("src/styles/font-type.css")).toContain(`.${className} {`);
+    }
+
+    // The re-seats behind those previews must name the committed faces: the picker can
+    // only offer what `font-type.css` can actually paint.
+    const fontSheet = stripComments(read("src/styles/font-type.css"));
+    for (const face of [
+      "public/fonts/lexend/lexend-variable-normal-latin.woff2",
+      "public/fonts/inter/inter-variable-normal-latin.woff2",
+      "public/fonts/titillium-web/titillium-web-400-normal-latin.woff2",
+    ]) {
+      expect(read("src/app/_fonts/dosewiki.ts")).toContain(face.replace("public/", "../../../public/"));
+    }
+    expect(fontSheet).toContain("html[data-site=\"dosewiki\"][data-site][data-site]:not([data-font])");
+    for (const face of ["inter", "blinker", "titillium", "system"]) {
+      expect(fontSheet).toContain(`html[data-font="${face}"][data-font][data-font]`);
+    }
   });
 
   it("selects the module through the @site-font alias rather than in JavaScript", () => {
     const entry = stripComments(read("src/app/fonts.ts"));
 
     expect(entry).toContain(
-      'export { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "@site-font"',
+      'export { bodyFont, dyslexicFont, proFont, siteFont } from "@site-font"',
     );
     expect(entry).not.toContain("next/font");
     expect(entry).not.toContain("siteFlavor");

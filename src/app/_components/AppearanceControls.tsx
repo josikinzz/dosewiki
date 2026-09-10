@@ -21,7 +21,9 @@ import { AppearanceCog } from "./AppearanceCog";
  * exist so a dev's first provider-backed page needs no second mount. The hint
  * is read after hydration so the server and first client markup agree. This is
  * presentation, not a security boundary — the Lab's own routes stay gated
- * server-side.
+ * server-side. A local `next dev` server skips the gate: `NODE_ENV` is
+ * "development" only there, so the entry is unconditional on a dev's own
+ * machine and unchanged on any deployment.
  *
  * `className` lands on the trigger itself, with no wrapper, so a caller positioning the
  * button directly never fights an intermediate box for the offset.
@@ -40,7 +42,7 @@ export function AppearanceControls({
   iconSize?: number;
   allowThemeLab?: boolean;
 }) {
-  const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
+  const { isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
   // Undefined on the many pages that mount no SessionProvider; the hint covers those.
   const session = useContext(SessionContext);
   const sessionSaysDev =
@@ -52,13 +54,17 @@ export function AppearanceControls({
   }, []);
 
   const hasThemeLab =
-    allowThemeLab && SITE_FLAVOR_CONFIG.flavor === "dosewiki" && (sessionSaysDev || editorHere);
+    allowThemeLab &&
+    SITE_FLAVOR_CONFIG.flavor === "dosewiki" &&
+    // A local `next dev` server is a dev's own machine: the entry is the point of
+    // running one, so it needs no session or hint there. Deployed builds (including
+    // preview deployments) keep the session/hint gate below.
+    (process.env.NODE_ENV === "development" || sessionSaysDev || editorHere);
 
   return (
     <AppearanceCog
       className={className}
       iconSize={iconSize}
-      showVisualStyle={!isVisualStyleLocked}
       showColorScheme={SITE_FLAVOR_CONFIG.showColorSchemeToggle}
       showSurface={!isSurfaceLocked}
       showAccent={!isAccentLocked}

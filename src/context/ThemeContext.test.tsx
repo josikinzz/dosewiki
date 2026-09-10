@@ -16,9 +16,12 @@ import {
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   FONT_STORAGE_KEY,
+  LETTER_SPACING_STORAGE_KEY,
+  LINE_HEIGHT_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
+  TEXT_SIZE_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   ThemeProvider,
@@ -26,12 +29,25 @@ import {
   type ColorScheme,
   type VisualStyle,
 } from "./ThemeContext";
+import {
+  READER_LEADING_ATTRIBUTE,
+  READER_LEADING_PROPERTY,
+  READER_TRACKING_PROPERTY,
+  TEXT_SIZE_PROPERTY,
+} from "@/theme/appearanceTypography";
 
 function AppearanceProbe() {
   const {
     colorScheme,
     visualStyle,
     fontPreference,
+    textSize,
+    letterSpacing,
+    lineHeight,
+    setTextSize,
+    setLetterSpacing,
+    setLineHeight,
+    hasCustomType,
     surfaceChroma,
     accentChroma,
     setSurfaceChroma,
@@ -44,7 +60,7 @@ function AppearanceProbe() {
     isFontLocked,
     toggleColorScheme,
     toggleVisualStyle,
-    toggleFontPreference,
+    setFontPreference,
   } = useTheme();
 
   return (
@@ -52,6 +68,10 @@ function AppearanceProbe() {
       <span data-testid="color-scheme">{colorScheme}</span>
       <span data-testid="visual-style">{visualStyle}</span>
       <span data-testid="font-preference">{fontPreference}</span>
+      <span data-testid="text-size">{String(textSize)}</span>
+      <span data-testid="letter-spacing">{String(letterSpacing)}</span>
+      <span data-testid="line-height">{String(lineHeight)}</span>
+      <span data-testid="has-custom-type">{String(hasCustomType)}</span>
       <span data-testid="style-locked">{String(isVisualStyleLocked)}</span>
       <span data-testid="accent-locked">{String(isAccentLocked)}</span>
       <span data-testid="font-locked">{String(isFontLocked)}</span>
@@ -65,8 +85,29 @@ function AppearanceProbe() {
       <button type="button" onClick={toggleVisualStyle}>
         Toggle style
       </button>
-      <button type="button" onClick={toggleFontPreference}>
-        Toggle type
+      <button type="button" onClick={() => setFontPreference("inter")}>
+        Pick Inter
+      </button>
+      <button type="button" onClick={() => setFontPreference("lexend")}>
+        Pick Lexend
+      </button>
+      <button type="button" onClick={() => setTextSize(1.05)}>
+        Set text size
+      </button>
+      <button type="button" onClick={() => setTextSize(1)}>
+        Set text size to default
+      </button>
+      <button type="button" onClick={() => setTextSize(null)}>
+        Reset text size
+      </button>
+      <button type="button" onClick={() => setLetterSpacing(-0.02)}>
+        Set tracking
+      </button>
+      <button type="button" onClick={() => setLineHeight(1.55)}>
+        Set leading
+      </button>
+      <button type="button" onClick={() => setLineHeight(1.7)}>
+        Set leading to default
       </button>
       <button type="button" onClick={() => setSurfaceChroma(0.4)}>
         Saturate surface
@@ -330,66 +371,166 @@ describe("ThemeProvider", () => {
     expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("toggles the type axis: dyslexic writes the key, default removes it and the attribute", async () => {
+  it("picks a face: writing the key paints it, the default removes key and attribute", async () => {
     const user = userEvent.setup();
 
     renderProvider();
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+    // The default is the ABSENT state before anything is picked.
+    expect(document.documentElement.dataset.font).toBeUndefined();
 
-    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+    await user.click(screen.getByRole("button", { name: "Pick Inter" }));
 
     await waitFor(() => {
-      expect(screen.getByTestId("font-preference")).toHaveTextContent("dyslexic");
-      expect(document.documentElement.dataset.font).toBe("dyslexic");
-      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("dyslexic");
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("inter");
+      expect(document.documentElement.dataset.font).toBe("inter");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("inter");
     });
 
-    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+    await user.click(screen.getByRole("button", { name: "Pick Lexend" }));
 
     await waitFor(() => {
-      expect(screen.getByTestId("font-preference")).toHaveTextContent("default");
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
       // The default is the ABSENT state: no attribute, no stored value — the document
-      // and storage look exactly as if the reader never toggled.
+      // and storage look exactly as if the reader never picked.
       expect(document.documentElement.dataset.font).toBeUndefined();
       expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBeNull();
       expect(storage.removals).toContain(FONT_STORAGE_KEY);
     });
   });
 
-  it("adopts the painted dyslexic type the bootstrap restored", async () => {
-    // Exactly the state the pre-paint script leaves for a reader who saved the toggle.
+  it("migrates the binary-toggle era's dyslexic pick onto the default face", async () => {
+    // Exactly the state a reader of the old toggle could return with: the retired value
+    // in storage. Lexend is now the default face — which is what that pick reproduced —
+    // so the adoption clears the key and leaves no attribute behind.
     window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
-    document.documentElement.dataset.font = "dyslexic";
     storage.forgetTraffic();
 
     renderProvider();
 
     await waitFor(() => {
-      expect(screen.getByTestId("font-preference")).toHaveTextContent("dyslexic");
-      expect(document.documentElement.dataset.font).toBe("dyslexic");
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
+      expect(document.documentElement.dataset.font).toBeUndefined();
+      expect(storage.removals).toContain(FONT_STORAGE_KEY);
     });
   });
 
-  it("never reads or writes the font key while the type axis is locked", async () => {
+  it("sets and clears the reading-type axes: paint on the next frame, persist after the drag rests", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Set text size" }));
+    await user.click(screen.getByRole("button", { name: "Set tracking" }));
+    await user.click(screen.getByRole("button", { name: "Set leading" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("has-custom-type")).toHaveTextContent("true");
+      // The text-size axis is a unitless scale over the text tokens, never a root
+      // font-size — a font-size write would reproduce browser zoom.
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
+      expect(document.documentElement.style.fontSize).toBe("");
+      // The written values carry their CSS units: a bare number substitutes into
+      // letter-spacing as an invalid value and silently knocks the property back to
+      // its inherited value.
+      expect(document.documentElement.style.getPropertyValue(READER_TRACKING_PROPERTY)).toBe("-0.02em");
+      expect(document.documentElement).toHaveAttribute(READER_LEADING_ATTRIBUTE, "");
+      expect(document.documentElement.style.getPropertyValue(READER_LEADING_PROPERTY)).toBe("1.55");
+    });
+
+    // Persistence is debounced past the drag; each settled value lands once.
+    await waitFor(() => {
+      expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBe("1.05");
+      expect(window.localStorage.getItem(LETTER_SPACING_STORAGE_KEY)).toBe("-0.02");
+      expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBe("1.55");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Reset text size" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("text-size")).toHaveTextContent("null");
+      // The default is the ABSENT write: the axis disengages instead of painting ×1.
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
+      expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBeNull();
+      expect(storage.removals).toContain(TEXT_SIZE_STORAGE_KEY);
+    });
+  });
+
+  it("treats a slider value parked back on its default as the never-touched state", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Set leading" }));
+    await waitFor(() => {
+      expect(document.documentElement).toHaveAttribute(READER_LEADING_ATTRIBUTE, "");
+      expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBe("1.55");
+    });
+
+    // Dragging the thumb back to 1.7 — the resting default — must not save a copy of
+    // the default: the axis disengages, the key is removed, and hasCustomType drops,
+    // exactly as if the slider had never moved.
+    await user.click(screen.getByRole("button", { name: "Set leading to default" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("line-height")).toHaveTextContent("null");
+      expect(screen.getByTestId("has-custom-type")).toHaveTextContent("false");
+      expect(document.documentElement).not.toHaveAttribute(READER_LEADING_ATTRIBUTE);
+      expect(document.documentElement.style.getPropertyValue(READER_LEADING_PROPERTY)).toBe("");
+      expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBeNull();
+      expect(storage.removals).toContain(LINE_HEIGHT_STORAGE_KEY);
+    });
+
+    // The text-size axis behaves identically.
+    await user.click(screen.getByRole("button", { name: "Set text size" }));
+    await waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
+    });
+    await user.click(screen.getByRole("button", { name: "Set text size to default" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("text-size")).toHaveTextContent("null");
+      expect(screen.getByTestId("has-custom-type")).toHaveTextContent("false");
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
+      expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("never reads or writes the type keys while the type axis is locked", async () => {
     const user = userEvent.setup();
     // A preference saved on the other publication must not be consumed or clobbered here.
-    window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
+    window.localStorage.setItem(FONT_STORAGE_KEY, "inter");
+    window.localStorage.setItem(TEXT_SIZE_STORAGE_KEY, "1.15");
     storage.forgetTraffic();
 
     renderProvider({ isFontLocked: true });
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+    await user.click(screen.getByRole("button", { name: "Pick Inter" }));
+    await user.click(screen.getByRole("button", { name: "Set text size" }));
 
     expect(screen.getByTestId("font-locked")).toHaveTextContent("true");
-    expect(screen.getByTestId("font-preference")).toHaveTextContent("default");
+    expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
+    expect(screen.getByTestId("text-size")).toHaveTextContent("null");
     expect(document.documentElement.dataset.font).toBeUndefined();
-    expect(storage.reads).not.toContain(FONT_STORAGE_KEY);
-    expect(storage.writes.map(([key]) => key)).not.toContain(FONT_STORAGE_KEY);
-    expect(storage.removals).not.toContain(FONT_STORAGE_KEY);
-    expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("dyslexic");
+    for (const key of [
+      FONT_STORAGE_KEY,
+      TEXT_SIZE_STORAGE_KEY,
+      LETTER_SPACING_STORAGE_KEY,
+      LINE_HEIGHT_STORAGE_KEY,
+    ]) {
+      expect(storage.reads).not.toContain(key);
+      expect(storage.writes.map(([writeKey]) => writeKey)).not.toContain(key);
+      expect(storage.removals).not.toContain(key);
+    }
+    expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("inter");
+    expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBe("1.15");
   });
 
   it("hydrates the site-default levels and hues without ever writing them to storage", async () => {

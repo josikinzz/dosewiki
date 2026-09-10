@@ -3,60 +3,100 @@
 import { useTheme } from "@/context/ThemeContext";
 import type { FontPreference } from "@/context/ThemeContext";
 import {
-  AppearanceTogglePill,
-  type AppearanceToggleOption,
-} from "./AppearanceTogglePill";
-import { msg, useT } from "@/i18n/client";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useT } from "@/i18n/client";
 
 /**
- * The two faces on this axis, in the order they sit in the picker. The labels are
- * text, not glyphs: the old icon toggle made the reader decode "Aa" versus glasses
- * and guess which state was on, where naming the two options states the choice.
+ * The five faces on this axis, in picker order. Lexend first: it is the site's default
+ * reading face, so the picker opens on it and a reader re-selecting the default is
+ * "removing" the choice, on the never-write-a-default rule every axis follows.
  *
- * Both option labels are stable previews, each kept in the face it selects
- * independent of the active preference. "Standard" resolves the standard body face
- * for the active Fun/Pro style even while the document is wearing Lexend. "Dyslexic"
- * uses a ~2 KB Lexend subset carrying exactly that label's glyphs
- * (`--font-dyslexic-preview`, see `src/app/_fonts/dosewiki.ts`), so a reader who never
- * opens the panel never fetches even the subset.
+ * Every label is a stable preview kept in the face it selects, independent of the
+ * active preference: "Lexend" is the same face every page already paints, "Inter" and
+ * "Blinker" resolve their self-hosted registrations, "Titillium Web" the Pro face, and
+ * "System UI" the reader's own platform sans (see `src/styles/font-type.css`).
  */
-const FONT_OPTIONS: readonly [
-  AppearanceToggleOption<FontPreference>,
-  AppearanceToggleOption<FontPreference>,
-] = [
+const FONT_OPTIONS: readonly {
+  value: FontPreference;
+  label: string;
+  labelClassName: string;
+}[] = [
   {
-    value: "default",
-    label: msg("Standard"),
-    labelClassName: "theme-font-preview-standard",
+    value: "lexend",
+    label: "Lexend",
+    labelClassName: "theme-font-preview-lexend",
   },
   {
-    value: "dyslexic",
-    label: msg("Dyslexic"),
-    labelClassName: "theme-font-preview-dyslexic",
+    value: "inter",
+    label: "Inter",
+    labelClassName: "theme-font-preview-inter",
+  },
+  {
+    value: "blinker",
+    label: "Blinker",
+    labelClassName: "theme-font-preview-blinker",
+  },
+  {
+    value: "titillium",
+    label: "Titillium Web",
+    labelClassName: "theme-font-preview-titillium",
+  },
+  {
+    value: "system",
+    label: "System UI",
+    labelClassName: "theme-font-preview-system",
   },
 ];
 
 /**
- * Dyslexic type control for the font axis: the same two-option segmented pill as the
- * mode and style axes, so all three share one geometry, thumb, and radio-group
- * keyboard contract (see `AppearanceTogglePill`).
+ * Face picker for the font axis: a named dropdown rather than a segmented pill, because
+ * the axis is a choice among five faces and a radio row cannot hold five named options
+ * in the panel's 18rem.
  *
  * State lives in `ThemeProvider` on the other controls' terms: this picker holds
  * nothing, and a publication that locks the axis (Effect Index) renders no such
- * control at all (see `AppearanceControls`), so the font storage key is never
- * touched there.
+ * control at all (see `AppearanceControls`), so the font storage key is never touched
+ * there.
  */
-export function FontPicker() {
+export function FontPicker({ className }: { className?: string }) {
   const { fontPreference, setFontPreference } = useTheme();
   const t = useT();
+  const active =
+    FONT_OPTIONS.find((option) => option.value === fontPreference) ?? FONT_OPTIONS[0];
 
   return (
-    <AppearanceTogglePill<FontPreference>
-      axis="font"
-      label={t("Font")}
+    <Select
       value={fontPreference}
-      options={FONT_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
-      onChange={setFontPreference}
-    />
+      onValueChange={(value) => {
+        if (value === "lexend" || value === "inter" || value === "blinker" || value === "titillium" || value === "system") {
+          setFontPreference(value);
+        }
+      }}
+    >
+      <SelectTrigger
+        aria-label={t("Font")}
+        data-appearance-axis="font"
+        data-appearance-value={fontPreference}
+        className={className}
+      >
+        {/* The trigger's value rides the selected face: reading the picker is already a
+            preview of what each option renders as. */}
+        <SelectValue asChild>
+          <span className={active.labelClassName}>{active.label}</span>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {FONT_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            <span className={option.labelClassName}>{option.label}</span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

@@ -63,7 +63,9 @@ function renderControls(session?: SessionContextValue) {
 /**
  * Opens the cog by its `data-appearance-cog` hook rather than its label. The hook exists for this
  * (`AppearanceCog.tsx:95`), and the labels and icons in that panel are being reworked — this file is
- * about who sees the Lab entry, so it should not fail over a renamed control.
+ * about who sees the Lab entry, so it should not fail over a renamed control. The panel opens on
+ * the font tab, so it also swaps to the colour tab, where the dev-gated Theme Lab entry shares
+ * the footer row.
  */
 async function openPanel(user: UserEvent) {
   const trigger = document.querySelector<HTMLButtonElement>("[data-appearance-cog]");
@@ -73,6 +75,13 @@ async function openPanel(user: UserEvent) {
   }
 
   await user.click(trigger);
+
+  const panel = await screen.findByRole("dialog");
+
+  const swap = within(panel).queryByRole("button", { name: "Show colour controls" });
+  if (swap) {
+    await user.click(swap);
+  }
 
   return screen.findByRole("dialog");
 }

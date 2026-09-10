@@ -73,6 +73,17 @@
     margin: 0 0 1.1rem;
   }
 
+  /* Paragraph spacing is a fixed site value — the gap after a plain paragraph is 2x
+     the font size, not a reader preference. Every other prose block (and the gap
+     before headings, tables, callouts) keeps its authored 1.1rem, so the chapter
+     rhythm never moves. Sits before the last-child zeroing below, which must keep
+     winning the trailing edge. */
+  .prose :where(p):not(:where(.not-prose, .not-prose *)),
+  .prose.prose-invert :where(p):not(:where(.not-prose, .not-prose *)),
+  .prose-fuchsia :where(p):not(:where(.not-prose, .not-prose *)) {
+    margin-bottom: 2rem;
+  }
+
   .prose :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)),
   .prose.prose-invert :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)),
   .prose-fuchsia :where(p:last-child, ul:last-child, ol:last-child, blockquote:last-child, pre:last-child, figure:last-child):not(:where(.not-prose, .not-prose *)) {

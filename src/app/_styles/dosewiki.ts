@@ -43,8 +43,8 @@ import "../../styles/surface-tokens.generated.css";
 import "../../styles/accent-tokens.generated.css";
 import "../../styles/fun-flat-glow.css";
 // The reader's font axis. dose.wiki-only on the accent sheet's reasoning: Effect Index
-// locks the axis, so the block would be dead bytes over its authored Titillium. Position
-// in the bundle is immaterial — the block out-specifies the Pro re-seat rather than
-// out-ordering it (see the header comment in the sheet) — but it sits last as the most
-// derived rung of the chain.
-import "../../styles/dyslexic-type.css";
+// locks the axis, so the blocks would be dead bytes over its authored Titillium. Position
+// in the bundle is immaterial — the chosen-face blocks out-specify the Pro re-seat rather
+// than out-ordering it (see the header comment in the sheet) — but it sits last as the
+// most derived rung of the chain.
+import "../../styles/font-type.css";

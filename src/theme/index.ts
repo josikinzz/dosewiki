@@ -19,6 +19,15 @@ import {
   PRO_THEME_STYLESHEET_HREF,
   PRO_THEME_STYLESHEET_LINK_ID,
 } from "./appearanceSheets";
+import {
+  READER_LEADING_ATTRIBUTE,
+  READER_LEADING_PROPERTY,
+  READER_LEADING_RANGE,
+  READER_TRACKING_PROPERTY,
+  READER_TRACKING_RANGE,
+  TEXT_SIZE_PROPERTY,
+  TEXT_SIZE_RANGE,
+} from "./appearanceTypography";
 import tokenInterface from "./theme-token-interface.json";
 
 export const THEME_TOKEN_INTERFACE = tokenInterface;
@@ -50,15 +59,29 @@ export type ColorSchemePreference = ColorScheme | "system";
 export type VisualStyle = "fun" | "pro";
 
 /**
- * The type axis: which family pair the two `--font-family-*` tokens resolve to.
- * `"default"` is each visual style's own face (Blinker on Fun, Titillium on Pro) and is
- * carried as *no* root attribute at all; `"dyslexic"` re-seats both tokens to Lexend via
- * `data-font="dyslexic"` on the document root (`src/styles/dyslexic-type.css`), on both
- * visual styles and both colour schemes. A binary reader preference, not a face list —
- * dose.wiki offers the toggle, Effect Index locks the axis and never carries the
- * attribute or reads the storage key.
+ * The type axis: which face the two `--font-family-*` tokens resolve to.
+ * `"lexend"` is the site default (every dose.wiki reader opens on it) and is carried as
+ * *no* root attribute at all — `src/styles/font-type.css` re-seats both tokens to Lexend
+ * for every dose.wiki document that carries no `data-font`. Each other value re-seats
+ * both tokens to its own face via `data-font="<face>"` on the document root, on both
+ * visual styles and both colour schemes. A face list, not a binary toggle — dose.wiki
+ * offers the picker, Effect Index locks the axis and never carries the attribute, reads
+ * the storage key, or ships the faces.
  */
-export type FontPreference = "default" | "dyslexic";
+export type FontPreference = "lexend" | "inter" | "blinker" | "titillium" | "system";
+
+/**
+ * The runtime validity set for the type axis, in picker order. `"lexend"` — the default —
+ * is deliberately absent from the *painted* set: the default is the absence of
+ * `data-font`, never a stored or painted value, on the never-write-a-default rule every
+ * reader axis follows.
+ */
+export const PAINTED_FONT_PREFERENCES: readonly Exclude<FontPreference, "lexend">[] = [
+  "inter",
+  "blinker",
+  "titillium",
+  "system",
+];
 
 /**
  * The colour axes: continuous hue rotations and saturation levels over the one authored
@@ -108,6 +131,16 @@ export const VISUAL_STYLE_STORAGE_KEY = THEME_TOKEN_INTERFACE.visualStyleStorage
  * toggled back — stores nothing, exactly like the colour axes' never-write-a-default rule.
  */
 export const FONT_STORAGE_KEY = THEME_TOKEN_INTERFACE.fontStorageKey;
+/**
+ * The reading-type axes' keys — text size (px), letter spacing (em) and line height
+ * (unitless). Paragraph spacing is deliberately absent: that rhythm is a fixed site
+ * value (2x the font size), not a reader preference. Each key holds only a reader's
+ * saved number: the default is expressed by *removing* the key, so a reader who never
+ * moved a slider stores nothing, exactly like the colour and face axes.
+ */
+export const TEXT_SIZE_STORAGE_KEY = THEME_TOKEN_INTERFACE.textSizeStorageKey;
+export const LETTER_SPACING_STORAGE_KEY = THEME_TOKEN_INTERFACE.letterSpacingStorageKey;
+export const LINE_HEIGHT_STORAGE_KEY = THEME_TOKEN_INTERFACE.lineHeightStorageKey;
 /**
  * The retired colourway keys. Never written any more: the bootstrap and the provider read
  * them only to migrate a saved colourway onto the hue axes, and the provider removes them
@@ -162,7 +195,7 @@ export function isVisualStyle(value: string | null | undefined): value is Visual
 }
 
 export function isFontPreference(value: string | null | undefined): value is FontPreference {
-  return value === "default" || value === "dyslexic";
+  return value === "lexend" || PAINTED_FONT_PREFERENCES.includes(value as Exclude<FontPreference, "lexend">);
 }
 
 /**
@@ -473,19 +506,68 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
       }
     } catch {}
   }`;
-  // The type axis. Emitted only where the toggle is offered, on the locked-axis rule the
-  // other axes follow — a locked publication's script carries neither the storage key nor
-  // the attribute write, so Effect Index's pinned bootstrap stays byte-identical. No
-  // validity table and no fallback constant: the key either holds exactly "dyslexic" or
-  // the axis is at its default, which is the *absence* of `data-font` (the server never
-  // renders the attribute, so there is nothing to remove).
+  // The type axes: face picker plus the three reading-type numbers. Emitted only where the
+  // toggle is offered, on the locked-axis rule the other axes follow — a locked
+  // publication's script carries neither the storage keys nor the attribute write, so
+  // Effect Index's pinned bootstrap stays byte-identical. The face key either holds one
+  // of the paintable faces or the axis is at its default Lexend, which is the *absence*
+  // of `data-font` (the server never renders the attribute; the font sheet re-seats the
+  // tokens for every dose.wiki document that carries none). The three numbers are saved
+  // values on their slider domains; anything else — including a stored "dyslexic" from
+  // the binary-toggle era, which maps onto the default face — reads as "never saved".
   const fontWrite = !policy.showFontToggle
     ? ""
-    : `\n\n  try {
-    if (window.localStorage.getItem(${JSON.stringify(FONT_STORAGE_KEY)}) === "dyslexic") {
-      root.dataset.font = "dyslexic";
+    : `\n\n  const FACES = ${JSON.stringify(
+        Object.fromEntries(PAINTED_FONT_PREFERENCES.map((face) => [face, true])),
+      )};
+  try {
+    const stored = window.localStorage.getItem(${JSON.stringify(FONT_STORAGE_KEY)});
+    if (Object.prototype.hasOwnProperty.call(FACES, stored)) {
+      root.dataset.font = stored;
+    }
+  } catch {}
+  ${[
+    {
+      key: TEXT_SIZE_STORAGE_KEY,
+      property: TEXT_SIZE_PROPERTY,
+      unit: "",
+      min: TEXT_SIZE_RANGE[0],
+      max: TEXT_SIZE_RANGE[1],
+    },
+    {
+      key: LETTER_SPACING_STORAGE_KEY,
+      property: READER_TRACKING_PROPERTY,
+      unit: "em",
+      min: READER_TRACKING_RANGE[0],
+      max: READER_TRACKING_RANGE[1],
+    },
+    {
+      key: LINE_HEIGHT_STORAGE_KEY,
+      property: READER_LEADING_PROPERTY,
+      unit: "",
+      min: READER_LEADING_RANGE[0],
+      max: READER_LEADING_RANGE[1],
+      attribute: READER_LEADING_ATTRIBUTE,
+    },
+  ]
+    .map(({ key, property, unit, min, max, attribute }) => {
+      // The unit is part of the write: a bare number substitutes into
+      // letter-spacing as an invalid value and silently knocks the
+      // property back to its inherited value. Leading and the text scale
+      // are legitimately unitless numbers.
+      const write = property
+        ? `root.style.setProperty(${JSON.stringify(property)}, v + ${JSON.stringify(unit)});`
+        : 'root.style.fontSize = v + "px";';
+      return `try {
+    const raw = window.localStorage.getItem(${JSON.stringify(key)});
+    const v = raw ? +raw : NaN;
+    if (v >= ${min} && v <= ${max}) {
+      ${attribute ? `root.setAttribute(${JSON.stringify(attribute)}, "");` : ""}
+      ${write}
     }
   } catch {}`;
+    })
+    .join("\n  ")}`;
 
   return `(() => {
   const COLORS = ${JSON.stringify(APPEARANCE_META_COLORS)};
