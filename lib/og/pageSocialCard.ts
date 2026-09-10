@@ -460,14 +460,18 @@ async function renderChinaCard(): Promise<Buffer> {
     if (!dataset) throw new Error(`China card: dataset ${id} missing from the pack manifest`);
     return dataset.packs["zh-Hans"].items;
   };
+  const molecules = JSON.parse(
+    await readFile(path.join(process.cwd(), "public/dosewiki-molecules.json"), "utf8"),
+  ) as { count: number };
   const stats = [
     ["Substances", "物质", countOf("substances")],
     ["Effects", "效应", countOf("effects")],
     ["Reports", "报告", countOf("reports")],
     ["Articles", "文章", countOf("articles")],
+    ["Molecules", "分子", molecules.count],
   ] as const;
   const statsMarkup = stats.map(([label, labelZh, count], index) => {
-    const x = 210 + index * 260;
+    const x = 120 + index * 240;
     return `<text x="${x}" y="898" text-anchor="middle" font-family="Blinker" font-size="60" font-weight="600" letter-spacing="-1" fill="${SOCIAL_CARD_COLORS.accentStrong}">${count.toLocaleString("en-GB")}</text>
       <text x="${x}" y="936" text-anchor="middle" font-family="${cjk}" font-size="26" fill="${SOCIAL_CARD_COLORS.textMuted}">${label}&#160;&#160;${labelZh}</text>`;
   }).join("");
