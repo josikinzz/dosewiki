@@ -21,12 +21,12 @@ export { MIN_PASSWORD_LENGTH, validateNewPassword } from "./passwordPolicy";
 
 const scryptAsync = promisify(scrypt) as (
   password: string,
-  salt: Buffer,
+  salt: Uint8Array,
   keylen: number,
   options: { N: number; r: number; p: number; maxmem: number },
 ) => Promise<Buffer>;
 
-function deriveKey(plain: string, salt: Buffer, N: number, r: number, p: number): Promise<Buffer> {
+function deriveKey(plain: string, salt: Uint8Array, N: number, r: number, p: number): Promise<Buffer> {
   return scryptAsync(plain, salt, KEY_BYTES, { N, r, p, maxmem: 128 * N * r * 2 });
 }
 
@@ -87,7 +87,10 @@ export async function verifyPassword(plain: string, stored: string): Promise<boo
     return false;
   }
 
-  const salt = Buffer.from(parts[4], "base64");
+  // Copied out of Buffer's shared slab: Bun's scrypt reads a pool-backed salt
+  // unreliably when derivations overlap, which made concurrent verifications
+  // of a valid password fail. Node is unaffected; the copy is 16 bytes.
+  const salt = Uint8Array.from(Buffer.from(parts[4], "base64"));
   const expected = Buffer.from(parts[5], "base64");
   if (salt.length === 0 || expected.length !== KEY_BYTES) {
     return false;

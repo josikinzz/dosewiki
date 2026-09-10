@@ -3,7 +3,7 @@ import { normalizePharmacologySection } from "../../lib/article/normalization.mj
 import {
   resolveSubstanceSlug,
   type SubstanceArticleRecord,
-} from "./substanceProjectionCore";
+} from "../../src/data/projections/substanceProjectionCore";
 
 /**
  * The tag-registry row: exactly what `buildTagRegistry` reads, and nothing

@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { titleDrugClassesOf, titleDrugRoutesOf } from "../../src/data/substanceReplicationGallery";
-import { projectReviewedArticleForEmails } from "./substanceReadProjections";
+import { projectReviewedArticleForEmails } from "../../src/data/projections/substanceReadProjections";
 
 export const PUBLIC_READ_INDEX_VERSION = 1;
 export type PublicReadIndexName = "gallery" | "history" | "reviews" | "tripReports";

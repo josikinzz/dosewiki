@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { projectLibraryInput } from "../../convex/lib/substanceReadProjections";
+import { projectLibraryInput } from "../../src/data/projections/substanceReadProjections";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 
 vi.mock("server-only", () => ({}));

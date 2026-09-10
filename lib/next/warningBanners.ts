@@ -7,7 +7,7 @@ import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CONVEX_CACHE_TAGS,
 } from "../convex/publicData.cache";
-import { queryConvex } from "../convex/serverClient";
+import { getPublicDataReadAdapter } from "../convex/publicData.reads";
 import {
   clampSafetyBannerIconSize,
   isWarningBannerTone,
@@ -108,7 +108,7 @@ function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
 export const getWarningBannerPresets = cache(
   publicDataCache(async (): Promise<WarningBannerPreset[]> => {
     try {
-      const rows = await queryConvex<unknown[]>("warningBanners:listPresets", {});
+      const rows = await getPublicDataReadAdapter().getPublicWarningBannerPresets();
       if (!Array.isArray(rows)) {
         return [];
       }
@@ -151,7 +151,7 @@ export const getWarningBannerPresets = cache(
 export const getSafetyBannerIconSize = cache(
   publicDataCache(async (): Promise<number> => {
     try {
-      const config = await queryConvex<unknown>("siteConfig:getBannerDisplay", {});
+      const config = await getPublicDataReadAdapter().getPublicBannerDisplayConfig();
       // Clamped here too, not just on write: a row written by an older
       // deployment (or by hand) is data this process did not validate.
       return clampSafetyBannerIconSize(isRecord(config) ? config.iconSize : undefined);

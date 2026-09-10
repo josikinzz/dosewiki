@@ -7,6 +7,7 @@ export type RateLimitPolicyName =
   | "publicSiteFeedbackSubmit"
   | "publicProxyRead"
   | "diagnosticRead"
+  | "editorPolledRead"
   | "publicSearchRead"
   | "publicContentApiRead"
   | "authCredentialAttempt";
@@ -87,6 +88,20 @@ export const rateLimitPolicies = {
     name: "diagnosticRead",
     windowMs: ONE_MINUTE_MS,
     max: 30,
+    keyStrategy: "ip",
+    fallbackMode: "inMemory",
+    responseShape: "jsonError",
+  },
+  /**
+   * Editor-surface reads that TanStack Query polls (15 s per list, 5 s per
+   * open document) plus refetch-on-focus: one editor with several tools open
+   * legitimately issues around sixty requests a minute, and editors behind a
+   * shared address multiply that.
+   */
+  editorPolledRead: {
+    name: "editorPolledRead",
+    windowMs: ONE_MINUTE_MS,
+    max: 300,
     keyStrategy: "ip",
     fallbackMode: "inMemory",
     responseShape: "jsonError",

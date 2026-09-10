@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { approveAndApplyHandler } from "../convex/changeProposalReview";
 import { submitHandler } from "../convex/changeProposals";
-import { projectEditorArticle } from "../convex/lib/substanceReadProjections";
+import { projectEditorArticle } from "../src/data/projections/substanceReadProjections";
 import { minimalArticle } from "../src/test/fixtures/articles";
 import { contentHash } from "./proposals/contentHash";
 

@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788991176472,
+      "tag": "0000_convex_snapshot_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789009174001,
+      "tag": "0001_identity_unique_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789010225705,
+      "tag": "0002_document_ids_and_storage",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789012018282,
+      "tag": "0003_unique_identities",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789030535441,
+      "tag": "0004_c_collation_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789036363355,
+      "tag": "0005_relied_upon_unique_keys",
+      "breakpoints": true
+    }
+  ]
+}

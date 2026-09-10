@@ -1,43 +1,26 @@
 import "server-only";
 
-import { publicDataCache } from "./publicData.cache"
 import { cache } from "react";
 import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CONVEX_CACHE_TAGS,
+  publicDataCache,
 } from "./publicData.cache";
-import { queryConvex } from "./serverClient";
+import { getPublicDataReadAdapter } from "./publicData.reads";
+import type {
+  PublicContributorIdentity,
+  PublicReplicationIdentityAttribution,
+} from "./publicData.shared";
 
-export type PublicIdentityParty = {
-  display_name: string;
-  profile_key: string | null;
-};
-
-export type PublicReplicationIdentityAttribution = {
-  poster: PublicIdentityParty & {
-    profile_url: string | null;
-    platform: string | null;
-    posted_at: number;
-  };
-  creator: PublicIdentityParty;
-  proven_different_creator: boolean;
-};
-
-export type PublicContributorIdentity = {
-  canonical_key: string;
-  aliases: string[];
-  avatar_url: string | null;
-  verified_replicator: boolean;
-};
+export type {
+  PublicContributorIdentity,
+  PublicIdentityParty,
+  PublicReplicationIdentityAttribution,
+} from "./publicData.shared";
 
 export const getPublicReplicationIdentityAttribution = cache(
   publicDataCache(async (replicationId: string): Promise<PublicReplicationIdentityAttribution | null> =>
-    await queryConvex<
-      PublicReplicationIdentityAttribution | null,
-      { replication_id: string }
-    >("publicReplicationIdentitySocial:getAttributionByReplicationId", {
-      replication_id: replicationId,
-    }),
+    await getPublicDataReadAdapter().getPublicReplicationIdentityAttribution(replicationId),
   ["convex-public-replication-identity-attribution-v1"],
   {
     revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
@@ -51,10 +34,7 @@ export const getPublicReplicationIdentityAttribution = cache(
 
 export const getPublicContributorIdentity = cache(
   publicDataCache(async (canonicalKey: string): Promise<PublicContributorIdentity | null> =>
-    await queryConvex<PublicContributorIdentity | null, { key: string }>(
-      "publicReplicationIdentitySocial:getProfileIdentityByKey",
-      { key: canonicalKey },
-    ),
+    await getPublicDataReadAdapter().getPublicContributorIdentityByKey(canonicalKey),
   ["convex-public-contributor-identity-v1"],
   {
     revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,

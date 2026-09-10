@@ -3,7 +3,7 @@ import {
   projectPublicEffectIndexPost,
   projectPublicEffectIndexPosts,
   unwrapMongoDate,
-} from "../convex/lib/effectIndexArchiveReadProjections";
+} from "../src/data/projections/effectIndexArchiveProjections";
 
 /**
  * Shaped exactly like the two rows that exist in production: `payload` is a JSON *string*

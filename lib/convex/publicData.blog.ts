@@ -7,7 +7,7 @@ import {
   PUBLIC_CONVEX_CACHE_TAGS,
 } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
-import type { PublicEffectIndexPost } from "../../convex/lib/effectIndexArchiveReadProjections";
+import type { PublicEffectIndexPost } from "../../src/data/projections/effectIndexArchiveProjections";
 
 /**
  * Public reader for the archived Effect Index blog. The posts live in the lossless

@@ -1,8 +1,8 @@
-import { slugify } from "./substanceIngestion";
+import { slugify } from "../../utils/slug";
 import type {
   SubstanceArticle,
   SubstancePriority as StoredSubstancePriority,
-} from "../../src/schema";
+} from "../../schema";
 
 export type PublicSubstancePriority = Exclude<StoredSubstancePriority, "hide_for_now">;
 

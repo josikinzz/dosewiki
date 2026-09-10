@@ -8,7 +8,7 @@ import {
   submitHandler,
 } from "../convex/changeProposals";
 import { deriveProposalTargets } from "../convex/lib/changeProposalTargets";
-import { projectEditorArticle } from "../convex/lib/substanceReadProjections";
+import { projectEditorArticle } from "../src/data/projections/substanceReadProjections";
 import { minimalArticle } from "../src/test/fixtures/articles";
 import { contentHash } from "./proposals/contentHash";
 import { get as articleLifecycleGet } from "../convex/articleLifecycle";

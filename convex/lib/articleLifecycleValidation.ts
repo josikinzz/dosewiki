@@ -10,7 +10,7 @@ import { contentHash } from "../../lib/proposals/contentHash";
 import { extractCitationTokens } from "../../lib/citations/citationPlacement.mjs";
 import { haveCompatibleReferenceIdentity, referenceIdentitiesOverlap } from "../../lib/citations/referenceIdentity.mjs";
 import { MAX_ARTICLE_REFERENCES, normalizeIncomingReference } from "./articleReferenceWrites";
-import { isProjectionRecord as isRecord } from "./substanceProjectionCore";
+import { isProjectionRecord as isRecord } from "../../src/data/projections/substanceProjectionCore";
 
 export type ArticleDocument = Omit<Doc<"substanceIndex">, "_id" | "_creationTime">;
 export function articleDocument(row: Doc<"substanceIndex">): ArticleDocument {

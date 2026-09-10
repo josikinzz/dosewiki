@@ -41,7 +41,7 @@ const POST_KIND = "post";
  * Public: every archived Effect Index blog post, as stored.
  *
  * Rows are returned verbatim — decoding the JSON-string payload is the caller's job via
- * `convex/lib/effectIndexArchiveReadProjections`, so the projection stays a pure function
+ * `src/data/projections/effectIndexArchiveProjections`, so the projection stays a pure function
  * that both this deployment and the Next read adapter share. Mirrors the shape of the
  * public `effectIndexArticles` queries: no `apiKey`, no auth, a thin index lookup. The
  * editor-only `getByKind` above stays editor-only and is not used for public reads.

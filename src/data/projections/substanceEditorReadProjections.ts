@@ -2,8 +2,8 @@ import {
   getDefaultEditorialReview,
   type SubstanceArticle,
   type SubstancePriority as StoredSubstancePriority,
-} from "../../src/schema";
-import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
+} from "../../schema";
+import { normalizePharmacologySection } from "../../../lib/article/normalization.mjs";
 import {
   isProjectionRecord,
   normalizeStoredSubstancePriority,

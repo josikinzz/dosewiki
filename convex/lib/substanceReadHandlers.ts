@@ -6,7 +6,7 @@ import {
   projectPublicArticle,
   projectReviewedArticleCredit,
   projectReviewedArticleForEmails,
-} from "./substanceReadProjections";
+} from "../../src/data/projections/substanceReadProjections";
 import { publicReadIndexReady } from "./publicReadIndexes";
 import { reviewedArticlesPage, REVIEWED_ARTICLES_CURSOR_PREFIX } from "./reviewedArticleIndexReads";
 

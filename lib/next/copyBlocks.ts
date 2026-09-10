@@ -7,7 +7,7 @@ import {
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CONVEX_CACHE_TAGS,
 } from "../convex/publicData.cache";
-import { queryConvex } from "../convex/serverClient";
+import { getPublicDataReadAdapter } from "../convex/publicData.reads";
 import { SITE_FLAVOR_CONFIG, type SiteFlavor } from "../../src/config/siteFlavor";
 import {
   COPY_BLOCK_DEFAULTS,
@@ -103,7 +103,7 @@ function reportDegradedCopyRead(error: unknown): void {
 export const getCopyBlocks = cache(
   publicDataCache(async (): Promise<CopyBlockRecord[]> => {
     try {
-      const rows = await queryConvex<unknown[]>("copyBlocks:getAll", {});
+      const rows = await getPublicDataReadAdapter().getPublicCopyBlocks();
       if (!Array.isArray(rows)) {
         return [];
       }

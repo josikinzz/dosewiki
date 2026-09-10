@@ -2,6 +2,8 @@ import "server-only";
 
 import { ConvexHttpClient } from "convex/browser";
 import { makeFunctionReference } from "convex/server";
+import { getDataBackend, getPostgresConvexClient } from "../postgres/runtime/backend";
+import type { PostgresConvexClient } from "../postgres/runtime/client";
 import { getPublicServerReadTarget } from "./runtimeTargets";
 import { getServerConvexWriteCapabilityOrThrow } from "./serverWriteCapability";
 
@@ -11,7 +13,11 @@ const QUERY_RETRY_DELAYS_MS = [250, 750, 1500] as const;
 let cachedReadClient: ConvexHttpClient | null = null;
 let cachedReadUrl: string | null = null;
 
-export function getServerConvexReadClient() {
+/** Function-reference client for server reads: Convex over HTTP, or the in-process Postgres runtime. */
+export type ServerReadClient = Pick<ConvexHttpClient, "query"> | Pick<PostgresConvexClient, "query">;
+
+export function getServerConvexReadClient(): ServerReadClient {
+  if (getDataBackend() === "postgres") return getPostgresConvexClient();
   const readTarget = getPublicServerReadTarget();
   const url = readTarget.selectedUrl;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { projectLibraryInput } from "../../../convex/lib/substanceReadProjections";
+import { projectLibraryInput } from "../projections/substanceReadProjections";
 import {
   parsePublicSubstanceLibraryInputRecords,
   parsePublicSubstanceRecords,

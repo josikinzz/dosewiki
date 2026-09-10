@@ -184,3 +184,41 @@ export const trimExcerpt = (value: string | null | undefined, maxLength = 180) =
 
   return `${normalized.slice(0, maxLength).trimEnd()}…`;
 };
+
+// Row shapes for reads that historically bypassed the adapter. They describe
+// what the backend returns before any lib-side normalization.
+
+export type PublicChangelogRow = {
+  entryId: string;
+  createdAt: string;
+  message: string;
+  markdown: string;
+  submittedBy: string | null;
+  articles: unknown;
+};
+
+export type PublicMoleculeOverrideSummary = { slug: string; updatedAt: string };
+
+export type PublicMolecule = { svg: string; updatedAt: string };
+
+export type PublicIdentityParty = {
+  display_name: string;
+  profile_key: string | null;
+};
+
+export type PublicReplicationIdentityAttribution = {
+  poster: PublicIdentityParty & {
+    profile_url: string | null;
+    platform: string | null;
+    posted_at: number;
+  };
+  creator: PublicIdentityParty;
+  proven_different_creator: boolean;
+};
+
+export type PublicContributorIdentity = {
+  canonical_key: string;
+  aliases: string[];
+  avatar_url: string | null;
+  verified_replicator: boolean;
+};

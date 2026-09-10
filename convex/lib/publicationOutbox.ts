@@ -2,8 +2,8 @@ import type { Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { contentHash } from "../../lib/proposals/contentHash";
 import { isPublicationTarget, type PublicationTarget } from "../../lib/next/publicationWire";
-import { projectPublicArticle } from "./substanceReadProjections";
-import { resolveSubstanceSlug, type SubstanceArticleRecord } from "./substanceProjectionCore";
+import { projectPublicArticle } from "../../src/data/projections/substanceReadProjections";
+import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/data/projections/substanceProjectionCore";
 
 // Public source tables only. Drafts, proposals, intake, accounts, evidence,
 // archives other than public blog posts, playlists and unpublished molecule templates are absent.

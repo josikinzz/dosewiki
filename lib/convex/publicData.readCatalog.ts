@@ -170,4 +170,28 @@ export const publicDataReadCatalog = {
     args: () => ({}),
   },
   publicIndexLayoutByType: { functionName: "indexLayouts:getByType", args: (type: IndexLayoutType) => ({ type }) },
+  publicMoleculeOverrideSummaries: { functionName: "moleculeOverrides:listSlugs", args: () => ({}) },
+  publicMoleculeMetadataBySlug: { functionName: "moleculeOverrides:getMetadataBySlug", args: (slug: string) => ({ slug }) },
+  publicMoleculeBySlug: { functionName: "moleculeOverrides:getBySlug", args: (slug: string) => ({ slug }) },
+  publicChangelogBySubmitters: {
+    functionName: "changelog:getBySubmitter",
+    args: (submitters: string[], limit: number) => ({ submitters, limit }),
+  },
+  publicChangelogByArticleSlug: {
+    functionName: "changelog:getByArticleSlug",
+    args: (slug: string, limit: number) => ({ slug, limit }),
+  },
+  publicChangelogRecent: { functionName: "changelog:getRecent", args: (limit: number) => ({ limit }) },
+  publicReplicationIdentityAttribution: {
+    functionName: "publicReplicationIdentitySocial:getAttributionByReplicationId",
+    args: (replicationId: string) => ({ replication_id: replicationId }),
+  },
+  publicContributorIdentityByKey: {
+    functionName: "publicReplicationIdentitySocial:getProfileIdentityByKey",
+    args: (key: string) => ({ key }),
+  },
+  publicReagentTestBySlug: { functionName: "reagentTests:getBySlug", args: (slug: string) => ({ slug }) },
+  publicCopyBlocks: { functionName: "copyBlocks:getAll", args: () => ({}) },
+  publicWarningBannerPresets: { functionName: "warningBanners:listPresets", args: () => ({}) },
+  publicBannerDisplayConfig: { functionName: "siteConfig:getBannerDisplay", args: () => ({}) },
 } as const;

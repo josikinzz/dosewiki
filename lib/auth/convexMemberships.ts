@@ -1,7 +1,10 @@
 import { ConvexHttpClient } from "convex/browser";
+import { getDataBackend, getPostgresConvexClient } from "../postgres/runtime/backend";
+import type { PostgresConvexClient } from "../postgres/runtime/client";
 import { makeFunctionReference } from "convex/server";
 import type { AppRole } from "../../src/lib/auth/roles";
 import { getAuthMembershipTarget, getServerConvexAdminKey } from "../convex/serverWriteHealth";
+import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 
 export type MembershipRecord = {
   email: string;
@@ -62,7 +65,8 @@ const redeemInviteMutation = makeFunctionReference<
 let cachedClient: ConvexHttpClient | null = null;
 let cachedUrl: string | null = null;
 
-function getConvexClient(): ConvexHttpClient {
+function getConvexClient(): ConvexHttpClient | PostgresConvexClient {
+  if (getDataBackend() === "postgres") return getPostgresConvexClient();
   const url = getAuthMembershipTarget().selectedUrl;
 
   if (!url) {
@@ -98,7 +102,14 @@ export async function getCredentialsByUsername(username: string): Promise<Member
   });
 }
 
+/**
+ * These three writes bypass `ServerConvexWriteClient` on purpose (the caller
+ * has no session, so there is no actor to name), which means the cutover write
+ * freeze has to be asserted here too or sign-in, password reset and invite
+ * redemption would keep writing during the window.
+ */
 export async function touchSignIn(email: string): Promise<void> {
+  assertDataWritesNotFrozen("memberships:touchSignIn");
   await getConvexClient().mutation(touchSignInMutation, {
     apiKey: getConvexAdminKeyOrThrow(),
     email,
@@ -131,6 +142,7 @@ export async function getMembershipByEmail(email: string): Promise<MembershipRec
  * unknown or expired token.
  */
 export async function consumePasswordReset(tokenHash: string, passwordHash: string): Promise<void> {
+  assertDataWritesNotFrozen("memberships:consumePasswordReset");
   await getConvexClient().mutation(consumePasswordResetMutation, {
     apiKey: getConvexAdminKeyOrThrow(),
     tokenHash,
@@ -145,6 +157,7 @@ export async function consumePasswordReset(tokenHash: string, passwordHash: stri
  * for the route to map.
  */
 export async function redeemInviteCode(input: RedeemInviteInput): Promise<RedeemedInvite> {
+  assertDataWritesNotFrozen("inviteCodes:redeem");
   return await getConvexClient().mutation(redeemInviteMutation, {
     apiKey: getConvexAdminKeyOrThrow(),
     ...input,

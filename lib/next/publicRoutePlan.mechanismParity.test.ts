@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   projectLibraryInput,
   projectMechanismRouteInput,
-} from "../../convex/lib/substanceReadProjections";
+} from "../../src/data/projections/substanceReadProjections";
 import {
   parsePublicSubstanceLibraryInputRecords,
   parsePublicSubstanceRecords,

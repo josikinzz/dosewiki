@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import type { MutationCtx } from "../convex/_generated/server";
-import { projectEditorArticle } from "../convex/lib/substanceReadProjections";
+import { projectEditorArticle } from "../src/data/projections/substanceReadProjections";
 import { minimalArticle } from "../src/test/fixtures/articles";
 import { contentHash } from "./proposals/contentHash";
 

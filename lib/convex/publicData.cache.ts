@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { getDataBackend } from "../postgres/runtime/backend";
 import { getPublicServerReadTarget } from "./runtimeTargets";
 
 export const PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS = 900;
@@ -55,7 +56,11 @@ export function publicDataCache<Args extends unknown[], Result>(
 ): (...args: Args) => Promise<Result> {
   const callbackKey = callback.toString();
   return async (...args) => {
-    const target = getPublicServerReadTarget().selectedUrl ?? "unconfigured";
+    // Backend identity is part of the namespace: a Postgres-served process never reuses Convex-tagged entries.
+    const target =
+      getDataBackend() === "postgres"
+        ? `postgres:${process.env.POSTGRES_POOLED_URL || process.env.POSTGRES_DIRECT_URL || "unconfigured"}`
+        : getPublicServerReadTarget().selectedUrl ?? "unconfigured";
     const tags = typeof options.tags === "function" ? options.tags(...args) : options.tags;
     let currentRead: Promise<Result> | undefined;
     const cached = await unstable_cache(async (...values: Args): Promise<PublicCachedValue<Result>> => {

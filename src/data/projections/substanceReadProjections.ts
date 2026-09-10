@@ -1,20 +1,20 @@
-import { contentHash } from "../../lib/proposals/contentHash";
+import { contentHash } from "../../../lib/proposals/contentHash";
 import {
   getDefaultEditorialReview,
   normalizeMechanisms,
   resolveSubstanceDisplayName,
   type SubstanceArticle,
   type SubstancePriority as StoredSubstancePriority,
-} from "../../src/schema";
+} from "../../schema";
 import {
   getLegacyAwareMechanismTags,
   normalizePharmacologySection,
-} from "../../lib/article/normalization.mjs";
-import type { MechanismRouteSubstanceInput } from "../../src/data/builders/mechanismRouteDerivation";
+} from "../../../lib/article/normalization.mjs";
+import type { MechanismRouteSubstanceInput } from "../builders/mechanismRouteDerivation";
 import type {
   ContributorReviewedArticle,
   ReviewedArticleCredit,
-} from "../../src/types/reviewedArticles";
+} from "../../types/reviewedArticles";
 import {
   isProjectionRecord as isRecord,
   normalizeStoredSubstancePriority,

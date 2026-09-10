@@ -330,6 +330,11 @@ export type GeneratedPublicationDb = {
   insert: (table: "generatedPublicationOperations", value: Record<string, unknown>) => Promise<unknown>;
 };
 
+export type ReviewedSectionPublishResult =
+  | { status: "already_applied"; proposalId: string; currentHash: string }
+  | { status: "conflict"; proposalId: string; expectedHash: string; currentHash: string }
+  | { status: "updated"; proposalId: string; affectedPaths: readonly string[]; previousHash: string; nextHash: string };
+
 export async function publishReviewedSectionTransaction({
   db,
   proposal,
@@ -342,7 +347,7 @@ export async function publishReviewedSectionTransaction({
   actorEmail: string;
   now: string;
   expectedTargetDeploymentFingerprint: string;
-}) {
+}): Promise<ReviewedSectionPublishResult> {
   const actor = nonEmptyString(actorEmail, "actorEmail");
   const validated = validateReviewedPublicationProposal(proposal, expectedTargetDeploymentFingerprint);
   const payloadDigest = generatedPublicationPayloadDigest(proposal);

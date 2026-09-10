@@ -3,8 +3,8 @@ import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { contentHash } from "../../lib/proposals/contentHash";
 import { ABOUT_KEY } from "../siteConfig";
-import { resolveSubstanceSlug } from "./substanceProjectionCore";
-import { projectEditorArticle } from "./substanceReadProjections";
+import { resolveSubstanceSlug } from "../../src/data/projections/substanceProjectionCore";
+import { projectEditorArticle } from "../../src/data/projections/substanceReadProjections";
 
 export type ProposalTargetKind = Doc<"changeProposals">["targets"][number]["kind"];
 

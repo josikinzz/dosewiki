@@ -284,4 +284,90 @@ describe("server Convex write capability", () => {
       expect(mocks.query).toHaveBeenCalledWith(readQuery, { apiKey: "admin-key", slug: "lsd" });
     });
   });
+
+  describe("cutover write freeze (DATA_WRITES_FROZEN)", () => {
+    const setField = makeFunctionReference<"mutation", { apiKey: string; actorEmail: string; slug: string }, unknown>(
+      "substanceIndex:setArticleField",
+    );
+    const intake = makeFunctionReference<"mutation", { apiKey: string; submission: { id: string } }, unknown>(
+      "tripReportSubmissions:create",
+    );
+    const syncAction = makeFunctionReference<"action", { apiKey: string; actorEmail: string }, unknown>(
+      "replications:sync",
+    );
+    const readQuery = makeFunctionReference<"query", { apiKey: string; slug: string }, unknown>(
+      "substanceIndex:getBySlug",
+    );
+    const editorArgs = { apiKey: "admin-key", actorEmail: "editor@example.com", slug: "lsd" };
+
+    async function frozenClient(value: string) {
+      const module = await loadModule();
+      process.env.CONVEX_ADMIN_KEY = "admin-key";
+      process.env.CONVEX_URL = "https://write.convex.cloud";
+      process.env.DATA_WRITES_FROZEN = value;
+      return module.getServerConvexWriteCapabilityOrThrow().client;
+    }
+
+    beforeEach(() => {
+      delete process.env.DATA_WRITES_FROZEN;
+    });
+
+    it("refuses every write path with a machine-readable code and sends nothing", async () => {
+      const client = await frozenClient("1");
+
+      for (const call of [
+        client.mutation(setField, editorArgs),
+        client.mutationAsService(intake, { apiKey: "admin-key", submission: { id: "submission-1" } }),
+        client.action(syncAction, { apiKey: "admin-key", actorEmail: "editor@example.com" }),
+      ]) {
+        await expect(call).rejects.toMatchObject({
+          code: "DATA_WRITES_FROZEN",
+          functionName: expect.any(String),
+        });
+      }
+
+      expect(mocks.mutation).not.toHaveBeenCalled();
+      expect(mocks.action).not.toHaveBeenCalled();
+    });
+
+    it("keeps reads serving while writes are frozen", async () => {
+      const client = await frozenClient("1");
+      mocks.query.mockResolvedValue({ slug: "lsd" });
+
+      await expect(client.query(readQuery, { apiKey: "admin-key", slug: "lsd" })).resolves.toEqual({
+        slug: "lsd",
+      });
+    });
+
+    it("allows writes when the variable is unset or spells out a lifted freeze", async () => {
+      const module = await loadModule();
+      process.env.CONVEX_ADMIN_KEY = "admin-key";
+      process.env.CONVEX_URL = "https://write.convex.cloud";
+      const client = module.getServerConvexWriteCapabilityOrThrow().client;
+
+      await expect(client.mutation(setField, editorArgs)).resolves.toEqual({ updated: 1 });
+      for (const lifted of ["0", "false", "OFF", "no", "  "]) {
+        process.env.DATA_WRITES_FROZEN = lifted;
+        await expect(client.mutation(setField, editorArgs)).resolves.toEqual({ updated: 1 });
+      }
+      expect(mocks.mutation).toHaveBeenCalledTimes(6);
+    });
+
+    it("treats an unrecognised value as frozen rather than reopening writes", async () => {
+      const client = await frozenClient("mayebe");
+
+      await expect(client.mutation(setField, editorArgs)).rejects.toMatchObject({
+        code: "DATA_WRITES_FROZEN",
+      });
+      expect(mocks.mutation).not.toHaveBeenCalled();
+    });
+
+    it("refuses the freeze before the actor gate so the reported reason is the freeze", async () => {
+      const client = await frozenClient("1");
+
+      await expect(client.mutation(setField, { apiKey: "admin-key", actorEmail: "", slug: "lsd" })).rejects.toMatchObject({
+        code: "DATA_WRITES_FROZEN",
+      });
+    });
+  });
 });

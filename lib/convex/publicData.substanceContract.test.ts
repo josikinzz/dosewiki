@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
-import { projectLibraryInput } from "../../convex/lib/substanceReadProjections";
+import { projectLibraryInput } from "../../src/data/projections/substanceReadProjections";
 import {
   parsePublicSubstanceLibraryInputRecord,
   parsePublicSubstanceLibraryInputRecords,

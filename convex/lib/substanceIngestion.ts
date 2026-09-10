@@ -1,5 +1,5 @@
 import { stableStringify } from "../../lib/proposals/contentHash";
-import { projectPublicArticle } from "./substanceReadProjections";
+import { projectPublicArticle } from "../../src/data/projections/substanceReadProjections";
 import { mergeReferenceCollections } from "../../lib/citations/referenceIdentity.mjs";
 import type { Reference } from "../../src/schema/substance/shared";
 import { slugify } from "../../src/utils/slug";

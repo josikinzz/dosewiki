@@ -1,0 +1,3 @@
+# Bun runtime preload: aliases Next's `server-only` marker for scripts that
+# import server modules (see scripts/postgres/preload-server-only.ts).
+preload = ["./scripts/postgres/preload-server-only.ts"]

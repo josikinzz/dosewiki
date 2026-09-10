@@ -16,6 +16,9 @@ import {
   type ConvexRuntimeTarget,
 } from "./runtimeTargets";
 import { getAdminIntentEnvVar, type AdminIntent } from "../../convex/lib/adminIntentTokens";
+import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
+import { getDataBackend, getPostgresConvexClient } from "../postgres/runtime/backend";
+import type { PostgresConvexClient } from "../postgres/runtime/client";
 
 export type ServerConvexWriteHealth = {
   adminKeyConfigured: boolean;
@@ -37,9 +40,17 @@ export type ServerConvexDeploymentMetadata = {
  * Mutations where the server is the actor because the public caller has no
  * authenticated identity to delegate. Keep this allowlist narrow so ordinary
  * route writes cannot bypass the actor gate.
+ *
+ * The `mailingList` and `publicationRecovery` entries are internal mutations
+ * that Convex ran from its own HTTP action and cron; the Next routes that
+ * replace them (`/api/subscribe`, `/api/cron/publication-delivery`) invoke
+ * them the same actorless way on the Postgres backend.
  */
 const SERVICE_MUTATION_NAMES: Record<string, true> = {
   "articleFeedback:create": true,
+  "mailingList:subscribe": true,
+  "publicationRecovery:claimDue": true,
+  "publicationRecovery:recordDelivery": true,
   "siteFeedback:create": true,
   "tripReportSubmissions:create": true,
 };
@@ -50,7 +61,7 @@ const SERVICE_MUTATION_NAMES: Record<string, true> = {
  * restricted to the fixed actorless mutation allowlist above.
  */
 export class ServerConvexWriteClient {
-  constructor(private readonly inner: ConvexHttpClient) {}
+  constructor(private readonly inner: ConvexHttpClient | PostgresConvexClient) {}
 
   query<Query extends FunctionReference<"query">>(
     query: Query,
@@ -63,6 +74,7 @@ export class ServerConvexWriteClient {
     mutation: Mutation,
     ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
   ): Promise<FunctionReturnType<Mutation>> {
+    assertDataWritesNotFrozen(getFunctionName(mutation));
     assertNamesActor(mutation, args[0]);
     return await this.inner.mutation(mutation, ...args);
   }
@@ -71,6 +83,7 @@ export class ServerConvexWriteClient {
     mutation: Mutation,
     ...args: ArgsAndOptions<Mutation, HttpMutationOptions>
   ): Promise<FunctionReturnType<Mutation>> {
+    assertDataWritesNotFrozen(getFunctionName(mutation));
     assertServiceMutation(mutation);
     return await this.inner.mutation(mutation, ...args);
   }
@@ -79,6 +92,7 @@ export class ServerConvexWriteClient {
     action: Action,
     ...args: OptionalRestArgs<Action>
   ): Promise<FunctionReturnType<Action>> {
+    assertDataWritesNotFrozen(getFunctionName(action));
     assertNamesActor(action, args[0]);
     return await this.inner.action(action, ...args);
   }
@@ -210,9 +224,10 @@ export function getServerConvexWriteHealth(): ServerConvexWriteHealth {
 }
 
 function getCachedWriteClient(writeUrl: string): ServerConvexWriteClient {
-  if (!cachedWriteClient || cachedWriteUrl !== writeUrl) {
-    cachedWriteClient = new ServerConvexWriteClient(new ConvexHttpClient(writeUrl));
-    cachedWriteUrl = writeUrl;
+  const key = getDataBackend() === "postgres" ? "postgres" : writeUrl;
+  if (!cachedWriteClient || cachedWriteUrl !== key) {
+    cachedWriteClient = new ServerConvexWriteClient(key === "postgres" ? getPostgresConvexClient() : new ConvexHttpClient(writeUrl));
+    cachedWriteUrl = key;
   }
 
   return cachedWriteClient;

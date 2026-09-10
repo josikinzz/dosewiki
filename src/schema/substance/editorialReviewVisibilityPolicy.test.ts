@@ -7,7 +7,7 @@ import {
   projectEditorArticle,
   projectPublicArticle,
 } from "./editorialReviewVisibilityPolicy";
-import { projectPublicArticle as projectConvexPublicArticle } from "../../../convex/lib/substanceReadProjections";
+import { projectPublicArticle as projectConvexPublicArticle } from "../../data/projections/substanceReadProjections";
 
 describe("editorialReviewVisibilityPolicy", () => {
   it("answers visibility for public, editor, generated, batch, prepopulate, export, and import modes", () => {

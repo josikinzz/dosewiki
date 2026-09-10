@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { projectLookup } from "../../convex/lib/substanceReadProjections";
+import { projectLookup } from "../../src/data/projections/substanceReadProjections";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 import {
   buildPublicRoutePlan,

@@ -7,7 +7,7 @@ import { ABOUT_KEY, saveAboutHandler, type AboutDocument } from "../siteConfig";
 import { writeCategoryLayout } from "./categoryLayoutMirror";
 import { readProposalTarget, type ProposalTargetRef } from "./changeProposalTargets";
 import { saveRevalidationPaths, type IndexLayoutType } from "./saveRevalidationPaths";
-import { resolveSubstanceSlug } from "./substanceProjectionCore";
+import { resolveSubstanceSlug } from "../../src/data/projections/substanceProjectionCore";
 import { saveSubstancesHandler } from "./substanceWriteHandlers";
 import { requireRole } from "./auth";
 import { articleChangePatch, articleDocument, validateArticleChange } from "./articleLifecycleValidation";

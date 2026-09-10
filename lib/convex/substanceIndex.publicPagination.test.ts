@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
-import { projectPublicArticle } from "../../convex/lib/substanceReadProjections";
+import { projectPublicArticle } from "../../src/data/projections/substanceReadProjections";
 import {
   getLibraryInput,
   getLookup,

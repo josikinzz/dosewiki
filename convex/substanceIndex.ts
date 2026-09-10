@@ -13,8 +13,8 @@ import {
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
-} from "./lib/substanceReadProjections";
-import { resolveSubstanceSlug } from "./lib/substanceProjectionCore";
+} from "../src/data/projections/substanceReadProjections";
+import { resolveSubstanceSlug } from "../src/data/projections/substanceProjectionCore";
 import { projectTagRegistryEntry } from "./lib/substanceTagRegistryProjection";
 import {
   getEditorSubstanceBySlugHandler,

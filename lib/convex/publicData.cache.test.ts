@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConvexError } from "convex/values";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
-import { projectLibraryInput, projectMechanismRouteInput } from "../../convex/lib/substanceReadProjections";
+import { projectLibraryInput, projectMechanismRouteInput } from "../../src/data/projections/substanceReadProjections";
 
 vi.mock("server-only", () => ({}));
 const sourceQuery = vi.hoisted(() => vi.fn());
@@ -63,6 +63,25 @@ describe("public persistent cache boundaries", () => {
     expect(await read()).toBe("https://first.example");
     vi.stubEnv("CONVEX_PUBLIC_READ_URL", "https://second.example");
     expect(await read()).toBe("https://second.example");
+  });
+
+  it("never serves a convex-backed entry to a postgres-backed process, or the reverse", async () => {
+    // Cutover safety: the same leaf runs in both backends during the migration,
+    // and a shared entry would let stale Convex content answer Postgres reads.
+    const read = publicDataCache(
+      async () => `${process.env.DATA_BACKEND === "postgres" ? "postgres" : "convex"}:${process.env.DATA_BACKEND === "postgres" ? process.env.POSTGRES_POOLED_URL : process.env.CONVEX_PUBLIC_READ_URL}`,
+      ["backend-identity"],
+      {},
+    );
+    vi.stubEnv("CONVEX_PUBLIC_READ_URL", "https://deployment.convex.cloud");
+    vi.stubEnv("POSTGRES_POOLED_URL", "postgres://pooled.example:6432/dosewiki");
+    vi.stubEnv("DATA_BACKEND", "convex");
+    expect(await read()).toBe("convex:https://deployment.convex.cloud");
+    vi.stubEnv("DATA_BACKEND", "postgres");
+    expect(await read()).toBe("postgres:postgres://pooled.example:6432/dosewiki");
+    vi.stubEnv("DATA_BACKEND", "convex");
+    expect(await read()).toBe("convex:https://deployment.convex.cloud");
+    expect(stored.size).toBe(2);
   });
 
   it("retries readiness failures instead of persisting them as an empty answer", async () => {

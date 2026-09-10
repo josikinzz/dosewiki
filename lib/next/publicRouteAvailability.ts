@@ -44,6 +44,8 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "review",
   "search",
   "sign-in",
+  // Rewritten to /api/subscribe by next.config.ts; never a substance slug.
+  "subscribe",
   "substances",
   "unauthorized",
   "under-construction",

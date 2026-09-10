@@ -30,7 +30,8 @@ import {
   publicArticleHistoryTag,
   PUBLIC_CHANGELOG_LISTS_TAG,
 } from "./publicData.cache";
-import { queryConvex } from "./serverClient";
+import { getPublicDataReadAdapter } from "./publicData.reads";
+import type { PublicChangelogRow } from "./publicData.shared";
 
 /**
  * How many changelog rows one profile page shows. The UI groups rows by day
@@ -67,14 +68,7 @@ function truncateDiffMarkdown(markdown: string): string {
   return `${kept}\n@@ diff truncated: ${omittedLines} more lines @@`;
 }
 
-type ConvexChangelogRow = {
-  entryId: string;
-  createdAt: string;
-  message: string;
-  markdown: string;
-  submittedBy: string | null;
-  articles: ChangeLogArticleSummary[];
-};
+type ConvexChangelogRow = Omit<PublicChangelogRow, "articles"> & { articles: ChangeLogArticleSummary[] };
 
 function normalizeArticles(value: unknown): ChangeLogArticleSummary[] {
   if (!Array.isArray(value)) {
@@ -126,10 +120,7 @@ const readChangelogBySubmitters = cache(
   // how large the stored diffs are.
   async (submitters: string[]): Promise<ChangeLogEntry[]> => {
     return normalizeConvexRows(
-      await queryConvex<ConvexChangelogRow[], { submitters: string[]; limit: number }>(
-        "changelog:getBySubmitter",
-        { submitters, limit: PUBLIC_PROFILE_HISTORY_LIMIT },
-      ),
+      await getPublicDataReadAdapter().getPublicChangelogBySubmitters(submitters, PUBLIC_PROFILE_HISTORY_LIMIT),
     );
   },
   ["convex-public-changelog-by-submitter", "email-privacy-v1"],
@@ -208,7 +199,7 @@ export const PUBLIC_ARTICLE_HISTORY_LIMIT = 8;
 /** How many edits the site-wide /changes page lists, with or without an article filter. */
 export const PUBLIC_CHANGES_PAGE_LIMIT = 60;
 
-type ConvexArticleChangelogRow = Omit<ConvexChangelogRow, "articles"> & { articles: unknown };
+type ConvexArticleChangelogRow = PublicChangelogRow;
 
 /** The cached projection before contributor resolution. */
 type StampedArticleChange = Omit<ArticleRecentChange, "contributor"> & {
@@ -253,10 +244,7 @@ const readChangelogByArticleSlug = cache(
   // boundary: a bulk save's 500 KB multi-article diff never reaches the
   // cached value, only this article's section of it.
   async (slug: string, limit: number): Promise<StampedArticleChange[]> => {
-    const rows = await queryConvex<ConvexArticleChangelogRow[], { slug: string; limit: number }>(
-      "changelog:getByArticleSlug",
-      { slug, limit },
-    );
+    const rows = await getPublicDataReadAdapter().getPublicChangelogByArticleSlug(slug, limit);
     return projectChanges(rows, slug);
   },
   ["convex-public-changelog-by-article-slug", "email-privacy-v1"],
@@ -268,9 +256,7 @@ const readChangelogByArticleSlug = cache(
 
 const readRecentChangelog = cache(
   publicDataCache(async (limit: number): Promise<StampedArticleChange[]> => {
-    const rows = await queryConvex<ConvexArticleChangelogRow[], { limit: number }>("changelog:getRecent", {
-      limit,
-    });
+    const rows = await getPublicDataReadAdapter().getPublicRecentChangelog(limit);
     return projectChanges(rows, null);
   },
   ["convex-public-changelog-recent-changes", "email-privacy-v1"],

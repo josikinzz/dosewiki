@@ -22,7 +22,7 @@ export type {
   TripReportRecord,
 } from "./publicData.shared";
 
-export type { PublicEffectIndexPost } from "../../convex/lib/effectIndexArchiveReadProjections";
+export type { PublicEffectIndexPost } from "../../src/data/projections/effectIndexArchiveProjections";
 
 export { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 

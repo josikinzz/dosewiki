@@ -9,14 +9,11 @@ import {
   PUBLIC_CONVEX_CACHE_TAGS,
   publicSubstanceTag,
 } from "./publicData.cache";
-import { queryConvex } from "./serverClient";
+import { getPublicDataReadAdapter } from "./publicData.reads";
 
 export const getPublicReagentTestBySlug = cache(
   publicDataCache(async (slug: string): Promise<ProtestKitResponse | null> => {
-    const value = await queryConvex<unknown | null, { slug: string }>(
-      "reagentTests:getBySlug",
-      { slug },
-    );
+    const value = await getPublicDataReadAdapter().getPublicReagentTestBySlug(slug);
     const validation = validateProtestKitResponse(value);
     return validation.ok ? validation.data : null;
   },

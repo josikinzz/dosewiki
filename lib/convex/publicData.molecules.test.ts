@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 const sourceQuery = vi.hoisted(() => vi.fn());
 vi.mock("./serverClient", () => ({
-  getServerConvexReadClient: () => ({ query: sourceQuery }),
+  queryConvex: sourceQuery,
 }));
 
 const stored = vi.hoisted(() => new Map<string, { value: unknown; tags: string[] }>());

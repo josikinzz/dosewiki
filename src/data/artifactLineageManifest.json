@@ -606,6 +606,51 @@
       "refreshCommand": "npm run refresh:social-cards"
     },
     {
+      "id": "postgres-drizzle-schema",
+      "path": "lib/postgres/schema.generated.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateDrizzleSchema.ts",
+      "consumers": [
+        "drizzle.config.ts",
+        "lib/postgres/articlePublication.ts",
+        "lib/postgres/convexDocumentCodec.ts",
+        "lib/postgres/documentStore.ts",
+        "lib/postgres/migrations/*.sql",
+        "scripts/postgres/import-convex-export.ts",
+        "scripts/postgres/synthesizeConvexExport.ts"
+      ],
+      "inputs": [
+        "convex/lib/publicReadIndexSchema.ts",
+        "convex/schema.ts",
+        "scripts/postgres/generateDrizzleSchema.ts"
+      ],
+      "freshnessRule": "Regenerate after any Convex schema change, then run npm run postgres:migrate:generate and commit the new versioned SQL migration together with it.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-schema"
+    },
+    {
+      "id": "postgres-migrations",
+      "path": "lib/postgres/migrations/",
+      "role": "versioned-sql-migrations",
+      "producer": "drizzle-kit generate",
+      "consumers": [
+        "npm run postgres:migrate",
+        "PlanetScale Postgres release steps (dossier W2)"
+      ],
+      "inputs": [
+        "lib/postgres/schema.generated.ts"
+      ],
+      "freshnessRule": "Append-only. Never rewrite an applied migration; schema changes add a new file via npm run postgres:migrate:generate.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "POSTGRES_DIRECT_URL",
+      "schemaVersion": "drizzle-kit 0.31",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run postgres:migrate:generate"
+    },
+    {
       "id": "data-artifact-lineage-manifest",
       "path": "src/data/artifactLineageManifest.json",
       "role": "provenance-contract",
@@ -627,6 +672,24 @@
       "schemaVersion": "scripts/lib/data-artifact-lineage.mjs",
       "editPolicy": "editable-by-data-workflow-maintainers",
       "refreshCommand": "npm run provenance:check"
+    },
+    {
+      "id": "postgres-function-registry",
+      "path": "lib/postgres/runtime/functions.generated.ts",
+      "role": "generated-schema",
+      "producer": "scripts/postgres/generateFunctionRegistry.ts",
+      "consumers": [
+        "lib/postgres/runtime/client.ts"
+      ],
+      "inputs": [
+        "convex/*.ts"
+      ],
+      "freshnessRule": "Regenerate whenever a Convex function module is added, removed, or renamed under convex/.",
+      "sourceDeployment": null,
+      "targetDeployment": null,
+      "schemaVersion": "convex module list",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:postgres-functions"
     }
   ]
 }

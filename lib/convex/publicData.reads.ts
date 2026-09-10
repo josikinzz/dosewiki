@@ -25,7 +25,12 @@ import {
   type PublicEffectArticle,
   type PublicEffectIndexArticle,
   type PublicEffectPreview,
+  type PublicChangelogRow,
+  type PublicContributorIdentity,
   type PublicMechanismRouteInput,
+  type PublicMolecule,
+  type PublicMoleculeOverrideSummary,
+  type PublicReplicationIdentityAttribution,
   type PublicSubstanceLibraryRecord,
   type PublicSubstanceLookupEntry,
   type PublicSubstancePreview,
@@ -47,12 +52,12 @@ import { normalizeVCodeContent } from "../../src/features/effects/vcode/normaliz
 import {
   normalizeSubstancePriority,
   projectLibraryInput,
-} from "../../convex/lib/substanceReadProjections";
+} from "../../src/data/projections/substanceReadProjections";
 import {
   projectPublicEffectIndexPost,
   projectPublicEffectIndexPosts,
   type PublicEffectIndexPost,
-} from "../../convex/lib/effectIndexArchiveReadProjections";
+} from "../../src/data/projections/effectIndexArchiveProjections";
 import { publicDataReadCatalog } from "./publicData.readCatalog";
 import {
   drainConvexPaginationPages,
@@ -148,6 +153,22 @@ export type PublicDataReadAdapter = {
   getPublicAboutConfig(): Promise<AboutConfigRecord | null>;
   getPublicFeaturedReplicationSlugs(): Promise<string[] | null>;
   getPublicIndexLayoutByType(type: IndexLayoutType): Promise<IndexLayoutRecord | null>;
+  getPublicMoleculeOverrideSummaries(): Promise<PublicMoleculeOverrideSummary[]>;
+  /** Published `updatedAt` for one depiction, or null when none is published. */
+  getPublicMoleculeUpdatedAt(slug: string): Promise<string | null>;
+  getPublicMoleculeBySlug(slug: string): Promise<PublicMolecule | null>;
+  /** Raw rows; callers normalize, redact, and cap diffs before caching. */
+  getPublicChangelogBySubmitters(submitters: string[], limit: number): Promise<PublicChangelogRow[]>;
+  getPublicChangelogByArticleSlug(slug: string, limit: number): Promise<PublicChangelogRow[]>;
+  getPublicRecentChangelog(limit: number): Promise<PublicChangelogRow[]>;
+  getPublicReplicationIdentityAttribution(replicationId: string): Promise<PublicReplicationIdentityAttribution | null>;
+  getPublicContributorIdentityByKey(key: string): Promise<PublicContributorIdentity | null>;
+  /** Unvalidated ProtestKit payload; the caller owns schema validation. */
+  getPublicReagentTestBySlug(slug: string): Promise<unknown>;
+  /** Unvalidated rows; the caller parses and falls back to defaults. */
+  getPublicCopyBlocks(): Promise<unknown>;
+  getPublicWarningBannerPresets(): Promise<unknown>;
+  getPublicBannerDisplayConfig(): Promise<unknown>;
 };
 
 export const projectPublicEffectPreview = (effect: SubjectiveEffectRecord): PublicEffectPreview => ({
@@ -808,6 +829,57 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         publicDataReadCatalog.publicIndexLayoutByType.functionName,
         publicDataReadCatalog.publicIndexLayoutByType.args(type),
       ),
+    getPublicMoleculeOverrideSummaries: () =>
+      query<PublicMoleculeOverrideSummary[]>(publicDataReadCatalog.publicMoleculeOverrideSummaries.functionName, {}),
+    getPublicMoleculeUpdatedAt: async (slug) => {
+      const row = await query<PublicMoleculeOverrideSummary | null, { slug: string }>(
+        publicDataReadCatalog.publicMoleculeMetadataBySlug.functionName,
+        publicDataReadCatalog.publicMoleculeMetadataBySlug.args(slug),
+      );
+      return row?.updatedAt ?? null;
+    },
+    getPublicMoleculeBySlug: async (slug) => {
+      const override = await query<PublicMolecule | null, { slug: string }>(
+        publicDataReadCatalog.publicMoleculeBySlug.functionName,
+        publicDataReadCatalog.publicMoleculeBySlug.args(slug),
+      );
+      return override ? { svg: override.svg, updatedAt: override.updatedAt } : null;
+    },
+    getPublicChangelogBySubmitters: (submitters, limit) =>
+      query<PublicChangelogRow[], { submitters: string[]; limit: number }>(
+        publicDataReadCatalog.publicChangelogBySubmitters.functionName,
+        publicDataReadCatalog.publicChangelogBySubmitters.args(submitters, limit),
+      ),
+    getPublicChangelogByArticleSlug: (slug, limit) =>
+      query<PublicChangelogRow[], { slug: string; limit: number }>(
+        publicDataReadCatalog.publicChangelogByArticleSlug.functionName,
+        publicDataReadCatalog.publicChangelogByArticleSlug.args(slug, limit),
+      ),
+    getPublicRecentChangelog: (limit) =>
+      query<PublicChangelogRow[], { limit: number }>(
+        publicDataReadCatalog.publicChangelogRecent.functionName,
+        publicDataReadCatalog.publicChangelogRecent.args(limit),
+      ),
+    getPublicReplicationIdentityAttribution: (replicationId) =>
+      query<PublicReplicationIdentityAttribution | null, { replication_id: string }>(
+        publicDataReadCatalog.publicReplicationIdentityAttribution.functionName,
+        publicDataReadCatalog.publicReplicationIdentityAttribution.args(replicationId),
+      ),
+    getPublicContributorIdentityByKey: (key) =>
+      query<PublicContributorIdentity | null, { key: string }>(
+        publicDataReadCatalog.publicContributorIdentityByKey.functionName,
+        publicDataReadCatalog.publicContributorIdentityByKey.args(key),
+      ),
+    getPublicReagentTestBySlug: (slug) =>
+      query<unknown, { slug: string }>(
+        publicDataReadCatalog.publicReagentTestBySlug.functionName,
+        publicDataReadCatalog.publicReagentTestBySlug.args(slug),
+      ),
+    getPublicCopyBlocks: () => query<unknown>(publicDataReadCatalog.publicCopyBlocks.functionName, {}),
+    getPublicWarningBannerPresets: () =>
+      query<unknown>(publicDataReadCatalog.publicWarningBannerPresets.functionName, {}),
+    getPublicBannerDisplayConfig: () =>
+      query<unknown>(publicDataReadCatalog.publicBannerDisplayConfig.functionName, {}),
   };
 }
 

@@ -11,7 +11,7 @@ import {
   projectSearchInput,
   projectReviewedArticleCredit,
   projectReviewedArticleForEmails,
-} from "../convex/lib/substanceReadProjections";
+} from "../src/data/projections/substanceReadProjections";
 import { substanceArticleSchema, type SubstanceArticle } from "../src/schema";
 import { fullArticleWithDosage } from "../src/test/fixtures/articles";
 
