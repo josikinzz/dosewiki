@@ -28,6 +28,7 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "docs",
   "documentation-style-guide",
   "donate",
+  "china",
   "effect",
   "effects",
   "html-docs",

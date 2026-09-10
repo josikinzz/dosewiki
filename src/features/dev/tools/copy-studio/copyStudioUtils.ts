@@ -148,6 +148,7 @@ const COPY_STUDIO_SECTIONS: readonly { section: string; groups: readonly string[
       "Support pages",
       "Empty states",
       "Replications",
+      "China",
     ],
   },
   { section: "Substances", groups: ["Substance categories", "Substance articles"] },

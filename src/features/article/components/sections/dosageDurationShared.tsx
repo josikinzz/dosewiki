@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
 import { EditableValue, useArticleEdit } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
+import { DOSE_TIERS, DURATION_STAGES } from "./dosageDurationLabels";
 import { normalizeDurationStageForDisplay } from "./durationUnits";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
@@ -122,23 +123,6 @@ function toEditableRange(
 const DOSE_PARSE_ERROR = "Enter a dose like 10-20 mg, 10+ mg, or <20 mg.";
 const DURATION_PARSE_ERROR =
   "Enter a duration like 30-60 minutes, 2+ hours, or <30 minutes.";
-
-const DOSE_TIERS = [
-  { key: "threshold", label: "Threshold" },
-  { key: "light", label: "Light" },
-  { key: "moderate", label: "Moderate" },
-  { key: "strong", label: "Strong" },
-  { key: "heavy", label: "Heavy" },
-] as const;
-
-const DURATION_STAGES = [
-  { key: "onset", label: "Onset" },
-  { key: "come_up", label: "Come Up" },
-  { key: "peak", label: "Peak" },
-  { key: "offset", label: "Offset" },
-  { key: "after_effects", label: "After Effects" },
-  { key: "total_duration", label: "Total" },
-] as const;
 
 function ExpandableNoteRow({
   ariaLabelBase,

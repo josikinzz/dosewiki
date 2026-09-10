@@ -20,8 +20,11 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/contributors/seed-credited-identities.mjs",
     "scripts/contributors/upload-replication-index-profile-avatars.ts",
     "scripts/convex/merge-duplicate-article-content.mjs",
+    "scripts/effects/align-embed-artist-credits.mjs",
+    "scripts/effects/prune-image-route-variants.mjs",
     "scripts/effects/repair-legacy-article-media.mjs",
     "scripts/effects/repoint-recovered-article-embeds.mjs",
+    "scripts/effects/repoint-dead-gfycat-embeds.mjs",
     "scripts/effects/upgrade-article-media.mjs",
     "scripts/effects/upgrade-embed-resolutions.mjs",
     "scripts/migrate/migrate-binding-sites.mjs",
@@ -55,6 +58,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/normalize-slugs.mjs",
     "scripts/replications/migrate-article-media.mjs",
     "scripts/replications/plan-artist-name-corrections.mjs",
+    "scripts/replications/publish-approved-collection-orders.mjs",
     "scripts/replications/reassign-replication-credits.mjs",
     "scripts/replications/remove-silent-auditory-tags.mjs",
     "scripts/replications/replace-feetman-quality-renditions.mjs",
@@ -94,6 +98,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/convex/sync-convex-to-production.mjs",
     "scripts/convex/normalize-dose-units.ts",
     "scripts/convex/sync-dosage-duration-to-prod.mjs",
+    "scripts/feedback/apply-feedback-register-schedule-a.ts",
     "scripts/legality/apply-citations.mjs",
     "scripts/legality/apply-draft.mjs",
     "scripts/legality/migrate-usstate-country-rows.mjs",
@@ -189,6 +194,10 @@ export const productionWriterClassifications = Object.freeze({
     {
       path: "scripts/lib/scry-client.mjs",
       reason: "POST is a read-only SQL query against the Scry public corpus API.",
+    },
+    {
+      path: "scripts/translation/corpora.mjs",
+      reason: "POST targets Convex's /api/query endpoint only; the corpus loader reads published rows and never calls /api/mutation.",
     },
   ]),
 });

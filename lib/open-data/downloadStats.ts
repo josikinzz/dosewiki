@@ -55,3 +55,23 @@ export function getMoleculePackDownloadStats(): PublicDownloadStats {
   }
   return moleculePackDownloadStats;
 }
+
+let moleculePackSlugs: string[] | null = null;
+
+/** Every substance slug the molecule pack draws, in manifest order. */
+export function getMoleculePackSlugs(): string[] {
+  if (moleculePackSlugs === null) {
+    const manifest: unknown = JSON.parse(
+      readFileSync(path.join(process.cwd(), "public/dosewiki-molecules.json"), "utf8"),
+    );
+    const rows =
+      manifest && typeof manifest === "object" && "molecules" in manifest && Array.isArray(manifest.molecules)
+        ? manifest.molecules
+        : [];
+    moleculePackSlugs = rows
+      .map((row: unknown) => (row && typeof row === "object" && "slug" in row ? row.slug : null))
+      .filter((slug: unknown): slug is string => typeof slug === "string" && slug.length > 0);
+  }
+  return moleculePackSlugs;
+}
+

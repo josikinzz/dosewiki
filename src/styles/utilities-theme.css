@@ -5980,3 +5980,121 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
+
+/* Alpha-edge glow for transparent artwork (the /china banner). A drop-shadow
+   filter traces the painted silhouette rather than the image box; light mode
+   drops it because a pale halo on a pale page reads as a smudge. */
+.theme-cutout-glow {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--theme-accent-strong) 22%, transparent))
+    drop-shadow(0 0 1.5px color-mix(in srgb, var(--theme-text-primary) 18%, transparent));
+}
+
+html[data-theme="light"] .theme-cutout-glow {
+  filter: none;
+}
+
+/* /china delight. Every motion here sits behind the reduced-motion query and
+   none of it gates a download or a read. */
+@media (prefers-reduced-motion: no-preference) {
+  /* The banner arms lean into the grip on hover. Origin sits on the clasped
+     hands (about 52% across, 45% down the artwork). */
+  .theme-china-banner {
+    transform-origin: 52% 45%;
+    transition: transform 700ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .theme-china-banner:hover {
+    transform: rotate(-1.2deg) scale(1.01);
+  }
+
+  /* A freshly shuffled record: the two sides slide in from their own edge. */
+  .theme-china-reveal-left {
+    animation: theme-china-reveal-left 320ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+  .theme-china-reveal-right {
+    animation: theme-china-reveal-right 320ms cubic-bezier(0.25, 1, 0.5, 1) 60ms both;
+  }
+
+  /* Numbers that count up once scrolled into view. */
+  .theme-china-countup {
+    transition: opacity 200ms;
+  }
+
+  /* The signature fades and settles once the reader reaches the end. */
+  .theme-china-signature {
+    opacity: 0.6;
+    transform: translateY(2px) rotate(-6deg);
+    transition: opacity 600ms ease-out, transform 600ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .theme-china-signature[data-seen="true"] {
+    opacity: 1;
+    transform: translateY(0) rotate(-4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-china-signature {
+    opacity: 1;
+    transform: rotate(-4deg);
+  }
+}
+
+.theme-china-signature {
+  font-family: var(--font-family-display);
+  font-style: italic;
+  color: var(--theme-accent-strong);
+}
+
+@keyframes theme-china-reveal-left {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes theme-china-reveal-right {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The /china molecule carousel. Fades at both edges so drawings enter and
+   leave rather than pop. The animation is transform-only. */
+.theme-china-carousel {
+  contain: layout paint;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .theme-china-carousel-track {
+    animation: theme-china-carousel linear infinite;
+    will-change: transform;
+  }
+}
+@keyframes theme-china-carousel {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* The /china format switch: the chosen segment takes a solid accent fill with
+   body-coloured text, the same pairing as the accent CTA, so the pair reads as
+   one control with one side lit. */
+.theme-china-segment[data-state="on"] {
+  color: var(--theme-body-bg);
+  background: var(--theme-accent-strong);
+}
+.theme-china-segment[data-state="on"]:hover {
+  color: var(--theme-body-bg);
+  background: var(--theme-accent-strong);
+}

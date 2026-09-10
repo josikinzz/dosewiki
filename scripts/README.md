@@ -841,6 +841,140 @@ must reuse an independently created and verified snapshot, pass its non-empty
 local path as `--existing-backup=<path>` to the confirmed command. Dry-runs never
 need this flag.
 
+### Locale translation of the published corpora
+
+```bash
+export OPENROUTER_API_KEY="sk-or-..."
+npm run translate:registry
+npm run translate:glossary
+npm run translate:locale -- --corpus=effects --concurrency=100
+npm run translate:locale -- --corpus=substances --slug=2c-b --out=tmp/translation-pilot
+npm run translate:locale -- --corpus=reports --resume --revalidate
+npm run translate:locale -- --corpus=copy --dry-run
+npm run translate:audit -- --all
+npm run translate:packs
+npm run translate:refresh -- --plan
+npm run translate:freeodwiki
+npm run translate:charset
+```
+
+Six corpora travel one runner, chosen with `--corpus`:
+
+| corpus | dataset | source |
+| --- | --- | --- |
+| `substances` | SubstanceIndex | published open-data export |
+| `effects` | EffectIndex | published open-data export |
+| `reports` | TripReports | published open-data export |
+| `articles` | Articles | Convex `effectIndexArticles:getAll`, blog rows filtered |
+| `copy` | CopyBlocks | Convex `copyBlocks:getAll` layered over the checked-in defaults |
+| `layout` | Layout | `translate:registry` output |
+
+Writes only local artifacts. `--source=<path>` reads a saved export instead. A
+run extracts translatable segments, deduplicates identical strings, sends them
+through OpenRouter in batches, validates each returned segment, retries
+defective ones alone, and reassembles a locale artifact whose structure matches
+the source exactly.
+
+A value stays English whenever the app reads it as a key rather than as text.
+Class labels slugify into `/substances/group/<slug>` routes and icon lookups,
+`index_categories` drives the hidden and obscure visibility switches,
+`canonicalStatus` and harm `level` index badge-config records, binding-site
+`target` becomes `/mechanism/<slug>`, and the `(active)` parenthetical on a
+metabolite is regex-matched for its badge. Bibliography, citations, chemical
+identity, and bare numeric dosage or duration values are excluded too. In the
+report corpus a timeline `time`, a dose, a route and a substance name travel
+untouched; in the copy corpus the `key`, `kind`, `group`, `label` and `flavor`
+fields do; in the layout corpus only `label` and `description` are prose.
+
+A country's `status` is conditional: it travels only when the sibling
+`canonicalStatus` exists. Without that key the legality section chooses the
+badge tone by matching the English status against a table of literals and
+regexes, and a translated status would silently grey the badge out. Display-only
+neighbours such as `designation`, `instrument`, and word-valued
+`bioavailability` are translated.
+
+Effect and article bodies are VCode markup stored as a `*_raw` string beside a
+derived `*_ast` tree. The scanner cuts a body at block boundaries, so a model
+sees a paragraph with its inline emphasis and links attached and never sees a
+tag name, an attribute, a link target or a citation key. The translated spans
+are spliced back at their original offsets, the renderer's own parser rederives
+the tree, and the two trees are compared: same blocks in the same order, same
+elements, same machine properties. Inline order is free, because Chinese word
+order moves emphasis inside a sentence. A body whose tree moved keeps its
+English and is named in the QA packet.
+
+Blocking gates are dropped numbers, dropped `[cite:...]` markers,
+Traditional-script leakage under zh-Hans, untranslated prose, lost inline
+markup, a rewritten Markdown link target, a lost `{{token}}`, and empty or
+unparsable replies. Added numbers, length-band outliers, and glossary drift are
+reported in the QA packet rather than blocking a segment.
+
+Outputs land in `notes-and-plans/exports/translation/<locale>/<corpus>/`:
+`<Dataset>.<locale>.json`, `qa-packet.json`, `manifest.json`,
+`translations.jsonl`, `failures.jsonl`, and `source-export.json`. The checkpoint
+is keyed by segment hash, so `--resume` re-translates nothing that already
+succeeded, and an edited source string is the only thing a later run pays for.
+`--revalidate` re-judges the checkpoint against the current gates, reopens
+what they now reject, and rewrites the checkpoint so a later plain resume
+reports the same verdicts. `verdict` in the QA packet stays null until a reader
+of the language records one; it travels with the packs rather than gating them.
+
+`translate:registry` extracts the section catalog, the field registry, the six
+closed enums, both curated indexes, the effect categories and the effect-name
+alias table into one machine-readable document, so a reader can render a page
+from the packs alone. It runs under Bun because it imports the live registries.
+
+`translate:glossary` freezes one term list for every corpus. Each term is
+translated alone, so nothing bends it, and two terms that land on the same
+Chinese string go back to the model together with a demand for the distinction
+the English draws. The result is `scripts/translation/glossary/<locale>.json`,
+which the runner injects into any batch that mentions a term and the validator
+holds every segment to. Editing a value there overrules the model; adding a term
+needs no code change. `--merge` keeps existing renderings and fills only what is
+missing. `translate:locale --reglossary` reopens the segments of an already
+translated corpus that mention a frozen term without using it, which is how a
+corpus translated before the freeze is brought up to it.
+
+`translate:audit --all` reads every corpus this locale has produced and reports,
+entirely in English, where two terms share one Chinese string, where one term
+takes several, and where a pinned label never appears in the prose that mentions
+it. Cross-corpus drift only exists when the corpora are read together.
+
+`translate:packs` gzips each corpus into `public/downloads/<locale>/` as a pair,
+the translation and the English source it came from in one structure and one
+record order, with a manifest naming each dataset, its licence, its source
+revision, both item counts, both checksums and the review verdict. Datasets
+with a page form also get a `<Dataset>.freeodwiki.zip` of their emitted
+Markdown pages, and the whole tree ships as `FreeODwiki.zip`, so run
+`translate:freeodwiki` first. Six whole records per dataset are written whole into
+`samples/` for the page's compare cell. The `/china` page lists the pairs
+side by side under a JSON / Markdown toggle so a reader of the language can
+check one against the other. Two builds of unchanged inputs produce identical bytes;
+`translate:packs:check` exits non-zero when a checksum moved.
+
+`translate:refresh` diffs current sources against each corpus checkpoint,
+drops orphaned translations, re-translates only what changed, and rebuilds the
+packs for the corpora that actually moved. `--plan` reports the diff and calls
+nothing.
+
+Two corpora ride inside another dataset's packs rather than shipping cards of
+their own, mirroring how the site groups them: `effectCategories` (the 26
+category definitions with their member effects, from
+`src/data/effectCategoryDefinitions.ts`) becomes `categories` in the effects
+JSON and category pages in its Markdown zip; `summaries` (the five
+`/psychoactive/*` guides, from `summaryDefinitions.ts`) becomes `summaries` in
+the Library JSON and pages in its zip. `FOLDS` in `build-packs.mjs` is the table.
+
+`translate:freeodwiki` emits one Markdown file per record in the file shape of
+the FreeODwiki wiki, then a second English tree whose page chrome (tree names,
+headings, table labels, source notes) follows `labelsFor("en")` so the two trees
+compare line for line. Nothing is withheld on licence grounds; each page states
+the terms its record carries (author-retained reports say so on the page).
+
+`translate:charset` regenerates `scripts/translation/traditional-charset.json`
+from OpenCC's TSCharacters table; the script gate reads that file rather than a
+hand-written character list.
+
 ### Contributors
 
 ```bash
@@ -1501,3 +1635,28 @@ npm run convex:normalize-dose-units -- \
   --confirm-write=normalize-dose-units \
   --expected-deployment=<deployment>
 ```
+
+## Feedback register Schedule A (`scripts/feedback/apply-feedback-register-schedule-a.ts`)
+
+Applies the fixes from the 2026-09-08 article feedback register that rest on data
+already in production: four article edits (the mephedrone chemical class label,
+the 2C-B bioavailability note pasted onto DET, the bupropion relation in the
+3-CMC summary, and six dead Drug Users Bible links) plus eleven feedback queue
+transitions. Every article edit publishes through `articleLifecycle:write`
+against a freshly read revision baseline and carries a compare-and-set
+precondition on the exact stored value, so a stale plan refuses instead of
+overwriting newer work. Queue rows are verified to exist and to still sit where
+the plan expects before the first hop is sent.
+
+```bash
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  bun scripts/feedback/apply-feedback-register-schedule-a.ts    # dry run: prints the full plan
+TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  bun scripts/feedback/apply-feedback-register-schedule-a.ts \
+  --write --confirm-feedback-register \
+  --confirm-write=apply-feedback-register-schedule-a \
+  --expected-deployment=glad-minnow-656
+```
+
+The run is idempotent only in the sense that it refuses to repeat: once applied,
+every precondition reports `STALE` and nothing is sent.

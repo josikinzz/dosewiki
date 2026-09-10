@@ -5802,30 +5802,30 @@
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
       "match": "var(--theme-semantic-success-badge-text)",
-      "line": 24,
+      "line": 30,
       "column": 46
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
       "match": "var(--theme-semantic-success-badge-text)",
-      "line": 25,
+      "line": 31,
       "column": 54
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
       "match": "var(--theme-semantic-caution-badge-text)",
-      "line": 26,
+      "line": 32,
       "column": 52
     },
     {
       "rule": "direct-theme-variable",
-      "filePath": "src/features/article/components/sections/harm-potential/HarmPotentialBadges.tsx",
+      "filePath": "src/features/article/components/sections/harm-potential/harmPotentialLabels.ts",
       "match": "var(--theme-semantic-danger-badge-text)",
-      "line": 27,
+      "line": 33,
       "column": 54
     },
     {

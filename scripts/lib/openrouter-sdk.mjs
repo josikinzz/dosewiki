@@ -92,6 +92,7 @@ function buildChatRequest({
   stream = false,
   reasoningEffort,
   disableReasoning = false,
+  excludeReasoning = false,
 }) {
   const request = {
     model,
@@ -103,6 +104,14 @@ function buildChatRequest({
     temperature,
     maxTokens,
   };
+
+  // Some endpoints reason unconditionally and reject reasoning.enabled=false.
+  // Asking for the lowest effort and excluding the trace is the only way to
+  // stop paying for tokens the caller will never read.
+  if (excludeReasoning) {
+    request.reasoning = { effort: reasoningEffort || "low", exclude: true };
+    return request;
+  }
 
   if (!disableReasoning && reasoningEffort) {
     request.reasoning = isClaudeExplicitReasoningModel(model)
@@ -164,6 +173,7 @@ export async function callOpenRouterChat({
   maxTokens = 16384,
   reasoningEffort,
   disableReasoning = false,
+  excludeReasoning = false,
 }) {
   try {
     const client = createOpenRouterClient(apiKey, appTitle);
@@ -176,6 +186,7 @@ export async function callOpenRouterChat({
         maxTokens,
         reasoningEffort,
         disableReasoning,
+        excludeReasoning,
       }),
     });
 

@@ -104,7 +104,16 @@ function DownloadPill({
   );
 }
 
-function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boolean }) {
+export function JsonSyntaxHighlight({
+  json,
+  truncated,
+  truncatedNote = `Showing the first ${ABOUT_PREVIEW_LINE_LIMIT.toLocaleString()} lines; download SubstanceIndex.json for the full record.`,
+}: {
+  json: string;
+  truncated: boolean;
+  /** Shown beneath a cut record. */
+  truncatedNote?: string;
+}) {
   const highlightedLines = useMemo(() => {
     // The server already enforces the line limit for truncated snapshots;
     // complete snapshots must render every line.
@@ -179,7 +188,7 @@ function JsonSyntaxHighlight({ json, truncated }: { json: string; truncated: boo
       ))}
       {truncated ? (
         <div className="theme-json-preview-truncation mt-4 rounded-xl border px-4 py-3 font-sans text-xs font-medium">
-          Showing the first {ABOUT_PREVIEW_LINE_LIMIT.toLocaleString()} lines; download SubstanceIndex.json for the full record.
+          {truncatedNote}
         </div>
       ) : null}
     </div>
