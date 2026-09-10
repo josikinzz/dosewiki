@@ -28,7 +28,7 @@ const FORMATS: { value: PackFormat; zh: string; en: string; icon: IconName }[] =
  * pair reads as a switch rather than two buttons.
  */
 const SEGMENT_CLASS =
-  "theme-china-segment h-auto rounded-full border-0 px-4 py-2 text-[var(--theme-text-secondary)] hover:bg-[var(--theme-frosted-control-bg)] data-[state=on]:shadow-none";
+  "theme-china-segment h-auto rounded-full border-0 px-4 py-2 data-[state=on]:shadow-none";
 
 /**
  * One icon per dataset. The three indexes reuse the icons the site's own
@@ -181,7 +181,7 @@ export function DownloadsCatalogue({
           value={format}
           onValueChange={choose}
           aria-label="格式 · Format"
-          className="inline-flex justify-start gap-1 rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] p-1"
+          className="theme-china-switch inline-flex justify-start gap-1 rounded-full border p-1"
         >
           {FORMATS.map(({ value, zh, en, icon }) => (
             <ToggleGroupItem key={value} value={value} className={SEGMENT_CLASS}>

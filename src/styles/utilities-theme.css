@@ -6090,6 +6090,16 @@ html[data-theme="light"] .theme-cutout-glow {
 /* The /china format switch: the chosen segment takes a solid accent fill with
    body-coloured text, the same pairing as the accent CTA, so the pair reads as
    one control with one side lit. */
+.theme-china-switch {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-muted);
+}
+.theme-china-segment {
+  color: var(--theme-text-secondary);
+}
+.theme-china-segment:hover {
+  background: var(--theme-frosted-control-bg);
+}
 .theme-china-segment[data-state="on"] {
   color: var(--theme-body-bg);
   background: var(--theme-accent-strong);
