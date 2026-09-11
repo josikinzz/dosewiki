@@ -666,7 +666,7 @@ export function Header({
               and lands its panel on the same insets the mobile nav sheet reaches: one
               button + one gap right (the sheet is right-0 inside the hamburger's
               wrapper), and the header's own 16px edge padding below the bar. */}
-          <AppearanceControls alignOffset={-52} sideOffset={12} />
+          <AppearanceControls alignOffset={-52} sideOffset={20} />
           <div className="relative">
             <Button
               ref={menuButtonRef}
