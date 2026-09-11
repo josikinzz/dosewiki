@@ -42,13 +42,27 @@ export type AppearanceCogRows = AppearanceAxesRows & {
 export function AppearanceCog({
   className,
   iconSize = 28,
+  alignOffset,
+  sideOffset,
   showVisualStyle,
   showColorScheme,
   showAccent,
   showSurface,
   showFont,
   showMoreSettings,
-}: AppearanceCogRows & { className?: string; iconSize?: number }) {
+}: AppearanceCogRows & {
+  className?: string;
+  iconSize?: number;
+  /**
+   * Shift along the alignment axis, passed straight to the popover content. The
+   * mobile header mount uses it to land the panel's right edge on the same corner
+   * inset the mobile nav sheet reaches — the trigger sits one button + one gap left
+   * of the corner because the hamburger owns it.
+   */
+  alignOffset?: number;
+  /** Shift away from the trigger along the side axis, straight through. */
+  sideOffset?: number;
+}) {
   const t = useT();
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -117,7 +131,8 @@ export function AppearanceCog({
         // Radix places the panel `sideOffset + arrow height` from the trigger, so 0 here
         // plus the 8px stem below lands the visible edge 8px under the cog — the same
         // gap the mobile nav panel keeps (`top-[calc(100%+0.5rem)]` in Header.tsx).
-        sideOffset={0}
+        sideOffset={sideOffset ?? 0}
+        alignOffset={alignOffset ?? 0}
         collisionPadding={12}
         aria-label={t("Appearance settings")}
         /**

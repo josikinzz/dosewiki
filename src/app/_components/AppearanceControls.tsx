@@ -36,10 +36,20 @@ import { AppearanceCog } from "./AppearanceCog";
 export function AppearanceControls({
   className,
   iconSize,
+  alignOffset,
+  sideOffset,
   allowThemeLab = true,
 }: {
   className?: string;
   iconSize?: number;
+  /**
+   * Shift along the popover's alignment axis, straight through to the content. The
+   * mobile header mount lands the panel on the corner inset the mobile nav sheet
+   * reaches; the desktop mount leaves it anchored to the trigger.
+   */
+  alignOffset?: number;
+  /** Shift away from the trigger along the side axis, straight through. */
+  sideOffset?: number;
   allowThemeLab?: boolean;
 }) {
   const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
@@ -65,6 +75,8 @@ export function AppearanceControls({
     <AppearanceCog
       className={className}
       iconSize={iconSize}
+      alignOffset={alignOffset}
+      sideOffset={sideOffset}
       showVisualStyle={!isVisualStyleLocked}
       showColorScheme={SITE_FLAVOR_CONFIG.showColorSchemeToggle}
       showSurface={!isSurfaceLocked}
