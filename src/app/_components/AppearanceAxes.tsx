@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   type CSSProperties,
@@ -17,14 +17,14 @@ import { getDefaultAppearanceColors } from "@/theme/appearanceChroma";
 import { proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
 import { FontPicker } from "./FontPicker";
+import { StylePicker } from "./StylePicker";
 import { ThemeToggle } from "./ThemeToggle";
-import { VisualStyleToggle } from "./VisualStyleToggle";
 
 /**
  * The rails are *legends*, not swatches: they render at a fixed, legible
  * display lightness and a vivid chroma regardless of how dark or muted the
  * theme itself currently is. A dark surface at 14% saturation paints an
- * almost-black canvas — turning the rail that colour makes the control
+ * almost-black canvas â€” turning the rail that colour makes the control
  * invisible, and the reader is choosing a *direction* (which hue, how much
  * saturation), not previewing exact pixels. Only the hue is taken from the
  * theme, so the rails still point at the palette the reader is wearing.
@@ -35,8 +35,8 @@ const RAIL_CHROMA = 0.21;
 /**
  * The saturation track's gradient: grey at the left sweeping to a vivid stop
  * at the right, under the reader's current hue rotation, at the fixed rail
- * lightness. The sweep shows what the thumb's positions *mean* — none to
- * maximum saturation — not the literal painted colour at each level.
+ * lightness. The sweep shows what the thumb's positions *mean* â€” none to
+ * maximum saturation â€” not the literal painted colour at each level.
  */
 function trackGradient(swatch: string, hue: number): string {
   const stops = [0, 0.25, 0.5, 0.75, 1].map(
@@ -49,8 +49,8 @@ function trackGradient(swatch: string, hue: number): string {
 
 /**
  * The hue track's gradient: the axis's base hue swept once around the hue
- * circle at the fixed rail lightness and chroma. Seven stops, 60° apart, with
- * 360° repeating 0° so the rail's right edge meets its left: the axis is
+ * circle at the fixed rail lightness and chroma. Seven stops, 60Â° apart, with
+ * 360Â° repeating 0Â° so the rail's right edge meets its left: the axis is
  * periodic and the rail should look it.
  */
 function hueTrackGradient(swatch: string): string {
@@ -69,7 +69,7 @@ function hueTrackGradient(swatch: string): string {
  * continues the same drag. Mouse input stays entirely native.
  *
  * Exported because the reader panel's reading-type sliders run on the same
- * contract — one drag gesture, mouse input untouched — under different domains.
+ * contract â€” one drag gesture, mouse input untouched â€” under different domains.
  */
 export function useDirectTouchRange(max: number, onChange: (value: number) => void) {
   const activePointerRef = useRef<number | null>(null);
@@ -118,9 +118,9 @@ export function useDirectTouchRange(max: number, onChange: (value: number) => vo
 }
 
 /**
- * One axis's hue slider — the row above its saturation slider in the cog panel.
+ * One axis's hue slider â€” the row above its saturation slider in the cog panel.
  *
- * `degrees` is the reader's effective rotation — their saved integer, or the
+ * `degrees` is the reader's effective rotation â€” their saved integer, or the
  * site default while they never moved this slider. `tick` is that default:
  * the exact rotation Reset restores for the active style/scheme variant, so
  * the mark moves when the reader switches Fun/Pro or light/dark.
@@ -138,7 +138,7 @@ export function HueSlider({
   /** The axis's base colour at the current saturation level; the rail rotates it. */
   swatch: string;
   degrees: number;
-  /** The active variant's default rotation in degrees — where Reset returns. */
+  /** The active variant's default rotation in degrees â€” where Reset returns. */
   tick: number;
   onChange: (degrees: number) => void;
 }) {
@@ -150,7 +150,7 @@ export function HueSlider({
           Hue
         </span>
         <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
-          {degrees}°
+          {degrees}Â°
         </span>
       </div>
       <div className="px-1">
@@ -188,8 +188,8 @@ export function HueSlider({
 /**
  * One axis's saturation slider.
  *
- * `level` is the reader's effective level — their saved decimal, or the site
- * default while they never moved this slider — so the thumb parks where the
+ * `level` is the reader's effective level â€” their saved decimal, or the site
+ * default while they never moved this slider â€” so the thumb parks where the
  * page is actually painted. `tick` is that default: the exact level Reset
  * restores for the active style/scheme variant, so the mark moves when the
  * reader switches Fun/Pro or light/dark.
@@ -208,7 +208,7 @@ export function ChromaSlider({
   swatch: string;
   /** The reader's effective hue rotation; the rail previews levels under it. */
   hue: number;
-  /** The active variant's default level in 0..1 — where Reset returns. */
+  /** The active variant's default level in 0..1 â€” where Reset returns. */
   tick: number;
   level: number;
   onChange: (level: number) => void;
@@ -264,7 +264,7 @@ export function ChromaSlider({
 /**
  * A small legend dot for a collapsed axis, drawn on the same fixed-legibility
  * terms as the sliders' rails: the reader's hue and saturation level over the
- * axis's base swatch. Saturation 0 paints a neutral grey — the honest signal
+ * axis's base swatch. Saturation 0 paints a neutral grey â€” the honest signal
  * that the palette is currently unmuted.
  */
 export function axisDot(swatch: string, hue: number, level: number): string {
@@ -272,11 +272,11 @@ export function axisDot(swatch: string, hue: number, level: number): string {
 }
 
 /**
- * A collapsed colour axis. The summary row — swatch dot, plain-language name,
- * and the live (degrees · percent) coordinate — is a button carrying
+ * A collapsed colour axis. The summary row â€” swatch dot, plain-language name,
+ * and the live (degrees Â· percent) coordinate â€” is a button carrying
  * `aria-expanded` + `aria-controls`; tapping it reveals the Hue/Saturation
  * slider pair in place. Collapsed by default so the panel opens on the three
- * quick toggles and the sliders — the choice a reader reaches for least — stay
+ * quick toggles and the sliders â€” the choice a reader reaches for least â€” stay
  * one tap away instead of four always-on rails. The expanded children sit
  * under the `role="group"` name the axis always carried, so its accessible
  * grouping is unchanged.
@@ -314,7 +314,7 @@ function ColorAxisDisclosure({
         />
         <span className="text-[0.8125rem] font-semibold">{axisName}</span>
         <span className="ml-auto tabular-nums text-[0.6875rem] font-medium text-dose-text-muted">
-          {degrees}° · {percent}%
+          {degrees}Â° Â· {percent}%
         </span>
         <Icon
           aria-hidden="true"
@@ -391,7 +391,7 @@ export function ColorAxisSliders({
  * appearance without standing up a flavor config or a session.
  */
 export type AppearanceAxesRows = {
-  /** Fun/Pro. Absent — never inert — where the publication's identity *is* one style. */
+  /** Fun/Pro. Absent â€” never inert â€” where the publication's identity *is* one style. */
   showVisualStyle: boolean;
   /** Dark/Light page scheme. */
   showColorScheme: boolean;
@@ -405,23 +405,23 @@ export type AppearanceAxesRows = {
 /**
  * The site's appearance axes as controls: visual style, colour scheme, and a
  * hue + saturation slider pair for each colour axis. There are no discrete
- * colourways anymore — the base Orchid surface and Default accent palettes are
+ * colourways anymore â€” the base Orchid surface and Default accent palettes are
  * the only authored ones, and every other look is a (hue, saturation)
  * coordinate over them; grey is simply saturation 0.
  *
- * Two places offer them — the header's settings button and the Theme Lab drawer — and this is
+ * Two places offer them â€” the header's settings button and the Theme Lab drawer â€” and this is
  * the single component both render, so the two can never disagree about what a reader
  * may choose or what a rail previews. Everything is read from and written to
  * `ThemeContext`; this component holds no appearance state of its own. The
- * range inputs write the context per input tick — that is what keeps them
- * controlled and the thumb, readout, and rail gradients live — and per-tick
+ * range inputs write the context per input tick â€” that is what keeps them
+ * controlled and the thumb, readout, and rail gradients live â€” and per-tick
  * writes are safe because the provider rAF-throttles the document paint and
  * debounces persistence: nothing here needs its own throttle.
  *
  * Both colour axes work on both visual styles. The accent pair rotates and
  * re-saturates the Pro `--ei-*` accent ramp on the same terms as the Fun
- * palette; the surface pair drives the additive Pro surface blocks — the
- * authored charcoal sits at saturation 0, and the level adds chroma to it —
+ * palette; the surface pair drives the additive Pro surface blocks â€” the
+ * authored charcoal sits at saturation 0, and the level adds chroma to it â€”
  * so no slider is ever rendered disabled here.
  */
 export function AppearanceAxes({
@@ -441,7 +441,7 @@ export function AppearanceAxes({
   /** Reader-facing surface-axis name: "Background" for readers, "Surface" for authors. */
   surfaceLabel?: string;
   /**
-   * A caller-owned action that shares the footer row with Reset — the cog's dev-only
+   * A caller-owned action that shares the footer row with Reset â€” the cog's dev-only
    * Theme Lab entry. Rendered right-aligned so the two never claim a row each.
    */
   footerAction?: ReactNode;
@@ -467,15 +467,15 @@ export function AppearanceAxes({
 
   // The rails must show the palette the reader is actually wearing, per axis:
   // on Pro the surface rail anchors on the authored charcoal canvas seed for
-  // the current scheme — the same literal the additive Pro surface block
-  // wraps — so the rail and the CSS can never disagree about what a
+  // the current scheme â€” the same literal the additive Pro surface block
+  // wraps â€” so the rail and the CSS can never disagree about what a
   // coordinate renders as.
   const surfaceSwatch =
     visualStyle === "pro"
       ? BASE_SURFACE_PRO_SEEDS[colorScheme]["--ei-paper"]!
       : BASE_SURFACE_TINT[colorScheme];
   // The accent rail, on the same rule: on Pro it anchors on the ramp's
-  // representative seed for the current scheme — the
+  // representative seed for the current scheme â€” the
   // same pick the emitted gain denominator is computed from (see
   // proAccentRepresentativeSeed), so the rail and the CSS can never disagree
   // about what a coordinate renders as.
@@ -498,7 +498,7 @@ export function AppearanceAxes({
       {hasPreferenceControls ? (
         <div className="flex flex-col gap-2">
           {showColorScheme ? <ThemeToggle /> : null}
-          {showVisualStyle ? <VisualStyleToggle /> : null}
+          {showVisualStyle ? <StylePicker /> : null}
           {showFont ? <FontPicker /> : null}
         </div>
       ) : null}
