@@ -5,7 +5,7 @@ import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { getPublicEffectArticles } from "@server/convex/publicData";
-import { getLocalizedPublicEffects } from "@server/translation/localizedRecords";
+import { getLocalizedPublicEffectArticles } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
@@ -37,18 +37,10 @@ export async function getReplicationAudioMetadata(locale: LiveLocale | null = nu
  * name each clip is filed under comes from the localized effect previews.
  */
 export async function ReplicationAudioRoute({ locale = null }: { locale?: LiveLocale | null }) {
-  const [effects, localizedEffects] = await Promise.all([
-    getPublicEffectArticles(),
-    locale ? getLocalizedPublicEffects(locale.code) : null,
-  ]);
-  const localizedName = localizedEffects
-    ? new Map(localizedEffects.map((effect) => [effect.slug, effect.name]))
-    : null;
-  const entries = collectAudioReplications(
-    localizedName
-      ? effects.map((effect) => ({ ...effect, name: localizedName.get(effect.slug) ?? effect.name }))
-      : effects,
-  );
+  const effects = locale
+    ? await getLocalizedPublicEffectArticles(locale.code)
+    : await getPublicEffectArticles();
+  const entries = collectAudioReplications(effects);
   const artistCount = countAudioReplicationArtists(entries);
   const [termsBefore, termsAfter] = t(
     "Audio replications are credited to their creator when known. Rights remain with the original creator or rightsholder unless an individual clip states another license. See the {{terms}} to correct a credit or request removal.",

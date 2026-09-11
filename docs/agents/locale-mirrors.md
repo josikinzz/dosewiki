@@ -125,8 +125,9 @@ After a UI string change: `DATA_BACKEND=postgres bun --preload
 - The mirror chrome is only as current as the committed catalog; a Copy Studio
   or About edit reaches the mirror in English until the catalog is rebuilt and
   deployed.
-- Effect audio-replication credits, citation titles, reagent colour chains,
-  open-data samples, and the JSON preview on About are English by design.
+- Clip titles and descriptions translate; the credit line, artist name, and
+  rights fields stay as written (attribution). Citation titles, reagent colour
+  chains, open-data samples, and the JSON preview on About are English by design.
 - `nl` exists in `locales.mjs` without a host; `live-mirror.ts` and
   `mirror-coverage.ts` hardcode `zh-Hans`.
 

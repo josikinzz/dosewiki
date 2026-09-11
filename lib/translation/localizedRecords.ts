@@ -8,8 +8,9 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { PublicEffectIndexArticle, PublicSubstanceRecord } from "@server/convex/publicData.shared";
+import type { PublicEffectArticle, PublicEffectIndexArticle, PublicSubstanceRecord } from "@server/convex/publicData.shared";
 import {
+  getPublicEffectArticles,
   getPublicEffectBySlug,
   getPublicEffectIndexArticleBySlug,
   getPublicEffects,
@@ -74,6 +75,16 @@ export const getLocalizedPublicEffects = cache(async (
   locale: string,
 ): Promise<PublicEffectPreview[]> => {
   const effects = await getPublicEffects();
+  if (effects.length === 0) return effects;
+  const localized = await localizeRecords(effects, locale, "effect");
+  return localized.records;
+});
+
+/** Every full effect record with its stored segments spliced in, audio clips included. */
+export const getLocalizedPublicEffectArticles = cache(async (
+  locale: string,
+): Promise<PublicEffectArticle[]> => {
+  const effects = await getPublicEffectArticles();
   if (effects.length === 0) return effects;
   const localized = await localizeRecords(effects, locale, "effect");
   return localized.records;
