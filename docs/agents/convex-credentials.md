@@ -1,11 +1,47 @@
-# Convex credentials
+# Data credentials and write targets
 
-Read this before running any script that writes to Convex. It exists because the
-same failure keeps recurring: a write is rejected, the rejection looks like a
-missing key, a new key gets minted and added to `.env.local`, and the pile of
-keys grows without the write ever succeeding.
+Read this before running any script that writes production data. It exists
+because the same failure keeps recurring: a write is rejected, the rejection
+looks like a missing key, a new key gets minted and added to `.env.local`, and
+the pile of keys grows without the write ever succeeding.
 
-## Run the doctor first
+## Production is PlanetScale Postgres (since 2026-09-10)
+
+dose.wiki, dev.dose.wiki, and effectindex.com read and write PlanetScale
+Postgres: org `disregardeverythingisay`, database `dosewiki`, branch `main`,
+host `aws-us-east-1-2.pg.psdb.cloud`, database name `postgres`. Every
+production data script runs with `DATA_BACKEND=postgres`; the Convex sections
+below describe the retiring backend and the commands that still speak to it
+(`convex:doctor`, `convex:check-functions`, `convex env`). They are not the
+production write path any more.
+
+The production write ceremony on Postgres, for any `--write` script:
+
+```bash
+set -a && . ./.env.local && set +a
+export DATA_BACKEND=postgres
+export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"          # explicit target; the app fallbacks never select a writer
+export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+npm run <command> -- <args> --dry-run --allow-remote
+npm run <command> -- <args> --write --allow-remote \
+  --confirm-write=<operation phrase the script names> \
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres
+```
+
+Every runbook in this directory that shows a `TARGET_CONVEX_URL=...` and
+`--expected-deployment=glad-minnow-656` incantation is run this way now: same
+command, same intent token, same confirmation phrase, with the three Convex
+tokens substituted per the table under "Postgres backend" below. The
+intent-scoped `CONVEX_ADMIN_TOKEN_*` variables keep their names and values; the
+Postgres runtime reads them from the process environment exactly as the Convex
+deployment did. `npm run convex:doctor` has no Postgres mode; the pre-write
+check is `npm run postgres:check-env-isolation` plus the dry run.
+
+Pool budget: the PS-5 instance allows 25 direct sessions and pgbouncer on port
+6432 holds about 17 for the app. Use `POSTGRES_POOLED_URL` for scripts and
+`psql` (`PGSSLROOTCERT=system`); reserve `POSTGRES_DIRECT_URL` for migrations.
+
+## Run the doctor first (Convex only)
 
 ```bash
 npm run convex:doctor                 # inspect the resolved write target
@@ -139,9 +175,9 @@ the one write gate and resolves the actor from `actorEmail`:
 - No email pattern grants admin. The old `@local.dose.wiki` shortcut is gone;
   an actor without a membership row has no role, whatever the address.
 
-## Sole Convex target
+## Sole Convex target (rollback backend during the observation window)
 
-All local, development, Vercel Preview, and Production reads and writes target:
+While Convex remains deployed, every Convex-mode read or write targets:
 
 | Role | Deployment |
 | --- | --- |
@@ -159,7 +195,7 @@ from `scripts/lib/data-client.ts`. Configure every resolved URL to
 explicitly through `TARGET_CONVEX_URL` or `--target-url`; do not rely on a browser
 or compatibility fallback to select a write target.
 
-### Postgres backend (migration rehearsals)
+### Postgres backend (production since 2026-09-10)
 
 With `DATA_BACKEND=postgres` the same scripts run their Convex functions
 in-process against Postgres (`lib/postgres/runtime/client.ts`). The credential

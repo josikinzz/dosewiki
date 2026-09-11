@@ -1,6 +1,6 @@
 # dose.wiki
 
-Next.js + Convex application for the dose.wiki harm-reduction knowledge base and its Effect Index publication. The two Vercel sites use one repository, branch, and production Convex dataset; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
+Next.js application for the dose.wiki harm-reduction knowledge base and its Effect Index publication, backed by PlanetScale Postgres since 2026-09-10 (the Convex function handlers run unchanged on Postgres through `lib/postgres/runtime/`). The two Vercel sites use one repository, branch, and production database; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
 
 ---
 
@@ -20,8 +20,8 @@ Next.js + Convex application for the dose.wiki harm-reduction knowledge base and
 ## Platform Overview
 
 - **Framework**: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS
-- **Runtime data**: production Convex deployment `glad-minnow-656`
-- **Authentication**: Auth.js (`next-auth`) with Convex-backed membership roles
+- **Runtime data**: PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch `main`) selected by `DATA_BACKEND=postgres`; Convex `glad-minnow-656` remains only as the rollback backend until retirement (earliest 2026-09-17)
+- **Authentication**: Auth.js (`next-auth`) with database-backed membership roles
 - **Package manager**: Bun 1.3.5 with `bun.lock`; package scripts remain available through `npm run`
 - **Public rendering**: static generation or ISR where declared
 - **Editorial rendering**: protected, request-rendered `/dev` routes with a per-request CSP nonce
@@ -30,7 +30,7 @@ The default build is dose.wiki. `NEXT_PUBLIC_SITE_FLAVOR=effectindex` builds Eff
 
 ## Data Architecture
 
-Convex is the source of truth for public runtime data and the active editor. Representative table groups include:
+PlanetScale Postgres is the source of truth for public runtime data and the active editor; the tables keep their Convex names and document shapes. Representative table groups include:
 
 - articles and editorial content: `substanceIndex`, `subjectiveEffects`, `tripReports`, `effectIndexArticles`;
 - media and chemistry: `replications`, `moleculeOverrides`, `moleculeClassTemplates`;
@@ -164,7 +164,7 @@ npm run dev
 | `npm run verify:app` | Verify app code |
 | `npm run verify:workflow` | Verify scripts and data workflows |
 | `npm run generate:schema` | Regenerate article-schema helpers |
-| `npm run generate:social-cards` | Refresh public-route availability and pre-render shared social cards from production Convex |
+| `npm run generate:social-cards` | Refresh public-route availability and pre-render shared social cards from the production database |
 | `npm run provenance:check` | Check generated-data lineage |
 
 ### Environment and deployment
@@ -173,11 +173,11 @@ Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit 
 
 - `lib/runtime/envContract.ts` defines runtime environment diagnostics.
 - `lib/convex/runtimeTargets.ts` defines which variable supplies each read or write capability.
-- `docs/agents/convex-credentials.md` covers deployment-bound Convex credentials and write checks.
+- `docs/agents/convex-credentials.md` covers the production Postgres write ceremony, intent-scoped credentials, and the retiring Convex checks.
 - `docs/agents/deployment.md` is the source of truth for Vercel projects, domains, and release safety.
 
-All configured Convex reads and writes—including local, development, preview, and production—target `prod:glad-minnow-656`. Active variables such as `NEXT_PUBLIC_CONVEX_URL`, `VITE_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, `CONVEX_URL`, and explicit `TARGET_CONVEX_URL` must resolve to that deployment. `enchanted-echidna-791` is retired. Effect Index reads the same production data but carries no write credentials.
-Production writes use an intent-scoped admin token or the documented `CONVEX_ADMIN_KEY` compatibility fallback. Follow [Convex credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules into other files.
+Every deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`; only `dosewiki-admin` carries the write and intent-token tier (`CONVEX_ADMIN_KEY`, `CONVEX_ADMIN_TOKEN_*`, `GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT`). Effect Index reads the same production data but carries no write credentials. Convex variables (`NEXT_PUBLIC_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, `TARGET_CONVEX_URL`) stay configured only for the retiring rollback backend and must still resolve to `glad-minnow-656`; `enchanted-echidna-791` is retired.
+Production writes use an intent-scoped admin token or the documented `CONVEX_ADMIN_KEY` compatibility fallback; the token names are unchanged on Postgres. Follow [Convex credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules into other files.
 
 `NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
 
@@ -191,7 +191,7 @@ Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/
 
 1. Install with `bun install --frozen-lockfile`.
 2. Read `CONTEXT.md` and the ownership document for the feature you are changing.
-3. Treat Convex as runtime truth; use `src/schema/substance.schema.ts` before changing article shape.
+3. Treat PlanetScale Postgres as runtime truth; use `src/schema/substance.schema.ts` before changing article shape.
 4. Keep public App Router reads server-side unless the interaction requires a client subscription.
 5. Run the narrow verification command that covers the change. Use `npm run verify:all` only when both app and workflow surfaces changed.
 
@@ -205,12 +205,12 @@ Public server data helpers live in `lib/convex/`; metadata and static-route plan
 npm run parse:sources
 npm run batch:legality -- --dry-run
 npm run citations:formal -- --slug=2c-b --dry-run
-npm run convex:doctor
+npm run postgres:check-env-isolation
 ```
 
 Batch generation uses OpenRouter and requires `OPENROUTER_API_KEY`. Scry access uses `SCRY_API_KEY`. Keep both in `.env.local` or the shell.
 
-Convex-changing commands must use an explicit `TARGET_CONVEX_URL` for `glad-minnow-656`, a matching expected-deployment argument where supported, and the command's write confirmation. Read [Convex credentials](docs/agents/convex-credentials.md) before running them.
+Data-changing commands run with `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`, `POSTGRES_IMPORT_CONFIRM` plus `--allow-remote`, `--expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres` where supported, and the command's write confirmation. Read [Convex credentials](docs/agents/convex-credentials.md) before running them.
 
 For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow [citation workbench guidance](docs/agents/citation-workbench.md) and [production rollout](docs/citation-production-rollout.md).
 

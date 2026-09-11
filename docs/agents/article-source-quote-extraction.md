@@ -4,7 +4,7 @@ This is the shared current contract for the seven `.cursor/commands/*.md` quote-
 
 ## Inputs and source access
 
-Work on one named substance slug and one adapter at a time. Article-source documents live in the production Convex deployment `glad-minnow-656` and require the scoped `articleSourceMigration` credential.
+Work on one named substance slug and one adapter at a time. Article-source documents live in the production PlanetScale Postgres database and require the scoped `articleSourceMigration` credential; read them through `createDataClient()` from `scripts/lib/data-client.ts` under `DATA_BACKEND=postgres` (ceremony in [data credentials](convex-credentials.md)). The `bunx convex run` form below reaches only the retiring Convex rollback backend.
 
 ```bash
 SLUG=lsd
@@ -40,7 +40,7 @@ Search may help navigate a value, but the completed full-value read and one-sour
 
 ## Completion check
 
-- The Convex command names deployment `glad-minnow-656`.
+- The read ran under `DATA_BACKEND=postgres` against `aws-us-east-1-2.pg.psdb.cloud/postgres`.
 - Output section count equals `sources.length`, and each returned source `id` occurs once.
 - Every eligible source was read completely; every exclusion is named by the adapter.
 - Matches are verbatim, and every eligible zero-match source has the explicit empty-result sentence.

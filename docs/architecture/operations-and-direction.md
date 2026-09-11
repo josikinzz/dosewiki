@@ -97,7 +97,7 @@ The repo has historically carried a mix of legacy and current guidance. Root doc
 
 ### 2. Legacy file-backed workflows
 
-The architecture says Convex is the live source of truth, but many scripts and some editor save paths still use local file artifacts. This creates operational ambiguity.
+The architecture says the production database (PlanetScale Postgres since 2026-09-10) is the live source of truth, but many scripts and some editor save paths still use local file artifacts. This creates operational ambiguity.
 
 ### 3. Mixed persistence models
 

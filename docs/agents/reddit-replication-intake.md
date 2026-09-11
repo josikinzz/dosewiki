@@ -9,8 +9,9 @@ production client.
 
 ## Fixed boundaries
 
-- Convex `prod:glad-minnow-656` remains the source of truth for metadata. R2
-  stores immutable media bytes under content-addressed keys.
+- PlanetScale Postgres (see [data credentials](convex-credentials.md)) is the
+  source of truth for metadata. R2 stores immutable media bytes under
+  content-addressed keys.
 - Preserve existing Convex Storage IDs and direct URLs as rollback sources.
 - SSD originals and archive blobs are immutable. Never rename, move, overwrite,
   transcode in place, or delete them.
@@ -154,8 +155,9 @@ zero held items, zero unresolved required fields, and no stale live snapshot.
 
 ### 9. Canary
 
-Run `npm run convex:doctor`, set `TARGET_CONVEX_URL` explicitly, and confirm
-`glad-minnow-656`. Select a small canary covering image, video, GIF, new profile,
+Run `npm run postgres:check-env-isolation`, export the Postgres write
+ceremony from [data credentials](convex-credentials.md), and confirm the dry run
+names target `aws-us-east-1-2.pg.psdb.cloud/postgres`. Select a small canary covering image, video, GIF, new profile,
 existing profile, multiple effects, and explicit unknown-rights labeling. Read
 back every field, attribution, publication basis, contact, and resolved URL;
 decode or play every asset; confirm no held row appears.
@@ -218,7 +220,7 @@ Run checks appropriate to the files changed. The normal application-and-workflow
 gate is:
 
 ```sh
-npm run convex:doctor
+npm run postgres:check-env-isolation
 npm run verify:all
 npm run provenance:check
 ```

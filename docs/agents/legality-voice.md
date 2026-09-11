@@ -32,9 +32,9 @@ Four structural causes, none of them a missing rule (every worker prompt already
 ## Sweeping live rows
 
 ```bash
-export TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud
-npm run convex:doctor -- --url=https://glad-minnow-656.convex.cloud
-npm run legality:audit-subsections -- --scope=all --out=tmp/legality-subsection-audit-<date>.json
+export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+npm run postgres:check-env-isolation
+npm run legality:audit-subsections -- --allow-remote --scope=all --out=tmp/legality-subsection-audit-<date>.json
 npm run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.json --out=tmp/legality-voice-audit-<date>.json
 ```
 

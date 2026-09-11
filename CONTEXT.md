@@ -219,7 +219,7 @@ A substance's primary-sourced scheduling under the 1961, 1971, and 1988 UN drug 
 _Avoid_: empty international section, uncited UN claim
 
 **Common-First Legality Rollout**:
-The rollout of publicly listed substances in common-first order: substances marked `common` in each psychoactive category, then every remaining unprocessed substance. Completed runs are skipped. Each substance is published once to production Convex (`glad-minnow-656`). Completion requires `applied.json` and `citations-applied.json` to record successful writes before the next substance begins.
+The rollout of publicly listed substances in common-first order: substances marked `common` in each psychoactive category, then every remaining unprocessed substance. Completed runs are skipped. Each substance is published once to the production database (PlanetScale Postgres since 2026-09-10; earlier runs wrote Convex `glad-minnow-656`). Completion requires `applied.json` and `citations-applied.json` to record successful writes before the next substance begins.
 _Avoid_: source-material-priority rollout, rerunning completed substances, bulk publish
 
 ## Article Review Language

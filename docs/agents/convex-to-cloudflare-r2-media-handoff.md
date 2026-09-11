@@ -7,7 +7,7 @@ Completed: 2026-08-30
 ## Completion status
 
 **Complete.** The owner confirmed on 2026-08-30 that the handoff was followed
-through all acceptance gates. Replication media is now backed by Cloudflare R2;
+through all acceptance gates. Status 2026-09-10: replication metadata moved to PlanetScale Postgres with the rest of the runtime store, and `storageObjects` identity rows carry the R2 keys; every Convex reference below is historical (see [data credentials](convex-credentials.md)). Replication media is backed by Cloudflare R2;
 replication metadata remains in the production Convex database. The old Convex
 Storage IDs and direct URL fields remain available as the documented rollback
 source.

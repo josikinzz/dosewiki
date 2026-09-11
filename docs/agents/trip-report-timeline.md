@@ -34,23 +34,23 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 2. Dry-run against production:
 
    ```bash
-   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-     npm run reports:format-flat -- --slug=<slug> --dry-run
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+     npm run reports:format-flat -- --slug=<slug> --dry-run --allow-remote
    ```
 
    Done when it prints `reproduces the original exactly` and the previewed phases read the way the plan intended. A refusal instead is the next section.
 
-3. Run `npm run convex:doctor -- --url=https://glad-minnow-656.convex.cloud`. Done when the target is `glad-minnow-656` and `CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` reports OK. On a rejected credential, read [Convex credentials](../../../docs/agents/convex-credentials.md).
+3. Run `npm run postgres:check-env-isolation` and confirm the dry run printed backend `postgres` and target `aws-us-east-1-2.pg.psdb.cloud/postgres`. `CONVEX_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` keeps its name on the Postgres runtime. On a rejected credential, read [data credentials](convex-credentials.md).
 
 4. Apply:
 
    ```bash
-   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
      npm run reports:format-flat -- --slug=<slug> --write \
-     --confirm-write=format-flat-trip-report --expected-deployment=glad-minnow-656
+     --confirm-write=format-flat-trip-report --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
    ```
 
-   Done when it prints `stored text reproduces the original body exactly`. That line is a re-read of Convex compared against the pre-write body, so it is the evidence to quote.
+   Done when it prints `stored text reproduces the original body exactly`. That line is a re-read of the database compared against the pre-write body, so it is the evidence to quote.
 
 5. Run `node --test scripts/reports/flatTripReportTimeline.test.mjs` when you changed the formatter, and `npm run verify:workflow` before handing back.
 

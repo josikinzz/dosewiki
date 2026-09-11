@@ -294,8 +294,9 @@ The preferred live-content save path, for an admin session, is:
 2. client calls `POST /api/save-to-convex`
 3. route enforces rate limit
 4. route requires an Auth.js admin session
-5. route requires a server write URL and `CONVEX_ADMIN_KEY`; the URL must resolve
-   to `glad-minnow-656`
+5. route requires a privileged write target and `CONVEX_ADMIN_KEY`; on the
+   Postgres backend that is `POSTGRES_POOLED_URL` on `dosewiki-admin`, in Convex
+   mode a URL resolving to `glad-minnow-656`
 6. each mutation uses its intent-scoped token when configured and otherwise uses
    `CONVEX_ADMIN_KEY` as the compatibility fallback
 7. route writes through generated Convex mutations
@@ -506,13 +507,24 @@ for database-backed SVGs. See
 [Browser Security Policy](../agents/browser-security-policy.md) for the source
 inventory, rationale, and validation contract.
 
-### Convex
+### Runtime store: PlanetScale Postgres (Convex handlers, Postgres data)
 
-All local, development, Vercel Preview, and Production Convex reads and writes
-use `glad-minnow-656`. Runtime target resolution lives in
-`lib/convex/runtimeTargets.ts`; every configured read and write URL must resolve
-to that deployment. A second dev or preview deployment is not part of the
-runtime architecture.
+Since 2026-09-10 every deployment sets `DATA_BACKEND=postgres` and reads and
+writes PlanetScale Postgres (`disregardeverythingisay/dosewiki`, branch
+`main`) through `lib/postgres/runtime/`: the `convex/` query and mutation
+handlers run unchanged in-process against Drizzle-generated tables
+(`lib/postgres/schema.generated.ts`) with a lossless document codec, the
+Convex `_id` values preserved, and `ctx.storage.getUrl` answered from
+`storageObjects` identity rows that point at R2. `lib/postgres/runtime/backend.ts`
+selects the backend; `deploymentEnv.ts` asserts the per-tier variables. The
+production write ceremony for scripts is in
+[data credentials](../agents/convex-credentials.md).
+
+Convex `glad-minnow-656` remains deployed with no crons purely as the rollback
+backend through the observation window (earliest retirement 2026-09-17). In
+Convex mode, target resolution lives in `lib/convex/runtimeTargets.ts` and
+every configured URL must resolve to that deployment; `enchanted-echidna-791`
+is retired.
 
 Used for:
 
@@ -526,7 +538,7 @@ Prompt seed markdown under `src/data/config/generatorPrompt.md` and
 `src/data/config/sectionPrompts/*.md` is compared and migrated through the shared
 prompt drift Module in `scripts/lib/prompt-drift-policy.mjs`. The compare and
 migration scripts use the same local inventory, so `generator` and `section_*`
-prompt keys are included in drift reports before Convex writes.
+prompt keys are included in drift reports before production writes.
 
 ### Upstash Redis
 

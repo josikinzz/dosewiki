@@ -36,7 +36,7 @@
 
 ## Hard invariants
 
-- Convex `glad-minnow-656` is authoritative for every live-task export, dry-run, and write. Fix live citation content through the reviewed draft path, not local JSON.
+- PlanetScale Postgres is authoritative for every live-task export, dry-run, and write (production ceremony: [data credentials](convex-credentials.md)). Fix live citation content through the reviewed draft path, not local JSON.
 - Workbench output stays a draft until this repository adapts, validates, reviews, and explicitly writes it.
 - Citation drafts are marker-only. Stripping `[cite:reference-id]` markers must restore the original text exactly.
 - The citable surface is exactly `summary`, `pharmacology`, `tolerance`, `harm_potential`, `history_culture`, and `legality`. Keep dosage, duration, subjective effects, comparisons, reagent testing, interactions, identification, and classification unchanged.
@@ -74,10 +74,10 @@ Run every repository command from the DoseWiki repository root. Use one slug per
 1. Prepare a fresh live-task input from production. Dry-run the export, write the export, prepare a fresh workbench run, and pass preflight:
 
    ```bash
-   SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-     npm run citations:export-workbench-task -- --slug=<drug-slug> --dry-run
-   SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-     npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+     npm run citations:export-workbench-task -- --slug=<drug-slug> --dry-run --allow-remote
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+     npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite --allow-remote
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug> --dry-run
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- --slug <drug-slug>
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run preflight -- --slug <drug-slug>
@@ -96,8 +96,8 @@ Run every repository command from the DoseWiki repository root. Use one slug per
 
    ```bash
    npm run citations:plan-second-pass -- --audit=tmp/subsection-citation-audit.json
-   SOURCE_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-     npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite \
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+     npm run citations:export-workbench-task -- --slug=<drug-slug> --overwrite \ --allow-remote
      --second-pass-plan=outputs/citation-second-pass-research-plan.json \
      --second-pass-max-wave=1
    npm --prefix /Users/josie/.codex/dosewiki-citation-workbench run fresh-run -- \
@@ -127,38 +127,37 @@ Run every repository command from the DoseWiki repository root. Use one slug per
 4. Return to the repository root and dry-run the reviewed draft against production:
 
    ```bash
-   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
      npm run citations:apply-workbench -- --slug=<drug-slug> --dry-run \
-     --expected-deployment=glad-minnow-656
+     --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
    ```
 
    If the dry-run reports `text_changed`, rebase and dry-run the rebased draft:
 
    ```bash
-   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-     npm run citations:rebase-workbench -- --slug=<drug-slug>
-   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+     npm run citations:rebase-workbench -- --slug=<drug-slug> --allow-remote
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
      npm run citations:apply-workbench -- --slug=<drug-slug> \
      --draft=<workbench>/runs/<drug-slug>/citation-draft.rebased.json --dry-run \
-     --expected-deployment=glad-minnow-656
+     --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
    ```
 
 5. Stop after the clean dry-run unless the user explicitly asks for a production write or a queue continuation. For an approved write, apply one slug with the production target and full confirmation:
 
    ```bash
-   TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+   DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
      npm run citations:apply-workbench -- --slug=<drug-slug> \
      --write --confirm-citation-write \
      --confirm-write=apply-citation-workbench-draft \
-     --expected-deployment=glad-minnow-656
+     --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
    ```
 
 Completion criterion: the selected run is validated, its review artifacts are present, the production apply dry-run is clean, and no write or next-slug run occurs without the matching explicit user request.
 
 ## Environment variables
 
-- `SOURCE_CONVEX_URL`: set to `https://glad-minnow-656.convex.cloud` for live-task exports and archive reads.
-- `TARGET_CONVEX_URL`: set to `https://glad-minnow-656.convex.cloud` for every citation dry-run and write.
+- `DATA_BACKEND=postgres`, `TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"`, `POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud`: the production target for every export, dry-run, and write; Postgres serves as both source and target, so no `SOURCE_*` variable is needed. Pass `--allow-remote` on each command.
 - `CONVEX_ADMIN_TOKEN_CITATION_EVIDENCE_WRITE`: production admin-intent token required by `citations:apply-workbench --write`.
 - `OPENROUTER_API_KEY`: required for OpenRouter-backed generation, not for applying reviewed drafts.
 
@@ -178,18 +177,18 @@ Historical repair commands:
 ```bash
 npm run citations:plan-author-repairs -- --limit=20 --output=tmp/citation-author-repair-proposals/canary.json
 npm run citations:build-author-review-queue -- --proposal=tmp/citation-author-repair-proposals/canary.json --output=tmp/citation-author-repair-review-queues/canary.json
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
   node scripts/citations/apply-reference-author-repairs.mjs \
   --proposal=tmp/citation-author-repair-proposals/canary.json \
   --approval=tmp/citation-author-repair-approvals/canary.json \
-  --expected-deployment=glad-minnow-656
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
   node scripts/citations/apply-reference-author-repairs.mjs \
   --proposal=tmp/citation-author-repair-proposals/canary.json \
   --approval=tmp/citation-author-repair-approvals/canary.json \
   --write --confirm-citation-author-write \
   --confirm-write=apply-citation-author-repairs \
-  --expected-deployment=glad-minnow-656
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
 
 The author-repair planner is a read-only metadata completion workflow, not a
@@ -289,9 +288,9 @@ independent-refutation artifact digests. The three manual rows retain their
 first-party evidence domains.
 
 ```bash
-npm run citations:plan-provenance-backfill -- \
-  --source-url=https://glad-minnow-656.convex.cloud \
-  --output=tmp/citation-reference-provenance-backfill/proposal.json
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+  npm run citations:plan-provenance-backfill -- --allow-remote \
+    --output=tmp/citation-reference-provenance-backfill/proposal.json
 ```
 
 Review the immutable proposal and create a separate
@@ -306,19 +305,19 @@ deployment, `--write`, `--confirm-citation-provenance-write`, and
 `--confirm-write=apply-citation-reference-provenance-backfill`:
 
 ```bash
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
   npm run citations:apply-provenance-backfill -- \
   --proposal=tmp/citation-reference-provenance-backfill/proposal.json \
   --approval=tmp/citation-reference-provenance-backfill/approval.json \
-  --expected-deployment=glad-minnow-656
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
   npm run citations:apply-provenance-backfill -- \
   --proposal=tmp/citation-reference-provenance-backfill/proposal.json \
   --approval=tmp/citation-reference-provenance-backfill/approval.json \
   --write --confirm-citation-provenance-write \
   --confirm-write=apply-citation-reference-provenance-backfill \
-  --expected-deployment=glad-minnow-656
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
 
 Before every write, the command re-reads a bounded unique article/reference
