@@ -34,7 +34,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
-import { msg, useT } from "@/i18n/client";
+import { msg, useT, useUiLocale } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
@@ -703,6 +703,7 @@ function ReportIndexRow({
   groupKind: TripReportGroup<ReportCardModel>["kind"];
 }) {
   const t = useT();
+  const locale = useUiLocale();
   const primary = report.substances[0];
   const substanceLabel =
     groupKind === "substance"
@@ -713,7 +714,7 @@ function ReportIndexRow({
 
   const metaParts = [
     substanceLabel,
-    formatTripDateLabel(report.subject.trip_date),
+    formatTripDateLabel(report.subject.trip_date, locale),
     groupKind === "author" ? null : report.subject.name,
   ].filter((part): part is string => Boolean(part));
 

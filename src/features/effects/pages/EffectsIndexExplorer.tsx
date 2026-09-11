@@ -505,13 +505,13 @@ export function EffectsIndexExplorer({
                       titleHref={getCategoryHref(category.routeSlug)}
                       onIconClick={() => void handleCopyParentCategory(category)}
                       iconActionLabel={t("Copy {{category}} list to clipboard", {
-                        category: category.title,
+                        category: t(category.title),
                       })}
                       iconActiveState={copiedKey === category.key}
                       toggleLabel={
                         (expanded[category.key] ?? true)
-                          ? t("Collapse {{category}} category", { category: category.title })
-                          : t("Expand {{category}} category", { category: category.title })
+                          ? t("Collapse {{category}} category", { category: t(category.title) })
+                          : t("Expand {{category}} category", { category: t(category.title) })
                       }
                     />
                   ))}
@@ -560,13 +560,13 @@ export function EffectsIndexExplorer({
                     titleHref={getCategoryHref(category.routeSlug)}
                     onIconClick={() => void handleCopyFlatCategory(category)}
                     iconActionLabel={t("Copy {{category}} list to clipboard", {
-                      category: category.title,
+                      category: t(category.title),
                     })}
                     iconActiveState={copiedKey === category.key}
                     toggleLabel={
                       (expanded[category.key] ?? true)
-                        ? t("Collapse {{category}} category", { category: category.title })
-                        : t("Expand {{category}} category", { category: category.title })
+                        ? t("Collapse {{category}} category", { category: t(category.title) })
+                        : t("Expand {{category}} category", { category: t(category.title) })
                     }
                   />
                 ))}
