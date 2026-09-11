@@ -1,3 +1,40 @@
+## 2026-09-11 zh.dose.wiki crash fix, About, class definitions, library archive
+
+All three surfaces serve commit `17e2257e` on `no-corpus-drain`: dosewiki-public
+`dosewiki-public-f8urlcnih`, dosewiki-admin `dosewiki-admin-mwp4u0eoo`,
+effectindex `effectindex-bbojfl4kw`.
+
+Incident: after the chrome pass every zh.dose.wiki article, effect, and report
+answered 500 (`FUNCTION_INVOCATION_FAILED`, "Page changed from static to
+dynamic at runtime, reason: headers"). The root `not-found.tsx` had started
+reading `headers()` to pick the 404 language; Next renders that boundary
+inside every static route's tree, so the call flipped each ISR mirror page
+dynamic at request time. Rule: the root not-found boundary must never touch
+request APIs. The mirror 404 is now a real page (`/zh/unroutable/missing`)
+that the middleware rewrites to with `status: 404` for mirror-host paths
+outside the public corpus; a nested `/zh/not-found.tsx` boundary was tried
+and rejected because Next only renders nested boundaries on the client (the
+server ships an empty error shell).
+
+Coverage: the About page translates its live editor-managed prose (the
+catalog seeds the live document with `splitAboutMarkdown`, the page's own
+splitter, under `--live-copy`), the substance index class definitions and
+warnings are catalog-seeded, the library archive mirrors at `/zh/articles`
+and `/zh/articles/<slug>` as the fourth translation kind (`library`; batch
+import of 774 segments, cron dispatch, publish hook on the writing-article
+save path), and the articles index chrome renders through `t()`. Store
+state after the release: 28,097 segments, 0 due jobs.
+
+Cron note: the 399 effect and report refresh jobs enqueued at the previous
+release had never run (Vercel had not invoked the schedule); one manual
+authorized GET processed all of them, every segment already stored. Verify
+the schedule fires on the admin project; until then trigger it by hand after
+bulk enqueues.
+
+Editor build memory: `NODE_OPTIONS=--max-old-space-size=6144` OOM'd once more
+(exit 137) at this route count; `4608` built. The project env now carries
+`4608`.
+
 ## 2026-09-11 zh.dose.wiki chrome pass (About page, effect index panels, reports, dates, 404)
 
 All three surfaces serve commit `17ab9680` on `no-corpus-drain`, uploaded from
