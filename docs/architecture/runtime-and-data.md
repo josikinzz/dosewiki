@@ -165,7 +165,7 @@ tracking, and `type` can be `audio`, which no surface presents yet.
 
 `isPublishableReplication` in `src/types/replications.ts` is the single
 definition of what may be published, and it is applied at the app-side read
-boundary — `getPublicReplications` and `getPublicReplicationsByEffect` in
+boundary, `getPublicReplications` and `getPublicReplicationsByEffect` in
 `lib/convex/publicData.effects.ts`, `getReplicationsByContributor` in
 `lib/convex/publicData.replications.ts`, and the single-row check in
 `loadReplicationRoute`. Those four cover every public replication surface:
@@ -428,7 +428,7 @@ engine draws everything: the OpenChemLib fork renders the editing canvas, the li
 the stored brand SVG (`renderMoleculeSvg.ts`); RDKit.js remains only for the InChI stereo guard
 and class-template alignment. Seeded rows derive a MOL block from live article SMILES through the
 same OpenChemLib auto-layout used by the editor, then store the SVG produced by the same renderer
-used on Save. Rows may carry `boldBonds` — bond indices the fork draws at a solid wedge's width on the
+used on Save. Rows may carry `boldBonds`, bond indices the fork draws at a solid wedge's width on the
 canvas, in the preview, and in the published SVG identically.
 
 Public substance routes resolve one indexed metadata row by slug, while cached chemical-class

@@ -524,10 +524,10 @@ deployment previously aliased to `dose.wiki` with the explicit scope above.
 
 The 2026-09-08 aggregated-embed release serves `dpl_HiRd8QsTVUuTSu2NqcfK48pUvuRW`
 on both public DoseWiki hosts, adding five files to the preceding overlay set.
-A multi-slug embed now skips a slug that resolves to no collection — a
+A multi-slug embed now skips a slug that resolves to no collection, a
 replication tag with media but no effect article previously threw and blanked
 the whole player, which is why every ESEI category above it showed the host's
-recovery card — and fails only when nothing resolves. The compact showcase
+recovery card, and fails only when nothing resolves. The compact showcase
 takes one work per group per round, so a category opens on a spread of its
 effects rather than the whole first one; the viewer's per-effect groups and
 their curated order are unchanged. The frame no longer scrolls itself
@@ -881,7 +881,7 @@ data migration is required. Previously delivered responses cannot be recalled.
 
 Until that date `dose.wiki` and `www.dose.wiki` were served by a separate,
 abandoned Vercel project named `dosewiki` (`prj_KBYpmXeY5PJ2UcntD7w1qcq1J71O`),
-whose last production deployment was from June 2026 — the edge response carried
+whose last production deployment was from June 2026, the edge response carried
 `age: ~6.3e6` seconds, and its chunk set was disjoint from `dosewiki-admin`'s.
 Anything merged here reached `dosewiki-admin.vercel.app` and nothing else, which
 is why the public holding page looked nothing like the one in this repository.
@@ -905,7 +905,7 @@ Effect Index is a separate Vercel project on the same repository and branch as `
 
 **This changed.** The app build used to be a plain `next build`, so Convex
 functions moved only on a manual `convex deploy` and an app release could
-outrun the data layer — which is exactly how inline click-to-edit broke for a
+outrun the data layer, which is exactly how inline click-to-edit broke for a
 day: `substanceIndex:setArticleField` was merged and built but never deployed to
 `glad-minnow-656`.
 
@@ -932,8 +932,8 @@ the deployment it just published to. On `dosewiki-admin` that is
 
 **Why a wrapper rather than the canonical `npx convex deploy --cmd 'npm run
 build'` directly in `vercel.json`:** that string is shared by both Vercel
-projects. Effect Index is deliberately read-only — no `CONVEX_URL`, no
-`CONVEX_ADMIN_KEY`, no auth secrets — and an unconditional `convex deploy` in
+projects. Effect Index is deliberately read-only, no `CONVEX_URL`, no
+`CONVEX_ADMIN_KEY`, no auth secrets, and an unconditional `convex deploy` in
 the shared command would either break its build outright or, if it were ever
 handed a key to "fix" that, give a public marketing deployment a write path into
 the production database. Keying the behaviour off `CONVEX_DEPLOY_KEY` means
@@ -941,8 +941,8 @@ Effect Index stays read-only **by the same omission it already relies on**: it
 simply never gets the key, and it keeps building.
 
 The verify path is not a rubber stamp. It still enforces the credential-free
-half of the drift gate — every Convex function the app names must exist in this
-checkout — and it prints `NOT VERIFIED` about the half it could not check
+half of the drift gate, every Convex function the app names must exist in this
+checkout, and it prints `NOT VERIFIED` about the half it could not check
 (the deployment's live function list, which needs a key). A build that verified
 nothing does not report a pass.
 
@@ -1001,7 +1001,7 @@ runs the guards that a bare CLI call skips:
 2. **`--from-head-worktree`** is the way through: it deploys out of a detached
    `git worktree` at HEAD with `node_modules` symlinked in, so what publishes is
    exactly one commit no matter what the main tree looks like. Uncommitted work
-   is not published — the script says so before it runs.
+   is not published, the script says so before it runs.
 3. **Strict drift check** against the target first, which is the guard for the
    silent-deletion direction.
 4. **`--confirm`** is required to publish anything. Without it the gates run and
@@ -1009,9 +1009,9 @@ runs the guards that a bare CLI call skips:
 
 #### When a guard trips
 
-- **REFUSING: uncommitted change(s) in the publish surface** — commit them, or
+- **REFUSING: uncommitted change(s) in the publish surface**: commit them, or
   re-run with `--from-head-worktree` to publish HEAD and leave them behind.
-- **AT RISK OF SILENT DELETION** — the listed function is live on the deployment
+- **AT RISK OF SILENT DELETION**: the listed function is live on the deployment
   and absent from what you are about to publish; deploying drops it and still
   reports success. Restore it, or confirm it was throwaway tooling that is safe
   to lose. Check HEAD for a specific one directly:
@@ -1030,13 +1030,13 @@ runs the guards that a bare CLI call skips:
 
   Naming a function that is not at risk fails the gate, so a stale
   acknowledgement cannot linger in a command.
-- **MISSING from the deployment** — the app calls something no deployment has.
+- **MISSING from the deployment**: the app calls something no deployment has.
   That is the outage this whole section exists to prevent, and deploying is the
   fix.
-- **Vercel build refuses with "preview key on a production build"** — the
+- **Vercel build refuses with "preview key on a production build"**: the
   Production environment holds the wrong `CONVEX_DEPLOY_KEY`. Replace it with a
   production deploy key; do not delete the guard.
-- **Vercel production build fails the pre-deploy drift check** — production has a
+- **Vercel production build fails the pre-deploy drift check**: production has a
   function this commit does not, i.e. someone published from a workstation
   without committing. Commit the function and redeploy. If it really is
   disposable, set `CONVEX_DEPLOY_ALLOW_FUNCTION_DELETION=1` on that Vercel
@@ -1099,13 +1099,13 @@ single build-command string in `vercel.json`; changing it back to a plain
 The omissions are the security posture, not an oversight. Leaving these unset
 makes the deployment read-only:
 
-- `CONVEX_DEPLOY_KEY` — the ability to publish Convex functions. With no key,
+- `CONVEX_DEPLOY_KEY`: the ability to publish Convex functions. With no key,
   the shared `bun run build:vercel` command verifies and never deploys. See
   [Shipping the app ships the Convex functions](#shipping-the-app-ships-the-convex-functions).
-- `CONVEX_URL` — the explicit privileged write target. Compatibility resolution
+- `CONVEX_URL`: the explicit privileged write target. Compatibility resolution
   may still identify `NEXT_PUBLIC_CONVEX_URL`, but no write capability exists
   without an accepted admin credential.
-- `CONVEX_ADMIN_KEY` and every `CONVEX_ADMIN_TOKEN_*` intent token — without an
+- `CONVEX_ADMIN_KEY` and every `CONVEX_ADMIN_TOKEN_*` intent token, without an
   admin credential, `lib/convex/serverWriteCapability.ts` reports a
   configuration failure instead of returning a usable write client.
 - `AUTH_SECRET` / `NEXTAUTH_SECRET`: no sessions. Sign-in also needs the
@@ -1139,7 +1139,7 @@ Paths.
 `next dev` compiles `middleware.ts` and writes it into the dev manifest, but
 never invokes it: no security headers, host-specific editor handoff,
 `/preview` compatibility redirect, or `/search/<q>` redirect. The same request
-served by `bun run build && bun run start` — and by Vercel — runs all of it.
+served by `bun run build && bun run start`, and by Vercel, runs all of it.
 Host- or middleware-shaped work must therefore be verified against a production
 server or deployment.
 
@@ -1170,7 +1170,7 @@ either rule.
   ```
 
   Deploying from inside the repo instead makes the Vercel CLI walk up, find the root `.vercel` link, and upload the entire repository under the `dosewiki-admin` project.
-- The share token in that file is public by design — the dashboard is world-readable. Rotate it by re-sharing in PostHog and redeploying.
+- The share token in that file is public by design, the dashboard is world-readable. Rotate it by re-sharing in PostHog and redeploying.
 - The subdomain previously served a self-hosted Umami instance on Railway, which only ever answered on this hostname (`i3voap3t.up.railway.app` itself returns 404). Restore it with `vercel dns add dose.wiki analytics CNAME i3voap3t.up.railway.app`; the `_railway-verify.analytics` TXT record is retained for exactly that.
 
 ### Content imports and public freshness
@@ -1307,7 +1307,7 @@ On `effectindex.com`:
 - [ ] A sample effect, substance, report, article and replication page each render.
 - [ ] Page source shows Effect Index in the `<title>`, the Open Graph tags and the JSON-LD structured data.
 - [ ] `/sitemap.xml` lists the Effect Index-only routes.
-- [ ] `/sign-in` and the editor routes fail — confirm this, it is the expected read-only posture.
+- [ ] `/sign-in` and the editor routes fail, confirm this, it is the expected read-only posture.
 
 On `dose.wiki` / `www.dose.wiki`:
 

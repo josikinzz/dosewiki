@@ -67,7 +67,7 @@ the checkout but not on `glad-minnow-656`. The review portal's inline
 click-to-edit failed in production for a day even though local checks, the app
 build, and the Vercel deployment all passed.
 
-**Runtime probing cannot diagnose it.** Production redacts all error detail — a
+**Runtime probing cannot diagnose it.** Production redacts all error detail, a
 missing function and a bad argument both come back as a bare `Server Error`:
 
 ```
@@ -99,7 +99,7 @@ and print function names only.
 
 The last one matters because `convex deploy` publishes the **working tree**, not
 git HEAD, so anything live but absent from the tree is deleted by the next
-deploy — see [deployment.md](deployment.md). Pass `--strict` to fail on warnings
+deploy, see [deployment.md](deployment.md). Pass `--strict` to fail on warnings
 too, which is the right setting immediately before a production deploy.
 
 ### When to run it
@@ -234,8 +234,8 @@ read/write alignment**, and `/api/editor-config-health` includes it in
 | Resolved configuration | Verdict |
 | --- | --- |
 | Every configured Convex URL resolves to `glad-minnow-656` | aligned |
-| Browser-read and privileged-write URLs resolve to different deployments | split — editor and review refuse to render |
-| Any active URL resolves to a deployment other than `glad-minnow-656` | wrong target — stop |
+| Browser-read and privileged-write URLs resolve to different deployments | split: editor and review refuse to render |
+| Any active URL resolves to a deployment other than `glad-minnow-656` | wrong target: stop |
 | No privileged write target or admin credential is configured | read-only |
 
 Fix a split or wrong target by pointing every active Convex URL at
@@ -265,7 +265,7 @@ the scoped token and rejects the legacy admin key.
 | `generatedPublicationWrite` | `CONVEX_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE` |
 | `reagentTestImport` | `CONVEX_ADMIN_TOKEN_REAGENT_TEST_IMPORT` |
 
-The registry is duplicated on both sides — `scripts/lib/data-ops-run-context.mjs`
+The registry is duplicated on both sides, `scripts/lib/data-ops-run-context.mjs`
 (client) and `convex/lib/adminIntentTokens.ts` (server). Adding an intent means
 editing both.
 

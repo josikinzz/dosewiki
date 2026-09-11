@@ -2,7 +2,7 @@
 
 Most of the corpus renders on the phase rail: `introduction`, timestamped `onset` / `peak` / `offset` entries, `conclusion`. A submitted report often arrives as one flat `introduction` with the author's own timestamps buried in prose, so the rail renders empty.
 
-Reshaping it moves text and edits none of it. `scripts/reports/` makes that **lossless** claim checkable rather than asserted: `reconstructBody` rebuilds the record back into a single body from the fields that reach Convex, and it must equal the stored body character for character. Your work is supplying the one thing the scripts cannot infer — where the phases begin — and letting the gates fail you when the claim breaks.
+Reshaping it moves text and edits none of it. `scripts/reports/` makes that **lossless** claim checkable rather than asserted: `reconstructBody` rebuilds the record back into a single body from the fields that reach Convex, and it must equal the stored body character for character. Your work is supplying the one thing the scripts cannot infer, where the phases begin, and letting the gates fail you when the claim breaks.
 
 ## Scripts
 
@@ -13,15 +13,15 @@ Reshaping it moves text and edits none of it. `scripts/reports/` makes that **lo
 | `scripts/reports/timeline-plans/<slug>.json` | The **plan**: your phase boundaries, one file per report. |
 | `scripts/reports/flatTripReportTimeline.test.mjs` | `node --test`; covers the round trip and every refusal. |
 
-The formatter keeps timestamps exactly as the author typed them — `~8:40 PM` and `After 10:40 PM` stay as written, alongside the corpus's `T+0:25` style. An untimed paragraph continues the entry above it.
+The formatter keeps timestamps exactly as the author typed them, `~8:40 PM` and `After 10:40 PM` stay as written, alongside the corpus's `T+0:25` style. An untimed paragraph continues the entry above it.
 
 ## The plan
 
 Read the whole body before writing the plan. Three boundaries, all editorial:
 
-- **`peakFrom`** — the timestamp where the author's own account marks the plateau: settling in, lights out, the first landmark effect. Their language (*come-up*, *peak*, *coming down*, *residual*) outranks elapsed-time arithmetic.
-- **`offsetFrom`** — the timestamp of the first sign of decline, including a difficult stretch the author dates themselves.
-- **`conclusionFrom`** — a unique prefix of the first retrospective paragraph, where narration stops and reflection starts. Everything after it, including post-trip notes and loose ends, becomes the conclusion.
+- **`peakFrom`**: the timestamp where the author's own account marks the plateau: settling in, lights out, the first landmark effect. Their language (*come-up*, *peak*, *coming down*, *residual*) outranks elapsed-time arithmetic.
+- **`offsetFrom`**: the timestamp of the first sign of decline, including a difficult stretch the author dates themselves.
+- **`conclusionFrom`**: a unique prefix of the first retrospective paragraph, where narration stops and reflection starts. Everything after it, including post-trip notes and loose ends, becomes the conclusion.
 
 Put your reasoning in a `note` field. A later reviewer reads the plan, not the run log.
 
@@ -56,7 +56,7 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 
 ## When the formatter refuses
 
-Every refusal below means the lossless claim cannot be made yet. Each is repaired at its own source — the plan, the stored body, or the formatter — with the author's prose left exactly as written.
+Every refusal below means the lossless claim cannot be made yet. Each is repaired at its own source, the plan, the stored body, or the formatter, with the author's prose left exactly as written.
 
 | Refusal | What it found | Move |
 | --- | --- | --- |
@@ -69,6 +69,6 @@ Every refusal below means the lossless claim cannot be made yet. Each is repaire
 
 ## After the write
 
-`/reports/<slug>` is `revalidate = 3600`, and a direct Convex write skips Next revalidation — only the editor route `/api/dev/trip-reports/record` calls `revalidatePath`. The deployed page therefore serves its cached copy for up to an hour. Confirm the rendered rail against a running local dev server, and tell the user the public page trails.
+`/reports/<slug>` is `revalidate = 3600`, and a direct Convex write skips Next revalidation, only the editor route `/api/dev/trip-reports/record` calls `revalidatePath`. The deployed page therefore serves its cached copy for up to an hour. Confirm the rendered rail against a running local dev server, and tell the user the public page trails.
 
 The pre-write row is saved under `outputs/trip-report-reshape/`. It is the restore path if a later edit breaks the text.

@@ -28,7 +28,7 @@ runs/<run-id>/
 └── citation-report.md          # human-facing workbench report; required final review surface
 ```
 
-The manifest supplements — and must not replace — existing workbench outputs. It records separate `runId` and article `slug`, task digest/provenance, proposal binding when present, expected section set, worker/model/artifact evidence, section-status table, deterministic gates, and final `needs_review` outcome. Every gate snapshot includes all `proposal-input/` hashes. Workbench `scripts/artifact-contract.mjs` is the single executable artifact/evidence contract consumed by section checks, merged proactive scans, and final draft validation.
+The manifest supplements, and must not replace, existing workbench outputs. It records separate `runId` and article `slug`, task digest/provenance, proposal binding when present, expected section set, worker/model/artifact evidence, section-status table, deterministic gates, and final `needs_review` outcome. Every gate snapshot includes all `proposal-input/` hashes. Workbench `scripts/artifact-contract.mjs` is the single executable artifact/evidence contract consumed by section checks, merged proactive scans, and final draft validation.
 
 OMP discovers the workflow's named project agents from `.pi/agents/citation-section-worker.md` and `.pi/agents/citation-article-wide-worker.md` and launches them directly. Every worker launch must set:
 
@@ -75,12 +75,12 @@ A task exported with `--sections`/`--tracker-scope` carries `selectedSections` p
 
 The manifest also records `allowLiveWebResearch`. When it is `false`, section and article-wide workers must use only the task packet and approved local discovery material. They must not browse for new sources; unsupported claims become internal gaps.
 
-A task exported with `--second-pass-plan` additionally carries `researchPass: "second"` and an immutable `researchBrief` for the selected rows. The brief—not an ad-hoc coordinator prompt—owns the ordered research lanes, feasibility signals, hard rules, and completion criteria. Second-pass workers must record each lane's queries and outcomes; a negative result is terminal only after all prescribed lanes have auditable outcomes. Analogue, parent, metabolite, or plant-constituent sources may support only public claims that explicitly concern that entity.
+A task exported with `--second-pass-plan` additionally carries `researchPass: "second"` and an immutable `researchBrief` for the selected rows. The brief, not an ad-hoc coordinator prompt, owns the ordered research lanes, feasibility signals, hard rules, and completion criteria. Second-pass workers must record each lane's queries and outcomes; a negative result is terminal only after all prescribed lanes have auditable outcomes. Analogue, parent, metabolite, or plant-constituent sources may support only public claims that explicitly concern that entity.
 
 ### 2. Section workers
 
 - Launch at most **three** OMP-coordinated workers at one time.
-- In a scoped run (`selectedSections` present), launch workers only for selected sections. Non-selected sections already hold terminal skip statuses from `init`; never assign a worker to one, and never record `checked` for one — `check-section` rejects it. A selected section whose research finds no defensible evidence is recorded `missing_preserve_original` (and becomes `needs_source` in the subsection rollout tracker), never force-cited.
+- In a scoped run (`selectedSections` present), launch workers only for selected sections. Non-selected sections already hold terminal skip statuses from `init`; never assign a worker to one, and never record `checked` for one, `check-section` rejects it. A selected section whose research finds no defensible evidence is recorded `missing_preserve_original` (and becomes `needs_source` in the subsection rollout tracker), never force-cited.
 - Launch the named project agent `citation-section-worker`; do not create an ad-hoc role prompt.
 - Give each worker the selected slug, original `article.citableSections.<section>`, source packet, discovery restrictions, the live-web permission value, and one output path: `runs/<run-id>/sections/<section>.json`.
 - No worker may modify another section, `article-wide.json`, queue/tracker state, the app repo, or Convex.
