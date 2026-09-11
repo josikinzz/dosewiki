@@ -476,6 +476,13 @@ export async function middleware(request: NextRequest) {
   // leaves the host. A mirror route addressed directly on any other host
   // would be a second URL for the page, so it is unroutable there.
   const localeHost = localeForHost(request.headers.get("host"));
+  // The flavor-gated 404 route matches no localized page, so the app cannot
+  // derive the mirror locale from its route segments; every rewrite and
+  // fall-through below carries the header instead, and `not-found.tsx` reads
+  // it to render the 404 chrome in the mirror's language.
+  if (localeHost) {
+    browserPolicy.requestHeaders.set("x-dosewiki-mirror-locale", localeHost.code);
+  }
   const localizedSlug = localeHost ? publicSubstanceSlugForPath(appPath) : null;
   if (localeHost && localizedSlug) {
     const mirrorUrl = request.nextUrl.clone();
