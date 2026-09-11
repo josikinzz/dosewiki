@@ -25,11 +25,16 @@
  *    and the route plan in seconds rather than at the end of the 15-minute
  *    public-data window. The tag covers both families: dose.wiki blog posts
  *    are `effectIndexArticles` rows and ride the article tag, not the
- *    archive's `blog` tag.
+ *    archive's `blog` tag. An article save also publishes its keyed `library`
+ *    identity, which expires the locale mirrors of the article and the index,
+ *    and enqueues the `library/<slug>` translation job the refresh cron works.
  */
 import { NextResponse } from "next/server";
 import { api } from "../../../../../convex/_generated/api";
+import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
+import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
+import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { contentHash } from "../../../../../lib/proposals/contentHash";
@@ -264,7 +269,21 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       publicationDate: body.publicationDate,
     });
 
-    await publishPublicCache({ targets: [{ kind: "writing-articles" }], source: "manual" });
+    const targets: PublicationTarget[] = [{ kind: "writing-articles" }];
+    if (body.kind === "article") {
+      targets.push({ kind: "library", slug: result.slug });
+      // The locale mirror follows by cron, not inline; a failed enqueue is
+      // logged and the next save of the article retries it.
+      try {
+        await enqueueTranslationJobs(LIVE_LOCALE_CODES, [`library/${result.slug}`]);
+      } catch (error) {
+        console.warn("[writing-article] translation enqueue failed", {
+          slug: result.slug,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    await publishPublicCache({ targets, source: "manual" });
 
     return NextResponse.json({ ok: true, slug: result.slug, created: result.created, revision: result.revision });
   },

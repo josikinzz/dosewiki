@@ -41,6 +41,18 @@ describe("publication targets", () => {
     expect(effect.tags).not.toContain("convex-public");
   });
 
+  it("expires a library article, its index, and their locale mirrors under the shared writing tag", () => {
+    const effect = resolvePublicationEffects([{ kind: "library", slug: "dxm" }]);
+
+    expect(effect.paths).toEqual([
+      { path: "/articles/dxm" },
+      { path: "/articles" },
+      { path: "/zh/articles/dxm" },
+      { path: "/zh/articles" },
+    ]);
+    expect(effect.tags).toEqual(["convex-public:articles"]);
+  });
+
   it("routes a class depiction to its class page and a substance depiction to its article", () => {
     expect(resolvePublicationEffects([{ kind: "molecule", slug: "class:tryptamines" }]).paths).toEqual([
       { path: "/chemical-classes/tryptamines" },
@@ -69,6 +81,8 @@ describe("publication targets", () => {
   it("translates the saved-path vocabulary and refuses paths it cannot name", () => {
     expect(publicationTargetForSavedPath("/2c-b")).toEqual({ kind: "article", slug: "2c-b" });
     expect(publicationTargetForSavedPath("/effects/euphoria")).toEqual({ kind: "effect", slug: "euphoria" });
+    expect(publicationTargetForSavedPath("/articles/dxm")).toEqual({ kind: "library", slug: "dxm" });
+    expect(publicationTargetForSavedPath("/articles")).toEqual({ kind: "writing-articles" });
     expect(publicationTargetForSavedPath("/copy-blocks")).toEqual({ kind: "copy" });
     expect(publicationTargetForSavedPath("/api/replications/showcase")).toEqual({
       kind: "replication-collections",

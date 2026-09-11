@@ -398,7 +398,22 @@ describe("middleware role policy adapter", () => {
     expect(about.headers.get("location")).toBeNull();
 
     const unknown = await middleware(new NextRequest(`https://${host}/not-a-substance-zzzz`, { headers: { host } }));
-    expect(unknown.headers.get("x-middleware-rewrite")).toBe("https://zh.dose.wiki/_flavor-gated/not-found");
+    expect(unknown.headers.get("x-middleware-rewrite")).toBe("https://zh.dose.wiki/zh/unroutable/missing");
+  });
+
+  it("serves a locale host's library archive from the mirror routes", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "zh.dose.wiki";
+
+    const index = await middleware(new NextRequest(`https://${host}/articles`, { headers: { host } }));
+    expect(index.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/articles`);
+    expect(index.headers.get("location")).toBeNull();
+
+    const article = await middleware(new NextRequest(`https://${host}/articles/dxm`, { headers: { host } }));
+    expect(article.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/articles/dxm`);
+    expect(article.headers.get("location")).toBeNull();
+    expect(article.headers.get("x-robots-tag")).toBeNull();
   });
 
   it("hides the mirror route from direct requests on the English host", async () => {

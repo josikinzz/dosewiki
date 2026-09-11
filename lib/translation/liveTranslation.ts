@@ -1,6 +1,6 @@
 /**
  * Live locale mirrors of dose.wiki records: substance articles, effect
- * articles, and trip reports.
+ * articles, trip reports, and the long-form library articles.
  *
  * The batch pipeline under `scripts/translation/` owns segmentation, the
  * prompt, validation, and the model call; this module runs the same pieces
@@ -22,9 +22,10 @@ import { resolveLocale, type TranslationLocale } from "../../scripts/translation
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
 import { missingTranslationHashes, readTranslations, writeTranslations, type TranslationSegmentRow } from "./segmentStore";
+import type { PublicDataReadAdapter } from "../convex/publicData.reads";
 
 /** Which runtime record corpus a translation job addresses. */
-export type TranslationRecordKind = "article" | "effect" | "report";
+export type TranslationRecordKind = "article" | "effect" | "report" | "library";
 
 /** The batch corpus plus the runtime-only keys a public record carries that an export does not. */
 const LIVE_SUBSTANCE_CORPUS = {
@@ -36,18 +37,59 @@ const LIVE_SUBSTANCE_CORPUS = {
  * Public effect and report records carry the same fields the open-data
  * exports segment, so the batch corpora apply unchanged. Effect bodies are
  * raw VCode beside a derived tree, so localization reparses the translated
- * raw into the tree field exactly as the batch run does.
+ * raw into the tree field exactly as the batch run does. A public library
+ * article is the batch export plus `authors`, the legacy Mongo ObjectIds the
+ * batch loader strips and no reader ever sees; its VCode body reparses into
+ * `body_ast` the same way.
  */
 const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> = {
   article: LIVE_SUBSTANCE_CORPUS,
   effect: { ...CORPORA.effects, excludedKeys: [...CORPORA.effects.excludedKeys] },
   report: { ...CORPORA.reports, excludedKeys: [...CORPORA.reports.excludedKeys] },
+  library: { ...CORPORA.articles, excludedKeys: [...CORPORA.articles.excludedKeys, "authors"] },
 };
 
-/** Effect bodies reconcile their derived `*_ast` trees against the translated raw. */
+/** Effect and library bodies reconcile their derived `*_ast` trees against the translated raw. */
 const CORPUS_PARSE: Partial<Record<TranslationRecordKind, NonNullable<Parameters<typeof assembleLocaleDataset>[3]["parse"]>>> = {
   effect: parseRawVCodeContent,
+  library: parseRawVCodeContent,
 };
+
+/** The job table keys every record by slug; the non-substance kinds carry a namespace prefix so one row always resolves to exactly one corpus. */
+const PREFIXED_KINDS = ["effect", "report", "library"] as const;
+
+/** The corpus and bare slug one `translationJobs` row addresses; a bare slug is a substance article. */
+export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRecordKind; slug: string } {
+  for (const kind of PREFIXED_KINDS) {
+    const prefix = `${kind}/`;
+    if (jobSlug.startsWith(prefix)) return { kind, slug: jobSlug.slice(prefix.length) };
+  }
+  return { kind: "article", slug: jobSlug };
+}
+
+/**
+ * The public record a job addresses, read uncached because the job exists
+ * precisely when the cached record is stale. Null means nothing public carries
+ * the slug: unpublished, renamed, or a blog row asked for as a library article.
+ */
+export async function readTranslationRecord(
+  reads: PublicDataReadAdapter,
+  kind: TranslationRecordKind,
+  slug: string,
+): Promise<object | null> {
+  switch (kind) {
+    case "article":
+      return reads.getPublicSubstanceBySlug(slug);
+    case "effect":
+      return reads.getPublicEffectBySlug(slug);
+    case "report":
+      return reads.getPublicTripReportBySlug(slug);
+    case "library": {
+      const article = await reads.getPublicEffectIndexArticleBySlug(slug);
+      return article && article.kind !== "blog" ? article : null;
+    }
+  }
+}
 
 export const TRANSLATION_MODEL = DEFAULT_MODEL;
 

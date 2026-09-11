@@ -28,6 +28,8 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
 import { Glob } from "bun";
+
+import { splitAboutMarkdown } from "../../src/data/content/aboutSections";
 import * as live from "../../lib/translation/liveTranslation";
 import { planBatches, translateBatchWithRetries, type WorkUnit } from "./engine.mjs";
 import { segmentHash } from "./segment-manifest.mjs";
@@ -74,16 +76,26 @@ async function collectKeys(): Promise<Map<string, Set<string>>> {
   return keys;
 }
 
-/** Substance-index labels that reach the page as layout data rendered through `t()`. */
+/**
+ * Substance-index labels, class definitions, and warnings that reach the page
+ * as layout data rendered through `t()`.
+ */
 async function loadIndexLabelKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   const file = path.join(repoRoot, "src/data/indexes/psychoactiveIndexManual.json");
   if (!existsSync(file)) return out;
   const document = JSON.parse(await readFile(file, "utf8")) as {
-    categories?: Array<{ label?: string; sections?: Array<{ label?: string }> }>;
+    categories?: Array<{
+      label?: string;
+      definition?: string;
+      warning?: string;
+      sections?: Array<{ label?: string }>;
+    }>;
   };
   for (const category of document.categories ?? []) {
-    if (category.label?.trim()) out.add(category.label);
+    for (const text of [category.label, category.definition, category.warning]) {
+      if (text?.trim()) out.add(text);
+    }
     for (const section of category.sections ?? []) {
       if (section.label?.trim()) out.add(section.label);
     }
@@ -92,30 +104,35 @@ async function loadIndexLabelKeys(): Promise<Set<string>> {
 }
 
 /**
- * About-page markdown sections. `splitAboutMarkdown` cuts the editable
- * document on the English H2s, and the locale route translates each section
- * body through `t()`, so every section is one catalog key.
+ * About-page markdown sections. The locale route splits the editable document
+ * with `splitAboutMarkdown` and translates each heading-less section body
+ * through `t()`, so every body is one catalog key and must be cut by the same
+ * splitter here or the lookup misses.
  */
 async function loadAboutSectionKeys(): Promise<Set<string>> {
   const out = new Set<string>();
-  const splitOn = ["## Sources and review", "## Project history"];
-  const sectionsOf = (content: string): string[] => {
-    const sections: string[] = [];
-    let cursor = 0;
-    for (const marker of splitOn) {
-      const at = content.indexOf(marker);
-      if (at === -1) continue;
-      sections.push(content.slice(cursor, at));
-      cursor = at;
+  const addDocument = (markdown: string, subtitle: string) => {
+    const sections = splitAboutMarkdown(markdown.trim());
+    for (const body of [sections.introduction, sections.sources, sections.history]) {
+      if (body.trim()) out.add(body);
     }
-    sections.push(content.slice(cursor));
-    return sections.filter((section) => section.trim());
+    if (subtitle.trim()) out.add(subtitle.trim());
   };
-  for (const file of ["src/data/content/aboutContent.md", "src/data/content/aboutSubtitle.md"]) {
+  const readSeed = async (file: string) => {
     const full = path.join(repoRoot, file);
-    if (!existsSync(full)) continue;
-    const content = await readFile(full, "utf8");
-    for (const section of sectionsOf(content)) out.add(section.trim());
+    return existsSync(full) ? readFile(full, "utf8") : "";
+  };
+  addDocument(
+    await readSeed("src/data/content/aboutContent.md"),
+    await readSeed("src/data/content/aboutSubtitle.md"),
+  );
+  // The editor-managed About document drifts from the checked-in seed, and
+  // the locale route looks each live section up verbatim, so the live text
+  // is what needs a catalog entry.
+  if (values["live-copy"]) {
+    const { getPublicDataReadAdapter } = await import("../../lib/convex/publicData.reads");
+    const about = await getPublicDataReadAdapter().getPublicAboutConfig();
+    addDocument(about?.aboutMarkdown ?? "", about?.aboutSubtitle ?? "");
   }
   return out;
 }

@@ -9,15 +9,21 @@
  * Usage (Postgres write ceremony from docs/agents/convex-credentials.md):
  *   export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<host>
  *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/substances --allow-remote --write
+ *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/articles --corpus=articles --allow-remote --write
  *   bun scripts/translation/live-mirror.ts enqueue --all --allow-remote --write
+ *   bun scripts/translation/live-mirror.ts enqueue --kind=library --all --allow-remote --write
  *   bun scripts/translation/live-mirror.ts enqueue --slug=2c-b,lsd --allow-remote --write
  *   bun scripts/translation/live-mirror.ts run --limit=20 --allow-remote --write
  *   bun scripts/translation/live-mirror.ts stale --allow-remote --write
  *
  * Commands:
  *   import   Load a batch run's translations.jsonl into translationSegments.
- *            Rows that failed a blocking gate in the run are skipped.
+ *            Rows that failed a blocking gate in the run are skipped. The
+ *            store keys segments by locale and source hash, so --corpus only
+ *            names the segmenter that recovers each hash's source text.
  *   enqueue  Insert translation jobs for --all public slugs or --slug=a,b.
+ *            --kind selects the corpus: article (substances, the default),
+ *            effect, report, or library (the long-form /articles archive).
  *   run      Claim and process due jobs, like the cron, until --limit or none.
  *   stale    Retranslate stored rows whose prompt digest differs from today's.
  *   status   Counts only; never writes.
@@ -136,23 +142,43 @@ async function importRun() {
   }
 }
 
+const RECORD_KINDS: readonly live.TranslationRecordKind[] = ["article", "effect", "report", "library"];
+
+function requireKind(value: string): live.TranslationRecordKind {
+  if (!RECORD_KINDS.includes(value as live.TranslationRecordKind)) {
+    throw new Error(`Unknown --kind: ${value} (expected one of ${RECORD_KINDS.join(", ")})`);
+  }
+  return value as live.TranslationRecordKind;
+}
+
+async function publicSlugsOf(kind: live.TranslationRecordKind): Promise<string[]> {
+  const reads = getPublicDataReadAdapter();
+  switch (kind) {
+    case "article":
+      return reads.getPublicSubstanceSlugs();
+    case "effect":
+      return (await reads.getPublicEffects()).map(({ slug }) => slug);
+    case "report":
+      return (await reads.getPublicTripReportRecords()).map(({ slug }) => slug);
+    case "library":
+      return (await reads.getPublishedEffectIndexArticles())
+        .filter((article) => article.kind !== "blog")
+        .map(({ slug }) => slug);
+  }
+}
+
 async function enqueue() {
-  const kind = values.kind;
-  const prefix = kind === "effect" ? "effect/" : kind === "report" ? "report/" : "";
-  let slugs: string[];
+  const kind = requireKind(values.kind);
+  const prefix = kind === "article" ? "" : `${kind}/`;
+  let bare: string[];
   if (values.all) {
-    const reads = getPublicDataReadAdapter();
-    const records = kind === "effect"
-      ? await reads.getPublicEffects()
-      : kind === "report"
-        ? await reads.getPublicTripReportRecords()
-        : await reads.getPublicSubstanceSlugs().then((slugs) => slugs.map((slug) => ({ slug })));
-    slugs = records.map(({ slug }) => `${prefix}${slug}`);
+    bare = await publicSlugsOf(kind);
   } else if (values.slug) {
-    slugs = values.slug.split(",").map((slug) => slug.trim()).filter(Boolean);
+    bare = values.slug.split(",").map((slug) => slug.trim()).filter(Boolean);
   } else {
     throw new Error("enqueue needs --all or --slug=a,b");
   }
+  const slugs = bare.map((slug) => `${prefix}${slug}`);
   console.log(`Enqueue       ${slugs.length} ${kind}(s) for ${LOCALE}`);
   if (!write) {
     console.log("Dry run: pass --write to enqueue.");
@@ -179,18 +205,8 @@ async function runQueue() {
     for (const job of jobs) {
       processed += 1;
       try {
-        const kind = job.slug.startsWith("effect/")
-          ? ("effect" as const)
-          : job.slug.startsWith("report/")
-            ? ("report" as const)
-            : ("article" as const);
-        const slug = kind === "article" ? job.slug : job.slug.slice(`${kind}/`.length);
-        const record =
-          kind === "effect"
-            ? await reads.getPublicEffectBySlug(slug)
-            : kind === "report"
-              ? await reads.getPublicTripReportBySlug(slug)
-              : await reads.getPublicSubstanceBySlug(slug);
+        const { kind, slug } = live.parseTranslationJobSlug(job.slug);
+        const record = await live.readTranslationRecord(reads, kind, slug);
         if (!record) {
           await store.completeTranslationJob(job);
           console.log(`  ${job.slug}: not public, cleared`);

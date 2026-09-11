@@ -25,7 +25,13 @@ import {
   publicSubstanceGalleryTag,
   publicSubstanceTag,
 } from "../convex/publicData.cache";
-import { localizedArticlePaths, localizedEffectPaths, localizedIndexPaths, localizedReportPaths } from "./localeHostPolicy";
+import {
+  localizedArticlePaths,
+  localizedEffectPaths,
+  localizedIndexPaths,
+  localizedLibraryPaths,
+  localizedReportPaths,
+} from "./localeHostPolicy";
 
 import type { PublicationTarget } from "./publicationWire";
 
@@ -90,6 +96,18 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
       return {
         paths: [{ path: `/reports/${target.slug}` }, ...localizedReportPaths(target.slug).map((path) => ({ path }))],
         tags: [PUBLIC_CONVEX_CACHE_TAGS.reports],
+      };
+    case "library":
+      // One long-form article: its own page, the index that lists it, and the
+      // locale mirrors of both. The tag is the one every writing read shares.
+      return {
+        paths: [
+          { path: `/articles/${target.slug}` },
+          { path: "/articles" },
+          ...localizedLibraryPaths(target.slug).map((path) => ({ path })),
+          ...localizedIndexPaths("/articles").map((path) => ({ path })),
+        ],
+        tags: [PUBLIC_CONVEX_CACHE_TAGS.articles],
       };
     case "blog-post":
       return {
@@ -199,6 +217,8 @@ export function publicationTargetForSavedPath(path: string): PublicationTarget |
       return { kind: "effect-lists" };
     case "/reports":
       return { kind: "report-lists" };
+    case "/articles":
+      return { kind: "writing-articles" };
     case "/changes":
       return { kind: "changelog" };
     case REPLICATION_SHOWCASE_PATH:
@@ -212,6 +232,8 @@ export function publicationTargetForSavedPath(path: string): PublicationTarget |
   if (effect) return { kind: "effect", slug: effect[1] };
   const report = /^\/reports\/([a-z0-9][a-z0-9-]*)$/.exec(path);
   if (report) return { kind: "report", slug: report[1] };
+  const library = /^\/articles\/([a-z0-9][a-z0-9-]*)$/.exec(path);
+  if (library) return { kind: "library", slug: library[1] };
   const post = /^\/blog\/([a-z0-9][a-z0-9-]*)$/.exec(path);
   if (post) return { kind: "blog-post", slug: post[1] };
   const chemicalClass = /^\/chemical-classes\/([a-z0-9][a-z0-9-]*)$/.exec(path);

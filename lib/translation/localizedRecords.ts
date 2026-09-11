@@ -8,12 +8,14 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { PublicSubstanceRecord } from "@server/convex/publicData.shared";
+import type { PublicEffectIndexArticle, PublicSubstanceRecord } from "@server/convex/publicData.shared";
 import {
   getPublicEffectBySlug,
+  getPublicEffectIndexArticleBySlug,
   getPublicEffects,
   getPublicReportBySlug,
   getPublicReports,
+  getPublishedEffectIndexArticles,
   type PublicEffectPreview,
   type PublicReportPreview,
   type SubjectiveEffectDetailRecord,
@@ -70,5 +72,26 @@ export const getLocalizedPublicEffects = cache(async (
   const effects = await getPublicEffects();
   if (effects.length === 0) return effects;
   const localized = await localizeRecords(effects, locale, "effect");
+  return localized.records;
+});
+
+/** One library article with its stored segments spliced in; blog rows pass through for the loader to refuse. */
+export const getLocalizedPublicArticleBySlug = cache(async (
+  slug: string,
+  locale: string,
+): Promise<PublicEffectIndexArticle | null> => {
+  const article = await getPublicEffectIndexArticleBySlug(slug);
+  if (!article) return null;
+  const localized = await localizeRecord({ ...article, slug }, locale, "library");
+  return localized.record;
+});
+
+/** The library-index read: every published article with its stored segments spliced in. */
+export const getLocalizedPublicArticles = cache(async (
+  locale: string,
+): Promise<PublicEffectIndexArticle[]> => {
+  const articles = await getPublishedEffectIndexArticles();
+  if (articles.length === 0) return articles;
+  const localized = await localizeRecords(articles, locale, "library");
   return localized.records;
 });

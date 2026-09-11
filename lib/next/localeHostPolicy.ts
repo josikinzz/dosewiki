@@ -42,9 +42,19 @@ export function localizedArticleRoutePath(locale: LiveLocale, slug: string): str
 }
 
 /** The English index paths the middleware also localizes, in route order. */
-export const LOCALIZED_INDEX_PATHS = ["/", "/substances", "/effects", "/reports", "/about"] as const;
+export const LOCALIZED_INDEX_PATHS = ["/", "/substances", "/effects", "/reports", "/articles", "/about"] as const;
 
 /** The mirror route for one English index path, when that path localizes. */
+/**
+ * The mirror host's 404 page. The middleware rewrites every mirror-host path
+ * outside the public corpus here with a 404 status; the page renders the
+ * not-found chrome in the mirror's language. Unroutable on English hosts
+ * like every other `/zh` path.
+ */
+export function localizedNotFoundRoutePath(locale: LiveLocale): string {
+  return `${locale.pathPrefix}/unroutable/missing`;
+}
+
 export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): string | null {
   if (!LOCALIZED_INDEX_PATHS.includes(pathname as (typeof LOCALIZED_INDEX_PATHS)[number])) {
     return null;
@@ -55,13 +65,13 @@ export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): s
 /**
  * The mirror route prefix and slug for one mirrored record path. Substance
  * articles route through the corpus-gated slug check in the middleware; this
- * covers the effect and report detail paths, which the zh routes resolve
- * against the live record and 404 on their own.
+ * covers the effect, report, and library article detail paths, which the zh
+ * routes resolve against the live record and 404 on their own.
  */
 export function localizedRecordRoutePath(
   locale: LiveLocale,
   pathname: string,
-): { path: string; kind: "effect" | "report"; slug: string } | null {
+): { path: string; kind: "effect" | "report" | "library"; slug: string } | null {
   const effectSlug = pathname.match(/^\/effects\/([^/]+)\/?$/);
   if (effectSlug) {
     return {
@@ -76,6 +86,14 @@ export function localizedRecordRoutePath(
       path: `${locale.pathPrefix}/reports/${reportSlug[1]}`,
       kind: "report",
       slug: reportSlug[1],
+    };
+  }
+  const librarySlug = pathname.match(/^\/articles\/([^/]+)\/?$/);
+  if (librarySlug) {
+    return {
+      path: `${locale.pathPrefix}/articles/${librarySlug[1]}`,
+      kind: "library",
+      slug: librarySlug[1],
     };
   }
   return null;
@@ -94,6 +112,11 @@ export function localizedEffectPaths(effectSlug: string): string[] {
 /** Every cache path an English report expiry must also expire. */
 export function localizedReportPaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/reports/${slug}`);
+}
+
+/** Every cache path an English library article expiry must also expire. */
+export function localizedLibraryPaths(slug: string): string[] {
+  return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/articles/${slug}`);
 }
 
 /** Every localized index cache path for one English index path. */

@@ -41,6 +41,7 @@ export type PublicationTarget =
   | { kind: "chemical-class"; slug: string }
   | { kind: "molecule"; slug: string }
   | { kind: "report"; slug: string }
+  | { kind: "library"; slug: string }
   | { kind: "blog-post"; slug: string }
   | { kind: "substance-lists" }
   | { kind: "chemical-lists" }
@@ -78,6 +79,7 @@ const SLUG_PATTERN_BY_KIND: Partial<Record<PublicationTarget["kind"], RegExp>> =
   effect: SLUG_RE,
   "chemical-class": SLUG_RE,
   report: SLUG_RE,
+  library: SLUG_RE,
   "blog-post": SLUG_RE,
   molecule: MOLECULE_SLUG_RE,
   contributor: CONTRIBUTOR_KEY_RE,

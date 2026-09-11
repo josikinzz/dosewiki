@@ -9,6 +9,8 @@ import {
   getPublicEffectIndexPosts,
   type PublicEffectIndexArticle,
 } from "@server/convex/publicData";
+import { getLocalizedPublicArticleBySlug, getLocalizedPublicArticles } from "@server/translation/localizedRecords";
+import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildBlogPostExcerpt, toBlogPostViewModel, type BlogPostViewModel } from "../../src/features/blog/domain/blogPostModel";
 import { toWritingBlogPost, writingBlogPostSummary, type WritingBlogPost } from "../../src/features/blog/domain/writingBlogModel";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
@@ -77,8 +79,10 @@ function isBlogKind(article: Pick<PublicEffectIndexArticle, "kind">): boolean {
   return article.kind === "blog";
 }
 
-export const loadArticleRoute = cache(async (slug: string): Promise<ArticleRouteResult> => {
-  const article = await getPublicEffectIndexArticleBySlug(slug);
+export const loadArticleRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<ArticleRouteResult> => {
+  const article = locale
+    ? await getLocalizedPublicArticleBySlug(slug, locale.code)
+    : await getPublicEffectIndexArticleBySlug(slug);
 
   // A blog post is not reachable at `/articles/<slug>` even though it shares
   // the table: the two families never render on each other's routes.
@@ -107,8 +111,11 @@ export type ArticlesIndexRouteResult = OkRouteResult<{
 }>;
 
 export const loadArticlesIndexRoute = cache(
-  async (): Promise<ArticlesIndexRouteResult> => {
-    const articles = (await getPublishedEffectIndexArticles()).filter(isArticleKind);
+  async (locale: LiveLocale | null = null): Promise<ArticlesIndexRouteResult> => {
+    const published = locale
+      ? await getLocalizedPublicArticles(locale.code)
+      : await getPublishedEffectIndexArticles();
+    const articles = published.filter(isArticleKind);
 
     return {
       kind: "ok",

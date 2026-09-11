@@ -42,11 +42,12 @@ export async function revalidateSavedPaths(
   // The locale mirrors follow the English by a cron, not inline: a model call
   // per edit would make saving feel broken. A failed enqueue is logged and the
   // English publication proceeds; the next write to the record retries it.
-  // Effect and report jobs carry a namespace prefix; article slugs stay bare.
+  // Effect, report, and library jobs carry a namespace prefix; article slugs stay bare.
   const recordSlugs = targets.flatMap((target) => {
     if (target.kind === "article") return [target.slug];
     if (target.kind === "effect") return [`effect/${target.slug}`];
     if (target.kind === "report") return [`report/${target.slug}`];
+    if (target.kind === "library") return [`library/${target.slug}`];
     return [];
   });
   if (recordSlugs.length > 0 && source !== "manual") {

@@ -100,8 +100,18 @@ describe("writing article route rename", () => {
     mocks.mutation.mockResolvedValue({ slug: "field-guide", created: false });
   });
 
-  it("publishes the writing-articles identity so both public deployments refresh", async () => {
+  it("publishes the writing-articles identity plus the article's keyed library identity", async () => {
     const response = await POST(saveRequest({}));
+
+    expect(response.status).toBe(200);
+    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
+      targets: [{ kind: "writing-articles" }, { kind: "library", slug: "field-guide" }],
+      source: "manual",
+    });
+  });
+
+  it("publishes only the writing-articles identity for a blog post, which has no mirror", async () => {
+    const response = await POST(saveRequest({ kind: "blog" }));
 
     expect(response.status).toBe(200);
     expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({

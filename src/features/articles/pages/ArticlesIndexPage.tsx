@@ -6,6 +6,7 @@ import { PublicContentSection } from "@/components/layout/PublicContentPrimitive
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
+import { t } from "@/i18n/server";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import { articleHref } from "../domain/articleGuides";
@@ -29,8 +30,8 @@ export function ArticlesIndexPage({
   return (
     <PublicContentShell width="wide" focusTarget>
       <PageHeader
-        title="Articles"
-        description="Published guides, scales, and long-form writing from the Effect Index archive."
+        title={t("Articles")}
+        description={t("Published guides, scales, and long-form writing from the Effect Index archive.")}
         icon={icons.bookOpenText}
       />
 
@@ -47,10 +48,10 @@ export function ArticlesIndexPage({
           actions={
             <>
               <Button asChild>
-                <Link href={publicHref.effects()}>Browse the effect index</Link>
+                <Link href={publicHref.effects()}>{t("Browse the effect index")}</Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link href={publicHref.substances()}>Browse substances</Link>
+                <Link href={publicHref.substances()}>{t("Browse substances")}</Link>
               </Button>
             </>
           }
@@ -60,10 +61,10 @@ export function ArticlesIndexPage({
           {groups.map((group) => (
             <PublicContentSection
               key={group.id}
-              heading={group.label}
+              heading={t(group.label)}
               icon={group.icon}
             >
-              <p className="theme-text-muted mt-1 text-xs leading-5">{group.blurb}</p>
+              <p className="theme-text-muted mt-1 text-xs leading-5">{t(group.blurb)}</p>
               <ul className="mt-3">
                 {group.articles.map((article) => (
                   <ArticleIndexRowItem key={article.slug} article={article} />

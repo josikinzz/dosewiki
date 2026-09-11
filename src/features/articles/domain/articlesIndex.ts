@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
+import { msg } from "@/i18n/messages";
 import { ARTICLE_GUIDES_BY_CLASS, GUIDE_CLASSES } from "./articleGuides";
 
 /**
@@ -58,9 +59,9 @@ interface ArticleGroupDefinition {
 const GROUP_DEFINITIONS: readonly ArticleGroupDefinition[] = [
   {
     id: "drug-guides",
-    label: "Drug guides",
+    label: msg("Drug guides"),
     icon: "lucide:flask-conical",
-    blurb: "Single-substance guides that walk the experience end to end.",
+    blurb: msg("Single-substance guides that walk the experience end to end."),
     tags: [],
     // The curated guide map is the one place that decides what counts as a
     // drug guide; the tags on these rows only say "intensity scale".
@@ -70,16 +71,16 @@ const GROUP_DEFINITIONS: readonly ArticleGroupDefinition[] = [
   },
   {
     id: "scales",
-    label: "Intensity & rating scales",
+    label: msg("Intensity & rating scales"),
     icon: "lucide:ruler",
-    blurb: "Level-by-level models of experience intensity, in the lineage of the Shulgin Rating Scale.",
+    blurb: msg("Level-by-level models of experience intensity, in the lineage of the Shulgin Rating Scale."),
     tags: ["intensity scale", "rating scale"],
   },
   {
     id: "consciousness",
-    label: "Dreaming & consciousness",
+    label: msg("Dreaming & consciousness"),
     icon: "lucide:moon",
-    blurb: "Guides to dream states, lucidity, and the practices used to explore them.",
+    blurb: msg("Guides to dream states, lucidity, and the practices used to explore them."),
     tags: ["dreams", "meditation", "psychonautics"],
   },
 ];
@@ -95,16 +96,16 @@ const GROUP_DEFINITIONS: readonly ArticleGroupDefinition[] = [
  */
 const RECENT_GROUP: Omit<ArticleGroupDefinition, "tags"> = {
   id: "recent",
-  label: "Recent",
+  label: msg("Recent"),
   icon: "lucide:sparkles",
-  blurb: "Newly published writing, straight from the editor.",
+  blurb: msg("Newly published writing, straight from the editor."),
 };
 
 const FALLBACK_GROUP: Omit<ArticleGroupDefinition, "tags"> = {
   id: "reference",
-  label: "Reference & other writing",
+  label: msg("Reference & other writing"),
   icon: "lucide:notebook-text",
-  blurb: "Short definitional pages and notes the rest of the archive refers back to.",
+  blurb: msg("Short definitional pages and notes the rest of the archive refers back to."),
 };
 
 const MONTH_LABELS = [

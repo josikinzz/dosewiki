@@ -22,7 +22,7 @@ import {
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
 import { isUnavailablePublicDynamicPath, publicSubstanceSlugForPath } from "@server/next/publicRouteAvailability";
-import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath, localizedRecordRoutePath } from "@server/next/localeHostPolicy";
+import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath, localizedNotFoundRoutePath, localizedRecordRoutePath } from "@server/next/localeHostPolicy";
 import {
   getReplicationArtistRouteAlias,
   getReplicationRouteAlias,
@@ -326,16 +326,6 @@ export async function middleware(request: NextRequest) {
   });
   const browserPolicy = getBrowserPolicyContext(request, appPath, delivery !== "public");
 
-  // The flavor-gated 404 route matches no localized page, so the app cannot
-  // derive the mirror locale from its route segments; stamping it here —
-  // ahead of the early 404 rewrites — lets every rewrite and fall-through
-  // carry it, and `not-found.tsx` reads it to render the 404 chrome in the
-  // mirror's language.
-  const earlyLocaleHost = localeForHost(request.headers.get("host"));
-  if (earlyLocaleHost) {
-    browserPolicy.requestHeaders.set("x-dosewiki-mirror-locale", earlyLocaleHost.code);
-  }
-
   // Refuse public origins and unlisted deployment aliases before serving an editor build.
   if (delivery === "closed") {
     return browserPolicy.secure(new NextResponse("Editor deployment is unavailable.", { status: 503 }));
@@ -462,10 +452,17 @@ export async function middleware(request: NextRequest) {
   // Dynamic replication and substance pages are generated on first request so
   // clean deployments stay bounded. Next streams an in-page `notFound()` at
   // HTTP 200, so reject slugs absent from the build's public corpus here and
-  // let the deliberately unroutable target produce a real 404.
+  // let the deliberately unroutable target produce a real 404. A mirror host
+  // rewrites to its own 404 page instead, carrying the status here, so the
+  // 404 renders in the mirror's language as ordinary server output.
   if (isUnavailablePublicDynamicPath(appPath)) {
+    const mirrorHost = localeForHost(request.headers.get("host"));
+    const target = mirrorHost
+      ? localizedNotFoundRoutePath(mirrorHost)
+      : FLAVOR_GATED_NOT_FOUND_PATH;
     return browserPolicy.secure(
-      NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
+      NextResponse.rewrite(new URL(target, request.url), {
+        status: mirrorHost ? 404 : undefined,
         request: { headers: browserPolicy.requestHeaders },
       }),
     );
