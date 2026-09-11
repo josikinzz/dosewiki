@@ -212,6 +212,7 @@ export function AboutArchivePreview({
   /** Show the molecule strip under the pills. Defaults to on when the pack is listed. */
   showMoleculePreview?: boolean;
 }) {
+  const t = useT();
   const visibleDownloads = DOWNLOADS.flatMap((download) => {
     const stats = downloads[download.key];
     return stats ? [{ ...download, stats }] : [];
@@ -314,7 +315,7 @@ export function AboutArchivePreview({
       <div className="theme-card-surface theme-about-json-preview flex min-w-0 flex-col overflow-hidden rounded-2xl border">
         <div className="theme-about-json-preview-header flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
           <span className="theme-json-preview-muted min-w-0 text-xs font-medium leading-4">
-            Sample record · refreshed nightly from the live database
+            {t("Sample record · refreshed nightly from the live database")}
           </span>
           <div className="flex shrink-0 items-center gap-2">
             <Button

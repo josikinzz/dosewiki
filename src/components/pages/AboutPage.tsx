@@ -370,7 +370,7 @@ export const AboutPage = memo(function AboutPage({
                       <Icon icon={doc.icon} size={18} />
                       {t(doc.title)}
                     </span>
-                    <span className="theme-text-faint text-sm leading-6">{docBlurbs?.[index] ?? t(doc.description)}</span>
+                    <span className="theme-text-faint text-sm leading-6">{t(docBlurbs?.[index] ?? doc.description)}</span>
                   </Link>
                 </InteractiveContentCard>
               </li>
