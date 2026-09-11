@@ -14,7 +14,7 @@
 export const REVIEW_STATUS_BANNER_KEY = "review-status-banner";
 
 export const REVIEW_STATUS_BANNER_FALLBACK =
-  "Not yet reviewed — this article is pending editorial review by {{reviewer}}.";
+  "Not yet reviewed: this article is pending editorial review by {{reviewer}}.";
 
 export const EXPERT_REVIEW_CREDIT_KEY = "expert-review-credit";
 
@@ -34,7 +34,7 @@ export interface ReviewerCopySegments {
 
 /**
  * Split an editable review sentence around its first `{{reviewer}}` token.
- * Copy without the token renders verbatim with no name — the placeholder is
+ * Copy without the token renders verbatim with no name: the placeholder is
  * how an editor opts the linked credit in, exactly like the About page's
  * `{{compoundCount}}` tokens.
  */

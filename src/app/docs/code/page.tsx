@@ -43,7 +43,7 @@ const TOC_ITEMS = [
 
 // Diagram palette reference: the five domain hues are written verbatim into the
 // Mermaid classDef strokes below (blue #7dd3fc public, gold #e879f9 /dev,
-// green #6ee7b7 Convex, orange #fdba74 scripts, plum #f9a8d4 external/AI). Those
+// green #6ee7b7 database, orange #fdba74 scripts, plum #f9a8d4 external/AI). Those
 // raw hexes live ONLY inside <Mermaid> because the chart source is kept verbatim.
 // Every other surface that mirrors the same five domains (legend dots, repo-tree
 // labels, card labels, step chips) uses the theme-aware --theme-doc-domain-*
@@ -351,7 +351,7 @@ export default async function DocsCodePage() {
   AI["OpenRouter AI<br/>LLM gateway, models vary"]:::ext
   R2["Cloudflare R2<br/>replication media bytes"]:::ext
   SCRIPTS["Data pipelines<br/>scripts/ · parse, generate,<br/>cite, migrate, media intake"]:::scripts
-  DB[("Convex database<br/>convex/ · substanceIndex,<br/>effects, reports, citations...")]:::data
+  DB[("PlanetScale Postgres<br/>convex/ functions · substanceIndex,<br/>effects, reports, citations...")]:::data
   APP["Next.js app<br/>src/app/ routes +<br/>src/features/ modules"]:::pub
   PUBLIC["Public site<br/>articles, effects, reports,<br/>gallery, search, indexes"]:::pub
   DEV["/dev editor<br/>forms, AI generation,<br/>review queues, studios"]:::dev
@@ -376,7 +376,7 @@ export default async function DocsCodePage() {
   classDef data fill:#143026,stroke:#6ee7b7,color:#def3ea
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb
   classDef dev fill:#391a40,stroke:#e879f9,color:#f6e2fa`}
-              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write metadata to the Convex database and media to Cloudflare R2; the Next.js app serves the public site and the /dev editor, and rate-limited public intake routes accept trip reports, feedback, and signups"
+              title="System overview: scraped sources and OpenRouter AI feed the data pipelines, which write metadata to the PlanetScale Postgres database and media to Cloudflare R2; the Next.js app serves the public site and the /dev editor, and rate-limited public intake routes accept trip reports, feedback, and signups"
             />
           </div>
 
@@ -531,7 +531,7 @@ export default async function DocsCodePage() {
               convex/
             </span>
             {`                   `}
-            <span className="theme-text-faint">· the backend: schema.ts + one file per table</span>
+            <span className="theme-text-faint">· server functions: schema.ts + one file per table, run against Postgres</span>
             {`
 ├── `}
             <span
@@ -553,10 +553,13 @@ export default async function DocsCodePage() {
             <span className="theme-text-faint">· server-side helpers shared by app + scripts</span>
             {`
 │   ├── convex/               `}
-            <span className="theme-text-faint">· publicData.* readers: how pages read Convex</span>
+            <span className="theme-text-faint">· publicData.* readers: how pages read the database</span>
             {`
 │   ├── next/                 `}
             <span className="theme-text-faint">· route loaders, copy blocks, host policies</span>
+            {`
+│   ├── postgres/             `}
+            <span className="theme-text-faint">· Drizzle schema + the runtime that executes convex/ functions on Postgres</span>
             {`
 │   ├── auth/  http/  og/  citations/  runtime/
 ├── vendor/openchemlib/       `}

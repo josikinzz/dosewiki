@@ -230,7 +230,7 @@ describe("migrated surfaces render the pre-migration text", () => {
     );
 
     expect(document.body.textContent).toContain(
-      "Not yet reviewed — this article is pending editorial review by Lyrea.",
+      "Not yet reviewed: this article is pending editorial review by Lyrea.",
     );
     expect(document.body.textContent).not.toContain("{{");
   });

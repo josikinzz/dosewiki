@@ -183,7 +183,7 @@
     "kind": "markdown",
     "label": "CC0 publication consent",
     "group": "Submissions",
-    "body": "I consent to this report being reviewed and, if published, dedicated to the public domain (CC0), free for anyone to use, with no attribution required. This dedication cannot be revoked once the report is public. Anyone who has already copied it may keep using it. If I later ask dose.wiki to remove the report, that removal applies to dose.wiki only, not to copies made elsewhere."
+    "body": "I consent to this report being reviewed and, if published, dedicated to the public domain (CC0), free for anyone to use, with no attribution required. This dedication cannot be revoked once the report is public: anyone who has already copied it may keep using it. If I later ask dose.wiki to remove the report, that removal applies to dose.wiki only, not to copies made elsewhere."
   },
   {
     "key": "submit-report-consent-age",
@@ -331,7 +331,7 @@
     "kind": "plain",
     "label": "Pending-review banner",
     "group": "Substance articles",
-    "body": "Not yet reviewed — this article is pending editorial review by {{reviewer}}."
+    "body": "Not yet reviewed: this article is pending editorial review by {{reviewer}}."
   },
   {
     "key": "expert-review-credit",
@@ -827,7 +827,7 @@
     "kind": "plain",
     "label": "General feedback meta description",
     "group": "SEO",
-    "body": "Send the dose.wiki editors private feedback about the site — an article request, a technical issue, design, performance, or accessibility."
+    "body": "Send the dose.wiki editors private feedback about the site, an article request, a technical issue, design, performance, or accessibility."
   },
   {
     "key": "seo-replications-audio-description",
@@ -897,14 +897,14 @@
     "kind": "plain",
     "label": "Header tagline",
     "group": "Docs · Code",
-    "body": "Next.js 16 + React 19 + Convex, written for someone new to the repository"
+    "body": "Next.js 16 + React 19 + PlanetScale Postgres, written for someone new to the repository"
   },
   {
     "key": "docs-code-header-intro",
     "kind": "markdown",
     "label": "Header intro paragraph",
     "group": "Docs · Code",
-    "body": "dose.wiki is a **harm-reduction encyclopedia**: a public website of substance articles, subjective-effect documentation, and trip reports. The repository contains **three systems**. The public Next.js site renders content and accepts trip reports and feedback from readers. The login-protected `/dev` editor is where editors write, review, and cite that content. Command-line pipelines scrape, generate, and migrate it. All three read and write the same **Convex database**; what Convex holds is what the site serves."
+    "body": "dose.wiki is a **harm-reduction encyclopedia**: a public website of substance articles, subjective-effect documentation, and trip reports. The repository contains **three systems**. The public Next.js site renders content and accepts trip reports and feedback from readers. The login-protected `/dev` editor is where editors write, review, and cite that content. Command-line pipelines scrape, generate, and migrate it. All three read and write the same **Postgres database** on PlanetScale; what the database holds is what the site serves."
   },
   {
     "key": "docs-code-toc-s1",
@@ -946,7 +946,7 @@
     "kind": "plain",
     "label": "TOC label · 06 · The Convex data layer",
     "group": "Docs · Code",
-    "body": "06 · The Convex data layer"
+    "body": "06 · The data layer"
   },
   {
     "key": "docs-code-toc-s7",
@@ -1030,7 +1030,7 @@
     "kind": "plain",
     "label": "06 · Section heading",
     "group": "Docs · Code",
-    "body": "The Convex data layer: what is in the database"
+    "body": "The data layer: what is in the database"
   },
   {
     "key": "docs-code-s7-heading",
@@ -1121,7 +1121,7 @@
     "kind": "markdown",
     "label": "02 · Overview · intro",
     "group": "Docs · Code",
-    "body": "Every system in the repository reads and writes **Convex** (a hosted realtime database with serverless functions). Content enters through scrapers, AI pipelines, and reader submissions. Editors change it in `/dev`. The public site reads it, and replication media is served from Cloudflare R2. The colors below keep the same meaning for the rest of this page."
+    "body": "Every system in the repository reads and writes one **PlanetScale Postgres** database through a shared set of server functions. Content enters through scrapers, AI pipelines, and reader submissions. Editors change it in `/dev`. The public site reads it, and replication media is served from Cloudflare R2. The colors below keep the same meaning for the rest of this page."
   },
   {
     "key": "docs-code-s2-legend-public",
@@ -1142,7 +1142,7 @@
     "kind": "plain",
     "label": "02 · Overview · legend: Convex data",
     "group": "Docs · Code",
-    "body": "Convex data"
+    "body": "Database and server functions"
   },
   {
     "key": "docs-code-s2-legend-scripts",
@@ -1163,7 +1163,7 @@
     "kind": "markdown",
     "label": "02 · Overview · no-REST-backend callout",
     "group": "Docs · Code",
-    "body": "**There is no separate REST backend.** Convex hosts the database and the server functions (`convex/*.ts`) that read and write it. The Next.js app, the `/dev` editor, and the scripts all connect to the same Convex deployment. Public pages read through the `lib/convex/publicData.*` helpers. Browser writes (editor saves, reader submissions) go through Next.js route handlers under `src/app/api/`. Editor saves require an authenticated session with the appropriate role. Public submissions do not require sign-in; they use the abuse controls described in section 07. Both paths have named rate limits. Scripts use an admin key. The one extra piece of infrastructure is **Cloudflare R2**, which stores replication media bytes (section 09)."
+    "body": "**There is no separate REST backend.** The server functions in `convex/*.ts` (queries and mutations written against the Convex function API, which is where the folder name comes from) run in-process inside the Next.js app and the scripts, against PlanetScale Postgres through the adapter in `lib/postgres/runtime/`. Public pages read through the `lib/convex/publicData.*` helpers. Browser writes (editor saves, reader submissions) go through Next.js route handlers under `src/app/api/`. Editor saves require an authenticated session with the appropriate role. Public submissions do not require sign-in; they use the abuse controls described in section 07. Both paths have named rate limits. Scripts use an admin key. The one extra piece of infrastructure is **Cloudflare R2**, which stores replication media bytes (section 09)."
   },
   {
     "key": "docs-code-s3-framework-label",
@@ -1198,7 +1198,7 @@
     "kind": "plain",
     "label": "03 · Tech stack · Database + backend: title",
     "group": "Docs · Code",
-    "body": "Convex"
+    "body": "PlanetScale Postgres"
   },
   {
     "key": "docs-code-s3-database-body",
@@ -1226,7 +1226,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Auth: body",
     "group": "Docs · Code",
-    "body": "`auth.ts` configures sign-in: a single username + password credentials provider backed by the Convex `memberships` table (scrypt hashes, never env passwords). `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. The membership role is admin, editor, contributor, or viewer. Viewer has no editor access; the other roles have different permissions."
+    "body": "`auth.ts` configures sign-in: a single username + password credentials provider backed by the `memberships` table (scrypt hashes, never env passwords). `middleware.ts` protects `/dev` and keeps editor routes on the editor hosts. The membership role is admin, editor, contributor, or viewer. Viewer has no editor access; the other roles have different permissions."
   },
   {
     "key": "docs-code-s3-ai-label",
@@ -1289,7 +1289,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Media + abuse controls: body",
     "group": "Docs · Code",
-    "body": "Replication media bytes live in **Cloudflare R2** under content-addressed keys; Convex stores only the metadata (section 09 covers URL resolution and rollback). **Cloudflare Turnstile** gates the site-feedback form; the other public forms rely on honeypots, payload caps, and per-route rate limits."
+    "body": "Replication media bytes live in **Cloudflare R2** under content-addressed keys; the database stores only the metadata (section 09 covers URL resolution). **Cloudflare Turnstile** gates the site-feedback form; the other public forms rely on honeypots, payload caps, and per-route rate limits."
   },
   {
     "key": "docs-code-s3-tooling-label",
@@ -1331,7 +1331,7 @@
     "kind": "markdown",
     "label": "05 · Frontend · intro",
     "group": "Docs · Code",
-    "body": "The code splits two ways. `src/app/` holds thin **route folders** (one per URL, mostly data-fetching and metadata) plus ~70 API route handlers. `src/features/` holds the **rendering logic**, grouped into 15 domain modules. A route file fetches from Convex and passes the data to a feature module."
+    "body": "The code splits two ways. `src/app/` holds thin **route folders** (one per URL, mostly data-fetching and metadata) plus ~70 API route handlers. `src/features/` holds the **rendering logic**, grouped into 15 domain modules. A route file fetches from the database and passes the data to a feature module."
   },
   {
     "key": "docs-code-s5-public-routes-label",
@@ -1587,7 +1587,7 @@
     "kind": "markdown",
     "label": "06 · Data layer · table row: mailingListSubscribers",
     "group": "Docs · Code",
-    "body": "Private mailing-list signups shared by the portal's four public sites, written only through the public `/subscribe` Convex HTTP endpoint."
+    "body": "Private mailing-list signups shared by the portal's four public sites, written only through each site's own `/api/subscribe` route."
   },
   {
     "key": "docs-code-s6-table-molecule-class-templates",
@@ -1657,14 +1657,14 @@
     "kind": "markdown",
     "label": "07 · Traffic · read card: how",
     "group": "Docs · Code",
-    "body": "**How:** server components read Convex through the `lib/convex/publicData.*` helpers behind route loaders in `lib/next/` (read-only URL, tagged caches). Flow A in section 10 traces this path step by step."
+    "body": "**How:** server components read the database through the `lib/convex/publicData.*` helpers behind route loaders in `lib/next/` (tagged caches). Flow A in section 10 traces this path step by step."
   },
   {
     "key": "docs-code-s7-read-key",
     "kind": "markdown",
     "label": "07 · Traffic · read card: key",
     "group": "Docs · Code",
-    "body": "**Key property:** there is no client-side database access. Convex therefore never sees per-reader traffic, and a save can invalidate the affected pages predictably. Pages prerender, then revalidate by cache tag when an editor saves."
+    "body": "**Key property:** there is no client-side database access. The database therefore never sees per-reader traffic, and a save can invalidate the affected pages predictably. Pages prerender, then revalidate by cache tag when an editor saves."
   },
   {
     "key": "docs-code-s7-submit-label",
@@ -1706,7 +1706,7 @@
     "kind": "markdown",
     "label": "07 · Traffic · write card: who",
     "group": "Docs · Code",
-    "body": "**Who:** authenticated editors only. `middleware.ts` redirects everyone else to `/sign-in`. The Convex `memberships` role decides what an editor can change."
+    "body": "**Who:** authenticated editors only. `middleware.ts` redirects everyone else to `/sign-in`. The `memberships` role decides what an editor can change."
   },
   {
     "key": "docs-code-s7-write-how",
@@ -1741,14 +1741,14 @@
     "kind": "markdown",
     "label": "07 · Traffic · data card: how",
     "group": "Docs · Code",
-    "body": "**How:** `/open-data/SubstanceIndex.json`, `EffectIndex.json`, and `TripReports.json` serve daily Convex snapshots with per-dataset license envelopes. `/api/v1` is a versioned read-only JSON API with a self-describing `openapi.json`."
+    "body": "**How:** `/open-data/SubstanceIndex.json`, `EffectIndex.json`, and `TripReports.json` serve daily database snapshots with per-dataset license envelopes. `/api/v1` is a versioned read-only JSON API with a self-describing `openapi.json`."
   },
   {
     "key": "docs-code-s7-data-key",
     "kind": "markdown",
     "label": "07 · Traffic · data card: key",
     "group": "Docs · Code",
-    "body": "**Key property:** both surfaces are read-only and cache-friendly. Convex stays the live source for pages."
+    "body": "**Key property:** both surfaces are read-only and cache-friendly. The live database stays the source for pages."
   },
   {
     "key": "docs-code-s7-licensing",
@@ -1762,14 +1762,14 @@
     "kind": "markdown",
     "label": "08 · Scripts · intro",
     "group": "Docs · Code",
-    "body": "Alongside the site and the editor, `scripts/` is a set of Node and Bun command-line programs, one subdirectory per workflow family, each exposed as an `npm run` command. Parsers turn scraped wiki text into structured data (`scripts/parsers/`). Prepopulation loads the high-confidence fields into Convex (`scripts/prepopulate/`), and batch generation drafts the prose sections through OpenRouter (`scripts/batch/`). Editors review the result in `/dev`. The citation and legality workflows research and check the sources supporting individual claims (`scripts/citations/`, `scripts/legality/`); a claim can remain uncited."
+    "body": "Alongside the site and the editor, `scripts/` is a set of Node and Bun command-line programs, one subdirectory per workflow family, each exposed as an `npm run` command. Parsers turn scraped wiki text into structured data (`scripts/parsers/`). Prepopulation loads the high-confidence fields into the database (`scripts/prepopulate/`), and batch generation drafts the prose sections through OpenRouter (`scripts/batch/`). Editors review the result in `/dev`. The citation and legality workflows research and check the sources supporting individual claims (`scripts/citations/`, `scripts/legality/`); a claim can remain uncited."
   },
   {
     "key": "docs-code-s8-writes",
     "kind": "markdown",
     "label": "08 · Scripts · how scripts write to Convex",
     "group": "Docs · Code",
-    "body": "**Scripts write to Convex as an administrator, behind gates.** Where an editor save goes through an authenticated route handler, a script holds an admin token scoped to the one kind of write it performs (`CONVEX_ADMIN_TOKEN_<INTENT>`, resolved by `scripts/lib/data-ops-run-context.mjs`). Production writes share one gate, in that run context and the `scripts/lib/production-write-command.mjs` wrapper. A run is a dry run by default. A real write is permitted only with `--write`, an explicit `TARGET_CONVEX_URL`, a `--confirm-write=<operation>` phrase, and an `--expected-deployment` that must match the target."
+    "body": "**Scripts write to the database as an administrator, behind gates.** Where an editor save goes through an authenticated route handler, a script holds an admin token scoped to the one kind of write it performs (`CONVEX_ADMIN_TOKEN_<INTENT>`, resolved by `scripts/lib/data-ops-run-context.mjs`). Production writes share one gate, in that run context and the `scripts/lib/production-write-command.mjs` wrapper. A run is a dry run by default. A real write is permitted only with `--write`, an explicit `TARGET_POSTGRES_URL`, a `--confirm-write=<operation>` phrase, and an `--expected-deployment` that must match the target database."
   },
   {
     "key": "docs-code-s8-write-records",
@@ -1819,14 +1819,14 @@
     "kind": "markdown",
     "label": "09 · Replications · intro",
     "group": "Docs · Code",
-    "body": "Replications (artist-made video, image, and audio recreations of subjective effects) are the one content type whose bytes do not live in Convex. **Convex stores metadata; Cloudflare R2 stores media.** Every media object sits under a content-addressed R2 key, a key derived from the file contents. `convex/lib/replicationUrls.ts` resolves public URLs from the `REPLICATION_MEDIA_BASE_URL` deployment variable; unset it and the site falls back to Convex Storage, which is the rollback switch."
+    "body": "Replications (artist-made video, image, and audio recreations of subjective effects) are the one content type whose bytes do not live in the database. **The database stores metadata; Cloudflare R2 stores media.** Every media object sits under a content-addressed R2 key, a key derived from the file contents. `convex/lib/replicationUrls.ts` resolves public URLs from the `REPLICATION_MEDIA_BASE_URL` deployment variable, which every deployment must set."
   },
   {
     "key": "docs-code-s9-intake",
     "kind": "markdown",
     "label": "09 · Replications · intake paragraph",
     "group": "Docs · Code",
-    "body": "Media arrives through `scripts/replications/`. Reviewed source media (for example the Reddit archive, following `docs/agents/reddit-replication-intake.md`) is uploaded to R2 under content-addressed keys and verified, then a production import writes the gallery metadata, taxonomy, and attribution rows to Convex. Provenance and artist identity are stored in the side tables from section 06, keeping the documents read when displaying the gallery small. Editors curate the result in the `/dev` Replication Studio: featured carousels, per-substance showcases, playlists, and duplicate reconciliation."
+    "body": "Media arrives through `scripts/replications/`. Reviewed source media (for example the Reddit archive, following `docs/agents/reddit-replication-intake.md`) is uploaded to R2 under content-addressed keys and verified, then a production import writes the gallery metadata, taxonomy, and attribution rows to the database. Provenance and artist identity are stored in the side tables from section 06, keeping the documents read when displaying the gallery small. Editors curate the result in the `/dev` Replication Studio: featured carousels, per-substance showcases, playlists, and duplicate reconciliation."
   },
   {
     "key": "docs-code-s9-curation",
@@ -1875,7 +1875,7 @@
     "kind": "markdown",
     "label": "10 · Flow A · step2 body",
     "group": "Docs · Code",
-    "body": "A route loader in `lib/next/` calls the `lib/convex/publicData.*` readers: tagged, cached, read-only Convex queries"
+    "body": "A route loader in `lib/next/` calls the `lib/convex/publicData.*` readers: tagged, cached, read-only database queries"
   },
   {
     "key": "docs-code-s10-flow-a-step3-title",
@@ -2120,14 +2120,14 @@
     "kind": "plain",
     "label": "11 · Vocabulary · Convex deployment: term",
     "group": "Docs · Code",
-    "body": "Convex deployment"
+    "body": "Database"
   },
   {
     "key": "docs-code-s11-deployment-body",
     "kind": "markdown",
     "label": "11 · Vocabulary · Convex deployment: definition",
     "group": "Docs · Code",
-    "body": "One production deployment (`glad-minnow-656`). All environments (local dev, previews, production) read and write it directly; the old dev deployment is retired. Treat every Convex write as a production write (see `AGENTS.md`)."
+    "body": "One production PlanetScale Postgres database. All environments (local dev, previews, production) read and write it directly through `DATA_BACKEND=postgres`; there is no separate staging copy. Treat every write as a production write (see `AGENTS.md`). The site ran on a Convex deployment until 2026-09-10, which is why the server-function folder and several helper names still say `convex`."
   },
   {
     "key": "docs-code-s11-flavor-term",
@@ -2141,7 +2141,7 @@
     "kind": "markdown",
     "label": "11 · Vocabulary · Site flavor: definition",
     "group": "Docs · Code",
-    "body": "One codebase, two publications: `NEXT_PUBLIC_SITE_FLAVOR` selects **dose.wiki** or the **Effect Index** at build time, and `src/config/siteFlavor.ts` owns every difference in nav, wordmark, and flavor-gated routes. Content and Convex data are shared."
+    "body": "One codebase, two publications: `NEXT_PUBLIC_SITE_FLAVOR` selects **dose.wiki** or the **Effect Index** at build time, and `src/config/siteFlavor.ts` owns every difference in nav, wordmark, and flavor-gated routes. Content and database rows are shared."
   },
   {
     "key": "docs-code-s11-copy-block-term",
@@ -2766,7 +2766,7 @@
     "kind": "markdown",
     "label": "04 · Important exceptions — replication media body",
     "group": "Docs · License",
-    "body": "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all — treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms)."
+    "body": "No subjective-effect replication image, video, or audio file is open-licensed, and none of it is CC0. Reuse is entirely the creator's or rightsholder's call, item by item. dose.wiki credits them when known, and many items have no recorded rightsholder at all; treat those as unknown rather than free. The full terms, provenance notes, and the credit-correction route are in [section 8](#replication-media-terms)."
   },
   {
     "key": "docs-license-s4-interactions-label",
@@ -2801,7 +2801,7 @@
     "kind": "markdown",
     "label": "04 · Important exceptions — datasets warning",
     "group": "Docs · License",
-    "body": "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references — the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references — credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms."
+    "body": "The downloadable datasets are not uniformly CC0: `SubstanceIndex.json` carries the TripSit `interactions` field, and `EffectIndex.json` carries the replication media it references, the `audio_replications` entries plus the `gallery_order` and `social_media_image` image references, credited to their creators. If you scrape full pages instead, also check your capture for reagent data, replication media, and legacy reports. None of those inherit CC0 terms."
   },
   {
     "key": "docs-license-s5-heading",
@@ -2836,7 +2836,7 @@
     "kind": "markdown",
     "label": "05 · Provenance — synthesized sections",
     "group": "Docs · License",
-    "body": "Where no such section exists, dose.wiki synthesizes one from source material gathered across the internet, the same way it writes the other article sections. Those runs exclude every project Josie Kins was involved in — Disregard Everything I Say, PsychonautWiki, and Effect Index — to avoid a conflict of interest. Synthesized sections are dose.wiki's own authorship and fall under the covered material. dose.wiki intends to replace these sections entirely with Mindstate Design Labs data."
+    "body": "Where no such section exists, dose.wiki synthesizes one from source material gathered across the internet, the same way it writes the other article sections. Those runs exclude every project Josie Kins was involved in, Disregard Everything I Say, PsychonautWiki, and Effect Index, to avoid a conflict of interest. Synthesized sections are dose.wiki's own authorship and fall under the covered material. dose.wiki intends to replace these sections entirely with Mindstate Design Labs data."
   },
   {
     "key": "docs-license-s5-boundary-note",
@@ -3109,7 +3109,7 @@
     "kind": "markdown",
     "label": "08 · Full terms — replication policy",
     "group": "Docs · License",
-    "body": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item — explicit license, creator-retained, or unknown — so check the item itself rather than assuming any dataset's terms carry over."
+    "body": "Subjective-effect replication images, videos, and audio remain owned by the original creator or rightsholder unless an individual file states a different license. None of this library is open-licensed and no part of it is included in the CC0 dedication. dose.wiki's default policy is to credit the creator when known, preserve source links when available, and treat reuse rights as the rightsholder's to grant. The public replications API reports a rights status per item, explicit license, creator-retained, or unknown, so check the item itself rather than assuming any dataset's terms carry over."
   },
   {
     "key": "docs-license-s8-replication-provenance",

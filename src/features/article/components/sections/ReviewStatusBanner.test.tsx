@@ -16,7 +16,7 @@ describe("ReviewStatusBanner", () => {
 
     expect(screen.getByRole("status")).toBeInTheDocument();
     expect(
-      screen.getByText(/Not yet reviewed — this article is pending editorial review by/),
+      screen.getByText(/Not yet reviewed: this article is pending editorial review by/),
     ).toBeInTheDocument();
     expect(screen.getByText("Lyrea").closest("a")).toHaveAttribute(
       "href",
