@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/select";
 
 /**
- * The two looks on this axis, in picker order. The labels name the look rather than
- * the audience — "Vivid" for the coloured, illustrated reader theme, "Clinical" for
- * the flat, dense Effect Index face — on the VisualStyleToggle's terms. The stored
- * values stay `fun`/`pro`: that identity is baked into `data-visual-style`, the Pro
- * stylesheet, and the Theme Lab token tables.
+ * The looks on this axis, in picker order. The labels name the look rather than the
+ * audience - "Vivid" for the coloured, illustrated reader theme, "Clinical" for the
+ * flat, dense Effect Index face. The stored values stay `fun`/`pro`: that identity is
+ * baked into data-visual-style, the Pro stylesheet, and the Theme Lab token tables.
+ * New looks append here - the dropdown holds any number of options, which is why the
+ * axis moved off a two-segment pill.
  */
 const STYLE_OPTIONS: readonly {
   value: VisualStyle;
