@@ -17,7 +17,7 @@ Worked example. The source says, in full:
 > As of 13 December 2014, 2-FMA is a controlled substance in Germany.
 
 Correct output is that sentence, copied. Adding "In the United States, 2-FMA may be prosecuted under
-the Federal Analogue Act" is a fabrication even though it is plausible and even if it is true — the
+the Federal Analogue Act" is a fabrication even though it is plausible and even if it is true, the
 source did not say it. So is "2-FMA is banned across the EU": Germany is one country, not a bloc.
 
 Your output is machine-verified. A script substring-matches every extracted passage against the
@@ -25,40 +25,40 @@ staged source and rejects the file if any passage fails to appear.
 
 ## Copying rules
 
-- **Name jurisdictions exactly as the source does** — "The Netherlands", "UK", "Republic of
+- **Name jurisdictions exactly as the source does**: "The Netherlands", "UK", "Republic of
   Ireland". Never widen one country into a region, bloc, or "most countries", and never narrow a
   regional claim onto one country.
 - **Carry every date and "as of" qualifier.** A scheduling claim stripped of its date is worse than
   no claim, so extend the passage until the qualifier sits inside it.
-- **Preserve hedges intact** — "gray area", "may soon be banned", "would be considered", "pending
+- **Preserve hedges intact**: "gray area", "may soon be banned", "would be considered", "pending
   legislation", "unconfirmed". Copy the uncertainty; never resolve it into a definite status.
 - **Extract complete units**: whole paragraphs, list items, table rows. Never truncate mid-sentence.
   When a legal fact sits inside a paragraph about something else, copy the whole paragraph.
-- **Preserve markdown exactly** — headings, bullets, bold, tables, footnote markers.
+- **Preserve markdown exactly**: headings, bullets, bold, tables, footnote markers.
 - **Copy numbers, thresholds, and penalties exactly.** Never convert units or round figures.
 - **Bias toward including.** A human reviews this file; an extra passage costs a moment, a missed
   one is invisible.
 
 ## What counts as legality content
 
-**Country and sub-national status** — legal, illegal, controlled, decriminalised,
+**Country and sub-national status**: legal, illegal, controlled, decriminalised,
 prescription-only, unscheduled; the named instrument (Misuse of Drugs Act 1971, Anlage I BtMG,
 Verzeichnis E); the class or schedule label (Class A, Schedule III, Tabelle I); penalties,
 thresholds, possession-versus-trafficking distinctions, import/export limits, medical, research and
 religious exemptions, and state, province, or city-level variation.
 
-**Analogue-act and blanket-ban provisions** — US Federal Analogue Act, UK Psychoactive Substances
+**Analogue-act and blanket-ban provisions**: US Federal Analogue Act, UK Psychoactive Substances
 Act 2016, Canadian and New Zealand analogue clauses, generic bans. For research chemicals these are
 often the only legal statement any source makes. Extract them.
 
-**International and treaty-level status** — UN Single Convention 1961, Convention on Psychotropic
+**International and treaty-level status**: UN Single Convention 1961, Convention on Psychotropic
 Substances 1971, 1988 Convention, WHO/ECDD recommendations, INCB listings. Extracting these is not
 a reason to drop country-level content, or the reverse; both belong in the file.
 
-**Legal history** — when and why the substance was scheduled, prior status, changes over time, even
+**Legal history**: when and why the substance was scheduled, prior status, changes over time, even
 when it appears inside a History section.
 
-**Statements of absence** — "not scheduled in any country", "no known legal restrictions",
+**Statements of absence**: "not scheduled in any country", "no known legal restrictions",
 "uncontrolled" are legality findings. Extract them.
 
 Qualifies, from a PsychonautWiki country list:
@@ -71,7 +71,7 @@ Qualifies, being the only US sentence in a Wikipedia article:
 > As a close analog of a scheduled controlled substance, sale or possession of 2-FMA could
 > potentially be prosecuted under the Federal Analogue Act.
 
-Does not qualify — "schedule" and "controlled" are not legal terms here:
+Does not qualify: "schedule" and "controlled" are not legal terms here:
 
 > Participants followed a fixed dosing schedule in a placebo-controlled crossover trial.
 
@@ -80,7 +80,7 @@ Does not qualify — "schedule" and "controlled" are not legal terms here:
 One staged file holding every collected source document for a single substance:
 
 ```
-# <Substance Title> — Collected Sources
+# <Substance Title>: Collected Sources
 
 ## Source: TripSit Factsheets
 
@@ -95,7 +95,7 @@ One staged file holding every collected source document for a single substance:
 ---
 ```
 
-Source count and length vary widely — two sources for some articles, a dozen for others. Legality
+Source count and length vary widely, two sources for some articles, a dozen for others. Legality
 content is not confined to sections labelled "Legal status"; it also appears in overviews,
 introductions, history sections, harm-reduction warnings, and footnotes. Read every source in full.
 
@@ -125,7 +125,7 @@ introductions, history sections, harm-reduction warnings, and footnotes. Read ev
 - A source that was present but empty gets `*No content available for this source.*`
 - Every source block ends with a `---` rule.
 - Take the substance title from the staged file's own title line.
-- Emit the file body only — no code fences, no preamble, no closing commentary.
+- Emit the file body only, no code fences, no preamble, no closing commentary.
 
 **An all-empty file is a correct result.** Many substances, especially obscure research chemicals,
 have sources that say nothing about legal status. `*No legality content found.*` under every heading

@@ -129,7 +129,7 @@ duration:
 | `after_effects` | hours | Residual effects after main experience |
 | `total_duration` | hours | Total time from ingestion to baseline |
 
-**Unit Rule:** Use the unit the sources use for a stage (`seconds`, `minutes`, `hours`, or `days` — e.g. seconds for a smoked or intravenous onset, days for lingering after-effects). When sources mix units for one stage, convert to the larger unit. A stage with no data keeps the default unit above with null `min`/`max`.
+**Unit Rule:** Use the unit the sources use for a stage (`seconds`, `minutes`, `hours`, or `days`, e.g. seconds for a smoked or intravenous onset, days for lingering after-effects). When sources mix units for one stage, convert to the larger unit. A stage with no data keeps the default unit above with null `min`/`max`.
 
 ---
 

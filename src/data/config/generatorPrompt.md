@@ -47,15 +47,15 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 Before generating any output, read every available file in the substance folder:
 
 **Available file types (check which exist):**
-- `PSYCHONAUTWIKI - {Name}.md` — Dosage tables, duration timelines, subjective effects
-- `TRIPSIT_FACTSHEETS - {Name}.md` — Dosage, duration, effects, interactions
-- `TRIPSIT_WIKI - {Name}.md` — Detailed wiki articles, harm reduction info
-- `WIKIPEDIA - {Name}.md` — General encyclopedic information, pharmacology
-- `EROWID - {Name}.md` — Basics, effects, dosage, health, chemistry
-- `ISOMERDESIGN - {Name}.md` — PiHKAL/TiHKAL entries, chemistry data
-- `DRUGBANK - {Name}.md` — Pharmacology, metabolism, interactions, toxicity
-- `DISREGARDEVERYTHINGISAY - {Name}.md` — Detailed effect descriptions
-- `PROTESTKIT - {Name}.json` — Structured data with interactions, dosages
+- `PSYCHONAUTWIKI - {Name}.md`: Dosage tables, duration timelines, subjective effects
+- `TRIPSIT_FACTSHEETS - {Name}.md`: Dosage, duration, effects, interactions
+- `TRIPSIT_WIKI - {Name}.md`: Detailed wiki articles, harm reduction info
+- `WIKIPEDIA - {Name}.md`: General encyclopedic information, pharmacology
+- `EROWID - {Name}.md`: Basics, effects, dosage, health, chemistry
+- `ISOMERDESIGN - {Name}.md`: PiHKAL/TiHKAL entries, chemistry data
+- `DRUGBANK - {Name}.md`: Pharmacology, metabolism, interactions, toxicity
+- `DISREGARDEVERYTHINGISAY - {Name}.md`: Detailed effect descriptions
+- `PROTESTKIT - {Name}.json`: Structured data with interactions, dosages
 
 ### Step 2: Extract and Cross-Reference
 - Extract structured data from each source
@@ -473,7 +473,7 @@ comparisons:
 | `unsafe` | `array` | Significant harm risk combinations |
 | `caution` | `array` | Combinations requiring care |
 
-Format: `"Substance/Class (reason)"` — e.g., `"MAOIs (serotonin syndrome, hypertensive crisis)"`
+Format: `"Substance/Class (reason)"`, e.g., `"MAOIs (serotonin syndrome, hypertensive crisis)"`
 
 ### Reagent Testing
 

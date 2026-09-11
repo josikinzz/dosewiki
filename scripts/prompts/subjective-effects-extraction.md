@@ -8,7 +8,7 @@ This is selection and copying, not writing. You never compose a sentence of your
 ## Hard rules
 
 1. **Character-for-character.** Every passage you output must appear in the staged file exactly as you
-   reproduce it — same wording, punctuation, curly quotes, em dashes, capitalisation, spelling mistakes,
+   reproduce it, same wording, punctuation, curly quotes, em dashes, capitalisation, spelling mistakes,
    numbers, and units. A script re-checks each passage against the staged file by exact substring match.
    One altered character fails the file.
 2. **Never join.** Each passage is one contiguous run of source text. Passages separated in the source
@@ -30,7 +30,7 @@ This is selection and copying, not writing. You never compose a sentence of your
 The staged file concatenates every collected source document for one substance:
 
 ```
-# <Substance Title> — Collected Sources
+# <Substance Title>: Collected Sources
 
 ## Source: TripSit Factsheets
 
@@ -46,7 +46,7 @@ The staged file concatenates every collected source document for one substance:
 ```
 
 Two to a dozen sources, ranging from a two-line factsheet to a book chapter. Read each in full: relevant
-material turns up outside "Effects" headings — in overviews, summaries, comparisons, mid-paragraph asides.
+material turns up outside "Effects" headings, in overviews, summaries, comparisons, mid-paragraph asides.
 
 ## Output
 
@@ -79,21 +79,21 @@ Emit the file body only. No code fences, no preamble, no closing commentary.
 
 ## What counts
 
-Text describing what a person perceives, feels, thinks, or does under the substance — as clinical prose,
+Text describing what a person perceives, feels, thinks, or does under the substance, as clinical prose,
 a bulleted effect list, or first-person narrative:
 
-- **Physical** — body high, tingling, warmth, chills, heaviness, stimulation or sedation, physical
+- **Physical**: body high, tingling, warmth, chills, heaviness, stimulation or sedation, physical
   euphoria, nausea, appetite, pupil dilation, sweating, tremor, coordination, muscle tension, perceived
   heart rate, pain perception, energy, body load.
-- **Cognitive** — thought acceleration, deceleration, or looping; time distortion, memory effects,
+- **Cognitive**: thought acceleration, deceleration, or looping; time distortion, memory effects,
   introspection, mood lift, anxiety, paranoia, confusion, delusion, ego suppression or dissolution,
   unity, empathy, sociability, focus, creativity, déjà vu.
-- **Visual** — colour and acuity enhancement; drifting, melting, breathing, morphing, tracers,
+- **Visual**: colour and acuity enhancement; drifting, melting, breathing, morphing, tracers,
   after-images, depth and perspective distortion, texture repetition; open- and closed-eye geometry and
   its style, complexity, and intensity; internal and external hallucinations, entities, transformations.
-- **Other senses** — sound enhancement, distortion, and hallucination; music appreciation; tactile,
+- **Other senses**: sound enhancement, distortion, and hallucination; music appreciation; tactile,
   smell, taste, and synaesthetic effects.
-- **States and arc** — mystical, near-death, out-of-body, hole, and peak experiences; how effects rise,
+- **States and arc**: mystical, near-death, out-of-body, hole, and peak experiences; how effects rise,
   peak, plateau, and fade, and what the comedown and afterglow feel like.
 
 Receptor pharmacology, metabolism, dose tables, duration figures, legality, chemistry, and history belong
@@ -104,7 +104,7 @@ to other sections. When one paragraph carries both, copy the whole paragraph.
 First-person experience prose is the richest material this section gets, and it arrives as long
 unstructured narrative. Work through it paragraph by paragraph.
 
-**Copy** any paragraph describing perception, sensation, mood, thought, or hallucination — including
+**Copy** any paragraph describing perception, sensation, mood, thought, or hallucination, including
 timestamped entries, taking the timestamp label along with the paragraph it prefixes, since it is part of
 that line. Copy comparative descriptions ("similar to X but with more…") and temporal ones ("at the
 peak…", "as it wore off…"). Keep the author's voice, hedges, and asides intact.
@@ -125,7 +125,7 @@ Copy whole, timestamp included:
 **T+2:30** - Content and happy enough, although not tripping high or particularly intensively. The shivers and chills have largely dissipated and there is no perceptible discomfort in terms of body load. Skin feels relatively sensitised, in a strange entactogenic sort of way.
 ```
 
-Skip — logistics and setting, no effect described:
+Skip, logistics and setting, no effect described:
 
 ```
 The material was weighed on a milligram scale and taken orally on an empty stomach at 9pm, with a trusted friend present as a sitter.
@@ -156,5 +156,5 @@ needs a short name *and* a descriptive sentence, which is why prose matters more
 | `sensory.visual` | Enhancements, distortions, geometry, hallucinatory states |
 | `sensory.auditory` | Sound enhancement, distortion, hallucination, music appreciation |
 | `sensory.tactile`, `sensory.olfactory`, `sensory.gustatory`, `sensory.multisensory` | Touch, smell, taste, synaesthesia |
-| `progressive_stages` | Onset, come-up, peak, plateau, offset, afterglow — timestamped trip-report entries land here |
+| `progressive_stages` | Onset, come-up, peak, plateau, offset, afterglow, timestamped trip-report entries land here |
 | `attribution` | Author, publication, or byline attached to a quoted experience |

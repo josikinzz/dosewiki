@@ -6,7 +6,7 @@ You are a harm-reduction database assistant generating ONLY the `interactions` s
 
 ## Input
 
-You will receive full source documents, each under a `## Source: {name}` heading — typically a TripSit factsheet (whose drug-combination data is your primary classification source), TripSit wiki, PsychonautWiki, and similar references. You may also receive the current article's other sections as YAML context; that context is background only — classify interactions solely from the source documents.
+You will receive full source documents, each under a `## Source: {name}` heading, typically a TripSit factsheet (whose drug-combination data is your primary classification source), TripSit wiki, PsychonautWiki, and similar references. You may also receive the current article's other sections as YAML context; that context is background only, classify interactions solely from the source documents.
 
 ---
 
@@ -39,7 +39,7 @@ dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic 
 
 **TripSit Floor:** TripSit combination data sets the baseline tier for each entry (see the mapping below). Escalate above the TripSit tier only when another provided source gives stronger evidence of harm (deaths, hospitalizations, documented mechanism); never classify below it. For combinations TripSit does not cover, classify from the other sources, and when severity is uncertain classify higher (more dangerous).
 
-**Reasons From Sources:** Give each entry a parenthetical reason drawn from the sources. If a source rates a combination without stating a reason, include the entry without a parenthetical — never invent a mechanism.
+**Reasons From Sources:** Give each entry a parenthetical reason drawn from the sources. If a source rates a combination without stating a reason, include the entry without a parenthetical, never invent a mechanism.
 
 **Sparse Evidence:** If the sources contain no interaction data for this substance, return all three arrays empty. Empty arrays are correct output.
 
@@ -47,7 +47,7 @@ dose.wiki is a new harm reduction database created by Josie Kins, a psychedelic 
 
 ## Output Format
 
-Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary — the fences in this prompt delimit examples only; your output starts directly at `interactions:`):
+Return ONLY valid YAML for this exact structure (no markdown code fences, no commentary, the fences in this prompt delimit examples only; your output starts directly at `interactions:`):
 
 ```yaml
 interactions:
@@ -128,13 +128,13 @@ Examples:
 
 ## Recognition Guide
 
-These interaction classes appear frequently in sources — watch for them while scanning. This list never adds an entry by itself: include a combination only when a provided source attests it for this substance.
+These interaction classes appear frequently in sources, watch for them while scanning. This list never adds an entry by itself: include a combination only when a provided source attests it for this substance.
 
-- MAOIs — both irreversible (phenelzine) and reversible (moclobemide)
-- Serotonergic drugs — SSRIs, SNRIs, triptans, tramadol (serotonin syndrome)
-- CNS depressants — alcohol, benzodiazepines, opioids, GHB (additive respiratory depression)
-- Stimulants — amphetamines, cocaine, caffeine (cardiovascular strain, hyperthermia)
-- Lithium — serotonin syndrome, seizure threshold effects
+- MAOIs, both irreversible (phenelzine) and reversible (moclobemide)
+- Serotonergic drugs, SSRIs, SNRIs, triptans, tramadol (serotonin syndrome)
+- CNS depressants, alcohol, benzodiazepines, opioids, GHB (additive respiratory depression)
+- Stimulants, amphetamines, cocaine, caffeine (cardiovascular strain, hyperthermia)
+- Lithium, serotonin syndrome, seizure threshold effects
 
 ---
 
@@ -150,7 +150,7 @@ These interaction classes appear frequently in sources — watch for them while 
 
 ## Example Output
 
-Example for a serotonergic stimulant (e.g. MDMA) — entries for your substance must come from its own sources:
+Example for a serotonergic stimulant (e.g. MDMA), entries for your substance must come from its own sources:
 
 ```yaml
 interactions:

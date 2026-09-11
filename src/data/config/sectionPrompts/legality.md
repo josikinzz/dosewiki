@@ -24,7 +24,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Do not copy sentences or lengthy phrases verbatim from any source
 - Standard legal terminology (schedule names, legislation names) can remain as-is
 - Restructure and reframe information in your own voice
-- Include ONLY information present in the provided excerpts (one bounded exception for explaining bare classifications — see Core Principles)
+- Include ONLY information present in the provided excerpts (one bounded exception for explaining bare classifications, see Core Principles)
 - Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
@@ -33,17 +33,17 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 **Extract ALL Jurisdictions:** You MUST extract every jurisdiction mentioned in the source material, even if the information is minimal. Countries go in `countries`; US state entries go in `usStates` (see Field Definitions), never as `countries` keys.
 
-**Evidence Only:** Only include legal statuses explicitly mentioned in sources. Laws change frequently - do not assume based on drug class. Match the size of the output to the size of the evidence: if the excerpts contain no legal status information for any jurisdiction, `international: []` with `countries: {}` is the correct and complete output — an empty section is right; a guessed jurisdiction is a failure.
+**Evidence Only:** Only include legal statuses explicitly mentioned in sources. Laws change frequently - do not assume based on drug class. Match the size of the output to the size of the evidence: if the excerpts contain no legal status information for any jurisdiction, `international: []` with `countries: {}` is the correct and complete output, an empty section is right; a guessed jurisdiction is a failure.
 
-One bounded exception to evidence-only: when a source gives only a bare classification, the note may explain what that classification generally entails (severity tier; whether possession, sale, or production is prohibited) — but must not add legislation names, penalty figures, or dates the excerpts do not contain. Include legislation names only when the source provides them.
+One bounded exception to evidence-only: when a source gives only a bare classification, the note may explain what that classification generally entails (severity tier; whether possession, sale, or production is prohibited), but must not add legislation names, penalty figures, or dates the excerpts do not contain. Include legislation names only when the source provides them.
 
-**Preserve Dates:** When a source gives an effective date, scheduling date, or "as of" date, carry it into the note (e.g., "Controlled since January 26, 2016"). Present a dated claim with its date qualifier, not as an undated present-tense fact — this matters most for "legal" or "unscheduled" statuses, which go stale silently (e.g., "Reported as federally unscheduled as of 2016").
+**Preserve Dates:** When a source gives an effective date, scheduling date, or "as of" date, carry it into the note (e.g., "Controlled since January 26, 2016"). Present a dated claim with its date qualifier, not as an undated present-tense fact, this matters most for "legal" or "unscheduled" statuses, which go stale silently (e.g., "Reported as federally unscheduled as of 2016").
 
 **Conflicting Sources:** When sources disagree about a jurisdiction, prefer the claim with the more recent date. If neither is dated, report the more restrictive status and note the discrepancy (e.g., "Sources differ; listed as a controlled substance, though older sources describe it as unscheduled").
 
 **Use Full Country Names:** Use complete, human-readable country names as keys (e.g., "United States" not "US", "United Kingdom" not "UK" or "U.K. (Britain)", "Australia" not "AU").
 
-**Notes Are Required:** Every entry MUST have a non-empty `notes` field that explains the status — what it means, the legislation (when the source names it), or the practical consequences.
+**Notes Are Required:** Every entry MUST have a non-empty `notes` field that explains the status, what it means, the legislation (when the source names it), or the practical consequences.
 
 Examples of valid notes (even with minimal source info):
 - "Classified as a narcotic substance on January 18, 2019."
@@ -102,7 +102,7 @@ countries:
 
 ## Common Legal Statuses
 
-Reference for explaining a classification the excerpts assign — never a source of statuses. A substance belongs under one of these only if the excerpts place it there.
+Reference for explaining a classification the excerpts assign, never a source of statuses. A substance belongs under one of these only if the excerpts place it there.
 
 ### United States
 - Schedule I (no accepted medical use, high abuse potential)
@@ -150,7 +150,7 @@ Reference for explaining a classification the excerpts assign — never a source
 
 ## Example Output
 
-Every detail below (legislation names, dates, penalties) is assumed to be present in the source excerpts — include such details only when your excerpts state them:
+Every detail below (legislation names, dates, penalties) is assumed to be present in the source excerpts, include such details only when your excerpts state them:
 
 ```yaml
 legality:

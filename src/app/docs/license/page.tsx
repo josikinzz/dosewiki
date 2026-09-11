@@ -619,7 +619,7 @@ export default async function DocsLicensePage() {
                 All {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} of{" "}
                 {SUBJECTIVE_EFFECT_ATTRIBUTION_TOTAL} are August 2016 or earlier{" "}
                 <span className="theme-text-faint font-normal">
-                  &mdash; inside the boundary.
+                  (inside the boundary).
                 </span>
               </p>
 

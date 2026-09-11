@@ -30,11 +30,11 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 ## Core Principles
 
-**Evidence Only:** Include only information present in the provided excerpts, and only effects explicitly mentioned there. Do not infer effects from drug class. Match the size of the output to the size of the evidence: when excerpts are sparse, a short overview plus the few attested effects — with every unsupported field left empty (`""`, `{}`) — is the correct and complete output.
+**Evidence Only:** Include only information present in the provided excerpts, and only effects explicitly mentioned there. Do not infer effects from drug class. Match the size of the output to the size of the evidence: when excerpts are sparse, a short overview plus the few attested effects, with every unsupported field left empty (`""`, `{}`), is the correct and complete output.
 
 **PsychonautWiki Taxonomy:** Match every attested effect to its canonical PsychonautWiki effect name and place it under a subcategory key from the Effect Vocabulary below. Capitalize only the first word of each effect name, matching PsychonautWiki convention (e.g. `Color enhancement`, not `Color Enhancement`). Give an effect a `description` only when a source provides substance-specific detail; otherwise leave it `""`.
 
-**Descriptive Notes:** The notes fields should provide qualitative descriptions of the experience, not just list effects. Synthesize them from first-person narratives and experience sections — these are the richest material for conveying the character of the experience.
+**Descriptive Notes:** The notes fields should provide qualitative descriptions of the experience, not just list effects. Synthesize them from first-person narratives and experience sections, these are the richest material for conveying the character of the experience.
 
 ---
 
@@ -42,7 +42,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 Return ONLY valid YAML for this structure (no markdown code fences, no commentary). This structure is deliberately a subset of the full article schema: `progressive_stages` and `attribution` are managed outside generation.
 
-The top-level keys (`notes`, `sensory`, `cognitive`, `physical`) and the six sense keys under `sensory` are always present. Subcategory keys — under any sense, and under `cognitive`/`physical` — appear only when at least one attested effect belongs to them; a category with no attested effects stays `{}`.
+The top-level keys (`notes`, `sensory`, `cognitive`, `physical`) and the six sense keys under `sensory` are always present. Subcategory keys, under any sense, and under `cognitive`/`physical`, appear only when at least one attested effect belongs to them; a category with no attested effects stays `{}`.
 
 ```yaml
 subjective_effects:
@@ -182,7 +182,7 @@ Subcategory keys are lowercase. Use the closest listed key; introduce a new key 
 
 ---
 
-## Example Output — rich evidence
+## Example Output, rich evidence
 
 For a substance whose excerpts contain detailed trip reports and effect lists:
 
@@ -271,9 +271,9 @@ subjective_effects:
 
 ---
 
-## Example Output — sparse evidence
+## Example Output, sparse evidence
 
-For a substance whose excerpts contain only a few clinical or factsheet lines. This shape — short overview, few attested effects, empty everything else — is the target for sparse material, not a fallback:
+For a substance whose excerpts contain only a few clinical or factsheet lines. This shape, short overview, few attested effects, empty everything else, is the target for sparse material, not a fallback:
 
 ```yaml
 subjective_effects:
@@ -323,8 +323,8 @@ subjective_effects:
 
 ## Validation Checklist
 
-- [ ] Every effect name and description traces to a specific excerpt — nothing inferred from drug class
-- [ ] Output size matches evidence size — sparse excerpts produce a mostly-empty structure
+- [ ] Every effect name and description traces to a specific excerpt, nothing inferred from drug class
+- [ ] Output size matches evidence size, sparse excerpts produce a mostly-empty structure
 - [ ] Effect names capitalize only the first word (e.g. `Color enhancement`)
 - [ ] Notes provide qualitative descriptions, not just lists
 - [ ] All fixed keys present; every emitted subcategory key contains at least one attested effect
