@@ -44,6 +44,7 @@ export async function getSubstancesIndexMetadata(
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
     pathname: options.canonicalPathname ?? pathname,
+    noIndex: options.noIndex,
     socialImage: pageSocialCardImage(
       "substances",
       `${SITE_FLAVOR_CONFIG.name} Substance Index`,
