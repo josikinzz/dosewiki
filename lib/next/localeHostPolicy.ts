@@ -42,7 +42,7 @@ export function localizedArticleRoutePath(locale: LiveLocale, slug: string): str
 }
 
 /** The English index paths the middleware also localizes, in route order. */
-export const LOCALIZED_INDEX_PATHS = ["/", "/substances"] as const;
+export const LOCALIZED_INDEX_PATHS = ["/", "/substances", "/effects", "/reports"] as const;
 
 /** The mirror route for one English index path, when that path localizes. */
 export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): string | null {
@@ -52,7 +52,53 @@ export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): s
   return pathname === "/" ? locale.pathPrefix : `${locale.pathPrefix}${pathname}`;
 }
 
+/**
+ * The mirror route prefix and slug for one mirrored record path. Substance
+ * articles route through the corpus-gated slug check in the middleware; this
+ * covers the effect and report detail paths, which the zh routes resolve
+ * against the live record and 404 on their own.
+ */
+export function localizedRecordRoutePath(
+  locale: LiveLocale,
+  pathname: string,
+): { path: string; kind: "effect" | "report"; slug: string } | null {
+  const effectSlug = pathname.match(/^\/effects\/([^/]+)\/?$/);
+  if (effectSlug) {
+    return {
+      path: `${locale.pathPrefix}/effects/${effectSlug[1]}`,
+      kind: "effect",
+      slug: effectSlug[1],
+    };
+  }
+  const reportSlug = pathname.match(/^\/reports\/([^/]+)\/?$/);
+  if (reportSlug) {
+    return {
+      path: `${locale.pathPrefix}/reports/${reportSlug[1]}`,
+      kind: "report",
+      slug: reportSlug[1],
+    };
+  }
+  return null;
+}
+
 /** Every cache path an English article expiry must also expire. */
 export function localizedArticlePaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => localizedArticleRoutePath(locale, slug));
+}
+
+/** Every cache path an English effect expiry must also expire. */
+export function localizedEffectPaths(effectSlug: string): string[] {
+  return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/effects/${effectSlug}`);
+}
+
+/** Every cache path an English report expiry must also expire. */
+export function localizedReportPaths(slug: string): string[] {
+  return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/reports/${slug}`);
+}
+
+/** Every localized index cache path for one English index path. */
+export function localizedIndexPaths(pathname: string): string[] {
+  return Object.values(LIVE_LOCALES).map((locale) => localizedIndexRoutePath(locale, pathname)).filter(
+    (path): path is string => path !== null,
+  );
 }

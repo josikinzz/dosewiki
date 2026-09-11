@@ -22,7 +22,7 @@ import {
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
 import { isUnavailablePublicDynamicPath, publicSubstanceSlugForPath } from "@server/next/publicRouteAvailability";
-import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath } from "@server/next/localeHostPolicy";
+import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath, localizedRecordRoutePath } from "@server/next/localeHostPolicy";
 import {
   getReplicationArtistRouteAlias,
   getReplicationRouteAlias,
@@ -469,16 +469,25 @@ export async function middleware(request: NextRequest) {
     return browserPolicy.secure(NextResponse.redirect(launchedUrl, 308));
   }
 
-  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route
-  // and the homepage plus the substance index render their localized routes;
-  // every other path on the mirror host serves the English page so navigation
-  // never leaves the host. A mirror route addressed directly on any other
-  // host would be a second URL for the page, so it is unroutable there.
+  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route,
+  // `/effects/<slug>` and `/reports/<slug>` their effect/report routes, and
+  // the homepage plus the three indexes render their localized routes; every
+  // other path on the mirror host serves the English page so navigation never
+  // leaves the host. A mirror route addressed directly on any other host
+  // would be a second URL for the page, so it is unroutable there.
   const localeHost = localeForHost(request.headers.get("host"));
   const localizedSlug = localeHost ? publicSubstanceSlugForPath(appPath) : null;
   if (localeHost && localizedSlug) {
     const mirrorUrl = request.nextUrl.clone();
     mirrorUrl.pathname = localizedArticleRoutePath(localeHost, localizedSlug);
+    return browserPolicy.secure(
+      NextResponse.rewrite(mirrorUrl, { request: { headers: browserPolicy.requestHeaders } }),
+    );
+  }
+  const localizedRecord = localeHost ? localizedRecordRoutePath(localeHost, appPath) : null;
+  if (localeHost && localizedRecord) {
+    const mirrorUrl = request.nextUrl.clone();
+    mirrorUrl.pathname = localizedRecord.path;
     return browserPolicy.secure(
       NextResponse.rewrite(mirrorUrl, { request: { headers: browserPolicy.requestHeaders } }),
     );

@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { memo } from "react";
+import { msg } from "@/i18n/messages";
+import { useT } from "@/i18n/client";
 import { Icon, type IconName } from "@/components/common/Icon";
 import {
   PublicTableOfContents,
@@ -26,7 +30,7 @@ const INTRODUCTION_SECTION = {
 } satisfies { title: string; icon: IconName };
 
 const CONCLUSION_SECTION = {
-  title: "Conclusion / Aftermath",
+  title: msg("Conclusion / Aftermath"),
   icon: "lucide:moon" as const,
 } satisfies { title: string; icon: IconName };
 
@@ -67,25 +71,26 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   substanceLinks,
   preview,
 }: TripReportDetailPageProps) {
+  const t = useT();
   const hasTimeline =
     report.onset.length > 0 || report.peak.length > 0 || report.offset.length > 0;
 
   const tocItems = [
-    { id: "report-context", label: "Report Details", icon: "lucide:clipboard-list" as const },
+    { id: "report-context", label: t("Report Details"), icon: "lucide:clipboard-list" as const },
     report.introduction
-      ? { id: "report-introduction", label: INTRODUCTION_SECTION.title, icon: INTRODUCTION_SECTION.icon }
+      ? { id: "report-introduction", label: t(INTRODUCTION_SECTION.title), icon: INTRODUCTION_SECTION.icon }
       : null,
     report.onset.length > 0
-      ? { id: "report-onset", label: "Onset", icon: "lucide:sunrise" as const }
+      ? { id: "report-onset", label: t("Onset"), icon: "lucide:sunrise" as const }
       : null,
     report.peak.length > 0
-      ? { id: "report-peak", label: "Peak", icon: "lucide:sun" as const }
+      ? { id: "report-peak", label: t("Peak"), icon: "lucide:sun" as const }
       : null,
     report.offset.length > 0
-      ? { id: "report-offset", label: "Offset", icon: "lucide:sunset" as const }
+      ? { id: "report-offset", label: t("Offset"), icon: "lucide:sunset" as const }
       : null,
     report.conclusion
-      ? { id: "report-conclusion", label: CONCLUSION_SECTION.title, icon: CONCLUSION_SECTION.icon }
+      ? { id: "report-conclusion", label: t(CONCLUSION_SECTION.title), icon: CONCLUSION_SECTION.icon }
       : null,
   ].filter(Boolean) as PublicTableOfContentsItem[];
 
@@ -130,7 +135,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           {report.introduction ? (
             <div id={preview ? undefined : "report-introduction"} className="scroll-mt-24">
               <TextSection
-                title={INTRODUCTION_SECTION.title}
+                title={t(INTRODUCTION_SECTION.title)}
                 icon={INTRODUCTION_SECTION.icon}
                 content={report.introduction}
               />
@@ -160,7 +165,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           {report.conclusion ? (
             <div id={preview ? undefined : "report-conclusion"} className="scroll-mt-24">
               <TextSection
-                title={CONCLUSION_SECTION.title}
+                title={t(CONCLUSION_SECTION.title)}
                 icon={CONCLUSION_SECTION.icon}
                 content={report.conclusion}
               />
@@ -180,25 +185,26 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
  * CTA (share your own) plus quiet links back into the reports collection.
  */
 function ReportFooterActions() {
+  const t = useT();
   return (
     <footer className="theme-report-dossier mt-2 flex flex-col gap-4 rounded-2xl px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1">
-        <p className="theme-text-primary text-base font-semibold">Lived through something similar?</p>
+        <p className="theme-text-primary text-base font-semibold">{t("Lived through something similar?")}</p>
         <p className="theme-text-muted text-sm">
-          Share your own experience, or keep reading from the collection.
+          {t("Share your own experience, or keep reading from the collection.")}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2.5">
         <Button variant="accent" size="pill" asChild className="w-fit rounded-full">
           <Link href={publicHref.reportSubmission()}>
             <Icon icon="lucide:pencil-line" size={16} />
-            Submit your report
+            {t("Submit your report")}
           </Link>
         </Button>
         <Button variant="ghostPill" size="pill" asChild className="w-fit">
           <Link href={publicHref.reports()}>
             <Icon icon="lucide:library" size={16} />
-            Browse more reports
+            {t("Browse more reports")}
           </Link>
         </Button>
       </div>

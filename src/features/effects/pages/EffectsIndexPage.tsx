@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t } from "@/i18n/server";
 import { AppImage } from "@/components/common/AppImage";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SEIRoadmapNotice } from "@/components/common/SEIRoadmapNotice";
@@ -45,13 +46,17 @@ export function EffectsIndexPage({
   tabBlobs,
   initialView = EFFECT_INDEX_DEFAULT_VIEW,
 }: EffectsIndexPageProps) {
+  // Translate the plain-string catalog key, but keep the non-breaking-space
+  // English title when no translation applies, so the English layout keeps
+  // "Effect Index" on one line when the title wraps.
+  const seiTitle = t("Subjective Effect Index");
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <PageHeader
           // Non-breaking space: "Effect Index" stays on one line when the
           // title wraps, so a phone reads "Subjective / Effect Index".
-          title={"Subjective Effect\u00A0Index"}
+          title={seiTitle === "Subjective Effect Index" ? "Subjective Effect\u00A0Index" : seiTitle}
           icon={icons.subjectiveEffectIndex}
         />
 
@@ -68,11 +73,11 @@ export function EffectsIndexPage({
               className="h-[22px] w-[22px] rounded-full object-cover opacity-90 transition group-hover:opacity-100"
             />
             <span className="theme-text-faint text-xs transition group-hover:text-dose-text-secondary">
-              created by{" "}
+              {t("created by")}{" "}
               <span className="theme-text-secondary font-semibold underline decoration-dose-divider decoration-1 underline-offset-[3px] transition group-hover:text-dose-accent group-hover:decoration-dose-accent">
                 Josie Kins
               </span>
-              , 2011
+              {t(", 2011")}
             </span>
           </Link>
           <SEIRoadmapNotice shimmer className="text-center" />

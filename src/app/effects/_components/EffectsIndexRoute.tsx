@@ -1,6 +1,9 @@
 import { PrePaintRouteStateCover } from "@/components/common/PrePaintRouteStateCover";
+import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { applyPlaceholders } from "@/data/content/about";
+import { t } from "@/i18n/server";
+import { msg } from "@/i18n/messages";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import { SEI_INTRO_COPY_FALLBACK } from "@/features/effects/components/seiIntroCopy";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
@@ -27,19 +30,23 @@ const LEGACY_HASHES = [
   "gallery",
 ];
 
-export async function getEffectsIndexMetadata(pathname: string) {
-  const [result, copy] = await Promise.all([loadEffectsIndexRoute(), getCopy()]);
+export async function getEffectsIndexMetadata(
+  pathname: string,
+  options: { noIndex?: boolean; canonicalPathname?: string; locale?: LiveLocale | null } = {},
+) {
+  const [result, copy] = await Promise.all([loadEffectsIndexRoute(options.locale), getCopy()]);
   const template =
     copy.text("seo-effects-index-description") ||
-    "Browse {{effectCount}} subjective effect entries in {{siteName}}.";
+    msg("Browse {{effectCount}} subjective effect entries in {{siteName}}.");
 
   return buildPublicPageMetadata({
     ...result.metadata,
-    description: applyPlaceholders(template, {
+    description: applyPlaceholders(t(template, { effectCount: result.pageProps.effects.length, siteName: SITE_FLAVOR_CONFIG.name }), {
       effectCount: result.pageProps.effects.length,
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
-    pathname,
+    pathname: options.canonicalPathname ?? pathname,
+    noIndex: options.noIndex,
     socialImage: pageSocialCardImage(
       "effects",
       `${SITE_FLAVOR_CONFIG.name} Subjective Effect Index`,
@@ -50,11 +57,13 @@ export async function getEffectsIndexMetadata(pathname: string) {
 export async function EffectsIndexRoute({
   initialView,
   pathname,
+  locale = null,
 }: {
   initialView: EffectIndexView;
   pathname: string;
+  locale?: LiveLocale | null;
 }) {
-  const [result, copy] = await Promise.all([loadEffectsIndexRoute(), getCopy()]);
+  const [result, copy] = await Promise.all([loadEffectsIndexRoute(locale), getCopy()]);
   const canonicalUrl = buildSiteUrl(pathname);
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({

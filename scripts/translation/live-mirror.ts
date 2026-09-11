@@ -33,6 +33,7 @@ import { getPublicDataReadAdapter } from "../../lib/convex/publicData.reads";
 import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
 import * as live from "../../lib/translation/liveTranslation";
 import * as store from "../../lib/translation/segmentStore";
+import { CORPORA } from "./corpora.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 import { extractSegments, buildWorkUnits, type Segment } from "./segment-manifest.mjs";
 import { isBlocking } from "./validate.mjs";
@@ -46,6 +47,8 @@ const { values, positionals } = parseArgs({
     run: { type: "string" },
     slug: { type: "string" },
     all: { type: "boolean", default: false },
+    corpus: { type: "string", default: "substances" },
+    kind: { type: "string", default: "article" },
     limit: { type: "string", default: "50" },
     target: { type: "string" },
     write: { type: "boolean", default: false },
@@ -86,8 +89,12 @@ async function importRun() {
     throw new Error(`${runDir} lacks source-export.json or translations.jsonl`);
   }
 
+  const corpusId = values.corpus;
+  const corpus = CORPORA[corpusId as keyof typeof CORPORA];
+  if (!corpus) throw new Error(`Unknown corpus: ${corpusId}`);
+
   const dataset = JSON.parse(await readFile(exportPath, "utf8"));
-  const { segments } = extractSegments(dataset);
+  const { segments } = extractSegments(dataset, corpus);
   const sourceByHash = new Map<string, string>(segments.map((segment: Segment) => [segment.hash, segment.source]));
 
   const rows = new Map<string, { target: string }>();
@@ -130,15 +137,23 @@ async function importRun() {
 }
 
 async function enqueue() {
+  const kind = values.kind;
+  const prefix = kind === "effect" ? "effect/" : kind === "report" ? "report/" : "";
   let slugs: string[];
   if (values.all) {
-    slugs = await getPublicDataReadAdapter().getPublicSubstanceSlugs();
+    const reads = getPublicDataReadAdapter();
+    const records = kind === "effect"
+      ? await reads.getPublicEffects()
+      : kind === "report"
+        ? await reads.getPublicTripReportRecords()
+        : await reads.getPublicSubstanceSlugs().then((slugs) => slugs.map((slug) => ({ slug })));
+    slugs = records.map(({ slug }) => `${prefix}${slug}`);
   } else if (values.slug) {
     slugs = values.slug.split(",").map((slug) => slug.trim()).filter(Boolean);
   } else {
     throw new Error("enqueue needs --all or --slug=a,b");
   }
-  console.log(`Enqueue       ${slugs.length} article(s) for ${LOCALE}`);
+  console.log(`Enqueue       ${slugs.length} ${kind}(s) for ${LOCALE}`);
   if (!write) {
     console.log("Dry run: pass --write to enqueue.");
     return;
@@ -164,13 +179,24 @@ async function runQueue() {
     for (const job of jobs) {
       processed += 1;
       try {
-        const record = await reads.getPublicSubstanceBySlug(job.slug);
+        const kind = job.slug.startsWith("effect/")
+          ? ("effect" as const)
+          : job.slug.startsWith("report/")
+            ? ("report" as const)
+            : ("article" as const);
+        const slug = kind === "article" ? job.slug : job.slug.slice(`${kind}/`.length);
+        const record =
+          kind === "effect"
+            ? await reads.getPublicEffectBySlug(slug)
+            : kind === "report"
+              ? await reads.getPublicTripReportBySlug(slug)
+              : await reads.getPublicSubstanceBySlug(slug);
         if (!record) {
           await store.completeTranslationJob(job);
           console.log(`  ${job.slug}: not public, cleared`);
           continue;
         }
-        const outcome = await live.refreshSubstanceTranslations({ ...record, slug: job.slug }, job.locale, apiKey);
+        const outcome = await live.refreshRecordTranslations({ ...record, slug }, job.locale, kind, apiKey);
         await store.completeTranslationJob(job);
         console.log(
           `  ${job.slug}: ${outcome.segments} segments, ${outcome.requested} requested, ${outcome.stored} stored, ${outcome.rejected.length} rejected, ${outcome.usage.requests} requests`,

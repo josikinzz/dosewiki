@@ -25,7 +25,7 @@ import {
   publicSubstanceGalleryTag,
   publicSubstanceTag,
 } from "../convex/publicData.cache";
-import { localizedArticlePaths } from "./localeHostPolicy";
+import { localizedArticlePaths, localizedEffectPaths, localizedIndexPaths, localizedReportPaths } from "./localeHostPolicy";
 
 import type { PublicationTarget } from "./publicationWire";
 
@@ -61,7 +61,7 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
       };
     case "effect":
       return {
-        paths: [{ path: `/effects/${target.slug}` }],
+        paths: [{ path: `/effects/${target.slug}` }, ...localizedEffectPaths(target.slug).map((path) => ({ path }))],
         tags: [publicEffectTag(target.slug), PUBLIC_CONVEX_CACHE_TAGS.effects],
       };
     case "contributor":
@@ -88,7 +88,7 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
       };
     case "report":
       return {
-        paths: [{ path: `/reports/${target.slug}` }],
+        paths: [{ path: `/reports/${target.slug}` }, ...localizedReportPaths(target.slug).map((path) => ({ path }))],
         tags: [PUBLIC_CONVEX_CACHE_TAGS.reports],
       };
     case "blog-post":
@@ -98,7 +98,7 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
       };
     case "substance-lists":
       return {
-        paths: [{ path: "/substances" }],
+        paths: [{ path: "/substances" }, ...localizedIndexPaths("/substances").map((path) => ({ path }))],
         tags: [PUBLIC_SUBSTANCE_LISTS_TAG, PUBLIC_CONVEX_CACHE_TAGS.layouts],
       };
     case "chemical-lists":
@@ -117,9 +117,15 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
         tags: [PUBLIC_SUBSTANCE_LISTS_TAG],
       };
     case "effect-lists":
-      return { paths: [{ path: "/effects" }], tags: [PUBLIC_CONVEX_CACHE_TAGS.effects] };
+      return {
+        paths: [{ path: "/effects" }, ...localizedIndexPaths("/effects").map((path) => ({ path }))],
+        tags: [PUBLIC_CONVEX_CACHE_TAGS.effects],
+      };
     case "report-lists":
-      return { paths: [{ path: "/reports" }], tags: [PUBLIC_CONVEX_CACHE_TAGS.reports] };
+      return {
+        paths: [{ path: "/reports" }, ...localizedIndexPaths("/reports").map((path) => ({ path }))],
+        tags: [PUBLIC_CONVEX_CACHE_TAGS.reports],
+      };
     case "replication-collections":
       return {
         paths: [{ path: REPLICATION_SHOWCASE_PATH }],

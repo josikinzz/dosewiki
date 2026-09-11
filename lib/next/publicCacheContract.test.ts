@@ -57,7 +57,12 @@ describe("publication targets", () => {
       { kind: "substance-lists" },
     ]);
 
-    expect(effect.paths).toEqual([{ path: "/lsd" }, { path: "/zh/lsd" }, { path: "/substances" }]);
+    expect(effect.paths).toEqual([
+      { path: "/lsd" },
+      { path: "/zh/lsd" },
+      { path: "/substances" },
+      { path: "/zh/substances" },
+    ]);
     expect(effect.tags.filter((tag) => tag === "convex-public:substance-lists")).toHaveLength(1);
   });
 

@@ -8,6 +8,8 @@ import {
   getPublicSubstances,
   type TripReportDetailRecord,
 } from "@server/convex/publicData";
+import { getLocalizedPublicReportBySlug, getLocalizedPublicReports } from "@server/translation/localizedRecords";
+import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { SITE_FLAVOR_CONFIG } from "../../src/config/siteFlavor";
 import { reportsIndexEmptyState, type PublicRouteEmptyState } from "./publicRouteOutcomes";
 import { buildMetadataDescription, buildReportsIndexViewModel, type ReportsIndexViewModel } from "./publicRouteViewModels";
@@ -22,8 +24,11 @@ export type ReportsIndexRouteResult = OkRouteResult<
   ReportsIndexViewModel["pageProps"] & { emptyState?: PublicRouteEmptyState }
 >;
 
-export const loadReportsIndexRoute = cache(async (): Promise<ReportsIndexRouteResult> => {
-  const [overview, reports] = await Promise.all([getPublicDataOverview(), getPublicReports()]);
+export const loadReportsIndexRoute = cache(async (locale: LiveLocale | null = null): Promise<ReportsIndexRouteResult> => {
+  const [overview, reports] = await Promise.all([
+    getPublicDataOverview(),
+    locale ? getLocalizedPublicReports(locale.code) : getPublicReports(),
+  ]);
   const viewModel = buildReportsIndexViewModel({
     reportCount: overview.reportCount,
     reports,
@@ -51,8 +56,11 @@ export type ReportRouteResult =
     })
   | NotFoundRouteResult;
 
-export const loadReportRoute = cache(async (slug: string): Promise<ReportRouteResult> => {
-  const [report, substances] = await Promise.all([getPublicReportBySlug(slug), getPublicSubstances()]);
+export const loadReportRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<ReportRouteResult> => {
+  const [report, substances] = await Promise.all([
+    locale ? getLocalizedPublicReportBySlug(slug, locale.code) : getPublicReportBySlug(slug),
+    getPublicSubstances(),
+  ]);
 
   if (!report) {
     return { kind: "not-found" };

@@ -1,4 +1,7 @@
+"use client";
+
 import { Children, type ReactNode } from "react";
+import { useT } from "@/i18n/client";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { PublicTableOfContents } from "@/components/common/PublicTableOfContents";
@@ -100,6 +103,7 @@ export function EffectArticlePage({
   artistCreditLinks,
   embedded = false,
 }: EffectArticlePageProps) {
+  const t = useT();
   const normalizedReplicationsSection = replicationsSection
     ? Children.toArray(replicationsSection)
     : null;
@@ -211,7 +215,7 @@ export function EffectArticlePage({
                   key={section.id}
                   id={section.id}
                   icon={section.icon ?? "lucide:quote"}
-                  heading={section.title ?? "Personal Commentary"}
+                  heading={section.title ?? t("Personal Commentary")}
                   spacing="effect"
                 >
 

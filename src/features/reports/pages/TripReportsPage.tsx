@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t } from "@/i18n/server";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -43,9 +44,11 @@ export function TripReportsPage({
       className="mx-auto w-full px-4 pb-20 pt-6 focus:outline-none md:px-8"
     >
       <PageHeader
-        title="Experience Reports"
+        title={t("Experience Reports")}
         icon={icons.fileSignature}
-        description="First-person accounts of psychoactive experiences, published as their authors wrote them. Each one is a single person's experience, not dosing guidance."
+        description={t(
+          "First-person accounts of psychoactive experiences, published as their authors wrote them. Each one is a single person's experience, not dosing guidance.",
+        )}
         className="mx-auto mb-5 w-full max-w-4xl"
       />
 
@@ -66,13 +69,13 @@ export function TripReportsPage({
           <Button variant="pill" size="pill" asChild>
             <Link href={publicHref.reportSubmission()}>
               <Icon icon="lucide:file-pen-line" size={16} />
-              Submit a report
+              {t("Submit a report")}
             </Link>
           </Button>
           <Button variant="quiet" size="quiet" asChild>
             <a href="#main-content">
               <Icon icon="lucide:arrow-up" size={15} />
-              Back to top
+              {t("Back to top")}
             </a>
           </Button>
         </div>

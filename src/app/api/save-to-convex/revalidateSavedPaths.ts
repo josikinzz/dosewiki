@@ -41,14 +41,20 @@ export async function revalidateSavedPaths(
 
   // The locale mirrors follow the English by a cron, not inline: a model call
   // per edit would make saving feel broken. A failed enqueue is logged and the
-  // English publication proceeds; the next write to the article retries it.
-  const articleSlugs = targets.flatMap((target) => (target.kind === "article" ? [target.slug] : []));
-  if (articleSlugs.length > 0 && source !== "manual") {
+  // English publication proceeds; the next write to the record retries it.
+  // Effect and report jobs carry a namespace prefix; article slugs stay bare.
+  const recordSlugs = targets.flatMap((target) => {
+    if (target.kind === "article") return [target.slug];
+    if (target.kind === "effect") return [`effect/${target.slug}`];
+    if (target.kind === "report") return [`report/${target.slug}`];
+    return [];
+  });
+  if (recordSlugs.length > 0 && source !== "manual") {
     try {
-      await enqueueTranslationJobs(LIVE_LOCALE_CODES, articleSlugs);
+      await enqueueTranslationJobs(LIVE_LOCALE_CODES, recordSlugs);
     } catch (error) {
       console.warn("[revalidateSavedPaths] translation enqueue failed", {
-        slugs: articleSlugs,
+        slugs: recordSlugs,
         error: error instanceof Error ? error.message : String(error),
       });
     }

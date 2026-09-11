@@ -11,7 +11,7 @@ import { cache } from "react";
 import type { PublicSubstanceRecord } from "@server/convex/publicData.shared";
 import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
 
-import { localizeSubstanceRecord } from "./liveTranslation";
+import { localizeRecord } from "./liveTranslation";
 
 export const getLocalizedPublicSubstanceBySlug = cache(async (
   slug: string,
@@ -19,6 +19,6 @@ export const getLocalizedPublicSubstanceBySlug = cache(async (
 ): Promise<PublicSubstanceRecord | null> => {
   const substance = await getPublicSubstanceBySlug(slug);
   if (!substance) return null;
-  const localized = await localizeSubstanceRecord({ ...substance, slug }, locale);
+  const localized = await localizeRecord({ ...substance, slug }, locale, "article");
   return localized.record;
 });

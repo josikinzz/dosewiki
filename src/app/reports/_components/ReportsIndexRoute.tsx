@@ -1,6 +1,9 @@
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { applyPlaceholders } from "@/data/content/about";
 import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
+import type { LiveLocale } from "@server/next/localeHostPolicy";
+import { t } from "@/i18n/server";
+import { msg } from "@/i18n/messages";
 import type { ReportsIndexView } from "@/utils/indexViewRoutes";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { getCopy } from "@server/next/copyBlocks";
@@ -14,30 +17,36 @@ import { loadReportsIndexRoute } from "@server/next/routeLoaders.reports";
 
 const ITEM_LIST_LIMIT = 100;
 
-export async function getReportsIndexMetadata(pathname: string) {
-  const [result, copy] = await Promise.all([loadReportsIndexRoute(), getCopy()]);
+export async function getReportsIndexMetadata(
+  pathname: string,
+  options: { noIndex?: boolean; canonicalPathname?: string; locale?: LiveLocale | null } = {},
+) {
+  const [result, copy] = await Promise.all([loadReportsIndexRoute(options.locale), getCopy()]);
   const template =
     copy.text("seo-reports-index-description") ||
-    "Browse {{reportCount}} trip reports in {{siteName}}.";
+    msg("Browse {{reportCount}} trip reports in {{siteName}}.");
 
   return buildPublicPageMetadata({
     ...result.metadata,
-    description: applyPlaceholders(template, {
+    description: applyPlaceholders(t(template, { reportCount: result.pageProps.reports.length, siteName: SITE_FLAVOR_CONFIG.name }), {
       reportCount: result.pageProps.reports.length,
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
-    pathname,
+    pathname: options.canonicalPathname ?? pathname,
+    noIndex: options.noIndex,
   });
 }
 
 export async function ReportsIndexRoute({
   initialView,
   pathname,
+  locale = null,
 }: {
   initialView: ReportsIndexView;
   pathname: string;
+  locale?: LiveLocale | null;
 }) {
-  const [result, copy] = await Promise.all([loadReportsIndexRoute(), getCopy()]);
+  const [result, copy] = await Promise.all([loadReportsIndexRoute(locale), getCopy()]);
   const canonicalUrl = buildSiteUrl(pathname);
   const itemListJsonLd = serializeJsonLd(
     buildItemListSchema({

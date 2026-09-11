@@ -16,7 +16,7 @@ import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
 import { authorizeCronRequest } from "@server/http/cronAuthorization";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { getDataBackend } from "@server/postgres/runtime/backend";
-import { refreshSubstanceTranslations, type RefreshOutcome } from "@server/translation/liveTranslation";
+import { refreshRecordTranslations, type RefreshOutcome } from "@server/translation/liveTranslation";
 import { claimTranslationJobs, completeTranslationJob, failTranslationJob } from "@server/translation/segmentStore";
 
 export const runtime = "nodejs";
@@ -72,17 +72,31 @@ async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun
 
     for (const job of jobs) {
       try {
+        // The job table keys every record by slug; effect and report jobs carry
+        // a namespace prefix so one row always resolves to exactly one corpus.
+        const kind = job.slug.startsWith("effect/")
+          ? ("effect" as const)
+          : job.slug.startsWith("report/")
+            ? ("report" as const)
+            : ("article" as const);
+        const slug = kind === "article" ? job.slug : job.slug.slice(`${kind}/`.length);
+
         // Uncached: the job exists because the cached record is the one that just changed.
-        const record = await reads.getPublicSubstanceBySlug(job.slug);
+        const record =
+          kind === "effect"
+            ? await reads.getPublicEffectBySlug(slug)
+            : kind === "report"
+              ? await reads.getPublicTripReportBySlug(slug)
+              : await reads.getPublicSubstanceBySlug(slug);
         if (!record) {
           // Unpublished or renamed since the write; nothing to mirror.
           await completeTranslationJob(job);
           run.completed += 1;
           continue;
         }
-        const outcome = await refreshSubstanceTranslations({ ...record, slug: job.slug }, job.locale, apiKey);
+        const outcome = await refreshRecordTranslations({ ...record, slug }, job.locale, kind, apiKey);
         if (outcome.stored > 0) {
-          await publishPublicCache({ targets: [{ kind: "article", slug: job.slug }], source: "manual" });
+          await publishPublicCache({ targets: [{ kind, slug }], source: "manual" });
         }
         await completeTranslationJob(job);
         run.completed += 1;

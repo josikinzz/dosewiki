@@ -24,6 +24,7 @@ import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/p
 import { getPublicArticleHistory } from "@server/convex/publicData.changelog";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getLocalizedPublicSubstanceBySlug } from "@server/translation/localizedSubstance";
+import { getLocalizedPublicEffectBySlug, getLocalizedPublicEffects } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "./localeHostPolicy";
 import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
 import { getCopy } from "./copyBlocks";
@@ -217,7 +218,7 @@ export type EffectRouteResult =
     >
   | NotFoundRouteResult;
 
-export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectRouteResult> => {
+export const loadEffectRoute = cache(async (effectSlug: string, locale: LiveLocale | null = null): Promise<EffectRouteResult> => {
   const [
     effect,
     detail,
@@ -226,7 +227,7 @@ export const loadEffectRoute = cache(async (effectSlug: string): Promise<EffectR
     publicEffects,
     galleryReplications,
   ] = await Promise.all([
-    getPublicEffectBySlug(effectSlug),
+    locale ? getLocalizedPublicEffectBySlug(effectSlug, locale.code) : getPublicEffectBySlug(effectSlug),
     getPublicEffectDetail(effectSlug),
     getPublicContributorDirectory(),
     getPublicSubstanceSlugs(),
@@ -336,11 +337,10 @@ export type EffectsIndexRouteResult = OkRouteResult<
     emptyState?: PublicRouteEmptyState;
   }
 >;
-
-export const loadEffectsIndexRoute = cache(async (): Promise<EffectsIndexRouteResult> => {
+export const loadEffectsIndexRoute = cache(async (locale: LiveLocale | null = null): Promise<EffectsIndexRouteResult> => {
   const [overview, effects] = await Promise.all([
     getPublicDataOverview(),
-    getPublicEffects(),
+    locale ? getLocalizedPublicEffects(locale.code) : getPublicEffects(),
   ]);
   const viewModel = buildEffectsIndexViewModel({
     effectCount: overview.effectCount,
