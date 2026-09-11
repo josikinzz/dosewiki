@@ -1,4 +1,5 @@
 import { IconBadge } from "@/components/common/IconBadge";
+import { useT } from "@/i18n/client";
 import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 
@@ -23,6 +24,7 @@ export function RelatedSubstancesSection({
   linkableSubstanceSlugs,
   showHeading = true,
 }: RelatedSubstancesSectionProps) {
+  const t = useT();
   if (groups.length === 0) {
     return null;
   }
@@ -31,15 +33,17 @@ export function RelatedSubstancesSection({
     <div>
       {showHeading ? (
         <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-dose-accent">
-          <IconBadge icon="lucide:flask-conical" label="Related Substances" />
-          Related Substances
+          <IconBadge icon="lucide:flask-conical" label={t("Related Substances")} />
+          {t("Related Substances")}
           <span className="ml-2 text-sm font-normal text-dose-text-faint">
             ({total})
           </span>
         </h2>
       ) : (
         <p className="theme-text-secondary mb-4 text-sm">
-          {total} substance{total === 1 ? "" : "s"} currently linked to this effect.
+          {total === 1
+            ? t("{{count}} substance currently linked to this effect.", { count: total })
+            : t("{{count}} substances currently linked to this effect.", { count: total })}
         </p>
       )}
       <CategoryGrid

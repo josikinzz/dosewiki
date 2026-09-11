@@ -42,7 +42,7 @@ export function localizedArticleRoutePath(locale: LiveLocale, slug: string): str
 }
 
 /** The English index paths the middleware also localizes, in route order. */
-export const LOCALIZED_INDEX_PATHS = ["/", "/substances", "/effects", "/reports"] as const;
+export const LOCALIZED_INDEX_PATHS = ["/", "/substances", "/effects", "/reports", "/about"] as const;
 
 /** The mirror route for one English index path, when that path localizes. */
 export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): string | null {

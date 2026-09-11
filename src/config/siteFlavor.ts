@@ -362,38 +362,45 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   aboutTitle: "About dose.wiki",
   about: {
     reuseNotice: {
-      leadIn: "dose.wiki's own writing, dataset schema, and normalization work are dedicated to the public domain under",
-      linkLabel: "CC0",
+      leadIn: msg(
+        "dose.wiki's own writing, dataset schema, and normalization work are dedicated to the public domain under",
+      ),
+      linkLabel: msg("CC0"),
       linkHref: "/docs/license",
       linkIsExternal: false,
-      trailing:
+      trailing: msg(
         ". Downloads also include third-party material with separate terms. See the license page before reusing it.",
+      ),
     },
     // dose.wiki's About prose is editor-managed in Convex.
     missionMarkdown: null,
     showOpenData: true,
     showCommunity: true,
-    docsTitle: "Documentation",
+    docsTitle: msg("Documentation"),
     docLinks: [
       {
         href: "/docs/how",
         icon: "lucide:workflow",
-        title: "How articles are made",
-        description:
+        title: msg("How articles are made"),
+        description: msg(
           "Sources, AI drafting, human review, and citation checks for substance articles.",
+        ),
       },
       {
         href: "/docs/code",
         icon: "lucide:code-2",
-        title: "How dose.wiki is built",
-        description:
+        title: msg("How dose.wiki is built"),
+        description: msg(
           "The codebase, data layer, and systems behind the site.",
+        ),
       },
       {
         href: "/docs/license",
         icon: "lucide:scale",
-        title: "License & reuse",
-        description: "Reuse terms for our writing, datasets, code, and third-party material.",
+        title: msg("License & reuse"),
+        description: msg(
+          "Reuse terms for our writing, datasets, code, and third-party material.",
+        ),
       },
     ],
     contact: {
@@ -542,13 +549,15 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     // pages that state it describe dose.wiki's own pipeline and codebase. Both the
     // sentence and the cards point at the copyright disclaimer instead.
     reuseNotice: {
-      leadIn:
+      leadIn: msg(
         "Effect Index's indexing and written material is available for non-commercial reuse under",
-      linkLabel: "CC BY-NC-SA 4.0",
+      ),
+      linkLabel: msg("CC BY-NC-SA 4.0"),
       linkHref: "/copyright-disclaimer",
       linkIsExternal: false,
-      trailing:
+      trailing: msg(
         ", with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
+      ),
     },
     missionMarkdown: EFFECT_INDEX_MISSION_MARKDOWN,
     // The Open Data tab's exports are dose.wiki's own (molecule pack, SubstanceIndex.json,
@@ -556,34 +565,39 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     showOpenData: false,
     // Partners & Community is dose.wiki's partner and community roster.
     showCommunity: false,
-    docsTitle: "Licensing & Contact",
+    docsTitle: msg("Licensing & Contact"),
     docLinks: [
       {
         href: "/copyright-disclaimer",
         icon: "lucide:scale",
-        title: "Copyright disclaimer",
-        description:
+        title: msg("Copyright disclaimer"),
+        description: msg(
           "The licence covering Effect Index material, and how to request artwork removal or reattribution.",
+        ),
       },
       {
         href: "/contact",
         icon: "lucide:mail",
-        title: "Contact us",
-        description: "How to reach the Effect Index staff, and the site founder directly.",
+        title: msg("Contact us"),
+        description: msg(
+          "How to reach the Effect Index staff, and the site founder directly.",
+        ),
       },
       {
         href: "/discord",
         icon: "simple-icons:discord",
-        title: "Discord community",
-        description:
+        title: msg("Discord community"),
+        description: msg(
           "The project's semi-private Discord: what it is for, how to join, and its rules.",
+        ),
       },
       {
         href: "/donate",
         icon: "lucide:heart",
-        title: "Donate",
-        description:
+        title: msg("Donate"),
+        description: msg(
           "Patreon, merchandise, PayPal and Ethereum — what the funds pay for, and how to give.",
+        ),
       },
     ],
     // Effect Index's contact instructions live on its own /contact page, carded above.

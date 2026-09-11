@@ -6,6 +6,7 @@ import type {
 } from "@/types/tripReport";
 import { slugify } from "@/utils/slug";
 import { tripDateSortValue } from "@/utils/tripReportDate";
+import { formatMessage, msg, type Translate } from "@/i18n/messages";
 
 export type ReportSortDirection = "asc" | "desc";
 export type ReportSortKey = "alphabetical" | "count" | "date";
@@ -17,8 +18,8 @@ export type ReportSortKey = "alphabetical" | "count" | "date";
  */
 export type ReportGroupKind = "substance" | "author" | "letter" | "mixed";
 
-export const COMBINATIONS_GROUP_NAME = "Combinations";
-export const OTHER_SUBSTANCES_GROUP_NAME = "Other substances";
+export const COMBINATIONS_GROUP_NAME = msg("Combinations");
+export const OTHER_SUBSTANCES_GROUP_NAME = msg("Other substances");
 
 export interface TripReportGroup<TReport> {
   name: string;
@@ -343,10 +344,16 @@ export function getReportBackTarget({
   report,
   substanceBySlug,
   fromSubstanceSlug,
+  translate = formatMessage,
 }: {
   report?: Pick<TripReport, "substances"> | null;
   substanceBySlug: Record<string, SubstanceLookupRecord> | Map<string, SubstanceLookupRecord>;
   fromSubstanceSlug?: string;
+  /**
+   * The `t` of the surface rendering the label, so "Back to …" names the
+   * target in the UI locale. Defaults to English formatting.
+   */
+  translate?: Translate;
 }): ReportBackTarget {
   const lookup = substanceBySlug instanceof Map ? substanceBySlug : new Map(Object.entries(substanceBySlug));
   const normalizedFromSlug = fromSubstanceSlug?.trim() || undefined;
@@ -355,7 +362,9 @@ export function getReportBackTarget({
 
   return {
     href,
-    label: backToSubstance ? `Back to ${backToSubstance}` : "Back to Reports",
+    label: backToSubstance
+      ? translate(msg("Back to {{substance}}"), { substance: backToSubstance })
+      : translate(msg("Back to Reports")),
   };
 }
 

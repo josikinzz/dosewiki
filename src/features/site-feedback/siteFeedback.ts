@@ -9,6 +9,8 @@
  * verification) live in siteFeedbackStore.server.ts.
  */
 
+import { msg } from "@/i18n/messages";
+
 export const SITE_FEEDBACK_SCHEMA_VERSION = 1;
 
 export const SITE_FEEDBACK_CATEGORIES = [
@@ -23,12 +25,12 @@ export const SITE_FEEDBACK_CATEGORIES = [
 export type SiteFeedbackCategory = (typeof SITE_FEEDBACK_CATEGORIES)[number];
 
 export const SITE_FEEDBACK_CATEGORY_LABELS: Record<SiteFeedbackCategory, string> = {
-  "article-request": "Article request",
-  technical: "Website technical issue",
-  "ui-design": "UI / design",
-  performance: "Performance",
-  accessibility: "Accessibility",
-  misc: "Miscellaneous",
+  "article-request": msg("Article request"),
+  technical: msg("Website technical issue"),
+  "ui-design": msg("UI / design"),
+  performance: msg("Performance"),
+  accessibility: msg("Accessibility"),
+  misc: msg("Miscellaneous"),
 };
 
 /**
@@ -36,18 +38,24 @@ export const SITE_FEEDBACK_CATEGORY_LABELS: Record<SiteFeedbackCategory, string>
  * verbatim from the PRD prototype).
  */
 export const SITE_FEEDBACK_CATEGORY_PLACEHOLDERS: Record<SiteFeedbackCategory, string> = {
-  "article-request":
+  "article-request": msg(
     "Which article do you wish for? The more additional data provided the easier it will be to get started. Name, CAS#, experience reports and scientific literature all greatly help.",
-  technical:
+  ),
+  technical: msg(
     "What currently isn't working as intended? Please list any technical issues, performance problems, or broken functionality such as hyperlinks or glitches. Providing detail like operating system, browser, and steps to replicate the issue will greatly aid in solving the problem.",
-  "ui-design":
+  ),
+  "ui-design": msg(
     "Layout, navigation, mobile or desktop experience, visual design — what would you change, and where?",
-  performance:
+  ),
+  performance: msg(
     "What feels slow? Page loading, search speed, media loading — the page and rough timings help a lot.",
-  accessibility:
+  ),
+  accessibility: msg(
     "Screen readers, keyboard navigation, contrast, motion — what got in your way, and what technology were you using?",
-  misc:
+  ),
+  misc: msg(
     "None of the other categories suit the type of feedback? Feel free to write it here. For collaboration, legal or media inquiries, or takedown requests, please email contact@dose.wiki instead.",
+  ),
 };
 
 export const SITE_FEEDBACK_URGENCIES = [
@@ -60,10 +68,10 @@ export const SITE_FEEDBACK_URGENCIES = [
 export type SiteFeedbackUrgency = (typeof SITE_FEEDBACK_URGENCIES)[number];
 
 export const SITE_FEEDBACK_URGENCY_LABELS: Record<SiteFeedbackUrgency, string> = {
-  critical: "Critical — safety or data issue",
-  high: "High — degrades the site",
-  normal: "Normal — worth fixing",
-  low: "Low — cosmetic",
+  critical: msg("Critical — safety or data issue"),
+  high: msg("High — degrades the site"),
+  normal: msg("Normal — worth fixing"),
+  low: msg("Low — cosmetic"),
 };
 
 /** Categories where the urgency dropdown applies (bug-like categories). */

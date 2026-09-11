@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useT } from "@/i18n/client";
 import { Icon, type IconName } from "../common/Icon";
 import { MoleculeImage } from "./MoleculeImage";
 import { Button } from "@/components/ui/button";
@@ -80,12 +81,17 @@ function DownloadPill({
 }) {
   // One noun for every file: the count answers "how much is in here", and the
   // filename already says what.
-  const entries = `${stats.count.toLocaleString()} entries`;
+  const t = useT();
+  const entries = t("{{count}} entries", { count: stats.count.toLocaleString() });
   const size = formatFileSize(stats.bytes);
   return (
     <Button
       onClick={onClick}
-      aria-label={`Download ${filename}, ${entries}, ${size}`}
+      aria-label={t("Download {{filename}}, {{entries}}, {{size}}", {
+        filename,
+        entries,
+        size,
+      })}
       className="theme-control-pill theme-text-primary h-10 w-full justify-start gap-2.5 rounded-full pl-3.5 pr-4"
     >
       <Icon icon={icon} size={18} className="theme-accent-emphasis shrink-0" aria-hidden="true" />

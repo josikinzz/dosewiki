@@ -15,7 +15,7 @@ import type { Translate } from "@/i18n/messages";
 import { EditableValue, useArticleEdit } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
 import { DOSE_TIERS, DURATION_STAGES } from "./dosageDurationLabels";
-import { normalizeDurationStageForDisplay } from "./durationUnits";
+import { formatDurationText, normalizeDurationStageForDisplay } from "./durationUnits";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
   if (!range || (range.min === null && range.max === null)) return "N/A";
@@ -141,6 +141,7 @@ function ExpandableNoteRow({
   label,
   panelId,
   value,
+  valueDisplay,
   valuePath,
   valueEmptyLabel,
   notes,
@@ -152,6 +153,12 @@ function ExpandableNoteRow({
   label: string;
   panelId: string;
   value: string;
+  /**
+   * Reader-facing rendering of `value`, with its trailing duration unit word
+   * translated. The editor seed stays the raw `value`, so a save round-trips
+   * the stored string byte for byte.
+   */
+  valueDisplay?: string;
   /**
    * Field path of the headline value (`bioavailability`, `half_life`).
    * Optional: absent wherever the route's index is unknown, and inert outside
@@ -208,10 +215,10 @@ function ExpandableNoteRow({
                   path={valuePath}
                   value={value}
                 >
-                  <CitedText text={value} article={article} />
+                  <CitedText text={valueDisplay ?? value} article={article} />
                 </EditableValue>
               ) : (
-                <CitedText text={value} article={article} />
+                <CitedText text={valueDisplay ?? value} article={article} />
               )}
             </span>
             {showToggle && (
@@ -430,6 +437,7 @@ export function DurationPanel({
           notesPath={routePath ? `${routePath}.half_life_notes` : undefined}
           panelId={`duration-${routeId}-half-life-notes`}
           value={route.half_life ?? ""}
+          valueDisplay={formatDurationText(t, route.half_life ?? "")}
           valueEmptyLabel="Add half-life"
           valuePath={routePath ? `${routePath}.half_life` : undefined}
         />

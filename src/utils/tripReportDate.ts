@@ -245,7 +245,10 @@ export function parseTripDate(raw: string | null | undefined): TripDateParts | n
  * nothing parses. Hedged values are prefixed with `around`. Returns `null`
  * only for a missing or blank value, which callers render as no date.
  */
-export function formatTripDateLabel(raw: string | null | undefined): string | null {
+export function formatTripDateLabel(
+  raw: string | null | undefined,
+  locale?: string,
+): string | null {
   if (!raw) {
     return null;
   }
@@ -260,6 +263,22 @@ export function formatTripDateLabel(raw: string | null | undefined): string | nu
 
   if (!parts) {
     return trimmed;
+  }
+
+  // English stays pinned to the constant month names so pre-rendered English
+  // indexes keep their exact byte output; the mirror locale formats through
+  // Intl, and server and hydration agree because the caller passes the same
+  // locale both times.
+  if (locale && locale !== "en") {
+    const formatter = new Intl.DateTimeFormat(locale, {
+      year: "numeric",
+      month: parts.day === undefined ? "long" : "short",
+      ...(parts.day === undefined ? {} : { day: "numeric" }),
+    });
+    const precise = formatter.format(
+      new Date(Date.UTC(parts.year, (parts.month ?? 1) - 1, parts.day ?? 1)),
+    );
+    return parts.approximate ? `约 ${precise}` : precise;
   }
 
   const precise =

@@ -15,6 +15,7 @@ vi.mock("@/components/common/Icon", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
+  useSelectedLayoutSegments: () => null,
 }));
 
 import { EffectsIndexExplorer } from "./EffectsIndexExplorer";

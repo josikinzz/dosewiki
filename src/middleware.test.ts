@@ -388,13 +388,13 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("x-robots-tag")).toBeNull();
   });
 
-  it("keeps non-article paths and unknown slugs on a locale host in English or 404", async () => {
+  it("localizes the about index path and keeps unknown slugs on a locale host in English or 404", async () => {
     const { middleware } = await import("./middleware");
     makePublicRequest("/");
     const host = "zh.dose.wiki";
 
     const about = await middleware(new NextRequest(`https://${host}/about`, { headers: { host } }));
-    expect(about.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(about.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/about`);
     expect(about.headers.get("location")).toBeNull();
 
     const unknown = await middleware(new NextRequest(`https://${host}/not-a-substance-zzzz`, { headers: { host } }));

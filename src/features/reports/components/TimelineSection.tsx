@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { msg, useT } from "@/i18n/client";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { TimelineEntry } from "@/types/tripReport";
 
@@ -16,19 +17,19 @@ const PHASE_CONFIG: Record<TimelinePhase, {
   dotColor: string;
 }> = {
   onset: {
-    label: "Onset",
+    label: msg("Onset"),
     icon: "lucide:sunrise",
     timeColor: "theme-report-phase-onset-text",
     dotColor: "theme-report-phase-onset-dot",
   },
   peak: {
-    label: "Peak",
+    label: msg("Peak"),
     icon: "lucide:sun",
     timeColor: "theme-report-phase-peak-text",
     dotColor: "theme-report-phase-peak-dot",
   },
   offset: {
-    label: "Offset",
+    label: msg("Offset"),
     icon: "lucide:sunset",
     timeColor: "theme-report-phase-offset-text",
     dotColor: "theme-report-phase-offset-dot",
@@ -45,6 +46,7 @@ export const TimelineSection = memo(function TimelineSection({
   phase,
   entries,
 }: TimelineSectionProps) {
+  const t = useT();
   if (entries.length === 0) {
     return null;
   }
@@ -56,7 +58,7 @@ export const TimelineSection = memo(function TimelineSection({
       <h2 className={`relative flex items-center gap-2.5 text-xl font-bold tracking-tight ${config.timeColor}`}>
         <span className={`theme-report-rail-marker absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${config.dotColor}`} />
         <Icon icon={config.icon} size={22} />
-        {config.label}
+        {t(config.label)}
       </h2>
       <ol className="mt-5 space-y-6">
         {entries.map((entry, index) => (

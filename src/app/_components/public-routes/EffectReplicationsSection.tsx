@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t } from "@/i18n/server";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
@@ -30,7 +31,7 @@ export async function EffectReplicationsSection({
     <ArticleSection
       id="replications"
       icon="lucide:image"
-      heading="Replications"
+      heading={t("Replications")}
       spacing="effect"
     >
       <div className="mt-6">
@@ -40,11 +41,9 @@ export async function EffectReplicationsSection({
               works={works.slice(0, SHOWCASE_WORK_CAP)}
               totalCount={works.length}
               effectSlug={effectSlug}
-              collectionLabel={
-                effectName
-                  ? `${effectName} replications`
-                  : `${effectSlug.replace(/-/g, " ")} replications`
-              }
+              collectionLabel={t("{{name}} replications", {
+                name: effectName ?? effectSlug.replace(/-/g, " "),
+              })}
               collectionSource={{ kind: "effect", slug: effectSlug }}
             />
             {/* The collection page remains underneath the deep-linked overlay,
@@ -57,8 +56,9 @@ export async function EffectReplicationsSection({
                 )}
                 className={proseLinkClassName}
               >
-                Browse all {works.length} replication
-                {works.length === 1 ? "" : "s"}
+                {works.length === 1
+                  ? t("Browse all {{count}} replication", { count: works.length })
+                  : t("Browse all {{count}} replications", { count: works.length })}
               </Link>
             </p>
           </>
@@ -73,7 +73,7 @@ export function EffectReplicationsSectionFallback() {
     <ArticleSection
       id="replications"
       icon="lucide:image"
-      heading="Replications"
+      heading={t("Replications")}
       spacing="effect"
       aria-busy="true"
       aria-live="polite"
@@ -81,8 +81,8 @@ export function EffectReplicationsSectionFallback() {
       <div className="mt-6 aspect-[4/3] overflow-hidden rounded-xl">
         <MediaPlaceholder
           kind="loading"
-          title="Loading replications"
-          description="Visual media is being prepared."
+          title={t("Loading replications")}
+          description={t("Visual media is being prepared.")}
         />
       </div>
     </ArticleSection>

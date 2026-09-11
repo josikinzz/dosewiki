@@ -48,6 +48,7 @@
  * `VISCID`, `josikinz` and `Josie` to `JOSIE`, and `Kaylee` to `KAYTWO`. This module adds no
  * matching rules of its own — it only memoizes the answers.
  */
+import { msg } from "@/i18n/messages";
 import { findProfileByAuthorNameInList, type NormalizedUserProfile } from "./userProfiles";
 import {
   findContributorProfileByKeyOrAlias,
@@ -68,7 +69,7 @@ export const EFFECT_INDEX_FOUNDER_KEY = "JOSIE";
  * Index is a documented fact of the publication (see the flavor's mission markdown), not a
  * data-dependent claim, so the label is safe to render without the field.
  */
-export const EFFECT_INDEX_FOUNDER_ROLE_FALLBACK = "Founder";
+export const EFFECT_INDEX_FOUNDER_ROLE_FALLBACK = msg("Founder");
 
 /**
  * Profiles dropped from the Effect Index roster. Empty since expert reviews started counting
@@ -129,14 +130,15 @@ export function isRosterMember(entry: ContributorRosterEntry): boolean {
 }
 
 /** dose.wiki's heading, unchanged: that tab really does list a curated founder subset. */
-export const CURATED_FOUNDERS_SECTION_TITLE = "Founders & Contributors";
+export const CURATED_FOUNDERS_SECTION_TITLE = msg("Founders & Contributors");
 
 /** Effect Index lists everyone, behind one founder — singular, because there is one. */
-export const CONTRIBUTOR_ROSTER_SECTION_TITLE = "Founder & Contributors";
+export const CONTRIBUTOR_ROSTER_SECTION_TITLE = msg("Founder & Contributors");
 
 /** Explains the roster's order to the reader, so the ranking does not look arbitrary. */
-export const CONTRIBUTOR_ROSTER_ORDER_NOTE =
-  "Everyone who has contributed to the archive, ordered by the number of pages that credit them.";
+export const CONTRIBUTOR_ROSTER_ORDER_NOTE = msg(
+  "Everyone who has contributed to the archive, ordered by the number of pages that credit them.",
+);
 
 /* ------------------------------------------------------------------ reference counting */
 

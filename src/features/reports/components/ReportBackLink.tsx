@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useT } from '@/i18n/client';
 import { Suspense } from 'react';
 import { Icon } from '@/components/common/Icon';
 import { Button } from '@/components/ui/button';
@@ -48,10 +49,14 @@ function BackButton({
   substanceBySlug,
   fromSubstanceSlug,
 }: ReportBackLinkProps & { fromSubstanceSlug?: string }) {
+  const t = useT();
   const backTarget = getReportBackTarget({
     report: { substances },
     substanceBySlug,
     fromSubstanceSlug,
+    // The label names its target in the render locale; the domain stays
+    // locale-agnostic and defaults to English formatting.
+    translate: t,
   });
 
   return (

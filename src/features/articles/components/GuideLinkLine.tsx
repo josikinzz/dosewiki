@@ -60,7 +60,7 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
   // Ungrouped summaries are ordinary entries; a group renders as one clause.
   const entries = groupLabel
     ? articleEntries
-    : [...articleEntries, ...summaries.map(({ href, title }) => ({ href, label: title }))];
+    : [...articleEntries, ...summaries.map(({ href, title }) => ({ href, label: t(title) }))];
   if (entries.length === 0 && summaries.length === 0) return null;
 
   return (
@@ -98,7 +98,7 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
               <Fragment key={summary.href}>
                 {index > 0 ? ", " : null}
                 <Link href={summary.href} className={quietLinkClassName}>
-                  {summary.title}
+                  {t(summary.title)}
                 </Link>
               </Fragment>
             ))}

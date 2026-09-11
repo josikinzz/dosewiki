@@ -1,6 +1,6 @@
 import { SmartLink } from "@/components/common/SmartLink";
 import { memo, type ReactNode } from "react";
-
+import { useT, useUiLocale } from "@/i18n/client";
 import { Icon } from "@/components/common/Icon";
 import { PublicPill } from "@/components/common/PublicTokens";
 import {
@@ -235,7 +235,10 @@ function TripReportCardTitleBlock({
   disableNestedLinks: boolean;
   report: TripReportCardProjection;
 }) {
-  const dateLabel = formatTripDateLabel(report.tripDate);
+  const t = useT();
+  const locale = useUiLocale();
+  const dateLabel = formatTripDateLabel(report.tripDate, locale);
+  const byLabel = t("by");
 
   return (
     <div className="min-w-0 flex-1">
@@ -266,7 +269,7 @@ function TripReportCardTitleBlock({
           )
         ) : null}
         <span className={compact ? "flex items-center gap-1" : "flex items-center gap-1 italic"}>
-          {compact ? <Icon icon="lucide:user" size={12} /> : <span>by</span>}
+          {compact ? <Icon icon="lucide:user" size={12} /> : <span>{byLabel}</span>}
           <AuthorLink
             authorName={report.authorName}
             profileKey={report.authorProfileKey}

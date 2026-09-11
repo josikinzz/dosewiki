@@ -108,7 +108,10 @@ export function EffectArticlePage({
     ? Children.toArray(replicationsSection)
     : null;
 
-  const tocItems = getEffectArticleTocItems(article);
+  const tocItems = getEffectArticleTocItems(article).map((item) => ({
+    ...item,
+    label: t(item.label),
+  }));
   const tocNode =
     tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null;
 
@@ -181,7 +184,7 @@ export function EffectArticlePage({
                   key={section.id}
                   id={section.id}
                   icon={section.icon}
-                  heading={section.title}
+                  heading={t(section.title)}
                   spacing="effect"
                 >
                   {/* The streamed server section normally replaces this whole
@@ -198,7 +201,7 @@ export function EffectArticlePage({
                   key={section.id}
                   id={section.id}
                   icon={section.icon}
-                  heading={section.title}
+                  heading={t(section.title)}
                   spacing="effect"
                 >
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -215,7 +218,7 @@ export function EffectArticlePage({
                   key={section.id}
                   id={section.id}
                   icon={section.icon ?? "lucide:quote"}
-                  heading={section.title ?? t("Personal Commentary")}
+                  heading={section.title ? t(section.title) : t("Personal Commentary")}
                   spacing="effect"
                 >
 
@@ -285,7 +288,7 @@ export function EffectArticlePage({
                   key={section.id}
                   id={section.id}
                   icon={section.icon}
-                  heading={section.title}
+                  heading={t(section.title)}
                   spacing="effect"
                 >
                   <div className="mt-6">

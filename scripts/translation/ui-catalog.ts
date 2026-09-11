@@ -91,6 +91,35 @@ async function loadIndexLabelKeys(): Promise<Set<string>> {
   return out;
 }
 
+/**
+ * About-page markdown sections. `splitAboutMarkdown` cuts the editable
+ * document on the English H2s, and the locale route translates each section
+ * body through `t()`, so every section is one catalog key.
+ */
+async function loadAboutSectionKeys(): Promise<Set<string>> {
+  const out = new Set<string>();
+  const splitOn = ["## Sources and review", "## Project history"];
+  const sectionsOf = (content: string): string[] => {
+    const sections: string[] = [];
+    let cursor = 0;
+    for (const marker of splitOn) {
+      const at = content.indexOf(marker);
+      if (at === -1) continue;
+      sections.push(content.slice(cursor, at));
+      cursor = at;
+    }
+    sections.push(content.slice(cursor));
+    return sections.filter((section) => section.trim());
+  };
+  for (const file of ["src/data/content/aboutContent.md", "src/data/content/aboutSubtitle.md"]) {
+    const full = path.join(repoRoot, file);
+    if (!existsSync(full)) continue;
+    const content = await readFile(full, "utf8");
+    for (const section of sectionsOf(content)) out.add(section.trim());
+  }
+  return out;
+}
+
 async function loadSeed(): Promise<Map<string, string>> {
   const seed = new Map<string, string>();
   if (!values.seed) return seed;
@@ -159,6 +188,9 @@ async function main() {
   }
   for (const label of await loadIndexLabelKeys()) {
     if (!keys.has(label)) keys.set(label, new Set(["psychoactiveIndexManual"]));
+  }
+  for (const section of await loadAboutSectionKeys()) {
+    if (!keys.has(section)) keys.set(section, new Set(["aboutContent"]));
   }
   const glossary = await loadGlossaryKeys();
   for (const term of glossary.keys()) {

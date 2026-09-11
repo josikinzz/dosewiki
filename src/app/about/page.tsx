@@ -10,6 +10,8 @@ import { getPublicContributorReferenceCounts } from "@server/convex/publicData.c
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { flavoredCopyKey, flavoredCopyText, getCopy } from "@server/next/copyBlocks";
 import { applyPlaceholders } from "@/data/content/about";
+import { t } from "@/i18n/server";
+import { msg } from "@/i18n/messages";
 import { splitAboutMarkdown } from "@/data/content/aboutSections";
 import { selectAboutContributors } from "@/data/contributorRoster";
 import { AboutMissionMarkdown } from "@/components/pages/AboutMissionMarkdown";
@@ -50,10 +52,10 @@ export async function generateMetadata() {
   const about = await getPublicAboutData();
 
   return buildPublicPageMetadata({
-    title: "About",
+    title: t(msg("About")),
     description:
       resolveAboutSubtitle(about.subtitle) ||
-      `Learn about the ${SITE_FLAVOR_CONFIG.name} project.`,
+      t(msg("Learn about the {{siteName}} project."), { siteName: SITE_FLAVOR_CONFIG.name }),
     route: { family: "about" },
     socialImage: pageSocialCardImage("about", "About dose.wiki"),
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/i18n/client";
 import { memo } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
@@ -38,14 +39,15 @@ export const ReportHeroSection = memo(function ReportHeroSection(
   const hasTags = report.tags.length > 0;
   const hasTripDate = report.subject.trip_date && report.subject.trip_date.trim().length > 0;
   const hasAvatar = !!report.subject.avatar_url;
+  const t = useT();
   const profileUrl = report.subject.profile_key ? publicHref.contributor(report.subject.profile_key) : null;
   const license = resolveTripReportLicense(report.license);
   const isPublicDomain = license === "public-domain";
-  const licenseLabel = isPublicDomain ? "Public domain (CC0)" : "© Author";
+  const licenseLabel = isPublicDomain ? t("Public domain (CC0)") : t("© Author");
   const licenseIcon = isPublicDomain ? "lucide:globe" : "lucide:copyright";
   const licenseTitle = isPublicDomain
-    ? "Dedicated to the public domain (CC0) by its submitter. See the license page for reuse terms."
-    : "Rights to this report are retained by its author — reuse is up to them. See the license page.";
+    ? t("Dedicated to the public domain (CC0) by its submitter. See the license page for reuse terms.")
+    : t("Rights to this report are retained by its author — reuse is up to them. See the license page.");
 
   return (
     <header className="space-y-4 pt-2">
@@ -60,7 +62,7 @@ export const ReportHeroSection = memo(function ReportHeroSection(
             size="sm"
             className="theme-report-featured-text"
           >
-            Featured
+            {t("Featured")}
           </PublicPill>
         ) : null}
       </div>
@@ -94,7 +96,7 @@ export const ReportHeroSection = memo(function ReportHeroSection(
         ) : null}
         <span className="flex items-center gap-1.5">
           <Icon icon="lucide:user" size={15} className="theme-icon-muted" />
-          by{" "}
+          {t("by")}{" "}
           <AuthorLink
             authorName={report.subject.name}
             profileKey={report.subject.profile_key}

@@ -7,7 +7,7 @@ import { ProseDiff, type CitationContext } from "@/components/changelog/ProseDif
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { SmartLink } from "@/components/common/SmartLink";
 import { cn } from "@/lib/utils";
-import { useT } from "@/i18n/client";
+import { useT, useUiLocale } from "@/i18n/client";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
 import { publicHref } from "@/utils/publicHref";
 
@@ -23,20 +23,17 @@ interface RecentChangesListProps {
   hideArticleNames?: boolean;
 }
 
-// Fixed locale and zone: this renders on the server and hydrates on the
-// client, and a locale-dependent date would mismatch between the two.
-const dayFormat = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
-const timeFormat = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-  timeZone: "UTC",
-});
+// Zone is fixed (UTC) so every render agrees; the locale follows the page's
+// UI locale, which is hydration-stable because both the server render and the
+// client hydrate read it from the same matched route segments.
+const dayFormats = {
+  en: new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }),
+  "zh-Hans": new Intl.DateTimeFormat("zh-Hans", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }),
+} as const;
+const timeFormats = {
+  en: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" }),
+  "zh-Hans": new Intl.DateTimeFormat("zh-Hans", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" }),
+} as const;
 
 const linkClassName = cn(
   "rounded underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2",
@@ -58,6 +55,7 @@ function RecentChangeRow({
   hideArticleNames: boolean;
 }) {
   const t = useT();
+  const locale = useUiLocale();
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
   // Source rows say everything in their own line; only prose and bulk edits
   // have a passage worth opening.
@@ -78,7 +76,7 @@ function RecentChangeRow({
           dateTime={change.createdAt}
           className="theme-text-faint mt-[3px] w-[3.25rem] shrink-0 font-mono text-[11px] tabular-nums sm:mt-0"
         >
-          {timeFormat.format(new Date(change.createdAt))}
+          {timeFormats[locale].format(new Date(change.createdAt))}
         </time>
         <p className="theme-text-secondary min-w-0 flex-1 text-sm leading-snug">
           {change.contributor?.href ? (
@@ -194,9 +192,10 @@ function RecentChangeRow({
  */
 export function RecentChangesList({ changes, article = null, hideArticleNames = false }: RecentChangesListProps) {
   const t = useT();
+  const locale = useUiLocale();
   const days: { label: string; changes: ArticleRecentChange[] }[] = [];
   for (const change of changes) {
-    const label = dayFormat.format(new Date(change.createdAt));
+    const label = dayFormats[locale].format(new Date(change.createdAt));
     const last = days[days.length - 1];
     if (last && last.label === label) {
       last.changes.push(change);

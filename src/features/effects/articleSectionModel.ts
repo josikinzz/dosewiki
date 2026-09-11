@@ -6,6 +6,7 @@ import { icons } from "@/utils/iconNames";
 import { effectMatchesCategorySlug } from "@/data/effectCategoryDefinitions";
 import type { GuideClass } from "@/features/articles/domain/articleGuides";
 import type { VCodeContent } from "./vcode/types";
+import { msg } from "@/i18n/messages";
 import { normalizeVCodeContent, unwrapTopLevelQuotes } from "./vcode/normalize";
 
 /**
@@ -175,8 +176,7 @@ export function buildEffectArticleModel({
   if (analysisContent) {
     sections.push({
       id: "analysis",
-      kind: "analysis",
-      title: "Analysis",
+      kind: "analysis",      title: msg("Analysis"),
       icon: "lucide:microscope",
       content: analysisContent,
       citations: effect.citations,
@@ -188,8 +188,7 @@ export function buildEffectArticleModel({
   if (styleVariationsContent) {
     sections.push({
       id: "style-variations",
-      kind: "styleVariations",
-      title: "Style Variations",
+      kind: "styleVariations",      title: msg("Style Variations"),
       icon: "lucide:palette",
       content: styleVariationsContent,
       citations: effect.citations,
@@ -200,8 +199,7 @@ export function buildEffectArticleModel({
   if (replications?.kind === "server" || replications?.kind === "fallback") {
     sections.push({
       id: "replications",
-      kind: "replications",
-      title: "Replications",
+      kind: "replications",      title: msg("Replications"),
       icon: "lucide:image",
       state: replications,
     });
@@ -210,8 +208,7 @@ export function buildEffectArticleModel({
   if (hasItems(effect.audio_replications)) {
     sections.push({
       id: "audio-replications",
-      kind: "audioReplications",
-      title: "Audio Replications",
+      kind: "audioReplications",      title: msg("Audio Replications"),
       icon: "lucide:volume-2",
       items: effect.audio_replications,
     });
@@ -224,8 +221,7 @@ export function buildEffectArticleModel({
   if (personalCommentaryContent) {
     sections.push({
       id: "commentary",
-      kind: "personalCommentary",
-      title: "Personal Commentary",
+      kind: "personalCommentary",      title: msg("Personal Commentary"),
       icon: "lucide:quote",
       content: unwrapTopLevelQuotes(personalCommentaryContent),
       citations: effect.citations,
@@ -237,8 +233,7 @@ export function buildEffectArticleModel({
   if (effectDetail?.groups.length) {
     sections.push({
       id: "related-substances",
-      kind: "relatedSubstances",
-      title: "Related Substances",
+      kind: "relatedSubstances",      title: msg("Related Substances"),
       icon: "lucide:flask-conical",
       groups: effectDetail.groups,
       total: effectDetail.definition.total,
@@ -287,11 +282,11 @@ export function getEffectArticleTocItems(article: EffectArticleModel): PublicTab
   return article.sections.map((section): PublicTableOfContentsItem => {
     switch (section.kind) {
       case "overview":
-        return { id: section.id, label: "Overview", icon: article.hero.icon };
+        return { id: section.id, label: msg("Overview"), icon: article.hero.icon };
       case "sources":
-        return { id: section.id, label: "References", icon: "lucide:list-ordered" };
+        return { id: section.id, label: msg("References"), icon: "lucide:list-ordered" };
       case "contributors":
-        return { id: section.id, label: "Contributors", icon: "lucide:users" };
+        return { id: section.id, label: msg("Contributors"), icon: "lucide:users" };
       default:
         return {
           id: section.id,

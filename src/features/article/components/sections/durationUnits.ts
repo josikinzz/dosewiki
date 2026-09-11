@@ -132,6 +132,26 @@ export function parseTimeUnit(unit: string): TimeUnitKind | null {
   return UNIT_ALIASES[key] ?? null;
 }
 
+/**
+ * Localize the trailing unit word of a free-text duration ("1.2-2.5 hours",
+ * "3-4 hr"), the shape `half_life` stores. Only a recognized time unit directly
+ * after a number is replaced — prose that merely ends in a word keeps the
+ * author's wording — and trailing `[cite:…]` markers are carried through
+ * untouched so citation parsing still sees them.
+ */
+export function formatDurationText(t: Translate, text: string): string {
+  const citationTail = /\s*(?:\[cite:[^\]]*\]\s*)+$/.exec(text);
+  const body = citationTail ? text.slice(0, citationTail.index) : text;
+  const match = /([0-9][0-9.,]*\+?)\s*([A-Za-z][A-Za-z.]*)\s*$/.exec(body);
+  if (!match) return text;
+  const kind = parseTimeUnit(match[2]);
+  if (!kind) return text;
+  const isPlural = /s$/i.test(match[2].replace(/\.$/, ""));
+  const label = isPlural ? PLURAL_LABEL[kind] : SINGULAR_LABEL[kind];
+  const localized = `${body.slice(0, match.index)}${match[1]} ${t(label)}`;
+  return localized + (citationTail ? text.slice(citationTail.index) : "");
+}
+
 function isPresent(value: number | null): value is number {
   return value !== null && Number.isFinite(value) && value >= 0;
 }

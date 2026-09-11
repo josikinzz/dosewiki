@@ -2,6 +2,8 @@
 
 import { useId } from "react";
 
+import { useT } from "@/i18n/client";
+
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,7 +37,7 @@ export function MailingListInvite({ className }: { className?: string }) {
   const fieldId = useId();
   const { email, setEmail, website, setWebsite, status, error, submit } =
     useMailingListSignup("dosewiki");
-
+  const t = useT();
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -51,18 +53,17 @@ export function MailingListInvite({ className }: { className?: string }) {
               rows. The invisible p-1.5/-m-1.5 pair widens the hit area without
               moving the visual corner inset. */}
           <span className="flex flex-col items-end gap-1">
-            <span>Mailing</span>
-            <span>List</span>
+            <span>{t("Mailing")}</span>
+            <span>{t("List")}</span>
           </span>
           <Icon icon="f7:envelope-badge" size={26} />
         </Button>
       </DialogTrigger>
       <DialogContent className="top-16 w-[calc(100%-2rem)] max-w-sm translate-y-0 gap-3 rounded-2xl sm:top-[50%] sm:translate-y-[-50%]">
         <DialogHeader>
-          <DialogTitle className="theme-text-primary">Mailing list</DialogTitle>
+          <DialogTitle className="theme-text-primary">{t("Mailing list")}</DialogTitle>
           <DialogDescription className="theme-text-secondary text-sm">
-            An occasional note when something new lands on dose.wiki. Unsubscribe
-            anytime.
+            {t("An occasional note when something new lands on dose.wiki. Unsubscribe anytime.")}
           </DialogDescription>
         </DialogHeader>
         {status === "success" ? (
@@ -74,12 +75,12 @@ export function MailingListInvite({ className }: { className?: string }) {
             aria-live="polite"
           >
             <Icon icon="lucide:mail-check" size={16} className="text-dose-success shrink-0" />
-            You&rsquo;re on the list.
+            {t("You’re on the list.")}
           </p>
         ) : (
           <form className="flex flex-col gap-3" onSubmit={submit}>
             <label htmlFor={`${fieldId}-email`} className="sr-only">
-              Email address
+              {t("Email address")}
             </label>
             <Input
               id={`${fieldId}-email`}
@@ -111,7 +112,7 @@ export function MailingListInvite({ className }: { className?: string }) {
               ) : (
                 <Icon icon="lucide:mail" size={16} />
               )}
-              {status === "pending" ? "Subscribing\u2026" : "Subscribe"}
+              {status === "pending" ? t("Subscribing…") : t("Subscribe")}
             </Button>
           </form>
         )}

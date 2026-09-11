@@ -1,4 +1,5 @@
 import { memo, type ReactNode } from "react";
+import { msg, useT } from "@/i18n/client";
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { TripReportSubject, TripReportSubstance } from "@/types/tripReport";
@@ -19,12 +20,12 @@ interface FieldConfig {
 }
 
 const FIELD_CONFIG: FieldConfig[] = [
-  { key: "age", label: "Age", icon: "lucide:user-circle" },
-  { key: "gender", label: "Gender", icon: "lucide:user" },
-  { key: "height", label: "Height", icon: "lucide:ruler" },
-  { key: "weight", label: "Weight", icon: "lucide:scale" },
-  { key: "medications", label: "Medications", icon: "lucide:pill" },
-  { key: "setting", label: "Setting", icon: "lucide:map-pin" },
+  { key: "age", label: msg("Age"), icon: "lucide:user-circle" },
+  { key: "gender", label: msg("Gender"), icon: "lucide:user" },
+  { key: "height", label: msg("Height"), icon: "lucide:ruler" },
+  { key: "weight", label: msg("Weight"), icon: "lucide:scale" },
+  { key: "medications", label: msg("Medications"), icon: "lucide:pill" },
+  { key: "setting", label: msg("Setting"), icon: "lucide:map-pin" },
 ];
 
 /**
@@ -37,6 +38,7 @@ export const ReportDossier = memo(function ReportDossier({
   substances,
   substanceLinks,
 }: ReportDossierProps) {
+  const t = useT();
   const visibleFields = FIELD_CONFIG.filter(({ key }) => {
     const value = subject[key];
     return value && value.toString().trim().length > 0;
@@ -75,7 +77,7 @@ export const ReportDossier = memo(function ReportDossier({
                 <Link
                   key={`${substance.name}-${index}`}
                   href={href}
-                  title={`Read the ${substance.name} article`}
+                  title={t("Read the {{substance}} article", { substance: substance.name })}
                   className={`${baseClass} transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong [@media(hover:hover)]:hover:shadow-[var(--theme-elevation-accent-ring)]`}
                 >
                   {inner}
@@ -100,7 +102,7 @@ export const ReportDossier = memo(function ReportDossier({
               <div key={key} className="flex min-w-0 items-baseline gap-1.5">
                 <dt className="theme-text-muted flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider">
                   <Icon icon={icon} size={12} className="shrink-0 self-center" />
-                  {label}
+                  {t(label)}
                 </dt>
                 <dd className="theme-text-secondary min-w-0 break-words">{subject[key]}</dd>
               </div>
@@ -116,8 +118,8 @@ export const ReportDossier = memo(function ReportDossier({
             className="theme-link-muted inline-flex w-fit items-center gap-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
           >
             <Icon icon="lucide:external-link" className="h-4 w-4" />
-            Subjective Effect Tracker PDF
-            <span className="sr-only"> (opens in a new tab)</span>
+            {t("Subjective Effect Tracker PDF")}
+            <span className="sr-only">{` (${t("opens in a new tab")})`}</span>
           </a>
         ) : null}
       </div>

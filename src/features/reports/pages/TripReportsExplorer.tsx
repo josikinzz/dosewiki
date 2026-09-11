@@ -34,6 +34,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
+import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import type { ReportCardModel, ReportViewMode } from "@/types/tripReport";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
@@ -73,9 +74,9 @@ interface TripReportsExplorerProps {
  * "By substance" rather than repeating the word the filter beside it owns.
  */
 const MODE_LABEL: Record<ReportViewMode, string> = {
-  substance: "By substance",
-  title: "By title",
-  author: "By author",
+  substance: msg("By substance"),
+  title: msg("By title"),
+  author: msg("By author"),
 };
 
 const MODE_ICON: Record<ReportViewMode, IconName> = {
@@ -92,12 +93,12 @@ const SORT_OPTIONS: {
 }[] = [
   // "A to Z" alone named the wrong noun: every one of these orders the
   // shelves, not the reports inside them.
-  { id: "name-asc", key: "alphabetical", direction: "asc", label: "Groups A to Z" },
-  { id: "name-desc", key: "alphabetical", direction: "desc", label: "Groups Z to A" },
-  { id: "count-desc", key: "count", direction: "desc", label: "Most reports first" },
-  { id: "count-asc", key: "count", direction: "asc", label: "Fewest reports first" },
-  { id: "date-desc", key: "date", direction: "desc", label: "Newest experience first" },
-  { id: "date-asc", key: "date", direction: "asc", label: "Oldest experience first" },
+  { id: "name-asc", key: "alphabetical", direction: "asc", label: msg("Groups A to Z") },
+  { id: "name-desc", key: "alphabetical", direction: "desc", label: msg("Groups Z to A") },
+  { id: "count-desc", key: "count", direction: "desc", label: msg("Most reports first") },
+  { id: "count-asc", key: "count", direction: "asc", label: msg("Fewest reports first") },
+  { id: "date-desc", key: "date", direction: "desc", label: msg("Newest experience first") },
+  { id: "date-asc", key: "date", direction: "asc", label: msg("Oldest experience first") },
 ];
 
 const DEFAULT_SORT_ID = "name-asc";
@@ -119,8 +120,8 @@ const BAND_LIMIT = 5;
 type BandKey = "added" | "featured";
 
 const BAND_TABS: { key: BandKey; label: string }[] = [
-  { key: "added", label: "Recently added" },
-  { key: "featured", label: "Featured" },
+  { key: "added", label: msg("Recently added") },
+  { key: "featured", label: msg("Featured") },
 ];
 
 export function TripReportsExplorer({
@@ -129,6 +130,7 @@ export function TripReportsExplorer({
   emptyState,
   initialView = REPORTS_INDEX_DEFAULT_VIEW,
 }: TripReportsExplorerProps) {
+  const t = useT();
   const [viewMode, setViewMode] = useState<ReportViewMode>(initialView);
   const [sortId, setSortId] = useState(DEFAULT_SORT_ID);
   const [substanceFilter, setSubstanceFilter] = useState<string | null>(null);
@@ -333,12 +335,14 @@ export function TripReportsExplorer({
     return (
       <div className="mx-auto w-full max-w-4xl">
         <StateCard
-          badge={emptyState?.badge ?? "No reports yet"}
+          badge={emptyState?.badge ?? t("No reports yet")}
           badgeVariant="secondary"
-          title={emptyState?.title ?? "No trip reports found"}
+          title={emptyState?.title ?? t("No trip reports found")}
           description={
             emptyState?.description ??
-            "There aren’t any public reports yet. Once reports are available, they’ll appear here grouped by substance, title, or author."
+            t(
+              "There aren’t any public reports yet. Once reports are available, they’ll appear here grouped by substance, title, or author.",
+            )
           }
           icon={emptyState?.icon ?? "lucide:file-search"}
           tone="neutral"
@@ -369,11 +373,11 @@ export function TripReportsExplorer({
                 variant="pill"
                 size="auto"
                 className={CONTROL_TRIGGER_CLASS}
-                aria-label={`Group by: ${MODE_LABEL[viewMode]}`}
-                title={`Group by: ${MODE_LABEL[viewMode]}`}
+                aria-label={t("Group by: {{mode}}", { mode: t(MODE_LABEL[viewMode]) })}
+                title={t("Group by: {{mode}}", { mode: t(MODE_LABEL[viewMode]) })}
               >
                 <Icon icon={MODE_ICON[viewMode]} className="h-4 w-4 shrink-0" aria-hidden />
-                <span className={CONTROL_TRIGGER_LABEL_CLASS}>{MODE_LABEL[viewMode]}</span>
+                <span className={CONTROL_TRIGGER_LABEL_CLASS}>{t(MODE_LABEL[viewMode])}</span>
                 <Icon
                   icon="lucide:chevron-down"
                   className={CONTROL_TRIGGER_CHEVRON_CLASS}
@@ -382,7 +386,7 @@ export function TripReportsExplorer({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuLabel>Group reports by</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("Group reports by")}</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={viewMode}
                 onValueChange={(value) => handleViewModeChange(value as ReportViewMode)}
@@ -393,7 +397,7 @@ export function TripReportsExplorer({
                     value={mode}
                     className={CONTROL_MENU_ITEM_CLASS}
                   >
-                    {MODE_LABEL[mode]}
+                    {t(MODE_LABEL[mode])}
                   </DropdownMenuRadioItem>
                 ))}
               </DropdownMenuRadioGroup>
@@ -417,8 +421,8 @@ export function TripReportsExplorer({
               // Names its own corpus: the site-wide field sits 330px above
               // this one and leaves the page, and nothing else told a reader
               // which of the two they were typing into.
-              placeholder={`Search ${reports.length} reports`}
-              aria-label="Search these reports"
+              placeholder={t("Search {{count}} reports", { count: reports.length })}
+              aria-label={t("Search these reports")}
               className={cn("h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9", query ? "pr-10" : "pr-3")}
             />
             {query ? (
@@ -426,7 +430,7 @@ export function TripReportsExplorer({
                 type="button"
                 variant="ghost"
                 size="auto"
-                aria-label="Clear search"
+                aria-label={t("Clear search")}
                 className="absolute right-0 top-1/2 h-9 w-9 -translate-y-1/2 p-0"
                 onClick={() => {
                   if (searchInputRef.current) {
@@ -461,18 +465,23 @@ export function TripReportsExplorer({
         role="status"
         className="theme-text-faint mx-auto mb-5 w-full max-w-4xl px-1 text-xs tabular-nums empty:mb-0"
       >
-        {isNarrowed ? `${visibleReports.length} of ${reports.length} reports` : ""}
+        {isNarrowed
+          ? t("{{visible}} of {{total}} reports", {
+              visible: visibleReports.length,
+              total: reports.length,
+            })
+          : ""}
       </p>
 
       {isNarrowed ? null : (
         <section aria-labelledby="reports-band-heading" className="mx-auto mb-8 w-full max-w-4xl">
           <h2 id="reports-band-heading" className="sr-only">
-            Report highlights
+            {t("Report highlights")}
           </h2>
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
             {/* Two lists behind one band: what arrived, and what was chosen.
                 Roving tabindex, so the pair costs one tab stop. */}
-            <div role="tablist" aria-label="Report highlights" className="flex items-center gap-1">
+            <div role="tablist" aria-label={t("Report highlights")} className="flex items-center gap-1">
               {bandTabs.map((tab) => {
                 const selected = tab.key === activeBand;
                 return (
@@ -508,14 +517,17 @@ export function TripReportsExplorer({
                         : "theme-text-faint hover:text-dose-text-secondary",
                     )}
                   >
-                    {tab.label}
+                    {t(tab.label)}
                   </button>
                 );
               })}
             </div>
             <p className="theme-text-faint hidden text-xs tabular-nums sm:block">
-              {reports.length} reports · {substanceOptions.length} substances · {authorCount}{" "}
-              authors
+              {t("{{reports}} reports · {{substances}} substances · {{authors}} authors", {
+                reports: reports.length,
+                substances: substanceOptions.length,
+                authors: authorCount,
+              })}
             </p>
           </div>
           {/* Compact density: the full card lays avatar, title and substance
@@ -551,17 +563,17 @@ export function TripReportsExplorer({
           <SearchEmptyState
             headingLevel="h2"
             icon="lucide:list-filter"
-            title="No reports match"
-            description={`Nothing in the archive matches ${
-              substanceFilter && query.trim()
-                ? `${substanceFilter} and this search`
-                : substanceFilter
-                  ? substanceFilter
-                  : "this search"
-            }. Clear it to browse the full index.`}
+            title={t("No reports match")}
+            description={t("Nothing in the archive matches {{what}}. Clear it to browse the full index.", {
+              what: substanceFilter
+                ? query.trim()
+                  ? t("{{substance}} and this search", { substance: substanceFilter })
+                  : substanceFilter
+                : t("this search"),
+            })}
           />
           <Button type="button" variant="pill" size="pill" className="mt-4" onClick={clearNarrowing}>
-            Clear filters
+            {t("Clear filters")}
           </Button>
         </div>
       ) : (
@@ -602,6 +614,7 @@ export function TripReportsExplorer({
  * pixels away behind a click until now.
  */
 function SubmitReportTile() {
+  const t = useT();
   return (
     <SmartLink
       href={publicHref.reportSubmission()}
@@ -612,10 +625,10 @@ function SubmitReportTile() {
     >
       <span className="theme-accent-heading flex items-center gap-1.5 text-sm font-medium transition group-hover:opacity-90">
         <Icon icon="lucide:file-pen-line" size={14} aria-hidden />
-        Submit a report
+        {t("Submit a report")}
       </span>
       <span className="theme-text-faint text-xs leading-snug">
-        Stays private until an editor approves it.
+        {t("Stays private until an editor approves it.")}
       </span>
     </SmartLink>
   );
@@ -637,6 +650,7 @@ function ReportShelf({
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
 }) {
+  const t = useT();
   const authorProfileKey =
     group.kind === "author" ? group.reports[0]?.subject.profile_key : undefined;
 
@@ -649,7 +663,7 @@ function ReportShelf({
       className="scroll-mt-[calc(var(--site-header-height)+var(--site-header-sticky-gap)+3.75rem)]"
     >
       <IndexCard
-        title={group.name}
+        title={t(group.name)}
         icon="lucide:flask-conical"
         hideIcon
         count={group.reports.length}
@@ -688,6 +702,7 @@ function ReportIndexRow({
   report: ReportCardModel;
   groupKind: TripReportGroup<ReportCardModel>["kind"];
 }) {
+  const t = useT();
   const primary = report.substances[0];
   const substanceLabel =
     groupKind === "substance"
@@ -717,7 +732,7 @@ function ReportIndexRow({
               icon="lucide:star"
               size={13}
               className="theme-icon-accent mt-0.5 shrink-0 fill-current"
-              aria-label="Featured report"
+              aria-label={t("Featured report")}
             />
           ) : null}
         </span>
@@ -747,6 +762,8 @@ function SortMenu({
   activeLabel: string;
   onChange: (id: string) => void;
 }) {
+  const t = useT();
+  const orderLabel = t(activeLabel);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -755,11 +772,11 @@ function SortMenu({
           variant="pill"
           size="auto"
           className={CONTROL_TRIGGER_CLASS}
-          aria-label={`Sort order, ${activeLabel}`}
-          title={`Sort order, ${activeLabel}`}
+          aria-label={t("Sort order, {{order}}", { order: orderLabel })}
+          title={t("Sort order, {{order}}", { order: orderLabel })}
         >
           <Icon icon="lucide:arrow-up-down" className="h-4 w-4 shrink-0" aria-hidden />
-          <span className={CONTROL_TRIGGER_LABEL_CLASS}>{activeLabel}</span>
+          <span className={CONTROL_TRIGGER_LABEL_CLASS}>{orderLabel}</span>
           <Icon
             icon="lucide:chevron-down"
             className={CONTROL_TRIGGER_CHEVRON_CLASS}
@@ -768,7 +785,7 @@ function SortMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Sort groups by</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("Sort groups by")}</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={activeId} onValueChange={onChange}>
           {SORT_OPTIONS.map((option) => (
             <DropdownMenuRadioItem
@@ -776,7 +793,7 @@ function SortMenu({
               value={option.id}
               className={CONTROL_MENU_ITEM_CLASS}
             >
-              {option.label}
+              {t(option.label)}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
@@ -802,6 +819,7 @@ function SubstanceFilterControl({
   onSelect: (name: string) => void;
   onClear: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -842,16 +860,22 @@ function SubstanceFilterControl({
             size="auto"
             className={CONTROL_TRIGGER_CLASS}
             aria-label={
-              active !== null ? `Substance filter, ${active} active` : "Filter by substance"
+              active !== null
+                ? t("Substance filter, {{substance}} active", { substance: active })
+                : t("Filter by substance")
             }
-            title={active !== null ? `Substance filter, ${active} active` : "Filter by substance"}
+            title={
+              active !== null
+                ? t("Substance filter, {{substance}} active", { substance: active })
+                : t("Filter by substance")
+            }
           >
             <Icon icon="lucide:flask-conical" className="h-4 w-4 shrink-0" aria-hidden />
             {/* Not "Substance": the grouping control beside it already carries
                 that word, and two controls with one label did different
                 things. An active filter names itself instead. */}
             <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "max-w-[9rem] truncate")}>
-              {active ?? "Filter"}
+              {active ?? t("Filter")}
             </span>
             <Icon
               icon="lucide:chevron-down"
@@ -898,14 +922,14 @@ function SubstanceFilterControl({
                 }
               }
             }}
-            placeholder="Search substances"
-            aria-label="Search substances"
+            placeholder={t("Search substances")}
+            aria-label={t("Search substances")}
           />
           <ul
             ref={listRef}
             id={listId}
             role="listbox"
-            aria-label="Substances with reports"
+            aria-label={t("Substances with reports")}
             className="mt-2 max-h-[min(50vh,18rem)] overflow-y-auto"
           >
             {visibleOptions.map((option, index) => (
@@ -935,7 +959,7 @@ function SubstanceFilterControl({
             ))}
           </ul>
           {visibleOptions.length === 0 ? (
-            <p className="theme-text-faint px-1 py-2 text-sm">No substances match.</p>
+            <p className="theme-text-faint px-1 py-2 text-sm">{t("No substances match.")}</p>
           ) : null}
         </PopoverContent>
       </Popover>
@@ -947,8 +971,8 @@ function SubstanceFilterControl({
           // A square at every width: it is the one control with nothing to
           // name, so it never earns the label track its neighbours get.
           className="h-10 w-10 shrink-0 justify-center p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 md:h-9 md:w-9"
-          aria-label={`Clear substance filter, ${active}`}
-          title={`Clear substance filter, ${active}`}
+          aria-label={t("Clear substance filter, {{substance}}", { substance: active })}
+          title={t("Clear substance filter, {{substance}}", { substance: active })}
           onClick={onClear}
         >
           <Icon icon="lucide:x" className="h-4 w-4" aria-hidden />

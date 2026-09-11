@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/i18n/client";
 import { ArticleCitationList } from "@/components/common/ArticleCitationList";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { ReferenceCitationList } from "@/components/common/ReferenceList";
@@ -39,6 +42,7 @@ export function EffectCitationsSection({
   seeAlso = [],
   linkableEffectSlugs,
 }: EffectCitationsSectionProps) {
+  const t = useT();
   const projection = projectEffectCitations({
     citations,
     externalLinks,
@@ -67,7 +71,7 @@ export function EffectCitationsSection({
     visibleInternalRelatedLinks.items.length > 0 && {
       key: "see-also",
       icon: "lucide:link",
-      title: internalRelatedLinks.title,
+      title: t(internalRelatedLinks.title),
       content: (
         <ul className="flex list-none flex-wrap gap-x-1.5 gap-y-1 p-0 text-sm">
           {visibleInternalRelatedLinks.items.map((item, index) => (
@@ -89,13 +93,12 @@ export function EffectCitationsSection({
     projectedExternalLinks.items.length > 0 && {
       key: "external-links",
       icon: "lucide:library",
-      title: projectedExternalLinks.title,
+      title: t(projectedExternalLinks.title),
       content: <ArticleCitationList citations={projectedExternalLinks.items} />,
     },
     references.items.length > 0 && {
-      key: "references",
+      title: t("Citations"),
       icon: "codicon:references",
-      title: "Citations",
       content: <ReferenceCitationList citations={references.items} />,
     },
   ].filter((group): group is Exclude<typeof group, false> => Boolean(group));
@@ -104,7 +107,7 @@ export function EffectCitationsSection({
     <ArticleSection
       id={id}
       icon="lucide:list-ordered"
-      heading="References"
+      heading={t("References")}
       spacing="effect"
     >
       {groups.map((group, index) => (

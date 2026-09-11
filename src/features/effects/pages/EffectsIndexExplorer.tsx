@@ -15,6 +15,7 @@ import { PublicContentSection } from "@/components/layout/PublicContentPrimitive
 import { PublicSegmentedTabs } from "@/components/layout/PublicSegmentedTabs";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
+import { useT } from "@/i18n/client";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
@@ -139,6 +140,7 @@ export function EffectsIndexExplorer({
   initialView = EFFECT_INDEX_DEFAULT_VIEW,
 }: EffectsIndexExplorerProps) {
   const router = useRouter();
+  const t = useT();
   const [activeTab, setActiveTab] = useState<TabId>(initialView);
 
   const resolveLegacyHash = useCallback((hash: string) => {
@@ -165,6 +167,19 @@ export function EffectsIndexExplorer({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab);
+
+  // Subcategory panel titles are msg() literals in the config; translate them
+  // once per locale so the memoized cards keep stable props.
+  const translatedSubcategoriesByCategoryKey: Record<string, ParentCategoryConfig["subcategories"]> =
+    useMemo(() => {
+      const byKey: Record<string, ParentCategoryConfig["subcategories"]> = {};
+      for (const category of PARENT_CATEGORIES) {
+        byKey[category.key] = category.subcategories.map((subcategory) =>
+          subcategory.title ? { ...subcategory, title: t(subcategory.title) } : subcategory,
+        );
+      }
+      return byKey;
+    }, [t]);
 
   const filteredEffects = useMemo(() => {
     const tab = TABS.find((candidate) => candidate.id === activeTab);
@@ -434,12 +449,12 @@ export function EffectsIndexExplorer({
             items={TABS.map((tab) => ({
               id: tab.id,
               icon: tab.icon,
-              label: tab.label,
+              label: t(tab.label),
             }))}
             mobileVariant="appGrid"
             mobileClassName="-mt-4"
             listClassName="justify-center"
-            ariaLabel="Effect categories"
+            ariaLabel={t("Effect categories")}
           />
         </div>
 
@@ -476,9 +491,11 @@ export function EffectsIndexExplorer({
                   {column.categories.map((category) => (
                     <ParentCategoryCard
                       key={category.key}
-                      title={category.displayTitle ?? category.title}
+                      title={t(category.displayTitle ?? category.title)}
                       icon={category.icon}
-                      subcategories={category.subcategories}
+                      subcategories={
+                        translatedSubcategoriesByCategoryKey[category.key] ?? category.subcategories
+                      }
                       parentRouteSlug={category.routeSlug}
                       effects={effects}
                       effectHrefPrefix={effectHrefPrefix}
@@ -487,9 +504,15 @@ export function EffectsIndexExplorer({
                       contentId={`${category.key}-list`}
                       titleHref={getCategoryHref(category.routeSlug)}
                       onIconClick={() => void handleCopyParentCategory(category)}
-                      iconActionLabel={`Copy ${category.title} list to clipboard`}
+                      iconActionLabel={t("Copy {{category}} list to clipboard", {
+                        category: category.title,
+                      })}
                       iconActiveState={copiedKey === category.key}
-                      toggleLabel={`${(expanded[category.key] ?? true) ? "Collapse" : "Expand"} ${category.title} category`}
+                      toggleLabel={
+                        (expanded[category.key] ?? true)
+                          ? t("Collapse {{category}} category", { category: category.title })
+                          : t("Expand {{category}} category", { category: category.title })
+                      }
                     />
                   ))}
                 </div>
@@ -527,7 +550,7 @@ export function EffectsIndexExplorer({
                 {column.categories.map((category) => (
                   <EffectCategoryCard
                     key={category.key}
-                    title={category.title}
+                    title={t(category.title)}
                     icon={category.icon}
                     effects={category.effects}
                     effectHrefPrefix={effectHrefPrefix}
@@ -536,9 +559,15 @@ export function EffectsIndexExplorer({
                     contentId={`${category.key}-list`}
                     titleHref={getCategoryHref(category.routeSlug)}
                     onIconClick={() => void handleCopyFlatCategory(category)}
-                    iconActionLabel={`Copy ${category.title} list to clipboard`}
+                    iconActionLabel={t("Copy {{category}} list to clipboard", {
+                      category: category.title,
+                    })}
                     iconActiveState={copiedKey === category.key}
-                    toggleLabel={`${(expanded[category.key] ?? true) ? "Collapse" : "Expand"} ${category.title} category`}
+                    toggleLabel={
+                      (expanded[category.key] ?? true)
+                        ? t("Collapse {{category}} category", { category: category.title })
+                        : t("Expand {{category}} category", { category: category.title })
+                    }
                   />
                 ))}
               </div>

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getCopy } from "@server/next/copyBlocks";
 import { buildPageMetadata } from "@server/next/metadata";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
-import { Button } from "@/components/ui/button";
-import { getCopy } from "@server/next/copyBlocks";
+import { NotFoundBody } from "./_components/NotFoundBody";
 
 // `not-found.tsx` takes a static `metadata` export — Next does not run
 // `generateMetadata` for it — so the 404's SEO description stays in code while
@@ -27,42 +26,15 @@ export default async function NotFound() {
       tabIndex={-1}
       className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col justify-center px-6 py-20 focus:outline-none"
     >
-      <div className="relative">
-        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
-          404
-        </p>
-
-        <h1 className="font-display mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-          {copy.text("not-found-title") || "Page not found"}
-        </h1>
-
-        <p className="theme-text-secondary mt-4 max-w-md text-base leading-7">
-          {copy.text("not-found-body") || "That page doesn\u2019t exist or may have moved."}
-        </p>
-
-        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <Button asChild variant="accent" size="lg">
-            <Link href={substancesLink.href}>Browse substances</Link>
-          </Button>
-          <div className="flex items-center gap-x-3 text-sm">
-            <Link
-              href={effectsLink.href}
-              className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
-            >
-              {effectsLink.label}
-            </Link>
-            <span aria-hidden="true" className="theme-text-faint">
-              &middot;
-            </span>
-            <Link
-              href={reportsLink.href}
-              className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
-            >
-              {reportsLink.label}
-            </Link>
-          </div>
-        </div>
-      </div>
+      <NotFoundBody
+        substancesHref={substancesLink.href}
+        effectsHref={effectsLink.href}
+        effectsLabel={effectsLink.label}
+        reportsHref={reportsLink.href}
+        reportsLabel={reportsLink.label}
+        title={copy.text("not-found-title") || undefined}
+        body={copy.text("not-found-body") || undefined}
+      />
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 
+import { useT } from "@/i18n/client";
 import { Icon } from "@/components/common/Icon";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,7 @@ export function SiteFeedbackForm() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
   const fieldPrefix = useId();
+  const t = useT();
 
   const showUrgency = siteFeedbackCategoryAcceptsUrgency(draft.category);
   const turnstileEnabled = TURNSTILE_SITE_KEY.length > 0;
@@ -122,7 +124,7 @@ export function SiteFeedbackForm() {
       if (!response.ok) {
         setState({
           kind: "error",
-          message: body.error ?? "Unable to send feedback right now.",
+          message: body.error ?? t("Unable to send feedback right now."),
           details: Array.isArray(body.errors) ? body.errors : [],
         });
         return;
@@ -133,7 +135,7 @@ export function SiteFeedbackForm() {
     } catch (error) {
       setState({
         kind: "error",
-        message: error instanceof Error ? error.message : "Unable to send feedback right now.",
+        message: error instanceof Error ? error.message : t("Unable to send feedback right now."),
         details: [],
       });
     }
@@ -144,17 +146,18 @@ export function SiteFeedbackForm() {
       {state.kind === "success" ? (
         <Alert variant="success" aria-live="polite">
           <Icon icon="lucide:check" size={18} />
-          <AlertTitle>Feedback received</AlertTitle>
+          <AlertTitle>{t("Feedback received")}</AlertTitle>
           <AlertDescription>
-            Thanks — your feedback landed in the moderation queue. It is never shown on the
-            site.
+            {t(
+              "Thanks — your feedback landed in the moderation queue. It is never shown on the site.",
+            )}
           </AlertDescription>
         </Alert>
       ) : null}
 
       <form className="space-y-5" onSubmit={submitFeedback}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FeedbackField id={`${fieldPrefix}-category`} label="What kind of feedback?">
+          <FeedbackField id={`${fieldPrefix}-category`} label={t("What kind of feedback?")}>
             <Select
               value={draft.category}
               onValueChange={(value) => setField("category", value as SiteFeedbackCategory)}
@@ -165,7 +168,7 @@ export function SiteFeedbackForm() {
               <SelectContent>
                 {SITE_FEEDBACK_CATEGORIES.map((category) => (
                   <SelectItem key={category} value={category}>
-                    {SITE_FEEDBACK_CATEGORY_LABELS[category]}
+                    {t(SITE_FEEDBACK_CATEGORY_LABELS[category])}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -173,7 +176,7 @@ export function SiteFeedbackForm() {
           </FeedbackField>
 
           {showUrgency ? (
-            <FeedbackField id={`${fieldPrefix}-urgency`} label="How urgent is it?">
+            <FeedbackField id={`${fieldPrefix}-urgency`} label={t("How urgent is it?")}>
               <Select
                 value={draft.urgency}
                 onValueChange={(value) => setField("urgency", value as SiteFeedbackUrgency)}
@@ -184,7 +187,7 @@ export function SiteFeedbackForm() {
                 <SelectContent>
                   {SITE_FEEDBACK_URGENCIES.map((urgency) => (
                     <SelectItem key={urgency} value={urgency}>
-                      {SITE_FEEDBACK_URGENCY_LABELS[urgency]}
+                      {t(SITE_FEEDBACK_URGENCY_LABELS[urgency])}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -193,13 +196,13 @@ export function SiteFeedbackForm() {
           ) : null}
         </div>
 
-        <FeedbackField id={`${fieldPrefix}-details`} label="Details" required>
+        <FeedbackField id={`${fieldPrefix}-details`} label={t("Details")} required>
           <Textarea
             id={`${fieldPrefix}-details`}
             value={draft.details}
             required
             maxLength={SITE_FEEDBACK_DETAILS_MAX_LENGTH}
-            placeholder={SITE_FEEDBACK_CATEGORY_PLACEHOLDERS[draft.category]}
+            placeholder={t(SITE_FEEDBACK_CATEGORY_PLACEHOLDERS[draft.category])}
             onChange={(event) => setField("details", event.target.value)}
           />
           <p className="theme-text-faint text-right text-xs">
@@ -208,17 +211,17 @@ export function SiteFeedbackForm() {
         </FeedbackField>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <FeedbackField id={`${fieldPrefix}-page`} label="Page (optional)">
+          <FeedbackField id={`${fieldPrefix}-page`} label={t("Page (optional)")}>
             <Input
               id={`${fieldPrefix}-page`}
               value={draft.page}
               autoComplete="off"
-              placeholder="/lsd, or a full link"
+              placeholder={t("/lsd, or a full link")}
               onChange={(event) => setField("page", event.target.value)}
             />
           </FeedbackField>
 
-          <FeedbackField id={`${fieldPrefix}-email`} label="Email (optional, for a reply)">
+          <FeedbackField id={`${fieldPrefix}-email`} label={t("Email (optional, for a reply)")}>
             <Input
               id={`${fieldPrefix}-email`}
               type="email"
@@ -253,7 +256,7 @@ export function SiteFeedbackForm() {
         {state.kind === "error" ? (
           <Alert variant="destructive" aria-live="assertive">
             <Icon icon="lucide:circle-alert" size={18} />
-            <AlertTitle>Feedback not sent</AlertTitle>
+            <AlertTitle>{t("Feedback not sent")}</AlertTitle>
             <AlertDescription>
               <p>{state.message}</p>
               {state.details.length > 0 ? (
@@ -279,13 +282,13 @@ export function SiteFeedbackForm() {
               <Icon icon="lucide:send" size={16} />
             )}
             {state.kind === "submitting"
-              ? "Sending"
+              ? t("Sending")
               : awaitingTurnstile
-                ? "Waiting for verification"
-                : "Send feedback"}
+                ? t("Waiting for verification")
+                : t("Send feedback")}
           </Button>
           <Button type="button" variant="outline" onClick={resetForm}>
-            Cancel
+            {t("Cancel")}
           </Button>
         </div>
       </form>

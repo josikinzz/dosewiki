@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useT } from "@/i18n/client";
 import { Icon } from "@/components/common/Icon";
 import { PublicAttributionSection } from "@/components/layout/PublicContentPrimitives";
 import { resolveContributorHref, type ContributorDirectory } from "@server/contributorDirectory";
@@ -16,6 +17,7 @@ export function EffectContributorsSection({
   contributors,
   contributorDirectory = [],
 }: EffectContributorsSectionProps) {
+  const t = useT();
   if (contributors.length === 0) {
     return null;
   }
@@ -26,7 +28,7 @@ export function EffectContributorsSection({
       className="[&>div]:justify-start"
     >
       <Icon icon="lucide:users" size={14} className="theme-icon-muted shrink-0" />
-      <span className="mr-1 font-medium">Contributors:</span>
+      <span className="mr-1 font-medium">{t("Contributors:")}</span>
       {contributors.map((contributor, index) => {
         const href = resolveContributorHref(contributor, contributorDirectory);
 
