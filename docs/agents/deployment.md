@@ -1,3 +1,35 @@
+## 2026-09-11 zh.dose.wiki chrome pass (About page, effect index panels, reports, dates, 404)
+
+All three surfaces serve commit `17ab9680` on `no-corpus-drain`, uploaded from
+isolated detached `git worktree`s at that commit: dosewiki-public
+`dosewiki-public-gnl90q12f`, dosewiki-admin `dosewiki-admin-gp16dagi8`,
+effectindex `effectindex-dd1b0dnyx`.
+
+A four-agent crawl of zh.dose.wiki inventoried every reader-visible English
+string on the localized surfaces; this release wires the results through the
+UI catalog: `/about` joins the mirror (per-section translation of the
+aboutMarkdown, Copy Studio blocks through `t()`, component literals), the
+subjective effect index localizes its tab/category/subcategory panel titles
+and a11y templates, effect articles and reports localize their chrome
+(TOC labels, explorer controls, dossier/timeline/hero/back-link strings), the
+404 body renders in the mirror locale via an `x-dosewiki-mirror-locale`
+request header the middleware stamps ahead of the early 404 rewrites, and
+dates render locale-aware (`Intl` for zh-Hans; English stays byte-pinned).
+The zh-Hans catalog grew to 1,586 entries; the only uncovered scanned key is
+the CC BY-NC-SA license identifier, which stays English by design.
+
+Operational note: a batch of `vercel deploy` runs failed with
+`No Next.js version detected` because the release worktrees for
+`dosewiki-admin` and `effectindex` had not actually been checked out (the
+pre-created directories made `git worktree add` fail silently behind a
+`>/dev/null`). The CLI then uploaded an empty tree and the remote build had no
+`package.json`. Verify a worktree contains `package.json` before uploading
+from it.
+
+Live checks: `zh.dose.wiki/about`, `/effects`, `/reports`, and the 404 body
+render Chinese with `noindex` and an English canonical; English hosts and
+effectindex.com render unchanged.
+
 ## 2026-09-11 zh.dose.wiki locale mirrors (substances, homepage, indexes, effects, reports)
 
 All three surfaces serve commit `1e7d30dd` on `no-corpus-drain`, each uploaded
