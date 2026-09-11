@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useT } from "@/i18n/client";
 import {
   buildReplicationViewerUrl,
   closeReplicationViewerUrl,
@@ -49,6 +50,7 @@ export function ArtistShowcase({
   collection,
   sourcePath,
 }: ArtistShowcaseProps) {
+  const t = useT();
   const [viewerSlug, setViewerSlug] = useState<string | null>(null);
   const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
     string | null
@@ -100,6 +102,9 @@ export function ArtistShowcase({
     () => ({ sourcePath, onOpenWork: launchViewer }),
     [sourcePath, launchViewer],
   );
+  const [rightsBefore, rightsAfter] = t(
+    "Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the {{terms}} to correct a credit or request removal.",
+  ).split("{{terms}}");
 
   return (
     <>
@@ -110,7 +115,7 @@ export function ArtistShowcase({
       {unavailableViewerSlug ? (
         <Alert role="status">
           <AlertDescription>
-            The linked replication is no longer available in this collection.
+            {t("The linked replication is no longer available in this collection.")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -127,16 +132,14 @@ export function ArtistShowcase({
 
       {/* Rights footnote — the page's, not the stage's. */}
       <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
-        Replication media is credited to its creator when known. Rights remain
-        with the original creator or rightsholder unless an individual item
-        states another license. See the{" "}
+        {rightsBefore}
         <Link
           href="/docs/license#replication-media-terms"
           className={proseLinkClassName}
         >
-          licensing terms
-        </Link>{" "}
-        to correct a credit or request removal.
+          {t("licensing terms")}
+        </Link>
+        {rightsAfter}
       </p>
 
       {viewerSlug ? (

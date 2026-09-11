@@ -1,3 +1,4 @@
+import { msg } from "../../src/i18n/messages";
 import "server-only";
 
 import { cache } from "react";
@@ -125,7 +126,7 @@ export const loadArticlesIndexRoute = cache(
           articles.length === 0 ? articlesIndexEmptyState : undefined,
       },
       metadata: {
-        title: "Articles",
+        title: msg("Articles"),
         description: `Browse ${articles.length} published Effect Index articles in ${SITE_FLAVOR_CONFIG.name}.`,
       },
       canonicalRoute: { family: "articles" },

@@ -12,8 +12,10 @@
  *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/articles --corpus=articles --allow-remote --write
  *   bun scripts/translation/live-mirror.ts enqueue --all --allow-remote --write
  *   bun scripts/translation/live-mirror.ts enqueue --kind=library --all --allow-remote --write
+ *   bun scripts/translation/live-mirror.ts enqueue --kind=replication --all --allow-remote --write
  *   bun scripts/translation/live-mirror.ts enqueue --slug=2c-b,lsd --allow-remote --write
  *   bun scripts/translation/live-mirror.ts run --limit=20 --allow-remote --write
+ *   bun scripts/translation/live-mirror.ts backfill --kind=replication --allow-remote --write
  *   bun scripts/translation/live-mirror.ts stale --allow-remote --write
  *
  * Commands:
@@ -23,8 +25,13 @@
  *            names the segmenter that recovers each hash's source text.
  *   enqueue  Insert translation jobs for --all public slugs or --slug=a,b.
  *            --kind selects the corpus: article (substances, the default),
- *            effect, report, or library (the long-form /articles archive).
+ *            effect, report, library (the long-form /articles archive), or
+ *            replication (published gallery media; only titles translate).
  *   run      Claim and process due jobs, like the cron, until --limit or none.
+ *   backfill Translate every unit the store lacks across all public records of
+ *            --kind (or every kind) in bulk: units dedupe across records and
+ *            travel in full batches, so a new kind or corpus field lands in
+ *            minutes rather than one job at a time. Rejections are recorded.
  *   stale    Retranslate stored rows whose prompt digest differs from today's.
  *   status   Counts only; never writes.
  *
@@ -64,8 +71,8 @@ const { values, positionals } = parseArgs({
 
 const command = positionals[0];
 const target = values.target ?? process.env.TARGET_POSTGRES_URL;
-if (!command || !["import", "enqueue", "run", "stale", "status"].includes(command)) {
-  throw new Error("Usage: live-mirror.ts <import|enqueue|run|stale|status> [options]");
+if (!command || !["import", "enqueue", "run", "backfill", "stale", "status"].includes(command)) {
+  throw new Error("Usage: live-mirror.ts <import|enqueue|run|backfill|stale|status> [options]");
 }
 if (!target) throw new Error("Pass --target <url> or set TARGET_POSTGRES_URL");
 guardTarget(target, values["allow-remote"]);
@@ -142,29 +149,11 @@ async function importRun() {
   }
 }
 
-const RECORD_KINDS: readonly live.TranslationRecordKind[] = ["article", "effect", "report", "library"];
-
 function requireKind(value: string): live.TranslationRecordKind {
-  if (!RECORD_KINDS.includes(value as live.TranslationRecordKind)) {
-    throw new Error(`Unknown --kind: ${value} (expected one of ${RECORD_KINDS.join(", ")})`);
+  if (!live.TRANSLATION_RECORD_KINDS.includes(value as live.TranslationRecordKind)) {
+    throw new Error(`Unknown --kind: ${value} (expected one of ${live.TRANSLATION_RECORD_KINDS.join(", ")})`);
   }
   return value as live.TranslationRecordKind;
-}
-
-async function publicSlugsOf(kind: live.TranslationRecordKind): Promise<string[]> {
-  const reads = getPublicDataReadAdapter();
-  switch (kind) {
-    case "article":
-      return reads.getPublicSubstanceSlugs();
-    case "effect":
-      return (await reads.getPublicEffects()).map(({ slug }) => slug);
-    case "report":
-      return (await reads.getPublicTripReportRecords()).map(({ slug }) => slug);
-    case "library":
-      return (await reads.getPublishedEffectIndexArticles())
-        .filter((article) => article.kind !== "blog")
-        .map(({ slug }) => slug);
-  }
 }
 
 async function enqueue() {
@@ -172,7 +161,7 @@ async function enqueue() {
   const prefix = kind === "article" ? "" : `${kind}/`;
   let bare: string[];
   if (values.all) {
-    bare = await publicSlugsOf(kind);
+    bare = await live.publicRecordSlugs(getPublicDataReadAdapter(), kind);
   } else if (values.slug) {
     bare = values.slug.split(",").map((slug) => slug.trim()).filter(Boolean);
   } else {
@@ -226,6 +215,45 @@ async function runQueue() {
   }
   console.log(`Processed     ${processed} job(s)`);
   console.log("Caches on the public deployments expire on the next editorial publish or ISR interval; run the cron or the revalidate route for an immediate refresh.");
+}
+
+async function backfill() {
+  const kinds = values.kind === "article" && !process.argv.some((arg) => arg.startsWith("--kind"))
+    ? live.TRANSLATION_RECORD_KINDS
+    : [requireKind(values.kind)];
+  const reads = getPublicDataReadAdapter();
+  const unitsByHash = new Map<string, ReturnType<typeof buildWorkUnits>[number]>();
+  let records = 0;
+  for (const kind of kinds) {
+    for (const record of await live.publicRecords(reads, kind)) {
+      records += 1;
+      for (const unit of buildWorkUnits(live.segmentsOf(record, kind))) {
+        const known = unitsByHash.get(unit.hash);
+        // A hash seen once as safety text keeps that reminder everywhere.
+        if (!known || (unit.contextClass === "safety" && known.contextClass !== "safety")) unitsByHash.set(unit.hash, unit);
+      }
+    }
+  }
+  const missing = new Set(await store.missingTranslationHashes(LOCALE, [...unitsByHash.keys()]));
+  const pending = [...unitsByHash.values()].filter((unit) => missing.has(unit.hash));
+  console.log(`Records       ${records} across ${kinds.join(", ")}`);
+  console.log(`Units         ${unitsByHash.size} unique, ${pending.length} missing`);
+  if (pending.length === 0) return;
+  if (!write) {
+    console.log("Dry run: pass --write to translate.");
+    return;
+  }
+  const apiKey = requireApiKey();
+  let stored = 0;
+  let rejected = 0;
+  for (let start = 0; start < pending.length; start += 200) {
+    const result = await live.translateUnits(pending.slice(start, start + 200), LOCALE, apiKey);
+    stored += result.stored;
+    rejected += result.rejected.length;
+    console.log(`  ${Math.min(start + 200, pending.length)}/${pending.length}: ${result.stored} stored, ${result.rejected.length} rejected`);
+  }
+  console.log(`Backfill      ${stored} stored, ${rejected} rejected (see mirror-coverage.ts store for the defects)`);
+  console.log("Caches on the public deployments expire on the next editorial publish or ISR interval.");
 }
 
 async function retranslateStale() {
@@ -283,6 +311,7 @@ try {
   if (command === "import") await importRun();
   else if (command === "enqueue") await enqueue();
   else if (command === "run") await runQueue();
+  else if (command === "backfill") await backfill();
   else if (command === "stale") await retranslateStale();
   else await status();
 } finally {

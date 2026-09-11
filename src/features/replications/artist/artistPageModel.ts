@@ -1,4 +1,5 @@
 import { getFaviconForUrl } from "@/data/config/sourceFavicons";
+import { formatMessage, msg, type Translate } from "@/i18n/messages";
 import {
   getCreatorByline,
   hasKnownCreator,
@@ -18,10 +19,12 @@ export const ARTIST_WORKS_KEY = "__artist-works__";
 
 /**
  * Wrap one artist's (already curated-ordered) works into the single
- * viewer-ready gallery group the page's one showcase stages.
+ * viewer-ready gallery group the page's one showcase stages. `translate` is
+ * the page's `t`, so the group's label reads in the UI locale.
  */
 export function buildArtistShowcaseGroup(
   items: readonly PublicGalleryReplicationPreview[],
+  translate: Translate = formatMessage,
 ): GalleryGroup {
   let videoCount = 0;
   let audioCount = 0;
@@ -31,7 +34,7 @@ export function buildArtistShowcaseGroup(
   }
   return {
     key: ARTIST_WORKS_KEY,
-    label: "All works",
+    label: translate(msg("All works")),
     count: items.length,
     imageCount: items.length - videoCount - audioCount,
     videoCount,
@@ -80,24 +83,31 @@ export function showcaseWorkFromPreview(
  * The identity header's count line: always the works total, plus the media
  * split only where it says something. One kind alone needs no split ("24
  * works", never "24 works · 24 images · 0 videos"), and a kind the artist has
- * none of is omitted rather than printed as a zero.
+ * none of is omitted rather than printed as a zero. `translate` is the
+ * header's `t`, so every count phrase reads in the UI locale.
  */
-export function formatArtistWorksLine(counts: {
-  count: number;
-  imageCount: number;
-  videoCount: number;
-  audioCount?: number;
-}): string {
-  const works = `${counts.count} ${counts.count === 1 ? "work" : "works"}`;
+export function formatArtistWorksLine(
+  counts: {
+    count: number;
+    imageCount: number;
+    videoCount: number;
+    audioCount?: number;
+  },
+  translate: Translate = formatMessage,
+): string {
+  const works =
+    counts.count === 1
+      ? translate(msg("{{count}} work"), { count: counts.count })
+      : translate(msg("{{count}} works"), { count: counts.count });
   const parts = [
-    { n: counts.imageCount, one: "image", many: "images" },
-    { n: counts.videoCount, one: "video", many: "videos" },
-    { n: counts.audioCount ?? 0, one: "audio clip", many: "audio clips" },
+    { n: counts.imageCount, one: msg("{{count}} image"), many: msg("{{count}} images") },
+    { n: counts.videoCount, one: msg("{{count}} video"), many: msg("{{count}} videos") },
+    { n: counts.audioCount ?? 0, one: msg("{{count}} audio clip"), many: msg("{{count}} audio clips") },
   ].filter((part) => part.n > 0);
   if (parts.length < 2) return works;
   return [
     works,
-    ...parts.map((part) => `${part.n} ${part.n === 1 ? part.one : part.many}`),
+    ...parts.map((part) => translate(part.n === 1 ? part.one : part.many, { count: part.n })),
   ].join(" · ");
 }
 

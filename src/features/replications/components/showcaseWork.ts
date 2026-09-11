@@ -30,7 +30,11 @@ export type ShowcaseWork = {
   previewUrl?: string;
   motionUrl?: string;
   motionPosterUrl?: string;
-  /** "by <artist>" or "Creator unknown" — never prepend another "by". */
+  /**
+   * English "by <artist>" or "Creator unknown" — never prepend another "by".
+   * The client stage renders its own credit from `artistName` through `t()`,
+   * so the mirror's chrome reads in the UI locale.
+   */
   byline: string;
   /** Trimmed credited name, null when the credit names nobody. */
   artistName: string | null;

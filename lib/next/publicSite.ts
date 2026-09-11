@@ -10,6 +10,7 @@ import {
   type SiteFlavorConfig,
   type SiteSocialCard,
 } from "../../src/config/siteFlavor";
+import { t } from "../../src/i18n/requestLocale";
 
 export { buildCanonicalPath, getPublicRoutePath, type PublicRouteIdentity };
 
@@ -135,9 +136,13 @@ function buildMetaDescription(description: string, siteName: string): string {
  * composes `<name> - <suffix>`. An empty name yields the suffix alone — the homepage's
  * form, which is why it is the only tab title without the trailing " - <suffix>".
  */
+/**
+ * The page name renders in the request's UI locale: index titles are catalog
+ * keys, record names pass through unchanged when the catalog has no entry.
+ */
 function composePageTitle(title: string, site: PublicSiteIdentity): string {
   const pageName = title.trim();
-  return pageName ? `${pageName} - ${site.titleSuffix}` : site.titleSuffix;
+  return pageName ? `${t(pageName)} - ${site.titleSuffix}` : site.titleSuffix;
 }
 
 export function buildPublicPageMetadata(

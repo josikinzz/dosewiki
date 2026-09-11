@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
+import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 interface SectionTab {
@@ -20,10 +21,10 @@ interface SectionTab {
 const SECTION_TABS: SectionTab[] = [
   // The section's route-chrome icon (header/nav) is hugeicons:camera-ai; the
   // Gallery *tab* wears its own glyph by instruction.
-  { href: "/replications", label: "Gallery", icon: "hugeicons:ai-image" },
-  { href: "/replications/tutorials", label: "Tutorials", icon: "lucide:list" },
-  { href: "/replications/audio", label: "Audio", icon: "lucide:audio-lines" },
-  { href: "/replications/more-info", label: "More Info", icon: "lucide:info" },
+  { href: "/replications", label: msg("Gallery"), icon: "hugeicons:ai-image" },
+  { href: "/replications/tutorials", label: msg("Tutorials"), icon: "lucide:list" },
+  { href: "/replications/audio", label: msg("Audio"), icon: "lucide:audio-lines" },
+  { href: "/replications/more-info", label: msg("More Info"), icon: "lucide:info" },
 ];
 
 const SUBREDDIT_URL = "https://www.reddit.com/r/replications";
@@ -57,6 +58,7 @@ export function ReplicationsTabNav({
   trailing?: ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useT();
 
   return (
     <div
@@ -66,7 +68,7 @@ export function ReplicationsTabNav({
       )}
     >
       <nav
-        aria-label="Replications sections"
+        aria-label={t("Replications sections")}
         className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0"
       >
         <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
@@ -96,7 +98,7 @@ export function ReplicationsTabNav({
                 >
                   <Icon icon={tab.icon} size={17} />
                 </span>
-                {tab.label}
+                {t(tab.label)}
               </Link>
             );
           })}

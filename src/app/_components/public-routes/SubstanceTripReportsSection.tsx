@@ -5,7 +5,8 @@ import {
   prepareSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "@/schema";
-import { t } from "@/i18n/server";
+import { getRequestLocale, t } from "@/i18n/server";
+import { localizeRecords } from "@server/translation/liveTranslation";
 import { icons } from "@/utils/iconNames";
 import { getPublicReportsBySubstanceNames } from "@server/convex/publicData";
 import { getSectionLoadingModel, RouteLoadingSkeleton } from "../RouteLoading";
@@ -17,7 +18,13 @@ export async function SubstanceTripReportsSection({
   article: SubstanceArticle;
   slug: string;
 }) {
-  const relatedTripReports = await getPublicReportsBySubstanceNames(getSubstanceSearchNames(article));
+  const englishReports = await getPublicReportsBySubstanceNames(getSubstanceSearchNames(article));
+  // The mirror splices the stored report translations in here too; the
+  // report index and detail routes read the same segments.
+  const locale = getRequestLocale();
+  const relatedTripReports = locale === "en"
+    ? englishReports
+    : (await localizeRecords(englishReports, locale, "report")).records;
   const preparedReports = prepareSubstanceTripReports(relatedTripReports, {
     article,
     collapsedLimit: 3,

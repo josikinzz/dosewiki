@@ -36,6 +36,7 @@ import {
 import { focusRingClassName } from "@/components/ui/surface";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -135,9 +136,9 @@ const MODE_ICON: Record<GalleryMode, IconName> = {
  * archive along, not a subset of it to keep.
  */
 const MODE_LABEL: Record<GalleryMode, string> = {
-  artist: "By artist",
-  effect: "By effect",
-  year: "By year",
+  artist: msg("By artist"),
+  effect: msg("By effect"),
+  year: msg("By year"),
 };
 
 const MODES: ReadonlyArray<GalleryMode> = ["artist", "effect", "year"];
@@ -149,9 +150,9 @@ const ORDER_ICON: Record<GalleryOrder, IconName> = {
 };
 
 const ORDER_LABEL: Record<GalleryOrder, string> = {
-  curated: "Curated",
-  newest: "Newest",
-  oldest: "Oldest",
+  curated: msg("Curated"),
+  newest: msg("Newest"),
+  oldest: msg("Oldest"),
 };
 
 /**
@@ -164,6 +165,42 @@ const ORDER_OPTIONS: Record<GalleryMode, ReadonlyArray<GalleryOrder>> = {
   effect: ["curated", "newest", "oldest"],
   year: ["newest", "oldest"],
 };
+
+/**
+ * The viewer overlay's collection label under a media filter. `all` and
+ * `audio` keep the overlay's own "Sorted by …" label; the two visual media
+ * name themselves first, so the sentence reads "Video replications sorted by
+ * artist" rather than a qualifier bolted onto a capitalised label.
+ */
+const MEDIA_BROWSE_LABEL: Record<"image" | "video", Record<GalleryMode, string>> = {
+  image: {
+    artist: msg("Image replications sorted by artist"),
+    effect: msg("Image replications sorted by effect"),
+    year: msg("Image replications sorted by year"),
+  },
+  video: {
+    artist: msg("Video replications sorted by artist"),
+    effect: msg("Video replications sorted by effect"),
+    year: msg("Video replications sorted by year"),
+  },
+};
+
+const ARTIST_FOCUS_LABEL: Record<GalleryTypeFilter, string> = {
+  all: msg("works by {{artist}}"),
+  audio: msg("works by {{artist}}"),
+  image: msg("Image works by {{artist}}"),
+  video: msg("Video works by {{artist}}"),
+};
+
+const EFFECT_FOCUS_LABEL: Record<GalleryTypeFilter, string> = {
+  all: msg("{{effect}} replications"),
+  audio: msg("{{effect}} replications"),
+  image: msg("Image {{effect}} replications"),
+  video: msg("Video {{effect}} replications"),
+};
+
+/** Read out by the status line once the deferred corpus lands. */
+const CORPUS_LOADED_ANNOUNCEMENT = msg("Complete gallery loaded");
 
 /**
  * Effect names are article titles, and the corpus carries both `After images`
@@ -550,6 +587,7 @@ function GalleryExplorer({
   viewerParamPresent,
   urlStateResolved,
 }: ReplicationsGalleryExplorerProps & GalleryUrlState) {
+  const t = useT();
   const [galleryReplications, setGalleryReplications] = useState(replications);
   const galleryReplicationsRef = useRef(galleryReplications);
   const [hasMore, setHasMore] = useState(Boolean(completeCorpusUrl));
@@ -652,7 +690,7 @@ function GalleryExplorer({
         setGalleryReplications(payload.data);
         setHasMore(false);
         setPageLoadState("idle");
-        setCompletionAnnouncement("Complete gallery loaded");
+        setCompletionAnnouncement(CORPUS_LOADED_ANNOUNCEMENT);
         return true;
       } catch {
         if (!controller.signal.aborted) {
@@ -1262,29 +1300,33 @@ function GalleryExplorer({
       effectName,
       avatarByArtist,
     );
-    const mediaQualifier =
-      typeFilter === "video"
-        ? "Video "
-        : typeFilter === "image"
-          ? "Image "
-          : "";
     if (focus && focusedGroup) {
       return {
         ...collection,
         label:
           focus.kind === "artist"
-            ? `${mediaQualifier}works by ${focusedGroup.label}`
-            : `${mediaQualifier}${focusedGroup.label} replications`,
+            ? t(ARTIST_FOCUS_LABEL[typeFilter], {
+                artist: t(focusedGroup.label),
+              })
+            : t(EFFECT_FOCUS_LABEL[typeFilter], {
+                effect: focusedGroup.label,
+              }),
         grouping: "none" as const,
       };
     }
-    const queryQualifier = query.trim() ? ` matching “${query.trim()}”` : "";
-    const baseLabel = mediaQualifier
-      ? collection.label.replace(/^Sorted/, "replications sorted")
-      : collection.label;
+    const trimmedQuery = query.trim();
+    const baseLabel =
+      typeFilter === "video" || typeFilter === "image"
+        ? t(MEDIA_BROWSE_LABEL[typeFilter][mode])
+        : t(collection.label);
     return {
       ...collection,
-      label: `${mediaQualifier}${baseLabel}${queryQualifier}`,
+      label: trimmedQuery
+        ? t("{{collection}} matching “{{query}}”", {
+            collection: baseLabel,
+            query: trimmedQuery,
+          })
+        : baseLabel,
     };
   }, [
     avatarByArtist,
@@ -1293,6 +1335,7 @@ function GalleryExplorer({
     focusedGroup,
     mode,
     query,
+    t,
     typeFilter,
     viewerGroups,
     viewerSourcePath,
@@ -1444,8 +1487,13 @@ function GalleryExplorer({
   const narrowing = searching || hasRemovableFilters;
   const corpusLoading = pageLoadState === "loading";
   const resultSummary = statsComplete
-    ? `${shown.length.toLocaleString("en-US")} of ${corpusTotal.toLocaleString("en-US")} works`
-    : `${shown.length.toLocaleString("en-US")} works so far`;
+    ? t("{{shown}} of {{total}} works", {
+        shown: shown.length.toLocaleString("en-US"),
+        total: corpusTotal.toLocaleString("en-US"),
+      })
+    : t("{{shown}} works so far", {
+        shown: shown.length.toLocaleString("en-US"),
+      });
 
   /**
    * `/` focuses the gallery search from anywhere on the page. Every other
@@ -1476,23 +1524,22 @@ function GalleryExplorer({
   return (
     <>
       <section
-        aria-label="Replications gallery"
+        aria-label={t("Replications gallery")}
         className="mx-auto mt-2 w-full max-w-7xl"
       >
         {!hasMedia && !hasMore ? (
           <SearchEmptyState
             className="mt-6"
             icon="lucide:image-off"
-            title="No replications yet"
-            description="Replication media has not been published yet. Check back soon."
+            title={t("No replications yet")}
+            description={t("Replication media has not been published yet. Check back soon.")}
           />
         ) : (
           <>
             {unavailableViewerSlug ? (
               <Alert role="status" className="mt-3">
                 <AlertDescription>
-                  The linked replication is no longer available in this
-                  collection.
+                  {t("The linked replication is no longer available in this collection.")}
                 </AlertDescription>
               </Alert>
             ) : null}
@@ -1520,8 +1567,8 @@ function GalleryExplorer({
                         variant="pill"
                         size="auto"
                         className={CONTROL_TRIGGER_CLASS}
-                        aria-label={`Browse by: ${MODE_LABEL[mode]}`}
-                        title={`Browse by: ${MODE_LABEL[mode]}`}
+                        aria-label={t("Browse by: {{mode}}", { mode: t(MODE_LABEL[mode]) })}
+                        title={t("Browse by: {{mode}}", { mode: t(MODE_LABEL[mode]) })}
                       >
                         <Icon
                           icon={MODE_ICON[mode]}
@@ -1529,7 +1576,7 @@ function GalleryExplorer({
                           aria-hidden
                         />
                         <span className={CONTROL_TRIGGER_LABEL_CLASS}>
-                          {MODE_LABEL[mode]}
+                          {t(MODE_LABEL[mode])}
                         </span>
                         <Icon
                           icon="lucide:chevron-down"
@@ -1539,7 +1586,7 @@ function GalleryExplorer({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                      <DropdownMenuLabel>Browse by</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t("Browse by")}</DropdownMenuLabel>
                       <DropdownMenuRadioGroup
                         value={mode}
                         onValueChange={(value) =>
@@ -1557,7 +1604,7 @@ function GalleryExplorer({
                               className="h-4 w-4"
                               aria-hidden
                             />
-                            {MODE_LABEL[value]}
+                            {t(MODE_LABEL[value])}
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
@@ -1571,7 +1618,7 @@ function GalleryExplorer({
                       {orderActive ? (
                         <DropdownMenuGroup className="md:hidden">
                           <DropdownMenuSeparator />
-                          <DropdownMenuLabel>Order</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t("Order")}</DropdownMenuLabel>
                           <DropdownMenuRadioGroup
                             value={order}
                             onValueChange={(value) =>
@@ -1589,7 +1636,7 @@ function GalleryExplorer({
                                   className="h-4 w-4"
                                   aria-hidden
                                 />
-                                {ORDER_LABEL[value]}
+                                {t(ORDER_LABEL[value])}
                               </DropdownMenuRadioItem>
                             ))}
                           </DropdownMenuRadioGroup>
@@ -1629,8 +1676,8 @@ function GalleryExplorer({
                       // trustworthy. It names two things there instead.
                       placeholder={
                         tightField
-                          ? "Search art, artist"
-                          : "Search art, artist, effect"
+                          ? t("Search art, artist")
+                          : t("Search art, artist, effect")
                       }
                       className={cn(
                         "h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9",
@@ -1639,15 +1686,15 @@ function GalleryExplorer({
                         searching || queryWritePending ? "pr-10" : "pr-3",
                       )}
                       inputMode="search"
-                      aria-label="Search replications"
-                      title="Search replications (/)"
+                      aria-label={t("Search replications")}
+                      title={t("Search replications (/)")}
                     />
                     {searching ? (
                       <Button
                         type="button"
                         variant="ghost"
                         size="auto"
-                        aria-label="Clear search"
+                        aria-label={t("Clear search")}
                         className={cn(
                           "absolute right-0 top-1/2 h-9 w-9 -translate-y-1/2 p-0",
                           TOUCH_ICON,
@@ -1694,8 +1741,8 @@ function GalleryExplorer({
                           variant="pill"
                           size="auto"
                           className={cn(CONTROL_TRIGGER_CLASS, "max-md:hidden")}
-                          aria-label={`Order: ${ORDER_LABEL[order]}`}
-                          title={`Order: ${ORDER_LABEL[order]}`}
+                          aria-label={t("Order: {{order}}", { order: t(ORDER_LABEL[order]) })}
+                          title={t("Order: {{order}}", { order: t(ORDER_LABEL[order]) })}
                         >
                           {/* A control holding something other than its
                               default tints its own glyph. The `pill` variant
@@ -1713,7 +1760,7 @@ function GalleryExplorer({
                             )}
                           />
                           <span className={CONTROL_TRIGGER_LABEL_CLASS}>
-                            {ORDER_LABEL[order]}
+                            {t(ORDER_LABEL[order])}
                           </span>
                           <Icon
                             icon="lucide:chevron-down"
@@ -1723,7 +1770,7 @@ function GalleryExplorer({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Order</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("Order")}</DropdownMenuLabel>
                         <DropdownMenuRadioGroup
                           value={order}
                           onValueChange={(value) =>
@@ -1741,7 +1788,7 @@ function GalleryExplorer({
                                 className="h-4 w-4"
                                 aria-hidden
                               />
-                              {ORDER_LABEL[value]}
+                              {t(ORDER_LABEL[value])}
                             </DropdownMenuRadioItem>
                           ))}
                         </DropdownMenuRadioGroup>
@@ -1797,11 +1844,11 @@ function GalleryExplorer({
                         aria-hidden
                       />
                       <span className={narrowing ? "sr-only" : undefined}>
-                        Loading the complete gallery…
+                        {t("Loading the complete gallery…")}
                       </span>
                     </>
                   ) : completionAnnouncement ? (
-                    <span className="sr-only">{completionAnnouncement}.</span>
+                    <span className="sr-only">{t(completionAnnouncement)}.</span>
                   ) : null}
                 </p>
                 {hasRemovableFilters ? (
@@ -1823,8 +1870,7 @@ function GalleryExplorer({
               <Alert variant="destructive" role="alert" className="mt-4">
                 <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
                   <span>
-                    The complete gallery could not finish loading. Everything
-                    already shown remains available; retry from the last page.
+                    {t("The complete gallery could not finish loading. Everything already shown remains available; retry from the last page.")}
                   </span>
                   <Button
                     type="button"
@@ -1832,7 +1878,7 @@ function GalleryExplorer({
                     size="pill"
                     onClick={() => void retryCompleteCorpus()}
                   >
-                    Retry
+                    {t("Retry")}
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -1851,10 +1897,10 @@ function GalleryExplorer({
                         icon="lucide:arrow-left"
                         className="h-4 w-4 transition group-hover:-translate-x-0.5 motion-reduce:transition-none"
                       />
-                      All {mode === "artist" ? "artists" : "effects"}
+                      {mode === "artist" ? t("All artists") : t("All effects")}
                     </Link>
                     <h2 className="theme-text-primary font-display mt-1 flex items-center gap-2 text-2xl font-bold tracking-tight">
-                      <span className="min-w-0 break-words">{focusedGroup.label}</span>
+                      <span className="min-w-0 break-words">{t(focusedGroup.label)}</span>
                       {focusedGroup.approvedReplicator ? (
                         <ApprovedReplicatorStar className="text-[0.75em]" />
                       ) : null}
@@ -1870,7 +1916,7 @@ function GalleryExplorer({
                           focusRingClassName,
                         )}
                       >
-                        View effect article
+                        {t("View effect article")}
                         <Icon
                           icon="lucide:arrow-right"
                           className="h-4 w-4 transition group-hover/profile:translate-x-0.5 motion-reduce:transition-none"
@@ -1887,7 +1933,7 @@ function GalleryExplorer({
                           focusRingClassName,
                         )}
                       >
-                        Own site
+                        {t("Own site")}
                         <Icon
                           icon="lucide:arrow-up-right"
                           className="h-4 w-4"
@@ -1896,7 +1942,9 @@ function GalleryExplorer({
                     ) : null}
                   </div>
                   <span className="theme-text-faint text-xs tabular-nums">
-                    {focusedItems.length} works
+                    {focusedItems.length === 1
+                      ? t("{{count}} work", { count: focusedItems.length })
+                      : t("{{count}} works", { count: focusedItems.length })}
                   </span>
                 </div>
                 {mode === "artist" ? focusIdentity : null}
@@ -1915,8 +1963,16 @@ function GalleryExplorer({
                   <SearchEmptyState
                     className="mt-8"
                     icon="lucide:search-x"
-                    title={`No ${typeFilter === "video" ? "videos" : "images"} here`}
-                    description={`${focusedGroup.label} has no ${typeFilter === "video" ? "videos" : "images"}. Switch the media filter to see everything.`}
+                    title={typeFilter === "video" ? t("No videos here") : t("No images here")}
+                    description={
+                      typeFilter === "video"
+                        ? t("{{group}} has no videos. Switch the media filter to see everything.", {
+                            group: t(focusedGroup.label),
+                          })
+                        : t("{{group}} has no images. Switch the media filter to see everything.", {
+                            group: t(focusedGroup.label),
+                          })
+                    }
                   />
                 )}
               </div>
@@ -1925,8 +1981,15 @@ function GalleryExplorer({
               filtered.length > 0 ? (
                 <div className="mt-4 space-y-3">
                   <p className="theme-text-faint px-1 text-xs tabular-nums">
-                    {filtered.length} result{filtered.length === 1 ? "" : "s"}{" "}
-                    for “{query.trim()}”
+                    {filtered.length === 1
+                      ? t("{{count}} result for “{{query}}”", {
+                          count: filtered.length,
+                          query: query.trim(),
+                        })
+                      : t("{{count}} results for “{{query}}”", {
+                          count: filtered.length,
+                          query: query.trim(),
+                        })}
                   </p>
                   <IncrementalMasonry
                     items={searchResults}
@@ -1938,8 +2001,10 @@ function GalleryExplorer({
                 <SearchEmptyState
                   className="mt-8"
                   icon="lucide:search-x"
-                  title="No art matches your search"
-                  description={`Nothing found for “${query.trim()}”. Try a different artist, effect, or title.`}
+                  title={t("No art matches your search")}
+                  description={t("Nothing found for “{{query}}”. Try a different artist, effect, or title.", {
+                    query: query.trim(),
+                  })}
                 />
               )
             ) : singleYear && filtered.length > 0 ? (
@@ -1957,8 +2022,8 @@ function GalleryExplorer({
               <div className="mt-8 flex flex-col items-center">
                 <SearchEmptyState
                   icon="lucide:list-filter"
-                  title="No works match these filters"
-                  description="Clear one or more filters to widen the gallery."
+                  title={t("No works match these filters")}
+                  description={t("Clear one or more filters to widen the gallery.")}
                 />
                 <Button
                   type="button"
@@ -1966,7 +2031,7 @@ function GalleryExplorer({
                   size="pill"
                   onClick={clearAllFilters}
                 >
-                  Clear filters
+                  {t("Clear filters")}
                 </Button>
               </div>
             ) : (
@@ -2042,7 +2107,7 @@ function GalleryExplorer({
                       }
                       className="min-h-11 gap-1.5"
                     >
-                      Show more artists
+                      {t("Show more artists")}
                       <Icon
                         icon="lucide:chevron-down"
                         className="h-4 w-4"
@@ -2050,24 +2115,32 @@ function GalleryExplorer({
                       />
                     </Button>
                     <span className="theme-text-faint text-xs tabular-nums">
-                      Showing {visibleRails.length} of{" "}
-                      {digestActive
-                        ? (artistGroupTotal ?? displayRails.length)
-                        : displayRails.length}{" "}
-                      artists
+                      {t("Showing {{visible}} of {{total}} artists", {
+                        visible: visibleRails.length,
+                        total: digestActive
+                          ? (artistGroupTotal ?? displayRails.length)
+                          : displayRails.length,
+                      })}
                     </span>
                   </div>
                 ) : null}
                 {pooledItems.length > 0 ? (
-                  <section aria-label="More effects" className="space-y-3">
+                  <section aria-label={t("More effects")} className="space-y-3">
                     {displayRails.length > 0 ? (
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
                         <h2 className="theme-text-primary font-display text-lg font-semibold tracking-tight">
-                          More effects
+                          {t("More effects")}
                         </h2>
                         <span className="theme-text-faint text-xs tabular-nums">
-                          {pool.length} effects · {pooledItems.length} work
-                          {pooledItems.length === 1 ? "" : "s"}
+                          {pooledItems.length === 1
+                            ? t("{{effects}} effects · {{works}} work", {
+                                effects: pool.length,
+                                works: pooledItems.length,
+                              })
+                            : t("{{effects}} effects · {{works}} works", {
+                                effects: pool.length,
+                                works: pooledItems.length,
+                              })}
                         </span>
                       </div>
                     ) : null}
@@ -2085,16 +2158,14 @@ function GalleryExplorer({
                 editable fair-use notice it renders below the explorer. */}
             {rightsFootnote ? (
               <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
-                Replication media is credited to its creator when known. Rights
-                remain with the original creator or rightsholder unless an
-                individual item states another license. See the{" "}
+                {t("Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the")}{" "}
                 <Link
                   href="/docs/license#replication-media-terms"
                   className={proseLinkClassName}
                 >
-                  licensing terms
+                  {t("licensing terms")}
                 </Link>{" "}
-                to correct a credit or request removal.
+                {t("to correct a credit or request removal.")}
               </p>
             ) : null}
           </>
@@ -2158,6 +2229,7 @@ function IncrementalMasonry({
   /** Canonical source-collection URL each tile's viewer href derives from. */
   viewerSourcePath: string;
 }) {
+  const t = useT();
   const [visibleCount, setVisibleCount] = useState(MASONRY_PAGE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -2226,11 +2298,14 @@ function IncrementalMasonry({
             onClick={() => setVisibleCount((count) => count + MASONRY_PAGE)}
             className="min-h-11 gap-1.5"
           >
-            Show more works
+            {t("Show more works")}
             <Icon icon="lucide:chevron-down" className="h-4 w-4" aria-hidden />
           </Button>
           <span className="theme-text-faint text-xs tabular-nums">
-            Showing {visible.length} of {items.length} works
+            {t("Showing {{visible}} of {{total}} works", {
+              visible: visible.length,
+              total: items.length,
+            })}
           </span>
         </div>
       ) : null}

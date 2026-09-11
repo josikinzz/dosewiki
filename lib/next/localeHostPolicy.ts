@@ -41,8 +41,19 @@ export function localizedArticleRoutePath(locale: LiveLocale, slug: string): str
   return `${locale.pathPrefix}/${slug}`;
 }
 
-/** The English index paths the middleware also localizes, in route order. */
-export const LOCALIZED_INDEX_PATHS = ["/", "/substances", "/effects", "/reports", "/articles", "/about"] as const;
+/** The English index paths the middleware also localizes, in route order. The replication tabs are one section, so they localize together. */
+export const LOCALIZED_INDEX_PATHS = [
+  "/",
+  "/substances",
+  "/effects",
+  "/reports",
+  "/articles",
+  "/replications",
+  "/replications/audio",
+  "/replications/more-info",
+  "/replications/tutorials",
+  "/about",
+] as const;
 
 /** The mirror route for one English index path, when that path localizes. */
 /**
@@ -65,13 +76,15 @@ export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): s
 /**
  * The mirror route prefix and slug for one mirrored record path. Substance
  * articles route through the corpus-gated slug check in the middleware; this
- * covers the effect, report, and library article detail paths, which the zh
- * routes resolve against the live record and 404 on their own.
+ * covers the effect, report, library article, replication permalink, and
+ * replication artist detail paths, which the zh routes resolve against the
+ * live record and 404 on their own. The artist page is keyed by a credit
+ * line, not a translation record, so it carries no corpus kind.
  */
 export function localizedRecordRoutePath(
   locale: LiveLocale,
   pathname: string,
-): { path: string; kind: "effect" | "report" | "library"; slug: string } | null {
+): { path: string; kind: "effect" | "report" | "library" | "replication" | "replication-artist"; slug: string } | null {
   const effectSlug = pathname.match(/^\/effects\/([^/]+)\/?$/);
   if (effectSlug) {
     return {
@@ -96,6 +109,26 @@ export function localizedRecordRoutePath(
       slug: librarySlug[1],
     };
   }
+  const artistKey = pathname.match(/^\/replications\/artist\/([^/]+)\/?$/);
+  if (artistKey) {
+    return {
+      path: `${locale.pathPrefix}/replications/artist/${artistKey[1]}`,
+      kind: "replication-artist",
+      slug: artistKey[1],
+    };
+  }
+  // The viewer route is the middleware's own rewrite target for
+  // `/replications?viewer=`; a document addressed there directly is unroutable
+  // before this runs, so a single segment here is a permalink unless it names
+  // one of the section's tabs, which localize as indexes.
+  const replicationSlug = pathname.match(/^\/replications\/([^/]+)\/?$/);
+  if (replicationSlug && localizedIndexRoutePath(locale, pathname) === null) {
+    return {
+      path: `${locale.pathPrefix}/replications/${replicationSlug[1]}`,
+      kind: "replication",
+      slug: replicationSlug[1],
+    };
+  }
   return null;
 }
 
@@ -117,6 +150,16 @@ export function localizedReportPaths(slug: string): string[] {
 /** Every cache path an English library article expiry must also expire. */
 export function localizedLibraryPaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/articles/${slug}`);
+}
+
+/** Every cache path an English replication permalink expiry must also expire. */
+export function localizedReplicationPaths(slug: string): string[] {
+  return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/replications/${slug}`);
+}
+
+/** The mirror viewer route for one deep-linked replication, per locale. */
+export function localizedReplicationViewerRoutePath(locale: LiveLocale, slug: string): string {
+  return `${locale.pathPrefix}/replications/viewer/${slug}`;
 }
 
 /** Every localized index cache path for one English index path. */

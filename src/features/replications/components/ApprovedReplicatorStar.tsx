@@ -1,7 +1,12 @@
+"use client";
+
 import { Icon } from "@/components/common/Icon";
+import { useT } from "@/i18n/client";
+import { msg } from "@/i18n/messages";
 import { cn } from "@/lib/utils";
 
-export const APPROVED_REPLICATOR_LABEL = "Approved replicator";
+/** Translate at render with `t(APPROVED_REPLICATOR_LABEL)`. */
+export const APPROVED_REPLICATOR_LABEL = msg("Approved replicator");
 
 /**
  * The mark beside an approved replicator's name on the /replications index: a
@@ -12,10 +17,11 @@ export const APPROVED_REPLICATOR_LABEL = "Approved replicator";
  * a reader who wonders what the star means ends up.
  */
 export function ApprovedReplicatorStar({ className }: { className?: string }) {
+  const t = useT();
   return (
     <span
       className={cn("theme-icon-accent inline-flex shrink-0 items-center", className)}
-      title={APPROVED_REPLICATOR_LABEL}
+      title={t(APPROVED_REPLICATOR_LABEL)}
       data-testid="approved-replicator-star"
     >
       {/* Lucide paths ship `fill="none"` inline, which beats an inherited fill. */}
@@ -24,7 +30,7 @@ export function ApprovedReplicatorStar({ className }: { className?: string }) {
         className="h-[1em] w-[1em] [&_path]:fill-current"
         size="1em"
       />
-      <span className="sr-only">{APPROVED_REPLICATOR_LABEL}</span>
+      <span className="sr-only">{t(APPROVED_REPLICATOR_LABEL)}</span>
     </span>
   );
 }

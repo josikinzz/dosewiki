@@ -8,7 +8,9 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { SmartLink } from "@/components/common/SmartLink";
 import { cn } from "@/lib/utils";
 import { useT, useUiLocale } from "@/i18n/client";
-import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
+import type { ArticleRecentChange, ChangeFieldSegment } from "@/data/changelog/articleRecentChanges";
+import { fieldWords } from "@/data/changelog/articleRecentChanges";
+import type { Translate } from "@/i18n/messages";
 import { publicHref } from "@/utils/publicHref";
 
 interface RecentChangesListProps {
@@ -44,6 +46,11 @@ const nameClassName = cn("theme-accent-heading font-semibold", linkClassName);
 /** On the article page, how many other articles of a bulk save are named before "and N more". */
 const NAMED_SIBLINGS = 3;
 const targetClassName = cn("theme-text-primary", linkClassName);
+
+/** "Routes 1 › Dose ranges › Heavy": each label translates alone, the index stays a number. */
+function fieldLabel(segments: ChangeFieldSegment[], t: Translate): string {
+  return fieldWords(segments, t);
+}
 
 function RecentChangeRow({
   change,
@@ -123,10 +130,10 @@ function RecentChangeRow({
                   ) : (
                     <span className="theme-text-faint">{t(change.section.label)}</span>
                   )}
-                  {change.field ? <span className="theme-text-faint"> › {t(change.field)}</span> : null}
+                  {change.field ? <span className="theme-text-faint"> › {fieldLabel(change.field, t)}</span> : null}
                 </>
               ) : change.field ? (
-                <span className="theme-text-faint"> {t("in")} {t(change.field)}</span>
+                <span className="theme-text-faint"> {t("in")} {fieldLabel(change.field, t)}</span>
               ) : null}
             </>
           )}

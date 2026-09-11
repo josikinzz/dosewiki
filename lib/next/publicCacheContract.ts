@@ -30,7 +30,10 @@ import {
   localizedEffectPaths,
   localizedIndexPaths,
   localizedLibraryPaths,
+  localizedReplicationPaths,
   localizedReportPaths,
+  LIVE_LOCALES,
+  localizedReplicationViewerRoutePath,
 } from "./localeHostPolicy";
 
 import type { PublicationTarget } from "./publicationWire";
@@ -108,6 +111,22 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
           ...localizedIndexPaths("/articles").map((path) => ({ path })),
         ],
         tags: [PUBLIC_CONVEX_CACHE_TAGS.articles],
+      };
+    case "replication":
+      // One work: its permalink, the per-slug viewer document, the gallery
+      // index whose prerendered rails carry its title, and the locale mirrors
+      // of all three. The showcase feed and every collection share the
+      // corpus tag, so a title edit reaches the carousels too.
+      return {
+        paths: [
+          { path: `/replications/${target.slug}` },
+          { path: `/replications/viewer/${target.slug}` },
+          { path: "/replications" },
+          ...localizedReplicationPaths(target.slug).map((path) => ({ path })),
+          ...Object.values(LIVE_LOCALES).map((locale) => ({ path: localizedReplicationViewerRoutePath(locale, target.slug) })),
+          ...localizedIndexPaths("/replications").map((path) => ({ path })),
+        ],
+        tags: [PUBLIC_CONVEX_CACHE_TAGS.replications],
       };
     case "blog-post":
       return {
@@ -234,6 +253,8 @@ export function publicationTargetForSavedPath(path: string): PublicationTarget |
   if (report) return { kind: "report", slug: report[1] };
   const library = /^\/articles\/([a-z0-9][a-z0-9-]*)$/.exec(path);
   if (library) return { kind: "library", slug: library[1] };
+  const replication = /^\/replications\/([a-z0-9][a-z0-9_-]*)$/.exec(path);
+  if (replication) return { kind: "replication", slug: replication[1] };
   const post = /^\/blog\/([a-z0-9][a-z0-9-]*)$/.exec(path);
   if (post) return { kind: "blog-post", slug: post[1] };
   const chemicalClass = /^\/chemical-classes\/([a-z0-9][a-z0-9-]*)$/.exec(path);

@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
@@ -5,6 +7,7 @@ import { Icon } from "@/components/common/Icon";
 import { PublicPill } from "@/components/common/PublicTokens";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { focusRingClassName } from "@/components/ui/surface";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { artistLinkPresentation, formatArtistWorksLine } from "./artistPageModel";
 import { APPROVED_REPLICATOR_LABEL } from "../components/ApprovedReplicatorStar";
@@ -49,11 +52,12 @@ export function ArtistIdentityHeader({
   links,
   counts,
 }: ArtistIdentityHeaderProps) {
+  const t = useT();
   const trimmedRole = role?.trim() ?? "";
 
   return (
     <header
-      aria-label={`About ${name}`}
+      aria-label={t("About {{name}}", { name })}
       data-testid="artist-identity"
       className="space-y-5"
     >
@@ -70,7 +74,7 @@ export function ArtistIdentityHeader({
             icon="lucide:arrow-left"
             className="h-4 w-4 transition group-hover:-translate-x-0.5 motion-reduce:transition-none"
           />
-          All artists
+          {t("All artists")}
         </Link>
       </div>
 
@@ -98,7 +102,7 @@ export function ArtistIdentityHeader({
                 </span>
               </>
             ) : null}
-            {formatArtistWorksLine(counts)}
+            {formatArtistWorksLine(counts, t)}
           </p>
           {approvedReplicator || verifiedReplicator ? (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -108,7 +112,7 @@ export function ArtistIdentityHeader({
                   icon="lucide:star"
                   data-testid="approved-replicator-badge"
                 >
-                  {APPROVED_REPLICATOR_LABEL}
+                  {t(APPROVED_REPLICATOR_LABEL)}
                 </PublicPill>
               ) : null}
               {verifiedReplicator ? (
@@ -117,7 +121,7 @@ export function ArtistIdentityHeader({
                   icon="lucide:badge-check"
                   data-testid="verified-replicator-badge"
                 >
-                  Verified replicator
+                  {t("Verified replicator")}
                 </PublicPill>
               ) : null}
             </div>
@@ -127,7 +131,7 @@ export function ArtistIdentityHeader({
 
       {links.length > 0 ? (
         <nav
-          aria-label={`${name} links`}
+          aria-label={t("{{name}} links", { name })}
           className="flex flex-wrap gap-2 px-1"
         >
           {links.map((link) => (

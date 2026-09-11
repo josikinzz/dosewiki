@@ -1,6 +1,7 @@
 /**
  * Live locale mirrors of dose.wiki records: substance articles, effect
- * articles, trip reports, and the long-form library articles.
+ * articles, trip reports, the long-form library articles, and replication
+ * media records.
  *
  * The batch pipeline under `scripts/translation/` owns segmentation, the
  * prompt, validation, and the model call; this module runs the same pieces
@@ -21,11 +22,28 @@ import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type WorkUnit } 
 import { resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
-import { missingTranslationHashes, readTranslations, writeTranslations, type TranslationSegmentRow } from "./segmentStore";
+import {
+  clearTranslationRejections,
+  missingTranslationHashes,
+  readTranslations,
+  writeTranslationRejections,
+  writeTranslations,
+  type TranslationSegmentRow,
+} from "./segmentStore";
 import type { PublicDataReadAdapter } from "../convex/publicData.reads";
+import { isPublishableReplication } from "../../src/types/replications";
 
 /** Which runtime record corpus a translation job addresses. */
-export type TranslationRecordKind = "article" | "effect" | "report" | "library";
+export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication";
+
+/** Every kind, in the order the operator tooling reports them. */
+export const TRANSLATION_RECORD_KINDS: readonly TranslationRecordKind[] = [
+  "article",
+  "effect",
+  "report",
+  "library",
+  "replication",
+];
 
 /** The batch corpus plus the runtime-only keys a public record carries that an export does not. */
 const LIVE_SUBSTANCE_CORPUS = {
@@ -40,13 +58,16 @@ const LIVE_SUBSTANCE_CORPUS = {
  * raw into the tree field exactly as the batch run does. A public library
  * article is the batch export plus `authors`, the legacy Mongo ObjectIds the
  * batch loader strips and no reader ever sees; its VCode body reparses into
- * `body_ast` the same way.
+ * `body_ast` the same way. A replication record's only prose is its title;
+ * the corpus excludes every other field by name, so the gallery projection
+ * and the full permalink record segment identically.
  */
 const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> = {
   article: LIVE_SUBSTANCE_CORPUS,
   effect: { ...CORPORA.effects, excludedKeys: [...CORPORA.effects.excludedKeys] },
   report: { ...CORPORA.reports, excludedKeys: [...CORPORA.reports.excludedKeys] },
   library: { ...CORPORA.articles, excludedKeys: [...CORPORA.articles.excludedKeys, "authors"] },
+  replication: { ...CORPORA.replications, excludedKeys: [...CORPORA.replications.excludedKeys] },
 };
 
 /** Effect and library bodies reconcile their derived `*_ast` trees against the translated raw. */
@@ -56,7 +77,7 @@ const CORPUS_PARSE: Partial<Record<TranslationRecordKind, NonNullable<Parameters
 };
 
 /** The job table keys every record by slug; the non-substance kinds carry a namespace prefix so one row always resolves to exactly one corpus. */
-const PREFIXED_KINDS = ["effect", "report", "library"] as const;
+const PREFIXED_KINDS = ["effect", "report", "library", "replication"] as const;
 
 /** The corpus and bare slug one `translationJobs` row addresses; a bare slug is a substance article. */
 export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRecordKind; slug: string } {
@@ -70,7 +91,8 @@ export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRec
 /**
  * The public record a job addresses, read uncached because the job exists
  * precisely when the cached record is stale. Null means nothing public carries
- * the slug: unpublished, renamed, or a blog row asked for as a library article.
+ * the slug: unpublished, renamed, a blog row asked for as a library article,
+ * or a replication the public surfaces would not publish.
  */
 export async function readTranslationRecord(
   reads: PublicDataReadAdapter,
@@ -87,6 +109,68 @@ export async function readTranslationRecord(
     case "library": {
       const article = await reads.getPublicEffectIndexArticleBySlug(slug);
       return article && article.kind !== "blog" ? article : null;
+    }
+    case "replication": {
+      const replication = await reads.getPublicReplicationBySlug(slug);
+      return replication && isPublishableReplication(replication) ? replication : null;
+    }
+  }
+}
+
+/** Every slug the public surfaces currently publish for one kind: the enqueue-all set and the coverage denominator. */
+export async function publicRecordSlugs(reads: PublicDataReadAdapter, kind: TranslationRecordKind): Promise<string[]> {
+  switch (kind) {
+    case "article":
+      return reads.getPublicSubstanceSlugs();
+    case "effect":
+      return (await reads.getPublicEffects()).map(({ slug }) => slug);
+    case "report":
+      return (await reads.getPublicTripReportRecords()).map(({ slug }) => slug);
+    case "library":
+      return (await reads.getPublishedEffectIndexArticles())
+        .filter((article) => article.kind !== "blog")
+        .map(({ slug }) => slug);
+    case "replication":
+      return (await reads.getPublicReplications())
+        .filter((replication) => isPublishableReplication(replication))
+        .map(({ slug }) => slug);
+  }
+}
+
+/**
+ * Every public record of one kind, for the whole-corpus passes (backfill,
+ * coverage). Kinds with a plain bulk read use it; substances and effects only
+ * list slugs or previews outside a Next process, so they are read by slug a
+ * few at a time.
+ */
+export async function publicRecords(
+  reads: PublicDataReadAdapter,
+  kind: TranslationRecordKind,
+): Promise<Array<{ slug: string } & Record<string, unknown>>> {
+  type PublicRecord = { slug: string } & Record<string, unknown>;
+  switch (kind) {
+    case "report":
+      return (await reads.getPublicTripReportRecords()) as unknown as PublicRecord[];
+    case "library":
+      return (await reads.getPublishedEffectIndexArticles())
+        .filter((article) => article.kind !== "blog") as unknown as PublicRecord[];
+    case "replication":
+      return (await reads.getPublicReplications())
+        .filter((replication) => isPublishableReplication(replication)) as unknown as PublicRecord[];
+    case "article":
+    case "effect": {
+      const slugs = await publicRecordSlugs(reads, kind);
+      const records: PublicRecord[] = [];
+      let cursor = 0;
+      await Promise.all(Array.from({ length: 8 }, async () => {
+        while (cursor < slugs.length) {
+          const slug = slugs[cursor];
+          cursor += 1;
+          const record = await readTranslationRecord(reads, kind, slug);
+          if (record) records.push({ ...(record as Record<string, unknown>), slug });
+        }
+      }));
+      return records;
     }
   }
 }
@@ -165,8 +249,9 @@ export type RefreshOutcome = {
 
 /**
  * Translate the work units the store lacks and persist the ones that pass
- * every blocking check. A rejected unit is reported, not stored: its English
- * keeps rendering, and the next refresh tries it again.
+ * every blocking check. A rejected unit is recorded, not stored: its English
+ * keeps rendering, the rejection row explains why, and the next refresh
+ * tries it again.
  */
 export async function translateUnits(
   units: readonly WorkUnit[],
@@ -216,6 +301,15 @@ export async function translateUnits(
   );
 
   await writeTranslations(rows);
+  await Promise.all([
+    clearTranslationRejections(localeCode, rows.map((row) => row.hash)),
+    writeTranslationRejections(rejected.map((entry) => ({
+      locale: localeCode,
+      hash: entry.hash,
+      source: units.find((unit) => unit.hash === entry.hash)?.source ?? "",
+      defects: entry.defects,
+    }))),
+  ]);
   return { stored: rows.length, rejected, usage };
 }
 

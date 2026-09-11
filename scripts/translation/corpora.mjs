@@ -176,7 +176,6 @@ const EFFECT_CORPUS = {
     "citations",
     "gallery_order",
     "tags",
-    "audio_replications",
   ]),
   excludedKeys: Object.freeze([
     "slug",
@@ -188,6 +187,19 @@ const EFFECT_CORPUS = {
     "id",
     // Anchor targets: `?s=<id>` links resolve against these.
     "_id",
+    // Audio replications: the clip title and description translate; the
+    // artist, the file, and the rights fields are attribution and stay.
+    "artist",
+    "artist_url",
+    "resource",
+    "rights_status",
+    "license_name",
+    "license_url",
+    "credit_line",
+    "source_url",
+    "rightsholder",
+    "permission_notes",
+    "removal_contact",
   ]),
   conditionalKeys: Object.freeze({}),
   safetyGroups: Object.freeze([]),
@@ -236,10 +248,12 @@ const ARTICLE_CORPUS = {
 };
 
 /**
- * First-person reports. Doses, times, units and the substance names beside
- * them are the record; only the narrative is translated. Every record keeps
- * its own licence and its byline, because the translation is a derivative of
- * someone else's already-published writing.
+ * First-person reports. Times, units and the substance names beside them are
+ * the record; the narrative, and the free-text dose and route lines authors
+ * write beside a substance ("2.5g Syrian rue / 6g Mimosa rootbark", "Oral,
+ * baked into a cupcake"), are translated, with the numbers held by the
+ * validator. Every record keeps its own licence and its byline, because the
+ * translation is a derivative of someone else's already-published writing.
  */
 const REPORT_CORPUS = {
   id: "reports",
@@ -248,7 +262,7 @@ const REPORT_CORPUS = {
   itemKey: "slug",
   defaultSource: `${OPEN_DATA}/TripReports.json`,
   load: openDataLoader("TripReports"),
-  excludedGroups: Object.freeze(["tags", "substances", "published_at", "license"]),
+  excludedGroups: Object.freeze(["tags", "published_at", "license"]),
   excludedKeys: Object.freeze([
     "slug",
     "featured",
@@ -262,11 +276,120 @@ const REPORT_CORPUS = {
     "age",
     "height",
     "weight",
-    // A timeline stamp is a measurement, not a sentence.
-    "time",
+    // A substance name is a proper noun. A timeline stamp ("T+1:30", "After
+    // 10:40 PM") is free text: the number gate holds its digits and a bare
+    // stamp with nothing to translate is rejected as UNTRANSLATED and stays.
     "name",
-    "dose",
-    "roa",
+  ]),
+  conditionalKeys: Object.freeze({}),
+  safetyGroups: Object.freeze([]),
+  markupFields: Object.freeze({}),
+};
+
+/**
+ * Replication media records: one reader-visible sentence each, the work's
+ * title. Everything else on the row is the record: the artist is a proper
+ * noun, the rights fields are attribution, the effect slug and tag arrays key
+ * filters, the storage keys and URLs locate media, and the date, size and
+ * duration are measurements. The runtime is the only consumer (there is no
+ * batch export), so the loader reads the published rows straight from Convex.
+ */
+const REPLICATION_CORPUS = {
+  id: "replications",
+  label: "Replications",
+  dataset: "Replications",
+  itemKey: "slug",
+  defaultSource: "convex:replications:getAll",
+  load: async (source) => {
+    const origin = source ?? "convex:replications:getAll";
+    if (!origin.startsWith("convex:")) {
+      const absolute = path.resolve(repoRoot(), origin);
+      return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
+    }
+    const rows = await convexQuery("replications:getAll");
+    const items = rows
+      .filter((row) => (row.publication_state ?? "published") === "published")
+      .map(({ _id: _identifier, _creationTime: _created, ...rest }) => rest)
+      .sort((a, b) => String(a.slug).localeCompare(String(b.slug)));
+    return { dataset: envelope("Replications", items, `${CONVEX_URL} replications:getAll`), origin };
+  },
+  excludedGroups: Object.freeze([
+    "effect_tags",
+    "viewing_mode_tags",
+    "title_drugs",
+    "drug_classes",
+    "content_tags",
+    "artist_type_tags",
+    "date_info",
+    "effect_order_index",
+    "title_class_mentions",
+  ]),
+  excludedKeys: Object.freeze([
+    "_id",
+    "_creationTime",
+    "slug",
+    "artist",
+    "artist_url",
+    "role",
+    "publication_state",
+    "duplicate_of_replication_id",
+    "duplicate_evidence_digest",
+    "duplicate_operation_id",
+    "duplicate_suppressed_at",
+    "type",
+    "storage_id",
+    "effect_slug",
+    "source_sha256",
+    "replication_status",
+    "viewing_mode",
+    "content_family",
+    "artist_primary_type",
+    "thumbnail_storage_id",
+    "preview_storage_id",
+    "motion_storage_id",
+    "motion_poster_storage_id",
+    "r2_key",
+    "thumbnail_r2_key",
+    "preview_r2_key",
+    "motion_r2_key",
+    "motion_poster_r2_key",
+    "width",
+    "height",
+    "format",
+    "file_size",
+    "duration",
+    "has_audio",
+    "created_at",
+    // Rights and attribution: a credit line names people, a licence is a
+    // proper noun, a removal contact is an address.
+    "rights_status",
+    "license_name",
+    "license_url",
+    "credit_line",
+    "source_url",
+    "rightsholder",
+    "permission_notes",
+    "removal_contact",
+    // Resolved media locations.
+    "url",
+    "thumbnail_url",
+    "preview_url",
+    "motion_url",
+    "motion_poster_url",
+    // Taxonomy bookkeeping on the full row: confidence enums, review flags,
+    // the CAS record key and digest, and the showcase placement flag.
+    "content_family_confidence",
+    "content_family_review_required",
+    "replication_status_confidence",
+    "replication_status_review_required",
+    "viewing_mode_confidence",
+    "viewing_mode_review_required",
+    "taxonomy_record_key",
+    "taxonomy_review_required",
+    "taxonomy_source_digest",
+    "taxonomy_updated_at",
+    "taxonomy_version",
+    "showcase_excluded",
   ]),
   conditionalKeys: Object.freeze({}),
   safetyGroups: Object.freeze([]),
@@ -497,6 +620,7 @@ export const CORPORA = Object.freeze({
   effects: EFFECT_CORPUS,
   articles: ARTICLE_CORPUS,
   reports: REPORT_CORPUS,
+  replications: REPLICATION_CORPUS,
   copy: COPY_CORPUS,
   layout: LAYOUT_CORPUS,
   summaries: SUMMARY_CORPUS,

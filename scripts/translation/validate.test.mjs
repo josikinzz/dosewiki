@@ -102,6 +102,20 @@ test("ring locants and fold-multipliers survive the number gate", () => {
   );
 });
 
+test("clock times, dotted dates, and idiomatic Chinese numbers survive the number gate", () => {
+  // The minutes of a timestamp before Han text are not a name-borne locant.
+  assert.deepEqual(compareNumbers("14:00 - After a while I wrote this.", "14:00 - 过了一会儿我写下了这些。").dropped, []);
+  assert.deepEqual(compareNumbers("I am not 100% certain.", "我不能百分之百确定。").dropped, []);
+  assert.deepEqual(compareNumbers("about 100 people", "大约一百人").dropped, []);
+  assert.deepEqual(compareNumbers("about 100 people", "大约很多人").dropped, ["100"]);
+  // Statute dates lose their zero padding and their dots in Chinese.
+  assert.deepEqual(compareNumbers("Resolution No. 681 of 30.06.1998", "1998年6月30日第681号决议").dropped, []);
+  assert.deepEqual(compareNumbers("dated 06 July 2026", "日期为2026年7月6日").dropped, []);
+  // A round myriad reads as 一万 with no scale word in the source.
+  assert.deepEqual(compareNumbers("The 10,000 things", "一万种事物").dropped, []);
+  assert.deepEqual(compareNumbers("The 10,000 things", "万物").dropped, ["10000"]);
+});
+
 test("names, statute citations, and lone chemical names are not prose", () => {
   assert.equal(looksTranslatable("Anton Köllisch"), false);
   assert.equal(looksTranslatable("58 nM (norquetiapine)"), false);

@@ -63,3 +63,22 @@ export const translationJobs = pgTable(
   },
   (t) => [primaryKey({ columns: [t.locale, t.slug] }), index("translationJobs_due").on(t.locale, t.completed_at, t.claimed_at)],
 );
+
+/**
+ * Segments the model could not render within the blocking checks. A row here
+ * explains an English leaf on a mirror page; the next refresh retries it and
+ * a stored translation deletes it. Owned by lib/translation/segmentStore.ts.
+ */
+export const translationRejections = pgTable(
+  "translationRejections",
+  {
+    locale: text("locale").notNull(),
+    hash: text("hash").notNull(),
+    source: text("source").notNull(),
+    /** Comma-joined defect codes from the last attempt, e.g. NUMBER_MISMATCH,SCRIPT_LEAK. */
+    defects: text("defects").notNull(),
+    attempts: integer("attempts").notNull().default(1),
+    last_tried_at: bigint("last_tried_at", { mode: "number" }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.hash] })],
+);

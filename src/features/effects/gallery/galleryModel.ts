@@ -11,6 +11,7 @@ import type {
 } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
 import { replicationMediaRank } from "@/features/replications/mediaRank";
+import { msg } from "@/i18n/messages";
 import {
   curatedEffectPosition,
   depictedEffects,
@@ -100,7 +101,7 @@ export function defaultGalleryOrder(mode: GalleryMode): GalleryOrder {
  */
 
 export const UNATTRIBUTED_KEY = "__unattributed__";
-export const UNATTRIBUTED_LABEL = "Unattributed";
+export const UNATTRIBUTED_LABEL = msg("Unattributed");
 
 /**
  * Shared layout constants live here — a plain module — rather than in the
@@ -843,7 +844,7 @@ export function groupByEffect(
   });
 }
 
-export const UNDATED_YEAR_LABEL = "Undated";
+export const UNDATED_YEAR_LABEL = msg("Undated");
 
 /**
  * "By year" browse groups: the archive as a timeline, one rail per year while

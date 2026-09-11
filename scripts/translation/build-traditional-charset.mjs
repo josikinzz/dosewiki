@@ -37,7 +37,12 @@ for (const line of (await response.text()).split("\n")) {
   const mappings = simplified.trim().split(" ").filter(Boolean);
   if (mappings.length === 0) continue;
   // A character that maps to itself is shared by both scripts, not a leak.
-  if (mappings.every((candidate) => candidate !== traditional)) characters.push(traditional);
+  if (mappings.some((candidate) => candidate === traditional)) continue;
+  // A Simplified form outside the BMP (鵟 -> 𫛭, a buzzard) is one no font
+  // renders and no model emits; the Traditional form is the working spelling
+  // in Simplified text too, so it is a word choice, not a drift.
+  if (mappings.every((candidate) => [...candidate].some((point) => point.codePointAt(0) > 0xffff))) continue;
+  characters.push(traditional);
 }
 
 characters.sort();

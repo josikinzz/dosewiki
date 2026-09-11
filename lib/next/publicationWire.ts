@@ -42,6 +42,7 @@ export type PublicationTarget =
   | { kind: "molecule"; slug: string }
   | { kind: "report"; slug: string }
   | { kind: "library"; slug: string }
+  | { kind: "replication"; slug: string }
   | { kind: "blog-post"; slug: string }
   | { kind: "substance-lists" }
   | { kind: "chemical-lists" }
@@ -70,6 +71,8 @@ export type PublicationSignal = {
 };
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,127}$/;
+/** Replication slugs keep the underscores of their source-era ids (`?viewer=` accepts the same grammar). */
+const REPLICATION_SLUG_RE = /^[a-z0-9][a-z0-9_-]{0,127}$/;
 /** Class depiction keys are stored as `class:<key>` molecule slugs. */
 const MOLECULE_SLUG_RE = /^(?:class:)?[a-z0-9][a-z0-9-]{0,127}$/;
 const CONTRIBUTOR_KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -80,6 +83,7 @@ const SLUG_PATTERN_BY_KIND: Partial<Record<PublicationTarget["kind"], RegExp>> =
   "chemical-class": SLUG_RE,
   report: SLUG_RE,
   library: SLUG_RE,
+  replication: REPLICATION_SLUG_RE,
   "blog-post": SLUG_RE,
   molecule: MOLECULE_SLUG_RE,
   contributor: CONTRIBUTOR_KEY_RE,

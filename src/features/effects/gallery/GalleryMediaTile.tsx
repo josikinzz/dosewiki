@@ -7,6 +7,7 @@ import { Icon } from "@/components/common/Icon";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
 import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import { audioWaveformBars } from "@/features/replications/audioWaveform";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
@@ -110,6 +111,7 @@ export function GalleryMediaTile({
   viewerHref,
   sizes = "(max-width: 640px) 60vw, 400px",
 }: GalleryMediaTileProps) {
+  const t = useT();
   const { hoverPreview: hoverPreviewAllowed } = useMotionAllowed();
   const [hovered, setHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -166,7 +168,7 @@ export function GalleryMediaTile({
       : isVideo
         ? replication.thumbnail_url
         : (replication.thumbnail_url ?? replication.url);
-  const byline = getCreatorByline(replication);
+  const byline = getCreatorByline(replication, t);
   // Audio carries no intrinsic frame; a shallower block keeps the bars from
   // becoming a wall of empty tile beside real artwork.
   const fallbackRatio = isAudio ? "3 / 2" : "4 / 3";
@@ -218,12 +220,12 @@ export function GalleryMediaTile({
     isVideo || isAudio ? formatMediaDuration(replication.duration) : null;
   const workYear = formatWorkYear(replication);
   const mediumLabel = isVideo
-    ? "Video"
+    ? t("Video")
     : isAudio
-      ? "Audio"
+      ? t("Audio")
       : gifLike
-        ? "Animation"
-        : "Image";
+        ? t("Animation")
+        : t("Image");
 
   return (
     <figure className={cn("min-w-0", className)}>

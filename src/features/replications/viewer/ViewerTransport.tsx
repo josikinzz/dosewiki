@@ -12,6 +12,7 @@ import {
 import { Icon } from "@/components/common/Icon";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import {
   createSoundCustody,
   reloadPooledElement,
@@ -187,9 +188,10 @@ export function ViewerTransport({
   onTransportHandle,
   onFullscreen,
   fullscreenSupported,
-  previousLabel = "Previous work",
-  nextLabel = "Next work",
+  previousLabel,
+  nextLabel,
 }: ViewerTransportProps) {
+  const t = useT();
   const replication = item.replication;
   const moving = slideMotionSource(replication) !== null && video !== null;
   const ordinaryVideo = replication.type === "video";
@@ -543,7 +545,7 @@ export function ViewerTransport({
   return (
     <section
       ref={transportRef}
-      aria-label={`${replication.title} media controls`}
+      aria-label={t("{{title}} media controls", { title: replication.title })}
       data-replication-media-stage
       data-controls-visible={transportVisible || undefined}
       className="pointer-events-none absolute inset-0 [container-type:size]"
@@ -554,8 +556,9 @@ export function ViewerTransport({
           className="theme-media-tile-title pointer-events-auto absolute inset-x-6 top-1/2 z-20 -translate-y-1/2 rounded-lg bg-black/80 p-4 text-center text-sm"
         >
           <p>
-            This media could not be loaded. You can still open information or
-            continue browsing.
+            {t(
+              "This media could not be loaded. You can still open information or continue browsing.",
+            )}
           </p>
           {moving ? (
             <button
@@ -566,7 +569,7 @@ export function ViewerTransport({
                 focusRingClassName,
               )}
             >
-              Try again
+              {t("Try again")}
             </button>
           ) : null}
         </div>
@@ -592,7 +595,7 @@ export function ViewerTransport({
           tabIndex={transportVisible ? 0 : -1}
           aria-hidden={!transportVisible || undefined}
           inert={!transportVisible}
-          aria-label="Seek"
+          aria-label={t("Seek")}
           aria-valuemin={0}
           aria-valuemax={Math.round(replication.duration ?? 0)}
           aria-valuenow={0}
@@ -703,7 +706,7 @@ export function ViewerTransport({
         {showWorkNavigation ? (
           <button
             type="button"
-            aria-label={previousLabel}
+            aria-label={previousLabel ?? t("Previous work")}
             disabled={!onPrevious}
             onClick={(event) => {
               event.stopPropagation();
@@ -720,7 +723,7 @@ export function ViewerTransport({
         {showWorkNavigation ? (
           <button
             type="button"
-            aria-label={nextLabel}
+            aria-label={nextLabel ?? t("Next work")}
             disabled={!onNext}
             onClick={(event) => {
               event.stopPropagation();
@@ -745,7 +748,7 @@ export function ViewerTransport({
               <>
                 <button
                   type="button"
-                  aria-label={playing ? "Pause" : "Play"}
+                  aria-label={playing ? t("Pause") : t("Play")}
                   onClick={(event) => {
                     event.stopPropagation();
                     togglePlayback();
@@ -767,7 +770,7 @@ export function ViewerTransport({
                   <>
                     <button
                       type="button"
-                      aria-label={elementMuted ? "Unmute" : "Mute"}
+                      aria-label={elementMuted ? t("Unmute") : t("Mute")}
                       onClick={(event) => {
                         event.stopPropagation();
                         toggleMuted();
@@ -789,7 +792,7 @@ export function ViewerTransport({
                       className="sr-only"
                       htmlFor={`replication-volume-${replication.slug}`}
                     >
-                      Volume
+                      {t("Volume")}
                     </label>
                     <input
                       id={`replication-volume-${replication.slug}`}
@@ -836,7 +839,7 @@ export function ViewerTransport({
               <button
                 type="button"
                 aria-label={
-                  rotateMode ? "Rotate back upright" : "Rotate to fill screen"
+                  rotateMode ? t("Rotate back upright") : t("Rotate to fill screen")
                 }
                 aria-pressed={rotateMode}
                 onClick={(event) => {
@@ -859,7 +862,7 @@ export function ViewerTransport({
             {onInfo ? (
               <button
                 type="button"
-                aria-label="Show information"
+                aria-label={t("Show information")}
                 aria-expanded={infoOpen}
                 aria-controls={infoControls}
                 onClick={(event) => {
@@ -876,7 +879,7 @@ export function ViewerTransport({
             {fullscreenSupported && onFullscreen ? (
               <button
                 type="button"
-                aria-label="Fullscreen"
+                aria-label={t("Fullscreen")}
                 onClick={(event) => {
                   event.stopPropagation();
                   onFullscreen();

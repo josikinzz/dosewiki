@@ -61,7 +61,7 @@ function unescape(literal: string): string {
 
 async function collectKeys(): Promise<Map<string, Set<string>>> {
   const keys = new Map<string, Set<string>>();
-  const glob = new Glob("src/**/*.{ts,tsx}");
+  const glob = new Glob("{src,lib}/**/*.{ts,tsx}");
   for await (const relative of glob.scan({ cwd: repoRoot })) {
     if (relative.startsWith("src/i18n/") || /\.(test|spec)\.tsx?$/.test(relative)) continue;
     const text = await readFile(path.join(repoRoot, relative), "utf8");
@@ -98,6 +98,24 @@ async function loadIndexLabelKeys(): Promise<Set<string>> {
     }
     for (const section of category.sections ?? []) {
       if (section.label?.trim()) out.add(section.label);
+    }
+  }
+  return out;
+}
+
+/**
+ * Field labels the changelog derives from an inline edit's raw path
+ * ("dosage.routes[0].dose_ranges.heavy" renders "Routes 1 › Dose ranges ›
+ * Heavy"). Each path segment is one label translated on its own, so every
+ * segment of every registered field path is a catalog key.
+ */
+async function loadFieldLabelKeys(): Promise<Set<string>> {
+  const { FIELD_PATHS } = await import("../../src/data/schema/fieldRegistry.generated");
+  const out = new Set<string>();
+  for (const fieldPath of FIELD_PATHS) {
+    for (const segment of fieldPath.split(".")) {
+      const bare = segment.replace(/\[\d*\]$/, "").replace(/_/g, " ");
+      if (bare.length > 0) out.add(bare.charAt(0).toUpperCase() + bare.slice(1));
     }
   }
   return out;
@@ -208,6 +226,9 @@ async function main() {
   }
   for (const section of await loadAboutSectionKeys()) {
     if (!keys.has(section)) keys.set(section, new Set(["aboutContent"]));
+  }
+  for (const label of await loadFieldLabelKeys()) {
+    if (!keys.has(label)) keys.set(label, new Set(["fieldRegistry"]));
   }
   const glossary = await loadGlossaryKeys();
   for (const term of glossary.keys()) {

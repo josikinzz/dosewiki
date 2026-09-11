@@ -140,7 +140,7 @@ describe("replication create route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("inserts the asset for an admin and publishes the replication collections", async () => {
+  it("inserts the asset for an admin and publishes the replication collections plus the new record", async () => {
     authMocks.requireRoleSession.mockImplementation(
       roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
     );
@@ -154,7 +154,7 @@ describe("replication create route", () => {
       expect.objectContaining({ slug: "new-asset", actorEmail: "admin@example.com" }),
     );
     expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "replication-collections" }],
+      targets: [{ kind: "replication-collections" }, { kind: "replication", slug: "new-asset" }],
       source: "manual",
     });
   });
@@ -183,7 +183,11 @@ describe("replication create route", () => {
 
     expect(response.status).toBe(200);
     expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "replication-collections" }, { kind: "effect", slug: "tracers" }],
+      targets: [
+        { kind: "replication-collections" },
+        { kind: "effect", slug: "tracers" },
+        { kind: "replication", slug: "new-asset" },
+      ],
       source: "manual",
     });
   });

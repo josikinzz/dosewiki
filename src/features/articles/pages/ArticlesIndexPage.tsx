@@ -6,7 +6,7 @@ import { PublicContentSection } from "@/components/layout/PublicContentPrimitive
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
-import { t } from "@/i18n/server";
+import { getRequestLocale, t } from "@/i18n/server";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import { articleHref } from "../domain/articleGuides";
@@ -85,8 +85,19 @@ export function ArticlesIndexPage({
  * feed; a 5,000-word guide only earns its "25 min read", never a bigger row.
  * Below `sm` the blurb wraps under the title and the meta run takes its own line.
  */
+/** "May 2021" in English, "2021年5月" on the mirror; a raw date with no month passes through. */
+function publishedMonthLabel(publishedMonth: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(publishedMonth);
+  if (!match) return publishedMonth;
+  return new Intl.DateTimeFormat(getRequestLocale() === "en" ? "en-GB" : getRequestLocale(), { month: "long", year: "numeric", timeZone: "UTC" })
+    .format(new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1)));
+}
+
 function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
-  const meta = [article.dateLabel, article.lengthLabel].filter(Boolean).join(" · ");
+  const meta = [
+    article.publishedMonth ? publishedMonthLabel(article.publishedMonth) : null,
+    article.readMinutes ? t("{{minutes}} min read", { minutes: article.readMinutes }) : null,
+  ].filter(Boolean).join(" · ");
 
   return (
     <li className="theme-index-row">

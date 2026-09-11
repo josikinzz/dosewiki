@@ -6,6 +6,7 @@ import { PublicPill } from "@/components/common/PublicTokens";
 import { PublicSectionHeading } from "@/components/layout/PublicPagePrimitives";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import type { GalleryReplication } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
 import { artistUrlKey, isWithheldFromArtistViews } from "./galleryModel";
@@ -33,6 +34,7 @@ export function ContributorWorksCarousel({
   works,
   contributorName,
 }: ContributorWorksCarouselProps) {
+  const t = useT();
   const [index, setIndex] = useState(0);
   const trackRef = useRef<HTMLUListElement | null>(null);
 
@@ -94,7 +96,7 @@ export function ContributorWorksCarousel({
     <section className="space-y-5">
       <PublicSectionHeading
         icon="lucide:images"
-        title="Replications"
+        title={t("Replications")}
         titleElement="h2"
         actions={
           <>
@@ -125,7 +127,7 @@ export function ContributorWorksCarousel({
 
       <ul
         ref={trackRef}
-        aria-label={`Replications by ${contributorName}`}
+        aria-label={t("Replications by {{artist}}", { artist: contributorName })}
         className="flex snap-x snap-mandatory list-none gap-3 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
       >
         {shown.map((work) => (
@@ -161,6 +163,7 @@ function RailButton({
   onStep: (delta: number) => void;
   onArrowKeys: (event: React.KeyboardEvent) => void;
 }) {
+  const t = useT();
   const isNext = direction === "next";
 
   return (
@@ -171,8 +174,8 @@ function RailButton({
       disabled={disabled}
       aria-label={
         isNext
-          ? `Next replication by ${contributorName}`
-          : `Previous replication by ${contributorName}`
+          ? t("Next replication by {{artist}}", { artist: contributorName })
+          : t("Previous replication by {{artist}}", { artist: contributorName })
       }
       className={cn(
         "theme-text-muted flex h-8 w-8 items-center justify-center rounded-full border transition-colors",

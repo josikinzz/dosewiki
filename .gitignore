@@ -131,3 +131,4 @@ __pycache__/
 
 # Generated GT translation bundles (npx gt translate output)
 public/_gt/
+/runs/translation/

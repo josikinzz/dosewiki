@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 
 import { DoseWikiLogo } from "@/components/common/DoseWikiLogo";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useT } from "@/i18n/client";
 
 import styles from "./ViewerBufferingIndicator.module.css";
 
@@ -23,6 +24,7 @@ function BufferingSession({
   phase,
   rotated = false,
 }: ViewerBufferingIndicatorProps) {
+  const t = useT();
   const [displayedPhase, setDisplayedPhase] =
     useState<ViewerBufferingIndicatorProps["phase"]>(null);
   const [pageHidden, setPageHidden] = useState(false);
@@ -78,7 +80,7 @@ function BufferingSession({
           />
         </div>
         <div role="status" aria-live="off" className={styles.label}>
-          <span>Loading</span>
+          <span>{t("Loading")}</span>
           {/* Three dots that breathe 1-2-3-2; the word carries the meaning. */}
           <span className={styles.ellipsis} aria-hidden="true">
             <span className={styles.dot}>.</span>

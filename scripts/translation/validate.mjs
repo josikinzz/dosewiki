@@ -73,7 +73,7 @@ function stripNonMeasurementDigits(text) {
     .replace(CITE_MARKER, " ")
     .replace(UNIT_SUFFIX, "$1 $2 ")
     .replace(LOCANT_SET, " ")
-    .replace(/\d+[.,]?\d*\s*-\s*(?=\p{Script=Han})/gu, " ")
+    .replace(/(?<![:\d])\d+[.,]?\d*\s*-\s*(?=\p{Script=Han})/gu, " ")
     .replace(/\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ")
     .replace(/[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ");
 }
@@ -153,9 +153,11 @@ const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", 
  */
 export function chineseNumeralForms(value) {
   const number = Number(value);
-  if (!Number.isInteger(number) || number < 0 || number > 99) return [];
+  if (!Number.isInteger(number) || number < 0 || (number > 99 && number !== 100)) return [];
   // 两 is the counter form: "the other 2 metabolites" is "另外两种".
   if (number === 2) return ["二", "两"];
+  // "100%" is idiomatically 百分之百 and "100" reads as 一百.
+  if (number === 100) return ["一百", "百分之百"];
   if (number < 10) return [CHINESE_DIGITS[number]];
   const tens = Math.floor(number / 10);
   const ones = number % 10;
@@ -189,6 +191,17 @@ export function compareNumbers(source, target) {
     if (consume(value)) continue;
     if (myriadForms(value, scale).some((form) => consume(form))) continue;
     if (chineseNumeralForms(value).some((form) => target.includes(form))) continue;
+    // "06.05.2000" is written 2000年5月6日: a zero-padded day or month keeps
+    // its value without the padding, and a dotted date survives as its parts.
+    const unpadded = value.replace(/^0+(?=\d)/, "");
+    if (unpadded !== value && consume(unpadded)) continue;
+    const dateParts = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(value);
+    if (dateParts && dateParts.slice(1).every((part) => consume(part) || consume(part.replace(/^0+(?=\d)/, "")))) continue;
+    // A plain "10,000" is idiomatically 一万 or 1万 even with no scale word.
+    if (scale === 1 && /^\d+0000$/.test(unpadded)) {
+      const wan = String(Number(unpadded) / 1e4);
+      if (consume(wan) || chineseNumeralForms(wan).some((form) => target.includes(`${form}万`))) continue;
+    }
     dropped.push(value);
   }
 

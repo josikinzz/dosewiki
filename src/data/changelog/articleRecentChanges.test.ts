@@ -61,7 +61,7 @@ describe("describeChange", () => {
       message: "Sourced a claim",
       detail: null,
       section: { id: "harm-potential", label: "Harm Potential" },
-      field: "Psychosis › Description",
+      field: [{ label: "Psychosis", index: null }, { label: "Description", index: null }],
     });
   });
 
@@ -71,7 +71,7 @@ describe("describeChange", () => {
     expect(describeChange("Inline edit — summary", diff)).toMatchObject({
       message: "Added 2 citations and reworded 2 words",
       section: null,
-      field: "Summary",
+      field: [{ label: "Summary", index: null }],
     });
   });
 
@@ -79,7 +79,7 @@ describe("describeChange", () => {
     expect(describeChange("Inline edit — mystery.thing", "- a\n+ b")).toMatchObject({
       message: "Changed a word",
       section: null,
-      field: "Mystery › Thing",
+      field: [{ label: "Mystery", index: null }, { label: "Thing", index: null }],
     });
   });
 
@@ -155,7 +155,7 @@ describe("describeChange legacy paths", () => {
     expect(describeChange("Inline edit — dosage.routes[0].dose_ranges.heavy", "- 1\n+ 2")).toMatchObject({
       kind: "prose",
       section: { id: "dosage-duration", label: "Dosage & Duration" },
-      field: "Routes 1 › Dose ranges › Heavy",
+      field: [{ label: "Routes", index: 1 }, { label: "Dose ranges", index: null }, { label: "Heavy", index: null }],
     });
   });
 });

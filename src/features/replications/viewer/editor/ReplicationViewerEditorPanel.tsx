@@ -226,7 +226,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
     if (!publication || busy) return;
     setBusy(true); setError(null); setPendingPublication(publication);
     try {
-      await request(ENDPOINT, { method: "POST", body: JSON.stringify({ mode: publication.mode, change: publication.change }) });
+      await request(ENDPOINT, { method: "POST", body: JSON.stringify({ mode: publication.mode, change: publication.change, slug: publication.slug }) });
       setNotice("Publication confirmed. The attributed before/after history was saved with this change.");
       setPendingPublication(null);
       setReview(null);

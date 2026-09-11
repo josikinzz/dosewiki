@@ -8,6 +8,8 @@ import {
   getPublicReplicationBySlug,
   type PublicReplicationIdentityAttribution,
 } from "@server/convex/publicData";
+import { getLocalizedPublicReplicationBySlug } from "@server/translation/localizedRecords";
+import type { LiveLocale } from "@server/next/localeHostPolicy";
 import {
   isPublishableReplication,
   type ReplicationWithUrl,
@@ -47,7 +49,7 @@ const hasRealEffect = (effectSlug?: string | null): effectSlug is string =>
   Boolean(effectSlug && effectSlug !== "unknown");
 
 export const loadReplicationRoute = cache(
-  async (slug: string): Promise<ReplicationRouteResult> => {
+  async (slug: string, locale: LiveLocale | null = null): Promise<ReplicationRouteResult> => {
     const aliasTarget = getReplicationRouteAlias(slug);
     if (aliasTarget) {
       const canonicalRoute = {
@@ -65,7 +67,9 @@ export const loadReplicationRoute = cache(
       };
     }
 
-    const replication = await getPublicReplicationBySlug(slug);
+    const replication = locale
+      ? await getLocalizedPublicReplicationBySlug(slug, locale.code)
+      : await getPublicReplicationBySlug(slug);
     if (
       !replication ||
       !replication.url ||

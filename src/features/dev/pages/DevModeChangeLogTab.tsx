@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { describeChange } from "@/data/changelog/articleRecentChanges";
+import { describeChange, fieldWords } from "@/data/changelog/articleRecentChanges";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import {
   ActionNotice,
@@ -65,7 +65,9 @@ function summarizeEntry(entry: ChangeLogEntry): EntrySummary {
       ? `Updated ${articleCount} articles`
       : description.message;
   const location =
-    [description.section?.label, description.field].filter(Boolean).join(" › ") || null;
+    [description.section?.label, description.field ? fieldWords(description.field) : null]
+      .filter(Boolean)
+      .join(" › ") || null;
 
   let linesAdded = 0;
   let linesRemoved = 0;

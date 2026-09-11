@@ -13,6 +13,9 @@ import {
   getPublicEffectBySlug,
   getPublicEffectIndexArticleBySlug,
   getPublicEffects,
+  getPublicGalleryReplicationBySlug,
+  getPublicGalleryReplications,
+  getPublicReplicationBySlug,
   getPublicReportBySlug,
   getPublicReports,
   getPublishedEffectIndexArticles,
@@ -22,6 +25,7 @@ import {
   type TripReportDetailRecord,
 } from "@server/convex/publicData";
 import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
+import type { PublicGalleryReplicationPreview, ReplicationWithUrl } from "../../src/types/replications";
 import { localizeRecord, localizeRecords } from "./liveTranslation";
 
 export const getLocalizedPublicSubstanceBySlug = cache(async (
@@ -94,4 +98,36 @@ export const getLocalizedPublicArticles = cache(async (
   if (articles.length === 0) return articles;
   const localized = await localizeRecords(articles, locale, "library");
   return localized.records;
+});
+
+/** The gallery-index read: every published replication preview with its stored title spliced in. */
+export const getLocalizedPublicGalleryReplications = cache(async (
+  locale: string,
+): Promise<PublicGalleryReplicationPreview[]> => {
+  const replications = await getPublicGalleryReplications();
+  if (replications.length === 0) return replications;
+  const localized = await localizeRecords(replications, locale, "replication");
+  return localized.records;
+});
+
+/** One gallery preview for a viewer deep link, with its stored title spliced in. */
+export const getLocalizedPublicGalleryReplicationBySlug = cache(async (
+  slug: string,
+  locale: string,
+): Promise<PublicGalleryReplicationPreview | null> => {
+  const replication = await getPublicGalleryReplicationBySlug(slug);
+  if (!replication) return null;
+  const localized = await localizeRecord(replication, locale, "replication");
+  return localized.record;
+});
+
+/** The permalink read: the full replication record with its stored title spliced in. */
+export const getLocalizedPublicReplicationBySlug = cache(async (
+  slug: string,
+  locale: string,
+): Promise<ReplicationWithUrl | null> => {
+  const replication = await getPublicReplicationBySlug(slug);
+  if (!replication) return null;
+  const localized = await localizeRecord(replication, locale, "replication");
+  return localized.record;
 });

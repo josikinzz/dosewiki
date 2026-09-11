@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ContentCard, NestedContentCard, Surface } from "@/components/ui/surface";
 import { AudioReplicationPlayer } from "@/features/effects/components/AudioReplicationPlayer";
 import { audioWaveformBars } from "@/features/replications/audioWaveform";
+import { t } from "@/i18n/server";
 import {
   getExternalSourceUrl,
   getRightsSummary,
@@ -91,11 +92,14 @@ export function ReplicationDetailPage({
   const artistName =
     identityAttribution?.creator.display_name.trim() ||
     replication.artist?.trim() ||
-    "Unattributed";
+    t("Unattributed");
   const sourceUrl = getExternalSourceUrl(replication);
   const attribution = buildAttributionLine(replication);
   const fileSize = formatFileSize(replication.file_size);
   const duration = formatDuration(replication.duration);
+  const [correctionBefore, correctionAfter] = t(
+    "To correct a credit or request removal, see the {{terms}}.",
+  ).split("{{terms}}");
 
   return (
     <PublicContentShell focusTarget>
@@ -105,7 +109,7 @@ export function ReplicationDetailPage({
           className="mr-1 inline-block h-4 w-4"
           aria-hidden
         />
-        Replications
+        {t("Replications")}
       </Link>
 
       <header className="mt-6 flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
@@ -130,7 +134,9 @@ export function ReplicationDetailPage({
               className="h-4 w-4"
               aria-hidden
             />
-            Open in {effectName ? `${effectName} replications` : "viewer"}
+            {effectName
+              ? t("Open in {{name}} replications", { name: effectName })
+              : t("Open in viewer")}
           </Link>
         </Button>
       </header>
@@ -197,8 +203,8 @@ export function ReplicationDetailPage({
         ) : (
           <MediaPlaceholder
             kind="empty"
-            title="Preview unavailable"
-            description="Open the viewer to load the original media."
+            title={t("Preview unavailable")}
+            description={t("Open the viewer to load the original media.")}
             className="aspect-video"
           />
         )}
@@ -215,7 +221,7 @@ export function ReplicationDetailPage({
             }
             size="sm"
           >
-            {isVideo ? "Video" : isAudio ? "Audio" : "Image"}
+            {isVideo ? t("Video") : isAudio ? t("Audio") : t("Image")}
           </PublicPill>
           {replication.width && replication.height ? (
             <span className="tabular-nums">
@@ -233,7 +239,7 @@ export function ReplicationDetailPage({
             rel="noopener noreferrer"
             className={`${proseLinkClassName} ml-auto`}
           >
-            Open full size
+            {t("Open full size")}
           </a>
         </figcaption>
       </figure>
@@ -243,7 +249,7 @@ export function ReplicationDetailPage({
       {effectName && effectSlug ? (
         <section className="mt-6" aria-labelledby="replication-subject">
           <PublicOverline as="h2" id="replication-subject">
-            Replicates
+            {t("Replicates")}
           </PublicOverline>
 
           <p className="mt-2">
@@ -257,7 +263,7 @@ export function ReplicationDetailPage({
 
           {effectCategories.length > 0 ? (
             <ul
-              aria-label={`${effectName} categories`}
+              aria-label={t("{{name}} categories", { name: effectName })}
               className="mt-3 flex flex-wrap gap-2"
             >
               {effectCategories.map((category) => (
@@ -280,14 +286,14 @@ export function ReplicationDetailPage({
       {/* Provenance and the terms the work may be reused under. */}
       <ContentCard className="mt-6">
         <h2 className="theme-accent-heading font-display text-lg font-semibold tracking-tight">
-          Credit &amp; licence
+          {t("Credit & licence")}
         </h2>
 
         <DefinitionList className="mt-3 divide-y divide-dose-border">
           {identityAttribution ? (
             <DefinitionRow
               semantic
-              term="Posted by"
+              term={t("Posted by")}
               termClassName={termClassName}
               bodyClassName={bodyClassName}
             >
@@ -303,9 +309,14 @@ export function ReplicationDetailPage({
               ) : (
                 identityAttribution.poster.display_name
               )}
-              {identityAttribution.poster.platform
-                ? ` on ${identityAttribution.poster.platform}`
-                : null}
+              {identityAttribution.poster.platform ? (
+                <>
+                  {" "}
+                  {t("on {{platform}}", {
+                    platform: identityAttribution.poster.platform,
+                  })}
+                </>
+              ) : null}
             </DefinitionRow>
           ) : null}
 
@@ -315,7 +326,7 @@ export function ReplicationDetailPage({
           {identityAttribution?.proven_different_creator ? (
             <DefinitionRow
               semantic
-              term="Creator"
+              term={t("Creator")}
               termClassName={termClassName}
               bodyClassName={bodyClassName}
             >
@@ -334,7 +345,7 @@ export function ReplicationDetailPage({
           {replication.rightsholder ? (
             <DefinitionRow
               semantic
-              term="Rights holder"
+              term={t("Rights holder")}
               termClassName={termClassName}
               bodyClassName={bodyClassName}
             >
@@ -344,7 +355,7 @@ export function ReplicationDetailPage({
 
           <DefinitionRow
             semantic
-            term="Licence"
+            term={t("Licence")}
             termClassName={termClassName}
             bodyClassName={bodyClassName}
           >
@@ -362,7 +373,7 @@ export function ReplicationDetailPage({
                 replication.license_name
               )
             ) : (
-              getRightsSummary(replication)
+              getRightsSummary(replication, t)
             )}
             {replication.permission_notes ? (
               <span className="theme-text-faint block mt-1">
@@ -374,7 +385,7 @@ export function ReplicationDetailPage({
           {sourceUrl ? (
             <DefinitionRow
               semantic
-              term="Source"
+              term={t("Source")}
               termClassName={termClassName}
               bodyClassName="text-sm leading-6"
             >
@@ -398,7 +409,7 @@ export function ReplicationDetailPage({
         {attribution ? (
           <NestedContentCard className="mt-4">
             <p className="theme-text-faint text-xs uppercase tracking-[0.18em]">
-              Attribution
+              {t("Attribution")}
             </p>
             <p className="theme-text-secondary mt-2 select-all text-sm leading-6">
               {attribution}
@@ -407,14 +418,14 @@ export function ReplicationDetailPage({
         ) : null}
 
         <p className="theme-text-faint mt-4 text-xs leading-5">
-          To correct a credit or request removal, see the{" "}
+          {correctionBefore}
           <Link
             href="/docs/license#replication-media-terms"
             className={proseLinkClassName}
           >
-            licensing terms
+            {t("licensing terms")}
           </Link>
-          .
+          {correctionAfter}
         </p>
       </ContentCard>
     </PublicContentShell>

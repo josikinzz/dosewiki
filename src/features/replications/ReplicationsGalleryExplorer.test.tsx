@@ -48,6 +48,7 @@ const historySpies: {
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navMocks.push, replace: navMocks.replace }),
   useSearchParams: () => navMocks.params,
+  useSelectedLayoutSegments: () => [],
 }));
 
 // Radix popper-positioned overlays (the Filters sheet, the compact sort menu)

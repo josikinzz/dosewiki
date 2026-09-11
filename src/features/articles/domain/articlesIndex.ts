@@ -33,8 +33,10 @@ export interface ArticleIndexRow {
   /** The editor's blurb, or the body's opening sentence when none was written. */
   description?: string;
   /** "May 2021": the day carries no meaning for archive material. */
-  dateLabel?: string;
-  lengthLabel?: string;
+  /** Publication month as "YYYY-MM", or the raw date string when it has no month; rendered per locale. */
+  publishedMonth?: string;
+  /** Reading time in minutes, rendered per locale. */
+  readMinutes?: number;
 }
 
 export interface ArticleIndexGroup {
@@ -108,21 +110,6 @@ const FALLBACK_GROUP: Omit<ArticleGroupDefinition, "tags"> = {
   blurb: msg("Short definitional pages and notes the rest of the archive refers back to."),
 };
 
-const MONTH_LABELS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 /** Bracketed VCode markup (`[h2]`, `[ref url=…]`) is chrome, not prose. */
 const VCODE_TAG_PATTERN = /\[[^\]]*\]/g;
 
@@ -146,41 +133,36 @@ function bodyProse(body: string | undefined): string {
   return (body ?? "").replace(VCODE_TAG_PATTERN, " ").replace(/\s+/g, " ").trim();
 }
 
-function formatLengthLabel(prose: string): string | undefined {
+function readMinutesOf(prose: string): number | undefined {
   if (prose.length === 0) {
     return undefined;
   }
 
   const words = prose.split(" ").length;
 
-  return `${Math.max(1, Math.round(words / WORDS_PER_MINUTE))} min read`;
+  return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 }
 
 /**
- * "25 min read" for an article body, or `undefined` when there is nothing to measure.
+ * Reading time in minutes for an article body, or `undefined` when there is nothing to measure.
  *
  * Exported so the Effect Index homepage's Featured Article panel quotes the same figure the
  * articles index does. The two surfaces show the same article, so a second estimate would
  * make the site contradict itself.
  */
-export function formatArticleLengthLabel(body: string | undefined): string | undefined {
-  return formatLengthLabel(bodyProse(body));
+export function articleReadMinutes(body: string | undefined): number | undefined {
+  return readMinutesOf(bodyProse(body));
 }
 
-function formatDateLabel(publicationDate: string | undefined): string | undefined {
+/** "2021-05" from an ISO date, or the raw value when it carries no month. */
+function publishedMonthOf(publicationDate: string | undefined): string | undefined {
   if (!publicationDate) {
     return undefined;
   }
 
   const match = /^(\d{4})-(\d{2})/.exec(publicationDate);
 
-  if (!match) {
-    return publicationDate;
-  }
-
-  const monthLabel = MONTH_LABELS[Number(match[2]) - 1];
-
-  return monthLabel ? `${monthLabel} ${match[1]}` : match[1];
+  return match ? `${match[1]}-${match[2]}` : publicationDate;
 }
 
 /**
@@ -230,8 +212,8 @@ function toIndexRow(entry: ArticleIndexEntry): ArticleIndexRow {
       description && description.length > 0
         ? description
         : deriveDescription(entry.body_raw),
-    dateLabel: formatDateLabel(entry.publicationDate),
-    lengthLabel: formatLengthLabel(bodyProse(entry.body_raw)),
+    publishedMonth: publishedMonthOf(entry.publicationDate),
+    readMinutes: readMinutesOf(bodyProse(entry.body_raw)),
   };
 }
 

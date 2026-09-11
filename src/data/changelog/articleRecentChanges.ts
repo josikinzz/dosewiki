@@ -28,8 +28,13 @@ export type ArticleRecentChange = {
   detail: string | null;
   /** The public section the edited field lives in, when it has an anchor. */
   section: { id: string; label: string } | null;
-  /** The field inside that section as words ("Psychosis › Description"), if any. */
-  field: string | null;
+  /**
+   * The field inside that section, one entry per path segment as words
+   * ("Psychosis", "Description"). An array index rides on its parent segment
+   * ("Routes" 1) so the label can be translated on its own and the number
+   * appended at render.
+   */
+  field: ChangeFieldSegment[] | null;
   contributor: {
     name: string;
     href: string | null;
@@ -44,6 +49,19 @@ export type ArticleRecentChange = {
 };
 
 /** The reader-facing description of a save, before contributor resolution. */
+export type ChangeFieldSegment = { label: string; index: number | null };
+
+/**
+ * "Routes 1 › Dose ranges › Heavy": each label reads as words, the index stays
+ * a number. Shared by the public ledger row (which translates each label) and
+ * the dev change log, whose surface is English-only.
+ */
+export function fieldWords(segments: ChangeFieldSegment[], label = (text: string) => text): string {
+  return segments
+    .map((segment) => (segment.index === null ? label(segment.label) : `${label(segment.label)} ${segment.index}`))
+    .join(" › ");
+}
+
 export type ChangeDescription = Pick<ArticleRecentChange, "kind" | "message" | "detail" | "section" | "field">;
 
 const SECTION_HEADING = /^# (.+)$/;
@@ -168,18 +186,25 @@ export function describeChange(message: string, diff: string): ChangeDescription
   if (inline) {
     // "dosage.routes[0].dose_ranges.heavy": an index is part of its parent
     // segment, so it reads as "Routes 1" rather than a bare number.
-    const [head, ...rest] = inline[1]
-      .replace(/\[(\d+)\]/g, (_match, index: string) => `_${Number(index) + 1}`)
+    const segments = inline[1]
       .split(".")
-      .filter((segment) => segment.length > 0);
-    const section = sectionsByField[head] ?? null;
+      .filter((segment) => segment.length > 0)
+      .map((segment): ChangeFieldSegment => {
+        const indexed = /^(.*)\[(\d+)\]$/.exec(segment);
+        return indexed
+          ? { label: toWords(indexed[1]), index: Number(indexed[2]) + 1 }
+          : { label: toWords(segment), index: null };
+      });
+    const [head, ...rest] = segments;
+    const headKey = inline[1].split(".")[0].replace(/\[\d+\]$/, "");
+    const section = sectionsByField[headKey] ?? null;
     const fieldSegments = section ? rest : [head, ...rest];
     return {
       kind: "prose",
       message: describeProseDiff(diff),
       detail: null,
       section,
-      field: fieldSegments.length > 0 ? fieldSegments.map(toWords).join(" › ") : null,
+      field: fieldSegments.length > 0 ? fieldSegments : null,
     };
   }
 

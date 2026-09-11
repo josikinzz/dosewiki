@@ -26,6 +26,7 @@ import {
   parseReplicationViewerSlug,
 } from "@/features/replications/galleryUrlState";
 import { cn } from "@/lib/utils";
+import { msg, useT } from "@/i18n/client";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { publicHref } from "@/utils/publicHref";
 import {
@@ -93,6 +94,43 @@ const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
 const ENTRY_MOTION_ALL_CLASSES = Object.values(ENTRY_MOTION_CLASS).flatMap(
   (value) => value.split(" "),
 );
+/**
+ * Whole sentences per grouping unit: the mirror cannot derive "artists" or
+ * "Previous artist" from a translated "Artist" by lowercasing or suffixing.
+ */
+const GROUP_UNIT_COPY = {
+  artist: {
+    label: msg("Artist"),
+    plural: msg("Artists"),
+    counter: msg("Artist {{position}}/{{total}}"),
+    previous: msg("Previous artist: {{label}}"),
+    first: msg("First artist"),
+    next: msg("Next artist: {{label}}"),
+    final: msg("Final artist"),
+    switchHint: msg("Switch artists"),
+  },
+  effect: {
+    label: msg("Effect"),
+    plural: msg("Effects"),
+    counter: msg("Effect {{position}}/{{total}}"),
+    previous: msg("Previous effect: {{label}}"),
+    first: msg("First effect"),
+    next: msg("Next effect: {{label}}"),
+    final: msg("Final effect"),
+    switchHint: msg("Switch effects"),
+  },
+  group: {
+    label: msg("Group"),
+    plural: msg("Groups"),
+    counter: msg("Group {{position}}/{{total}}"),
+    previous: msg("Previous group: {{label}}"),
+    first: msg("First group"),
+    next: msg("Next group: {{label}}"),
+    final: msg("Final group"),
+    switchHint: msg("Switch groups"),
+  },
+} as const;
+
 
 interface PublicReplicationDetails {
   slug: string;
@@ -146,6 +184,7 @@ export function ReplicationViewerOverlay({
   selectionRevision,
   editorEnabled = true,
 }: ReplicationViewerOverlayProps) {
+  const t = useT();
   const [collection, setCollection] = useState(sourceCollection);
   const [position, setPosition] = useState<ReplicationViewerPosition | null>(
     () => findViewerPosition(sourceCollection, initialSlug),
@@ -442,12 +481,20 @@ export function ReplicationViewerOverlay({
     }
     if (announcedSlugRef.current === slug) return;
     announcedSlugRef.current = slug;
+    const values = {
+      title: active.replication.title,
+      position: position.itemIndex + 1,
+      total: group.items.length,
+    };
     setWorkAnnouncement(
-      `${active.replication.title}, work ${position.itemIndex + 1} of ${group.items.length}${
-        collection.groups.length > 1 ? `, ${group.label}` : ""
-      }`,
+      collection.groups.length > 1
+        ? t("{{title}}, work {{position}} of {{total}}, {{group}}", {
+            ...values,
+            group: group.label,
+          })
+        : t("{{title}}, work {{position}} of {{total}}", values),
     );
-  }, [open, active, group, position, collection.groups.length]);
+  }, [open, active, group, position, collection.groups.length, t]);
 
   const activateEditorSlug = useCallback(
     (slug: string) => {
@@ -739,19 +786,25 @@ export function ReplicationViewerOverlay({
   }, [chromeHidden]);
 
   if (!active || !position || !group) return null;
-  const artistLabel = hasKnownCreator(active.replication.artist)
+  const knownArtist = hasKnownCreator(active.replication.artist)
     ? active.replication.artist.trim()
-    : "Unattributed";
+    : null;
+  // viewerModel already stores the msg("Unattributed") marker for showcase
+  // works with no creator; it reaches the reader through the same key.
+  const artistLabel =
+    knownArtist && knownArtist !== "Unattributed" ? knownArtist : t("Unattributed");
   const artistProfileHref = hasKnownCreator(active.replication.artist)
     ? active.artistProfileHref
     : null;
 
   const groupUnit =
-    collection.grouping === "artist"
-      ? "Artist"
-      : collection.grouping === "effect" || collection.kind === "substance"
-        ? "Effect"
-        : "Group";
+    GROUP_UNIT_COPY[
+      collection.grouping === "artist"
+        ? "artist"
+        : collection.grouping === "effect" || collection.kind === "substance"
+          ? "effect"
+          : "group"
+    ];
 
 
   const showRail = group.items.length > 1 && !reorderMode;
@@ -857,8 +910,16 @@ export function ReplicationViewerOverlay({
       >
         {open && editorEnabled ? <EditorLauncherOutlet /> : null}
         <DialogDescription className="sr-only">
-          Viewing {active.replication.title} by {artistLabel}. {collection.label}.
-          Work {position.itemIndex + 1} of {group.items.length}.
+          {t(
+            "Viewing {{title}} by {{artist}}. {{collection}}. Work {{position}} of {{total}}.",
+            {
+              title: active.replication.title,
+              artist: artistLabel,
+              collection: t(collection.label),
+              position: position.itemIndex + 1,
+              total: group.items.length,
+            },
+          )}
         </DialogDescription>
         <header
           inert={infoOpen || chromeHidden || undefined}
@@ -912,14 +973,19 @@ export function ReplicationViewerOverlay({
                 </>
               ) : null}
               <span className="shrink-0">
-                Work {position.itemIndex + 1}/{group.items.length}
+                {t("Work {{position}}/{{total}}", {
+                  position: position.itemIndex + 1,
+                  total: group.items.length,
+                })}
               </span>
               {collection.groups.length > 1 ? (
                 <>
                   <span aria-hidden>·</span>
                   <span className="shrink-0">
-                    {groupUnit} {position.groupIndex + 1}/
-                    {collection.groups.length}
+                    {t(groupUnit.counter, {
+                      position: position.groupIndex + 1,
+                      total: collection.groups.length,
+                    })}
                   </span>
                 </>
               ) : null}
@@ -932,8 +998,10 @@ export function ReplicationViewerOverlay({
                 type="button"
                 aria-label={
                   previousGroup
-                    ? `Previous ${groupUnit.toLowerCase()}: ${collection.groups[previousGroup.groupIndex].label}`
-                    : `First ${groupUnit.toLowerCase()}`
+                    ? t(groupUnit.previous, {
+                        label: collection.groups[previousGroup.groupIndex].label,
+                      })
+                    : t(groupUnit.first)
                 }
                 disabled={!previousGroup}
                 onClick={() => slideGroup(-1)}
@@ -948,8 +1016,10 @@ export function ReplicationViewerOverlay({
                 type="button"
                 aria-label={
                   nextGroup
-                    ? `Next ${groupUnit.toLowerCase()}: ${collection.groups[nextGroup.groupIndex].label}`
-                    : `Final ${groupUnit.toLowerCase()}`
+                    ? t(groupUnit.next, {
+                        label: collection.groups[nextGroup.groupIndex].label,
+                      })
+                    : t(groupUnit.final)
                 }
                 disabled={!nextGroup}
                 onClick={() => slideGroup(1)}
@@ -967,7 +1037,7 @@ export function ReplicationViewerOverlay({
               <button
                 ref={settingsButtonRef}
                 type="button"
-                aria-label="Viewer settings"
+                aria-label={t("Viewer settings")}
                 aria-haspopup="menu"
                 aria-expanded={settingsOpen}
                 onClick={() => setSettingsOpen((current) => !current)}
@@ -983,7 +1053,7 @@ export function ReplicationViewerOverlay({
               {settingsOpen ? (
                 <div
                   role="menu"
-                  aria-label="Viewer settings"
+                  aria-label={t("Viewer settings")}
                   className={cn(
                     "theme-media-settings-menu theme-media-tile-title absolute right-0 top-full z-[80] mt-2 min-w-36 origin-top-right overflow-y-auto rounded-xl border p-1 transition-transform duration-200 motion-reduce:transition-none",
                     rotated
@@ -994,7 +1064,7 @@ export function ReplicationViewerOverlay({
                     transform: rotated ? "rotate(90deg) translateX(100%)" : "none",
                   }}
                 >
-                  <p className="px-2 py-1.5 text-xs font-semibold">Sort by</p>
+                  <p className="px-2 py-1.5 text-xs font-semibold">{t("Sort by")}</p>
                   {(["artist", "effect"] as const).map((grouping) => (
                     <button
                       key={grouping}
@@ -1021,7 +1091,7 @@ export function ReplicationViewerOverlay({
                           <span className="size-1 rounded-full bg-current" />
                         ) : null}
                       </span>
-                      {grouping === "artist" ? "Artist" : "Effect"}
+                      {grouping === "artist" ? t("Artist") : t("Effect")}
                     </button>
                   ))}
                   <div
@@ -1029,18 +1099,18 @@ export function ReplicationViewerOverlay({
                     className="theme-media-thumbnail-border mx-1 my-1 border-t"
                   />
                   <p className="px-2 py-1.5 text-xs font-semibold">
-                    Shortcuts
+                    {t("Shortcuts")}
                   </p>
                   <dl className="theme-media-tile-creator grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 px-2 pb-2 text-xs">
                     {(
                       [
-                        ["← →", "Works"],
-                        ["↑ ↓", `${groupUnit}s`],
-                        ["Space / K", "Play"],
-                        ["M", "Mute"],
-                        ["H", "Hide interface"],
+                        ["← →", t("Works")],
+                        ["↑ ↓", t(groupUnit.plural)],
+                        ["Space / K", t("Play")],
+                        ["M", t("Mute")],
+                        ["H", t("Hide interface")],
                         ...(fullscreenSupported
-                          ? [["F", "Fullscreen"] as const]
+                          ? [["F", t("Fullscreen")] as const]
                           : []),
                       ] as const
                     ).map(([keys, action]) => (
@@ -1070,7 +1140,7 @@ export function ReplicationViewerOverlay({
           <button
             type="button"
             onClick={close}
-            aria-label="Close replication viewer"
+            aria-label={t("Close replication viewer")}
             className={cn(
               "theme-media-tile-title theme-media-control-raised grid size-11 flex-none place-items-center rounded-lg",
               focusRingClassName,
@@ -1155,13 +1225,17 @@ export function ReplicationViewerOverlay({
                 fullscreenSupported={fullscreenSupported}
                 previousLabel={
                   previousWork
-                    ? `Previous: ${group.items[previousWork.itemIndex].replication.title}`
-                    : "First work"
+                    ? t("Previous: {{title}}", {
+                        title: group.items[previousWork.itemIndex].replication.title,
+                      })
+                    : t("First work")
                 }
                 nextLabel={
                   nextWork
-                    ? `Next: ${group.items[nextWork.itemIndex].replication.title}`
-                    : "Final work"
+                    ? t("Next: {{title}}", {
+                        title: group.items[nextWork.itemIndex].replication.title,
+                      })
+                    : t("Final work")
                 }
               />
               {fullscreenNotice ? (
@@ -1170,7 +1244,7 @@ export function ReplicationViewerOverlay({
                     role="status"
                     className="theme-media-tile-title flex min-h-8 items-center rounded-full bg-black/65 px-3.5 py-2 text-xs font-semibold backdrop-blur-sm animate-in fade-in-0 duration-200 motion-reduce:animate-none"
                   >
-                    Fullscreen is unavailable.
+                    {t("Fullscreen is unavailable.")}
                   </p>
                 </div>
               ) : null}
@@ -1194,7 +1268,7 @@ export function ReplicationViewerOverlay({
                             className="size-4 opacity-60"
                           />
                         </div>
-                        <p className="text-xs font-semibold">Browse works</p>
+                        <p className="text-xs font-semibold">{t("Browse works")}</p>
                       </div>
                       {collection.groups.length > 1 ? (
                         <div className="flex flex-col items-center gap-2">
@@ -1217,7 +1291,7 @@ export function ReplicationViewerOverlay({
                             />
                           </div>
                           <p className="text-xs font-semibold">
-                            Switch {groupUnit.toLowerCase()}s
+                            {t(groupUnit.switchHint)}
                           </p>
                         </div>
                       ) : null}
@@ -1230,7 +1304,7 @@ export function ReplicationViewerOverlay({
                         focusRingClassName,
                       )}
                     >
-                      Got it
+                      {t("Got it")}
                     </button>
                   </div>
                 </div>
@@ -1277,12 +1351,12 @@ export function ReplicationViewerOverlay({
                 id={infoHeadingId}
                 className="theme-media-tile-title font-display text-lg font-semibold"
               >
-                Information
+                {t("Information")}
               </h2>
               <button
                 type="button"
                 ref={infoCloseRef}
-                aria-label="Close information"
+                aria-label={t("Close information")}
                 onClick={closeInfo}
                 className={cn(
                   "theme-media-control-soft grid size-11 place-items-center rounded-lg",
@@ -1293,14 +1367,14 @@ export function ReplicationViewerOverlay({
               </button>
             </div>
             <dl className="theme-media-tile-creator mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-3">
-              <dt>Format</dt>
+              <dt>{t("Format")}</dt>
               <dd className="theme-media-tile-title">
                 {details?.format ?? active.replication.format}
               </dd>
               {(details?.width ?? active.replication.width) &&
               (details?.height ?? active.replication.height) ? (
                 <>
-                  <dt>Dimensions</dt>
+                  <dt>{t("Dimensions")}</dt>
                   <dd className="theme-media-tile-title">
                     {details?.width ?? active.replication.width} ×{" "}
                     {details?.height ?? active.replication.height}
@@ -1309,7 +1383,7 @@ export function ReplicationViewerOverlay({
               ) : null}
               {details?.date_info?.value || details?.created_at ? (
                 <>
-                  <dt>{details.date_info?.value ? "Work date" : "Added"}</dt>
+                  <dt>{details.date_info?.value ? t("Work date") : t("Added")}</dt>
                   <dd className="theme-media-tile-title">
                     <time
                       dateTime={details.date_info?.value ?? details.created_at}
@@ -1323,7 +1397,7 @@ export function ReplicationViewerOverlay({
               ) : null}
               {active.effectName ? (
                 <>
-                  <dt>Represents</dt>
+                  <dt>{t("Represents")}</dt>
                   <dd className="theme-media-tile-title">
                     {active.effectSlug ? (
                       <a
@@ -1340,7 +1414,7 @@ export function ReplicationViewerOverlay({
               ) : null}
               {details?.rights?.status ? (
                 <>
-                  <dt>Rights status</dt>
+                  <dt>{t("Rights status")}</dt>
                   <dd className="theme-media-tile-title capitalize">
                     {details.rights.status.replace(/[_-]/g, " ")}
                   </dd>
@@ -1348,7 +1422,7 @@ export function ReplicationViewerOverlay({
               ) : null}
               {details?.rights?.license_name ? (
                 <>
-                  <dt>Licence</dt>
+                  <dt>{t("Licence")}</dt>
                   <dd className="theme-media-tile-title">
                     {details.rights.license_url ? (
                       <a
@@ -1367,7 +1441,7 @@ export function ReplicationViewerOverlay({
               ) : null}
               {details?.rights?.rightsholder ? (
                 <>
-                  <dt>Rights holder</dt>
+                  <dt>{t("Rights holder")}</dt>
                   <dd className="theme-media-tile-title">
                     {details.rights.rightsholder}
                   </dd>
@@ -1375,7 +1449,7 @@ export function ReplicationViewerOverlay({
               ) : null}
               {details?.rights?.source_url ? (
                 <>
-                  <dt>Source</dt>
+                  <dt>{t("Source")}</dt>
                   <dd className="theme-media-tile-title min-w-0">
                     <a
                       href={details.rights.source_url}
@@ -1383,7 +1457,7 @@ export function ReplicationViewerOverlay({
                       rel="noopener noreferrer"
                       className="block truncate underline underline-offset-2"
                     >
-                      Original source
+                      {t("Original source")}
                     </a>
                   </dd>
                 </>
@@ -1396,7 +1470,7 @@ export function ReplicationViewerOverlay({
                 focusRingClassName,
               )}
             >
-              Open full details
+              {t("Open full details")}
             </a>
           </aside>
         ) : null}

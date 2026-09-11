@@ -23,19 +23,26 @@ import {
   getPublicGalleryReplications,
 } from "@server/convex/publicData";
 import {
+  getLocalizedPublicEffects,
+  getLocalizedPublicGalleryReplicationBySlug,
+  getLocalizedPublicGalleryReplications,
+} from "@server/translation/localizedRecords";
+import type { LiveLocale } from "@server/next/localeHostPolicy";
+import {
   buildPublicPageMetadata,
   buildSiteUrl,
   getPublicRoutePath,
 } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
+import { msg, t } from "@/i18n/server";
 import { replicationViewerSocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 const ITEM_LIST_LIMIT = 100;
 
-const DESCRIPTION_FALLBACK =
-  "Browse the replication gallery: image and video recreations of the sensory experiences " +
-  "produced by subjective effects, grouped by artist and effect.";
+const DESCRIPTION_FALLBACK = msg(
+  "Browse the replication gallery: image and video recreations of the sensory experiences produced by subjective effects, grouped by artist and effect.",
+);
 
 /**
  * The gallery index is served by two routes that render the same page:
@@ -58,17 +65,23 @@ const DESCRIPTION_FALLBACK =
  * order, each rail carrying exactly its preview works, plus the archive's real
  * stats. After hydration the explorer fetches the complete corpus in one cached
  * request (on idle, or eagerly for deep links and filtered states).
+ *
+ * A locale mirror renders the same page over the localized corpus, so the
+ * prerendered rails carry translated titles and effect names; the complete
+ * corpus the explorer fetches afterwards is the English API payload.
  */
 export async function getReplicationsGalleryMetadata(
   viewerSlug: string | null,
+  locale: LiveLocale | null = null,
 ): Promise<Metadata> {
   const copy = await getCopy();
 
   return buildPublicPageMetadata({
-    title: "Replications",
+    title: msg("Replications"),
     description:
-      copy.text("seo-replications-description") || DESCRIPTION_FALLBACK,
+      t(copy.text("seo-replications-description") || DESCRIPTION_FALLBACK),
     route: { family: "replications" },
+    noIndex: locale !== null,
     socialImage:
       (viewerSlug ? replicationViewerSocialCardImage(viewerSlug) : undefined) ??
       pageSocialCardImage("replications", "dose.wiki Replications"),
@@ -77,14 +90,20 @@ export async function getReplicationsGalleryMetadata(
 
 export async function ReplicationsGalleryRoute({
   viewerSlug,
+  locale = null,
 }: {
   viewerSlug: string | null;
+  locale?: LiveLocale | null;
 }) {
   const [corpus, effects, contributorDirectory, linkedReplication] = await Promise.all([
-    getPublicGalleryReplications(),
-    getPublicEffects(),
+    locale ? getLocalizedPublicGalleryReplications(locale.code) : getPublicGalleryReplications(),
+    locale ? getLocalizedPublicEffects(locale.code) : getPublicEffects(),
     getPublicContributorDirectory(),
-    viewerSlug ? getPublicGalleryReplicationBySlug(viewerSlug) : null,
+    viewerSlug
+      ? locale
+        ? getLocalizedPublicGalleryReplicationBySlug(viewerSlug, locale.code)
+        : getPublicGalleryReplicationBySlug(viewerSlug)
+      : null,
   ]);
   // The default artist view, computed against the complete corpus with the
   // exact model the client uses: the approved/video-first artist rail order,
@@ -153,11 +172,15 @@ export async function ReplicationsGalleryRoute({
           the row the controls need for their labels and kept reciting the
           whole corpus while the reader looked at a filtered grid. */}
       <ReplicationsTabNav
-        trailing={`${corpusStats.total.toLocaleString("en-US")} works · ${corpusStats.artists.toLocaleString("en-US")} artists · ${corpusStats.effects.toLocaleString("en-US")} effects`}
+        trailing={t("{{works}} works · {{artists}} artists · {{effects}} effects", {
+          works: corpusStats.total.toLocaleString("en-US"),
+          artists: corpusStats.artists.toLocaleString("en-US"),
+          effects: corpusStats.effects.toLocaleString("en-US"),
+        })}
       />
       <ReplicationsGalleryExplorer
         replications={initialReplications}
-        completeCorpusUrl="/api/replications/gallery"
+        completeCorpusUrl={locale ? `/api/replications/gallery?locale=${locale.code}` : "/api/replications/gallery"}
         initialArtistRails={initialArtistRails}
         artistGroupTotal={artistGroups.length}
         corpusStats={corpusStats}

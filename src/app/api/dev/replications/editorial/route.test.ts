@@ -102,7 +102,7 @@ describe("replication editorial route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("applies an admin's single edit and publishes both effect pages", async () => {
+  it("applies an admin's single edit and publishes both effect pages plus the record", async () => {
     mocks.mutation.mockResolvedValue({ success: true, slug: "drifting-replication" });
 
     const response = await POST(
@@ -127,6 +127,7 @@ describe("replication editorial route", () => {
         { kind: "replication-collections" },
         { kind: "effect", slug: "drifting" },
         { kind: "effect", slug: "visual-acuity-enhancement" },
+        { kind: "replication", slug: "drifting-replication" },
       ],
       source: "manual",
     });

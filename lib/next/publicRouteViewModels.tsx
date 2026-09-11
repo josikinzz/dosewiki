@@ -1,3 +1,4 @@
+import { msg } from "../../src/i18n/messages";
 import "server-only";
 
 import { Suspense, type ReactNode } from "react";
@@ -190,7 +191,7 @@ export function buildReportsIndexViewModel(input: {
 }): ReportsIndexViewModel {
   return {
     metadata: {
-      title: "Experience Reports Index",
+      title: msg("Experience Reports Index"),
       description: `Browse ${input.reportCount} trip reports in ${SITE_FLAVOR_CONFIG.name}.`,
     },
     pageProps: {
@@ -206,7 +207,7 @@ export function buildEffectsIndexViewModel(input: {
 }): EffectsIndexViewModel {
   return {
     metadata: {
-      title: "Subjective Effect Index",
+      title: msg("Subjective Effect Index"),
       description: `Browse ${input.effectCount} subjective effect entries in ${SITE_FLAVOR_CONFIG.name}.`,
     },
     pageProps: {

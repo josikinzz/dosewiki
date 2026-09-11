@@ -23,6 +23,7 @@ import {
   type GalleryTypeFilter,
   type GalleryYearFilter,
 } from "@/features/effects/gallery/galleryModel";
+import { msg, useT, type Translate } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import {
   CONTROL_TRIGGER_CHEVRON_CLASS,
@@ -38,39 +39,39 @@ const OPTIONS: Record<
   FilterKey,
   ReadonlyArray<FilterOption>
 > = {
-  effect: [{ value: "all", label: "Any" }],
+  effect: [{ value: "all", label: msg("Any") }],
   viewing: [
-    { value: "all", label: "Any" },
-    { value: "open-eye", label: "Open-eye" },
-    { value: "closed-eye", label: "Closed-eye" },
+    { value: "all", label: msg("Any") },
+    { value: "open-eye", label: msg("Open-eye") },
+    { value: "closed-eye", label: msg("Closed-eye") },
   ],
   family: [
-    { value: "all", label: "Any" },
-    { value: "experiential-replication", label: "Experiential replications" },
-    { value: "visionary-psychedelic-art", label: "Visionary psychedelic art" },
-    { value: "traditional-cultural-art", label: "Traditional cultural art" },
-    { value: "dark-surrealism", label: "Dark surrealism" },
-    { value: "optical-perceptual-art", label: "Optical and perceptual art" },
-    { value: "generative-abstract-art", label: "Generative abstract art" },
-    { value: "effect-illustration", label: "Effect illustrations" },
-    { value: "explanatory-figure", label: "Explanatory figures" },
-    { value: "uncertain", label: "Unclassified content" },
+    { value: "all", label: msg("Any") },
+    { value: "experiential-replication", label: msg("Experiential replications") },
+    { value: "visionary-psychedelic-art", label: msg("Visionary psychedelic art") },
+    { value: "traditional-cultural-art", label: msg("Traditional cultural art") },
+    { value: "dark-surrealism", label: msg("Dark surrealism") },
+    { value: "optical-perceptual-art", label: msg("Optical and perceptual art") },
+    { value: "generative-abstract-art", label: msg("Generative abstract art") },
+    { value: "effect-illustration", label: msg("Effect illustrations") },
+    { value: "explanatory-figure", label: msg("Explanatory figures") },
+    { value: "uncertain", label: msg("Unclassified content") },
   ],
   artistType: [
-    { value: "all", label: "Any" },
-    { value: "replicator", label: "Replicators" },
+    { value: "all", label: msg("Any") },
+    { value: "replicator", label: msg("Replicators") },
     {
       value: "traditional-psychedelic-artist",
-      label: "Traditional psychedelic artists",
+      label: msg("Traditional psychedelic artists"),
     },
   ],
-  drug: [{ value: "all", label: "Any" }],
+  drug: [{ value: "all", label: msg("Any") }],
   drugClass: [
-    { value: "all", label: "Any" },
-    { value: "psychedelics", label: "Psychedelics" },
-    { value: "dissociatives", label: "Dissociatives" },
-    { value: "deliriants", label: "Deliriants" },
-    { value: "other", label: "Other" },
+    { value: "all", label: msg("Any") },
+    { value: "psychedelics", label: msg("Psychedelics") },
+    { value: "dissociatives", label: msg("Dissociatives") },
+    { value: "deliriants", label: msg("Deliriants") },
+    { value: "other", label: msg("Other") },
   ],
 };
 
@@ -79,12 +80,12 @@ const GENERAL_KEYS = ["effect", "viewing", "family", "artistType"] as const;
 const TITLE_KEYS = ["drug", "drugClass"] as const;
 
 const LABELS: Record<FilterKey, string> = {
-  viewing: "Viewing mode",
-  artistType: "Artist practice",
-  effect: "Depicted effect",
-  drug: "Drug",
-  drugClass: "Drug class",
-  family: "Content family",
+  viewing: msg("Viewing mode"),
+  artistType: msg("Artist practice"),
+  effect: msg("Depicted effect"),
+  drug: msg("Drug"),
+  drugClass: msg("Drug class"),
+  family: msg("Content family"),
 };
 
 /** Chip prefixes stay self-contained: a bare "Drug class: Psychedelics" must
@@ -92,8 +93,8 @@ const LABELS: Record<FilterKey, string> = {
  *  carries the "named in the title" meaning) is out of sight. */
 const CHIP_LABELS: Record<FilterKey, string> = {
   ...LABELS,
-  drug: "Drug in title",
-  drugClass: "Drug class in title",
+  drug: msg("Drug in title"),
+  drugClass: msg("Drug class in title"),
 };
 
 /**
@@ -104,13 +105,13 @@ const CHIP_LABELS: Record<FilterKey, string> = {
  * URL has always carried it as `?type=`.
  */
 const MEDIA_OPTIONS: ReadonlyArray<FilterOption> = [
-  { value: "all", label: "All media" },
-  { value: "image", label: "Images" },
-  { value: "video", label: "Videos" },
-  { value: "audio", label: "Audio" },
+  { value: "all", label: msg("All media") },
+  { value: "image", label: msg("Images") },
+  { value: "video", label: msg("Videos") },
+  { value: "audio", label: msg("Audio") },
 ];
 
-const MEDIA_LABEL = "Media";
+const MEDIA_LABEL = msg("Media");
 
 function mediaValueLabel(type: GalleryTypeFilter): string {
   return MEDIA_OPTIONS.find((option) => option.value === type)?.label ?? type;
@@ -120,8 +121,8 @@ function mediaValueLabel(type: GalleryTypeFilter): string {
  * A year filter's value is a year rail's own key, so its chip reads the same
  * as that rail's heading: a year, a span with an en dash, or "Undated".
  */
-function yearValueLabel(year: GalleryYearFilter): string {
-  if (year === UNDATED_YEAR_FILTER) return UNDATED_YEAR_LABEL;
+function yearValueLabel(year: GalleryYearFilter, translate: Translate): string {
+  if (year === UNDATED_YEAR_FILTER) return translate(UNDATED_YEAR_LABEL);
   const [from, to] = year.split("-");
   return to === undefined ? from : `${from}\u2013${to}`;
 }
@@ -154,6 +155,7 @@ export function ReplicationTaxonomyFilters({
   effectOptions,
   className,
 }: ReplicationTaxonomyFiltersProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const activeCount =
     countActiveTaxonomyFilters(filters) +
@@ -174,12 +176,12 @@ export function ReplicationTaxonomyFilters({
   const renderSelect = (key: FilterKey) => (
     <label key={key} className="flex items-center justify-between gap-3">
       <span className="theme-text-secondary min-w-0 flex-1 text-xs font-medium">
-        {LABELS[key]}
+        {t(LABELS[key])}
       </span>
       <Select value={filters[key]} onValueChange={(value) => update(key, value)}>
         <SelectTrigger
           selectSize="sm"
-          aria-label={CHIP_LABELS[key]}
+          aria-label={t(CHIP_LABELS[key])}
           className="w-40 shrink-0 [@media(pointer:coarse)]:min-h-11"
         >
           <SelectValue />
@@ -192,7 +194,7 @@ export function ReplicationTaxonomyFilters({
             : OPTIONS[key]
           ).map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              {option.label}
+              {t(option.label)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -213,9 +215,15 @@ export function ReplicationTaxonomyFilters({
           size="auto"
           className={cn("relative", CONTROL_TRIGGER_CLASS, className)}
           aria-label={
-            activeCount > 0 ? `Filters, ${activeCount} active` : "Filters"
+            activeCount > 0
+              ? t("Filters, {{count}} active", { count: activeCount })
+              : t("Filters")
           }
-          title={activeCount > 0 ? `Filters, ${activeCount} active` : "Filters"}
+          title={
+            activeCount > 0
+              ? t("Filters, {{count}} active", { count: activeCount })
+              : t("Filters")
+          }
         >
           {/* Active filters tint the glyph. The `pill` variant declares its own
               border colour, so a `border-*` utility beside it is a coin toss
@@ -230,7 +238,9 @@ export function ReplicationTaxonomyFilters({
             aria-hidden
           />
           <span className={CONTROL_TRIGGER_LABEL_CLASS}>
-            {activeCount > 0 ? `Filters · ${activeCount}` : "Filters"}
+            {activeCount > 0
+              ? t("Filters · {{count}}", { count: activeCount })
+              : t("Filters")}
           </span>
           <Icon
             icon="lucide:chevron-down"
@@ -259,13 +269,13 @@ export function ReplicationTaxonomyFilters({
         {/* The popover holds seven axes, so it says what it is at the top:
             without a heading the reader who pressed an unnamed glyph met
             unexplained dropdowns and a scrollbar. */}
-        <p className="theme-text-primary text-sm font-semibold">Filter works</p>
+        <p className="theme-text-primary text-sm font-semibold">{t("Filter works")}</p>
 
         {/* Media leads: it is the axis readers reach for most, and the one
             that used to have the bar slot this popover absorbed. */}
         <label className="flex items-center justify-between gap-3">
           <span className="theme-text-secondary min-w-0 flex-1 text-xs font-medium">
-            {MEDIA_LABEL}
+            {t(MEDIA_LABEL)}
           </span>
           <Select
             value={type}
@@ -273,7 +283,7 @@ export function ReplicationTaxonomyFilters({
           >
             <SelectTrigger
               selectSize="sm"
-              aria-label={MEDIA_LABEL}
+              aria-label={t(MEDIA_LABEL)}
               className="w-40 shrink-0 [@media(pointer:coarse)]:min-h-11"
             >
               <SelectValue />
@@ -281,7 +291,7 @@ export function ReplicationTaxonomyFilters({
             <SelectContent>
               {MEDIA_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -292,7 +302,7 @@ export function ReplicationTaxonomyFilters({
 
         <fieldset className="space-y-2.5 rounded-xl border border-dose-divider p-3">
           <legend className="theme-text-faint px-1 text-xs font-semibold uppercase tracking-[0.14em]">
-            Named in the title
+            {t("Named in the title")}
           </legend>
           {TITLE_KEYS.map(renderSelect)}
         </fieldset>
@@ -305,7 +315,7 @@ export function ReplicationTaxonomyFilters({
           {/* Full width: sharing a row with the buttons wrapped it to three
               lines and squeezed both exits into the corner. */}
           <p className="theme-text-faint text-xs">
-            Filtering by a tag hides works nobody has tagged yet.
+            {t("Filtering by a tag hides works nobody has tagged yet.")}
           </p>
           <div className="flex items-center justify-end gap-2">
             <Button
@@ -316,7 +326,7 @@ export function ReplicationTaxonomyFilters({
               disabled={activeCount === 0}
               onClick={onClear}
             >
-              Clear
+              {t("Clear")}
             </Button>
             <Button
               type="button"
@@ -325,7 +335,7 @@ export function ReplicationTaxonomyFilters({
               className="[@media(pointer:coarse)]:min-h-11"
               onClick={() => setOpen(false)}
             >
-              Done
+              {t("Done")}
             </Button>
           </div>
         </div>
@@ -369,6 +379,7 @@ export function ReplicationActiveFilterChips({
   effectOptions,
   className,
 }: ReplicationActiveFilterChipsProps) {
+  const t = useT();
   const active = (Object.keys(OPTIONS) as FilterKey[]).filter(
     (key) => filters[key] !== "all",
   );
@@ -384,7 +395,7 @@ export function ReplicationActiveFilterChips({
         : key === "effect"
         ? effectOptions
         : OPTIONS[key];
-    return pool.find((option) => option.value === value)?.label ?? value;
+    return t(pool.find((option) => option.value === value)?.label ?? value);
   };
 
   return (
@@ -395,15 +406,18 @@ export function ReplicationActiveFilterChips({
             type="button"
             variant="pill"
             size="pill"
-            aria-label={`Remove ${MEDIA_LABEL} filter: ${mediaValueLabel(type)}`}
+            aria-label={t("Remove {{filter}} filter: {{value}}", {
+              filter: t(MEDIA_LABEL),
+              value: t(mediaValueLabel(type)),
+            })}
             onClick={() => onTypeChange("all")}
             className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
           >
             <span className="theme-text-faint" aria-hidden>
-              {MEDIA_LABEL}:
+              {t("{{label}}:", { label: t(MEDIA_LABEL) })}
             </span>
             <span className="font-medium" aria-hidden>
-              {mediaValueLabel(type)}
+              {t(mediaValueLabel(type))}
             </span>
             <Icon icon="lucide:x" className="h-3 w-3" aria-hidden />
           </Button>
@@ -415,15 +429,17 @@ export function ReplicationActiveFilterChips({
             type="button"
             variant="pill"
             size="pill"
-            aria-label={`Remove year filter: ${yearValueLabel(year)}`}
+            aria-label={t("Remove year filter: {{value}}", {
+              value: yearValueLabel(year, t),
+            })}
             onClick={() => onYearChange("all")}
             className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
           >
             <span className="theme-text-faint" aria-hidden>
-              Year:
+              {t("Year:")}
             </span>
             <span className="font-medium" aria-hidden>
-              {yearValueLabel(year)}
+              {yearValueLabel(year, t)}
             </span>
             <Icon icon="lucide:x" className="h-3 w-3" aria-hidden />
           </Button>
@@ -435,14 +451,17 @@ export function ReplicationActiveFilterChips({
             type="button"
             variant="pill"
             size="pill"
-            aria-label={`Remove ${CHIP_LABELS[key]} filter: ${valueLabel(key)}`}
+            aria-label={t("Remove {{filter}} filter: {{value}}", {
+              filter: t(CHIP_LABELS[key]),
+              value: valueLabel(key),
+            })}
             onClick={() =>
               onChange({ ...filters, [key]: "all" } as GalleryTaxonomyFilterState)
             }
             className="gap-1.5 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11"
           >
             <span className="theme-text-faint" aria-hidden>
-              {CHIP_LABELS[key]}:
+              {t("{{label}}:", { label: t(CHIP_LABELS[key]) })}
             </span>
             <span className="font-medium" aria-hidden>
               {valueLabel(key)}

@@ -70,6 +70,54 @@ export async function writeTranslations(rows: readonly TranslationSegmentRow[]):
   );
 }
 
+export type TranslationRejectionRow = {
+  locale: string;
+  hash: string;
+  source: string;
+  defects: string[];
+  attempts: number;
+  last_tried_at: number;
+};
+
+/** Record the units the model failed; a unit that later stores is cleared by `writeTranslations`' caller. */
+export async function writeTranslationRejections(
+  rows: readonly Pick<TranslationRejectionRow, "locale" | "hash" | "source" | "defects">[],
+): Promise<void> {
+  if (rows.length === 0 || getDataBackend() !== "postgres") return;
+  const now = Date.now();
+  await db().sql(
+    `INSERT INTO "translationRejections" ("locale", "hash", "source", "defects", "attempts", "last_tried_at")
+     SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::int[], $6::bigint[])
+     ON CONFLICT ("locale", "hash") DO UPDATE SET
+       "defects" = EXCLUDED."defects", "attempts" = "translationRejections"."attempts" + 1, "last_tried_at" = EXCLUDED."last_tried_at"`,
+    [
+      rows.map((row) => row.locale),
+      rows.map((row) => row.hash),
+      rows.map((row) => row.source),
+      rows.map((row) => row.defects.join(",")),
+      rows.map(() => 1),
+      rows.map(() => now),
+    ],
+  );
+}
+
+export async function clearTranslationRejections(locale: string, hashes: readonly string[]): Promise<void> {
+  if (hashes.length === 0 || getDataBackend() !== "postgres") return;
+  await db().sql('DELETE FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])', [locale, [...hashes]]);
+}
+
+/** `hash -> rejection` among `hashes`; an empty `hashes` reads every rejection for the locale. */
+export async function readTranslationRejections(locale: string, hashes?: readonly string[]): Promise<Map<string, TranslationRejectionRow>> {
+  if (getDataBackend() !== "postgres" || hashes?.length === 0) return new Map();
+  const rows = await db().sql<Omit<TranslationRejectionRow, "defects"> & { defects: string }>(
+    hashes
+      ? 'SELECT * FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])'
+      : 'SELECT * FROM "translationRejections" WHERE "locale" = $1',
+    hashes ? [locale, [...hashes]] : [locale],
+  );
+  return new Map(rows.map((row) => [row.hash, { ...row, defects: row.defects.split(",").filter(Boolean) }]));
+}
+
 /** Rows whose prompt digest differs from the current one; the backfill script retranslates them. */
 export async function readStaleTranslationHashes(locale: string, promptVersion: string): Promise<string[]> {
   const rows = await db().sql<{ hash: string }>(

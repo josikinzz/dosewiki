@@ -1,16 +1,19 @@
+import { formatMessage, msg, type Translate } from '@/i18n/messages';
 import type { ReplicationWithUrl } from '@/types/replications';
 
 /**
  * Shared credit / rights helpers for replication media. Used by the theater
  * lightbox and the gallery tiles so attribution reads identically everywhere.
+ * Each helper that composes reader-visible text takes the rendering surface's
+ * `t` as `translate`, defaulting to English formatting.
  */
 
 const RIGHTS_STATUS_LABELS: Record<string, string> = {
-  'creator-retained': 'Rights remain with the creator or rightsholder.',
-  'explicit-license': 'Reuse follows the item-specific license.',
-  unknown: 'Reuse terms are unknown; contact the creator or rightsholder before reuse.',
-  'permission-granted': 'Displayed with permission; reuse still depends on the creator or rightsholder.',
-  'public-domain': 'Marked as public domain.',
+  'creator-retained': msg('Rights remain with the creator or rightsholder.'),
+  'explicit-license': msg('Reuse follows the item-specific license.'),
+  unknown: msg('Reuse terms are unknown; contact the creator or rightsholder before reuse.'),
+  'permission-granted': msg('Displayed with permission; reuse still depends on the creator or rightsholder.'),
+  'public-domain': msg('Marked as public domain.'),
 };
 
 /**
@@ -40,31 +43,36 @@ export function hasKnownCreator(artist?: string | null) {
  * known, "Creator unknown" otherwise — callers must not prepend their own
  * "by", or unknown creators read as "by Creator unknown".
  */
-export function getCreatorByline(replication: Pick<ReplicationWithUrl, 'artist'>) {
-  return hasKnownCreator(replication.artist) ? `by ${replication.artist}` : 'Creator unknown';
+export function getCreatorByline(
+  replication: Pick<ReplicationWithUrl, 'artist'>,
+  translate: Translate = formatMessage,
+) {
+  return hasKnownCreator(replication.artist)
+    ? translate(msg('by {{artist}}'), { artist: replication.artist! })
+    : translate(msg('Creator unknown'));
 }
 
 /**
  * Credit sentence for the lightbox caption, which already renders the title
  * on its own line — the fallback deliberately avoids repeating it.
  */
-export function getCaptionCredit(replication: ReplicationWithUrl) {
+export function getCaptionCredit(replication: ReplicationWithUrl, translate: Translate = formatMessage) {
   const credit = replication.credit_line?.trim();
   if (credit) {
     return /[.!?]$/.test(credit) ? credit : `${credit}.`;
   }
 
   return hasKnownCreator(replication.artist)
-    ? `By ${replication.artist}.`
-    : 'Creator unknown.';
+    ? translate(msg('By {{artist}}.'), { artist: replication.artist! })
+    : translate(msg('Creator unknown.'));
 }
 
-export function getRightsSummary(replication: ReplicationWithUrl) {
+export function getRightsSummary(replication: ReplicationWithUrl, translate: Translate = formatMessage) {
   if (replication.license_name) {
-    return `License: ${replication.license_name}.`;
+    return translate(msg('License: {{name}}.'), { name: replication.license_name });
   }
 
-  return RIGHTS_STATUS_LABELS[replication.rights_status ?? 'creator-retained'];
+  return translate(RIGHTS_STATUS_LABELS[replication.rights_status ?? 'creator-retained']);
 }
 
 function hostOf(url?: string | null) {

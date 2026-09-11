@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 interface ReplicationStillStageProps {
   src: string;
@@ -30,6 +31,7 @@ export function ReplicationStillStage({
   mediaClassName = "h-full w-full",
   onProbeAspect,
 }: ReplicationStillStageProps) {
+  const t = useT();
   const surfaceRef = useRef<HTMLButtonElement>(null);
 
   // Rows imported before dimensions were catalogued still need a real
@@ -54,7 +56,7 @@ export function ReplicationStillStage({
       ref={surfaceRef}
       type="button"
       data-replication-media-surface
-      aria-label={controlsVisible ? "Hide controls" : "Show controls"}
+      aria-label={controlsVisible ? t("Hide controls") : t("Show controls")}
       onClick={onToggleControls}
       className={cn("absolute inset-0 h-full w-full", focusRingClassName)}
     >

@@ -13,6 +13,7 @@ import { AppImage } from "@/components/common/AppImage";
 import { audioWaveformBars } from "@/features/replications/audioWaveform";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import { RotatingIcon } from "./RotatingIcon";
 import { type ReplicationViewerMediaItem } from "./viewerModel";
 
@@ -76,6 +77,7 @@ export function ViewerThumbnailRail({
   onSelect,
   focusRingClassName,
 }: ViewerThumbnailRailProps) {
+  const t = useT();
   const listRef = useRef<HTMLUListElement | null>(null);
 
   // Slot width is breakpoint-dependent (size-12 sm:size-14), read once from
@@ -212,7 +214,11 @@ export function ViewerThumbnailRail({
           <button
             type="button"
             data-rail-index={itemIndex}
-            aria-label={`Show ${item.replication.title}, work ${itemIndex + 1} of ${items.length}`}
+            aria-label={t("Show {{title}}, work {{position}} of {{total}}", {
+              title: item.replication.title,
+              position: itemIndex + 1,
+              total: items.length,
+            })}
             aria-current={selected ? "true" : undefined}
             onClick={() => onSelect(itemIndex)}
             className={cn(
@@ -272,7 +278,7 @@ export function ViewerThumbnailRail({
 
   return (
     <nav
-      aria-label={`${groupLabel} works`}
+      aria-label={t("{{groupLabel}} works", { groupLabel })}
       inert={chromeHidden || undefined}
       aria-hidden={chromeHidden || undefined}
       className={cn(

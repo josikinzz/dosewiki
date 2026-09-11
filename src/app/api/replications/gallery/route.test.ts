@@ -4,12 +4,16 @@ import { GET } from "./route";
 const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
   getPublicGalleryReplications: vi.fn(),
+  getLocalizedPublicGalleryReplications: vi.fn(),
   getPublicContributorDirectory: vi.fn(),
 }));
 
 vi.mock("@server/convex/publicData", () => ({
   getPublicGalleryReplications: mocks.getPublicGalleryReplications,
   getPublicContributorDirectory: mocks.getPublicContributorDirectory,
+}));
+vi.mock("@server/translation/localizedRecords", () => ({
+  getLocalizedPublicGalleryReplications: mocks.getLocalizedPublicGalleryReplications,
 }));
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
@@ -37,6 +41,7 @@ describe("replication gallery corpus", () => {
   beforeEach(() => {
     mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
     mocks.getPublicGalleryReplications.mockReset().mockResolvedValue([preview]);
+    mocks.getLocalizedPublicGalleryReplications.mockReset().mockResolvedValue([{ ...preview, title: "漂移" }]);
     mocks.getPublicContributorDirectory.mockReset().mockResolvedValue(directory);
   });
 
@@ -54,6 +59,19 @@ describe("replication gallery corpus", () => {
       contributorDirectory: directory,
     });
     expect(mocks.getPublicGalleryReplications).toHaveBeenCalledTimes(1);
+  });
+
+  it("serves a live locale's localized corpus and ignores a locale it does not mirror", async () => {
+    const mirror = await GET(new Request("https://dose.wiki/api/replications/gallery?locale=zh-Hans"));
+    await expect(mirror.json()).resolves.toEqual({
+      data: [{ ...preview, title: "漂移" }],
+      contributorDirectory: directory,
+    });
+    expect(mocks.getLocalizedPublicGalleryReplications).toHaveBeenCalledWith("zh-Hans");
+    expect(mocks.getPublicGalleryReplications).not.toHaveBeenCalled();
+
+    const unknown = await GET(new Request("https://dose.wiki/api/replications/gallery?locale=xx"));
+    await expect(unknown.json()).resolves.toEqual({ data: [preview], contributorDirectory: directory });
   });
 
   it("enforces the public content read limit before loading gallery data", async () => {

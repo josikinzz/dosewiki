@@ -53,6 +53,24 @@ describe("publication targets", () => {
     expect(effect.tags).toEqual(["convex-public:articles"]);
   });
 
+  it("expires a replication's permalink, viewer document, gallery index, and their locale mirrors", () => {
+    const effect = resolvePublicationEffects([{ kind: "replication", slug: "infinite_torus-space" }]);
+
+    expect(effect.paths).toEqual([
+      { path: "/replications/infinite_torus-space" },
+      { path: "/replications/viewer/infinite_torus-space" },
+      { path: "/replications" },
+      { path: "/zh/replications/infinite_torus-space" },
+      { path: "/zh/replications/viewer/infinite_torus-space" },
+      { path: "/zh/replications" },
+    ]);
+    expect(effect.tags).toEqual(["convex-public:replications"]);
+    expect(publicationTargetForSavedPath("/replications/infinite_torus-space")).toEqual({
+      kind: "replication",
+      slug: "infinite_torus-space",
+    });
+  });
+
   it("routes a class depiction to its class page and a substance depiction to its article", () => {
     expect(resolvePublicationEffects([{ kind: "molecule", slug: "class:tryptamines" }]).paths).toEqual([
       { path: "/chemical-classes/tryptamines" },

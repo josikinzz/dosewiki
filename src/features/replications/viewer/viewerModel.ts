@@ -7,6 +7,7 @@ import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
 import type { EffectCategoryLink } from "@/features/effects/pages/replicationSubject";
 import type { ShowcaseWork } from "../components/showcaseWork";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
+import { msg } from "@/i18n/messages";
 
 /**
  * Canonical collection model shared by gallery, article, and artist sources.
@@ -106,7 +107,7 @@ export function viewerItemFromShowcaseWork(work: ShowcaseWork): ReplicationViewe
     replication: {
       slug: work.slug,
       title: work.title,
-      artist: hasKnownCreator(work.artistName) ? work.artistName!.trim() : "Unattributed",
+      artist: hasKnownCreator(work.artistName) ? work.artistName!.trim() : msg("Unattributed"),
       type: work.type,
       format: work.format ?? (work.type === "video" ? "mp4" : "image"),
       url: work.url,
@@ -214,10 +215,10 @@ export function viewerCollectionFromGalleryGroups(
     sourcePath,
     label:
       grouping === "artist"
-        ? "Sorted by artist"
+        ? msg("Sorted by artist")
         : grouping === "year"
-          ? "Sorted by year"
-          : "Sorted by effect",
+          ? msg("Sorted by year")
+          : msg("Sorted by effect"),
     kind: "gallery",
     grouping,
     groups: groups.map((group) => ({

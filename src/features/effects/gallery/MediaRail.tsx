@@ -6,6 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { ApprovedReplicatorStar } from "@/features/replications/components/ApprovedReplicatorStar";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -90,9 +91,12 @@ export function MediaRail({
   avatarUrl,
   viewerHrefFor,
 }: MediaRailProps) {
+  const t = useT();
   const preview = group.items.slice(0, RAIL_PREVIEW_LIMIT);
   const hasMore = !countIsComplete || group.count > preview.length;
-  const viewAllLabel = countIsComplete ? `View all ${group.count}` : "View all";
+  const viewAllLabel = countIsComplete
+    ? t("View all {{count}}", { count: group.count })
+    : t("View all");
 
   /**
    * Desktop arrow affordances. Wheel-less mice cannot comfortably drag a
@@ -195,7 +199,7 @@ export function MediaRail({
         )}
       >
         {portrait}
-        <span className="min-w-0 truncate">{group.label}</span>
+        <span className="min-w-0 truncate">{t(group.label)}</span>
         {star}
       </SmartLink>
       {group.externalUrl ? (
@@ -210,7 +214,7 @@ export function MediaRail({
         >
           <Icon icon="lucide:arrow-up-right" className={EXTERNAL_ICON_CLASS} />
           <span className="sr-only">
-            {group.label}&rsquo;s own site (opens in a new tab)
+            {t("{{artist}}’s own site (opens in a new tab)", { artist: group.label })}
           </span>
         </a>
       ) : null}
@@ -225,19 +229,19 @@ export function MediaRail({
         "group/heading inline-flex items-center gap-1.5",
       )}
     >
-      {group.label}
+      {t(group.label)}
       <Icon icon="lucide:arrow-up-right" className={EXTERNAL_ICON_CLASS} />
     </a>
   ) : (
     <span className="theme-text-primary font-display text-lg font-semibold tracking-tight">
-      {group.label}
+      {t(group.label)}
     </span>
   );
 
   const masonry = layout === "masonry";
 
   return (
-    <section className={masonry ? "space-y-2" : "space-y-3"} aria-label={group.label}>
+    <section className={masonry ? "space-y-2" : "space-y-3"} aria-label={t(group.label)}>
       <div
         className={cn(
           "flex flex-wrap justify-between gap-x-4 gap-y-1 px-1",
@@ -331,7 +335,7 @@ export function MediaRail({
           size="icon"
           onClick={() => scrollByPage(-1)}
           disabled={!canScroll.left}
-          aria-label={`Scroll ${group.label} back`}
+          aria-label={t("Scroll {{group}} back", { group: t(group.label) })}
           className={cn(arrowClass, "left-1")}
         >
           <Icon icon="lucide:chevron-left" className="h-4 w-4" aria-hidden />
@@ -342,7 +346,7 @@ export function MediaRail({
           size="icon"
           onClick={() => scrollByPage(1)}
           disabled={!canScroll.right}
-          aria-label={`Scroll ${group.label} forward`}
+          aria-label={t("Scroll {{group}} forward", { group: t(group.label) })}
           className={cn(arrowClass, "right-1")}
         >
           <Icon icon="lucide:chevron-right" className="h-4 w-4" aria-hidden />

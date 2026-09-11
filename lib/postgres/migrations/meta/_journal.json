@@ -50,6 +50,13 @@
       "when": 1789105831422,
       "tag": "0006_translation_segments",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789153302130,
+      "tag": "0007_translation_rejections",
+      "breakpoints": true
     }
   ]
 }

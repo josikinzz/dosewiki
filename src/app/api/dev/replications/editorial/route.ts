@@ -15,6 +15,7 @@
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
+import { publishReplicationRecord } from "../publishReplicationRecord";
 import { api } from "../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
@@ -191,12 +192,14 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       });
 
       // Moving a replication between effects leaves both galleries stale, so
-      // the old and the new owner are published together.
+      // the old and the new owner are published together; the single edit is
+      // the studio's title path, so the record's own permalink and locale
+      // mirror publish with them.
       const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
       for (const slug of new Set([body.expected.effect_slug, body.updates.effect_slug])) {
         if (slug) targets.push({ kind: "effect", slug });
       }
-      await publishPublicCache({ targets, source: "manual" });
+      await publishReplicationRecord(result.slug, targets);
 
       return NextResponse.json({ ok: true, updated: 1, slugs: [result.slug] });
     }

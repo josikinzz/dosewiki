@@ -117,6 +117,21 @@ describe("middleware role policy adapter", () => {
     expect(closedResponse.status).toBe(503);
   });
 
+  it("lets the service crons through the host gate on the deployment URL Vercel invokes", async () => {
+    mocks.getToken.mockResolvedValue(null);
+    const { middleware } = await import("./middleware");
+    makeRequest("/");
+    const host = "dosewiki-admin-abc123-team.vercel.app";
+    for (const path of ["/api/cron/translation-refresh", "/api/cron/publication-delivery"]) {
+      const response = await middleware(new NextRequest(`https://${host}${path}`, { headers: { host } }));
+      expect(response.status).toBe(200);
+    }
+    const other = await middleware(new NextRequest(`https://${host}/api/dev/article-field`, { headers: { host } }));
+    expect(other.status).toBe(503);
+    const post = await middleware(new NextRequest(`https://${host}/api/cron/translation-refresh`, { method: "POST", headers: { host } }));
+    expect(post.status).toBe(503);
+  });
+
   it("does not treat a dynamic editor path with an asset extension as sign-in bootstrap", async () => {
     mocks.getToken.mockResolvedValue(null);
     const { middleware } = await import("./middleware");
@@ -416,12 +431,52 @@ describe("middleware role policy adapter", () => {
     expect(article.headers.get("x-robots-tag")).toBeNull();
   });
 
+  it("serves a locale host's replications section from the mirror routes", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "zh.dose.wiki";
+
+    const index = await middleware(new NextRequest(`https://${host}/replications`, { headers: { host } }));
+    expect(index.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/replications`);
+    expect(index.headers.get("location")).toBeNull();
+
+    const audio = await middleware(new NextRequest(`https://${host}/replications/audio`, { headers: { host } }));
+    expect(audio.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/replications/audio`);
+
+    const viewer = await middleware(
+      new NextRequest(`https://${host}/replications?viewer=infinite-torus-space&type=video`, { headers: { host } }),
+    );
+    expect(viewer.headers.get("x-middleware-rewrite")).toBe(
+      `https://${host}/zh/replications/viewer/infinite-torus-space?viewer=infinite-torus-space&type=video`,
+    );
+
+    const permalink = await middleware(
+      new NextRequest(`https://${host}/replications/another-type-of-replication-does-this-count-gt0sy7`, { headers: { host } }),
+    );
+    expect(permalink.headers.get("x-middleware-rewrite")).toBe(
+      `https://${host}/zh/replications/another-type-of-replication-does-this-count-gt0sy7`,
+    );
+    expect(permalink.headers.get("location")).toBeNull();
+    expect(permalink.headers.get("x-robots-tag")).toBeNull();
+
+    const artist = await middleware(new NextRequest(`https://${host}/replications/artist/symmetric-vision`, { headers: { host } }));
+    expect(artist.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/replications/artist/symmetric-vision`);
+    expect(artist.headers.get("location")).toBeNull();
+
+    const unknown = await middleware(
+      new NextRequest(`https://${host}/replications/definitely-not-a-real-replication-zzzz`, { headers: { host } }),
+    );
+    expect(unknown.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/unroutable/missing`);
+  });
+
   it("hides the mirror route from direct requests on the English host", async () => {
     const { middleware } = await import("./middleware");
 
     const response = await middleware(makePublicRequest("/zh/fentanyl"));
-
     expect(response.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/_flavor-gated/not-found");
+
+    const replications = await middleware(makePublicRequest("/zh/replications"));
+    expect(replications.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/_flavor-gated/not-found");
   });
 
   it("serves the launched homepage at the public root", async () => {

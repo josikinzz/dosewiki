@@ -3,6 +3,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 import { publicMarkdownComponents } from "@/components/pages/PublicMarkdownBody";
+import { t } from "@/i18n/server";
 
 /**
  * The shared public prose map, stepped down to footnote weight: the notice
@@ -35,7 +36,7 @@ const noticeMarkdownComponents = {
 export function ReplicationsFairUseNotice({ body }: { body: string }) {
   return (
     <section
-      aria-label="Fair use and takedown notice"
+      aria-label={t("Fair use and takedown notice")}
       className="mx-auto mt-4 w-full max-w-7xl px-1"
     >
       <div className="max-w-3xl">

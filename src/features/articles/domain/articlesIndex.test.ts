@@ -103,14 +103,14 @@ describe("groupArticlesForIndex", () => {
       entry({ tags: ["intensity scale"], body_raw: `[p]${"word ".repeat(440)}[/p]` }),
     ]);
 
-    expect(group.articles[0].lengthLabel).toBe("2 min read");
+    expect(group.articles[0].readMinutes).toBe(2);
   });
 
   it("leaves length and date off entries that carry neither", () => {
     const [group] = groupArticlesForIndex([entry({ tags: [] })]);
 
-    expect(group.articles[0].lengthLabel).toBeUndefined();
-    expect(group.articles[0].dateLabel).toBeUndefined();
+    expect(group.articles[0].readMinutes).toBeUndefined();
+    expect(group.articles[0].publishedMonth).toBeUndefined();
   });
 
   it("formats publication dates down to month and year", () => {
@@ -118,7 +118,7 @@ describe("groupArticlesForIndex", () => {
       entry({ tags: [], publicationDate: "2021-05-08T00:00:00.000Z" }),
     ]);
 
-    expect(group.articles[0].dateLabel).toBe("May 2021");
+    expect(group.articles[0].publishedMonth).toBe("2021-05");
   });
 });
 

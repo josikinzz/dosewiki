@@ -22,7 +22,7 @@ import {
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
 import { isUnavailablePublicDynamicPath, publicSubstanceSlugForPath } from "@server/next/publicRouteAvailability";
-import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath, localizedNotFoundRoutePath, localizedRecordRoutePath } from "@server/next/localeHostPolicy";
+import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath, localizedNotFoundRoutePath, localizedRecordRoutePath, localizedReplicationViewerRoutePath } from "@server/next/localeHostPolicy";
 import {
   getReplicationArtistRouteAlias,
   getReplicationRouteAlias,
@@ -234,7 +234,8 @@ const REPLICATION_VIEWER_ROUTE_PREFIX = "/replications/viewer/";
  * with that work's social card. Document requests carrying the param are
  * rewritten to the per-slug ISR route that renders the same page with the
  * right metadata. Client-side navigations (`RSC` header) are left alone so the
- * mounted explorer keeps its route segment while the reader browses.
+ * mounted explorer keeps its route segment while the reader browses. A mirror
+ * host lands on its own viewer route so the page renders in its language.
  *
  * The grammar mirrors the viewer param's client parser; the route re-parses
  * the slug and 404s anything the rewrite let through.
@@ -253,8 +254,11 @@ function getReplicationViewerRewriteUrl(
     return null;
   }
 
+  const mirrorHost = localeForHost(request.headers.get("host"));
   const targetUrl = request.nextUrl.clone();
-  targetUrl.pathname = `${REPLICATION_VIEWER_ROUTE_PREFIX}${viewerSlug}`;
+  targetUrl.pathname = mirrorHost
+    ? localizedReplicationViewerRoutePath(mirrorHost, viewerSlug)
+    : `${REPLICATION_VIEWER_ROUTE_PREFIX}${viewerSlug}`;
   return targetUrl;
 }
 
@@ -326,8 +330,13 @@ export async function middleware(request: NextRequest) {
   });
   const browserPolicy = getBrowserPolicyContext(request, appPath, delivery !== "public");
 
-  // Refuse public origins and unlisted deployment aliases before serving an editor build.
-  if (delivery === "closed") {
+  // Vercel invokes crons on the deployment URL, never a listed host. Those two
+  // GETs carry CRON_SECRET and are checked in their handlers, so they pass the
+  // host gate; every other request on an unlisted alias or public origin is
+  // refused before an editor build serves it.
+  const isServiceCron = request.method === "GET"
+    && (requestPath === "/api/cron/publication-delivery" || requestPath === "/api/cron/translation-refresh");
+  if (delivery === "closed" && !(isServiceCron && process.env.NEXT_PUBLIC_EDITOR_BUILD === "true")) {
     return browserPolicy.secure(new NextResponse("Editor deployment is unavailable.", { status: 503 }));
   }
   // Browser assets contain no credentials or private records. Keep sign-in resources
@@ -337,12 +346,9 @@ export async function middleware(request: NextRequest) {
   }
   // These exact requests authenticate their own token in the route handler
   // (a scoped admin token for the revalidation POST, CRON_SECRET for the
-  // Vercel crons). Keep host restrictions above and all other editor APIs
-  // behind session auth.
+  // Vercel crons). All other editor APIs stay behind session auth.
   const isArticleRevalidation = request.method === "POST"
     && requestPath === "/api/dev/revalidate-article";
-  const isServiceCron = request.method === "GET"
-    && (requestPath === "/api/cron/publication-delivery" || requestPath === "/api/cron/translation-refresh");
   if (delivery === "editor" && !isEditorAuthBootstrapPath(appPath) && !isArticleRevalidation && !isServiceCron) {
     const token = await getToken({ req: request, secret: authSecret });
     const decision = getDevRouteDecision({

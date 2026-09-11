@@ -77,7 +77,7 @@ describe("ContributorsSection", () => {
             message: "Changed a word",
             detail: null,
             section: { id: "dosage-duration", label: "Dosage & Duration" },
-            field: "Threshold",
+            field: [{ label: "Threshold", index: null }],
             contributor: { name: "Josie Kins", href: "/contributors/josie", avatarUrl: null },
             diff: "@@ dosage.threshold @@\n- 5 mg\n+ 4 mg",
             articles: [{ id: 12, title: "2C-B", slug: "2c-b" }],

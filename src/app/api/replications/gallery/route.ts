@@ -5,6 +5,8 @@ import {
   getPublicGalleryReplications,
 } from "@server/convex/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
+import { getLocalizedPublicGalleryReplications } from "@server/translation/localizedRecords";
 
 export const runtime = "nodejs";
 
@@ -35,6 +37,11 @@ const CACHE_CONTROL =
  * This intentionally returns the same slim projection as the initial RSC
  * props, rather than the public v1 representation. The public endpoint keeps
  * its established pagination and response contract untouched.
+ *
+ * `?locale=<code>` names a live locale mirror: the same corpus with each
+ * work's stored title spliced in, so the explorer on the mirror keeps reading
+ * in its language once the complete corpus replaces the prerendered rails.
+ * The URL is the cache key, so each locale holds its own CDN entry.
  */
 export async function GET(request: Request) {
   const rateLimited = await enforceRateLimit(request, "publicContentApiRead");
@@ -42,9 +49,12 @@ export async function GET(request: Request) {
     return rateLimited;
   }
 
+  const locale = new URL(request.url).searchParams.get("locale");
+  const mirror = LIVE_LOCALE_CODES.find((code) => code === locale) ?? null;
+
   try {
     const [replications, contributorDirectory] = await Promise.all([
-      getPublicGalleryReplications(),
+      mirror ? getLocalizedPublicGalleryReplications(mirror) : getPublicGalleryReplications(),
       getPublicContributorDirectory(),
     ]);
     return NextResponse.json(

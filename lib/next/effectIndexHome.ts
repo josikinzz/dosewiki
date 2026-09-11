@@ -10,7 +10,7 @@ import {
   getPublishedEffectIndexArticles,
 } from "@server/convex/publicData";
 import featuredReplicationsConfig from "../../src/data/config/effectIndexFeaturedReplications.json";
-import { formatArticleLengthLabel } from "../../src/features/articles/domain/articlesIndex";
+import { articleReadMinutes } from "../../src/features/articles/domain/articlesIndex";
 import {
   resolveFeaturedReplications,
   selectFeaturedArticle,
@@ -94,7 +94,11 @@ export const loadEffectIndexHomeData = cache(
     return {
       effectCount: effects.length,
       effectGroups: selectFeaturedEffectGroups(effects),
-      featuredArticle: selectFeaturedArticle(articles, seed, formatArticleLengthLabel),
+      featuredArticle: selectFeaturedArticle(articles, seed, (body) => {
+        // Effect Index has no locale mirror, so its read time stays English here.
+        const minutes = articleReadMinutes(body);
+        return minutes ? `${minutes} min read` : undefined;
+      }),
       featuredReports: selectFeaturedReports(reports, seed),
       featuredReplications: resolveFeaturedReplications(
         featuredSlugs,

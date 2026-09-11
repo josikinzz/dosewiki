@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useT } from "@/i18n/client";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 
 /**
@@ -21,9 +22,10 @@ import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
  */
 export function ReplicationsSectionTitle() {
   const pathname = usePathname();
+  const t = useT();
 
   if (pathname === "/replications") {
-    return <h1 className="sr-only">Replications</h1>;
+    return <h1 className="sr-only">{t("Replications")}</h1>;
   }
 
   return (
@@ -31,7 +33,7 @@ export function ReplicationsSectionTitle() {
       <PageHeader
         className="mb-4 gap-2"
         titleClassName="[--type-size-title:2.25rem] md:[--type-size-title:3rem]"
-        title="Replications"
+        title={t("Replications")}
         icon={resolveRouteChromeIcon("replications")}
       />
     </div>
