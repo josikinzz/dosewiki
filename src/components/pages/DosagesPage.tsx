@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useT } from "@/i18n/client";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
@@ -169,6 +170,7 @@ export function DosagesPage({
 }: DosagesPageProps) {
   const [activeTab, setActiveTab] = useState<SubstanceIndexView>(initialView);
   const panelsStartRef = useRef<HTMLDivElement | null>(null);
+  const t = useT();
   const resolveLegacyHash = useCallback((hash: string) => {
     const view = parseLegacySubstanceIndexHash(hash);
     return view ? { view, pathname: substanceIndexViewPath(view) } : null;
@@ -193,9 +195,24 @@ export function DosagesPage({
     [layout, lookup],
   );
 
+  // Group names and section labels are editorial data; the mirror renders
+  // them through the UI catalog with English fallbacks. Keys stay English.
+  const localizedGroups = useMemo<DosageCategoryGroup[]>(
+    () =>
+      psychoactiveGroups.map((group) => ({
+        ...group,
+        name: t(group.name),
+        sections: group.sections?.map((section) => ({
+          ...section,
+          name: section.name == null ? section.name : t(section.name),
+        })),
+      })),
+    [psychoactiveGroups, t],
+  );
+
   const groupsByKey = useMemo(
-    () => new Map(psychoactiveGroups.map((group) => [group.key, group])),
-    [psychoactiveGroups],
+    () => new Map(localizedGroups.map((group) => [group.key, group])),
+    [localizedGroups],
   );
 
   const superTabs = useMemo(
@@ -204,8 +221,12 @@ export function DosagesPage({
   );
 
   const tabItems = useMemo<PublicSegmentedTabItem[]>(
-    () => buildSubstanceIndexTabItems(psychoactiveGroups),
-    [psychoactiveGroups],
+    () =>
+      buildSubstanceIndexTabItems(localizedGroups).map((item) => ({
+        ...item,
+        label: typeof item.label === "string" ? t(item.label) : item.label,
+      })),
+    [localizedGroups, t],
   );
 
   const handleTabChange = (value: string) => {
@@ -231,7 +252,7 @@ export function DosagesPage({
 
   const resolvedGroups = useMemo(() => {
     if (activeTab === "all") {
-      return orderCategoriesForAllTab(psychoactiveGroups).map((group) => ({
+      return orderCategoriesForAllTab(localizedGroups).map((group) => ({
         ...group,
         columns: undefined,
         column: undefined,
@@ -245,8 +266,8 @@ export function DosagesPage({
         .map((group) => ({ ...group, columns: undefined, column: undefined }));
     }
     const group = groupsByKey.get(activeTab);
-    return group ? splitGroupBySections(group) : psychoactiveGroups;
-  }, [activeTab, psychoactiveGroups, superTabs, groupsByKey]);
+    return group ? splitGroupBySections(group) : localizedGroups;
+  }, [activeTab, localizedGroups, superTabs, groupsByKey]);
 
   const isFiltered = activeTab !== "all";
   const isSingleCategoryView = isFiltered && groupsByKey.has(activeTab);
@@ -260,19 +281,27 @@ export function DosagesPage({
     // contributes their prose under their tab id when the copy layer knows it.
     // The inline `tab.content` stays as the fallback.
     const superTab = SUBSTANCE_INDEX_SUPER_TABS.find((tab) => tab.id === activeTab);
-    if (superTab) return definitions?.[superTab.id] ?? superTab.content;
-    return definitions?.[activeTab];
-  }, [activeTab, definitions]);
+    if (superTab) {
+      const content = definitions?.[superTab.id] ?? superTab.content;
+      return content
+        ? { ...content, definition: t(content.definition), warning: content.warning ? t(content.warning) : content.warning }
+        : undefined;
+    }
+    const content = definitions?.[activeTab];
+    return content
+      ? { ...content, definition: t(content.definition), warning: content.warning ? t(content.warning) : content.warning }
+      : undefined;
+  }, [activeTab, definitions, t]);
 
   return (
     <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">
       <IndexItem />
-      <IndexCategory groups={psychoactiveGroups} />
+      <IndexCategory groups={localizedGroups} />
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div>
           <PageHeader
             className="sm:mb-8"
-            title="Substance Index"
+            title={t("Substance Index")}
             icon={SUBSTANCE_INDEX_ICON}
             description={<BetaDisclaimer />}
             descriptionClassName="mx-auto text-sm italic text-balance"
@@ -282,7 +311,7 @@ export function DosagesPage({
 
       <div data-nosnippet>
         <PublicSegmentedTabs
-          ariaLabel="Filter substances by class"
+          ariaLabel={t("Filter substances by class")}
           value={activeTab}
           onValueChange={handleTabChange}
           onItemSelect={handleTabSelect}

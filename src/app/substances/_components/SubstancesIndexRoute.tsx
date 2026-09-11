@@ -2,6 +2,8 @@ import { PrePaintRouteStateCover } from "@/components/common/PrePaintRouteStateC
 import { DosagesPage } from "@/components/pages/DosagesPage";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { applyPlaceholders } from "@/data/content/about";
+import { t } from "@/i18n/server";
+import { msg } from "@/i18n/messages";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import {
   SUBSTANCE_INDEX_DEFAULT_VIEW,
@@ -26,19 +28,22 @@ const LEGACY_HASHES = [
   SUBSTANCE_INDEX_DEFAULT_VIEW,
   ...SUBSTANCE_INDEX_VIEW_PARAMS.map(({ view }) => view),
 ];
-export async function getSubstancesIndexMetadata(pathname: string) {
+export async function getSubstancesIndexMetadata(
+  pathname: string,
+  options: { noIndex?: boolean; canonicalPathname?: string } = {},
+) {
   const [overview, copy] = await Promise.all([getPublicDataOverview(), getCopy()]);
   const template =
     copy.text("seo-substances-index-description") ||
-    `Browse {{substanceCount}} substance records in {{siteName}}.`;
+    msg(`Browse {{substanceCount}} substance records in {{siteName}}.`);
 
   return buildPublicPageMetadata({
-    title: "Substance Index",
-    description: applyPlaceholders(template, {
+    title: t(msg("Substance Index")),
+    description: applyPlaceholders(t(template, { substanceCount: overview.substanceCount, siteName: SITE_FLAVOR_CONFIG.name }), {
       substanceCount: overview.substanceCount,
       siteName: SITE_FLAVOR_CONFIG.name,
     }),
-    pathname,
+    pathname: options.canonicalPathname ?? pathname,
     socialImage: pageSocialCardImage(
       "substances",
       `${SITE_FLAVOR_CONFIG.name} Substance Index`,

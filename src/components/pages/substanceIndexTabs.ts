@@ -4,10 +4,11 @@
  * layout editor both read this file, so an editor never reorders panels
  * against a strip the reader sees differently.
  */
+import { getCategoryIcon } from "@/data/config/categoryIcons";
+import { msg } from "@/i18n/messages";
 import type { IconName } from "@/components/common/Icon";
 import type { PublicSegmentedTabItem } from "@/components/layout/PublicSegmentedTabs";
 import type { CategoryTabContent } from "@/data/categoryTabContent";
-import { getCategoryIcon } from "@/data/config/categoryIcons";
 
 export const SUBSTANCE_INDEX_ICON = "streamline-ultimate:science-molecule-strucutre-bold" satisfies IconName;
 
@@ -32,23 +33,25 @@ export type SubstanceIndexSuperTab = {
 export const SUBSTANCE_INDEX_SUPER_TABS: readonly SubstanceIndexSuperTab[] = [
   {
     id: "super:hallucinogens",
-    label: "Hallucinogens",
+    label: msg("Hallucinogens"),
     icon: getCategoryIcon("hallucinogen"),
     memberKeys: ["psychedelic", "dissociative", "deliriant", "hallucinogen"],
     content: {
-      definition:
+      definition: msg(
         '**Hallucinogens** are a class of psychoactive substances that produce strong changes in perception, mood, and thought. The experience often feels like a different state of consciousness, not a stronger or weaker version of normal awareness. There are three subclasses of hallucinogens: psychedelics, dissociatives, and deliriants. Each subclass acts on a different brain system and produces a different type of experience. The name comes from the Latin *hallucinari*, which means "to wander in the mind."',
+      ),
       warning: "",
     },
   },
   {
     id: "super:depressants",
-    label: "Depressants",
+    label: msg("Depressants"),
     icon: getCategoryIcon("depressant"),
     memberKeys: ["gabaergic", "opioid"],
     content: {
-      definition:
+      definition: msg(
         '**Depressants** (also known as "downers") are a class of psychoactive substances that slow the central nervous system. They produce relaxation, calm, less anxiety, drowsiness, and lower inhibition. Most depressants strengthen GABA, the main inhibitory or "braking" system of the brain. The word "depressant" means lower nervous-system activity. It does not mean sadness.',
+      ),
       warning: "",
     },
   },
@@ -98,7 +101,7 @@ export function buildSubstanceIndexTabItems(
 ): PublicSegmentedTabItem[] {
   const groupsByKey = new Map(groups.map((group) => [group.key, group]));
   const items: PublicSegmentedTabItem[] = [
-    { id: "all", label: "All", icon: SUBSTANCE_INDEX_ICON, prominence: "major" },
+    { id: "all", label: msg("All"), icon: SUBSTANCE_INDEX_ICON, prominence: "major" },
   ];
 
   for (const entry of SUBSTANCE_INDEX_TAB_ORDER) {

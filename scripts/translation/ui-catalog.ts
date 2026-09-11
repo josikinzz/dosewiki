@@ -74,6 +74,23 @@ async function collectKeys(): Promise<Map<string, Set<string>>> {
   return keys;
 }
 
+/** Substance-index labels that reach the page as layout data rendered through `t()`. */
+async function loadIndexLabelKeys(): Promise<Set<string>> {
+  const out = new Set<string>();
+  const file = path.join(repoRoot, "src/data/indexes/psychoactiveIndexManual.json");
+  if (!existsSync(file)) return out;
+  const document = JSON.parse(await readFile(file, "utf8")) as {
+    categories?: Array<{ label?: string; sections?: Array<{ label?: string }> }>;
+  };
+  for (const category of document.categories ?? []) {
+    if (category.label?.trim()) out.add(category.label);
+    for (const section of category.sections ?? []) {
+      if (section.label?.trim()) out.add(section.label);
+    }
+  }
+  return out;
+}
+
 async function loadSeed(): Promise<Map<string, string>> {
   const seed = new Map<string, string>();
   if (!values.seed) return seed;
@@ -139,6 +156,9 @@ async function main() {
   const keys = await collectKeys();
   for (const body of await loadCopyKeys()) {
     if (!keys.has(body)) keys.set(body, new Set(["copyBlocks"]));
+  }
+  for (const label of await loadIndexLabelKeys()) {
+    if (!keys.has(label)) keys.set(label, new Set(["psychoactiveIndexManual"]));
   }
   const glossary = await loadGlossaryKeys();
   for (const term of glossary.keys()) {

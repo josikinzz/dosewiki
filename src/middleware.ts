@@ -22,7 +22,7 @@ import {
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
 import { isUnavailablePublicDynamicPath, publicSubstanceSlugForPath } from "@server/next/publicRouteAvailability";
-import { localeForHost, localeForPathPrefix, localizedArticleRoutePath } from "@server/next/localeHostPolicy";
+import { localeForHost, localeForPathPrefix, localizedArticleRoutePath, localizedIndexRoutePath } from "@server/next/localeHostPolicy";
 import {
   getReplicationArtistRouteAlias,
   getReplicationRouteAlias,
@@ -469,15 +469,24 @@ export async function middleware(request: NextRequest) {
     return browserPolicy.secure(NextResponse.redirect(launchedUrl, 308));
   }
 
-  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route;
+  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route
+  // and the homepage plus the substance index render their localized routes;
   // every other path on the mirror host serves the English page so navigation
-  // never leaves the host. The mirror route addressed directly on any other
-  // host would be a second URL for the article, so it is unroutable there.
+  // never leaves the host. A mirror route addressed directly on any other
+  // host would be a second URL for the page, so it is unroutable there.
   const localeHost = localeForHost(request.headers.get("host"));
   const localizedSlug = localeHost ? publicSubstanceSlugForPath(appPath) : null;
   if (localeHost && localizedSlug) {
     const mirrorUrl = request.nextUrl.clone();
     mirrorUrl.pathname = localizedArticleRoutePath(localeHost, localizedSlug);
+    return browserPolicy.secure(
+      NextResponse.rewrite(mirrorUrl, { request: { headers: browserPolicy.requestHeaders } }),
+    );
+  }
+  const localizedIndexPath = localeHost ? localizedIndexRoutePath(localeHost, appPath) : null;
+  if (localeHost && localizedIndexPath) {
+    const mirrorUrl = request.nextUrl.clone();
+    mirrorUrl.pathname = localizedIndexPath;
     return browserPolicy.secure(
       NextResponse.rewrite(mirrorUrl, { request: { headers: browserPolicy.requestHeaders } }),
     );

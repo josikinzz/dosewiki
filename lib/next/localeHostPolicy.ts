@@ -1,11 +1,12 @@
 /**
  * Locale mirrors of dose.wiki: one subdomain per language, served by the
- * public deployment from the `/<prefix>/[slug]` route the middleware rewrites
- * to. Only substance articles are localized; every other path on a locale host
- * serves the English page unchanged so navigation never leaves the host.
+ * public deployment from the `/<prefix>/...` routes the middleware rewrites
+ * to. Substance articles plus the two discovery surfaces (`/` and
+ * `/substances`) are localized; every other path on a locale host serves the
+ * English page unchanged so navigation never leaves the host.
  *
  * The hosts are deliberately unlisted: each mirror carries `noindex` and a
- * canonical link back to the English article.
+ * canonical link back to the English page.
  */
 import { normalizeHost } from "./publicHostPolicy";
 
@@ -38,6 +39,17 @@ export function localeForPathPrefix(pathname: string): LiveLocale | null {
 /** The mirror route for one public substance slug. */
 export function localizedArticleRoutePath(locale: LiveLocale, slug: string): string {
   return `${locale.pathPrefix}/${slug}`;
+}
+
+/** The English index paths the middleware also localizes, in route order. */
+export const LOCALIZED_INDEX_PATHS = ["/", "/substances"] as const;
+
+/** The mirror route for one English index path, when that path localizes. */
+export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): string | null {
+  if (!LOCALIZED_INDEX_PATHS.includes(pathname as (typeof LOCALIZED_INDEX_PATHS)[number])) {
+    return null;
+  }
+  return pathname === "/" ? locale.pathPrefix : `${locale.pathPrefix}${pathname}`;
 }
 
 /** Every cache path an English article expiry must also expire. */
