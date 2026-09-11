@@ -1,3 +1,46 @@
+## 2026-09-11 zh.dose.wiki locale mirrors (substances, homepage, indexes, effects, reports)
+
+All three surfaces serve commit `1e7d30dd` on `no-corpus-drain`, each uploaded
+from an isolated detached `git worktree` at that commit: dose.wiki and
+www.dose.wiki `dosewiki-public-2mcm9hu4g`, dev.dose.wiki
+`dosewiki-admin-obc99u2zo`, effectindex.com `effectindex-8gc3h8hfx`.
+
+The release ships the zh.dose.wiki locale mirrors (commits `dd7193bc` through
+`1e7d30dd`): substance articles, the homepage, the substance index, the
+subjective effect index and effect articles, and the trip reports index and
+report pages all localize through the Postgres `translationSegments` store and
+the `src/i18n` UI catalog. The mirror host is unlisted (`noindex`, canonical
+back to the English page on every surface). The `translation-refresh` Vercel
+cron on `dosewiki-admin` dispatches on the job slug prefix (`effect/`,
+`report/`) and the store carries the imported zh-Hans batch segments for all
+three corpora (27,352 rows) with 399 effect/report jobs enqueued at release.
+
+Two defects found live during this release:
+
+- The editor build (`DOSEWIKI_BUILD_SURFACE=editor`) was killed three times on
+  the Vercel runner (`exit 137`, no error output after "Creating an optimized
+  production build"); the same commit builds cleanly locally. Fix: the
+  `dosewiki-admin` project now carries `NODE_OPTIONS=--max-old-space-size=6144`
+  as a build environment variable, capping the V8 heap so webpack compiles
+  inside the 8 GB runner instead of being OOM-killed. Keep it on future editor
+  releases; the public and Effect Index builds never needed it.
+- Uploads to `api.vercel.com` failed persistently with TLS `bad record mac`
+  (server-sent alert 20) and mid-upload connection resets at the CLI's default
+  50-way upload concurrency on this network path. The homebrew Vercel CLI's
+  upload semaphore was patched locally from 50 to 2 and the SSL-alert/EPIPE
+  failures made retryable (`/opt/homebrew/lib/node_modules/vercel/dist/chunks/
+  chunk-BFAZVUS3.js`, backup at `/tmp/chunk-BFAZVUS3.js.bak`); a homebrew
+  upgrade restores the stock behavior.
+
+Migration `0006_translation_segments` was applied to production before the
+first release (two empty tables; `drizzle-kit migrate` over
+`POSTGRES_DIRECT_URL`). Live checks: `zh.dose.wiki/`, `/substances`,
+`/effects`, `/effects/colour-enhancement`, `/reports`,
+`/reports/exactly-as-advertised`, and `/2c-b` all 200 with localized content,
+`noindex`, and an English canonical; `/zh/*` paths 404 on non-mirror hosts;
+English hosts and effectindex.com render unchanged (zero CJK in chrome); the
+translation-refresh cron answers 401 without `CRON_SECRET`.
+
 ## 2026-09-10 PlanetScale cutover (reads and writes on Postgres)
 
 All three surfaces serve commit `54e47598` on `no-corpus-drain` with
