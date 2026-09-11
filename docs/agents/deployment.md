@@ -1,3 +1,32 @@
+## 2026-09-10 PlanetScale cutover (reads and writes on Postgres)
+
+All three surfaces serve commit `54e47598` on `no-corpus-drain` with
+`DATA_BACKEND=postgres` and `POSTGRES_POOLED_URL` set: dose.wiki and
+www.dose.wiki `dpl_BzxZ3RKkZ3Jbx3rt6DQCGzLxYs4f` (`dosewiki-public-8lisyani1`),
+dev.dose.wiki `dosewiki-admin-phumi1b1i`, effectindex.com `effectindex-bzbcuv90s`.
+Convex `glad-minnow-656` is no longer runtime truth; it stays deployed through
+the ticket 24 observation window (earliest 2026-09-17) with
+`MAILING_LIST_FORWARD_URL=https://dose.wiki/api/subscribe` so any signup that
+still reaches its `/subscribe` action is relayed to Postgres. The effectindex
+project carries the same variable because that deployment is credential-free
+and relays its signups to dosewiki.
+
+The cutover sequence, evidence, timings and the two defects found live (the
+mailing-list route bypassing the freeze; Effect Index answering 503 on the
+Postgres backend) are recorded against ticket 23 in
+[decisions.md](../../notes-and-plans/plans/convex-to-planetscale/decisions.md).
+The PlanetScale branch `pre-cutover-2026-09-10` holds the pre-import state and
+the cutover snapshot lives at
+`runs/postgres-import/cutover-2026-09-10/prod-snapshot-cutover.zip` (gitignored).
+
+Rollback is no longer an environment flip: reopened writes exist only on
+Postgres, so going back means the reverse importer procedure in
+release-manifest.md section 10 (freeze, `npm run postgres:reverse-export`,
+`npx convex import --replace`, then `DATA_BACKEND` back to Convex and a
+redeploy). The last Convex-serving production deployments, for the record:
+public `dpl_7S5he3nSFR81UdHZCdQU6BMK8VYF`, admin `dosewiki-admin-keiiamrw8`,
+effectindex `effectindex-6u2ow4zyk` (all built with `DATA_WRITES_FROZEN=1`).
+
 ## 2026-09-10 PlanetScale migration code release (still on Convex)
 
 All three surfaces serve commit `b152320a` on `no-corpus-drain`, uploaded from a
