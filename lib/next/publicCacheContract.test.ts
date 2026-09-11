@@ -21,10 +21,10 @@ function signalBody(overrides: Record<string, unknown> = {}) {
 }
 
 describe("publication targets", () => {
-  it("expires an article's own leaves, its gallery, its history and the shared listings", () => {
+  it("expires an article's own leaves, its locale mirrors, its gallery, its history and the shared listings", () => {
     const effect = resolvePublicationEffects([{ kind: "article", slug: "2c-b" }]);
 
-    expect(effect.paths).toEqual([{ path: "/2c-b" }]);
+    expect(effect.paths).toEqual([{ path: "/2c-b" }, { path: "/zh/2c-b" }]);
     expect(effect.tags).toEqual([
       "convex-public:substances:2c-b",
       "convex-public:replications:substance:2c-b",
@@ -57,7 +57,7 @@ describe("publication targets", () => {
       { kind: "substance-lists" },
     ]);
 
-    expect(effect.paths).toEqual([{ path: "/lsd" }, { path: "/substances" }]);
+    expect(effect.paths).toEqual([{ path: "/lsd" }, { path: "/zh/lsd" }, { path: "/substances" }]);
     expect(effect.tags.filter((tag) => tag === "convex-public:substance-lists")).toHaveLength(1);
   });
 

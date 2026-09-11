@@ -23,6 +23,8 @@ import { getPublicEffectDetail } from "@server/convex/publicLibrary";
 import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/publicData.molecules";
 import { getPublicArticleHistory } from "@server/convex/publicData.changelog";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
+import { getLocalizedPublicSubstanceBySlug } from "@server/translation/localizedSubstance";
+import type { LiveLocale } from "./localeHostPolicy";
 import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
 import { getCopy } from "./copyBlocks";
 import {
@@ -69,7 +71,7 @@ export type SubstanceRouteResult =
   | RedirectRouteResult
   | NotFoundRouteResult;
 
-export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceRouteResult> => {
+export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale | null = null): Promise<SubstanceRouteResult> => {
   const aliasTarget = getSubstanceRouteAlias(slug);
 
   if (aliasTarget) {
@@ -84,7 +86,9 @@ export const loadSubstanceRoute = cache(async (slug: string): Promise<SubstanceR
     };
   }
 
-  const substance = await getPublicSubstanceBySlug(slug);
+  const substance = locale
+    ? await getLocalizedPublicSubstanceBySlug(slug, locale.code)
+    : await getPublicSubstanceBySlug(slug);
 
   if (!substance) {
     return { kind: "not-found" };

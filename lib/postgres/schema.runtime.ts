@@ -2,7 +2,7 @@
  * Tables owned by the Postgres runtime rather than mirrored from Convex.
  * Hand-written; `drizzle.config.ts` loads this next to `schema.generated.ts`.
  */
-import { bigint, index, pgTable, text } from "drizzle-orm/pg-core";
+import { bigint, index, integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 
 /** Convex ids do not name their table in a decodable way, so `db.get(id)` resolves through this map. */
 export const documentIds = pgTable(
@@ -23,3 +23,43 @@ export const storageObjects = pgTable("storageObjects", {
   sha256: text("sha256"),
   r2_key: text("r2_key"),
 });
+
+/**
+ * One machine-translated segment per (locale, source hash). The hash is
+ * `scripts/translation/segment-manifest.mjs` `segmentHash` of the English
+ * text, so identical sentences anywhere in the corpus share one row and an
+ * edited sentence simply misses until the refresh cron fills it.
+ */
+export const translationSegments = pgTable(
+  "translationSegments",
+  {
+    locale: text("locale").notNull(),
+    hash: text("hash").notNull(),
+    source: text("source").notNull(),
+    target: text("target").notNull(),
+    model: text("model").notNull(),
+    /** Digest of the system prompt and glossary that produced `target`; a bumped prompt is retranslated deliberately, never silently. */
+    prompt_version: text("prompt_version").notNull(),
+    created_at: bigint("created_at", { mode: "number" }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.hash] }), index("translationSegments_by_prompt").on(t.locale, t.prompt_version)],
+);
+
+/**
+ * Outbox of articles whose English moved since their locale was last
+ * assembled. Editorial writes upsert a row; the translation cron claims due
+ * rows with a lease and clears them once every missing segment is stored.
+ */
+export const translationJobs = pgTable(
+  "translationJobs",
+  {
+    locale: text("locale").notNull(),
+    slug: text("slug").notNull(),
+    requested_at: bigint("requested_at", { mode: "number" }).notNull(),
+    claimed_at: bigint("claimed_at", { mode: "number" }),
+    completed_at: bigint("completed_at", { mode: "number" }),
+    attempts: integer("attempts").notNull().default(0),
+    last_error: text("last_error"),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.slug] }), index("translationJobs_due").on(t.locale, t.completed_at, t.claimed_at)],
+);

@@ -1,6 +1,7 @@
 export const PUBLIC_HOSTS: Record<string, true> = {
   "dose.wiki": true,
   "www.dose.wiki": true,
+  "zh.dose.wiki": true,
   "effectindex.com": true,
   "www.effectindex.com": true,
 };

@@ -21,7 +21,8 @@ import {
   FLAVOR_GATED_NOT_FOUND_PATH,
   isFlavorGatedRequestPath,
 } from "@server/next/flavorGatedRoutes";
-import { isUnavailablePublicDynamicPath } from "@server/next/publicRouteAvailability";
+import { isUnavailablePublicDynamicPath, publicSubstanceSlugForPath } from "@server/next/publicRouteAvailability";
+import { localeForHost, localeForPathPrefix, localizedArticleRoutePath } from "@server/next/localeHostPolicy";
 import {
   getReplicationArtistRouteAlias,
   getReplicationRouteAlias,
@@ -336,13 +337,13 @@ export async function middleware(request: NextRequest) {
   }
   // These exact requests authenticate their own token in the route handler
   // (a scoped admin token for the revalidation POST, CRON_SECRET for the
-  // Vercel cron). Keep host restrictions above and all other editor APIs
+  // Vercel crons). Keep host restrictions above and all other editor APIs
   // behind session auth.
   const isArticleRevalidation = request.method === "POST"
     && requestPath === "/api/dev/revalidate-article";
-  const isPublicationDeliveryCron = request.method === "GET"
-    && requestPath === "/api/cron/publication-delivery";
-  if (delivery === "editor" && !isEditorAuthBootstrapPath(appPath) && !isArticleRevalidation && !isPublicationDeliveryCron) {
+  const isServiceCron = request.method === "GET"
+    && (requestPath === "/api/cron/publication-delivery" || requestPath === "/api/cron/translation-refresh");
+  if (delivery === "editor" && !isEditorAuthBootstrapPath(appPath) && !isArticleRevalidation && !isServiceCron) {
     const token = await getToken({ req: request, secret: authSecret });
     const decision = getDevRouteDecision({
       pathname: appPath,
@@ -466,6 +467,27 @@ export async function middleware(request: NextRequest) {
     const launchedUrl = request.nextUrl.clone();
     launchedUrl.pathname = appPath;
     return browserPolicy.secure(NextResponse.redirect(launchedUrl, 308));
+  }
+
+  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route;
+  // every other path on the mirror host serves the English page so navigation
+  // never leaves the host. The mirror route addressed directly on any other
+  // host would be a second URL for the article, so it is unroutable there.
+  const localeHost = localeForHost(request.headers.get("host"));
+  const localizedSlug = localeHost ? publicSubstanceSlugForPath(appPath) : null;
+  if (localeHost && localizedSlug) {
+    const mirrorUrl = request.nextUrl.clone();
+    mirrorUrl.pathname = localizedArticleRoutePath(localeHost, localizedSlug);
+    return browserPolicy.secure(
+      NextResponse.rewrite(mirrorUrl, { request: { headers: browserPolicy.requestHeaders } }),
+    );
+  }
+  if (!localeHost && localeForPathPrefix(appPath)) {
+    return browserPolicy.secure(
+      NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
+        request: { headers: browserPolicy.requestHeaders },
+      }),
+    );
   }
 
   if (delivery === "editor" || !request.nextUrl.pathname.startsWith("/dev")) {

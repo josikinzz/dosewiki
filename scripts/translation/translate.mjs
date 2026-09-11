@@ -35,12 +35,12 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { Agent, setGlobalDispatcher } from "undici";
 
-import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import { buildManifest, buildWorkUnits, assembleLocaleDataset, structuralDiff } from "./segment-manifest.mjs";
 import { resolveCorpus } from "./corpora.mjs";
-import { resolveLocale, buildBatchPrompt } from "./locales.mjs";
-import { validateSegment, isBlocking, parseModelJson, DEFECT_CODES } from "./validate.mjs";
+import { resolveLocale } from "./locales.mjs";
+import { validateSegment, isBlocking, DEFECT_CODES } from "./validate.mjs";
 import { buildQaPacket } from "./qa-packet.mjs";
+import { DEFAULT_MODEL, MAX_ATTEMPTS, planBatches, translateBatchWithRetries } from "./engine.mjs";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 
 
@@ -65,9 +65,6 @@ setGlobalDispatcher(
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-const DEFAULT_MODEL = "z-ai/glm-5.3-flash";
-const APP_TITLE = "dose.wiki locale translation";
-
 /** OpenRouter list price per million tokens, used for the run's cost report. */
 const MODEL_PRICING = {
   "z-ai/glm-5.3-flash": { input: 0.075, output: 0.25 },
@@ -75,7 +72,6 @@ const MODEL_PRICING = {
   "z-ai/glm-4.7-flash": { input: 0.0605, output: 0.4 },
 };
 
-const MAX_ATTEMPTS = 3;
 
 function parseOptions(argv) {
   const { values } = parseArgs({
@@ -122,41 +118,6 @@ function parseOptions(argv) {
   };
 }
 
-
-/**
- * Packs work units into requests under a character budget. Units keep their
- * context class within a batch so the safety reminder is never diluted, and an
- * oversized unit travels alone.
- */
-export function planBatches(units, batchChars) {
-  const batches = [];
-  const open = new Map();
-
-  for (const unit of units) {
-    if (unit.source.length >= batchChars) {
-      batches.push([unit]);
-      continue;
-    }
-
-    const key = unit.contextClass;
-    const current = open.get(key);
-    if (current && current.chars + unit.source.length <= batchChars && current.units.length < 40) {
-      current.units.push(unit);
-      current.chars += unit.source.length;
-      continue;
-    }
-
-    if (current) batches.push(current.units);
-    open.set(key, { units: [unit], chars: unit.source.length });
-  }
-
-  for (const current of open.values()) {
-    if (current.units.length > 0) batches.push(current.units);
-  }
-
-  return batches;
-}
-
 async function loadCheckpoint(checkpointPath) {
   const done = new Map();
   if (!existsSync(checkpointPath)) return done;
@@ -178,129 +139,6 @@ function costOf(model, usage) {
   const price = MODEL_PRICING[model];
   if (!price) return 0;
   return (usage.prompt / 1e6) * price.input + (usage.completion / 1e6) * price.output;
-}
-
-const TRANSPORT_ATTEMPTS = 4;
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * A request that never answers is worse than one that fails: the worker holds
- * a slot forever and the pool drains to nothing. The undici dispatcher above
- * governs Node's fetch, not Bun's, so the deadline lives here where both
- * runtimes honour it. An abandoned attempt is a retryable one.
- */
-const ATTEMPT_TIMEOUT_MS = 180_000;
-
-function withDeadline(promise, ms) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(Object.assign(new Error(`request exceeded ${ms}ms`), { retryable: true })),
-      ms,
-    );
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
-}
-
-/**
- * One request carrying many segments. Rate limits and gateway errors are the
- * normal weather at this concurrency, so a retryable failure waits and repeats
- * the same request rather than degrading into per-segment retries.
- */
-async function sendBatch({ locale, model, apiKey, userMessage }) {
-  let lastError;
-  for (let attempt = 1; attempt <= TRANSPORT_ATTEMPTS; attempt += 1) {
-    try {
-      return await withDeadline(
-        callOpenRouterChat({
-          apiKey,
-          appTitle: APP_TITLE,
-          model,
-          systemPrompt: locale.systemPrompt,
-          userMessage,
-          temperature: 0.2,
-          maxTokens: 16384,
-          // This endpoint reasons unconditionally. Lowest effort with the trace
-          // excluded keeps a 6k-character batch near two seconds instead of fifty.
-          reasoningEffort: "low",
-          excludeReasoning: true,
-        }),
-        ATTEMPT_TIMEOUT_MS,
-      );
-    } catch (error) {
-      lastError = error;
-      if (!error?.retryable || attempt === TRANSPORT_ATTEMPTS) throw error;
-      await sleep(1000 * 2 ** (attempt - 1) + Math.random() * 500);
-    }
-  }
-  throw lastError;
-}
-
-async function translateBatch({ units, locale, model, apiKey, retryNote }) {
-  const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
-  const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
-  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote });
-
-  const response = await sendBatch({ locale, model, apiKey, userMessage });
-
-  const usage = {
-    prompt: response.usage.promptTokens,
-    completion: response.usage.completionTokens,
-  };
-
-  const parsed = parseModelJson(response.content);
-  if (!parsed.ok) {
-    return { usage, results: units.map((unit) => ({ unit, target: null, parseCode: parsed.code })) };
-  }
-
-  return {
-    usage,
-    results: payloadUnits.map((unit) => ({
-      unit,
-      target: parsed.value[unit.id] ?? null,
-      parseCode: parsed.value[unit.id] === undefined ? DEFECT_CODES.UNPARSABLE_OUTPUT : null,
-    })),
-  };
-}
-
-function retryNoteFor(defects) {
-  const notes = [];
-  if (defects.includes(DEFECT_CODES.NUMBER_MISMATCH)) {
-    notes.push("a number, dose, or unit changed; copy every digit and unit exactly");
-  }
-  if (defects.includes(DEFECT_CODES.SCRIPT_LEAK)) {
-    notes.push("a Traditional character appeared; emit Simplified characters only");
-  }
-  if (defects.includes(DEFECT_CODES.CITATION_LOSS)) {
-    notes.push("a [cite:...] marker was dropped or altered; reproduce every marker verbatim");
-  }
-  if (defects.includes(DEFECT_CODES.MARKUP_LOSS)) {
-    notes.push("an inline [tag] was dropped, added, or altered; reproduce every bracket tag exactly");
-  }
-  if (defects.includes(DEFECT_CODES.PLACEHOLDER_LOSS)) {
-    notes.push("a {{token}} was dropped or altered; copy every token exactly, braces included");
-  }
-  if (defects.includes(DEFECT_CODES.UNTRANSLATED)) {
-    notes.push("the text came back untranslated");
-  }
-  if (defects.includes(DEFECT_CODES.LENGTH_BAND)) {
-    notes.push("the output length was implausible; translate every clause without padding");
-  }
-  if (defects.includes(DEFECT_CODES.EMPTY_OUTPUT) || defects.includes(DEFECT_CODES.UNPARSABLE_OUTPUT)) {
-    notes.push("the reply was empty or not valid JSON");
-  }
-  return notes.join("; ");
 }
 
 function formatDuration(ms) {
@@ -447,57 +285,29 @@ async function main() {
   let inFlight = 0;
   let peakInFlight = 0;
 
-  const attemptUnits = async (unitsToRun, attempt, retryNote) => {
+  const worker = async (batch) => {
     inFlight += 1;
     peakInFlight = Math.max(peakInFlight, inFlight);
+    let verdicts;
     try {
-      const { usage, results } = await translateBatch({
-        units: unitsToRun,
+      verdicts = await translateBatchWithRetries({
+        units: batch,
         locale,
         model: options.model,
         apiKey,
-        retryNote,
+        onUsage: (usage, attempt) => {
+          usageTotal.prompt += usage.prompt;
+          usageTotal.completion += usage.completion;
+          usageTotal.requests += 1;
+          if (attempt > 1) usageTotal.retries += 1;
+        },
       });
-      usageTotal.prompt += usage.prompt;
-      usageTotal.completion += usage.completion;
-      usageTotal.requests += 1;
-      if (attempt > 1) usageTotal.retries += 1;
-      return results;
     } finally {
       inFlight -= 1;
     }
-  };
 
-  const worker = async (batch) => {
-    let results;
-    try {
-      results = await attemptUnits(batch, 1);
-    } catch (error) {
-      results = batch.map((unit) => ({ unit, target: null, parseCode: DEFECT_CODES.UNPARSABLE_OUTPUT, error }));
-    }
-
-    for (const result of results) {
-      const unit = result.unit;
-      let target = result.target;
-      let evaluation = typeof target === "string"
-        ? validateSegment({ source: unit.source, target, locale, markup: unit.markup })
-        : { defects: [result.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
-      let attempts = 1;
-
-      while (isBlocking(evaluation.defects) && attempts < MAX_ATTEMPTS) {
-        attempts += 1;
-        try {
-          const retry = await attemptUnits([unit], attempts, retryNoteFor(evaluation.defects));
-          target = retry[0]?.target ?? null;
-          evaluation = typeof target === "string"
-            ? validateSegment({ source: unit.source, target, locale, markup: unit.markup })
-            : { defects: [retry[0]?.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
-        } catch {
-          evaluation = { defects: [DEFECT_CODES.UNPARSABLE_OUTPUT], details: {} };
-        }
-      }
-
-      await record(unit, typeof target === "string" ? target : "", evaluation.defects, evaluation.details, attempts);
+    for (const verdict of verdicts) {
+      await record(verdict.unit, verdict.target, verdict.defects, verdict.details, verdict.attempts);
       completed += 1;
     }
 

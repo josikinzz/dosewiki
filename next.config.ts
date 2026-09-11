@@ -90,9 +90,12 @@ const nextConfig: NextConfig = {
   distDir: buildDirectory,
   productionBrowserSourceMaps: false,
   // The unlisted /html-docs/[doc] route reads repo-root html-docs/ at request time;
-  // without this the files never reach the deployed serverless bundle.
+  // without this the files never reach the deployed serverless bundle. The
+  // translation cron likewise reads the frozen glossary and Traditional charset
+  // beside scripts/translation at request time.
   outputFileTracingIncludes: {
     "/html-docs/[doc]": ["./html-docs/**/*"],
+    "/api/cron/translation-refresh": ["./scripts/translation/**/*.json"],
   },
   experimental: {
     // Static generation reads a multi-megabyte substance library once per

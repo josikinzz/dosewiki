@@ -11,21 +11,29 @@
  * wins where the two disagree, because the file is the one a reviewer edits.
  */
 
-import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+import zhHansGlossary from "./glossary/zh-Hans.json" with { type: "json" };
 
+/** Where `build-glossary.mjs` writes a locale's freeze. Resolved on call: a bundled import never needs a file URL. */
 export function glossaryPath(code) {
-  return path.join(moduleDir, "glossary", `${code}.json`);
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), "glossary", `${code}.json`);
 }
+
+/**
+ * The frozen files, imported statically so a bundled server module (the live
+ * mirror refresh) carries them without a filesystem read at request time. A
+ * locale without a freeze yet maps to nothing here.
+ */
+const FROZEN_GLOSSARIES = Object.freeze({
+  "zh-Hans": zhHansGlossary,
+});
 
 /** The frozen terms for one locale, or an empty map before the freeze runs. */
 export function loadFrozenGlossary(code) {
-  const file = glossaryPath(code);
-  if (!existsSync(file)) return {};
-  const document = JSON.parse(readFileSync(file, "utf8"));
+  const document = FROZEN_GLOSSARIES[code];
+  if (!document) return {};
   return Object.fromEntries(
     Object.entries(document.terms ?? {}).map(([term, record]) => [
       term,

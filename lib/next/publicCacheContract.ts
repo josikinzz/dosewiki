@@ -25,6 +25,7 @@ import {
   publicSubstanceGalleryTag,
   publicSubstanceTag,
 } from "../convex/publicData.cache";
+import { localizedArticlePaths } from "./localeHostPolicy";
 
 import type { PublicationTarget } from "./publicationWire";
 
@@ -49,7 +50,7 @@ export function resolvePublicationEffect(target: PublicationTarget): Publication
   switch (target.kind) {
     case "article":
       return {
-        paths: [{ path: `/${target.slug}` }],
+        paths: [{ path: `/${target.slug}` }, ...localizedArticlePaths(target.slug).map((path) => ({ path }))],
         tags: [
           publicSubstanceTag(target.slug),
           publicSubstanceGalleryTag(target.slug),

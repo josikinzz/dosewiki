@@ -49,6 +49,8 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "substances",
   "unauthorized",
   "under-construction",
+  // Locale mirror prefix (lib/next/localeHostPolicy.ts); never a substance slug.
+  "zh",
 ]);
 
 function decodeSegment(value: string): string | null {
@@ -79,4 +81,12 @@ export function isUnavailablePublicDynamicPath(pathname: string): boolean {
   // a dot. Left to the slug check they answered 404 from 2026-08-31 until this.
   if (slug.includes(".")) return false;
   return !ROOT_ROUTE_SEGMENTS.has(slug) && !substanceSlugs.has(slug);
+}
+
+/** The substance slug a root path addresses, when it is one in the build's public corpus. */
+export function publicSubstanceSlugForPath(pathname: string): string | null {
+  const rootMatch = pathname.match(/^\/([^/]+)\/?$/);
+  if (!rootMatch) return null;
+  const slug = decodeSegment(rootMatch[1]);
+  return slug && substanceSlugs.has(slug) ? slug : null;
 }

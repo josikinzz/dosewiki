@@ -146,6 +146,16 @@ export class PostgresConvexClient {
     await this.pool.end();
   }
 
+  /**
+   * One parameterized statement outside the Convex function surface, for the
+   * runtime-owned tables in `schema.runtime.ts` that no handler knows about.
+   * Autocommit: callers needing atomicity express it in the statement itself.
+   */
+  async sql<Row extends Record<string, unknown>>(text: string, values: unknown[] = []): Promise<Row[]> {
+    const result = await this.pool.query<Row>(text, values);
+    return result.rows;
+  }
+
   async query<Query extends FunctionReference<"query">>(reference: Query, ...rest: OptionalRestArgs<Query>): Promise<FunctionReturnType<Query>> {
     const args = (rest[0] ?? {}) as Record<string, unknown>;
     const { name, fn } = await resolveFunction(reference);

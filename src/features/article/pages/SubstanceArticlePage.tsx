@@ -59,6 +59,8 @@ interface SubstanceArticlePageProps {
   reviewStatusCopy?: string;
   expertReviewCredit?: string;
   recentChanges?: ArticleRecentChange[];
+  /** Rendered in the banner slot above the safety banners; the locale mirrors' machine-translation notice. */
+  warningBannerNotice?: ReactNode;
 }
 
 export function SubstanceArticlePage({
@@ -82,6 +84,7 @@ export function SubstanceArticlePage({
   reviewStatusCopy,
   expertReviewCredit,
   recentChanges,
+  warningBannerNotice,
 }: SubstanceArticlePageProps) {
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
@@ -117,6 +120,7 @@ export function SubstanceArticlePage({
         contributorAvatars={contributorAvatars}
         contributorDirectory={contributorDirectory}
         externalReagentData={externalReagentData}
+        warningBannerNotice={warningBannerNotice}
         warningBanners={warningBanners}
         warningBannerIconSize={warningBannerIconSize}
         showBetaDisclaimer={showBetaDisclaimer}

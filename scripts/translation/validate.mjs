@@ -6,7 +6,7 @@
  * SCRIPT_LEAK retries under the script rule, and an EMPTY_OUTPUT retries plain.
  */
 
-import { readFileSync } from "node:fs";
+import traditionalCharset from "./traditional-charset.json" with { type: "json" };
 
 import { markupTokens } from "./markup.mjs";
 
@@ -202,11 +202,7 @@ export function compareNumbers(source, target) {
  * Traditional is the classic zh-Hans failure and is invisible to a reviewer who
  * does not read Chinese.
  */
-const TRADITIONAL_CHARSET = new Set([
-  ...JSON.parse(
-    readFileSync(new URL("./traditional-charset.json", import.meta.url), "utf8"),
-  ).characters,
-]);
+const TRADITIONAL_CHARSET = new Set(traditionalCharset.characters);
 
 /**
  * A Traditional character the source already contains was carried over, not

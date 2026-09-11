@@ -84,9 +84,13 @@ describe("middleware role policy adapter", () => {
       { method: "GET", headers: { host } },
     ));
     expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect((await middleware(new NextRequest(
+      `https://${host}/api/cron/translation-refresh`, { method: "GET", headers: { host } },
+    ))).headers.get("x-middleware-next")).toBe("1");
     for (const [path, method] of [
       ["/api/cron/publication-delivery", "POST"],
       ["/api/cron/publication-delivery/extra", "GET"],
+      ["/api/cron/translation-refresh", "POST"],
       ["/api/cron/other", "GET"],
     ]) {
       expect((await middleware(new NextRequest(
@@ -370,6 +374,39 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("x-middleware-rewrite")).toBe(
       "https://dose.wiki/_flavor-gated/not-found",
     );
+  });
+
+  it("serves a locale host's substance article from the mirror route", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "zh.dose.wiki";
+
+    const response = await middleware(new NextRequest(`https://${host}/fentanyl`, { headers: { host } }));
+
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-rewrite")).toBe("https://zh.dose.wiki/zh/fentanyl");
+    expect(response.headers.get("x-robots-tag")).toBeNull();
+  });
+
+  it("keeps non-article paths and unknown slugs on a locale host in English or 404", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "zh.dose.wiki";
+
+    const about = await middleware(new NextRequest(`https://${host}/about`, { headers: { host } }));
+    expect(about.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(about.headers.get("location")).toBeNull();
+
+    const unknown = await middleware(new NextRequest(`https://${host}/not-a-substance-zzzz`, { headers: { host } }));
+    expect(unknown.headers.get("x-middleware-rewrite")).toBe("https://zh.dose.wiki/_flavor-gated/not-found");
+  });
+
+  it("hides the mirror route from direct requests on the English host", async () => {
+    const { middleware } = await import("./middleware");
+
+    const response = await middleware(makePublicRequest("/zh/fentanyl"));
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe("https://dose.wiki/_flavor-gated/not-found");
   });
 
   it("serves the launched homepage at the public root", async () => {

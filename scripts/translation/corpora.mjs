@@ -16,7 +16,8 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+/** Resolved on call: loaders only run in the CLI, and a bundled import must not need a file URL at load. */
+const repoRoot = () => path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 const CONVEX_URL = "https://glad-minnow-656.convex.cloud";
 const OPEN_DATA = "https://dose.wiki/open-data";
@@ -112,7 +113,7 @@ function openDataLoader(datasetName) {
   return async (source) => {
     const origin = source ?? `${OPEN_DATA}/${datasetName}.json`;
     if (!/^https?:\/\//.test(origin)) {
-      const absolute = path.resolve(repoRoot, origin);
+      const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     return { dataset: await fetchJson(origin), origin };
@@ -207,7 +208,7 @@ const ARTICLE_CORPUS = {
   load: async (source) => {
     const origin = source ?? "convex:effectIndexArticles:getAll";
     if (!origin.startsWith("convex:")) {
-      const absolute = path.resolve(repoRoot, origin);
+      const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     const rows = await convexQuery("effectIndexArticles:getAll");
@@ -287,10 +288,10 @@ const COPY_CORPUS = {
   load: async (source) => {
     const origin = source ?? "convex:copyBlocks:getAll";
     if (!origin.startsWith("convex:")) {
-      const absolute = path.resolve(repoRoot, origin);
+      const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
-    const defaults = JSON.parse(await readFile(path.join(repoRoot, "src/data/content/copyBlocks.json"), "utf8"));
+    const defaults = JSON.parse(await readFile(path.join(repoRoot(), "src/data/content/copyBlocks.json"), "utf8"));
     const rows = await convexQuery("copyBlocks:getAll");
     const byKey = new Map();
     for (const definition of defaults) byKey.set(definition.key, { ...definition, source: "default" });
@@ -323,7 +324,7 @@ const LAYOUT_CORPUS = {
   defaultSource: "notes-and-plans/exports/translation/registry/Layout.json",
   load: async (source) => {
     const origin = source ?? "notes-and-plans/exports/translation/registry/Layout.json";
-    const absolute = path.resolve(repoRoot, origin);
+    const absolute = path.resolve(repoRoot(), origin);
     if (!existsSync(absolute)) {
       throw new Error(`No layout registry at ${origin}. Run: npm run translate:registry`);
     }
@@ -379,7 +380,7 @@ const SUMMARY_CORPUS = {
   defaultSource: SUMMARY_DEFINITIONS_MODULE,
   load: async (source) => {
     const origin = source ?? SUMMARY_DEFINITIONS_MODULE;
-    const absolute = path.resolve(repoRoot, origin);
+    const absolute = path.resolve(repoRoot(), origin);
     if (absolute.endsWith(".json")) {
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
@@ -430,12 +431,12 @@ const EFFECT_CATEGORY_CORPUS = {
   defaultSource: EFFECT_CATEGORY_MODULE,
   load: async (source) => {
     const origin = source ?? EFFECT_CATEGORY_MODULE;
-    const absolute = path.resolve(repoRoot, origin);
+    const absolute = path.resolve(repoRoot(), origin);
     if (absolute.endsWith(".json")) {
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     const { EFFECT_CATEGORY_DEFINITIONS, effectMatchesCategorySlug } = await import(absolute);
-    const copyBlocks = JSON.parse(await readFile(path.resolve(repoRoot, "src/data/content/copyBlocks.json"), "utf8"));
+    const copyBlocks = JSON.parse(await readFile(path.resolve(repoRoot(), "src/data/content/copyBlocks.json"), "utf8"));
     const copyByKey = new Map(copyBlocks.map((block) => [block.key, block.body]));
     const { dataset: effectIndex } = await openDataLoader("EffectIndex")();
     const effects = Array.isArray(effectIndex.items) ? effectIndex.items : [];
@@ -474,7 +475,7 @@ const BANNER_CORPUS = {
   load: async (source) => {
     const origin = source ?? "convex:warningBanners:listPresets";
     if (!origin.startsWith("convex:")) {
-      const absolute = path.resolve(repoRoot, origin);
+      const absolute = path.resolve(repoRoot(), origin);
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     const rows = await convexQuery("warningBanners:listPresets");

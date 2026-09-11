@@ -14,10 +14,12 @@
  * already committed by the time this runs, so a refused or unreachable public
  * deployment is a reportable partial publication, never a save failure.
  */
+import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
 import { publicationTargetForSavedPath } from "@server/next/publicCacheContract";
 import type { PublicationSource, PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import type { PublicationReceipt, SavedArticleRevision } from "@server/next/publicationDispatch";
+import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 
 export async function revalidateSavedPaths(
   paths: readonly string[],
@@ -35,6 +37,21 @@ export async function revalidateSavedPaths(
     const target = publicationTargetForSavedPath(path);
     if (target) targets.push(target);
     else unknownPaths.push(path);
+  }
+
+  // The locale mirrors follow the English by a cron, not inline: a model call
+  // per edit would make saving feel broken. A failed enqueue is logged and the
+  // English publication proceeds; the next write to the article retries it.
+  const articleSlugs = targets.flatMap((target) => (target.kind === "article" ? [target.slug] : []));
+  if (articleSlugs.length > 0 && source !== "manual") {
+    try {
+      await enqueueTranslationJobs(LIVE_LOCALE_CODES, articleSlugs);
+    } catch (error) {
+      console.warn("[revalidateSavedPaths] translation enqueue failed", {
+        slugs: articleSlugs,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   return publishPublicCache({ targets, source, unknownPaths, savedRevisions });
