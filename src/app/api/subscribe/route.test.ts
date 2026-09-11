@@ -41,3 +41,26 @@ describe("POST /api/subscribe under DATA_WRITES_FROZEN", () => {
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
 });
+
+describe("POST /api/subscribe on a credential-free Postgres deployment", () => {
+  afterEach(() => {
+    delete process.env.MAILING_LIST_FORWARD_URL;
+    mocks.getDataBackend.mockReturnValue("convex");
+    vi.unstubAllGlobals();
+  });
+
+  it("relays the validated signup to MAILING_LIST_FORWARD_URL with the caller's origin", async () => {
+    mocks.getDataBackend.mockReturnValue("postgres" as never);
+    process.env.MAILING_LIST_FORWARD_URL = "https://dose.wiki/api/subscribe";
+    mocks.fetch.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", mocks.fetch);
+
+    const response = await POST(post({ email: "someone@example.com", list: "effectindex" }));
+
+    expect(response.status).toBe(200);
+    const [url, init] = mocks.fetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://dose.wiki/api/subscribe");
+    expect((init.headers as Record<string, string>).Origin).toBe("https://dose.wiki");
+    expect(JSON.parse(init.body as string)).toMatchObject({ email: "someone@example.com", list: "effectindex" });
+  });
+});

@@ -9,6 +9,8 @@
  * cannot invoke without a deploy key, so the route only runs it in-process on
  * the Postgres backend. On the Convex backend it forwards the validated request
  * to the deployment's HTTP action, which still owns the durable limiter there.
+ * A credential-free Postgres deployment (Effect Index) forwards instead to
+ * `MAILING_LIST_FORWARD_URL`, the dosewiki route that owns the list.
  * `next.config.ts` rewrites `/subscribe` here so the public sites only swap the
  * origin at cutover.
  */
@@ -72,7 +74,15 @@ export async function POST(request: Request) {
   if (isDataWriteFreezeActive()) return respond(origin, false, 503);
 
   if (getDataBackend() !== "postgres") {
-    return forwardToConvexAction(origin, parsed, clientIp, userAgent);
+    const siteUrl = getConvexSiteUrl();
+    return siteUrl ? forwardSignup(`${siteUrl}/subscribe`, origin, parsed, clientIp, userAgent) : respond(origin, false, 503);
+  }
+
+  // A credential-free deployment (Effect Index, by invariant) cannot run the
+  // mutation in-process; it relays to the deployment that owns the list.
+  const forwardUrl = process.env.MAILING_LIST_FORWARD_URL?.trim();
+  if (forwardUrl && /^https:\/\/\S+$/.test(forwardUrl)) {
+    return forwardSignup(forwardUrl, origin, parsed, clientIp, userAgent);
   }
 
   if (!rateLimiter.limit("subscribePerIp", clientIp).ok) return respond(origin, false, 429);
@@ -100,17 +110,16 @@ function getConvexSiteUrl(): string | null {
   return deployment ? `https://${deployment}.convex.site` : null;
 }
 
-async function forwardToConvexAction(
+async function forwardSignup(
+  url: string,
   origin: string,
   parsed: { email: string; list: string; website: unknown },
   clientIp: string,
   userAgent: string | undefined,
 ): Promise<Response> {
-  const siteUrl = getConvexSiteUrl();
-  if (!siteUrl) return respond(origin, false, 503);
   let upstream: Response;
   try {
-    upstream = await fetch(`${siteUrl}/subscribe`, {
+    upstream = await fetch(url, {
       method: "POST",
       headers: {
         ...JSON_HEADERS,
