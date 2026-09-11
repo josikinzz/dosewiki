@@ -135,6 +135,16 @@
     height: 100%;
   }
 
+  /* Horizontal page pan is never a feature: overflow pokes (full-bleed strips,
+     wide chips) get clipped at the root. The clip lives on <html> because the
+     root scroller is what the viewport pans — body's own overflow propagates
+     to the viewport (and computes to visible on <body> per spec), which leaves
+     a few px of pannable slop whenever the classic scrollbar makes the
+     full-bleed math (50vw centering) overshoot the client area. */
+  html {
+    overflow-x: clip;
+  }
+
   body {
     overflow-x: clip;
   }
