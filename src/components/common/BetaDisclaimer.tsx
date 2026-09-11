@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 
 /**
  * The sitewide red beta disclaimer: shimmering danger-toned sentence flanked by
@@ -24,6 +27,8 @@ import { cn } from "@/lib/utils";
  * icons grow to suit the taller multi-line block.
  */
 export function BetaDisclaimer({ className }: { className?: string }) {
+  const t = useT();
+
   return (
     <span
       className={cn(
@@ -38,15 +43,14 @@ export function BetaDisclaimer({ className }: { className?: string }) {
         className="theme-beta-disclaimer-icon absolute left-0 top-1/2 -translate-y-1/2 max-md:h-7 max-md:w-7"
       />
       <span className="theme-beta-shimmer">
-        dose.wiki is still in beta. Entries may contain inaccuracies and/or
-        lack citations. See{" "}
+        {t("dose.wiki is still in beta. Entries may contain inaccuracies and/or lack citations. See")}{" "}
         <Link
           href="/docs/how"
           className="theme-beta-disclaimer underline decoration-dotted underline-offset-2 hover:decoration-solid"
         >
-          our docs
+          {t("our docs")}
         </Link>{" "}
-        for more info.
+        {t("for more info.")}
       </span>
       <Icon
         icon="lucide:construction"

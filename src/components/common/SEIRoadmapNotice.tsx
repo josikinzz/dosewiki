@@ -1,4 +1,7 @@
+"use client";
+
 import { Icon } from "@/components/common/Icon";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { quietLinkClassName } from "@/components/common/ProseLink";
 
@@ -26,6 +29,12 @@ export function SEIRoadmapNotice({
   /** The Substance Index-style sweep. On for the SEI page, off on articles. */
   shimmer?: boolean;
 }) {
+  const t = useT();
+  // One sentence, one key: the lab name is a link, so the translated sentence
+  // is split around its placeholder rather than assembled from fragments.
+  const [beforeLab, afterLab] = t(
+    "Legacy content. A statistically backed ontology from {{lab}} is coming soon.",
+  ).split("{{lab}}");
   return (
     <p
       className={cn(
@@ -35,7 +44,7 @@ export function SEIRoadmapNotice({
     >
       <Icon icon="lucide:route" size="0.875rem" className="mt-[0.2rem] shrink-0" aria-hidden />
       <span className={shimmer ? "theme-sei-notice-shimmer" : undefined}>
-        Legacy content. A statistically backed ontology from{" "}
+        {beforeLab}
         <a
           href="https://mindstate.design"
           target="_blank"
@@ -48,7 +57,7 @@ export function SEIRoadmapNotice({
           />
           Mindstate Design Labs
         </a>
-        {" "}is coming soon.
+        {afterLab}
       </span>
     </p>
   );

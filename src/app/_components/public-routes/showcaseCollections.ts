@@ -10,6 +10,7 @@ import {
 } from "@/features/replications/components/showcaseModel";
 import type { ShowcaseWork } from "@/features/replications/components/showcaseWork";
 import type { SubstanceArticle } from "@/schema";
+import { t } from "@/i18n/server";
 import { publicHref } from "@/utils/publicHref";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import {
@@ -80,7 +81,7 @@ export const getSubstanceShowcaseWorks = cache(
           ?.avatarUrl ?? null,
       gallery.carouselOrder,
     );
-    return { works, collectionLabel: `${article.title} replications` };
+    return { works, collectionLabel: t("{{name}} replications", { name: article.title }) };
   },
 );
 

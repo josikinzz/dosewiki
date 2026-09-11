@@ -7,6 +7,8 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { articleSectionAdornmentClassName } from "@/components/common/articleSectionLayout";
 import { stateToneIconClassName, type StateTone } from "@/components/common/StateCard";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { useT } from "@/i18n/client";
+import { msg } from "@/i18n/messages";
 import { cn } from "@/lib/utils";
 
 export type PublicSkeletonBlock = {
@@ -239,12 +241,15 @@ export interface MediaPlaceholderProps {
   title?: ReactNode;
 }
 
+// The defaults stay catalog keys: this module is shared with server routes,
+// so a render site that wants them translated passes `title` through its own
+// `t` (the substance article's showcase always passes the work title).
 export function MediaPlaceholder({
   className,
   description,
   icon = "lucide:image",
   kind = "empty",
-  title = kind === "loading" ? "Loading media" : "Media unavailable",
+  title = kind === "loading" ? msg("Loading media") : msg("Media unavailable"),
 }: MediaPlaceholderProps) {
   return (
     <div
@@ -417,6 +422,9 @@ export function ArticleContributorAttribution({
   text,
   url,
 }: ArticleContributorAttributionProps) {
+  // Only ever rendered under the client-side Subjective Effects section, so
+  // the hook is safe here even though the module carries no directive.
+  const t = useT();
   const attributionText = splitAttributionText(text, author);
   const creditText = formatAttributionCreditText(attributionText);
   const isExternalAuthorHref = typeof authorHref === "string" && /^https?:\/\//.test(authorHref);
@@ -444,7 +452,7 @@ export function ArticleContributorAttribution({
   // and the author inside one nowrap unit so the credit never breaks mid-name.
   const authorLabel = (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap align-bottom">
-      <span className="theme-text-faint font-medium">by</span>
+      <span className="theme-text-faint font-medium">{t("by")}</span>
       {avatarSrc ? (
         <AppImage
           src={avatarSrc}
@@ -463,7 +471,7 @@ export function ArticleContributorAttribution({
       <ExternalSourcePill
         variant="credit"
         href={url}
-        ariaLabel={`Open original subjective effects documentation by ${author}`}
+        ariaLabel={t("Open original subjective effects documentation by {{author}}", { author })}
         prefix={creditText.prefix}
         label={authorLabel}
         suffix={creditText.suffix}

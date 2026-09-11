@@ -7,6 +7,7 @@ import { ProseDiff, type CitationContext } from "@/components/changelog/ProseDif
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { SmartLink } from "@/components/common/SmartLink";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
 import { publicHref } from "@/utils/publicHref";
 
@@ -56,12 +57,13 @@ function RecentChangeRow({
   article: RecentChangesListProps["article"];
   hideArticleNames: boolean;
 }) {
+  const t = useT();
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
   // Source rows say everything in their own line; only prose and bulk edits
   // have a passage worth opening.
   const hasDiff = change.kind !== "source" && change.diff.length > 0;
   const diffId = `recent-change-diff-${change.id}`;
-  const contributorName = change.contributor?.name ?? "Editor";
+  const contributorName = change.contributor?.name ?? t("Editor");
   // Site-wide, a row's anchors point into the article it touched. A bulk
   // save across several articles has no single home; its rows link each one.
   const siblings = article ? change.articles.filter((touched) => touched.slug !== change.subjectSlug) : [];
@@ -87,10 +89,10 @@ function RecentChangeRow({
             <span className="theme-text-primary font-semibold">{contributorName}</span>
           )}
           <span className="theme-text-faint"> · </span>
-          <span>{change.message}</span>
+          <span>{t(change.message)}</span>
           {!article && change.articles.length > 1 ? (
             <>
-              <span className="theme-text-faint"> across </span>
+              <span className="theme-text-faint"> {t("across")} </span>
               {change.articles.map((touched, index) => (
                 <span key={touched.slug}>
                   {index > 0 ? <span className="theme-text-faint">, </span> : null}
@@ -104,7 +106,7 @@ function RecentChangeRow({
             <>
               {!article && primary && !hideArticleNames ? (
                 <>
-                  <span className="theme-text-faint"> to </span>
+                  <span className="theme-text-faint"> {t("to")} </span>
                   <SmartLink
                     href={change.section ? `${hrefBase}#${change.section.id}` : hrefBase}
                     className={targetClassName}
@@ -115,18 +117,18 @@ function RecentChangeRow({
               ) : null}
               {change.section && change.kind !== "source" ? (
                 <>
-                  <span className="theme-text-faint"> {article || hideArticleNames ? "in" : "›"} </span>
+                  <span className="theme-text-faint"> {article || hideArticleNames ? t("in") : "›"} </span>
                   {article || hideArticleNames ? (
                     <a href={`${hrefBase}#${change.section.id}`} className={targetClassName}>
-                      {change.section.label}
+                      {t(change.section.label)}
                     </a>
                   ) : (
-                    <span className="theme-text-faint">{change.section.label}</span>
+                    <span className="theme-text-faint">{t(change.section.label)}</span>
                   )}
-                  {change.field ? <span className="theme-text-faint"> › {change.field}</span> : null}
+                  {change.field ? <span className="theme-text-faint"> › {t(change.field)}</span> : null}
                 </>
               ) : change.field ? (
-                <span className="theme-text-faint"> in {change.field}</span>
+                <span className="theme-text-faint"> {t("in")} {t(change.field)}</span>
               ) : null}
             </>
           )}
@@ -138,7 +140,7 @@ function RecentChangeRow({
           ) : null}
           {article && siblings.length > 0 ? (
             <span className="theme-text-faint">
-              {" · also "}
+              {" · "}{t("also")}{" "}
               {siblings.slice(0, NAMED_SIBLINGS).map((touched, index) => (
                 <span key={touched.slug}>
                   {index > 0 ? ", " : ""}
@@ -147,7 +149,7 @@ function RecentChangeRow({
                   </SmartLink>
                 </span>
               ))}
-              {siblings.length > NAMED_SIBLINGS ? ` and ${siblings.length - NAMED_SIBLINGS} more` : ""}
+              {siblings.length > NAMED_SIBLINGS ? ` ${t("and {{count}} more", { count: siblings.length - NAMED_SIBLINGS })}` : ""}
             </span>
           ) : null}
         </p>
@@ -157,7 +159,7 @@ function RecentChangeRow({
             onToggle={() => setIsDiffExpanded(!isDiffExpanded)}
             variant="faint"
             ariaControls={isDiffExpanded ? diffId : undefined}
-            ariaLabel={isDiffExpanded ? "Hide what changed" : "Show what changed"}
+            ariaLabel={isDiffExpanded ? t("Hide what changed") : t("Show what changed")}
             className="shrink-0"
           />
         ) : null}
@@ -191,6 +193,7 @@ function RecentChangeRow({
  * list is as tall as its rows and nothing more.
  */
 export function RecentChangesList({ changes, article = null, hideArticleNames = false }: RecentChangesListProps) {
+  const t = useT();
   const days: { label: string; changes: ArticleRecentChange[] }[] = [];
   for (const change of changes) {
     const label = dayFormat.format(new Date(change.createdAt));
@@ -205,8 +208,8 @@ export function RecentChangesList({ changes, article = null, hideArticleNames = 
   return (
     <div>
       <p className="theme-text-faint flex items-baseline justify-between gap-3 pt-2 text-[11px]">
-        <span>Times are UTC</span>
-        <span>Newest first</span>
+        <span>{t("Times are UTC")}</span>
+        <span>{t("Newest first")}</span>
       </p>
       {days.map((day) => (
         <section key={day.label} aria-label={day.label}>

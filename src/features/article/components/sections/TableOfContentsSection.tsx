@@ -7,6 +7,7 @@ import {
 } from "@/components/common/PublicTableOfContents";
 import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 import { useReagentData } from "@/hooks/useReagentData";
+import { useT } from "@/i18n/client";
 import {
   hasDisplayableReagentData,
   type NormalizedReagentData,
@@ -47,6 +48,7 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   externalReagentData,
   hasTripReports,
 }: TableOfContentsSectionProps) {
+  const t = useT();
   const hasStaticReagentEntries = hasStaticReagentData(article);
   const hasServerResolvedData = externalReagentData !== undefined;
   const lookupSlug = substanceSlug ?? slugify(article.title);
@@ -69,15 +71,15 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   ).map(
     (item) => ({
       id: item.id,
-      label: item.label,
+      label: t(item.label),
       icon: item.icon,
     }),
   );
   const presentItems: PublicTableOfContentsItem[] = [
-    { id: "introduction", label: "Introduction", icon: "lucide:file-text" },
+    { id: "introduction", label: t("Introduction"), icon: "lucide:file-text" },
     ...articleItems,
-    { id: "article-status", label: "Article Status", icon: "lucide:shield-check" },
-    { id: "feedback", label: "Feedback", icon: "lucide:message-square-plus" },
+    { id: "article-status", label: t("Article Status"), icon: "lucide:shield-check" },
+    { id: "feedback", label: t("Feedback"), icon: "lucide:message-square-plus" },
   ];
 
   if (presentItems.length === 0) {

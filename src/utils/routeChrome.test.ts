@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { getRouteChromeModel, getRouteChromePageTitle } from "./routeChrome";
+import { formatMessage, type Translate } from "@/i18n/messages";
 import { resolveRouteChromeIcon } from "./routeChromeIcons";
 
 const DOSEWIKI = SITE_FLAVOR_CONFIGS.dosewiki;
 const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
+const en: Translate = (text, values) => formatMessage(text, values);
 
 describe("route chrome model", () => {
   it.each([
@@ -74,16 +76,16 @@ describe("route chrome model", () => {
   });
 
   it("takes the home and About page titles from the flavor config", () => {
-    expect(getRouteChromePageTitle({ type: "home" }, EFFECT_INDEX)).toBe("Effect Index");
-    expect(getRouteChromePageTitle({ type: "about" }, EFFECT_INDEX)).toBe("About Effect Index");
+    expect(getRouteChromePageTitle(en, { type: "home" }, EFFECT_INDEX)).toBe("Effect Index");
+    expect(getRouteChromePageTitle(en, { type: "about" }, EFFECT_INDEX)).toBe("About Effect Index");
     // The unreachable fallback arm is flavored too, so a view this switch does not know
     // never leaks the other publication's name.
-    expect(getRouteChromePageTitle({ type: "unknown" } as never, EFFECT_INDEX)).toBe("Effect Index");
+    expect(getRouteChromePageTitle(en, { type: "unknown" } as never, EFFECT_INDEX)).toBe("Effect Index");
   });
 
   it("names the replications section the same way under either flavor", () => {
-    expect(getRouteChromePageTitle({ type: "replications" }, DOSEWIKI)).toBe("Replications");
-    expect(getRouteChromePageTitle({ type: "replications" }, EFFECT_INDEX)).toBe("Replications");
+    expect(getRouteChromePageTitle(en, { type: "replications" }, DOSEWIKI)).toBe("Replications");
+    expect(getRouteChromePageTitle(en, { type: "replications" }, EFFECT_INDEX)).toBe("Replications");
   });
 
   it("orders Effect Index navigation from its config", () => {

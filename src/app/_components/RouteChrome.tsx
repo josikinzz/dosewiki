@@ -8,7 +8,8 @@ import { RouteAnnouncer } from "@/components/common/RouteAnnouncer";
 import { NavigationProgress } from "./NavigationProgress";
 import { isHomePathname, viewToPath } from "@/utils/routing";
 import { getRouteChromeModel } from "@/utils/routeChrome";
-import { isEffectIndex } from "@/config/siteFlavor";
+import { isEffectIndex, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 
 function getWindowSearchQuery() {
   if (typeof window === "undefined") {
@@ -20,6 +21,7 @@ function getWindowSearchQuery() {
 
 function useRouteChromeModel() {
   const pathname = usePathname();
+  const t = useT();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -34,7 +36,10 @@ function useRouteChromeModel() {
   }, [pathname]);
 
   return {
-    model: useMemo(() => getRouteChromeModel(pathname, searchQuery), [pathname, searchQuery]),
+    model: useMemo(
+      () => getRouteChromeModel(pathname, searchQuery, SITE_FLAVOR_CONFIG, t),
+      [pathname, searchQuery, t],
+    ),
     setSearchQuery,
   };
 }

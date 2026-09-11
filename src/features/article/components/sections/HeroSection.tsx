@@ -6,7 +6,12 @@ import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { PublicNameChip } from "@/components/common/PublicTokens";
-import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
+import {
+  MOLECULE_ALT_FALLBACK_MESSAGE,
+  MOLECULE_ALT_MESSAGE,
+  buildArticleChemistryPresentation,
+} from "@/data/builders/articleChemistryPresentation";
+import { useT } from "@/i18n/client";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import type { SubstanceArticle } from "@/schema";
 import type { ArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
@@ -95,8 +100,12 @@ export const HeroSection = memo(function HeroSection({
   linkableCategoryKeys,
   showPreviewBadge = true,
 }: HeroSectionProps) {
+  const t = useT();
   const { title, identification, classification, summary, index_categories } = article;
   const chemistryPresentation = providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
+  const moleculeAlt = chemistryPresentation.molecule.hasLookupTitle
+    ? t(MOLECULE_ALT_MESSAGE, { title: chemistryPresentation.molecule.lookupTitle })
+    : t(MOLECULE_ALT_FALLBACK_MESSAGE);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
@@ -242,14 +251,14 @@ export const HeroSection = memo(function HeroSection({
       {showPreviewBadge && (
         <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">
           <Icon icon="lucide:eye" size={12} />
-          Preview
+          {t("Preview")}
         </div>
       )}
       {/* Molecule SVG - floated right on md+, moved below a title that needs its row */}
       {moleculeUrl && (!hasTitle || !moleculeBelowTitle) && (
         <DesktopMoleculeImage
           src={moleculeUrl}
-          alt={chemistryPresentation.molecule.alt}
+          alt={moleculeAlt}
           placement="top"
         />
       )}
@@ -278,7 +287,7 @@ export const HeroSection = memo(function HeroSection({
       {moleculeUrl && hasTitle && moleculeBelowTitle && (
         <DesktopMoleculeImage
           src={moleculeUrl}
-          alt={chemistryPresentation.molecule.alt}
+          alt={moleculeAlt}
           placement="below-title"
         />
       )}
@@ -295,7 +304,7 @@ export const HeroSection = memo(function HeroSection({
         <div className="flex justify-center my-5 md:hidden">
           <MoleculeImage
             src={moleculeUrl}
-            alt={chemistryPresentation.molecule.alt}
+            alt={moleculeAlt}
             width={288}
             height={288}
             priority
@@ -353,7 +362,7 @@ export const HeroSection = memo(function HeroSection({
                   variant="count"
                   count={names.length - MAX_VISIBLE_NAMES}
                   className="type-chip-label ml-2"
-                  ariaLabel={namesExpanded ? "Collapse alternative names" : "Expand alternative names"}
+                  ariaLabel={namesExpanded ? t("Collapse alternative names") : t("Expand alternative names")}
                   ariaControls={alternativeNamesPanelId}
                 />
               )}
@@ -395,7 +404,7 @@ export const HeroSection = memo(function HeroSection({
               <Icon icon="lucide:brain-cog" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
               <div>
                 <span className="type-meta-label theme-text-faint mb-2 block">
-                  Psychoactive Class
+                  {t("Psychoactive Class")}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {classification.psychoactive_class.map((cls) => {
@@ -420,7 +429,7 @@ export const HeroSection = memo(function HeroSection({
                         icon={iconName}
                         interactive
                       >
-                        {cls}
+                        {t(cls)}
                       </PublicNameChip>
                     );
                   })}
@@ -433,7 +442,7 @@ export const HeroSection = memo(function HeroSection({
               <Icon icon="lucide:flask-conical" size={20} className="theme-icon-accent mt-0.5 flex-shrink-0" />
               <div>
                 <span className="type-meta-label theme-text-faint mb-2 block">
-                  Chemical Class
+                  {t("Chemical Class")}
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   {classification.chemical_class.map((cls) => (
@@ -455,16 +464,16 @@ export const HeroSection = memo(function HeroSection({
                       }
                       interactive
                     >
-                      {cls}
+                      {t(cls)}
                     </PublicNameChip>
                   ))}
                   {hasExpandableDetails && (
                     <ExpandButton
                       isExpanded={isExpanded}
                       onToggle={() => setIsExpanded(!isExpanded)}
-                      label="Details"
+                      label={t("Details")}
                       className="type-chip-label"
-                      ariaLabel={isExpanded ? "Collapse chemistry details" : "Expand chemistry details"}
+                      ariaLabel={isExpanded ? t("Collapse chemistry details") : t("Expand chemistry details")}
                       ariaControls={chemistryDetailsPanelId}
                     />
                   )}
@@ -479,7 +488,7 @@ export const HeroSection = memo(function HeroSection({
       {identification.common_name && identification.common_name !== title && (
         <div className="mt-6 space-y-1">
           <p className="type-detail-copy theme-text-secondary">
-            <span className="theme-text-primary font-semibold">Common name:</span>{" "}
+            <span className="theme-text-primary font-semibold">{t("Common name:")}</span>{" "}
             <EditableValue
               label="Common name"
               path="identification.common_name"
@@ -505,7 +514,7 @@ export const HeroSection = memo(function HeroSection({
         <div id={chemistryDetailsPanelId} className="numeric-tabular mt-3 space-y-1">
           {chemistryPresentation.identifiers.map((identifier) => (
             <p key={identifier.key} className="type-detail-copy theme-text-muted">
-              <span className="theme-text-secondary font-semibold">{identifier.label}:</span>{" "}
+              <span className="theme-text-secondary font-semibold">{t(identifier.label)}:</span>{" "}
               {identifier.format === "code" ? (
                 <code className="theme-chemistry-identifier-code theme-public-card-subtle break-all rounded px-1 py-0.5 font-mono text-xs">
                   {identifier.value}
@@ -529,7 +538,7 @@ export const HeroSection = memo(function HeroSection({
             if (!isLinkable) {
               return (
                 <PublicNameChip key={cat} icon="lucide:tag">
-                  {cat}
+                  {t(cat)}
                 </PublicNameChip>
               );
             }
@@ -554,7 +563,7 @@ export const HeroSection = memo(function HeroSection({
                 icon="lucide:tag"
                 interactive
               >
-                {cat}
+                {t(cat)}
               </PublicNameChip>
             );
           })}

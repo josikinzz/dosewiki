@@ -10,6 +10,8 @@ import {
 import type { SubstanceArticle } from "@/schema";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
+import { useT } from "@/i18n/client";
+import { msg } from "@/i18n/messages";
 import {
   projectSubstanceCitations,
   type CitationProjectionGroup,
@@ -192,6 +194,7 @@ function useReferenceBacklinks(
 export const CitationsSection = memo(function CitationsSection({
   article,
 }: CitationsSectionProps) {
+  const t = useT();
   const projection = useMemo(
     () => projectSubstanceCitations({
       article,
@@ -218,7 +221,7 @@ export const CitationsSection = memo(function CitationsSection({
     {
       group: {
         ...references,
-        title: "Citations",
+        title: msg("Citations"),
       },
       icon: "codicon:references",
       key: "references",
@@ -238,13 +241,13 @@ export const CitationsSection = memo(function CitationsSection({
     <ArticleSection
       id="sources"
       icon={SUBSTANCE_SECTION_ICONS["sources"]}
-      heading="References"
+      heading={t("References")}
     >
       {groups.map(({ group, icon, key }) => (
         <ArticleSection.Group
           key={key}
           icon={icon}
-          heading={group.title}
+          heading={t(group.title)}
           className={key === "primary-sources" ? undefined : "pt-12"}
           spacing="loose"
         >

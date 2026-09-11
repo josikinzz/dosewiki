@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
+import { useT } from "@/i18n/client";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
 import { shouldLoopReplicationMotion } from "@/features/replications/viewer/qualityLadder";
@@ -183,6 +184,7 @@ export function ReplicationShowcase({
   headingLevel = 3,
   controller,
 }: ReplicationShowcaseProps) {
+  const t = useT();
   const baseId = useId();
   const CollectionHeading = headingLevel === 2 ? "h2" : "h3";
   const [activeIndex, setActiveIndex] = useState(0);
@@ -285,10 +287,10 @@ export function ReplicationShowcase({
     const label =
       collectionLabel ??
       (substanceSlug
-        ? "Substance replications"
+        ? t("Substance replications")
         : effectSlug
-          ? `${works[0]?.effectName ?? "Effect"} replications`
-          : "Replications");
+          ? t("{{name}} replications", { name: works[0]?.effectName ?? t("Effect") })
+          : t("Replications"));
     return {
       label,
       sourcePath:
@@ -313,7 +315,7 @@ export function ReplicationShowcase({
         },
       ],
     };
-  }, [collectionLabel, effectiveCollection, controller?.sourcePath, effectSlug, substanceSlug]);
+  }, [collectionLabel, effectiveCollection, controller?.sourcePath, effectSlug, substanceSlug, t]);
 
   useEffect(() => {
     // A controlled showcase never owns the deep link: the page-level
@@ -456,7 +458,12 @@ export function ReplicationShowcase({
     setPlayOverride(null);
     const work = works[index];
     setLiveMessage(
-      `Replication ${index + 1} of ${count}: ${work.title}, demonstrates ${work.effectName}`,
+      t("Replication {{index}} of {{count}}: {{title}}, demonstrates {{effect}}", {
+        index: index + 1,
+        count,
+        title: work.title,
+        effect: work.effectName,
+      }),
     );
     tabRefs.current[index]?.scrollIntoView?.({
       inline: "nearest",
@@ -497,7 +504,9 @@ export function ReplicationShowcase({
           <button
             type="button"
             aria-label={
-              inlineMuted ? `Unmute ${active.title}` : `Mute ${active.title}`
+              inlineMuted
+                ? t("Unmute {{title}}", { title: active.title })
+                : t("Mute {{title}}", { title: active.title })
             }
             onClick={() => {
               const nextMuted = !inlineMuted;
@@ -515,7 +524,9 @@ export function ReplicationShowcase({
                 // lasts until this stage unmounts.
               }
               setLiveMessage(
-                nextMuted ? `Muted ${active.title}` : `Unmuted ${active.title}`,
+                nextMuted
+                  ? t("Muted {{title}}", { title: active.title })
+                  : t("Unmuted {{title}}", { title: active.title }),
               );
             }}
             className={cn(mediaControlClassName, "size-11 sm:size-8")}
@@ -528,10 +539,10 @@ export function ReplicationShowcase({
         ) : null}
         <button
           type="button"
-          aria-label={`Pause ${active.title}`}
+          aria-label={t("Pause {{title}}", { title: active.title })}
           onClick={() => {
             setPlayOverride({ slug: active.slug, playing: false });
-            setLiveMessage(`Paused ${active.title}`);
+            setLiveMessage(t("Paused {{title}}", { title: active.title }));
           }}
           className={cn(mediaControlClassName, "size-11 sm:size-8")}
         >
@@ -539,6 +550,12 @@ export function ReplicationShowcase({
         </button>
       </div>
     ) : null;
+
+  // One key for the whole footnote; the link is spliced back in at its
+  // placeholder so a translation can move it.
+  const [rightsBefore, rightsAfter] = t(
+    "Replication media is credited to its creator; rights remain with the rightsholder — see the {{terms}} to correct a credit or request removal.",
+  ).split("{{terms}}");
 
   return (
     <>
@@ -573,7 +590,7 @@ export function ReplicationShowcase({
         {!controller && unavailableViewerSlug ? (
           <Alert role="status">
             <AlertDescription>
-              The linked replication is no longer available in this collection.
+              {t("The linked replication is no longer available in this collection.")}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -604,7 +621,7 @@ export function ReplicationShowcase({
               </Link>
               {!showCreator ? null : hasKnownCreator(active.artistName) ? (
                 <span className="theme-media-tile-creator min-w-0 truncate text-[11px] sm:text-xs">
-                  by{" "}
+                  {t("by")}{" "}
                   {active.artistHref ? (
                     active.artistHrefExternal ? (
                       <a
@@ -637,7 +654,7 @@ export function ReplicationShowcase({
                 </span>
               ) : (
                 <span className="theme-media-tile-creator text-[11px] sm:text-xs">
-                  Creator unknown
+                  {t("Creator unknown")}
                 </span>
               )}
             </div>
@@ -647,7 +664,7 @@ export function ReplicationShowcase({
                 href={publicHref.effect(active.effectSlug)}
                 interactive
                 icon={icons.subjectiveEffectIndex}
-                aria-label={`Demonstrates: ${active.effectName}`}
+                aria-label={t("Demonstrates: {{effect}}", { effect: active.effectName })}
                 className="pointer-events-auto max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px] sm:px-2.5 sm:py-1"
               >
                 {active.effectName}
@@ -683,7 +700,7 @@ export function ReplicationShowcase({
                   title={active.title}
                   description={
                     activeGifLike && !activeGifReady
-                      ? "Animation unavailable until its controllable rendition is ready."
+                      ? t("Animation unavailable until its controllable rendition is ready.")
                       : undefined
                   }
                 />
@@ -721,10 +738,10 @@ export function ReplicationShowcase({
                 <div className="absolute inset-0 z-[2] grid place-items-center bg-black/40">
                   <button
                     type="button"
-                    aria-label={`Play ${active.title}`}
+                    aria-label={t("Play {{title}}", { title: active.title })}
                     onClick={() => {
                       setPlayOverride({ slug: active.slug, playing: true });
-                      setLiveMessage(`Playing ${active.title}`);
+                      setLiveMessage(t("Playing {{title}}", { title: active.title }));
                     }}
                     className={cn(
                       "theme-media-tile-title grid size-14 place-items-center rounded-full bg-black/60",
@@ -745,7 +762,7 @@ export function ReplicationShowcase({
 
             <button
               type="button"
-              aria-label={`Open ${active.title} in viewer`}
+              aria-label={t("Open {{title}} in viewer", { title: active.title })}
               onClick={() => launchViewer(active.slug)}
               className={cn(
                 "absolute inset-0 z-[1] cursor-zoom-in",
@@ -759,7 +776,7 @@ export function ReplicationShowcase({
                 active.slug,
               )}
               onClick={handleViewerLinkClick(active.slug)}
-              aria-label="Open viewer"
+              aria-label={t("Open viewer")}
               className={cn(
                 mediaControlClassName,
                 "absolute bottom-2 left-2 z-10 flex size-11 items-center justify-center",
@@ -770,7 +787,7 @@ export function ReplicationShowcase({
             >
               <Icon icon="lucide:maximize-2" size={15} aria-hidden />
               <span className="hidden text-[11px] font-semibold sm:inline">
-                Open viewer
+                {t("Open viewer")}
               </span>
             </Link>
 
@@ -791,7 +808,7 @@ export function ReplicationShowcase({
               >
                 <div
                   role="tablist"
-                  aria-label="Replications"
+                  aria-label={t("Replications")}
                   className="flex gap-1.5"
                 >
                   {works.map((work, index) => {
@@ -813,7 +830,13 @@ export function ReplicationShowcase({
                         id={`${tabId}-${index}`}
                         aria-selected={selected}
                         aria-controls={stageId}
-                        aria-label={`${work.title} — demonstrates ${work.effectName}, ${hasKnownCreator(work.artistName) ? work.byline : "Creator unknown"}`}
+                        aria-label={t("{{title}} — demonstrates {{effect}}, {{byline}}", {
+                          title: work.title,
+                          effect: work.effectName,
+                          byline: work.artistName && hasKnownCreator(work.artistName)
+                            ? t("by {{name}}", { name: work.artistName })
+                            : t("Creator unknown"),
+                        })}
                         tabIndex={selected ? 0 : -1}
                         onClick={() => activate(index)}
                         onKeyDown={(event) => handleTabKeyDown(event, index)}
@@ -868,15 +891,15 @@ export function ReplicationShowcase({
                       active.slug,
                     )}
                     onClick={handleViewerLinkClick(active.slug)}
-                    aria-label={`${total - count} more replications in ${
+                    aria-label={
                       substanceSlug
-                        ? "this substance's playlist"
+                        ? t("{{count}} more replications in this substance's playlist", { count: total - count })
                         : effectSlug
-                          ? "this effect's playlist"
+                          ? t("{{count}} more replications in this effect's playlist", { count: total - count })
                           : controller
-                            ? "this collection"
-                            : "the gallery"
-                    }`}
+                            ? t("{{count}} more replications in this collection", { count: total - count })
+                            : t("{{count}} more replications in the gallery", { count: total - count })
+                    }
                     className={cn(
                       "grid size-9 flex-none snap-start place-items-center rounded-md pointer-coarse:size-11",
                       "theme-media-tile-title bg-black/60 text-[11px] font-semibold tabular-nums",
@@ -895,15 +918,14 @@ export function ReplicationShowcase({
             per stage. */}
         {controller ? null : (
           <p className="theme-text-muted px-1 text-xs leading-5">
-            Replication media is credited to its creator; rights remain with
-            the rightsholder — see the{" "}
+            {rightsBefore}
             <Link
               href="/docs/license#replication-media-terms"
               className={proseLinkClassName}
             >
-              licensing terms
-            </Link>{" "}
-            to correct a credit or request removal.
+              {t("licensing terms")}
+            </Link>
+            {rightsAfter}
           </p>
         )}
 

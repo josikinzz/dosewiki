@@ -16,6 +16,7 @@ import { notFound } from "next/navigation";
 // as a value, and a value import in this direction would close that into a runtime cycle.
 import type { AppearancePolicy } from "@/theme";
 import { effectIndexViewPath } from "@/utils/indexViewRoutes";
+import { msg } from "@/i18n/messages";
 
 export const SITE_FLAVORS = ["dosewiki", "effectindex"] as const;
 
@@ -343,11 +344,11 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   flavor: "dosewiki",
   name: "dose.wiki",
   wordmark: { lead: "dose", accent: ".wiki" },
-  versionBadge: { label: "beta", version: "v0.9" },
+  versionBadge: { label: msg("beta"), version: "v0.9" },
   logo: {
     markPath: null,
-    alt: "dose.wiki logo",
-    heroAlt: "dose.wiki molecule logo",
+    alt: msg("dose.wiki logo"),
+    heroAlt: msg("dose.wiki molecule logo"),
   },
   defaultSiteUrl: "https://dose.wiki",
   launchSiteUrl: "https://dose.wiki",
@@ -402,20 +403,22 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
   },
   articleFallbackDescription: "Browse Effect Index articles in dose.wiki.",
   footer: {
-    tagline:
+    tagline: msg(
       "dose.wiki does not endorse or warrant the accuracy or safety of the information published here. Its articles, reports, and data describe substances and individual experiences and must not be read as medical advice, dosing recommendations, or a representation that any substance or dose is safe.\n\ndose.wiki is an independently governed repository of psychoactive-substance information and first-person experiences. Its operations, content policies, and editorial decisions are its own.",
+    ),
     licence: {
-      leadIn:
+      leadIn: msg(
         "Mixed licenses, mostly open: MIT code, CC0 writing, third-party material on its own terms. See",
-      linkLabel: "License & reuse",
+      ),
+      linkLabel: msg("License & reuse"),
       linkHref: "/docs/license",
       linkIsExternal: false,
-      trailing: ".",
+      trailing: msg("."),
     },
     // Mindstate Design Labs pays dose.wiki's infrastructure bills and shares a founder
     // with it, but does not own or direct the publication — hence "Supported by".
     supporter: {
-      prefix: "Supported by",
+      prefix: msg("Supported by"),
       href: "https://mindstate.design",
       alt: "Mindstate Design Labs",
       markPath: "/supporters/mindstate-design-labs.webp",

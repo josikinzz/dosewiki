@@ -6,6 +6,7 @@ import {
   AppearanceTogglePill,
   type AppearanceToggleOption,
 } from "./AppearanceTogglePill";
+import { msg, useT } from "@/i18n/client";
 
 /**
  * The two faces on this axis, in the order they sit in the picker. The labels are
@@ -25,12 +26,12 @@ const FONT_OPTIONS: readonly [
 ] = [
   {
     value: "default",
-    label: "Standard",
+    label: msg("Standard"),
     labelClassName: "theme-font-preview-standard",
   },
   {
     value: "dyslexic",
-    label: "Dyslexic",
+    label: msg("Dyslexic"),
     labelClassName: "theme-font-preview-dyslexic",
   },
 ];
@@ -47,13 +48,14 @@ const FONT_OPTIONS: readonly [
  */
 export function FontPicker() {
   const { fontPreference, setFontPreference } = useTheme();
+  const t = useT();
 
   return (
     <AppearanceTogglePill<FontPreference>
       axis="font"
-      label="Font"
+      label={t("Font")}
       value={fontPreference}
-      options={FONT_OPTIONS}
+      options={FONT_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
       onChange={setFontPreference}
     />
   );

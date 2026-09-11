@@ -16,6 +16,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import { icons } from "@/utils/iconNames";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
+import { useT } from "@/i18n/client";
 
 
 /**
@@ -38,9 +39,11 @@ function NavChildLink({
   tabIndex?: number;
   onSelect: () => void;
 }) {
+  const t = useT();
+  const label = t(child.label);
   const body = (
     <>
-      <span>{child.label}</span>
+      <span>{label}</span>
       {child.external && (
         <Icon
           icon={icons.externalLink}
@@ -62,7 +65,7 @@ function NavChildLink({
         className={className}
         // The icon alone does not announce that this leaves the site; the label is repeated
         // first so the accessible name still starts with the visible text.
-        aria-label={`${child.label} (opens in a new tab)`}
+        aria-label={t("{{label}} (opens in a new tab)", { label })}
         onClick={onSelect}
       >
         {body}
@@ -120,6 +123,7 @@ function DesktopNavItem({
   isOpen: boolean;
   onOpenChange: (id: string | null) => void;
 }) {
+  const t = useT();
   const navIcon = resolveRouteChromeIcon(item.icon);
   const chevronRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -164,7 +168,7 @@ function DesktopNavItem({
         aria-current={item.active ? "page" : undefined}
       >
         <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
-        <span>{item.label}</span>
+        <span>{t(item.label)}</span>
       </Link>
     );
   }
@@ -287,7 +291,7 @@ function DesktopNavItem({
         onKeyDown={handleLabelKeyDown}
       >
         <Icon icon={navIcon} size={22} className="theme-header-nav-icon shrink-0" />
-        <span id={labelId}>{item.label}</span>
+        <span id={labelId}>{t(item.label)}</span>
       </Link>
 
       <button
@@ -302,7 +306,7 @@ function DesktopNavItem({
         // The chevron has no text of its own, and "Effects" is already taken by the link
         // beside it; naming the action keeps the two controls distinguishable in a list of
         // links and buttons. Static on purpose — aria-expanded carries the state.
-        aria-label={`Show ${item.label} submenu`}
+        aria-label={t("Show {{label}} submenu", { label: t(item.label) })}
         onClick={() => (isOpen ? close(false) : onOpenChange(item.id))}
         onKeyDown={handleChevronKeyDown}
       >
@@ -382,8 +386,9 @@ function MobileNavItem({
   onNavigate: () => void;
   showActiveIndicator?: boolean;
 }) {
+  const t = useT();
   const navIcon = resolveRouteChromeIcon(item.icon);
-  const label = item.mobileLabel ?? item.label;
+  const label = t(item.mobileLabel ?? item.label);
   const submenu = item.submenu;
 
   if (!submenu) {
@@ -433,7 +438,7 @@ function MobileNavItem({
           // aria-controls describe it and aria-haspopup would be a false promise.
           aria-expanded={isExpanded}
           aria-controls={isExpanded ? submenuId : undefined}
-          aria-label={`Show ${label} submenu`}
+          aria-label={t("Show {{label}} submenu", { label })}
           onClick={() => onToggle(item.id)}
         >
           <Icon
@@ -482,6 +487,7 @@ export function Header({
   liveSearchClearView = null,
   forceMobileNav = false,
 }: HeaderProps) {
+  const t = useT();
   const aboutItem = model.secondaryNavItems.find((item) => item.id === "about");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   // At most one desktop dropdown is open at a time; the mobile sheet allows several groups
@@ -675,7 +681,7 @@ export function Header({
                 size={28}
                 className="!h-7 !w-7"
               />
-              <span className="sr-only">Toggle navigation</span>
+              <span className="sr-only">{t("Toggle navigation")}</span>
             </Button>
 
           {isMenuOpen && (

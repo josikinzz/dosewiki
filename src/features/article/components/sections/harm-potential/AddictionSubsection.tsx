@@ -5,6 +5,7 @@ import type { SubstanceArticle } from "@/schema";
 import { ArticleText } from "../../CitedText";
 import { ArticleSectionGroup } from "@/components/common/ArticleSection";
 import { EditableHarmText } from "./EditableHarmText";
+import { useT } from "@/i18n/client";
 
 interface AddictionSubsectionProps {
   addiction: NormalizedHarmPotential['addiction'];
@@ -12,6 +13,7 @@ interface AddictionSubsectionProps {
 }
 
 export function AddictionSubsection({ addiction, article }: AddictionSubsectionProps) {
+  const t = useT();
   const hasPsychological = !!addiction.psychological.description;
   const hasPhysical = !!addiction.physical_dependence.description;
 
@@ -19,7 +21,7 @@ export function AddictionSubsection({ addiction, article }: AddictionSubsectionP
 
   return (
     <ArticleSectionGroup
-      heading="Addiction & Dependence"
+      heading={t("Addiction & Dependence")}
       icon="jam:repeat"
       spacing="loose"
       className="theme-section-group-divider"
@@ -32,14 +34,14 @@ export function AddictionSubsection({ addiction, article }: AddictionSubsectionP
             <div className="mb-2.5 flex items-center justify-between gap-3">
               <h4 className="theme-text-secondary flex min-w-0 items-center gap-1.5 text-[0.8125rem] font-semibold leading-5">
                 <Icon icon="icon-park-outline:emotion-unhappy" size={16} className="theme-icon-accent" />
-                Psychological
+                {t("Psychological")}
               </h4>
               {/* `level` renders as a canonical badge, so it is not editable. */}
               <RiskLevelBadge level={addiction.psychological.level} />
             </div>
             <EditableHarmText
               article={article}
-              label="Psychological dependence description"
+              label={t("Psychological dependence description")}
               path="harm_potential.addiction.psychological.description"
               value={addiction.psychological.description}
             >
@@ -58,13 +60,13 @@ export function AddictionSubsection({ addiction, article }: AddictionSubsectionP
             <div className="mb-2.5 flex items-center justify-between gap-3">
               <h4 className="theme-text-secondary flex min-w-0 items-center gap-1.5 text-[0.8125rem] font-semibold leading-5">
                 <Icon icon="covid:graph-cured-decreasing" size={16} className="theme-icon-accent" />
-                Physical
+                {t("Physical")}
               </h4>
               <RiskLevelBadge level={addiction.physical_dependence.level} />
             </div>
             <EditableHarmText
               article={article}
-              label="Physical dependence description"
+              label={t("Physical dependence description")}
               path="harm_potential.addiction.physical_dependence.description"
               value={addiction.physical_dependence.description}
             >

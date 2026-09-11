@@ -1,4 +1,5 @@
 import type { DurationStage } from "@/schema";
+import { msg, type Translate } from "@/i18n/messages";
 
 /**
  * Display-only unit normalization for duration stages.
@@ -110,11 +111,19 @@ const ROUNDING_STEP: Record<TimeUnitKind, number> = {
   days: 0.25,
 };
 
+/** Printed unit words. `msg` marks them for the UI catalog; `t` renders them. */
 const SINGULAR_LABEL: Record<TimeUnitKind, string> = {
-  seconds: "second",
-  minutes: "minute",
-  hours: "hour",
-  days: "day",
+  seconds: msg("second"),
+  minutes: msg("minute"),
+  hours: msg("hour"),
+  days: msg("day"),
+};
+
+const PLURAL_LABEL: Record<TimeUnitKind, string> = {
+  seconds: msg("seconds"),
+  minutes: msg("minutes"),
+  hours: msg("hours"),
+  days: msg("days"),
 };
 
 /** `"Minutes."` and `"hrs"` are the same unit; anything else is not time. */
@@ -210,6 +219,7 @@ export type NormalizedDurationStage = {
  * the stage is empty, or normalization cannot improve on what is stored.
  */
 export function normalizeDurationStageForDisplay(
+  t: Translate,
   stage: DurationStage,
 ): NormalizedDurationStage {
   const verbatim: NormalizedDurationStage = {
@@ -261,10 +271,14 @@ export function normalizeDurationStageForDisplay(
   // Same rung and same numbers: keep the author's own spelling ("min", "hrs")
   // rather than rewriting a row that was never wrong. The one exception is a
   // row that reads `1 hours`, which no conversion can produce but six live
-  // rows are stored as.
+  // rows are stored as. On a translated mirror the stored spelling is English
+  // either way, so the translated canonical word replaces it.
   if (rung === startRung && min === stage.min && max === stage.max) {
-    return singular ? { ...verbatim, unit: SINGULAR_LABEL[target] } : verbatim;
+    const label = singular ? SINGULAR_LABEL[target] : PLURAL_LABEL[target];
+    const printed = t(label);
+    if (!singular && printed === label) return verbatim;
+    return { ...verbatim, unit: printed };
   }
 
-  return { min, max, unit: singular ? SINGULAR_LABEL[target] : target };
+  return { min, max, unit: t(singular ? SINGULAR_LABEL[target] : PLURAL_LABEL[target]) };
 }

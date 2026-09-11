@@ -5,7 +5,7 @@ import { ContextualEditingContext } from "@/features/contextual-editing/context"
 import type { ReplicationViewerCollection } from "../viewerModel";
 import { ReplicationViewerEditorPanel } from "./ReplicationViewerEditorPanel";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }), useSelectedLayoutSegments: () => [] }));
 const collection: ReplicationViewerCollection = {
   sourcePath: "/lsd", label: "LSD showcase", kind: "substance", grouping: "none",
   editorTarget: { kind: "substance", key: "lsd", label: "LSD showcase" },

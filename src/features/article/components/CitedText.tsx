@@ -1,80 +1,16 @@
-import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
+import { msg } from "@/i18n/messages";
 import { CITATION_MARKER_PATTERN } from "@/lib/citations/citationTokens";
 import { buildCitationNumbering } from "@/lib/citations/referenceModel";
 import { cn } from "@/lib/utils";
+import { CitationNeededMarker, CitationSup, type CitationLink } from "./CitationMarks";
 
-export type CitationSupProps = Omit<
-  ComponentPropsWithoutRef<"sup">,
-  "children"
-> & {
-  citations: CitationLink[];
-  linkClassName?: string;
-  onCitationClick?: (citation: CitationLink, event: MouseEvent<HTMLAnchorElement>) => void;
-};
-
-export type CitationLink = {
-  accessibleLabel: string;
-  href: string;
-  label: string;
-  referenceId?: string;
-  title?: string;
-};
-
-export function CitationSup({
-  className,
-  citations,
-  linkClassName,
-  onCitationClick,
-  ...props
-}: CitationSupProps) {
-  return (
-    <sup
-      className={cn(
-        "relative -top-[0.42em] ml-0.5 inline-flex gap-[0.32em] align-baseline text-[0.62em] leading-none",
-        className,
-      )}
-      {...props}
-    >
-      {citations.map((citation, index) => (
-        <a
-          key={`${citation.href}-${citation.label}-${index}`}
-          href={citation.href}
-          data-reference-id={citation.referenceId}
-          aria-label={citation.accessibleLabel}
-          title={citation.title}
-          onClick={onCitationClick ? (event) => onCitationClick(citation, event) : undefined}
-          className={cn(
-            "theme-citation-marker inline-flex items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
-            linkClassName,
-          )}
-        >
-          {citation.label}
-        </a>
-      ))}
-    </sup>
-  );
-}
+export { CitationNeededMarker, CitationSup } from "./CitationMarks";
+export type { CitationLink, CitationSupProps } from "./CitationMarks";
 
 function renderCitationSup(citations: CitationLink[], key: string) {
   return <CitationSup key={key} citations={citations} />;
-}
-
-/**
- * Free-floating inline marker for the `[citation-needed]` sentinel the
- * citation campaign leaves behind when a claim's marker is stripped. Compact
- * superscript-register caution text — no pill, no chrome — with the brackets
- * drawn as CSS pseudo-elements so the sentinel never re-enters the copy
- * stream. It never participates in reference numbering, and renderCitedText
- * suppresses it when the claim already carries a resolved citation or when
- * the previous claim in the same block is already flagged.
- */
-export function CitationNeededMarker() {
-  return (
-    <span className="theme-citation-needed-marker relative -top-[0.42em] ml-0.5 inline-block whitespace-nowrap align-baseline text-[0.62em] italic leading-none">
-      citation needed
-    </span>
-  );
 }
 
 /**
@@ -119,7 +55,7 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
         link:
           number && reference
             ? {
-                accessibleLabel: `Citation ${number}`,
+                accessibleLabel: msg("Citation {{number}}"),
                 href: `#${reference.anchorId}`,
                 label: String(number),
                 referenceId: match[1],
@@ -272,7 +208,7 @@ export function CitationMarker({
     if (!number || !reference) return [];
 
     return [{
-      accessibleLabel: `Citation ${number}`,
+      accessibleLabel: msg("Citation {{number}}"),
       href: `#ref-${reference.id}`,
       label: String(number),
       referenceId,

@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useState, type MouseEvent } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
@@ -101,10 +102,11 @@ interface PublicTableOfContentsProps {
 
 export const PublicTableOfContents = memo(function PublicTableOfContents({
   items,
-  title = "Contents",
+  title = msg("Contents"),
   className,
   variant = "panel",
 }: PublicTableOfContentsProps) {
+  const t = useT();
   const isBare = variant === "bare";
   const activeId = useActiveSection(items.map((item) => item.id));
   const handleClick = useCallback((id: string, event: MouseEvent<HTMLAnchorElement>) => {
@@ -134,7 +136,7 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
       <div className={cn(isBare ? "px-1" : "theme-article-toc-panel rounded-xl border p-4")}>
         <div className={cn("space-y-2.5", isBare ? "mb-2 px-1" : "mb-3")}>
           <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-widest">
-            {title}
+            {t(title)}
           </h2>
         </div>
         <nav>

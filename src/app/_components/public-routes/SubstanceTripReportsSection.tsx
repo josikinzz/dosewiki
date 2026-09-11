@@ -5,6 +5,7 @@ import {
   prepareSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
 import type { SubstanceArticle } from "@/schema";
+import { t } from "@/i18n/server";
 import { icons } from "@/utils/iconNames";
 import { getPublicReportsBySubstanceNames } from "@server/convex/publicData";
 import { getSectionLoadingModel, RouteLoadingSkeleton } from "../RouteLoading";
@@ -31,16 +32,16 @@ export function SubstanceTripReportsSectionFallback() {
     <ArticleSection
       id="trip-reports"
       icon={icons.fileSignature}
-      heading="Trip Reports"
+      heading={t("Trip Reports")}
       aria-busy="true"
       aria-live="polite"
     >
       <RouteLoadingSkeleton
         model={getSectionLoadingModel({
           key: "substance-trip-reports",
-          label: "Loading related reports",
+          label: t("Loading related reports"),
           variant: "list",
-        })}
+        }, t)}
       />
     </ArticleSection>
   );

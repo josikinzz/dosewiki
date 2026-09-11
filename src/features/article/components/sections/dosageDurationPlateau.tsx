@@ -4,6 +4,8 @@ import { Icon } from "@/components/common/Icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, SubstanceArticle } from "@/schema";
+import { useT } from "@/i18n/client";
+import { msg } from "@/i18n/messages";
 import { CitationMarker, CitedText } from "../CitedText";
 import { DoseTiersTable } from "./dosageDurationShared";
 import { ArticleDisclaimer } from "./ArticleDisclaimer";
@@ -14,11 +16,11 @@ const PLATEAU_TIERS: Array<{
   label: string;
   isSigma?: boolean;
 }> = [
-  { key: "first_plateau", label: "Plateau 1" },
-  { key: "second_plateau", label: "Plateau 2" },
-  { key: "third_plateau", label: "Plateau 3" },
-  { key: "fourth_plateau", label: "Plateau 4" },
-  { key: "fifth_plateau", label: "Plateau Sigma", isSigma: true },
+  { key: "first_plateau", label: msg("Plateau 1") },
+  { key: "second_plateau", label: msg("Plateau 2") },
+  { key: "third_plateau", label: msg("Plateau 3") },
+  { key: "fourth_plateau", label: msg("Plateau 4") },
+  { key: "fifth_plateau", label: msg("Plateau Sigma"), isSigma: true },
 ];
 
 function PlateauTiersTable({
@@ -28,6 +30,7 @@ function PlateauTiersTable({
   article: SubstanceArticle;
   plateauDosing: NonNullable<SubstanceArticle["dosage"]["plateau_dosing"]>;
 }) {
+  const t = useT();
   const [expandedPlateau, setExpandedPlateau] = useState<string | null>(null);
 
   const togglePlateau = (key: string) => {
@@ -52,7 +55,7 @@ function PlateauTiersTable({
                 ? `${plateau.min} ${plateau.unit}`
                 : `${plateau.min}-${plateau.max} ${plateau.unit}`
               : `${plateau.min}+ ${plateau.unit}`
-            : "via redosing";
+            : t("via redosing");
 
           const hasEffects = !!plateau.effects?.trim();
           const isExpanded = expandedPlateau === key;
@@ -81,7 +84,7 @@ function PlateauTiersTable({
                   )}
                 />
                 <span className={cn("relative font-medium", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-secondary")}>
-                  {label}
+                  {t(label)}
                 </span>
                 <div className="relative flex items-center gap-2">
                   <span className={cn("font-mono text-xs", isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted")}>
@@ -93,7 +96,7 @@ function PlateauTiersTable({
                       onToggle={() => togglePlateau(key)}
                       variant="inline"
                       className={isSigma ? "text-[var(--theme-semantic-danger-badge-text)]" : "theme-text-muted"}
-                      ariaLabel={isExpanded ? `Collapse ${label} effects` : `Expand ${label} effects`}
+                      ariaLabel={isExpanded ? t("Collapse {{label}} effects", { label: t(label) }) : t("Expand {{label}} effects", { label: t(label) })}
                       ariaControls={effectsPanelId}
                     />
                   )}
@@ -145,12 +148,13 @@ export function DosagePanel({
    */
   disclaimer?: string;
 }) {
+  const t = useT();
   return (
     <div className="theme-dose-duration-panel rounded-xl p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="theme-text-primary flex items-center gap-2 text-sm font-semibold">
           <Icon icon="charm:chart-bar" size={20} className="theme-accent-emphasis" />
-          Dosage
+          {t("Dosage")}
           <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h3>
       </div>
@@ -161,10 +165,10 @@ export function DosagePanel({
         <Tabs defaultValue="traditional" className="w-full">
           <TabsList className="theme-dosage-mode-tabs mb-3 h-auto p-1">
             <TabsTrigger value="traditional" className="theme-dosage-mode-tab min-h-8 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11">
-              Traditional
+              {t("Traditional")}
             </TabsTrigger>
             <TabsTrigger value="plateau" className="theme-dosage-mode-tab min-h-8 px-3 py-1 text-xs [@media(pointer:coarse)]:min-h-11">
-              Plateau
+              {t("Plateau")}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="traditional">

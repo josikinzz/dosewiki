@@ -1,3 +1,5 @@
+import { msg } from "@/i18n/messages";
+
 /**
  * Canonical country-legality statuses, kept Zod-free so client components
  * (the article's Legality section) can deep-import the list without dragging
@@ -23,12 +25,12 @@ export type CanonicalLegalStatus = (typeof CANONICAL_LEGAL_STATUSES)[number];
  * stored `status` display string from it so no other wording reaches production.
  */
 export const CANONICAL_STATUS_LABELS: Record<CanonicalLegalStatus, string> = {
-  prohibited: "Illegal",
-  analog_covered: "Illegal (analog/blanket ban)",
-  precursor_controlled: "Controlled precursor",
-  prescription_only: "Prescription only",
-  decriminalized: "Decriminalized",
-  legal_regulated: "Legal (regulated)",
-  unscheduled: "Not scheduled",
-  restricted_other: "Restricted",
+  prohibited: msg("Illegal"),
+  analog_covered: msg("Illegal (analog/blanket ban)"),
+  precursor_controlled: msg("Controlled precursor"),
+  prescription_only: msg("Prescription only"),
+  decriminalized: msg("Decriminalized"),
+  legal_regulated: msg("Legal (regulated)"),
+  unscheduled: msg("Not scheduled"),
+  restricted_other: msg("Restricted"),
 };

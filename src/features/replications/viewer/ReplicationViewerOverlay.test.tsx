@@ -23,6 +23,7 @@ import { ContextualEditingContext, type ContextualEditingState } from "@/feature
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => window.location.pathname,
+  useSelectedLayoutSegments: () => [],
 }));
 
 const transportVerbs = vi.hoisted(() => ({

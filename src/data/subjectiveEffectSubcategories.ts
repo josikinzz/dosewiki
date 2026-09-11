@@ -12,6 +12,7 @@
  */
 
 import type { IconName } from "../components/common/Icon";
+import { msg } from "@/i18n/messages";
 
 export interface SubcategoryMeta {
   label: string;
@@ -19,24 +20,24 @@ export interface SubcategoryMeta {
 }
 
 export const SENSORY_CATEGORIES = [
-  { key: "visual", label: "Visual", icon: "lucide:eye" as IconName },
-  { key: "auditory", label: "Auditory", icon: "lucide:ear" as IconName },
-  { key: "tactile", label: "Tactile", icon: "lucide:hand" as IconName },
-  { key: "olfactory", label: "Olfactory", icon: null },
-  { key: "gustatory", label: "Gustatory", icon: null },
-  { key: "multisensory", label: "Multisensory", icon: null },
+  { key: "visual", label: msg("Visual"), icon: "lucide:eye" as IconName },
+  { key: "auditory", label: msg("Auditory"), icon: "lucide:ear" as IconName },
+  { key: "tactile", label: msg("Tactile"), icon: "lucide:hand" as IconName },
+  { key: "olfactory", label: msg("Olfactory"), icon: null },
+  { key: "gustatory", label: msg("Gustatory"), icon: null },
+  { key: "multisensory", label: msg("Multisensory"), icon: null },
 ] as const;
 
 // Shared meta objects so alias keys can never drift from their canonical entry.
-const SUPPRESSIONS: SubcategoryMeta = { label: "Suppressions", icon: "lucide:arrow-down" };
-const DISTORTIONS: SubcategoryMeta = { label: "Distortions", icon: "icon-park-outline:distortion" };
-const HALLUCINATORY: SubcategoryMeta = { label: "Hallucinatory States", icon: "custom:elf" };
-const STIMULATION: SubcategoryMeta = { label: "Stimulation", icon: "lucide:zap" };
-const SEDATION: SubcategoryMeta = { label: "Sedation", icon: "lucide:moon" };
-const IMPAIRMENT: SubcategoryMeta = { label: "Impairment", icon: "lucide:cloud-fog" };
-const COORDINATION: SubcategoryMeta = { label: "Coordination", icon: "lucide:footprints" };
-const DISSOCIATIVE: SubcategoryMeta = { label: "Dissociative", icon: "lucide:link-2-off" };
-const COMFORTABLE: SubcategoryMeta = { label: "Comfortable", icon: "lucide:armchair" };
+const SUPPRESSIONS: SubcategoryMeta = { label: msg("Suppressions"), icon: "lucide:arrow-down" };
+const DISTORTIONS: SubcategoryMeta = { label: msg("Distortions"), icon: "icon-park-outline:distortion" };
+const HALLUCINATORY: SubcategoryMeta = { label: msg("Hallucinatory States"), icon: "custom:elf" };
+const STIMULATION: SubcategoryMeta = { label: msg("Stimulation"), icon: "lucide:zap" };
+const SEDATION: SubcategoryMeta = { label: msg("Sedation"), icon: "lucide:moon" };
+const IMPAIRMENT: SubcategoryMeta = { label: msg("Impairment"), icon: "lucide:cloud-fog" };
+const COORDINATION: SubcategoryMeta = { label: msg("Coordination"), icon: "lucide:footprints" };
+const DISSOCIATIVE: SubcategoryMeta = { label: msg("Dissociative"), icon: "lucide:link-2-off" };
+const COMFORTABLE: SubcategoryMeta = { label: msg("Comfortable"), icon: "lucide:armchair" };
 
 /**
  * Keyed by normalized form (see normalizeSubcategoryKey) so the same entry
@@ -45,24 +46,24 @@ const COMFORTABLE: SubcategoryMeta = { label: "Comfortable", icon: "lucide:armch
  */
 const SUBCATEGORY_REGISTRY: Record<string, SubcategoryMeta> = {
   // Sensory
-  enhancements: { label: "Enhancements", icon: "lucide:arrow-up" },
+  enhancements: { label: msg("Enhancements"), icon: "lucide:arrow-up" },
   suppressions: SUPPRESSIONS,
   suppression: SUPPRESSIONS,
   distortions: DISTORTIONS,
   distortion: DISTORTIONS,
-  geometry: { label: "Geometry", icon: "lucide:shapes" },
+  geometry: { label: msg("Geometry"), icon: "lucide:shapes" },
   hallucinatory: HALLUCINATORY,
   hallucinatorystates: HALLUCINATORY,
   hallucinations: HALLUCINATORY,
   // Cognitive
-  emotional: { label: "Emotional", icon: "lucide:heart" },
-  social: { label: "Social", icon: "lucide:users" },
-  transpersonal: { label: "Transpersonal", icon: "lucide:sparkles" },
-  perception: { label: "Perception", icon: "lucide:scan-eye" },
-  analytical: { label: "Analytical", icon: "lucide:brain-circuit" },
+  emotional: { label: msg("Emotional"), icon: "lucide:heart" },
+  social: { label: msg("Social"), icon: "lucide:users" },
+  transpersonal: { label: msg("Transpersonal"), icon: "lucide:sparkles" },
+  perception: { label: msg("Perception"), icon: "lucide:scan-eye" },
+  analytical: { label: msg("Analytical"), icon: "lucide:brain-circuit" },
   impairment: IMPAIRMENT,
   impairing: IMPAIRMENT,
-  disconnective: { label: "Disconnective", icon: "lucide:unplug" },
+  disconnective: { label: msg("Disconnective"), icon: "lucide:unplug" },
   dissociative: DISSOCIATIVE,
   dissociating: DISSOCIATIVE,
   // Physical
@@ -70,24 +71,24 @@ const SUBCATEGORY_REGISTRY: Record<string, SubcategoryMeta> = {
   stimulating: STIMULATION,
   sedation: SEDATION,
   sedating: SEDATION,
-  cardiovascular: { label: "Cardiovascular", icon: "lucide:heart-pulse" },
-  autonomic: { label: "Autonomic", icon: "lucide:droplets" },
-  uncomfortable: { label: "Uncomfortable", icon: "lucide:frown" },
-  bodily: { label: "Bodily", icon: "lucide:person-standing" },
+  cardiovascular: { label: msg("Cardiovascular"), icon: "lucide:heart-pulse" },
+  autonomic: { label: msg("Autonomic"), icon: "lucide:droplets" },
+  uncomfortable: { label: msg("Uncomfortable"), icon: "lucide:frown" },
+  bodily: { label: msg("Bodily"), icon: "lucide:person-standing" },
   comfortable: COMFORTABLE,
   comfort: COMFORTABLE,
   coordination: COORDINATION,
   motor: COORDINATION,
-  euphoria: { label: "Euphoria", icon: "lucide:smile" },
-  relaxation: { label: "Relaxation", icon: "lucide:leaf" },
-  sleep: { label: "Sleep", icon: "lucide:bed" },
-  respiratory: { label: "Respiratory", icon: "lucide:wind" },
-  temperature: { label: "Temperature", icon: "lucide:thermometer" },
+  euphoria: { label: msg("Euphoria"), icon: "lucide:smile" },
+  relaxation: { label: msg("Relaxation"), icon: "lucide:leaf" },
+  sleep: { label: msg("Sleep"), icon: "lucide:bed" },
+  respiratory: { label: msg("Respiratory"), icon: "lucide:wind" },
+  temperature: { label: msg("Temperature"), icon: "lucide:thermometer" },
   // Progressive stages (legacy numeric-prefixed keys)
-  "1takingoff": { label: "1. Taking Off", icon: "lucide:trending-up" },
-  "2thewaitingroom": { label: "2. The Waiting Room", icon: "lucide:hourglass" },
-  "3theotherside": { label: "3. The Other Side", icon: "lucide:house" },
-  "4comingdown": { label: "4. Coming Down", icon: "lucide:trending-down" },
+  "1takingoff": { label: msg("1. Taking Off"), icon: "lucide:trending-up" },
+  "2thewaitingroom": { label: msg("2. The Waiting Room"), icon: "lucide:hourglass" },
+  "3theotherside": { label: msg("3. The Other Side"), icon: "lucide:house" },
+  "4comingdown": { label: msg("4. Coming Down"), icon: "lucide:trending-down" },
 };
 
 /** Keys that are grouping artifacts, not real subcategories: always render flat. */

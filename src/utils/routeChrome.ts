@@ -1,4 +1,5 @@
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig, type SiteNavId } from "@/config/siteFlavor";
+import { formatMessage, msg, type Translate } from "@/i18n/messages";
 import type {
   AppView,
   RouteChromeModel,
@@ -7,6 +8,9 @@ import type {
   RouteChromeNavItem,
 } from "@/types/navigation";
 import { parsePath, viewToPath } from "./routing";
+
+/** English pass-through for callers with no locale in hand (tests, the footer's default model). */
+const IDENTITY_TRANSLATE: Translate = (text, values) => formatMessage(text, values);
 
 const DEFAULT_VIEW: AppView = { type: "home" };
 const DEFAULT_SUBSTANCE_SLUG = "lsd";
@@ -22,48 +26,51 @@ function routeLabel(value: string): string {
 }
 
 export function getRouteChromePageTitle(
+  t: Translate,
   view: AppView,
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): string {
   switch (view.type) {
     case "home":
-      return config.homeTitle;
+      return t(config.homeTitle);
     case "substances":
-      return "Substance Index";
+      return t("Substance Index");
     case "substance":
-      return `${routeLabel(view.slug)} - Substance Profile`;
+      return t("{{name}} - Substance Profile", { name: routeLabel(view.slug) });
     case "category":
-      return `${view.categoryKey} Category`;
+      return t("{{name}} Category", { name: view.categoryKey });
     case "mantras":
-      return "Mantra Vision Mandala";
+      return t("Mantra Vision Mandala");
     case "effects":
-      return "Subjective Effects Index";
+      return t("Subjective Effects Index");
     case "effect":
-      return `${routeLabel(view.effectSlug)} - Subjective Effect`;
+      return t("{{name}} - Subjective Effect", { name: routeLabel(view.effectSlug) });
     case "effect-category":
-      return `${routeLabel(view.categorySlug)} Effects`;
+      return t("{{name}} Effects", { name: routeLabel(view.categorySlug) });
     case "replications":
-      return "Replications";
+      return t("Replications");
     case "mechanism":
-      return `${routeLabel(view.mechanismSlug)} Mechanism`;
+      return t("{{name}} Mechanism", { name: routeLabel(view.mechanismSlug) });
     case "classification":
-      return `${routeLabel(view.slug)} ${view.classification === "chemical" ? "Chemical" : "Psychoactive"} Class`;
+      return view.classification === "chemical"
+        ? t("{{name}} Chemical Class", { name: routeLabel(view.slug) })
+        : t("{{name}} Psychoactive Class", { name: routeLabel(view.slug) });
     case "search":
-      return `Search Results for "${view.query}"`;
+      return t('Search Results for "{{query}}"', { query: view.query });
     case "about":
-      return config.aboutTitle;
+      return t(config.aboutTitle);
     case "contributor":
-      return "Contributor Profile";
+      return t("Contributor Profile");
     case "reports":
-      return "Experience Reports";
+      return t("Experience Reports");
     case "report-submit":
-      return "Submit a Trip Report";
+      return t("Submit a Trip Report");
     case "report":
-      return "Trip Report";
+      return t("Trip Report");
     case "dev":
-      return `Developer Tools - ${view.tab}`;
+      return t("Developer Tools - {{tab}}", { tab: view.tab });
     default:
-      return config.homeTitle;
+      return t(config.homeTitle);
   }
 }
 
@@ -104,7 +111,7 @@ export function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
 const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">> = {
   substances: {
     id: "substances",
-    label: "Substances",
+    label: msg("Substances"),
     href: viewToPath(SUBSTANCES_VIEW),
     view: SUBSTANCES_VIEW,
     group: "substances",
@@ -112,7 +119,7 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
   effects: {
     id: "effects",
-    label: "Effects",
+    label: msg("Effects"),
     href: viewToPath(EFFECTS_VIEW),
     view: EFFECTS_VIEW,
     group: "effects",
@@ -120,7 +127,7 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
   replications: {
     id: "replications",
-    label: "Replications",
+    label: msg("Replications"),
     href: viewToPath(REPLICATIONS_VIEW),
     view: REPLICATIONS_VIEW,
     group: "replications",
@@ -128,7 +135,7 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
   reports: {
     id: "reports",
-    label: "Reports",
+    label: msg("Reports"),
     href: viewToPath(REPORTS_VIEW),
     view: REPORTS_VIEW,
     group: "reports",
@@ -136,8 +143,8 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
   about: {
     id: "about",
-    label: "About",
-    mobileLabel: "About",
+    label: msg("About"),
+    mobileLabel: msg("About"),
     href: viewToPath(ABOUT_VIEW),
     view: ABOUT_VIEW,
     group: "about",
@@ -223,6 +230,7 @@ export function getRouteChromeModel(
   pathname?: string | null,
   searchQuery?: string | null,
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
+  t: Translate = IDENTITY_TRANSLATE,
 ): RouteChromeModel {
   const currentView = parsePath(pathname ?? undefined, DEFAULT_SUBSTANCE_SLUG, DEFAULT_VIEW);
   const resolvedCurrentView =
@@ -233,7 +241,7 @@ export function getRouteChromeModel(
 
   return {
     currentView: resolvedCurrentView,
-    pageTitle: getRouteChromePageTitle(resolvedCurrentView, config),
+    pageTitle: getRouteChromePageTitle(t, resolvedCurrentView, config),
     activeGroup,
     headerLogo: {
       href: viewToPath(HOME_VIEW),

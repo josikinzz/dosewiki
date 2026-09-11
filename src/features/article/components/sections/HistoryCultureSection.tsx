@@ -13,6 +13,7 @@ import { ArticleGapNotice } from "./ArticleGapNotice";
 import { getIconForHistoryHeading } from "./historyCultureIcons";
 import { needsTruncation, renderWithBoldYears, truncateContent } from "./historyCultureText";
 import { renderCitedText } from "../CitedText";
+import { useT } from "@/i18n/client";
 
 
 interface HistoryCultureSectionProps {
@@ -72,6 +73,7 @@ function NotableIndividualCard({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
+  const t = useT();
   return (
     <ArticleSubsectionCard asChild variant="interactive" padding="xs" className="w-full rounded-lg text-left">
       <button
@@ -105,7 +107,7 @@ function NotableIndividualCard({
             {/* Never truncated here, so the rendered text is the whole field. */}
             <EditableHistoryText
               editable
-              label={`${name} biography`}
+              label={t("{{name}} biography", { name })}
               path={contentPath}
               value={content}
             >
@@ -122,6 +124,7 @@ function NotableIndividualCard({
 export const HistoryCultureSection = memo(function HistoryCultureSection({
   article,
 }: HistoryCultureSectionProps) {
+  const t = useT();
   const { history_culture } = article;
   // Track whether the entire section is expanded
   const [isExpanded, setIsExpanded] = useState(false);
@@ -191,14 +194,14 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
     <ArticleSection
       id="history-culture"
       icon={SUBSTANCE_SECTION_ICONS["history-culture"]}
-      heading="History & Culture"
+      heading={t("History & Culture")}
     >
       {hasContent && sections.length > 0 && (
         <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
           {/* This branch is never truncated, so the rendered text is the raw field. */}
           <EditableValue
             as="span"
-            label="History & culture overview"
+            label={t("History & culture overview")}
             path="history_culture.content"
             value={history_culture.content}
           >
@@ -226,7 +229,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
               */}
               <EditableHistoryText
                 editable={displayFreeformContent === content}
-                label="History & culture overview"
+                label={t("History & culture overview")}
                 path="history_culture.content"
                 value={content}
               >
@@ -239,7 +242,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                 <ExpandButton
                   isExpanded={isExpanded}
                   onToggle={() => setIsExpanded(!isExpanded)}
-                  ariaLabel={isExpanded ? "Collapse history and culture" : "Expand history and culture"}
+                  ariaLabel={isExpanded ? t("Collapse history and culture") : t("Expand history and culture")}
                 />
               </div>
             )}
@@ -290,7 +293,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                           <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
                             <EditableHistoryText
                               editable={displayContent === section.content}
-                              label={`${section.heading} history content`}
+                              label={t("{{heading}} history content", { heading: section.heading })}
                               path={buildFieldPath("history_culture", "sections", originalIndex, "content")}
                               value={section.content}
                             >
@@ -344,7 +347,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                                 <p className="text-sm text-dose-text-secondary whitespace-pre-wrap leading-relaxed">
                                   <EditableValue
                                     as="span"
-                                    label={`${sub.heading} history content`}
+                                    label={t("{{heading}} history content", { heading: sub.heading })}
                                     path={buildFieldPath(
                                       "history_culture",
                                       "sections",
@@ -375,7 +378,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                 <ExpandButton
                   isExpanded={isExpanded}
                   onToggle={() => setIsExpanded(!isExpanded)}
-                  ariaLabel={isExpanded ? "Collapse history and culture" : "Expand history and culture"}
+                  ariaLabel={isExpanded ? t("Collapse history and culture") : t("Expand history and culture")}
                 />
               </div>
             )}

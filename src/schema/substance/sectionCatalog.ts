@@ -2,6 +2,7 @@ import type { IconName } from "@/components/common/Icon";
 import type { SectionMeta as SchemaSectionMeta } from "@/data/schema/types";
 import { hasProjectedSubstanceCitations } from "@/lib/citations/substanceCitationCompatibility";
 import { icons } from "@/utils/iconNames";
+import { msg } from "@/i18n/messages";
 import { hasDosageDurationContent } from "./dosageDurationPresence";
 import {
   hasHarmPotentialContent,
@@ -152,7 +153,7 @@ function hasSubjectiveEffectsContent(article: SubstanceArticle): boolean {
 export const ARTICLE_SECTION_CATALOG = [
   {
     id: "overview",
-    label: "Overview",
+    label: msg("Overview"),
     icon: "lucide:file-text",
     articleFields: ["title", "identification", "index_categories", "priority"],
     editor: { visible: true, adapter: "OverviewFieldsRHF", order: 1 },
@@ -160,7 +161,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "meta",
-        label: "Meta",
+        label: msg("Meta"),
         icon: "lucide:settings",
         description: "Article metadata and categorization",
         fields: ["id", "title", "index_categories", "summary"],
@@ -170,7 +171,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "classification",
-    label: "Classification",
+    label: msg("Classification"),
     icon: "lucide:brain-cog",
     articleFields: ["classification", "identification"],
     editor: { visible: true, adapter: "ClassificationFieldsRHF", order: 2 },
@@ -192,7 +193,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "identification",
-        label: "Identification",
+        label: msg("Identification"),
         icon: "lucide:file-text",
         description: "Chemical identification and nomenclature",
         fields: [
@@ -212,7 +213,7 @@ export const ARTICLE_SECTION_CATALOG = [
       },
       {
         key: "classification",
-        label: "Classification",
+        label: msg("Classification"),
         icon: "lucide:tags",
         description: "Psychoactive and chemical classifications",
         fields: ["classification.psychoactive_class", "classification.chemical_class"],
@@ -222,7 +223,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "summary",
-    label: "Summary",
+    label: msg("Summary"),
     icon: "lucide:file-text",
     articleFields: ["summary"],
     editor: { visible: true, adapter: "NotesFieldsRHF", order: 3 },
@@ -243,7 +244,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "dosage-duration",
-    label: "Dosage & Duration",
+    label: msg("Dosage & Duration"),
     icon: "lucide:chart-no-axes-combined",
     articleFields: ["dosage", "duration"],
     editor: { visible: true, adapter: "DosageDurationFieldsRHF", order: 4 },
@@ -269,7 +270,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "dosage",
-        label: "Dosage",
+        label: msg("Dosage"),
         icon: "lucide:pill",
         description: "Dosage information by route of administration",
         routeDependent: true,
@@ -288,7 +289,7 @@ export const ARTICLE_SECTION_CATALOG = [
       },
       {
         key: "duration",
-        label: "Duration",
+        label: msg("Duration"),
         icon: "lucide:clock",
         description: "Duration stages by route of administration",
         routeDependent: true,
@@ -308,7 +309,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "subjective-effects",
-    label: "Subjective Effects",
+    label: msg("Subjective Effects"),
     // Same glyph the Effects nav item uses (`routeChromeIcons`), so the TOC,
     // the header and the section heading all show one icon for this subject.
     icon: icons.subjectiveEffectIndex,
@@ -336,7 +337,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "subjective_effects",
-        label: "Subjective Effects",
+        label: msg("Subjective Effects"),
         icon: "lucide:brain",
         description: "Reported subjective effects and experiences",
         fields: [
@@ -360,7 +361,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "reagent-testing",
-    label: "Reagent Testing",
+    label: msg("Reagent Testing"),
     icon: "lucide:pipette",
     articleFields: ["reagent_testing"],
     editor: { visible: true, adapter: "ReagentPreviewFieldsRHF", order: 6 },
@@ -376,7 +377,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "pharmacology",
-    label: "Pharmacology",
+    label: msg("Pharmacology"),
     icon: "mingcute:settings-6-line",
     articleFields: ["pharmacology"],
     editor: { visible: true, adapter: "ChemistryFieldsRHF", order: 7 },
@@ -402,7 +403,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "pharmacology",
-        label: "Pharmacology",
+        label: msg("Pharmacology"),
         icon: "lucide:beaker",
         description: "Pharmacological properties and mechanisms",
         fields: [
@@ -417,7 +418,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "interactions",
-    label: "Interactions",
+    label: msg("Interactions"),
     icon: "lucide:blend",
     articleFields: ["interactions"],
     editor: { visible: true, adapter: "InteractionsFieldsRHF", order: 8 },
@@ -451,7 +452,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "interactions",
-        label: "Interactions",
+        label: msg("Interactions"),
         icon: "lucide:alert-triangle",
         description: "Drug interaction warnings",
         fields: ["interactions.dangerous", "interactions.unsafe", "interactions.caution"],
@@ -461,7 +462,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "tolerance",
-    label: "Tolerance",
+    label: msg("Tolerance"),
     icon: "lucide:trending-up",
     articleFields: ["tolerance"],
     editor: { visible: true, adapter: "ToleranceFieldsRHF", order: 9 },
@@ -496,7 +497,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "tolerance",
-        label: "Tolerance",
+        label: msg("Tolerance"),
         icon: "lucide:timer",
         description: "Tolerance development and cross-tolerance",
         fields: [
@@ -511,7 +512,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "harm-potential",
-    label: "Harm Potential",
+    label: msg("Harm Potential"),
     icon: "lucide:ambulance",
     articleFields: ["harm_potential"],
     editor: { visible: true, adapter: "AddictionFieldsRHF", order: 10 },
@@ -539,7 +540,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "harm_potential",
-        label: "Harm Potential",
+        label: msg("Harm Potential"),
         icon: "lucide:shield-alert",
         description: "Addiction, toxicity, and health risks",
         fields: [
@@ -567,7 +568,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "history-culture",
-    label: "History & Culture",
+    label: msg("History & Culture"),
     icon: "lucide:book-open",
     articleFields: ["history_culture"],
     editor: { visible: true, adapter: "HistoryCultureFieldsRHF", order: 11 },
@@ -597,7 +598,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "trip-reports",
-    label: "Trip Reports",
+    label: msg("Trip Reports"),
     icon: icons.fileSignature,
     articleFields: [],
     editor: { visible: false },
@@ -612,7 +613,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "legality",
-    label: "Legality",
+    label: msg("Legality"),
     icon: "lucide:scale",
     articleFields: ["legality"],
     editor: { visible: true, adapter: "LegalityFieldsRHF", order: 12 },
@@ -646,7 +647,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "legality",
-        label: "Legality",
+        label: msg("Legality"),
         icon: "lucide:scale",
         description: "Legal status by jurisdiction",
         fields: ["legality.international", "legality.countries"],
@@ -656,7 +657,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "sources",
-    label: "Sources",
+    label: msg("Sources"),
     // The rendered heading is "References", numbered — not a shelf of sources.
     icon: icons.listOrdered,
     articleFields: ["references", "source_citations", "citations"],
@@ -674,7 +675,7 @@ export const ARTICLE_SECTION_CATALOG = [
     schemaSections: [
       {
         key: "citations",
-        label: "References",
+        label: msg("References"),
         icon: "lucide:book-open",
         description: "Structured references first, with legacy compatibility link lists demoted below them.",
         fields: ["references", "source_citations", "citations"],
@@ -684,7 +685,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "citations",
-    label: "Citations",
+    label: msg("Citations"),
     icon: "lucide:book-open",
     articleFields: ["citations"],
     editor: { visible: true, adapter: "CitationsFieldsRHF", order: 14 },
@@ -692,7 +693,7 @@ export const ARTICLE_SECTION_CATALOG = [
   },
   {
     id: "editorial-review",
-    label: "Editorial Review",
+    label: msg("Editorial Review"),
     icon: "lucide:list-checks",
     articleFields: ["editorial_review"],
     editor: {

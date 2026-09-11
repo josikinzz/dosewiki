@@ -8,6 +8,7 @@ import {
   type MouseEvent,
 } from "react";
 import { Icon } from "@/components/common/Icon";
+import { useT } from "@/i18n/client";
 import {
   useActiveSection,
   type PublicTableOfContentsItem,
@@ -47,6 +48,7 @@ export const PublicTocStrip = memo(function PublicTocStrip({
   items,
   className,
 }: PublicTocStripProps) {
+  const t = useT();
   const activeId = useActiveSection(items.map((item) => item.id));
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   /** True from first touch until DRAG_SETTLE_MS after release. */
@@ -167,7 +169,7 @@ export const PublicTocStrip = memo(function PublicTocStrip({
 
   return (
     <nav
-      aria-label="On this page"
+      aria-label={t("On this page")}
       data-nosnippet
       className={cn(
         "theme-toc-strip-shell sticky z-30 min-[1200px]:hidden",

@@ -16,6 +16,7 @@ import {
   routeHasDurationContent,
 } from "@/schema/substance/dosageDurationPresence";
 import { ArticleSection } from "@/components/common/ArticleSection";
+import { useT } from "@/i18n/client";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { normalizeRouteName } from "../../../../../lib/article/normalization.mjs";
 import { DosagePanel } from "./dosageDurationPlateau";
@@ -63,6 +64,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   article,
   dosageDisclaimer,
 }: DosageDurationSectionProps) {
+  const t = useT();
   const { dosage, duration } = article;
 
   // Group every raw route entry under its canonical (tab) name, in the order
@@ -181,19 +183,19 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     <ArticleSection
       id="dosage-duration"
       icon={SUBSTANCE_SECTION_ICONS["dosage-duration"]}
-      heading="Dosage & Duration"
+      heading={t("Dosage & Duration")}
     >
       <Tabs value={activeRoute} onValueChange={setActiveRoute} className="w-full">
         <TabsList className="theme-route-tabs-list theme-text-muted mb-3 flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-[var(--theme-elevation-none)]">
           {allRoutes.map(route => {
             const routeIcon = ROUTE_ICONS[route.toLowerCase()];
             const isActive = route === activeRoute;
-            const routeLabel = formatRouteLabel(route);
+            const routeLabel = formatRouteLabel(t, route);
             return (
               <TabsTrigger
                 key={route}
                 value={route}
-                aria-label={`${routeLabel} route`}
+                aria-label={t("{{route}} route", { route: routeLabel })}
                 className={cn(
                   "theme-selected-control group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                   "border-transparent bg-transparent shadow-[var(--theme-elevation-none)] hover:border-transparent hover:bg-transparent",

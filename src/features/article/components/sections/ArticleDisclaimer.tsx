@@ -1,4 +1,7 @@
+"use client";
+
 import { Icon } from "@/components/common/Icon";
+import { useT } from "@/i18n/client";
 
 /**
  * The muted caveat line that sits above a set of numbers an editor wants read
@@ -11,12 +14,13 @@ import { Icon } from "@/components/common/Icon";
  * behind.
  */
 export function ArticleDisclaimer({ text }: { text: string }) {
+  const t = useT();
   if (!text.trim()) return null;
 
   return (
     <p className="theme-text-muted mb-3 flex items-start gap-2 text-xs leading-relaxed">
       <Icon icon="cuida:warning-outline" size={14} className="mt-0.5 shrink-0" />
-      <span>{text}</span>
+      <span>{t(text)}</span>
     </p>
   );
 }

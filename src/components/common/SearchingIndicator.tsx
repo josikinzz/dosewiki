@@ -5,6 +5,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { Icon } from "./Icon";
+import { useT } from "@/i18n/client";
 
 export interface SearchingIndicatorProps {
   /** Headline copy shown before the animated ellipsis. */
@@ -32,10 +33,14 @@ export interface SearchingIndicatorProps {
 const ICON_REPLAY_MS = 1900;
 
 export function SearchingIndicator({
-  title = "Searching",
-  description = "Checking substances, effects, reports, and profiles.",
+  title,
+  description,
   className,
 }: SearchingIndicatorProps) {
+  const t = useT();
+  const resolvedTitle = title ?? t("Searching");
+  const resolvedDescription =
+    description === undefined ? t("Checking substances, effects, reports, and profiles.") : description;
   const prefersReducedMotion = usePrefersReducedMotion();
   const [replayKey, setReplayKey] = React.useState(0);
 
@@ -68,16 +73,16 @@ export function SearchingIndicator({
       </span>
       <div className="space-y-1">
         <h1 className="theme-search-suggestion-title text-lg font-semibold">
-          {title}
+          {resolvedTitle}
           <span className="theme-searching-dots" aria-hidden="true">
             <span>.</span>
             <span>.</span>
             <span>.</span>
           </span>
         </h1>
-        {description ? (
+        {resolvedDescription ? (
           <p className="theme-search-suggestion-secondary max-w-md text-[0.8125rem] leading-5">
-            {description}
+            {resolvedDescription}
           </p>
         ) : null}
       </div>

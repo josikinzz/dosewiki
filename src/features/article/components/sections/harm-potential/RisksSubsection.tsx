@@ -4,6 +4,7 @@ import type { SubstanceArticle } from "@/schema";
 import { ArticleText } from "../../CitedText";
 import { ArticleSubsectionHeader } from "@/components/common/ArticleSection";
 import { EditableHarmText } from "./EditableHarmText";
+import { useT } from "@/i18n/client";
 
 interface RisksSubsectionProps {
   risks: NormalizedHarmPotential['risks'];
@@ -11,6 +12,7 @@ interface RisksSubsectionProps {
 }
 
 export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps) {
+  const t = useT();
   const { psychosis } = risks;
   const hasPsychosis = (psychosis.description || "").trim().length > 0;
 
@@ -20,7 +22,7 @@ export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps
     <section className="theme-section-group-divider space-y-4">
       <ArticleSubsectionHeader
         icon="tabler:mood-crazy-happy"
-        heading="Psychosis Risk"
+        heading={t("Psychosis Risk")}
         headingClassName="text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8"
         iconClassName="scale-110"
       >
@@ -29,7 +31,7 @@ export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps
       </ArticleSubsectionHeader>
       <EditableHarmText
         article={article}
-        label="Psychosis risk description"
+        label={t("Psychosis risk description")}
         path="harm_potential.psychosis.description"
         value={psychosis.description}
       >
@@ -40,6 +42,7 @@ export function PsychosisRiskSubsection({ risks, article }: RisksSubsectionProps
 }
 
 export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) {
+  const t = useT();
   const { seizure } = risks;
   const hasSeizure = (seizure.description || "").trim().length > 0;
 
@@ -49,7 +52,7 @@ export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) 
     <section className="theme-section-group-divider space-y-4">
       <ArticleSubsectionHeader
         icon="mage:zap"
-        heading="Seizure Risk"
+        heading={t("Seizure Risk")}
         headingClassName="text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8"
         iconClassName="scale-110"
       >
@@ -57,7 +60,7 @@ export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) 
       </ArticleSubsectionHeader>
       <EditableHarmText
         article={article}
-        label="Seizure risk description"
+        label={t("Seizure risk description")}
         path="harm_potential.seizure.description"
         value={seizure.description}
       >

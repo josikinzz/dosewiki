@@ -1,11 +1,16 @@
-// Not a client component on purpose: the chip is static markup, so on the
-// public route it renders on the server and ships no JavaScript of its own.
+"use client";
+
+// The chip is static markup, but the editor's ArticleContextBridge renders the
+// layout on the client, so it is a client component: the message layer's
+// `useT` cannot run on a server tree and the server `t` cannot ship to a
+// client one.
 import { memo } from "react";
 import Link from "next/link";
 
 import { Icon } from "@/components/common/Icon";
 import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import type { SubstanceArticle } from "@/schema";
 import {
   REVIEW_STATUS_BANNER_FALLBACK,
@@ -56,6 +61,7 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
   copy,
   className,
 }: ReviewStatusBannerProps) {
+  const t = useT();
   // `expert_reviewed` is stamped onto the public projection at runtime
   // (editorialReviewVisibilityPolicy); SubstanceArticle doesn't type it, so
   // narrow with `in` rather than asserting a shape.
@@ -64,7 +70,7 @@ export const ReviewStatusBanner = memo(function ReviewStatusBanner({
     article.editorial_review?.status === "completed";
   if (expertReviewed) return null;
 
-  const segments = splitReviewerCopy(copy ?? REVIEW_STATUS_BANNER_FALLBACK);
+  const segments = splitReviewerCopy(t(copy ?? REVIEW_STATUS_BANNER_FALLBACK));
 
   return (
     <div

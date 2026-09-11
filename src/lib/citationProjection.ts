@@ -4,6 +4,7 @@ import { buildCitationNumbering, formatApaReference } from "./citations/referenc
 import { projectSubstanceCitationCompatibility } from "./citations/substanceCitationCompatibility";
 import { normalizeDoi } from "../../lib/citations/referenceIdentity.mjs";
 import { slugify } from "@/utils/slug";
+import { msg } from "@/i18n/messages";
 
 export const CITATION_COLLAPSED_LIMIT = 3;
 
@@ -82,11 +83,11 @@ export type ProjectEffectCitationsInput = {
 };
 
 const EMPTY_GROUP_TITLES: Record<CitationRole, string> = {
-  "primary-source": "Source Pages",
-  "further-reading": "Further Reading",
-  reference: "References",
-  "external-link": "External Links",
-  "internal-link": "See Also",
+  "primary-source": msg("Source Pages"),
+  "further-reading": msg("Further Reading"),
+  reference: msg("References"),
+  "external-link": msg("External Links"),
+  "internal-link": msg("See Also"),
 };
 
 function normalizeText(value: unknown): string {

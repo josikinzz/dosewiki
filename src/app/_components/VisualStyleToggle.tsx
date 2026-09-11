@@ -3,6 +3,7 @@
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
 import { AppearanceTogglePill } from "./AppearanceTogglePill";
+import { useT } from "@/i18n/client";
 
 /**
  * Vivid/Clinical control for the visual-style axis.
@@ -14,21 +15,22 @@ import { AppearanceTogglePill } from "./AppearanceTogglePill";
  */
 export function VisualStyleToggle() {
   const { visualStyle, toggleVisualStyle } = useTheme();
+  const t = useT();
 
   return (
     <AppearanceTogglePill
       axis="visual-style"
-      label="Style"
+      label={t("Style")}
       value={visualStyle}
       options={[
         {
           value: "fun",
-          label: "Vivid",
+          label: t("Vivid"),
           icon: <Icon icon="mingcute:magic-hat-line" size={18} />,
         },
         {
           value: "pro",
-          label: "Clinical",
+          label: t("Clinical"),
           icon: <Icon icon="ph:flask-bold" size={18} />,
         },
       ]}

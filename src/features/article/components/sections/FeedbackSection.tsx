@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import type { SubstanceArticle } from "@/schema";
 import { slugify } from "@/utils/slug";
+import { msg, useT } from "@/i18n/client";
 import { createInitialDraft, type FeedbackDraft, type SubmissionState } from "./feedbackDraft";
 
 // The form is never in the server-rendered page (the section starts
@@ -45,6 +46,7 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
   const [draft, setDraft] = useState(createInitialDraft);
   const [state, setState] = useState<SubmissionState>({ kind: "idle" });
   const fieldPrefix = useId();
+  const t = useT();
 
   const substanceTitle = article.title || article.identification?.common_name || "this substance";
   const substanceSlug = resolveArticleSlug(article);
@@ -85,7 +87,7 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
       if (!response.ok) {
         setState({
           kind: "error",
-          message: body.error ?? "Unable to send feedback right now.",
+          message: body.error ?? msg("Unable to send feedback right now."),
           details: Array.isArray(body.errors) ? body.errors : [],
         });
         return;
@@ -96,27 +98,35 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
     } catch (error) {
       setState({
         kind: "error",
-        message: error instanceof Error ? error.message : "Unable to send feedback right now.",
+        message: error instanceof Error ? error.message : msg("Unable to send feedback right now."),
         details: [],
       });
     }
   };
 
+  // One sentence per key: the styled substance name and the inline link are
+  // spliced back in at their placeholder so a translation can move them.
+  const [introBefore, introAfter] = t(
+    "Spotted a mistake, an outdated claim, or something missing from the {{substance}} article? Send the editors a private note. Feedback lands in a moderation queue and is never shown on the site.",
+  ).split("{{substance}}");
+  const [generalBefore, generalAfter] = t(
+    "Wish to give generalised feedback? You can do so {{here}}.",
+  ).split("{{here}}");
+
   return (
-    <ArticleSection id="feedback" icon="lucide:message-square-plus" heading="Suggest an edit">
+    <ArticleSection id="feedback" icon="lucide:message-square-plus" heading={t("Suggest an edit")}>
       <p className="theme-text-secondary max-w-[65ch] text-sm leading-6">
-        Spotted a mistake, an outdated claim, or something missing from the{" "}
-        <span className="theme-text-primary font-medium">{substanceTitle}</span> article? Send the
-        editors a private note. Feedback lands in a moderation queue and is never shown on the
-        site.
+        {introBefore}
+        <span className="theme-text-primary font-medium">{substanceTitle}</span>
+        {introAfter}
       </p>
 
       {state.kind === "success" ? (
         <Alert variant="success" aria-live="polite">
           <Icon icon="lucide:check" size={18} />
-          <AlertTitle>Feedback received</AlertTitle>
+          <AlertTitle>{t("Feedback received")}</AlertTitle>
           <AlertDescription>
-            Thanks — your note is in the private editor queue.
+            {t("Thanks — your note is in the private editor queue.")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -124,7 +134,7 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
       {!open ? (
         <Button type="button" variant="glass" size="pill" onClick={() => setOpen(true)}>
           <Icon icon="lucide:pencil-line" size={16} />
-          {state.kind === "success" ? "Send more feedback" : "Report an issue or suggest an edit"}
+          {state.kind === "success" ? t("Send more feedback") : t("Report an issue or suggest an edit")}
         </Button>
       ) : (
         <FeedbackForm
@@ -138,11 +148,11 @@ export function FeedbackSection({ article }: FeedbackSectionProps) {
       )}
 
       <p className="theme-text-faint text-sm">
-        Wish to give generalised feedback? You can do so{" "}
+        {generalBefore}
         <Link href="/about/feedback" className={proseLinkClassName}>
-          here
+          {t("here")}
         </Link>
-        .
+        {generalAfter}
       </p>
     </ArticleSection>
   );

@@ -10,6 +10,8 @@ import {
 } from "@/data/schema/transformers";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
+import { msg, useT } from "@/i18n/client";
+import type { Translate } from "@/i18n/messages";
 import { EditableValue, useArticleEdit } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
 import { DOSE_TIERS, DURATION_STAGES } from "./dosageDurationLabels";
@@ -36,9 +38,9 @@ export function formatDose(range: DoseRange | null, isThreshold = false): string
  * The stored triple is never changed, and `formatDose` is deliberately not
  * routed through this: dose units must never be converted.
  */
-export function formatDuration(stage: DurationStage | null): string {
+export function formatDuration(t: Translate, stage: DurationStage | null): string {
   if (!stage || (stage.min === null && stage.max === null)) return "N/A";
-  const { min, max, unit } = normalizeDurationStageForDisplay(stage);
+  const { min, max, unit } = normalizeDurationStageForDisplay(t, stage);
   if (min !== null && max !== null) {
     if (min === max) {
       return `${min} ${unit}`;
@@ -56,16 +58,25 @@ function capitalizeRoute(route: string): string {
 }
 
 const ROUTE_LABELS: Record<string, string> = {
-  iv: "IV",
-  intravenous: "Intravenous",
-  im: "IM",
-  intramuscular: "Intramuscular",
-  "i.m.": "IM",
-  "iv/im": "IV/IM",
+  iv: msg("IV"),
+  intravenous: msg("Intravenous"),
+  im: msg("IM"),
+  intramuscular: msg("Intramuscular"),
+  "i.m.": msg("IM"),
+  "iv/im": msg("IV/IM"),
 };
 
-export function formatRouteLabel(route: string): string {
-  return ROUTE_LABELS[route.toLowerCase()] ?? capitalizeRoute(route);
+/**
+ * The routes the corpus uses, listed so the catalog builder carries them; any
+ * other spelling still renders capitalized and translates if the catalog knows it.
+ */
+export const KNOWN_ROUTE_LABELS = [
+  msg("Oral"), msg("Sublingual"), msg("Buccal"), msg("Insufflated"), msg("Smoked"), msg("Vaporized"),
+  msg("Rectal"), msg("Transdermal"), msg("Subcutaneous"), msg("Inhaled"), msg("Intranasal"), msg("Injected"),
+];
+
+export function formatRouteLabel(t: Translate, route: string): string {
+  return t(ROUTE_LABELS[route.toLowerCase()] ?? capitalizeRoute(route));
 }
 
 export const ROUTE_ICONS: Record<string, IconName> = {
@@ -153,6 +164,7 @@ function ExpandableNoteRow({
   notesPath?: string;
   notesEmptyLabel?: string;
 }) {
+  const t = useT();
   const editing = useArticleEdit();
   const [expanded, setExpanded] = useState(false);
   const hasNotes = !!notes?.trim();
@@ -208,7 +220,7 @@ function ExpandableNoteRow({
                 onToggle={() => setExpanded(!expanded)}
                 variant="inline"
                 className="theme-text-muted"
-                ariaLabel={expanded ? `Collapse ${ariaLabelBase} notes` : `Expand ${ariaLabelBase} notes`}
+                ariaLabel={expanded ? t("Collapse {{label}} notes", { label: ariaLabelBase }) : t("Expand {{label}} notes", { label: ariaLabelBase })}
                 ariaControls={panelId}
               />
             )}
@@ -253,10 +265,11 @@ export function DoseTiersTable({
   routeIndex?: number;
   article: SubstanceArticle;
 }) {
+  const t = useT();
   const editing = useArticleEdit();
   const hasNotes = !!route.notes?.trim();
   const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const routeLabel = formatRouteLabel(route.route);
+  const routeLabel = formatRouteLabel(t, route.route);
   // Every path here is anchored on the route's position in the source array,
   // which is the only thing that survives the canonical-name grouping the tabs
   // do. Without an index there is nothing to address, so the table renders
@@ -284,7 +297,7 @@ export function DoseTiersTable({
                 className="pointer-events-none absolute bottom-0 left-0 top-0 rounded-l-lg"
               />
               <div className="relative flex items-center justify-between">
-                <span className="theme-text-secondary font-medium">{label}</span>
+                <span className="theme-text-secondary font-medium">{t(label)}</span>
                 <span className="theme-text-muted font-mono text-xs">
                   {canEdit ? (
                     <EditableValue<EditableBounds>
@@ -310,13 +323,13 @@ export function DoseTiersTable({
       {route.bioavailability?.trim() || canEdit ? (
         <ExpandableNoteRow
           article={article}
-          ariaLabelBase={`${routeLabel} bioavailability`}
-          label="Bioavailability"
+          ariaLabelBase={t("{{route}} bioavailability", { route: routeLabel })}
+          label={t("Bioavailability")}
           notes={route.bioavailability_notes}
           notesEmptyLabel="Add bioavailability notes"
           notesPath={routePath ? `${routePath}.bioavailability_notes` : undefined}
           panelId={`dosage-${routeId}-bioavailability-notes`}
-          value={route.bioavailability ?? ""}
+          value={route.bioavailability ? t(route.bioavailability) : ""}
           valueEmptyLabel="Add bioavailability"
           valuePath={routePath ? `${routePath}.bioavailability` : undefined}
         />
@@ -358,9 +371,10 @@ export function DurationPanel({
   routeIndex?: number;
   article: SubstanceArticle;
 }) {
+  const t = useT();
   const editing = useArticleEdit();
   const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const routeLabel = formatRouteLabel(route.route);
+  const routeLabel = formatRouteLabel(t, route.route);
   const routePath =
     typeof routeIndex === "number" ? `duration.routes[${routeIndex}]` : null;
   const canEdit = editing !== null && routePath !== null;
@@ -370,21 +384,21 @@ export function DurationPanel({
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="theme-text-primary flex items-center gap-2 text-sm font-semibold">
           <Icon icon="lucide:chart-line" size={20} className="theme-accent-emphasis" />
-          Duration
+          {t("Duration")}
           <CitationMarker article={article} referenceIds={route.reference_ids} />
         </h3>
       </div>
       <div className="space-y-1.5">
         {DURATION_STAGES.map(({ key, label }) => {
           const stage = route.stages[key as keyof typeof route.stages];
-          const value = formatDuration(stage);
+          const value = formatDuration(t, stage);
           if (value === "N/A" && !canEdit) return null;
           return (
             <div
               key={key}
               className="theme-duration-stage-row flex items-center justify-between rounded-lg px-3 py-1.5 text-sm"
             >
-              <span className="theme-text-secondary font-medium">{label}</span>
+              <span className="theme-text-secondary font-medium">{t(label)}</span>
               <span className="theme-text-muted font-mono text-xs">
                 {canEdit ? (
                   <EditableValue<EditableBounds>
@@ -409,8 +423,8 @@ export function DurationPanel({
       {route.half_life?.trim() || canEdit ? (
         <ExpandableNoteRow
           article={article}
-          ariaLabelBase={`${routeLabel} half-life`}
-          label="Half-life"
+          ariaLabelBase={t("{{route}} half-life", { route: routeLabel })}
+          label={t("Half-life")}
           notes={route.half_life_notes}
           notesEmptyLabel="Add half-life notes"
           notesPath={routePath ? `${routePath}.half_life_notes` : undefined}

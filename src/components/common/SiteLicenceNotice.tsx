@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * The footer's reuse-rights sentence.
  *
@@ -9,6 +11,7 @@
  */
 import Link from "next/link";
 
+import { useT } from "@/i18n/client";
 import {
   SITE_FLAVOR_CONFIG,
   type SiteFlavorConfig,
@@ -33,12 +36,13 @@ export function SiteLicenceNotice({
   config = SITE_FLAVOR_CONFIG,
   notice,
 }: SiteLicenceNoticeProps) {
+  const t = useT();
   const { leadIn, linkHref, linkIsExternal, linkLabel, trailing } =
     notice ?? config.footer.licence;
 
   return (
     <p className={className}>
-      {leadIn}{" "}
+      {t(leadIn)}{" "}
       {linkIsExternal ? (
         <a
           href={linkHref}
@@ -46,17 +50,18 @@ export function SiteLicenceNotice({
           rel="noopener noreferrer license"
           className={LINK_CLASS_NAME}
         >
-          {linkLabel}
+          {t(linkLabel)}
         </a>
       ) : (
         <Link href={linkHref} scroll={false} className={LINK_CLASS_NAME}>
-          {linkLabel}
+          {t(linkLabel)}
         </Link>
       )}
       {/* Trailing copy that opens with punctuation clings to the link: "CC0: reuse it
-          freely", not "CC0 : reuse it freely". */}
+          freely", not "CC0 : reuse it freely". Decided on the English source so the
+          translation inherits the same spacing. */}
       {/^[,.;:!?)]/.test(trailing) ? null : " "}
-      {trailing}
+      {t(trailing)}
     </p>
   );
 }

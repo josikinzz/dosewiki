@@ -13,6 +13,7 @@ import { ArticleSection, ArticleSectionGroup } from "@/components/common/Article
 import { buildFieldPath } from "../../../editing";
 import { EditableHarmText } from "./EditableHarmText";
 import { useMasonryRowSpans } from "./useMasonryRowSpans";
+import { useT } from "@/i18n/client";
 
 /** Bottom gutter on each masonry card; the row-span math in useMasonryRowSpans assumes it. */
 const MASONRY_ITEM_CLASS_NAME = "mb-4";
@@ -79,6 +80,7 @@ function getOrganSystemIcon(system?: string | null) {
 }
 
 function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
+  const t = useT();
   const { lethal_dosage, ld50String } = toxicity;
   const { ld50, notes } = lethal_dosage;
 
@@ -91,7 +93,7 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
 
   return (
     <ArticleSection.InfoCard
-      title="Lethal Dosage"
+      title={t("Lethal Dosage")}
       icon="tabler:grave"
       padding="sm"
       variant="nested"
@@ -104,7 +106,7 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
           <EditableHarmText
             article={article}
             as="span"
-            label="Lethal dosage notes"
+            label={t("Lethal dosage notes")}
             path="harm_potential.toxicity.lethal_dosage.notes"
             value={notes}
           >
@@ -123,7 +125,7 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
         <div className="flex flex-col gap-2">
           {/* Show subheading if we also have notes */}
           {hasNotes && (
-            <h5 className="text-xs font-medium uppercase tracking-wider theme-text-muted">LD50 Data</h5>
+            <h5 className="text-xs font-medium uppercase tracking-wider theme-text-muted">{t("LD50 Data")}</h5>
           )}
           {ld50.length === 1 && !ld50[0].species ? (
             <p>
@@ -134,9 +136,9 @@ function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPoten
               <table className="w-full text-sm">
                 <thead>
                   <tr className="theme-ld50-table-head text-xs uppercase tracking-wider theme-text-muted">
-                    <th className="px-4 py-2 text-left font-medium">Species</th>
-                    <th className="px-4 py-2 text-left font-medium">Route</th>
-                    <th className="px-4 py-2 text-right font-medium">Value</th>
+                    <th className="px-4 py-2 text-left font-medium">{t("Species")}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t("Route")}</th>
+                    <th className="px-4 py-2 text-right font-medium">{t("Value")}</th>
                   </tr>
                 </thead>
                 <tbody className="theme-ld50-table-body">
@@ -179,6 +181,7 @@ function OrganToxicityCard({
    */
   index: number;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const hasDetails = !!entry.mechanism || !!entry.notes;
   const systemIcon = getOrganSystemIcon(entry.system);
@@ -199,7 +202,7 @@ function OrganToxicityCard({
           <EditableHarmText
             article={article}
             as="span"
-            label={`${entry.system ?? "Organ"} toxicity findings`}
+            label={t("{{system}} toxicity findings", { system: entry.system ?? t("Organ") })}
             path={fieldPath("findings")}
             value={entry.findings}
           >
@@ -215,12 +218,12 @@ function OrganToxicityCard({
               <div className="theme-horizontal-divider" />
               {entry.mechanism && (
                 <div className="text-sm">
-                  <span className="block mb-1 font-semibold uppercase tracking-wider theme-text-subtle text-[10px]">Mechanism</span>
+                  <span className="block mb-1 font-semibold uppercase tracking-wider theme-text-subtle text-[10px]">{t("Mechanism")}</span>
                   <p className="theme-text-muted leading-relaxed">
                     <EditableHarmText
                       article={article}
                       as="span"
-                      label={`${entry.system ?? "Organ"} toxicity mechanism`}
+                      label={t("{{system}} toxicity mechanism", { system: entry.system ?? t("Organ") })}
                       path={fieldPath("mechanism")}
                       value={entry.mechanism}
                     >
@@ -231,12 +234,12 @@ function OrganToxicityCard({
               )}
               {entry.notes && (
                 <div className="text-sm">
-                  <span className="block mb-1 font-semibold uppercase tracking-wider theme-text-subtle text-[10px]">Notes</span>
+                  <span className="block mb-1 font-semibold uppercase tracking-wider theme-text-subtle text-[10px]">{t("Notes")}</span>
                   <p className="italic theme-text-muted leading-relaxed">
                     <EditableHarmText
                       article={article}
                       as="span"
-                      label={`${entry.system ?? "Organ"} toxicity notes`}
+                      label={t("{{system}} toxicity notes", { system: entry.system ?? t("Organ") })}
                       path={fieldPath("notes")}
                       value={entry.notes}
                     >
@@ -263,6 +266,7 @@ function OrganToxicityCard({
 
 
 function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
+  const t = useT();
   const { carcinogenicity } = toxicity;
   const evidence = carcinogenicity.evidence && typeof carcinogenicity.evidence === 'object'
     ? carcinogenicity.evidence as {
@@ -283,7 +287,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
 
   return (
     <ArticleSection.InfoCard
-      title="Carcinogenicity"
+      title={t("Carcinogenicity")}
       icon="mingcute:cancer-line"
       accessory={<CarcinogenicityLevelBadge level={carcinogenicity.level} />}
       padding="sm"
@@ -297,21 +301,21 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
 
       {evidence && (
         <div className="rounded-lg bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_42%,var(--theme-panel-base))] p-3 text-sm">
-          <div className="mb-2 text-xs font-bold uppercase tracking-wider theme-text-muted">Evidence Basis</div>
+          <div className="mb-2 text-xs font-bold uppercase tracking-wider theme-text-muted">{t("Evidence Basis")}</div>
           <div className="grid gap-y-2">
             <EvidenceLevelIndicator
               level={evidence.human_epidemiological}
-              label="Human Epidemiological"
+              label={t("Human Epidemiological")}
             />
 
             {evidence.animal_models && (
               <div className="flex items-center justify-between">
-                <span className="theme-text-muted">Animal Models</span>
+                <span className="theme-text-muted">{t("Animal Models")}</span>
                 <div className="text-right">
                   <span className={EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level || "none"]?.color || "theme-text-muted"}>
                     {evidence.animal_models.level
-                      ? EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level]?.label || "None"
-                      : "None"}
+                      ? t(EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level]?.label || "None")
+                      : t("None")}
                   </span>
                   {evidence.animal_models.species?.length > 0 && (
                     <div className="text-xs theme-text-subtle">
@@ -324,7 +328,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
 
             {evidence.in_vitro && (
               <div className="flex items-center justify-between">
-                <span className="theme-text-muted">In Vitro</span>
+                <span className="theme-text-muted">{t("In Vitro")}</span>
                 <div className="text-right theme-text-primary">
                   {evidence.in_vitro.type}
                   {evidence.in_vitro.assay_type && (
@@ -336,11 +340,11 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
 
             {evidence.mechanistic && (
               <div className="flex items-center justify-between">
-                <span className="theme-text-muted">Mechanistic</span>
+                <span className="theme-text-muted">{t("Mechanistic")}</span>
                 <span className={EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level || "none"]?.color || "theme-text-muted"}>
                   {evidence.mechanistic.level
-                    ? EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level]?.label || "None"
-                    : "None"}
+                    ? t(EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level]?.label || "None")
+                    : t("None")}
                 </span>
               </div>
             )}
@@ -352,6 +356,7 @@ function CarcinogenicityCard({ toxicity, article }: { toxicity: NormalizedHarmPo
 }
 
 function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
+  const t = useT();
   const { antibiotic_function } = toxicity;
 
   // Hide if level is unknown or no_evidence
@@ -364,7 +369,7 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
 
   return (
     <ArticleSection.InfoCard
-      title="Antibiotic Function"
+      title={t("Antibiotic Function")}
       icon="streamline:bacteria-virus-cells-biology"
       accessory={
         antibiotic_function.level ? (
@@ -372,7 +377,7 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
             tone={(CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.tone as StatusBadgeTone) || "white"}
             className={CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.badgeClass || "theme-badge-surface"}
           >
-            {CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.label || antibiotic_function.level}
+            {t(CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.label || antibiotic_function.level)}
           </StatusBadge>
         ) : null
       }
@@ -388,6 +393,7 @@ function AntibioticFunctionCard({ toxicity, article }: { toxicity: NormalizedHar
 }
 
 export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProps) {
+  const t = useT();
   const { lethal_dosage, ld50, ld50String, organ_toxicity, organToxicityString, carcinogenicity, antibiotic_function } = toxicity;
 
   // Check if carcinogenicity/antibiotic cards would actually render (not unknown/no_evidence)
@@ -418,7 +424,7 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
 
   return (
     <ArticleSectionGroup
-      heading="Toxicity"
+      heading={t("Toxicity")}
       icon="healthicons:poison-24px"
       spacing="loose"
       className="theme-section-group-divider"
@@ -440,7 +446,7 @@ export function ToxicitySubsection({ toxicity, article }: ToxicitySubsectionProp
             ))}
             {organToxicityString && (
               <ArticleSection.InfoCard
-                title="Organ Toxicity"
+                title={t("Organ Toxicity")}
                 icon={DEFAULT_ORGAN_SYSTEM_ICON}
                 padding="sm"
                 variant="nested"

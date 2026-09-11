@@ -1,4 +1,5 @@
 import { diffArrays } from "diff";
+import { msg } from "@/i18n/messages";
 
 import type { ChangeLogArticleSummary } from "./changeLog";
 import { CITATION_MARKER_PATTERN, CITATION_NEEDED_TOKEN } from "@/lib/citations/citationTokens";
@@ -82,6 +83,16 @@ function toWords(segment: string): string {
  * Summarise the `-`/`+` pairs of an inline edit by what moved: citations
  * added or removed, a citation-needed flag cleared, and words changed.
  */
+/**
+ * The single-clause sentences `describeProseDiff` can produce, listed so the
+ * locale catalog carries them; the row renders `t(message)`. A compound
+ * sentence ("Added a citation and reworded 2 words") stays English.
+ */
+export const SINGLE_CLAUSE_MESSAGES = [
+  msg("Edited"), msg("Added a citation"), msg("Removed a citation"), msg("Changed a word"),
+  msg("Sourced a claim"), msg("Cleared a citation-needed flag"),
+];
+
 function describeProseDiff(diff: string): string {
   const removed: string[] = [];
   const added: string[] = [];
@@ -180,7 +191,7 @@ export function describeChange(message: string, diff: string): ChangeDescription
   const isTimestamp = /^\d{1,2}\/\d{1,2}\/\d{4}(?:[ ,]+\d{1,2}:\d{2}(?::\d{2})?(?: ?[AP]M)?)?$/i.test(note);
   return {
     kind: "bulk",
-    message: "Updated the article",
+    message: msg("Updated the article"),
     detail: note.length > 0 && !isTimestamp ? note : null,
     section: null,
     field: null,
@@ -189,8 +200,8 @@ export function describeChange(message: string, diff: string): ChangeDescription
 
 const CHURN_WINDOW_MS = 60 * 60 * 1000;
 const CHURN_PARTNER: Record<string, { partner: string; merged: string }> = {
-  "Added a source": { partner: "Removed a source", merged: "Re-added a source" },
-  "Removed a source": { partner: "Added a source", merged: "Added, then removed a source" },
+  [msg("Added a source")]: { partner: msg("Removed a source"), merged: msg("Re-added a source") },
+  [msg("Removed a source")]: { partner: msg("Added a source"), merged: msg("Added, then removed a source") },
 };
 
 /**

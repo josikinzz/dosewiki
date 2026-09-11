@@ -16,6 +16,7 @@ import {
 import { setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { cn } from "@/lib/utils";
 import { AppearanceAxes, type AppearanceAxesRows } from "./AppearanceAxes";
+import { useT } from "@/i18n/client";
 
 /**
  * Which controls this instrument offers. AppearanceAxes owns reader preferences;
@@ -43,6 +44,7 @@ export function AppearanceCog({
   showFont,
   showMoreSettings,
 }: AppearanceCogRows & { className?: string; iconSize?: number }) {
+  const t = useT();
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -68,8 +70,8 @@ export function AppearanceCog({
           ref={appearanceTriggerRef}
           // Names the panel, not the icon: "Appearance settings" tells a screen-reader user
           // what pressing this opens. Radix adds the expanded state and the panel's id.
-          aria-label="Appearance settings"
-          title="Appearance settings"
+          aria-label={t("Appearance settings")}
+          title={t("Appearance settings")}
           data-appearance-cog=""
           // The transparent 44px box preserves the touch target without drawing a
           // button around the glyph. Open turns the gear a quarter-turn — a state
@@ -99,7 +101,7 @@ export function AppearanceCog({
         // gap the mobile nav panel keeps (`top-[calc(100%+0.5rem)]` in Header.tsx).
         sideOffset={0}
         collisionPadding={12}
-        aria-label="Appearance settings"
+        aria-label={t("Appearance settings")}
         /**
          * Escape belongs to this panel and stops here. Radix closes it from its own
          * capture-phase listener before this runs, so the dismissal is unaffected; stopping
@@ -131,12 +133,12 @@ export function AppearanceCog({
             showAccent={showAccent}
             showFont={showFont}
             discloseColorGroups
-            surfaceLabel="Background"
+            surfaceLabel={t("Background")}
             footerAction={
               showMoreSettings ? (
                 <button
                   type="button"
-                  aria-label="Open Theme Lab"
+                  aria-label={t("Open Theme Lab")}
                   aria-haspopup="dialog"
                   aria-controls="theme-lab-panel"
                   onClick={() => {
@@ -146,7 +148,7 @@ export function AppearanceCog({
                   className="theme-focus-ring inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
                 >
                   <Icon icon="ri:wrench-line" size={14} />
-                  <span>Theme Lab</span>
+                  <span>{t("Theme Lab")}</span>
                 </button>
               ) : null
             }

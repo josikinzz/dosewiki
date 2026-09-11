@@ -14,6 +14,7 @@ import { preloadSearchManifestIndex } from "../../hooks/useSearchManifest";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 
 const DEBOUNCE_MS = 200;
 /**
@@ -102,6 +103,7 @@ export function GlobalSearch({
   placeholder,
   variant = "default",
 }: GlobalSearchProps) {
+  const t = useT();
   const [query, setQuery] = useState(() => currentView.type === "search" ? currentView.query : "");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -435,14 +437,14 @@ export function GlobalSearch({
       <div className="relative min-w-0" ref={containerRef}>
         <div className={`theme-search-focus-glow pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100 ${isHomeVariant ? "rounded-full" : "rounded-[1.75rem]"}`} />
         <label htmlFor={inputId} className="sr-only">
-          Search the library
+          {t("Search the library")}
         </label>
         <Input
           id={inputId}
           name="global-search-query"
           ref={inputRef}
           type="search"
-          placeholder={placeholder ?? (compact ? "Search..." : "Search the library...")}
+          placeholder={placeholder ?? (compact ? t("Search...") : t("Search the library..."))}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
@@ -482,7 +484,7 @@ export function GlobalSearch({
                     ? "theme-home-search-clear inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                     : "theme-control-pill-quiet inline-flex h-9 w-9 items-center justify-center rounded-full transition-[background-color,border-color,box-shadow,color,transform] duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
               }`}
-              aria-label="Clear search"
+              aria-label={t("Clear search")}
             >
               <X size={16} />
             </button>
@@ -502,7 +504,7 @@ export function GlobalSearch({
               className={`theme-home-search-button inline-flex items-center justify-center rounded-full border border-transparent transition-transform duration-[220ms] ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.025] focus-visible:outline-none focus-visible:ring-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100 ${
                 isHomeVariant ? "h-11 w-11 md:h-12 md:w-12" : "h-11 w-11"
               }`}
-              aria-label={`Search ${SITE_FLAVOR_CONFIG.name}`}
+              aria-label={t("Search {{name}}", { name: SITE_FLAVOR_CONFIG.name })}
             >
               <Search size={isHomeVariant ? 24 : 18} />
             </button>

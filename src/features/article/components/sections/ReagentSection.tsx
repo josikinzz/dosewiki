@@ -21,6 +21,7 @@ import {
   buildReagentResultLabelGradient,
   parseReagentResultColors,
 } from "@/lib/reagentPalette";
+import { useT } from "@/i18n/client";
 
 interface ReagentSectionProps {
   article: SubstanceArticle;
@@ -71,6 +72,7 @@ function ReagentRow({
   reagent: string;
   description: string;
 }) {
+  const t = useT();
   const colors = parseReagentResultColors(description);
   const gradient = buildReagentResultGradient(colors);
   const darkenedGradient = buildReagentResultLabelGradient(colors);
@@ -102,7 +104,7 @@ function ReagentRow({
         <div className="theme-reagent-swatch-spectrum-layer pointer-events-none absolute inset-0" />
         {isNoReaction ? (
           <span className="reagent-label-description-muted relative z-10 text-[0.6875rem] font-medium uppercase tracking-[0.08em] drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
-            No reaction
+            {t("No reaction")}
           </span>
         ) : null}
       </div>
@@ -119,6 +121,7 @@ export const ReagentSection = memo(function ReagentSection({
   substanceSlug,
   externalReagentData,
 }: ReagentSectionProps) {
+  const t = useT();
   const chemistryPresentation =
     providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
   const { reagentTesting } = chemistryPresentation;
@@ -144,12 +147,12 @@ export const ReagentSection = memo(function ReagentSection({
       <ArticleSection
         id="reagent-testing"
         icon={SUBSTANCE_SECTION_ICONS["reagent-testing"]}
-        heading="Reagent Testing"
+        heading={t("Reagent Testing")}
       >
         <ArticleSection.State
           kind="loading"
-          title="Loading reagent data"
-          description="Expected colorimetric results are being prepared."
+          title={t("Loading reagent data")}
+          description={t("Expected colorimetric results are being prepared.")}
         />
       </ArticleSection>
     );
@@ -166,15 +169,14 @@ export const ReagentSection = memo(function ReagentSection({
     <ArticleSection
       id="reagent-testing"
       icon={SUBSTANCE_SECTION_ICONS["reagent-testing"]}
-      heading="Reagent Testing"
+      heading={t("Reagent Testing")}
     >
       <ArticleText cited={false} tone="muted">
-        Expected colorimetric results for common reagent tests. Colors show
-        reaction change over 1–2 minutes.
+        {t("Expected colorimetric results for common reagent tests. Colors show reaction change over 1–2 minutes.")}
       </ArticleText>
 
       <ExpandableList
-        ariaLabelBase="reagent results"
+        ariaLabelBase={t("reagent results")}
         collapsedCount={Math.max(entries.length - COLLAPSED_LIMIT, 0)}
         id="reagent-results-list"
         items={entries}
@@ -198,6 +200,7 @@ export const ReagentSection = memo(function ReagentSection({
       <ArticleSection.SourceFooter
         source={{
           href: "https://protestkit.eu",
+          prefix: t("Powered by"),
           label: "PROtestkit.eu",
           faviconSrc: "/favicons/protestkit.png",
         }}

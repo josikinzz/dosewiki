@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { articleSectionAdornmentClassName } from "./articleSectionLayout";
 
@@ -76,6 +77,7 @@ export function ExpandableList<T>({
   toggleClassName,
   visibleItems,
 }: ExpandableListProps<T>) {
+  const t = useT();
   const generatedId = useId();
   const panelId = id ?? `expandable-list-${generatedId.replace(/:/g, "")}`;
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -141,8 +143,8 @@ export function ExpandableList<T>({
             className={resolvedToggleButtonClassName}
             ariaLabel={
               isExpanded
-                ? `Collapse ${ariaLabelBase}`
-                : `Expand ${ariaLabelBase}`
+                ? t("Collapse {{base}}", { base: ariaLabelBase })
+                : t("Expand {{base}}", { base: ariaLabelBase })
             }
             ariaControls={panelId}
           >
@@ -184,6 +186,7 @@ export function ExpandableText({
   maxLines = 4,
   toggleClassName,
 }: ExpandableTextProps) {
+  const t = useT();
   const generatedId = useId();
   const panelId = id ?? `expandable-text-${generatedId.replace(/:/g, "")}`;
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -217,8 +220,8 @@ export function ExpandableText({
           className={buttonClassName}
           ariaLabel={
             isExpanded
-              ? `Collapse ${ariaLabelBase}`
-              : `Expand ${ariaLabelBase}`
+              ? t("Collapse {{base}}", { base: ariaLabelBase })
+              : t("Expand {{base}}", { base: ariaLabelBase })
           }
           ariaControls={panelId}
         />

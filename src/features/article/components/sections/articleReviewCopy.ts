@@ -11,15 +11,19 @@
  * components substitute Lyrea's linked name at that position, so an editor can
  * reword the sentence without being able to break the profile link markup.
  */
+import { msg } from "@/i18n/messages";
+
 export const REVIEW_STATUS_BANNER_KEY = "review-status-banner";
 
-export const REVIEW_STATUS_BANNER_FALLBACK =
-  "Not yet reviewed: this article is pending editorial review by {{reviewer}}.";
+export const REVIEW_STATUS_BANNER_FALLBACK = msg(
+  "Not yet reviewed: this article is pending editorial review by {{reviewer}}.",
+);
 
 export const EXPERT_REVIEW_CREDIT_KEY = "expert-review-credit";
 
-export const EXPERT_REVIEW_CREDIT_FALLBACK =
-  "Subject-matter expert {{reviewer}} has reviewed this article's essentials: dosage, duration, prose, and copy. This does not guarantee factual accuracy.";
+export const EXPERT_REVIEW_CREDIT_FALLBACK = msg(
+  "Subject-matter expert {{reviewer}} has reviewed this article's essentials: dosage, duration, prose, and copy. This does not guarantee factual accuracy.",
+);
 
 const REVIEWER_TOKEN = /\{\{\s*reviewer\s*\}\}/;
 

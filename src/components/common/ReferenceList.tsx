@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useState, type MouseEvent } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import type { ProjectedCitation } from "@/lib/citationProjection";
 
 /** Citations shown before the list collapses behind a "+N" control. */
@@ -82,6 +83,7 @@ function CitationUseBacklinks({
   citation: ProjectedCitation;
   links?: CitationBacklink[];
 }) {
+  const t = useT();
   if (!links || links.length === 0) return null;
 
   const handleBacklinkClick = (
@@ -98,7 +100,7 @@ function CitationUseBacklinks({
         "theme-citation-marker relative -top-[0.28em] ml-1.5 inline-flex h-[1em] items-center gap-[0.3em] rounded-[0.12rem] px-[0.32em] align-baseline",
         "text-[0.68em] font-semibold leading-none tabular-nums",
       )}
-      aria-label={`Uses of citation ${citation.number}`}
+      aria-label={t("Uses of citation {{number}}", { number: citation.number })}
     >
       <Icon icon="lucide:arrow-up" size="0.95em" className="shrink-0" />
       {links.map((link) => (
@@ -111,7 +113,7 @@ function CitationUseBacklinks({
             "text-current transition-colors hover:bg-[color:color-mix(in_srgb,var(--theme-accent-soft)_18%,var(--theme-body-bg))]",
             "theme-focus-ring",
           )}
-          aria-label={`Go to use ${link.label} of citation ${citation.number}`}
+          aria-label={t("Go to use {{label}} of citation {{number}}", { label: link.label, number: citation.number })}
         >
           {link.label}
         </a>
@@ -190,6 +192,7 @@ export function ReferenceCitationList({
   referenceBacklinks?: Record<string, CitationBacklink[]>;
   visibleLimit?: number;
 }) {
+  const t = useT();
   const [isExpanded, setIsExpanded] = useState(false);
   const listId = useId();
   const hiddenCount = Math.max(0, citations.length - visibleLimit);
@@ -273,8 +276,8 @@ export function ReferenceCitationList({
             ariaControls={listId}
             ariaLabel={
               isExpanded
-                ? `Show only the first ${visibleLimit} citations`
-                : `Show ${hiddenCount} more citations`
+                ? t("Show only the first {{count}} citations", { count: visibleLimit })
+                : t("Show {{count}} more citations", { count: hiddenCount })
             }
           />
         </div>

@@ -5,6 +5,7 @@ import { DIFF_TOKEN } from "@/data/changelog/articleRecentChanges";
 import { CitationNeededMarker, CitationSup } from "@/features/article/components/CitedText";
 import { CITATION_MARKER_PATTERN, CITATION_NEEDED_TOKEN } from "@/lib/citations/citationTokens";
 import { cn } from "@/lib/utils";
+import { msg } from "@/i18n/messages";
 
 interface ProseDiffProps {
   /** Unified-diff-style text: `-`/`+` lines and `@@ … @@` hunk labels. */
@@ -117,8 +118,8 @@ function CitationToken({ token, citations }: { token: string; citations: Citatio
     <CitationSup
       citations={[
         number
-          ? { accessibleLabel: `Citation ${number}`, href: `${hrefBase}#ref-${id}`, label: String(number), referenceId: id }
-          : { accessibleLabel: "Source no longer cited", href: `${hrefBase}#sources`, label: "source", title: id },
+          ? { accessibleLabel: msg("Citation {{number}}"), href: `${hrefBase}#ref-${id}`, label: String(number), referenceId: id }
+          : { accessibleLabel: msg("Source no longer cited"), href: `${hrefBase}#sources`, label: "source", title: id },
       ]}
     />
   );

@@ -1,6 +1,9 @@
+"use client";
+
 import type { CSSProperties } from "react";
 
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 import dosewikiLogoAssetImport from "../../assets/dosewiki-logo.svg";
 
 type LogoAsset = string | { src: string };
@@ -43,8 +46,9 @@ export function DoseWikiLogo({
   style,
   width,
 }: DoseWikiLogoProps) {
+  const t = useT();
   const logoSource = config.logo.markPath ?? dosewikiLogoSource;
-  const resolvedAlt = alt ?? config.logo.alt;
+  const resolvedAlt = t(alt ?? config.logo.alt);
 
   const logoStyle = {
     ...style,

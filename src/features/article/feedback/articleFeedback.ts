@@ -8,6 +8,8 @@
  * articleFeedbackStore.server.ts.
  */
 
+import { msg } from "@/i18n/messages";
+
 export const ARTICLE_FEEDBACK_SCHEMA_VERSION = 1;
 
 export const ARTICLE_FEEDBACK_CATEGORIES = [
@@ -21,11 +23,11 @@ export const ARTICLE_FEEDBACK_CATEGORIES = [
 export type ArticleFeedbackCategory = (typeof ARTICLE_FEEDBACK_CATEGORIES)[number];
 
 export const ARTICLE_FEEDBACK_CATEGORY_LABELS: Record<ArticleFeedbackCategory, string> = {
-  inaccurate: "Incorrect or outdated information",
-  missing: "Missing information",
-  source: "New study or source",
-  "broken-link": "Broken link",
-  other: "Something else",
+  inaccurate: msg("Incorrect or outdated information"),
+  missing: msg("Missing information"),
+  source: msg("New study or source"),
+  "broken-link": msg("Broken link"),
+  other: msg("Something else"),
 };
 
 export const ARTICLE_FEEDBACK_IMPORTANCES = [
@@ -38,10 +40,10 @@ export const ARTICLE_FEEDBACK_IMPORTANCES = [
 export type ArticleFeedbackImportance = (typeof ARTICLE_FEEDBACK_IMPORTANCES)[number];
 
 export const ARTICLE_FEEDBACK_IMPORTANCE_LABELS: Record<ArticleFeedbackImportance, string> = {
-  critical: "Critical — a safety issue",
-  high: "High — clearly wrong",
-  normal: "Normal — worth fixing",
-  low: "Low — minor or cosmetic",
+  critical: msg("Critical — a safety issue"),
+  high: msg("High — clearly wrong"),
+  normal: msg("Normal — worth fixing"),
+  low: msg("Low — minor or cosmetic"),
 };
 
 export const ARTICLE_FEEDBACK_STATUSES = [
@@ -154,32 +156,32 @@ export function validateArticleFeedback(
   const errors: string[] = [];
 
   if (!normalized.substance_slug || normalized.substance_slug.length > ARTICLE_FEEDBACK_SUBSTANCE_MAX_LENGTH) {
-    errors.push("A valid substance reference is required.");
+    errors.push(msg("A valid substance reference is required."));
   }
 
   if (!normalized.substance_title || normalized.substance_title.length > ARTICLE_FEEDBACK_SUBSTANCE_MAX_LENGTH) {
-    errors.push("A valid substance name is required.");
+    errors.push(msg("A valid substance name is required."));
   }
 
   if (!isArticleFeedbackCategory(normalized.category)) {
-    errors.push("Pick what kind of feedback this is.");
+    errors.push(msg("Pick what kind of feedback this is."));
   }
 
   if (!isArticleFeedbackImportance(normalized.importance)) {
-    errors.push("Pick how important this is.");
+    errors.push(msg("Pick how important this is."));
   }
 
   if (!normalized.details) {
-    errors.push("Details are required — tell us what should change.");
+    errors.push(msg("Details are required — tell us what should change."));
   } else if (normalized.details.length > ARTICLE_FEEDBACK_DETAILS_MAX_LENGTH) {
     errors.push(`Details must stay under ${ARTICLE_FEEDBACK_DETAILS_MAX_LENGTH} characters.`);
   }
 
   if (normalized.source_url) {
     if (normalized.source_url.length > ARTICLE_FEEDBACK_URL_MAX_LENGTH) {
-      errors.push("The source URL is too long.");
+      errors.push(msg("The source URL is too long."));
     } else if (!/^https?:\/\//i.test(normalized.source_url)) {
-      errors.push("The source URL must start with http:// or https://.");
+      errors.push(msg("The source URL must start with http:// or https://."));
     }
   }
 
@@ -188,7 +190,7 @@ export function validateArticleFeedback(
       normalized.contact_email.length > ARTICLE_FEEDBACK_EMAIL_MAX_LENGTH ||
       !normalized.contact_email.includes("@")
     ) {
-      errors.push("The contact email does not look valid.");
+      errors.push(msg("The contact email does not look valid."));
     }
   }
 

@@ -10,6 +10,7 @@ const navigation = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => navigation.pathname,
+  useSelectedLayoutSegments: () => [],
 }));
 
 // Pinned to dose.wiki: the homepage footer and hamburger rules are that flavor's.

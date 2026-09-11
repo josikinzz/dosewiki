@@ -32,6 +32,7 @@ import {
   hasSenseEffects,
 } from "./subjectiveEffectsShared";
 import { ArticleGapNotice } from "./ArticleGapNotice";
+import { msg, useT } from "@/i18n/client";
 
 interface SubjectiveEffectsSectionProps {
   article: SubstanceArticle;
@@ -51,8 +52,9 @@ const effectFamilyGroupClassName =
 const effectFamilyHeadingClassName =
   "text-lg font-bold leading-7 tracking-tight sm:text-xl sm:leading-8";
 const effectFamilyIconClassName = "scale-110";
-const subjectiveEffectsStubText =
-  "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.";
+const subjectiveEffectsStubText = msg(
+  "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.",
+);
 
 /** Where each family's subcategory notes live. See `EffectNotePathBase`. */
 const PHYSICAL_NOTE_PATH_BASE = ["subjective_effects", "physical"] as const;
@@ -78,6 +80,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   attributionHref,
   replicationShowcaseSection,
 }: SubjectiveEffectsSectionProps) {
+  const t = useT();
   const { subjective_effects, comparisons } = article;
 
   // Track which effect is currently expanded (only one at a time across all categories)
@@ -112,7 +115,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
   const overviewText = hasOverviewNote
     ? subjective_effects.notes.overview.trim()
-    : "Effects vary widely by individual, dose, and context.";
+    : t("Effects vary widely by individual, dose, and context.");
   // What is actually stored, which is not what the paragraph above renders: an
   // empty note still draws the generic sentence. An editor seeded from the
   // rendered text would let a reviewer save that fallback as real content
@@ -150,7 +153,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
     <GuideLinkLine
       scale={guides.scale}
       guide={resolveSubstanceGuide(guides, slugify(article.title))}
-      summaryCaption={buildSummaryCaption(guides)}
+      summaryCaption={buildSummaryCaption(t, guides)}
     />
   ) : null;
 
@@ -158,7 +161,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
     <ArticleSection
       id="subjective-effects"
       icon={SUBSTANCE_SECTION_ICONS["subjective-effects"]}
-      heading="Subjective Effects"
+      heading={t("Subjective Effects")}
     >
       {/* The roadmap note qualifies the whole section, and the stub notice
           qualifies everything below it, so both lead rather than trail the
@@ -166,7 +169,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       <SEIRoadmapNotice />
       {hasStubNotice ? (
         <aside
-          aria-label="Subjective effects stub notice"
+          aria-label={t("Subjective effects stub notice")}
           role="note"
           className="theme-subjective-stub-panel backdrop-safe relative isolate flex items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-2 sm:px-4 sm:py-2.5"
         >
@@ -176,7 +179,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           {/* No max-width: the copy is one line on a normal article column, and
               the old 58ch cap wrapped it well before the container ran out. */}
           <p className="theme-subjective-stub-copy text-sm font-medium leading-6 [text-wrap:pretty]">
-            {subjectiveEffectsStubText}
+            {t(subjectiveEffectsStubText)}
           </p>
         </aside>
       ) : null}
@@ -184,8 +187,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       {/* Overview note as intro paragraph, or fallback to generic text */}
       <EditableValue
         as="div"
-        emptyLabel="Add an overview note"
-        label="Subjective effects overview"
+        emptyLabel={t("Add an overview note")}
+        label={t("Subjective effects overview")}
         path="subjective_effects.notes.overview"
         value={overviewNote}
       >
@@ -199,7 +202,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Physical Effects */}
         {hasPhysical && (
           <ArticleSectionGroup
-            heading="Physical"
+            heading={t("Physical")}
             icon="lucide:hand"
             spacing="loose"
             className={effectFamilyGroupClassName}
@@ -209,7 +212,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             {hasPhysicalNote && (
               <EditableValue
                 as="div"
-                label="Physical effects note"
+                label={t("Physical effects note")}
                 path="subjective_effects.notes.physical"
                 value={subjective_effects.notes.physical}
               >
@@ -220,8 +223,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             )}
             {!hasPhysicalNote && (
               <EditableSlot
-                emptyLabel="Add a physical effects note"
-                label="Physical effects note"
+                emptyLabel={t("Add a physical effects note")}
+                label={t("Physical effects note")}
                 path="subjective_effects.notes.physical"
                 value={subjective_effects.notes?.physical ?? ""}
               />
@@ -240,7 +243,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Cognitive Effects */}
         {hasCognitive && (
           <ArticleSectionGroup
-            heading="Cognitive"
+            heading={t("Cognitive")}
             icon="fluent:thinking-24-regular"
             spacing="loose"
             className={effectFamilyGroupClassName}
@@ -250,7 +253,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             {hasCognitiveNote && (
               <EditableValue
                 as="div"
-                label="Cognitive effects note"
+                label={t("Cognitive effects note")}
                 path="subjective_effects.notes.cognitive"
                 value={subjective_effects.notes.cognitive}
               >
@@ -261,8 +264,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
             )}
             {!hasCognitiveNote && (
               <EditableSlot
-                emptyLabel="Add a cognitive effects note"
-                label="Cognitive effects note"
+                emptyLabel={t("Add a cognitive effects note")}
+                label={t("Cognitive effects note")}
                 path="subjective_effects.notes.cognitive"
                 value={subjective_effects.notes?.cognitive ?? ""}
               />
@@ -281,7 +284,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Progressive Stages */}
         {hasProgressiveStages && subjective_effects.progressive_stages && (
           <ArticleSectionGroup
-            heading="Progressive Stages"
+            heading={t("Progressive Stages")}
             icon="lucide:list-ordered"
             spacing="loose"
             className={effectFamilyGroupClassName}
@@ -320,7 +323,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         )}
 
         {/* Sensory categories - Visual, Auditory, then others */}
-        {SENSORY_CATEGORIES.map(({ key, label, icon: senseIcon }) => {
+        {SENSORY_CATEGORIES.map(({ key, label: rawLabel, icon: senseIcon }) => {
+          const label = t(rawLabel);
           const senseCategory =
             subjective_effects.sensory[
               key as keyof typeof subjective_effects.sensory
@@ -348,7 +352,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               {hasSenseNote && (
                 <EditableValue
                   as="div"
-                  label={`${label} note`}
+                  label={t("{{label}} note", { label })}
                   path={senseNotePath}
                   value={senseCategory.note}
                 >
@@ -359,8 +363,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               )}
               {!hasSenseNote && (
                 <EditableSlot
-                  emptyLabel={`Add a ${label.toLowerCase()} note`}
-                  label={`${label} note`}
+                  emptyLabel={t("Add a {{label}} note", { label: label.toLowerCase() })}
+                  label={t("{{label}} note", { label })}
                   path={senseNotePath}
                   value={senseCategory.note ?? ""}
                 />
@@ -380,7 +384,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Comparisons */}
         {hasComparisons && (
           <ArticleSectionGroup
-            heading="Comparisons"
+            heading={t("Comparisons")}
             icon="lucide:git-compare-arrows"
             spacing="loose"
             className={effectFamilyGroupClassName}

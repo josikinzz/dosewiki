@@ -18,6 +18,7 @@ import { EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
+import { useT } from "@/i18n/client";
 import {
   ArticleGapNotice,
   ArticleSubsectionGapNotice,
@@ -176,6 +177,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   article,
   onSelectMechanism,
 }: PharmacologySectionProps) {
+  const t = useT();
   const pharmacology = normalizePharmacologySection(article.pharmacology);
 
   // What is actually stored, as opposed to what the normalizer hands back. The
@@ -250,12 +252,12 @@ export const PharmacologySection = memo(function PharmacologySection({
     <ArticleSection
       id="pharmacology"
       icon={SUBSTANCE_SECTION_ICONS["pharmacology"]}
-      heading="Pharmacology"
+      heading={t("Pharmacology")}
     >
       {hasPharmacodynamics && (
         <ArticleSection.Group
           icon="lucide:brain-circuit"
-          heading="Pharmacodynamics"
+          heading={t("Pharmacodynamics")}
         >
           {/* Editable only when the stored field is the source of what is on
               screen. When it is empty the paragraphs are `summary` on loan, and
@@ -265,7 +267,7 @@ export const PharmacologySection = memo(function PharmacologySection({
           {hasStoredPharmacodynamics ? (
             <EditableValue
               as="div"
-              label="Pharmacodynamics"
+              label={t("Pharmacodynamics")}
               path="pharmacology.pharmacodynamics"
               value={storedPharmacodynamics}
             >
@@ -277,8 +279,8 @@ export const PharmacologySection = memo(function PharmacologySection({
 
           {!hasStoredPharmacodynamics && (
             <EditableSlot
-              emptyLabel="Add pharmacodynamics"
-              label="Pharmacodynamics"
+              emptyLabel={t("Add pharmacodynamics")}
+              label={t("Pharmacodynamics")}
               path="pharmacology.pharmacodynamics"
               value={storedPharmacodynamics}
             />
@@ -286,7 +288,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
           {hasBindingSites && (
             <ExpandableList
-              ariaLabelBase="binding sites"
+              ariaLabelBase={t("binding sites")}
               defaultExpanded={!hasSummary}
               collapsedCount={pharmacology.binding_sites.length}
               hideToggleWhenExpanded
@@ -295,7 +297,7 @@ export const PharmacologySection = memo(function PharmacologySection({
               collapsedToggleContent={
                 <CollapsedPharmacologyToggle
                   icon="lucide:key"
-                  title="Binding Sites"
+                  title={t("Binding Sites")}
                 />
               }
               toggleButtonClassName={({ isExpanded }) =>
@@ -314,7 +316,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                 return (
                   <ArticleSection.InfoCard
                     icon="lucide:key"
-                    title="Binding Sites"
+                    title={t("Binding Sites")}
                     titleAdornment={
                       <CitationMarker
                         article={article}
@@ -328,7 +330,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                         variant="count"
                         count={hiddenCount}
                         className="theme-control-pill-quiet"
-                        ariaLabel="Collapse binding sites"
+                        ariaLabel={t("Collapse binding sites")}
                       />
                     }
                     variant="subtle"
@@ -442,8 +444,8 @@ export const PharmacologySection = memo(function PharmacologySection({
           second one for that case. The two conditions are exclusive. */}
       {!hasPharmacodynamics && (
         <EditableSlot
-          emptyLabel="Add pharmacodynamics"
-          label="Pharmacodynamics"
+          emptyLabel={t("Add pharmacodynamics")}
+          label={t("Pharmacodynamics")}
           path="pharmacology.pharmacodynamics"
           value={storedPharmacodynamics}
         />
@@ -454,13 +456,13 @@ export const PharmacologySection = memo(function PharmacologySection({
           identically to a substance whose kinetics nobody has ever measured. */}
       <ArticleSection.Group
         icon="material-symbols:metabolism-rounded"
-        heading="Pharmacokinetics"
+        heading={t("Pharmacokinetics")}
       >
         {hasPharmacokinetics &&
           (hasStoredPharmacokinetics ? (
             <EditableValue
               as="div"
-              label="Pharmacokinetics"
+              label={t("Pharmacokinetics")}
               path="pharmacology.pharmacokinetics"
               value={storedPharmacokinetics}
             >
@@ -480,8 +482,8 @@ export const PharmacologySection = memo(function PharmacologySection({
 
         {!hasStoredPharmacokinetics && (
           <EditableSlot
-            emptyLabel="Add pharmacokinetics"
-            label="Pharmacokinetics"
+            emptyLabel={t("Add pharmacokinetics")}
+            label={t("Pharmacokinetics")}
             path="pharmacology.pharmacokinetics"
             value={storedPharmacokinetics}
           />
@@ -489,7 +491,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
         {hasMetabolites && (
           <ExpandableList
-            ariaLabelBase="metabolites"
+            ariaLabelBase={t("metabolites")}
             defaultExpanded={!hasPharmacokinetics}
             collapsedCount={pharmacology.metabolites.length}
             hideToggleWhenExpanded
@@ -498,7 +500,7 @@ export const PharmacologySection = memo(function PharmacologySection({
             collapsedToggleContent={
               <CollapsedPharmacologyToggle
                 icon="material-symbols:track-changes-rounded"
-                title="Metabolites"
+                title={t("Metabolites")}
               />
             }
             toggleButtonClassName={({ isExpanded }) =>
@@ -514,7 +516,7 @@ export const PharmacologySection = memo(function PharmacologySection({
               return (
                 <ArticleSection.InfoCard
                   icon="material-symbols:track-changes-rounded"
-                  title="Metabolites"
+                  title={t("Metabolites")}
                   titleAdornment={
                     <CitationMarker
                       article={article}
@@ -528,7 +530,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                       variant="count"
                       count={hiddenCount}
                       className="theme-control-pill-quiet"
-                      ariaLabel="Collapse metabolites"
+                      ariaLabel={t("Collapse metabolites")}
                     />
                   }
                   variant="subtle"
@@ -558,12 +560,12 @@ export const PharmacologySection = memo(function PharmacologySection({
                             )}
                             {parsed.isActive === true && (
                               <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium">
-                                active
+                                {t("active")}
                               </span>
                             )}
                             {parsed.isActive === false && (
                               <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
-                                inactive
+                                {t("inactive")}
                               </span>
                             )}
                           </div>

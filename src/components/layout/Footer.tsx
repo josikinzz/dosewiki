@@ -6,12 +6,15 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import type { RouteChromeModel } from "@/types/navigation";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
+import { useT } from "@/i18n/client";
 
 interface FooterProps {
   model?: RouteChromeModel;
 }
 
 export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
+  const t = useT();
+
   return (
     // `theme-chrome-dark` pins the dark palette on this subtree exactly as it does
     // on the header, so the footer bar stays the same colour in light mode instead
@@ -27,7 +30,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               page that renders this footer, so repeating them below the fold was pure echo;
               the footer's job is the disclaimer, the reuse terms, and the supporter credit. */}
           <div className="flex min-w-0 max-w-prose flex-col">
-            {SITE_FLAVOR_CONFIG.footer.tagline
+            {t(SITE_FLAVOR_CONFIG.footer.tagline)
               .split("\n\n")
               .map((paragraph, index) => (
                 <p
@@ -54,8 +57,8 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   key={item.id}
                   href={item.href}
                   scroll={false}
-                  aria-label={item.label}
-                  title={item.label}
+                  aria-label={t(item.label)}
+                  title={t(item.label)}
                   className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
                 >
                   <Icon icon={footerIcon} size={18} />
@@ -71,7 +74,7 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={item.label}
+                  aria-label={t(item.label)}
                   className="theme-icon-button theme-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent transition-colors"
                 >
                   <Icon icon={footerIcon} size={18} />

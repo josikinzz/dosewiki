@@ -11,6 +11,7 @@ import {
 } from "@/components/common/ExternalSourcePill";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
+import { msg } from "@/i18n/messages";
 import { cn } from "@/lib/utils";
 import { articleSectionAdornmentClassName } from "./articleSectionLayout";
 
@@ -450,21 +451,24 @@ export type ArticleSectionStateProps = Omit<
   title?: ReactNode;
 };
 
+// The consumer renders these through its own `t`: this module has no client
+// boundary of its own, so the copy stays a catalog key here and the render
+// site passes the translated `title`/`description` (see ReagentSection).
 const articleSectionStateDefaults = {
   loading: {
     icon: "lucide:loader-circle",
-    title: "Loading section",
-    description: "Content is being prepared.",
+    title: msg("Loading section"),
+    description: msg("Content is being prepared."),
   },
   empty: {
     icon: "lucide:file-search",
-    title: "No section data",
-    description: "This section does not have public content yet.",
+    title: msg("No section data"),
+    description: msg("This section does not have public content yet."),
   },
   error: {
     icon: "lucide:triangle-alert",
-    title: "Section unavailable",
-    description: "This section could not be displayed.",
+    title: msg("Section unavailable"),
+    description: msg("This section could not be displayed."),
   },
 } satisfies Record<
   ArticleSectionStateKind,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
+import { translateMessage, type Translate } from "@/i18n/messages";
 import type { SubstanceArticle } from "@/schema";
 import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import { ALWAYS_RENDERED_PUBLIC_SECTION_IDS } from "@/schema/substance/sectionManifest";
@@ -20,6 +21,8 @@ const NEIGHBOURS = [
   { slug: "2c-i", name: "2C-I" },
 ];
 
+const t: Translate = (text, values) => translateMessage("en", text, values);
+
 function articleWithGaps(section_gaps: SubstanceArticle["section_gaps"]): SubstanceArticle {
   return { ...createEmptyArticle(), section_gaps };
 }
@@ -28,10 +31,10 @@ describe("article gap copy", () => {
   it("agrees the verb with the topic for hedged sections", () => {
     const gap = { reason: "sources-silent" as const, family: "2C-x phenethylamines", neighbours: NEIGHBOURS };
 
-    expect(buildArticleGapCopy(ARTICLE_GAP_POLICIES.subjective_effects, gap).lead).toBe(
+    expect(buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.subjective_effects, gap).lead).toBe(
       "Subjective effects are likely somewhat similar to other 2C-x phenethylamines:",
     );
-    expect(buildArticleGapCopy(ARTICLE_GAP_POLICIES.tolerance, gap).lead).toBe(
+    expect(buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.tolerance, gap).lead).toBe(
       "Tolerance is likely somewhat similar to other 2C-x phenethylamines:",
     );
   });
@@ -40,26 +43,26 @@ describe("article gap copy", () => {
     const gap = { reason: "sources-silent" as const, family: "2C-x phenethylamines", neighbours: NEIGHBOURS };
 
     for (const key of ["dosage_duration", "harm_potential", "legality"] as const) {
-      const copy = buildArticleGapCopy(ARTICLE_GAP_POLICIES[key], gap);
+      const copy = buildArticleGapCopy(t, ARTICLE_GAP_POLICIES[key], gap);
       expect(copy.lead).toBe("Better documented nearby:");
       expect(copy.lead).not.toMatch(/likely|similar/);
       // Each carries the caution that stops the list reading as advice.
       expect(copy.caution).toBeTruthy();
     }
 
-    expect(buildArticleGapCopy(ARTICLE_GAP_POLICIES.harm_potential, gap).caution).toBe(
+    expect(buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.harm_potential, gap).caution).toBe(
       "An absence of harm data is not evidence of safety.",
     );
   });
 
   it("omits the neighbour line entirely where there is nothing to infer", () => {
     const gap = { reason: "sources-silent" as const, family: "2C-x phenethylamines", neighbours: NEIGHBOURS };
-    expect(buildArticleGapCopy(ARTICLE_GAP_POLICIES.history_culture, gap).lead).toBe("");
+    expect(buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.history_culture, gap).lead).toBe("");
   });
 
   it("drops the lead and the caution when there are no neighbours", () => {
     const gap = { reason: "sources-silent" as const, family: null, neighbours: [] };
-    const copy = buildArticleGapCopy(ARTICLE_GAP_POLICIES.legality, gap);
+    const copy = buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.legality, gap);
     expect(copy.lead).toBe("");
     expect(copy.caution).toBeUndefined();
     expect(copy.title).toBe("No published legal status data");
@@ -68,10 +71,10 @@ describe("article gap copy", () => {
   it("titles an unworked section differently from an evidenced absence", () => {
     const base = { family: null, neighbours: [] };
     expect(
-      buildArticleGapCopy(ARTICLE_GAP_POLICIES.tolerance, { ...base, reason: "sources-silent" }).title,
+      buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.tolerance, { ...base, reason: "sources-silent" }).title,
     ).toBe("No published tolerance data");
     expect(
-      buildArticleGapCopy(ARTICLE_GAP_POLICIES.tolerance, { ...base, reason: "not-written" }).title,
+      buildArticleGapCopy(t, ARTICLE_GAP_POLICIES.tolerance, { ...base, reason: "not-written" }).title,
     ).toBe("Tolerance not written up yet");
   });
 });
@@ -107,23 +110,23 @@ describe("subsection gap copy", () => {
   it("never calls a single missing fact a stub", () => {
     for (const policy of Object.values(SUBSECTION_GAP_POLICIES)) {
       for (const reason of ["not-written", "sources-silent"] as const) {
-        const copy = buildSubsectionGapCopy(policy, reason);
+        const copy = buildSubsectionGapCopy(t, policy, reason);
         expect(`${copy.label} ${copy.status}`).not.toMatch(/stub/i);
       }
     }
   });
 
   it("names the slot rather than repeating the subsection heading above it", () => {
-    expect(buildSubsectionGapCopy(SUBSECTION_GAP_POLICIES.pharmacokinetics, "not-written").label)
+    expect(buildSubsectionGapCopy(t, SUBSECTION_GAP_POLICIES.pharmacokinetics, "not-written").label)
       .not.toMatch(/pharmacokinetics/i);
   });
 
   it("separates an unworked slot from an evidenced absence", () => {
-    expect(buildSubsectionGapCopy(SUBSECTION_GAP_POLICIES.metabolites, "not-written").status).toBe(
+    expect(buildSubsectionGapCopy(t, SUBSECTION_GAP_POLICIES.metabolites, "not-written").status).toBe(
       "none documented yet",
     );
     expect(
-      buildSubsectionGapCopy(SUBSECTION_GAP_POLICIES.metabolites, "sources-silent").status,
+      buildSubsectionGapCopy(t, SUBSECTION_GAP_POLICIES.metabolites, "sources-silent").status,
     ).toBe("none reported in the literature");
   });
 });
@@ -177,13 +180,13 @@ describe("buildArticleStubCopy", () => {
   }
 
   it("counts the empty sections when the count is what qualified the article", () => {
-    expect(buildArticleStubCopy(verdict(["missing-sections"], 3), 7)).toBe(
+    expect(buildArticleStubCopy(t, verdict(["missing-sections"], 3), 7)).toBe(
       `Three of its seven sections have no published data. ${CLOSER}`,
     );
   });
 
   it("names the missing dosage data instead of a count that did not trigger it", () => {
-    const copy = buildArticleStubCopy(verdict(["no-dosage"], 2), 7);
+    const copy = buildArticleStubCopy(t, verdict(["no-dosage"], 2), 7);
 
     expect(copy).toBe(`No dosage or duration data has been published for it. ${CLOSER}`);
     // The two empty sections are real, but two of seven is not why it is a stub.
@@ -191,7 +194,7 @@ describe("buildArticleStubCopy", () => {
   });
 
   it("states both reasons when both qualify", () => {
-    expect(buildArticleStubCopy(verdict(["missing-sections", "no-dosage"], 7), 7)).toBe(
+    expect(buildArticleStubCopy(t, verdict(["missing-sections", "no-dosage"], 7), 7)).toBe(
       `No dosage or duration data has been published for it. Seven of its seven sections have no published data. ${CLOSER}`,
     );
   });

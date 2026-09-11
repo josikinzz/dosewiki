@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { Icon } from "./Icon";
 
@@ -109,6 +110,9 @@ export function ExpandButton({
   ariaLabel,
   ariaControls,
 }: ExpandButtonProps) {
+  // Always under a client boundary: `onToggle` is a function prop, which only
+  // a client component can supply, so the hook is safe without a directive.
+  const t = useT();
   const iconSize = ICON_SIZES[variant];
 
   return (
@@ -117,7 +121,7 @@ export function ExpandButton({
       onClick={onToggle}
       aria-expanded={isExpanded}
       aria-controls={ariaControls}
-      aria-label={ariaLabel ?? (isExpanded ? "Collapse section" : "Expand section")}
+      aria-label={ariaLabel ?? (isExpanded ? t("Collapse section") : t("Expand section"))}
       className={cn(
         "relative",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]",

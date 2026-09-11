@@ -180,9 +180,10 @@ describe("site font selection", () => {
 
     // The subset was generated with --text pinned to this label; if the picker's copy
     // changes, the subset (public/fonts/lexend/README.md has the command) must change
-    // with it or the label falls back to the body face.
+    // with it or the label falls back to the body face. On a locale mirror the
+    // translated label has no glyphs in the subset and falls back by design.
     const pickerSource = stripComments(read("src/app/_components/FontPicker.tsx"));
-    expect(pickerSource).toContain('label: "Dyslexic"');
+    expect(pickerSource).toContain('label: msg("Dyslexic")');
     expect(pickerSource).toContain('labelClassName: "theme-font-preview-dyslexic"');
 
     // Effect Index has no picker, so no preview registration either.

@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useT } from "@/i18n/client";
 import {
   ARTICLE_FEEDBACK_CATEGORIES,
   ARTICLE_FEEDBACK_CATEGORY_LABELS,
@@ -49,10 +50,11 @@ export function FeedbackForm({
   onSubmit,
   onCancel,
 }: FeedbackFormProps) {
+  const t = useT();
   return (
 <form className="max-w-2xl space-y-5" onSubmit={onSubmit}>
   <div className="grid gap-4 sm:grid-cols-2">
-    <FeedbackField id={`${fieldPrefix}-category`} label="What kind of feedback?">
+    <FeedbackField id={`${fieldPrefix}-category`} label={t("What kind of feedback?")}>
       <Select
         value={draft.category}
         onValueChange={(value) => setField("category", value as ArticleFeedbackCategory)}
@@ -63,14 +65,14 @@ export function FeedbackForm({
         <SelectContent>
           {ARTICLE_FEEDBACK_CATEGORIES.map((category) => (
             <SelectItem key={category} value={category}>
-              {ARTICLE_FEEDBACK_CATEGORY_LABELS[category]}
+              {t(ARTICLE_FEEDBACK_CATEGORY_LABELS[category])}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
     </FeedbackField>
 
-    <FeedbackField id={`${fieldPrefix}-importance`} label="How urgent is it?">
+    <FeedbackField id={`${fieldPrefix}-importance`} label={t("How urgent is it?")}>
       <Select
         value={draft.importance}
         onValueChange={(value) => setField("importance", value as ArticleFeedbackImportance)}
@@ -81,7 +83,7 @@ export function FeedbackForm({
         <SelectContent>
           {ARTICLE_FEEDBACK_IMPORTANCES.map((importance) => (
             <SelectItem key={importance} value={importance}>
-              {ARTICLE_FEEDBACK_IMPORTANCE_LABELS[importance]}
+              {t(ARTICLE_FEEDBACK_IMPORTANCE_LABELS[importance])}
             </SelectItem>
           ))}
         </SelectContent>
@@ -89,13 +91,13 @@ export function FeedbackForm({
     </FeedbackField>
   </div>
 
-  <FeedbackField id={`${fieldPrefix}-details`} label="Details" required>
+  <FeedbackField id={`${fieldPrefix}-details`} label={t("Details")} required>
     <Textarea
       id={`${fieldPrefix}-details`}
       value={draft.details}
       required
       maxLength={ARTICLE_FEEDBACK_DETAILS_MAX_LENGTH}
-      placeholder="What should change, and why? Point at the section if you can."
+      placeholder={t("What should change, and why? Point at the section if you can.")}
       onChange={(event) => setField("details", event.target.value)}
     />
     <p className="theme-text-faint text-right text-xs">
@@ -104,18 +106,18 @@ export function FeedbackForm({
   </FeedbackField>
 
   <div className="grid gap-4 sm:grid-cols-2">
-    <FeedbackField id={`${fieldPrefix}-source`} label="Source link (optional)">
+    <FeedbackField id={`${fieldPrefix}-source`} label={t("Source link (optional)")}>
       <Input
         id={`${fieldPrefix}-source`}
         type="url"
         value={draft.source_url}
         autoComplete="url"
-        placeholder="https://… (study, PubMed, label)"
+        placeholder={t("https://… (study, PubMed, label)")}
         onChange={(event) => setField("source_url", event.target.value)}
       />
     </FeedbackField>
 
-    <FeedbackField id={`${fieldPrefix}-email`} label="Email (optional, for a reply)">
+    <FeedbackField id={`${fieldPrefix}-email`} label={t("Email (optional, for a reply)")}>
       <Input
         id={`${fieldPrefix}-email`}
         type="email"
@@ -128,7 +130,7 @@ export function FeedbackForm({
   </div>
 
   <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
-    <label htmlFor={`${fieldPrefix}-website`}>Website</label>
+    <label htmlFor={`${fieldPrefix}-website`}>{t("Website")}</label>
     <input
       id={`${fieldPrefix}-website`}
       name="website"
@@ -142,13 +144,13 @@ export function FeedbackForm({
   {state.kind === "error" ? (
     <Alert variant="destructive" aria-live="assertive">
       <Icon icon="lucide:circle-alert" size={18} />
-      <AlertTitle>Feedback not sent</AlertTitle>
+      <AlertTitle>{t("Feedback not sent")}</AlertTitle>
       <AlertDescription>
-        <p>{state.message}</p>
+        <p>{t(state.message)}</p>
         {state.details.length > 0 ? (
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {state.details.map((detail) => (
-              <li key={detail}>{detail}</li>
+              <li key={detail}>{t(detail)}</li>
             ))}
           </ul>
         ) : null}
@@ -163,10 +165,10 @@ export function FeedbackForm({
       ) : (
         <Icon icon="lucide:send" size={16} />
       )}
-      {state.kind === "submitting" ? "Sending" : "Send feedback"}
+      {state.kind === "submitting" ? t("Sending") : t("Send feedback")}
     </Button>
     <Button type="button" variant="outline" onClick={onCancel}>
-      Cancel
+      {t("Cancel")}
     </Button>
   </div>
 </form>

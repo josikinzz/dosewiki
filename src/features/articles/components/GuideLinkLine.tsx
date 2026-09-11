@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Fragment } from "react";
+import { useT } from "@/i18n/client";
 import { Icon } from "@/components/common/Icon";
 import { quietLinkClassName } from "@/components/common/ProseLink";
 import { cn } from "@/lib/utils";
@@ -38,9 +41,11 @@ interface GuideLinkLineProps {
  * at secondary weight rather than shouting in accent. Two captions in a row
  * that were styled differently read as two unrelated warnings.
  *
- * No hooks, so it renders inside server components.
+ * A client component so `useT` can pick the mirror's language; its props are
+ * plain data, so server pages render it as they always have.
  */
 export function GuideLinkLine({ scale, guide, summaryCaption, className }: GuideLinkLineProps) {
+  const t = useT();
   // Order runs from the most specific reading to the most general: the scale
   // that measures this experience, the guide to this exact substance, then the
   // class descriptions that hold for every substance in it.
@@ -48,7 +53,7 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
     ...(scale ? [{ href: articleHref(scale.slug), label: scale.title }] : []),
     // "guide" is carried in the label because the title alone ("DXM") reads as
     // a link to the substance rather than to the writing.
-    ...(guide ? [{ href: articleHref(guide.slug), label: `${guide.title} guide` }] : []),
+    ...(guide ? [{ href: articleHref(guide.slug), label: t("{{title}} guide", { title: guide.title }) }] : []),
   ];
   const summaries = summaryCaption?.entries ?? [];
   const groupLabel = summaryCaption?.groupLabel;
@@ -75,7 +80,7 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
         aria-hidden
       />
       <span>
-        See also:{" "}
+        {t("See also:")}{" "}
         {entries.map((entry, index) => (
           <Fragment key={entry.href}>
             {index > 0 ? ", " : null}

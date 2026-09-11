@@ -1,5 +1,8 @@
+"use client";
+
 import { type ReactNode } from "react";
 import { AnchorScrollRestore } from "@/components/common/AnchorScrollRestore";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 interface StickyTocLayoutProps {
@@ -40,6 +43,7 @@ export function StickyTocLayout({
   contentClassName,
   className,
 }: StickyTocLayoutProps) {
+  const t = useT();
   return (
     <div
       className={cn(
@@ -54,7 +58,7 @@ export function StickyTocLayout({
       {toc ? (
         <aside
           className="hidden w-[210px] shrink-0 min-[1200px]:block"
-          aria-label="On this page"
+          aria-label={t("On this page")}
         >
           <div className="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto overflow-x-hidden">
             {toc}

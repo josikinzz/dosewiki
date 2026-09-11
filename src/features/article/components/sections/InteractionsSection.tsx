@@ -12,6 +12,7 @@ import { slugify } from "@/utils/slug";
 import { CitedText } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { ArticleGapNotice } from "./ArticleGapNotice";
+import { msg, useT } from "@/i18n/client";
 
 const INTERACTIONS_SOURCE = {
   href: "https://combo.tripsit.me/",
@@ -23,7 +24,7 @@ const INTERACTIONS_SOURCE = {
  * Same destination, different claim: with no table to attribute, "Powered by"
  * would credit a source for data the page does not have.
  */
-const INTERACTIONS_ELSEWHERE = { ...INTERACTIONS_SOURCE, prefix: "Check" };
+const INTERACTIONS_ELSEWHERE = { ...INTERACTIONS_SOURCE, prefix: msg("Check") };
 
 interface InteractionsSectionProps {
   article: SubstanceArticle;
@@ -46,36 +47,36 @@ const INTERACTION_CATEGORIES: Array<{
 }> = [
     {
       key: "dangerous",
-      label: "Dangerous",
+      label: msg("Dangerous"),
       icon: "lucide:skull",
       borderClass: "theme-interaction-danger",
       bgClass: "",
       iconClass: "text-[color:var(--theme-semantic-danger-badge-text)]",
-      priority: "Highest risk",
+      priority: msg("Highest risk"),
       badgeClass: "theme-interaction-severity-badge-danger",
-      definition: "These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death.",
+      definition: msg("These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death."),
     },
     {
       key: "unsafe",
-      label: "Unsafe",
+      label: msg("Unsafe"),
       icon: "lucide:hospital",
       borderClass: "theme-interaction-unsafe",
       bgClass: "",
       iconClass: "text-[color:var(--theme-semantic-unsafe-badge-text)]",
-      priority: "Avoid",
+      priority: msg("Avoid"),
       badgeClass: "theme-interaction-severity-badge-unsafe",
-      definition: "There is considerable risk of physical harm when taking these combinations, they should be avoided where possible.",
+      definition: msg("There is considerable risk of physical harm when taking these combinations, they should be avoided where possible."),
     },
     {
       key: "caution",
-      label: "Caution",
+      label: msg("Caution"),
       icon: "lucide:triangle-alert",
       borderClass: "theme-interaction-caution",
       bgClass: "",
       iconClass: "text-[color:var(--theme-semantic-caution-badge-text)]",
-      priority: "Use caution",
+      priority: msg("Use caution"),
       badgeClass: "theme-interaction-severity-badge-caution",
-      definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
+      definition: msg("These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination."),
     },
   ];
 
@@ -102,6 +103,7 @@ const InteractionBadge = memo(function InteractionBadge({
   article: SubstanceArticle;
   tone: string;
 }) {
+  const t = useT();
   const hasRationale = !!item.rationale;
   const href = hasPublicRoute ? `/${item.substanceSlug}` : null;
   const panelId = `interaction-${item.substanceSlug}-${tone}`;
@@ -142,7 +144,7 @@ const InteractionBadge = memo(function InteractionBadge({
           onToggle={handleToggle}
           variant="card"
           className={`theme-interaction-expanded-toggle theme-interaction-expanded-toggle-${tone} theme-text-secondary absolute top-3 right-3`}
-          ariaLabel={`Collapse ${item.substance} interaction rationale`}
+          ariaLabel={t("Collapse {{substance}} interaction rationale", { substance: item.substance })}
           ariaControls={panelId}
         />
         {href ? (
@@ -183,7 +185,7 @@ const InteractionBadge = memo(function InteractionBadge({
           onToggle={handleToggle}
           variant="inline"
           className="theme-text-secondary min-h-0 p-0"
-          ariaLabel={`Expand ${item.substance} interaction rationale`}
+          ariaLabel={t("Expand {{substance}} interaction rationale", { substance: item.substance })}
           ariaControls={panelId}
         />
       )}
@@ -196,6 +198,7 @@ export const InteractionsSection = memo(function InteractionsSection({
   linkableSubstanceSlugs = [],
   onSelectInteraction,
 }: InteractionsSectionProps) {
+  const t = useT();
   const { interactions } = article;
   const linkableSubstanceSlugSet = useMemo(
     () => new Set(linkableSubstanceSlugs),
@@ -247,7 +250,11 @@ export const InteractionsSection = memo(function InteractionsSection({
       <ArticleGapNotice
         article={article}
         section="interactions"
-        footer={<ArticleSection.SourceFooter source={INTERACTIONS_ELSEWHERE} />}
+        footer={
+          <ArticleSection.SourceFooter
+            source={{ ...INTERACTIONS_ELSEWHERE, prefix: t(INTERACTIONS_ELSEWHERE.prefix) }}
+          />
+        }
       />
     );
   }
@@ -256,7 +263,7 @@ export const InteractionsSection = memo(function InteractionsSection({
     <ArticleSection
       id="interactions"
       icon={SUBSTANCE_SECTION_ICONS["interactions"]}
-      heading="Interactions"
+      heading={t("Interactions")}
       headerClassName="theme-accent-icon-scope"
     >
       {/* Single column layout */}
@@ -273,14 +280,14 @@ export const InteractionsSection = memo(function InteractionsSection({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="theme-text-primary flex items-center gap-2 font-semibold">
                   <Icon icon={icon} size={20} className={`theme-accent-icon ${iconClass}`} />
-                  {label}
+                  {t(label)}
                 </h3>
                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${badgeClass}`}>
                   <Icon icon="lucide:shield-alert" size={12} />
-                  {priority}
+                  {t(priority)}
                 </span>
               </div>
-              <p className="theme-text-faint mt-2 text-xs leading-relaxed">{definition}</p>
+              <p className="theme-text-faint mt-2 text-xs leading-relaxed">{t(definition)}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {items.map((item) => (
                   <InteractionBadge
@@ -300,7 +307,7 @@ export const InteractionsSection = memo(function InteractionsSection({
         })}
       </div>
 
-      <ArticleSection.SourceFooter source={INTERACTIONS_SOURCE} />
+      <ArticleSection.SourceFooter source={{ ...INTERACTIONS_SOURCE, prefix: t("Powered by") }} />
     </ArticleSection>
   );
 });

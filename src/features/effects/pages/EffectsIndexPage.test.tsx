@@ -7,6 +7,7 @@ const { router } = vi.hoisted(() => ({ router: { replace: () => {} } }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
+  useSelectedLayoutSegments: () => [],
 }));
 import { EffectsIndexPage } from "./EffectsIndexPage";
 

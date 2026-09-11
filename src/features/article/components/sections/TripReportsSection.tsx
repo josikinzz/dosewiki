@@ -11,6 +11,7 @@ import {
   prepareSubstanceTripReports,
   type PreparedSubstanceTripReports,
 } from "@/features/reports/domain/tripReportIndex";
+import { useT } from "@/i18n/client";
 import type { TripReport } from "@/types/tripReport";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { isPlainLeftClick } from "@/utils/navigation";
@@ -37,6 +38,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   fromSubstanceSlug,
   onSelectReport,
 }: TripReportsSectionProps) {
+  const t = useT();
   const prepared = useMemo(
     () =>
       preparedReports ??
@@ -56,10 +58,10 @@ export const TripReportsSection = memo(function TripReportsSection({
     <ArticleSection
       id="trip-reports"
       icon={SUBSTANCE_SECTION_ICONS["trip-reports"]}
-      heading="Trip Reports"
+      heading={t("Trip Reports")}
     >
       <ExpandableList
-        ariaLabelBase="trip reports"
+        ariaLabelBase={t("trip reports")}
         collapsedCount={prepared.totalHidden}
         hasCollapsedItems={prepared.hasMore}
         items={prepared.allReports}
@@ -101,7 +103,7 @@ export const TripReportsSection = memo(function TripReportsSection({
                       size={14}
                       className="theme-accent-icon theme-accent-emphasis"
                     />
-                    Combinations
+                    {t("Combinations")}
                   </h3>
                   <div className="theme-horizontal-divider flex-1" />
                 </div>
@@ -144,6 +146,7 @@ const CompactReportRow = memo(function CompactReportRow({
   fromSubstanceSlug?: string;
   onSelectReport?: (slug: string) => void;
 }) {
+  const t = useT();
   const { title, subject, featured, slug } = report;
   const href = publicHref.report(slug, { fromSubstanceSlug });
 
@@ -180,12 +183,12 @@ const CompactReportRow = memo(function CompactReportRow({
                 icon="lucide:star"
                 size={14}
                 className="theme-icon-accent shrink-0 fill-current"
-                aria-label="Featured report"
+                aria-label={t("Featured report")}
               />
             ) : null}
           </span>
           <span className="theme-report-metadata-text mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
-            {subject.trip_date ? <span>on {subject.trip_date}</span> : null}
+            {subject.trip_date ? <span>{t("on {{date}}", { date: subject.trip_date })}</span> : null}
             <span className="italic">— {subject.name}</span>
           </span>
         </span>

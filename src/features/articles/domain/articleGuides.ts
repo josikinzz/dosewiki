@@ -9,6 +9,7 @@
  * family, the `/effects/category/*` pages, and the SEI Library tab.
  */
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "@/features/psychoactive-summaries/summaryDefinitions";
+import { msg, type Translate } from "@/i18n/messages";
 
 export type GuideClass = "psychedelic" | "dissociative" | "deliriant";
 
@@ -74,7 +75,7 @@ export const DISSOCIATIVE_INTENSITY_SCALE: ArticleGuideLink = {
 
 export const ARTICLE_GUIDES_BY_CLASS: Record<GuideClass, ClassGuides> = {
   psychedelic: {
-    label: "Psychedelics",
+    label: msg("Psychedelics"),
     scale: PSYCHEDELIC_INTENSITY_SCALE,
     guides: [
       {
@@ -87,7 +88,7 @@ export const ARTICLE_GUIDES_BY_CLASS: Record<GuideClass, ClassGuides> = {
     summaries: summariesForClass("psychedelic"),
   },
   dissociative: {
-    label: "Dissociatives",
+    label: msg("Dissociatives"),
     scale: DISSOCIATIVE_INTENSITY_SCALE,
     guides: [
       {
@@ -103,7 +104,7 @@ export const ARTICLE_GUIDES_BY_CLASS: Record<GuideClass, ClassGuides> = {
     categoryHref: "/effects/category/disconnective-effects",
   },
   deliriant: {
-    label: "Deliriants",
+    label: msg("Deliriants"),
     guides: [],
     summaries: summariesForClass("deliriant"),
   },
@@ -164,13 +165,13 @@ export interface SummaryCaption {
  * (visual, cognitive, miscellaneous)". The short names come off the route path,
  * not from a second set of hand-written labels.
  */
-export function buildSummaryCaption(guides: ClassGuides): SummaryCaption {
+export function buildSummaryCaption(t: Translate, guides: ClassGuides): SummaryCaption {
   if (guides.summaries.length <= 1) {
     return { entries: guides.summaries };
   }
 
   return {
-    groupLabel: `Effects of ${guides.label.toLowerCase()}`,
+    groupLabel: t("Effects of {{class}}", { class: t(guides.label).toLowerCase() }),
     entries: guides.summaries.map((summary) => {
       // `.at(-1)` is not in this project's TS lib target.
       const segments = summary.href.split("/").filter(Boolean);

@@ -6,6 +6,7 @@ import { ArticleSection } from "@/components/common/ArticleSection";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
 import type { SectionGapNeighbour, SubstanceArticle } from "@/schema";
 import { getArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
@@ -75,16 +76,17 @@ export const ArticleGapNotice = memo(function ArticleGapNotice({
   section,
   footer,
 }: ArticleGapNoticeProps) {
+  const t = useT();
   const policy = ARTICLE_GAP_POLICIES[section];
   const gap = resolveGap(article, policy);
-  const copy = buildArticleGapCopy(policy, gap);
+  const copy = buildArticleGapCopy(t, policy, gap);
   const closingNote = [copy.caution, copy.lookElsewhere].filter(Boolean).join(" ");
 
   return (
     <ArticleSection
       id={policy.id}
       icon={SUBSTANCE_SECTION_ICONS[policy.id]}
-      heading={policy.label}
+      heading={t(policy.label)}
     >
       <div className="theme-article-subsection-card rounded-2xl border px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -142,6 +144,7 @@ export const ArticleSubsectionGapNotice = memo(function ArticleSubsectionGapNoti
   parentGapKey,
   className,
 }: ArticleSubsectionGapProps) {
+  const t = useT();
   if (slots.length === 0) return null;
 
   return (
@@ -149,6 +152,7 @@ export const ArticleSubsectionGapNotice = memo(function ArticleSubsectionGapNoti
       {slots.map((slot) => {
         const policy = SUBSECTION_GAP_POLICIES[slot];
         const copy = buildSubsectionGapCopy(
+          t,
           policy,
           resolveSubsectionGapReason(article, policy, parentGapKey),
         );
@@ -196,6 +200,7 @@ export const ArticleStubBanner = memo(function ArticleStubBanner({
   article,
   className,
 }: ArticleStubBannerProps) {
+  const t = useT();
   const verdict = getArticleStubVerdict(article);
   if (!verdict.isStub) return null;
 
@@ -208,11 +213,11 @@ export const ArticleStubBanner = memo(function ArticleStubBanner({
         "theme-article-stub-banner flex flex-wrap items-center gap-x-3 gap-y-2 rounded-full border px-4 py-2.5",
         className,
       )}
-      title={buildArticleStubCopy(verdict, ARTICLE_GAP_ORDER.length)}
+      title={buildArticleStubCopy(t, verdict, ARTICLE_GAP_ORDER.length)}
     >
       <Icon icon={STUB_ICON} size={22} className="theme-icon-accent shrink-0" />
-      <span className="theme-text-primary text-sm font-semibold">This article is a stub</span>
-      <span className="theme-text-faint text-xs">missing:</span>
+      <span className="theme-text-primary text-sm font-semibold">{t("This article is a stub")}</span>
+      <span className="theme-text-faint text-xs">{t("missing:")}</span>
       <span className="flex flex-wrap gap-1.5">
         {missing.map((key) => (
           <Badge
@@ -220,7 +225,7 @@ export const ArticleStubBanner = memo(function ArticleStubBanner({
             variant="outline"
             className="text-[11px] normal-case tracking-normal"
           >
-            {ARTICLE_GAP_POLICIES[key].label}
+            {t(ARTICLE_GAP_POLICIES[key].label)}
           </Badge>
         ))}
       </span>

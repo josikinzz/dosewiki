@@ -1,6 +1,9 @@
-// Not a client component on purpose: closing credits have no state or
-// handlers, so on the public route they render on the server only. The links
-// and avatars they compose are client leaves that hydrate on their own.
+"use client";
+
+// Closing credits have no state or handlers of their own, but the editor's
+// ArticleContextBridge renders the layout on the client, so the section is a
+// client component: the message layer's `useT` cannot run on a server tree and
+// the server `t` cannot ship to a client one.
 import { memo, type ReactNode } from "react";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { SmartLink } from "@/components/common/SmartLink";
@@ -13,6 +16,7 @@ import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges"
 import { buildCitationNumbering } from "@/lib/citations/referenceModel";
 import { RecentChangesList } from "@/components/changelog/RecentChangesList";
 import { publicHref } from "@/utils/publicHref";
+import { useT } from "@/i18n/client";
 import {
   EXPERT_REVIEW_CREDIT_FALLBACK,
   REVIEW_STATUS_BANNER_FALLBACK,
@@ -138,13 +142,14 @@ function StatusStep({
   pending,
   children,
 }: StatusStepProps) {
+  const t = useT();
   return (
     <li className="flex items-start gap-3 sm:items-center">
       {name ? (
         profileHref ? (
           <SmartLink
             href={profileHref}
-            aria-label={`View ${name}'s contributor profile`}
+            aria-label={t("View {{name}}'s contributor profile", { name })}
             className="theme-focus-ring group mt-0.5 shrink-0 rounded-full sm:mt-0"
           >
             <ContributorAvatar imageUrl={avatarSrc} name={name} size="xs" />
@@ -175,11 +180,11 @@ function StatusStep({
             />
           )}
           <span>
-            Step {step} · {roleLabel}
+            {t("Step {{step}}", { step })} · {roleLabel}
           </span>
           {pending ? (
             <span className="theme-status-step-pending-surface rounded border px-1 py-px text-[0.6rem] leading-none">
-              Pending
+              {t("Pending")}
             </span>
           ) : null}
         </span>
@@ -220,6 +225,7 @@ function RecentChangesDisclosure({
   changes: ArticleRecentChange[];
   article: SubstanceArticle;
 }) {
+  const t = useT();
   const latest = changes[0];
   const count = changes.length;
   const latestDate = new Date(latest.createdAt);
@@ -246,12 +252,12 @@ function RecentChangesDisclosure({
         </span>
         <span className="min-w-0 flex-1">
           <span className="theme-text-faint flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.15em]">
-            Recent changes
+            {t("Recent changes")}
           </span>
           <span className="theme-text-secondary mt-0.5 block text-sm leading-snug">
-            {count === 1 ? "1 human edit" : `${count} human edits`}
+            {count === 1 ? t("1 human edit") : t("{{count}} human edits", { count })}
             <span className="theme-text-faint">
-              {" · latest "}
+              {" · "}{t("latest")}{" "}
               <time dateTime={latest.createdAt}>{summaryDateFormat.format(latestDate)}</time>
             </span>
           </span>
@@ -266,11 +272,11 @@ function RecentChangesDisclosure({
         <RecentChangesList changes={changes} article={{ citations: { numbers, hrefBase: "" } }} />
         <p className="mt-3 text-sm">
           <SmartLink href={publicHref.changes(slug ?? undefined)} className="theme-accent-heading theme-focus-ring rounded font-semibold underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2 hover:decoration-current">
-            {slug ? "All changes to this article" : "All recent changes"}
+            {slug ? t("All changes to this article") : t("All recent changes")}
           </SmartLink>
           <span className="theme-text-faint"> · </span>
           <SmartLink href={publicHref.changes()} className="theme-text-secondary theme-focus-ring rounded underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2 hover:decoration-current">
-            Site-wide recent changes
+            {t("Site-wide recent changes")}
           </SmartLink>
         </p>
       </div>
@@ -294,6 +300,7 @@ export const ContributorsSection = memo(function ContributorsSection({
   reviewStatusCopy,
   recentChanges = [],
 }: ContributorsSectionProps) {
+  const t = useT();
   // Same `in` narrowing as ReviewStatusBanner: `expert_reviewed` is stamped on
   // the public projection at runtime and SubstanceArticle doesn't type it.
   const expertReviewed =
@@ -301,19 +308,19 @@ export const ContributorsSection = memo(function ContributorsSection({
     article.editorial_review?.status === "completed";
 
   const reviewSegments = splitReviewerCopy(
-    expertReviewCredit ?? EXPERT_REVIEW_CREDIT_FALLBACK,
+    t(expertReviewCredit ?? EXPERT_REVIEW_CREDIT_FALLBACK),
   );
   // The pending step reuses the top-of-page banner sentence, so both surfaces
   // stay in lockstep when the copy block is edited.
   const pendingSegments = splitReviewerCopy(
-    reviewStatusCopy ?? REVIEW_STATUS_BANNER_FALLBACK,
+    t(reviewStatusCopy ?? REVIEW_STATUS_BANNER_FALLBACK),
   );
 
   return (
     <ArticleSection
       id="article-status"
       icon="lucide:shield-check"
-      heading="Article Status"
+      heading={t("Article Status")}
     >
       <ul className="flex flex-col gap-4">
         <StatusStep
@@ -322,12 +329,11 @@ export const ContributorsSection = memo(function ContributorsSection({
           profileHref={profileHrefs?.josie}
           avatarSrc={avatars?.josie ?? JOSIE_FALLBACK_AVATAR_SRC}
           roleIcon="lucide:workflow"
-          roleLabel="Automated synthesis"
+          roleLabel={t("Automated synthesis")}
         >
-          An <CreditLink href={DOCS_HOW_HREF}>autonomous workflow</CreditLink> built
-          by <CreditLink href={profileHrefs?.josie}>Josie Kins</CreditLink>{" "}
-          compiled
-          this article&apos;s foundation from information published across the web.
+          {t("An")} <CreditLink href={DOCS_HOW_HREF}>{t("autonomous workflow")}</CreditLink>{" "}
+          {t("built by")} <CreditLink href={profileHrefs?.josie}>Josie Kins</CreditLink>{" "}
+          {t("compiled this article's foundation from information published across the web.")}
         </StatusStep>
 
         {expertReviewed ? (
@@ -337,7 +343,7 @@ export const ContributorsSection = memo(function ContributorsSection({
             profileHref={profileHrefs?.lyrea}
             avatarSrc={avatars?.lyrea}
             roleIcon="lucide:shield-check"
-            roleLabel="First-pass review"
+            roleLabel={t("First-pass review")}
           >
             {reviewSegments.before}
             {reviewSegments.hasReviewer && (
@@ -349,7 +355,7 @@ export const ContributorsSection = memo(function ContributorsSection({
           <StatusStep
             step={2}
             roleIcon="lucide:shield-check"
-            roleLabel="First-pass review"
+            roleLabel={t("First-pass review")}
             pending
           >
             {pendingSegments.before}
@@ -363,11 +369,10 @@ export const ContributorsSection = memo(function ContributorsSection({
         <StatusStep
           step={3}
           roleIcon="lucide:quote"
-          roleLabel="Citation review"
+          roleLabel={t("Citation review")}
           pending
         >
-          No one has reviewed this article&apos;s citations yet. That second pass
-          checks each claim against the source it cites.
+          {t("No one has reviewed this article's citations yet. That second pass checks each claim against the source it cites.")}
         </StatusStep>
       </ul>
 

@@ -5,6 +5,8 @@ import { ArticleSection } from "@/components/common/ArticleSection";
 import { AppImage } from "@/components/common/AppImage";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/client";
+import { msg } from "@/i18n/messages";
 import { stripCitationTokens } from "@/lib/citations/citationTokens";
 import usStateFlagMappings from "@/data/mappings/usStateFlagMappings.json";
 // Deep-import the Zod-free status type instead of `@/schema/substance/shared`,
@@ -166,14 +168,14 @@ function getStatusColor(status: string): {
  * double as the aggregate summary via each group's count.
  */
 const TONE_GROUPS: { tone: StatusColor; label: string; title?: string }[] = [
-  { tone: "red", label: "Illegal" },
-  { tone: "yellow", label: "Controlled / restricted" },
-  { tone: "blue", label: "Prescription" },
-  { tone: "green", label: "Legal / decriminalized" },
+  { tone: "red", label: msg("Illegal") },
+  { tone: "yellow", label: msg("Controlled / restricted") },
+  { tone: "blue", label: msg("Prescription") },
+  { tone: "green", label: msg("Legal / decriminalized") },
   {
     tone: "gray",
-    label: "Not scheduled",
-    title: "Not scheduled does not imply legal to possess or supply",
+    label: msg("Not scheduled"),
+    title: msg("Not scheduled does not imply legal to possess or supply"),
   },
 ];
 
@@ -274,6 +276,7 @@ function LegalityStatusLine({
   info: LegalityEntry;
   size: StatusSize;
 }) {
+  const t = useT();
   const { canonicalStatus, hasStatusBadge, statusColor, statusLabel } =
     resolveLegalityBadges(info);
 
@@ -286,11 +289,11 @@ function LegalityStatusLine({
             STATUS_SIZE_CLASSES[size],
           )}
           data-badge-tone={statusColor.tone}
-          title={statusLabel || undefined}
+          title={statusLabel ? t(statusLabel) : undefined}
         >
           <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-current" />
           <span className="truncate">
-            {canonicalStatus ? canonicalStatus.label : <CitedText text={info.status} article={article} />}
+            {canonicalStatus ? t(canonicalStatus.label) : <CitedText text={info.status} article={article} />}
           </span>
         </span>
       )}
@@ -363,6 +366,7 @@ function LegalityRow({
   pathParts?: readonly string[];
   footer?: ReactNode;
 }) {
+  const t = useT();
   const detailsId = useId();
   const detailsRef = useRef<HTMLDivElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -429,14 +433,14 @@ function LegalityRow({
         }}
       >
         {flag}
-        <span className={styles.name}>{name}</span>
+        <span className={styles.name}>{t(name)}</span>
         <LegalityStatusLine article={article} info={info} size={styles.statusSize} />
         <ExpandButton
           variant="faint"
           isExpanded={isExpanded}
           onToggle={() => setIsExpanded((expanded) => !expanded)}
           ariaControls={detailsId}
-          ariaLabel={isExpanded ? `Hide details for ${name}` : `Show details for ${name}`}
+          ariaLabel={isExpanded ? t("Hide details for {{name}}", { name: t(name) }) : t("Show details for {{name}}", { name: t(name) })}
           className={cn("shrink-0", styles.toggle)}
         />
       </div>
@@ -451,7 +455,7 @@ function LegalityRow({
         )}
         {displayText ? (
           <EditableLegalityNotes
-            label={`${name} legality notes`}
+            label={t("{{name}} legality notes", { name: t(name) })}
             notesPath={notesPath}
             value={displayText}
           >
@@ -466,8 +470,8 @@ function LegalityRow({
         ) : notesPath ? (
           <EditableSlot
             className="mt-1"
-            emptyLabel={`Add ${name} legality notes`}
-            label={`${name} legality notes`}
+            emptyLabel={t("Add {{name}} legality notes", { name: t(name) })}
+            label={t("{{name}} legality notes", { name: t(name) })}
             path={notesPath}
             value=""
           />
@@ -501,15 +505,16 @@ function USStatesFooter({
   note?: string;
   states: [string, USStateLegality][];
 }) {
+  const t = useT();
   return (
     <div className="mt-4 pt-4">
       <div className="theme-horizontal-divider mb-3" />
-      <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">By state</div>
+      <div className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">{t("By state")}</div>
       {note ? (
         <div className="mb-4 min-w-0 break-words text-sm leading-relaxed theme-text-muted" data-testid="us-states-summary">
           <EditableValue
             as="div"
-            label="US states legality summary"
+            label={t("US states legality summary")}
             path="legality.usStatesNote"
             value={note}
           >
@@ -519,8 +524,8 @@ function USStatesFooter({
       ) : (
         <EditableSlot
           className="mb-4"
-          emptyLabel="Add a US states legality summary"
-          label="US states legality summary"
+          emptyLabel={t("Add a US states legality summary")}
+          label={t("US states legality summary")}
           path="legality.usStatesNote"
           value=""
         />
@@ -540,7 +545,7 @@ function USStatesFooter({
             flag={flagFile ? (
               <img
                 src={`/flags/us/${flagFile}`}
-                alt={`${stateName} flag`}
+                alt={t("{{name}} flag", { name: t(stateName) })}
                 width={24}
                 height={16}
                 loading="lazy"
@@ -561,10 +566,11 @@ function USStatesFooter({
  * fades out to the right, matching the section-heading hairline.
  */
 function ToneGroupHeading({ label, count, title }: { label: string; count: number; title?: string }) {
+  const t = useT();
   return (
-    <div className="mb-1 flex items-center gap-2" title={title}>
+    <div className="mb-1 flex items-center gap-2" title={title ? t(title) : undefined}>
       <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] theme-text-muted">
-        {label}
+        {t(label)}
       </span>
       <span className="font-mono text-[10px] tabular-nums theme-text-faint">{count}</span>
       <div aria-hidden className="theme-horizontal-divider flex-1" />
@@ -575,6 +581,7 @@ function ToneGroupHeading({ label, count, title }: { label: string; count: numbe
 export const LegalitySection = memo(function LegalitySection({
   article,
 }: LegalitySectionProps) {
+  const t = useT();
   const { legality } = article;
   const hasInternational = legality.international.length > 0;
   const countries = orderCountryLegalityEntries(Object.entries(legality.countries));
@@ -598,13 +605,13 @@ export const LegalitySection = memo(function LegalitySection({
     <ArticleSection
       id="legality"
       icon={SUBSTANCE_SECTION_ICONS["legality"]}
-      heading="Legality"
+      heading={t("Legality")}
     >
       {/* International */}
       {hasInternational && (
         <ArticleSection.Group
           icon="lucide:globe"
-          heading="International"
+          heading={t("International")}
           className="mb-4"
           headingClassName="font-semibold normal-case tracking-normal"
         >
@@ -613,7 +620,7 @@ export const LegalitySection = memo(function LegalitySection({
               <EditableValue
                 key={idx}
                 as="div"
-                label={`International legality entry ${idx + 1}`}
+                label={t("International legality entry {{number}}", { number: idx + 1 })}
                 path={buildFieldPath("legality", "international", idx)}
                 value={item}
               >
@@ -628,7 +635,7 @@ export const LegalitySection = memo(function LegalitySection({
       {(hasCountries || hasUsStates) && (
         <ArticleSection.Group
           icon="lucide:map-pin"
-          heading="By Country"
+          heading={t("By Country")}
           className="mt-4"
           headingClassName="font-semibold normal-case tracking-normal"
         >
@@ -666,7 +673,7 @@ export const LegalitySection = memo(function LegalitySection({
                                 flag={countryCode ? (
                                   <AppImage
                                     src={`/flags/${countryCode}.svg`}
-                                    alt={`${countryName} flag`}
+                                    alt={t("{{name}} flag", { name: t(countryName) })}
                                     width={24}
                                     height={24}
                                     className="theme-country-flag h-5 w-5 shrink-0"

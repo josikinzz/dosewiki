@@ -1,3 +1,4 @@
+import { msg, type Translate } from "@/i18n/messages";
 import type { SectionGapNeighbour, SectionGapReason, SubstanceArticle } from "@/schema";
 import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import type { SubstanceSectionId } from "@/schema/substance/sectionManifest";
@@ -49,67 +50,68 @@ export const ARTICLE_GAP_POLICIES = {
   dosage_duration: {
     id: "dosage-duration",
     gapKey: "dosage_duration",
-    label: "Dosage & Duration",
-    topic: "dosage or duration",
+    label: msg("Dosage & Duration"),
+    topic: msg("dosage or duration"),
     neighbourStyle: "pointer",
-    caution: "Dose ranges do not transfer between analogues. Do not infer one from these.",
+    caution: msg("Dose ranges do not transfer between analogues. Do not infer one from these."),
   },
   subjective_effects: {
     id: "subjective-effects",
     gapKey: "subjective_effects",
-    label: "Subjective Effects",
-    topic: "subjective effects",
+    label: msg("Subjective Effects"),
+    topic: msg("subjective effects"),
     pluralTopic: true,
     neighbourStyle: "hedge",
   },
   pharmacology: {
     id: "pharmacology",
     gapKey: "pharmacology",
-    label: "Pharmacology",
-    topic: "pharmacology",
+    label: msg("Pharmacology"),
+    topic: msg("pharmacology"),
     neighbourStyle: "hedge",
   },
   interactions: {
     id: "interactions",
     gapKey: "interactions",
-    label: "Interactions",
-    topic: "interaction",
+    label: msg("Interactions"),
+    topic: msg("interaction"),
     // Combination risk is a property of the pair, not of the chemical class, so
     // a neighbour's combo chart says nothing about this one. The absence is the
     // whole statement, and the reader is sent to a dedicated checker instead.
     neighbourStyle: "none",
-    lookElsewhere:
+    lookElsewhere: msg(
       "An unlisted combination is an unknown one, not a safe one. Check a dedicated combination chart before mixing.",
+    ),
   },
   tolerance: {
     id: "tolerance",
     gapKey: "tolerance",
-    label: "Tolerance",
-    topic: "tolerance",
+    label: msg("Tolerance"),
+    topic: msg("tolerance"),
     neighbourStyle: "hedge",
   },
   harm_potential: {
     id: "harm-potential",
     gapKey: "harm_potential",
-    label: "Harm Potential",
-    topic: "harm potential",
+    label: msg("Harm Potential"),
+    topic: msg("harm potential"),
     neighbourStyle: "pointer",
-    caution: "An absence of harm data is not evidence of safety.",
+    caution: msg("An absence of harm data is not evidence of safety."),
   },
   history_culture: {
     id: "history-culture",
     gapKey: "history_culture",
-    label: "History & Culture",
-    topic: "history",
+    label: msg("History & Culture"),
+    topic: msg("history"),
     neighbourStyle: "none",
   },
   legality: {
     id: "legality",
     gapKey: "legality",
-    label: "Legality",
-    topic: "legal status",
+    label: msg("Legality"),
+    topic: msg("legal status"),
     neighbourStyle: "pointer",
-    caution: "Legal status is jurisdictional and is not predicted by chemical class.",
+    caution: msg("Legal status is jurisdictional and is not predicted by chemical class."),
   },
 } as const satisfies Record<string, ArticleGapPolicy>;
 
@@ -154,15 +156,15 @@ export interface SubsectionGapPolicy {
 export const SUBSECTION_GAP_POLICIES = {
   pharmacokinetics: {
     gapKey: "pharmacology.pharmacokinetics",
-    label: "Absorption & half-life",
-    unwritten: "not documented yet",
-    silent: "no published data",
+    label: msg("Absorption & half-life"),
+    unwritten: msg("not documented yet"),
+    silent: msg("no published data"),
   },
   metabolites: {
     gapKey: "pharmacology.metabolites",
-    label: "Metabolites",
-    unwritten: "none documented yet",
-    silent: "none reported in the literature",
+    label: msg("Metabolites"),
+    unwritten: msg("none documented yet"),
+    silent: msg("none reported in the literature"),
   },
 } as const satisfies Record<string, SubsectionGapPolicy>;
 
@@ -192,12 +194,13 @@ export function resolveSubsectionGapReason(
 }
 
 export function buildSubsectionGapCopy(
+  t: Translate,
   policy: SubsectionGapPolicy,
   reason: SectionGapReason,
 ): { label: string; status: string } {
   return {
-    label: policy.label,
-    status: reason === "sources-silent" ? policy.silent : policy.unwritten,
+    label: t(policy.label),
+    status: t(reason === "sources-silent" ? policy.silent : policy.unwritten),
   };
 }
 
@@ -233,13 +236,14 @@ export interface ArticleGapCopy {
 }
 
 export function buildArticleGapCopy(
+  t: Translate,
   policy: ArticleGapPolicy,
   gap: ResolvedGap,
 ): ArticleGapCopy {
   const title =
     gap.reason === "sources-silent"
-      ? `No published ${policy.topic} data`
-      : `${policy.label} not written up yet`;
+      ? t("No published {{topic}} data", { topic: t(policy.topic) })
+      : t("{{label}} not written up yet", { label: t(policy.label) });
 
   // The hedge stays soft on purpose. "Broadly consistent across the class" would
   // assert something nobody has measured for this compound; "likely somewhat
@@ -247,21 +251,27 @@ export function buildArticleGapCopy(
   let lead = "";
   if (gap.neighbours.length > 0 && policy.neighbourStyle !== "none") {
     if (policy.neighbourStyle === "hedge") {
-      const verb = policy.pluralTopic ? "are" : "is";
-      const topic = policy.topic.charAt(0).toUpperCase() + policy.topic.slice(1);
-      lead = gap.family
-        ? `${topic} ${verb} likely somewhat similar to other ${gap.family}:`
-        : `${topic} ${verb} likely somewhat similar to:`;
+      const topicWord = t(policy.topic);
+      const topic = topicWord.charAt(0).toUpperCase() + topicWord.slice(1);
+      if (gap.family) {
+        lead = policy.pluralTopic
+          ? t("{{topic}} are likely somewhat similar to other {{family}}:", { topic, family: gap.family })
+          : t("{{topic}} is likely somewhat similar to other {{family}}:", { topic, family: gap.family });
+      } else {
+        lead = policy.pluralTopic
+          ? t("{{topic}} are likely somewhat similar to:", { topic })
+          : t("{{topic}} is likely somewhat similar to:", { topic });
+      }
     } else {
-      lead = "Better documented nearby:";
+      lead = t("Better documented nearby:");
     }
   }
 
   return {
     title,
     lead,
-    caution: gap.neighbours.length > 0 ? policy.caution : undefined,
-    lookElsewhere: policy.lookElsewhere,
+    caution: gap.neighbours.length > 0 && policy.caution ? t(policy.caution) : undefined,
+    lookElsewhere: policy.lookElsewhere ? t(policy.lookElsewhere) : undefined,
   };
 }
 
@@ -274,26 +284,39 @@ export function buildArticleGapCopy(
  * seven sections have no published data" would explain the banner by a count
  * that does not on its own trigger it.
  */
-export function buildArticleStubCopy(verdict: ArticleStubVerdict, total: number): string {
+export function buildArticleStubCopy(t: Translate, verdict: ArticleStubVerdict, total: number): string {
   const sentences: string[] = [];
 
   if (verdict.reasons.includes("no-dosage")) {
-    sentences.push("No dosage or duration data has been published for it.");
+    sentences.push(t("No dosage or duration data has been published for it."));
   }
   if (verdict.reasons.includes("missing-sections")) {
-    const count = spellOut(verdict.emptySectionIds.length);
+    const count = spellOut(t, verdict.emptySectionIds.length);
     sentences.push(
-      `${count.charAt(0).toUpperCase()}${count.slice(1)} of its ${spellOut(total)} sections have no published data.`,
+      t("{{count}} of its {{total}} sections have no published data.", {
+        count: count.charAt(0).toUpperCase() + count.slice(1),
+        total: spellOut(t, total),
+      }),
     );
   }
 
-  sentences.push("Everything shown is sourced; the gaps are real gaps, not omissions.");
+  sentences.push(t("Everything shown is sourced; the gaps are real gaps, not omissions."));
   return sentences.join(" ");
 }
 
-function spellOut(value: number): string {
-  return (
-    ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight"][value] ??
-    String(value)
-  );
+const NUMBER_WORDS = [
+  msg("zero"),
+  msg("one"),
+  msg("two"),
+  msg("three"),
+  msg("four"),
+  msg("five"),
+  msg("six"),
+  msg("seven"),
+  msg("eight"),
+];
+
+function spellOut(t: Translate, value: number): string {
+  const word = NUMBER_WORDS[value];
+  return word === undefined ? String(value) : t(word);
 }

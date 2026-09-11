@@ -11,6 +11,8 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
+import { UiLocaleProvider } from "@/i18n/client";
+import { setRequestLocale } from "@/i18n/server";
 import { MachineTranslationNotice } from "./MachineTranslationNotice";
 
 export const revalidate = 3600;
@@ -43,6 +45,7 @@ export async function generateMetadata({ params }: LocalizedSubstancePageProps) 
 }
 
 export default async function LocalizedSubstancePage({ params }: LocalizedSubstancePageProps) {
+  setRequestLocale(LOCALE.code);
   const { slug } = await params;
   const result = await loadSubstanceRoute(slug, LOCALE);
 
@@ -55,14 +58,16 @@ export default async function LocalizedSubstancePage({ params }: LocalizedSubsta
   }
 
   return (
-    <div lang={LOCALE.htmlLang}>
-      {result.publicRevision && (
-        <meta name="dosewiki-public-revision" content={result.publicRevision} />
-      )}
-      <SubstanceArticlePage
-        {...result.pageProps}
-        warningBannerNotice={<MachineTranslationNotice slug={slug} />}
-      />
-    </div>
+    <UiLocaleProvider locale={LOCALE.code}>
+      <div lang={LOCALE.htmlLang}>
+        {result.publicRevision && (
+          <meta name="dosewiki-public-revision" content={result.publicRevision} />
+        )}
+        <SubstanceArticlePage
+          {...result.pageProps}
+          warningBannerNotice={<MachineTranslationNotice slug={slug} />}
+        />
+      </div>
+    </UiLocaleProvider>
   );
 }

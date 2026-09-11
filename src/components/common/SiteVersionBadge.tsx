@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * The pre-release version pill that accompanies the brand lockups while the site is in
  * beta. It is deliberately not part of {@link SiteWordmark}: the wordmark's two runs must
@@ -16,6 +18,7 @@
  * a one-line config change.
  */
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 
 interface SiteVersionBadgeProps {
   variant: "hero" | "header" | "logoOverlay";
@@ -27,10 +30,14 @@ export function SiteVersionBadge({
   variant,
   config = SITE_FLAVOR_CONFIG,
 }: SiteVersionBadgeProps) {
+  const t = useT();
   const badge = config.versionBadge;
   if (!badge) return null;
 
-  const accessibleName = `version ${badge.version.replace(/^v/, "")} ${badge.label}`;
+  const accessibleName = t("version {{version}} {{label}}", {
+    version: badge.version.replace(/^v/, ""),
+    label: t(badge.label),
+  });
 
   if (variant === "logoOverlay") {
     // Mobile header treatment: no pill at all — the version sits centered inside the
@@ -60,7 +67,7 @@ export function SiteVersionBadge({
         aria-hidden="true"
         className="theme-accent-heading hidden items-center font-display text-[9px] font-semibold uppercase leading-none tracking-widest xl:inline-flex"
       >
-        {`${badge.version} ${badge.label}`}
+        {badge.version} {t(badge.label)}
       </span>
     );
   }
@@ -74,7 +81,7 @@ export function SiteVersionBadge({
         {badge.version}
         <span className="max-md:hidden">
           {" "}
-          {badge.label}
+          {t(badge.label)}
         </span>
       </span>
     </span>

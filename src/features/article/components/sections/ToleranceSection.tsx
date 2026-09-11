@@ -14,6 +14,7 @@ import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 import { ArticleDisclaimer } from "./ArticleDisclaimer";
 import { TOLERANCE_SECTION_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
+import { msg, useT } from "@/i18n/client";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -30,15 +31,16 @@ interface ToleranceSectionProps {
 }
 
 const TOLERANCE_ITEMS: Array<{ key: string; label: string; icon: IconName }> = [
-  { key: "full_tolerance", label: "Full Tolerance", icon: "lucide:arrow-up-wide-narrow" },
-  { key: "half_tolerance", label: "Half Tolerance", icon: "lucide:circle-slash-2" },
-  { key: "baseline_tolerance", label: "Baseline Reset", icon: "lucide:arrow-down-wide-narrow" },
+  { key: "full_tolerance", label: msg("Full Tolerance"), icon: "lucide:arrow-up-wide-narrow" },
+  { key: "half_tolerance", label: msg("Half Tolerance"), icon: "lucide:circle-slash-2" },
+  { key: "baseline_tolerance", label: msg("Baseline Reset"), icon: "lucide:arrow-down-wide-narrow" },
 ];
 
 export const ToleranceSection = memo(function ToleranceSection({
   article,
   disclaimer = TOLERANCE_SECTION_DISCLAIMER_FALLBACK,
 }: ToleranceSectionProps) {
+  const t = useT();
   const { tolerance } = article;
 
   const hasFull = tolerance?.full_tolerance?.trim().length > 0;
@@ -51,12 +53,12 @@ export const ToleranceSection = memo(function ToleranceSection({
   }
 
   return (
-    <ArticleSection id="tolerance" icon={SUBSTANCE_SECTION_ICONS["tolerance"]} heading="Tolerance">
+    <ArticleSection id="tolerance" icon={SUBSTANCE_SECTION_ICONS["tolerance"]} heading={t("Tolerance")}>
       {/* Above the grid, and outside the masonry: the caveat qualifies every
           timing in the section, and Masonry hands its children to columns by
           index, so anything conditional inside it would move which card lands
           in which column. */}
-      <ArticleDisclaimer text={disclaimer} />
+      <ArticleDisclaimer text={t(disclaimer)} />
 
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
@@ -73,12 +75,12 @@ export const ToleranceSection = memo(function ToleranceSection({
               icon={icon}
               padding="sm"
               variant="nested"
-              title={label}
+              title={t(label)}
               tone="accent"
             >
               <EditableValue
                 as="div"
-                label={label}
+                label={t(label)}
                 path={`tolerance.${key}`}
                 value={value}
               >
@@ -98,7 +100,7 @@ export const ToleranceSection = memo(function ToleranceSection({
             icon="lucide:merge"
             padding="sm"
             variant="nested"
-            title="Cross Tolerance"
+            title={t("Cross Tolerance")}
             tone="accent"
           >
             <p>
@@ -106,7 +108,7 @@ export const ToleranceSection = memo(function ToleranceSection({
                 <span key={`${entry}-${index}`}>
                   {index > 0 ? ", " : null}
                   <EditableValue
-                    label={`Cross tolerance entry ${index + 1}`}
+                    label={t("Cross tolerance entry {{n}}", { n: index + 1 })}
                     path={buildFieldPath("tolerance", "cross_tolerance", index)}
                     value={entry}
                   >
@@ -128,9 +130,9 @@ export const ToleranceSection = memo(function ToleranceSection({
 
         return (
           <EditableSlot
-            emptyLabel={`Add ${label.toLowerCase()}`}
+            emptyLabel={t("Add {{label}}", { label: t(label).toLowerCase() })}
             key={key}
-            label={label}
+            label={t(label)}
             path={buildFieldPath("tolerance", key)}
             value={typeof value === "string" ? value : ""}
           />

@@ -1,8 +1,9 @@
-// Not a client component on purpose: this section only shapes data and lays
-// out its subsections. The parts that need the browser (the toxicity card
-// grid's masonry measurements, the inline-edit affordances) are client
-// components of their own, so on the public route the rest renders on the
-// server and stays out of the article's JavaScript.
+"use client";
+
+// A client boundary only for `useT`: the section still just shapes data and
+// lays out its subsections. The parts that need the browser (the toxicity
+// card grid's masonry measurements, the inline-edit affordances) remain client
+// components of their own.
 import { memo } from "react";
 import type { SubstanceArticle } from "@/schema";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
@@ -19,6 +20,7 @@ import {
 } from "./harm-potential/RisksSubsection";
 import { ArticleText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
+import { useT } from "@/i18n/client";
 
 interface HarmPotentialSectionProps {
   article: SubstanceArticle;
@@ -27,6 +29,7 @@ interface HarmPotentialSectionProps {
 export const HarmPotentialSection = memo(function HarmPotentialSection({
   article,
 }: HarmPotentialSectionProps) {
+  const t = useT();
   const normalizedHP = normalizeHarmPotential(article);
   const harmPotentialSummary =
     typeof (article.harm_potential as { summary?: string } | undefined)
@@ -64,7 +67,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
     <ArticleSection
       id="harm-potential"
       icon={SUBSTANCE_SECTION_ICONS["harm-potential"]}
-      heading="Harm Potential"
+      heading={t("Harm Potential")}
     >
       {harmPotentialSummary && (
         <ArticleText text={harmPotentialSummary} article={article} tone="muted" />

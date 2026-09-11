@@ -1,6 +1,15 @@
 import type { SubstanceArticleProjectionInput } from "@/schema";
+import { formatMessage, msg } from "@/i18n/messages";
 
 import { cleanString, cleanStringArray } from "./contentBuilderShared";
+
+/**
+ * Molecule image alt text. The builder prints the English form in
+ * `molecule.alt`; a renderer with a locale passes these to `t` with the
+ * `lookupTitle` instead.
+ */
+export const MOLECULE_ALT_MESSAGE = msg("{{title}} molecule structure");
+export const MOLECULE_ALT_FALLBACK_MESSAGE = msg("Molecule structure");
 
 export type ChemistryIdentifierKey =
   | "iupac_name"
@@ -48,12 +57,12 @@ const CHEMISTRY_IDENTIFIER_FIELDS: Array<{
   label: string;
   format: ChemistryIdentifier["format"];
 }> = [
-  { key: "iupac_name", label: "IUPAC", format: "code" },
-  { key: "cas_number", label: "CAS", format: "text" },
-  { key: "molecular_formula", label: "Formula", format: "formula" },
-  { key: "molecular_weight", label: "Molecular Weight", format: "text" },
-  { key: "smiles", label: "SMILES", format: "code" },
-  { key: "inchi_key", label: "InChI Key", format: "code" },
+  { key: "iupac_name", label: msg("IUPAC"), format: "code" },
+  { key: "cas_number", label: msg("CAS"), format: "text" },
+  { key: "molecular_formula", label: msg("Formula"), format: "formula" },
+  { key: "molecular_weight", label: msg("Molecular Weight"), format: "text" },
+  { key: "smiles", label: msg("SMILES"), format: "code" },
+  { key: "inchi_key", label: msg("InChI Key"), format: "code" },
 ];
 
 function buildChemistryIdentifiers(article: SubstanceArticleProjectionInput): ChemistryIdentifier[] {
@@ -102,7 +111,9 @@ export function buildArticleChemistryPresentation(
     hasIdentifiers: identifiers.length > 0,
     molecule: {
       lookupTitle: moleculeTitle,
-      alt: moleculeTitle ? `${moleculeTitle} molecule structure` : "Molecule structure",
+      alt: moleculeTitle
+        ? formatMessage(MOLECULE_ALT_MESSAGE, { title: moleculeTitle })
+        : MOLECULE_ALT_FALLBACK_MESSAGE,
       hasLookupTitle: moleculeTitle.length > 0,
     },
     reagentTesting: buildReagentTestingPresentation(article),

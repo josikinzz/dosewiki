@@ -1,3 +1,5 @@
+import { msg, type Translate } from "@/i18n/messages";
+
 export type LoadingRouteFamily = "page" | "substance" | "category" | "effect" | "mechanism" | "report" | "search";
 
 export type RouteLoadingDensity = "compact" | "normal" | "spacious";
@@ -161,18 +163,25 @@ export function getRouteLoadingModel(family: LoadingRouteFamily): RouteLoadingVi
   };
 }
 
-export function getSectionLoadingModel(input: {
-  key: string;
-  label: string;
-  variant?: RouteLoadingSection["variant"];
-  density?: RouteLoadingDensity;
-}): RouteLoadingViewModel {
+const SECTION_PENDING_LABEL = msg("Preparing section content");
+const SECTION_STALLED_LABEL = msg("Still loading. Refresh if this section does not appear.");
+
+/** `t` translates the fixed labels for a localized page; `label` arrives already translated. */
+export function getSectionLoadingModel(
+  input: {
+    key: string;
+    label: string;
+    variant?: RouteLoadingSection["variant"];
+    density?: RouteLoadingDensity;
+  },
+  t: Translate = (text) => text,
+): RouteLoadingViewModel {
   return {
     family: "page",
     scope: "section",
     label: input.label,
-    pendingLabel: "Preparing section content",
-    stalledLabel: "Still loading. Refresh if this section does not appear.",
+    pendingLabel: t(SECTION_PENDING_LABEL),
+    stalledLabel: t(SECTION_STALLED_LABEL),
     density: input.density ?? "compact",
     landmark: {
       id: input.key,

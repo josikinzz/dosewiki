@@ -21,6 +21,7 @@ import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
+import { useT } from "@/i18n/client";
 
 export { SENSORY_CATEGORIES, resolveSubcategory };
 
@@ -143,6 +144,7 @@ export function EffectBadge({
   onSelectEffect?: (name: string) => void;
   location?: EffectLocation;
 }) {
+  const t = useT();
   const hasDescription = effect.description?.trim().length > 0;
   const href = getEffectHref(effect.name, location);
   const panelId = `effect-${slugify(effect.name)}-description`;
@@ -175,13 +177,13 @@ export function EffectBadge({
           onToggle={onToggle}
           variant="card"
           className="absolute right-3 top-3 text-dose-text-secondary"
-          ariaLabel={`Collapse ${effect.name} effect description`}
+          ariaLabel={t("Collapse {{effect}} effect description", { effect: effect.name })}
           ariaControls={panelId}
         />
         <div className="flex flex-wrap items-center gap-2 pr-8">
           {href === null ? (
             // No page to open: same typography, none of the link affordances.
-            <span className="text-xs font-semibold text-dose-text-secondary">{effect.name}</span>
+            <span className="text-xs font-semibold text-dose-text-secondary">{t(effect.name)}</span>
           ) : (
             <SmartLink
               href={href}
@@ -199,7 +201,7 @@ export function EffectBadge({
               }
               className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
             >
-              {effect.name}
+              {t(effect.name)}
             </SmartLink>
           )}
           {subtitleBadge && (
@@ -217,7 +219,7 @@ export function EffectBadge({
     // `PublicNameChip` renders a span by default; `as={Link}` is what opts it into
     // link mode, so an unresolved name simply omits it and keeps the same chip.
     if (href === null) {
-      return <PublicNameChip>{effect.name}</PublicNameChip>;
+      return <PublicNameChip>{t(effect.name)}</PublicNameChip>;
     }
 
     return (
@@ -238,7 +240,7 @@ export function EffectBadge({
         }
         interactive
       >
-        {effect.name}
+        {t(effect.name)}
       </PublicNameChip>
     );
   }
@@ -249,11 +251,11 @@ export function EffectBadge({
       type="button"
       onClick={handleClick}
       aria-expanded={false}
-      aria-label={`Expand ${effect.name} effect description`}
+      aria-label={t("Expand {{effect}} effect description", { effect: effect.name })}
       aria-controls={panelId}
       interactive
     >
-      {effect.name}
+      {t(effect.name)}
       <ExpandIndicator isExpanded={false} />
     </PublicNameChip>
   );
@@ -331,7 +333,9 @@ export function CollapsibleStage({
   /** Concrete path to this stage's note; absent on the public article. */
   notePath?: string;
 }) {
-  const { label: stageLabel, icon: stageIcon } = resolveSubcategory(name);
+  const t = useT();
+  const { label: rawStageLabel, icon: stageIcon } = resolveSubcategory(name);
+  const stageLabel = t(rawStageLabel);
   const hasNote = note?.trim().length > 0;
   const panelId = `subjective-stage-${slugify(name)}-note`;
 
@@ -372,7 +376,7 @@ export function CollapsibleStage({
         >
           <div className="overflow-hidden">
             <MaybeEditable
-              label={`${stageLabel} note`}
+              label={t("{{label}} note", { label: stageLabel })}
               path={notePath}
               value={note}
             >
@@ -391,8 +395,8 @@ export function CollapsibleStage({
       {!hasNote && notePath ? (
         <EditableSlot
           className="pb-3 pl-[2.625rem] pr-3"
-          emptyLabel={`Add a ${stageLabel} note`}
-          label={`${stageLabel} note`}
+          emptyLabel={t("Add a {{label}} note", { label: stageLabel })}
+          label={t("{{label}} note", { label: stageLabel })}
           path={notePath}
           value={note ?? ""}
         />
@@ -421,8 +425,10 @@ export function SubcategorySection({
   /** See `EffectNotePathBase`; absent on the public article. */
   notePathBase?: EffectNotePathBase;
 }) {
+  const t = useT();
   const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
-  const { label: subcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
+  const { label: rawSubcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
+  const subcategoryLabel = t(rawSubcategoryLabel);
   const notePath = notePathBase
     ? buildFieldPath(...notePathBase, subcategory, "note")
     : undefined;
@@ -443,7 +449,7 @@ export function SubcategorySection({
       )}
       {hasSubcategoryNote && (
         <MaybeEditable
-          label={`${subcategoryLabel} note`}
+          label={t("{{label}} note", { label: subcategoryLabel })}
           path={notePath}
           value={subcategoryData.note}
         >
@@ -455,8 +461,8 @@ export function SubcategorySection({
       {!hasSubcategoryNote && notePath ? (
         <EditableSlot
           className="mb-3"
-          emptyLabel={`Add a ${subcategoryLabel} note`}
-          label={`${subcategoryLabel} note`}
+          emptyLabel={t("Add a {{label}} note", { label: subcategoryLabel })}
+          label={t("{{label}} note", { label: subcategoryLabel })}
           path={notePath}
           value={subcategoryData.note ?? ""}
         />
@@ -507,6 +513,7 @@ export function CategoryEffects({
    */
   notePathBase?: EffectNotePathBase;
 }) {
+  const t = useT();
   const subcategories = getSubcategories(category);
   if (subcategories.length === 0) return null;
 
@@ -536,7 +543,7 @@ export function CategoryEffects({
       {flatNotes.map(({ subcategory, note }) => (
         <MaybeEditable
           key={subcategory}
-          label={`${resolveSubcategory(subcategory).label} note`}
+          label={t("{{label}} note", { label: t(resolveSubcategory(subcategory).label) })}
           path={
             notePathBase
               ? buildFieldPath(...notePathBase, subcategory, "note")

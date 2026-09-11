@@ -7,7 +7,7 @@ import ArticleContextBridge from "./ArticleContextBridge.editor";
 import ArticleSectionEditor from "./ArticleSectionEditor.editor";
 import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }), useSelectedLayoutSegments: () => [] }));
 vi.mock("../components/ArticleLayout", () => ({
   ArticleLayout: ({ article }: { article: SubstanceArticle }) => <><article aria-label="Article preview">{article.summary}</article><ArticleSectionEditor section="dosage" /></>,
 }));

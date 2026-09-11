@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * The footer's supporter credit.
  *
@@ -21,6 +23,7 @@
  * tone above the label so the eye lands on the supporter's name, not on "Supported by".
  */
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 
 interface SiteSupporterProps {
   /**
@@ -43,6 +46,7 @@ export function SiteSupporter({
   config = SITE_FLAVOR_CONFIG,
   markHeightRem = 1.5,
 }: SiteSupporterProps) {
+  const t = useT();
   const supporter = config.footer.supporter;
 
   if (!supporter) {
@@ -62,7 +66,7 @@ export function SiteSupporter({
         .filter(Boolean)
         .join(" ")}
     >
-      <span className="theme-site-supporter-label">{supporter.prefix}</span>
+      <span className="theme-site-supporter-label">{t(supporter.prefix)}</span>
       <span
         role="img"
         aria-label={supporter.alt}
