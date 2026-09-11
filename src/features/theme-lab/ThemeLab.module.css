@@ -11,7 +11,13 @@
 .panel {
   position: fixed;
   top: 0;
-  right: 0;
+  /* right compensates for the classic page scrollbar vanishing while a Select
+     dropdown inside the panel is open: Radix's modal scroll lock hides the
+     scrollbar, the initial containing block widens by its width, and a bare
+     right: 0 would shove the panel 10px sideways. react-remove-scroll-bar
+     publishes the removed width as --removed-body-scroll-bar-size on <body>;
+     the panel inherits it and holds its position. */
+  right: var(--removed-body-scroll-bar-size, 0px);
   bottom: 0;
   z-index: 80;
   display: flex;
@@ -60,9 +66,13 @@
   .panel {
     top: auto;
     left: 0;
-    right: 0;
     bottom: 0;
-    width: auto;
+    /* Same scrollbar compensation as the desktop panel: while a Select dropdown
+       is open the page scrollbar is removed, and a bare left/right stretch would
+       widen the sheet by the scrollbar's width, squishing everything inside.
+       Width wins over right (over-constrained, LTR), so the sheet holds the
+       pre-lock client width in both states. */
+    width: calc(100% - var(--removed-body-scroll-bar-size, 0px));
     height: var(--pl-sheet-height);
     /* One scroll column instead of the desktop layout's pinned wheel over a
        scrolling catalog. That layout needs ~600px of never-scrolling chrome
