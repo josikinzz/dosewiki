@@ -30,9 +30,12 @@ import {
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   FONT_STORAGE_KEY,
+  LETTER_SPACING_STORAGE_KEY,
+  LINE_HEIGHT_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
+  TEXT_SIZE_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   getAppearanceMetaColor,
@@ -40,12 +43,25 @@ import {
   isColorSchemePreference,
   isFontPreference,
   isVisualStyle,
+  LEGACY_FONT_PREFERENCES,
   type Appearance,
   type ColorSchemePreference,
   type ColorScheme,
   type FontPreference,
   type VisualStyle,
 } from "@/theme";
+import {
+  applyReaderTypeToDocument,
+  clampAxisNumber,
+  parseAxisNumber,
+  DEFAULT_LETTER_SPACING_LEXEND,
+  DEFAULT_LETTER_SPACING_STANDARD,
+  DEFAULT_LINE_HEIGHT,
+  DEFAULT_TEXT_SIZE,
+  READER_LEADING_RANGE,
+  READER_TRACKING_RANGE,
+  TEXT_SIZE_RANGE,
+} from "@/theme/appearanceTypography";
 
 export type {
   Appearance,
@@ -63,6 +79,9 @@ export {
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   FONT_STORAGE_KEY,
+  LETTER_SPACING_STORAGE_KEY,
+  LINE_HEIGHT_STORAGE_KEY,
+  TEXT_SIZE_STORAGE_KEY,
   THEME_META_ID,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
@@ -89,6 +108,8 @@ type ThemeContextValue = {
   setColorScheme: (value: ColorScheme) => void;
   setColorSchemePreference: (value: ColorSchemePreference) => void;
   setVisualStyle: (value: VisualStyle) => void;
+  toggleColorScheme: () => void;
+  toggleVisualStyle: () => void;
   /**
    * The effective saturation levels — always a decimal in 0..1: the reader's
    * saved level, or the current appearance combination's default while they
@@ -121,16 +142,38 @@ type ThemeContextValue = {
    */
   hasCustomColors: boolean;
   /**
-   * The type axis: "default" is the current visual style's own face, "dyslexic" re-seats
-   * both family tokens to Lexend (`data-font="dyslexic"` on the root). "default" is
-   * expressed by *removing* the attribute and the storage key, so an untoggled reader
-   * stores nothing and fetches no Lexend bytes.
+   * The type axis: the face the two `--font-family-*` tokens resolve to. "standard" is
+   * the site default every dose.wiki reader opens on — the authored base.css pairing of
+   * the Inter body face and the Blinker display face — and is expressed by *removing* the
+   * root attribute and the storage key, so a reader on the default face stores nothing;
+   * each other face re-seats both tokens via `data-font="<face>"` on the root. An
+   * untoggled reader fetches no face beyond the ones every page already paints.
    */
   fontPreference: FontPreference;
   setFontPreference: (value: FontPreference) => void;
-  toggleColorScheme: () => void;
-  toggleVisualStyle: () => void;
-  toggleFontPreference: () => void;
+  /**
+   * The reading-type axes: the reader's *saved* value, or null while they never moved
+   * that slider — null is the persistence state, and the site default is the absence of
+   * the root write, never a stored number. Text size is a unitless font scale on its
+   * slider domain (it multiplies the text tokens, never the layout); letter spacing is
+   * em, line height unitless. The setters take null to mean
+   * "back to the default": the storage key is removed and the axis disengages. All
+   * three ride the font axis's lock: under a lock the setters are no-ops and the keys
+   * are never read or written. Paragraph spacing is not an axis: that rhythm is a
+   * fixed site value (2x the font size).
+   */
+  textSize: number | null;
+  letterSpacing: number | null;
+  lineHeight: number | null;
+  setTextSize: (value: number | null) => void;
+  setLetterSpacing: (value: number | null) => void;
+  setLineHeight: (value: number | null) => void;
+  /**
+   * Whether the type axis is currently carrying any saved value — the face choice or
+   * any of the three reading-type numbers. It is what lets the panel offer "Reset to
+   * defaults", on the colour axes' terms.
+   */
+  hasCustomType: boolean;
   /**
    * Whether this build pins the visual style. Part of the interface because it changes what
    * the setters do: under a lock `setVisualStyle` and `toggleVisualStyle` are no-ops and the
@@ -146,6 +189,35 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+/**
+ * The colour axes' saved coordinates for ONE appearance combination. Each slot is
+ * null while the reader never moved that slider under this combination — the
+ * persistence state, not the display one.
+ */
+type ChromaSlots = {
+  surfaceChroma: number | null;
+  accentChroma: number | null;
+  surfaceHue: number | null;
+  accentHue: number | null;
+};
+
+const EMPTY_CHROMA_SLOTS: ChromaSlots = {
+  surfaceChroma: null,
+  accentChroma: null,
+  surfaceHue: null,
+  accentHue: null,
+};
+
+/**
+ * The record key for one look: the hue and saturation axes are independent per
+ * visual style — tuning Clinical never moves Vivid — while light and dark SHARE
+ * a look's coordinates (the Mode toggle changes the palette's lightness world,
+ * not its hue direction), so each look owns one set of storage keys and slots.
+ */
+function chromaSlotsId(visualStyle: VisualStyle): string {
+  return visualStyle;
+}
 
 type AppearanceGuard<T extends string> = (value: string | null | undefined) => value is T;
 
@@ -338,7 +410,7 @@ function withTransitionsSuppressed(mutate: () => void) {
 
 /**
  * Increments on every apply; an async flip only lands while it is still the
- * newest one. Without this, toggling pro → fun while the Pro sheet is mid-
+ * newest one. Without this, toggling pro â†’ fun while the Pro sheet is mid-
  * download would let the stale flip overwrite the newer appearance when the
  * fetch settles.
  */
@@ -443,35 +515,50 @@ export function ThemeProvider({
   const colorScheme =
     colorSchemePreference === "system" ? systemColorScheme : colorSchemePreference;
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
-  const [fontPreference, setFontPreferenceState] = useState<FontPreference>("default");
+  const [fontPreference, setFontPreferenceState] = useState<FontPreference>("standard");
   /**
-   * The reader's *saved* level and hue per axis, or null while they never
-   * saved one. Null is the persistence state, not the display one: effective
-   * values resolve through the appearance-default matrix, and the persist
-   * effect removes the key on null so a default is never written into storage.
-   * Hue remains exposed as null so consumers can distinguish "never chose"
+   * The reading-type axes' saved slots, on the saved-colour-coordinates' exact terms:
+   * null while the reader never moved that slider, effective values resolved by the
+   * consumers, persistence removes the key on null so a default is never written.
+   * All three ride the font axis's lock.
+   */
+  const [savedTextSize, setTextSizeState] = useState<number | null>(null);
+  const [savedLetterSpacing, setLetterSpacingState] = useState<number | null>(null);
+  const [savedLineHeight, setLineHeightState] = useState<number | null>(null);
+  /**
+   * The colour axes' saved coordinates per look, or null per slot while the reader
+   * never moved that slider under that look. Null is the persistence state, not the
+   * display one: effective values resolve through the appearance-default matrix, and
+   * the persist effect removes the key on null so a default is never written into
+   * storage. Hue remains exposed as null so consumers can distinguish "never chose"
    * from a saved coordinate.
    *
-   * All four defaults depend on visual style and colour scheme, so a reader
-   * with nothing saved follows either toggle. Effective values are derived
-   * here, never captured. A saved value stays one knob for every combination.
+   * The axes are independent per look and SHARED across light/dark: a saved
+   * coordinate rides only the style it was tuned under — Clinical keeps its hue
+   * while Vivid keeps hers — but flipping the Mode toggle never moves it, because
+   * light and dark are one hue world at two lightness worlds. A reader with nothing
+   * saved for a look follows the authored defaults. Effective values are derived
+   * here, never captured.
    */
-  const [savedSurfaceChroma, setSurfaceChromaState] = useState<number | null>(null);
-  const [savedAccentChroma, setAccentChromaState] = useState<number | null>(null);
-  const [savedSurfaceHue, setSurfaceHueState] = useState<number | null>(null);
-  const [savedAccentHue, setAccentHueState] = useState<number | null>(null);
+  const [savedChroma, setSavedChromaState] = useState<Record<string, ChromaSlots>>({});
+  const chromaSlots = savedChroma[chromaSlotsId(visualStyle)] ?? EMPTY_CHROMA_SLOTS;
   const defaultColors = getDefaultAppearanceColors(visualStyle, colorScheme);
-  const surfaceChroma = savedSurfaceChroma ?? defaultColors.surfaceLevel;
-  const accentChroma = savedAccentChroma ?? defaultColors.accentLevel;
-  const effectiveSurfaceHue = savedSurfaceHue ?? defaultColors.surfaceHue;
-  const effectiveAccentHue = savedAccentHue ?? defaultColors.accentHue;
+  const surfaceChroma = chromaSlots.surfaceChroma ?? defaultColors.surfaceLevel;
+  const accentChroma = chromaSlots.accentChroma ?? defaultColors.accentLevel;
+  const effectiveSurfaceHue = chromaSlots.surfaceHue ?? defaultColors.surfaceHue;
+  const effectiveAccentHue = chromaSlots.accentHue ?? defaultColors.accentHue;
   // A locked axis stores nothing, so its saved slots stay null and it never
   // claims a customization the reader could not have made.
   const hasCustomColors =
-    savedSurfaceChroma !== null ||
-    savedAccentChroma !== null ||
-    savedSurfaceHue !== null ||
-    savedAccentHue !== null;
+    chromaSlots.surfaceChroma !== null ||
+    chromaSlots.accentChroma !== null ||
+    chromaSlots.surfaceHue !== null ||
+    chromaSlots.accentHue !== null;
+  const hasCustomType =
+    fontPreference !== "standard" ||
+    savedTextSize !== null ||
+    savedLetterSpacing !== null ||
+    savedLineHeight !== null;
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
    * holding the server's opening guess. Applying it would be harmless — the document already
@@ -544,55 +631,124 @@ export function ThemeProvider({
       }
     }
 
-    // The type axis, on the style lock's exact terms. The bootstrap painted
-    // `data-font="dyslexic"` (or nothing) from storage pre-paint; adopt what it resolved.
+    // The type axes, on the style lock's exact terms. The bootstrap painted
+    // `data-font` (or nothing — the default Standard) from storage pre-paint; adopt what
+    // it resolved. A saved value from the binary-toggle era ("dyslexic") is rewritten to
+    // the Lexend face it reproduced, not removed: that pick is an accessibility choice,
+    // and the default no longer carries it, so dropping the key would quietly move the
+    // reader onto the standard face on their next visit.
     if (!isFontLocked) {
       const paintedFont = resolvePaintedAxis("font", FONT_STORAGE_KEY, isFontPreference);
 
       if (paintedFont) {
         setFontPreferenceState(paintedFont);
       }
+
+      try {
+        const stored = window.localStorage.getItem(FONT_STORAGE_KEY);
+        const migrated = stored == null ? null : LEGACY_FONT_PREFERENCES[stored];
+        if (migrated) {
+          persistPreference(FONT_STORAGE_KEY, migrated);
+          setFontPreferenceState(migrated);
+        }
+      } catch {
+        // A blocked read also cannot be rewritten; the painted attribute still applies.
+      }
+
+
+      const readAxis = (storageKey: string, min: number, max: number) => {
+        try {
+          return parseAxisNumber(window.localStorage.getItem(storageKey), min, max);
+        } catch {
+          return null;
+        }
+      };
+      // A stored value equal to its axis's resting default reads as null: the default is
+      // the absence of the key, so a reader who dragged a thumb back to where it started
+      // lands in exactly the never-touched state, not a saved copy of it. Tracking is the
+      // exception — its resting value follows the face, which is only known after the
+      // adoption above, so it keeps whatever was stored and lets the setter normalize it.
+      const storedTextSize = readAxis(TEXT_SIZE_STORAGE_KEY, ...TEXT_SIZE_RANGE);
+      setTextSizeState(storedTextSize === DEFAULT_TEXT_SIZE ? null : storedTextSize);
+      setLetterSpacingState(readAxis(LETTER_SPACING_STORAGE_KEY, ...READER_TRACKING_RANGE));
+      const storedLineHeight = readAxis(LINE_HEIGHT_STORAGE_KEY, ...READER_LEADING_RANGE);
+      setLineHeightState(storedLineHeight === DEFAULT_LINE_HEIGHT ? null : storedLineHeight);
     }
 
     /**
-     * Hue and chroma per colour axis, plus the one-time migration off the
-     * discrete-swatch era. A reader who last chose a colourway id has it in the
-     * legacy key and no hue key: the id's (hue, chroma) coordinates become
-     * their saved values — the achromatic ids also pin chroma to 0, overriding
-     * any stored level, because grey was the whole point of that pick. The
-     * legacy key is then removed either way: with the hue key present or the id
-     * translated, it answers nothing anymore. A locked axis touches none of its
-     * keys, so an Effect Index visit cannot eat a dose.wiki reader's migration.
+     * Hue and chroma per look, plus the one-time migrations. Two eras of legacy keys
+     * feed the migration, both into the FUN slots — the default look, the one the
+     * reader was almost certainly wearing when they tuned:
+     *
+     * 1. The pre-look-global hue/chroma keys (un-suffixed). They predate per-look
+     *    storage; the provider removes them on hydration, so the bootstrap's
+     *    fun-only fallback answers for one page load.
+     * 2. The discrete-swatch era. A reader who last chose a colourway id has it in
+     *    the legacy key and no hue key: the id's (hue, chroma) coordinates become
+     *    their saved values — the achromatic ids also pin chroma to 0, overriding
+     *    any stored level, because grey was the whole point of that pick.
+     *
+     * Every migrated or removed key answers nothing afterwards. A locked axis
+     * touches none of its keys, so an Effect Index visit cannot eat a dose.wiki
+     * reader's migration.
      */
-    if (!isSurfaceLocked) {
-      const storedHue = resolveStoredHue(SURFACE_HUE_STORAGE_KEY);
-      let hue = storedHue;
-      let chroma = resolveStoredChroma(SURFACE_CHROMA_STORAGE_KEY);
-      if (storedHue === null) {
-        const legacy = resolveLegacyColourway(LEGACY_SURFACE_TO_HUE, SURFACE_STORAGE_KEY);
-        if (legacy) {
-          hue = legacy.hue;
-          if (legacy.chroma !== undefined) chroma = legacy.chroma;
+    if (!isSurfaceLocked || !isAccentLocked) {
+      const migrated: Record<string, ChromaSlots> = {
+        fun: { ...EMPTY_CHROMA_SLOTS },
+        pro: { ...EMPTY_CHROMA_SLOTS },
+      };
+
+      if (!isSurfaceLocked) {
+        let hue = resolveStoredHue(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+        let chroma = resolveStoredChroma(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
+        if (hue === null && chroma === null) {
+          hue = resolveStoredHue(SURFACE_HUE_STORAGE_KEY);
+          chroma = resolveStoredChroma(SURFACE_CHROMA_STORAGE_KEY);
         }
-      }
-      removeStoredKey(SURFACE_STORAGE_KEY);
-      setSurfaceHueState(hue);
-      setSurfaceChromaState(chroma);
-    }
-    if (!isAccentLocked) {
-      const storedHue = resolveStoredHue(ACCENT_HUE_STORAGE_KEY);
-      let hue = storedHue;
-      let chroma = resolveStoredChroma(ACCENT_CHROMA_STORAGE_KEY);
-      if (storedHue === null) {
-        const legacy = resolveLegacyColourway(LEGACY_ACCENT_TO_HUE, ACCENT_STORAGE_KEY);
-        if (legacy) {
-          hue = legacy.hue;
-          if (legacy.chroma !== undefined) chroma = legacy.chroma;
+        if (hue === null) {
+          const legacy = resolveLegacyColourway(LEGACY_SURFACE_TO_HUE, SURFACE_STORAGE_KEY);
+          if (legacy) {
+            hue = legacy.hue;
+            if (legacy.chroma !== undefined) chroma = legacy.chroma;
+          }
         }
+        migrated.fun.surfaceChroma = chroma;
+        migrated.fun.surfaceHue = hue;
+        removeStoredKey(SURFACE_HUE_STORAGE_KEY);
+        removeStoredKey(SURFACE_CHROMA_STORAGE_KEY);
+        removeStoredKey(SURFACE_STORAGE_KEY);
       }
-      removeStoredKey(ACCENT_STORAGE_KEY);
-      setAccentHueState(hue);
-      setAccentChromaState(chroma);
+      if (!isAccentLocked) {
+        let hue = resolveStoredHue(`${ACCENT_HUE_STORAGE_KEY}-fun`);
+        let chroma = resolveStoredChroma(`${ACCENT_CHROMA_STORAGE_KEY}-fun`);
+        if (hue === null && chroma === null) {
+          hue = resolveStoredHue(ACCENT_HUE_STORAGE_KEY);
+          chroma = resolveStoredChroma(ACCENT_CHROMA_STORAGE_KEY);
+        }
+        if (hue === null) {
+          const legacy = resolveLegacyColourway(LEGACY_ACCENT_TO_HUE, ACCENT_STORAGE_KEY);
+          if (legacy) {
+            hue = legacy.hue;
+            if (legacy.chroma !== undefined) chroma = legacy.chroma;
+          }
+        }
+        migrated.fun.accentChroma = chroma;
+        migrated.fun.accentHue = hue;
+        removeStoredKey(ACCENT_HUE_STORAGE_KEY);
+        removeStoredKey(ACCENT_CHROMA_STORAGE_KEY);
+        removeStoredKey(ACCENT_STORAGE_KEY);
+      }
+
+      setSavedChromaState((current) => ({
+        ...current,
+        fun: {
+          surfaceChroma: isSurfaceLocked ? current.fun?.surfaceChroma ?? null : migrated.fun.surfaceChroma,
+          accentChroma: isAccentLocked ? current.fun?.accentChroma ?? null : migrated.fun.accentChroma,
+          surfaceHue: isSurfaceLocked ? current.fun?.surfaceHue ?? null : migrated.fun.surfaceHue,
+          accentHue: isAccentLocked ? current.fun?.accentHue ?? null : migrated.fun.accentHue,
+        },
+        pro: current.pro ?? { ...EMPTY_CHROMA_SLOTS },
+      }));
     }
 
     setHydrated(true);
@@ -637,10 +793,10 @@ export function ThemeProvider({
   }, [hydrated, colorScheme, colorSchemePreference, visualStyle, isVisualStyleLocked, isColorSchemePersistent]);
 
   /**
-   * The type axis: applied and persisted synchronously per change, like scheme and style.
-   * "default" removes both the attribute and the key — the absent state, never a stored
-   * value — so an untoggled reader's document and storage look exactly as if the axis did
-   * not exist, and no Lexend `@font-face` ever matches a rendered element.
+   * The type axes: applied and persisted synchronously per change, like scheme and style.
+   * The default face removes both the attribute and the key — the absent state, never a
+   * stored value — so a reader on Lexend's document and storage look exactly as if the
+   * axis did not exist.
    */
   useEffect(() => {
     if (!hydrated || isFontLocked) {
@@ -648,7 +804,7 @@ export function ThemeProvider({
     }
 
     const root = document.documentElement;
-    const nextFont = fontPreference === "dyslexic" ? "dyslexic" : undefined;
+    const nextFont = fontPreference === "standard" ? undefined : fontPreference;
 
     if (root.dataset.font !== nextFont) {
       // A family swap restyles and reflows the whole document; run it under
@@ -663,7 +819,7 @@ export function ThemeProvider({
     }
 
     if (nextFont) {
-      persistPreference(FONT_STORAGE_KEY, "dyslexic");
+      persistPreference(FONT_STORAGE_KEY, nextFont);
     } else {
       removeStoredKey(FONT_STORAGE_KEY);
     }
@@ -698,6 +854,14 @@ export function ThemeProvider({
         isSurfaceLocked ? null : effectiveSurfaceHue,
         isAccentLocked ? null : effectiveAccentHue,
       );
+      // The reading-type axes share this paint: their writes are also whole-document
+      // custom-property batches (the text size's is a full reflow), so they belong
+      // behind the same measured pacing as the chroma axes rather than beside it.
+      applyReaderTypeToDocument({
+        textSize: isFontLocked ? null : savedTextSize,
+        letterSpacing: isFontLocked ? null : savedLetterSpacing,
+        lineHeight: isFontLocked ? null : savedLineHeight,
+      });
     };
 
     if (typeof requestAnimationFrame !== "function") {
@@ -745,7 +909,7 @@ export function ThemeProvider({
         chromaFrameRef.current = null;
       }
     };
-  }, [hydrated, surfaceChroma, accentChroma, effectiveSurfaceHue, effectiveAccentHue, isSurfaceLocked, isAccentLocked]);
+  }, [hydrated, surfaceChroma, accentChroma, effectiveSurfaceHue, effectiveAccentHue, savedTextSize, savedLetterSpacing, savedLineHeight, isSurfaceLocked, isAccentLocked, isFontLocked]);
 
   /**
    * The colour axes' persistence, debounced past the drag. Null still removes
@@ -755,7 +919,7 @@ export function ThemeProvider({
    * keys; a single lock skips only its own axis, exactly as before.
    */
   useEffect(() => {
-    if (!hydrated || (isSurfaceLocked && isAccentLocked)) {
+    if (!hydrated || (isSurfaceLocked && isAccentLocked && isFontLocked)) {
       return;
     }
 
@@ -763,13 +927,28 @@ export function ThemeProvider({
       if (pendingAxisPersistRef.current === persist) {
         pendingAxisPersistRef.current = null;
       }
+      // Every look's slots persist to their own suffixed keys, not just the current
+      // look's: a drag on Vivid followed by an immediate flip to Clinical must not
+      // lose the settled value to the debounce cleanup. Untouched looks hold null
+      // slots, whose writes are removes of absent keys — harmless no-ops.
       if (!isSurfaceLocked) {
-        persistAxisNumber(SURFACE_CHROMA_STORAGE_KEY, savedSurfaceChroma);
-        persistAxisNumber(SURFACE_HUE_STORAGE_KEY, savedSurfaceHue);
+        for (const look of ["fun", "pro"] as const) {
+          const slots = savedChroma[look] ?? EMPTY_CHROMA_SLOTS;
+          persistAxisNumber(`${SURFACE_CHROMA_STORAGE_KEY}-${look}`, slots.surfaceChroma);
+          persistAxisNumber(`${SURFACE_HUE_STORAGE_KEY}-${look}`, slots.surfaceHue);
+        }
       }
       if (!isAccentLocked) {
-        persistAxisNumber(ACCENT_CHROMA_STORAGE_KEY, savedAccentChroma);
-        persistAxisNumber(ACCENT_HUE_STORAGE_KEY, savedAccentHue);
+        for (const look of ["fun", "pro"] as const) {
+          const slots = savedChroma[look] ?? EMPTY_CHROMA_SLOTS;
+          persistAxisNumber(`${ACCENT_CHROMA_STORAGE_KEY}-${look}`, slots.accentChroma);
+          persistAxisNumber(`${ACCENT_HUE_STORAGE_KEY}-${look}`, slots.accentHue);
+        }
+      }
+      if (!isFontLocked) {
+        persistAxisNumber(TEXT_SIZE_STORAGE_KEY, savedTextSize);
+        persistAxisNumber(LETTER_SPACING_STORAGE_KEY, savedLetterSpacing);
+        persistAxisNumber(LINE_HEIGHT_STORAGE_KEY, savedLineHeight);
       }
     };
 
@@ -778,7 +957,7 @@ export function ThemeProvider({
     // The timer dies with the change that scheduled it; the ref survives so
     // the flush below can settle a drag the timer never got to.
     return () => clearTimeout(timer);
-  }, [hydrated, savedSurfaceChroma, savedAccentChroma, savedSurfaceHue, savedAccentHue, isSurfaceLocked, isAccentLocked]);
+  }, [hydrated, savedChroma, savedTextSize, savedLetterSpacing, savedLineHeight, isSurfaceLocked, isAccentLocked, isFontLocked]);
 
   /**
    * The debounce's safety net: a drag followed by an immediate exit —
@@ -819,40 +998,126 @@ export function ThemeProvider({
     [isFontLocked],
   );
 
+  // Null is the setters' "back to the site default": the storage key is removed and the
+  // axis's root write disengages. Every clamp is the slider's own domain, so a value can
+  // only arrive here through the control that owns that domain — and a value equal to the
+  // resting default IS the default, so it stores nothing: dragging the thumb back to
+  // where it started must land the document in exactly the never-touched state, not a
+  // saved copy of it. That is the never-write-a-default rule every other axis follows.
+  const setTextSize = useCallback(
+    (value: number | null) => {
+      if (!isFontLocked) {
+        if (value === null) {
+          setTextSizeState(null);
+          return;
+        }
+        const next = Number(
+          clampAxisNumber(value, TEXT_SIZE_RANGE[0], TEXT_SIZE_RANGE[1]).toFixed(2),
+        );
+        setTextSizeState(next === DEFAULT_TEXT_SIZE ? null : next);
+      }
+    },
+    [isFontLocked],
+  );
+
+  const setLetterSpacing = useCallback(
+    (value: number | null) => {
+      if (!isFontLocked) {
+        if (value === null) {
+          setLetterSpacingState(null);
+          return;
+        }
+        const next = Number(
+          clampAxisNumber(value, READER_TRACKING_RANGE[0], READER_TRACKING_RANGE[1]).toFixed(2),
+        );
+        // The resting tracking follows the face: Lexend's letterfit is the default
+        // face's whole point (0), the authored faces carry the negative body ramp.
+        const resting =
+          fontPreference === "lexend" ? DEFAULT_LETTER_SPACING_LEXEND : DEFAULT_LETTER_SPACING_STANDARD;
+        setLetterSpacingState(next === resting ? null : next);
+      }
+    },
+    [isFontLocked, fontPreference],
+  );
+
+  const setLineHeight = useCallback(
+    (value: number | null) => {
+      if (!isFontLocked) {
+        if (value === null) {
+          setLineHeightState(null);
+          return;
+        }
+        const next = Number(
+          clampAxisNumber(value, READER_LEADING_RANGE[0], READER_LEADING_RANGE[1]).toFixed(2),
+        );
+        setLineHeightState(next === DEFAULT_LINE_HEIGHT ? null : next);
+      }
+    },
+    [isFontLocked],
+  );
+
+  // The colour setters write the CURRENT look's slots only: Vivid and Clinical keep
+  // independent coordinates, while light and dark share them (the Mode toggle is a
+  // lightness world, not a hue world). Null is the "back to the site default" state:
+  // the storage key is removed and the slot disengages.
   const setSurfaceChroma = useCallback(
     (value: number | null) => {
       if (!isSurfaceLocked) {
-        setSurfaceChromaState(value === null ? null : Math.min(Math.max(value, 0), 1));
+        setSavedChromaState((current) => ({
+          ...current,
+          [visualStyle]: {
+            ...(current[visualStyle] ?? EMPTY_CHROMA_SLOTS),
+            surfaceChroma: value === null ? null : Math.min(Math.max(value, 0), 1),
+          },
+        }));
       }
     },
-    [isSurfaceLocked],
+    [isSurfaceLocked, visualStyle],
   );
 
   const setAccentChroma = useCallback(
     (value: number | null) => {
       if (!isAccentLocked) {
-        setAccentChromaState(value === null ? null : Math.min(Math.max(value, 0), 1));
+        setSavedChromaState((current) => ({
+          ...current,
+          [visualStyle]: {
+            ...(current[visualStyle] ?? EMPTY_CHROMA_SLOTS),
+            accentChroma: value === null ? null : Math.min(Math.max(value, 0), 1),
+          },
+        }));
       }
     },
-    [isAccentLocked],
+    [isAccentLocked, visualStyle],
   );
 
   const setSurfaceHue = useCallback(
     (value: number | null) => {
       if (!isSurfaceLocked) {
-        setSurfaceHueState(value === null ? null : clampHueDegrees(value));
+        setSavedChromaState((current) => ({
+          ...current,
+          [visualStyle]: {
+            ...(current[visualStyle] ?? EMPTY_CHROMA_SLOTS),
+            surfaceHue: value === null ? null : clampHueDegrees(value),
+          },
+        }));
       }
     },
-    [isSurfaceLocked],
+    [isSurfaceLocked, visualStyle],
   );
 
   const setAccentHue = useCallback(
     (value: number | null) => {
       if (!isAccentLocked) {
-        setAccentHueState(value === null ? null : clampHueDegrees(value));
+        setSavedChromaState((current) => ({
+          ...current,
+          [visualStyle]: {
+            ...(current[visualStyle] ?? EMPTY_CHROMA_SLOTS),
+            accentHue: value === null ? null : clampHueDegrees(value),
+          },
+        }));
       }
     },
-    [isAccentLocked],
+    [isAccentLocked, visualStyle],
   );
 
   const setColorSchemePreference = useCallback((value: ColorSchemePreference) => {
@@ -880,14 +1145,6 @@ export function ThemeProvider({
     setVisualStyleState((current) => (current === "pro" ? "fun" : "pro"));
   }, [isVisualStyleLocked]);
 
-  const toggleFontPreference = useCallback(() => {
-    if (isFontLocked) {
-      return;
-    }
-
-    setFontPreferenceState((current) => (current === "dyslexic" ? "default" : "dyslexic"));
-  }, [isFontLocked]);
-
   const value = useMemo(
     () => ({
       colorScheme,
@@ -898,18 +1155,24 @@ export function ThemeProvider({
       setColorSchemePreference,
       setVisualStyle,
       setFontPreference,
+      textSize: savedTextSize,
+      letterSpacing: savedLetterSpacing,
+      lineHeight: savedLineHeight,
+      setTextSize,
+      setLetterSpacing,
+      setLineHeight,
+      hasCustomType,
       surfaceChroma,
       accentChroma,
       setSurfaceChroma,
       setAccentChroma,
-      surfaceHue: savedSurfaceHue,
-      accentHue: savedAccentHue,
+      surfaceHue: chromaSlots.surfaceHue,
+      accentHue: chromaSlots.accentHue,
       setSurfaceHue,
       setAccentHue,
       hasCustomColors,
       toggleColorScheme,
       toggleVisualStyle,
-      toggleFontPreference,
       isVisualStyleLocked,
       isAccentLocked,
       isSurfaceLocked,
@@ -924,18 +1187,24 @@ export function ThemeProvider({
       setColorSchemePreference,
       setVisualStyle,
       setFontPreference,
+      savedTextSize,
+      savedLetterSpacing,
+      savedLineHeight,
+      setTextSize,
+      setLetterSpacing,
+      setLineHeight,
+      hasCustomType,
       surfaceChroma,
       accentChroma,
       setSurfaceChroma,
       setAccentChroma,
-      savedSurfaceHue,
-      savedAccentHue,
+      chromaSlots.surfaceHue,
+      chromaSlots.accentHue,
       setSurfaceHue,
       setAccentHue,
       hasCustomColors,
       toggleColorScheme,
       toggleVisualStyle,
-      toggleFontPreference,
       isVisualStyleLocked,
       isSurfaceLocked,
       isAccentLocked,

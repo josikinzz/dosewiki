@@ -662,8 +662,11 @@ export function Header({
 
         <div className={forceMobileNav ? "ml-auto flex flex-shrink-0 items-center gap-2" : "ml-auto flex flex-shrink-0 items-center gap-2 lg:hidden"}>
           {/* Appearance settings stays left of the mobile menu so the familiar hamburger
-              owns the top-right corner. This mount keeps the larger touch-context glyph. */}
-          <AppearanceControls />
+              owns the top-right corner. This mount keeps the larger touch-context glyph,
+              and lands its panel on the same insets the mobile nav sheet reaches: one
+              button + one gap right (the sheet is right-0 inside the hamburger's
+              wrapper), and the header's own 16px edge padding below the bar. */}
+          <AppearanceControls alignOffset={-52} sideOffset={20} />
           <div className="relative">
             <Button
               ref={menuButtonRef}

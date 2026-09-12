@@ -20,7 +20,7 @@ import {
   PRO_THEME_STYLESHEET_LINK_ID,
 } from "@/theme/appearanceSheets";
 import { DocumentRuntime } from "./_components/DocumentRuntime";
-import { bodyFont, dyslexicFont, dyslexicPreviewFont, proFont, siteFont } from "./fonts";
+import { bodyFont, dyslexicFont, proFont, siteFont } from "./fonts";
 import "@site-styles";
 
 // One appearance policy feeds all three resolvers, so they cannot disagree: the server
@@ -37,17 +37,16 @@ const rendersChromaStylesheet =
   SITE_FLAVOR_CONFIG.showSurfacePicker || SITE_FLAVOR_CONFIG.showAccentPicker;
 const zodJitlessBootstrap = buildZodJitlessBootstrapScript();
 // Both faces are registered in both builds so the Fun/Pro choice is a style switch, not a
-// reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it. The
-// dyslexic face rides the same mechanism where the flavor offers the toggle (null where it
-// does not): `preload: false` again, so an untoggled reader downloads none of Lexend either.
-// The Inter body face is dose.wiki's alone (null on Effect Index, whose body face is its
-// display face) and, like the display face, is preloaded: it paints on every page.
+// reload. `proFont` sets `preload: false`, so a Fun reader downloads none of it. Lexend —
+// the default reading face — rides the same mechanism where the flavor offers the font
+// axis (null where it does not): preloaded, because it paints on every page. The Inter
+// body face is dose.wiki's alone (null on Effect Index, whose body face is its display
+// face) and, like the display face, is preloaded: it paints on every page.
 const rootFontClassName = [
   siteFont.variable,
   bodyFont?.variable,
   proFont.variable,
   dyslexicFont?.variable,
-  dyslexicPreviewFont?.variable,
 ]
   .filter(Boolean)
   .join(" ");

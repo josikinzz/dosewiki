@@ -16,9 +16,12 @@ import {
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
   FONT_STORAGE_KEY,
+  LETTER_SPACING_STORAGE_KEY,
+  LINE_HEIGHT_STORAGE_KEY,
   SURFACE_CHROMA_STORAGE_KEY,
   SURFACE_HUE_STORAGE_KEY,
   SURFACE_STORAGE_KEY,
+  TEXT_SIZE_STORAGE_KEY,
   THEME_META_ID,
   VISUAL_STYLE_STORAGE_KEY,
   ThemeProvider,
@@ -26,12 +29,25 @@ import {
   type ColorScheme,
   type VisualStyle,
 } from "./ThemeContext";
+import {
+  READER_LEADING_ATTRIBUTE,
+  READER_LEADING_PROPERTY,
+  READER_TRACKING_PROPERTY,
+  TEXT_SIZE_PROPERTY,
+} from "@/theme/appearanceTypography";
 
 function AppearanceProbe() {
   const {
     colorScheme,
     visualStyle,
     fontPreference,
+    textSize,
+    letterSpacing,
+    lineHeight,
+    setTextSize,
+    setLetterSpacing,
+    setLineHeight,
+    hasCustomType,
     surfaceChroma,
     accentChroma,
     setSurfaceChroma,
@@ -44,7 +60,7 @@ function AppearanceProbe() {
     isFontLocked,
     toggleColorScheme,
     toggleVisualStyle,
-    toggleFontPreference,
+    setFontPreference,
   } = useTheme();
 
   return (
@@ -52,6 +68,10 @@ function AppearanceProbe() {
       <span data-testid="color-scheme">{colorScheme}</span>
       <span data-testid="visual-style">{visualStyle}</span>
       <span data-testid="font-preference">{fontPreference}</span>
+      <span data-testid="text-size">{String(textSize)}</span>
+      <span data-testid="letter-spacing">{String(letterSpacing)}</span>
+      <span data-testid="line-height">{String(lineHeight)}</span>
+      <span data-testid="has-custom-type">{String(hasCustomType)}</span>
       <span data-testid="style-locked">{String(isVisualStyleLocked)}</span>
       <span data-testid="accent-locked">{String(isAccentLocked)}</span>
       <span data-testid="font-locked">{String(isFontLocked)}</span>
@@ -65,8 +85,32 @@ function AppearanceProbe() {
       <button type="button" onClick={toggleVisualStyle}>
         Toggle style
       </button>
-      <button type="button" onClick={toggleFontPreference}>
-        Toggle type
+      <button type="button" onClick={() => setFontPreference("inter")}>
+        Pick Inter
+      </button>
+      <button type="button" onClick={() => setFontPreference("lexend")}>
+        Pick Lexend
+      </button>
+      <button type="button" onClick={() => setFontPreference("standard")}>
+        Pick Standard
+      </button>
+      <button type="button" onClick={() => setTextSize(1.05)}>
+        Set text size
+      </button>
+      <button type="button" onClick={() => setTextSize(1)}>
+        Set text size to default
+      </button>
+      <button type="button" onClick={() => setTextSize(null)}>
+        Reset text size
+      </button>
+      <button type="button" onClick={() => setLetterSpacing(-0.02)}>
+        Set tracking
+      </button>
+      <button type="button" onClick={() => setLineHeight(1.55)}>
+        Set leading
+      </button>
+      <button type="button" onClick={() => setLineHeight(1.7)}>
+        Set leading to default
       </button>
       <button type="button" onClick={() => setSurfaceChroma(0.4)}>
         Saturate surface
@@ -330,66 +374,177 @@ describe("ThemeProvider", () => {
     expect(ensureThemeMeta().content).toBe(APPEARANCE_META_COLORS.pro.dark);
   });
 
-  it("toggles the type axis: dyslexic writes the key, default removes it and the attribute", async () => {
+  it("picks a face: writing the key paints it, the default removes key and attribute", async () => {
     const user = userEvent.setup();
 
     renderProvider();
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+    // The default is the ABSENT state before anything is picked.
+    expect(document.documentElement.dataset.font).toBeUndefined();
 
-    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+    await user.click(screen.getByRole("button", { name: "Pick Inter" }));
 
     await waitFor(() => {
-      expect(screen.getByTestId("font-preference")).toHaveTextContent("dyslexic");
-      expect(document.documentElement.dataset.font).toBe("dyslexic");
-      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("dyslexic");
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("inter");
+      expect(document.documentElement.dataset.font).toBe("inter");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("inter");
     });
 
-    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+    await user.click(screen.getByRole("button", { name: "Pick Lexend" }));
 
     await waitFor(() => {
-      expect(screen.getByTestId("font-preference")).toHaveTextContent("default");
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
+      // Lexend is a paintable face now, not the default: it carries an attribute and a
+      // stored value like any other pick.
+      expect(document.documentElement.dataset.font).toBe("lexend");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("lexend");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Pick Standard" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("standard");
       // The default is the ABSENT state: no attribute, no stored value — the document
-      // and storage look exactly as if the reader never toggled.
+      // and storage look exactly as if the reader never picked.
       expect(document.documentElement.dataset.font).toBeUndefined();
       expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBeNull();
       expect(storage.removals).toContain(FONT_STORAGE_KEY);
     });
   });
 
-  it("adopts the painted dyslexic type the bootstrap restored", async () => {
-    // Exactly the state the pre-paint script leaves for a reader who saved the toggle.
+  it("migrates the binary-toggle era's dyslexic pick onto the Lexend face", async () => {
+    // Exactly the state a reader of the old toggle could return with: the retired value
+    // in storage. The default no longer carries Lexend, so the adoption rewrites the key
+    // to the face that pick reproduced instead of clearing it — dropping it would move a
+    // reader who chose the dyslexia-friendly face onto the standard one.
     window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
-    document.documentElement.dataset.font = "dyslexic";
     storage.forgetTraffic();
 
     renderProvider();
 
     await waitFor(() => {
-      expect(screen.getByTestId("font-preference")).toHaveTextContent("dyslexic");
-      expect(document.documentElement.dataset.font).toBe("dyslexic");
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
+      expect(document.documentElement.dataset.font).toBe("lexend");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("lexend");
     });
   });
 
-  it("never reads or writes the font key while the type axis is locked", async () => {
+  it("sets and clears the reading-type axes: paint on the next frame, persist after the drag rests", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Set text size" }));
+    await user.click(screen.getByRole("button", { name: "Set tracking" }));
+    await user.click(screen.getByRole("button", { name: "Set leading" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("has-custom-type")).toHaveTextContent("true");
+      // The text-size axis is a unitless scale over the text tokens, never a root
+      // font-size — a font-size write would reproduce browser zoom.
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
+      expect(document.documentElement.style.fontSize).toBe("");
+      // The written values carry their CSS units: a bare number substitutes into
+      // letter-spacing as an invalid value and silently knocks the property back to
+      // its inherited value.
+      expect(document.documentElement.style.getPropertyValue(READER_TRACKING_PROPERTY)).toBe("-0.02em");
+      expect(document.documentElement).toHaveAttribute(READER_LEADING_ATTRIBUTE, "");
+      expect(document.documentElement.style.getPropertyValue(READER_LEADING_PROPERTY)).toBe("1.55");
+    });
+
+    // Persistence is debounced past the drag; each settled value lands once.
+    await waitFor(() => {
+      expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBe("1.05");
+      expect(window.localStorage.getItem(LETTER_SPACING_STORAGE_KEY)).toBe("-0.02");
+      expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBe("1.55");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Reset text size" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("text-size")).toHaveTextContent("null");
+      // The default is the ABSENT write: the axis disengages instead of painting ×1.
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
+      expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBeNull();
+      expect(storage.removals).toContain(TEXT_SIZE_STORAGE_KEY);
+    });
+  });
+
+  it("treats a slider value parked back on its default as the never-touched state", async () => {
+    const user = userEvent.setup();
+
+    renderProvider();
+
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+
+    await user.click(screen.getByRole("button", { name: "Set leading" }));
+    await waitFor(() => {
+      expect(document.documentElement).toHaveAttribute(READER_LEADING_ATTRIBUTE, "");
+      expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBe("1.55");
+    });
+
+    // Dragging the thumb back to 1.7 — the resting default — must not save a copy of
+    // the default: the axis disengages, the key is removed, and hasCustomType drops,
+    // exactly as if the slider had never moved.
+    await user.click(screen.getByRole("button", { name: "Set leading to default" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("line-height")).toHaveTextContent("null");
+      expect(screen.getByTestId("has-custom-type")).toHaveTextContent("false");
+      expect(document.documentElement).not.toHaveAttribute(READER_LEADING_ATTRIBUTE);
+      expect(document.documentElement.style.getPropertyValue(READER_LEADING_PROPERTY)).toBe("");
+      expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBeNull();
+      expect(storage.removals).toContain(LINE_HEIGHT_STORAGE_KEY);
+    });
+
+    // The text-size axis behaves identically.
+    await user.click(screen.getByRole("button", { name: "Set text size" }));
+    await waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
+    });
+    await user.click(screen.getByRole("button", { name: "Set text size to default" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("text-size")).toHaveTextContent("null");
+      expect(screen.getByTestId("has-custom-type")).toHaveTextContent("false");
+      expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
+      expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("never reads or writes the type keys while the type axis is locked", async () => {
     const user = userEvent.setup();
     // A preference saved on the other publication must not be consumed or clobbered here.
-    window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
+    window.localStorage.setItem(FONT_STORAGE_KEY, "inter");
+    window.localStorage.setItem(TEXT_SIZE_STORAGE_KEY, "1.15");
     storage.forgetTraffic();
 
     renderProvider({ isFontLocked: true });
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    await user.click(screen.getByRole("button", { name: "Toggle type" }));
+    await user.click(screen.getByRole("button", { name: "Pick Inter" }));
+    await user.click(screen.getByRole("button", { name: "Set text size" }));
 
     expect(screen.getByTestId("font-locked")).toHaveTextContent("true");
-    expect(screen.getByTestId("font-preference")).toHaveTextContent("default");
+    expect(screen.getByTestId("font-preference")).toHaveTextContent("standard");
+    expect(screen.getByTestId("text-size")).toHaveTextContent("null");
     expect(document.documentElement.dataset.font).toBeUndefined();
-    expect(storage.reads).not.toContain(FONT_STORAGE_KEY);
-    expect(storage.writes.map(([key]) => key)).not.toContain(FONT_STORAGE_KEY);
-    expect(storage.removals).not.toContain(FONT_STORAGE_KEY);
-    expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("dyslexic");
+    for (const key of [
+      FONT_STORAGE_KEY,
+      TEXT_SIZE_STORAGE_KEY,
+      LETTER_SPACING_STORAGE_KEY,
+      LINE_HEIGHT_STORAGE_KEY,
+    ]) {
+      expect(storage.reads).not.toContain(key);
+      expect(storage.writes.map(([writeKey]) => writeKey)).not.toContain(key);
+      expect(storage.removals).not.toContain(key);
+    }
+    expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("inter");
+    expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBe("1.15");
   });
 
   it("hydrates the site-default levels and hues without ever writing them to storage", async () => {
@@ -411,12 +566,12 @@ describe("ThemeProvider", () => {
     // But a default is never persisted: absence of the key IS the default, so a future
     // default change reaches every reader who never moved a slider.
     const writtenKeys = storage.writes.map(([key]) => key);
-    expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
-    expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+    expect(writtenKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_HUE_STORAGE_KEY}-fun`);
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBeNull();
+    expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBeNull();
   });
 
   it("recomputes all palette defaults when either appearance axis flips", async () => {
@@ -457,25 +612,50 @@ describe("ThemeProvider", () => {
     // Defaults are still never persisted: flipping either appearance axis
     // writes no colour-coordinate key.
     const writtenKeys = storage.writes.map(([key]) => key);
-    expect(writtenKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(writtenKeys).not.toContain(ACCENT_HUE_STORAGE_KEY);
+    expect(writtenKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_CHROMA_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+    expect(writtenKeys).not.toContain(`${ACCENT_HUE_STORAGE_KEY}-fun`);
 
-    // A saved decimal remains one knob for every combination.
+    // A saved decimal rides the look it was tuned under: Clinical does not read
+    // Vivid's key, so its own default level paints there (and no Clinical key is
+    // written — untouched slots persist as removes, never as defaults).
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
     await user.click(screen.getByRole("button", { name: "Toggle style" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("visual-style")).toHaveTextContent("pro");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
+        String(DEFAULT_APPEARANCE_COLORS.pro.dark.surfaceLevel),
+      );
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-pro`)).toBeNull();
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");
+    });
+
+    // Light and dark SHARE a look's coordinates: flipping the mode back to dark
+    // under Clinical never moves the hue.
+    await user.click(screen.getByRole("button", { name: "Toggle scheme" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("color-scheme")).toHaveTextContent("light");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Toggle style" }));
+    await waitFor(() => {
+      // Back on Vivid, the saved decimal is still there — and dark vs light of the
+      // SAME look reads one shared key, so a mode flip cannot move the hue.
+      expect(screen.getByTestId("visual-style")).toHaveTextContent("fun");
       expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+    });
+    await user.click(screen.getByRole("button", { name: "Toggle scheme" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("color-scheme")).toHaveTextContent("dark");
+      expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
     });
   });
 
   it("restores a saved level over the default, and null resets to the default", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(SURFACE_CHROMA_STORAGE_KEY, "0.4");
+    window.localStorage.setItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.4");
     storage.forgetTraffic();
 
     renderProvider();
@@ -491,7 +671,7 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
 
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");
     });
 
     // Null means "back to the default level": the key is removed, not written as the
@@ -502,7 +682,7 @@ describe("ThemeProvider", () => {
       expect(screen.getByTestId("surface-chroma")).toHaveTextContent(
         String(DEFAULT_APPEARANCE_COLORS.fun.dark.surfaceLevel),
       );
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBeNull();
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBeNull();
     });
   });
 
@@ -517,17 +697,17 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
     });
     // The axes are independent: rotating the surface moved nothing else.
     expect(screen.getByTestId("accent-hue")).toHaveTextContent("null");
-    expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Rotate accent" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("accent-hue")).toHaveTextContent("249");
-      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe("249");
+      expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBe("249");
     });
 
     // Null means "back to the site default": the key is removed, never written as 0.
@@ -535,13 +715,13 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("surface-hue")).toHaveTextContent("null");
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBeNull();
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBeNull();
     });
   });
 
   it("restores a saved hue over a lingering legacy id, and still retires the id", async () => {
     // A reader who migrated already (or chose a hue) while an old colourway id lingers.
-    window.localStorage.setItem(SURFACE_HUE_STORAGE_KEY, "40");
+    window.localStorage.setItem(`${SURFACE_HUE_STORAGE_KEY}-fun`, "40");
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
     storage.forgetTraffic();
 
@@ -552,7 +732,7 @@ describe("ThemeProvider", () => {
     });
     expect(storage.removals).toContain(SURFACE_STORAGE_KEY);
     expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("40");
   });
 
   it("translates the legacy colourway keys into hue coordinates and removes them", async () => {
@@ -574,10 +754,10 @@ describe("ThemeProvider", () => {
 
     // The translation is persisted and the old keys are gone: the migration runs once.
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe(
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe(
         String(LEGACY_SURFACE_TO_HUE.abyss.hue),
       );
-      expect(window.localStorage.getItem(ACCENT_HUE_STORAGE_KEY)).toBe(
+      expect(window.localStorage.getItem(`${ACCENT_HUE_STORAGE_KEY}-fun`)).toBe(
         String(LEGACY_ACCENT_TO_HUE.teal.hue),
       );
       expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
@@ -589,7 +769,7 @@ describe("ThemeProvider", () => {
     // Graphite/Neutral were "grey", which is now just saturation 0: the stored level —
     // saved back when the reader wore a chromatic colourway — must not resurrect colour.
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "graphite");
-    window.localStorage.setItem(SURFACE_CHROMA_STORAGE_KEY, "0.8");
+    window.localStorage.setItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.8");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, "neutral");
     storage.forgetTraffic();
 
@@ -602,8 +782,8 @@ describe("ThemeProvider", () => {
     });
 
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0");
-      expect(window.localStorage.getItem(ACCENT_CHROMA_STORAGE_KEY)).toBe("0");
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0");
+      expect(window.localStorage.getItem(`${ACCENT_CHROMA_STORAGE_KEY}-fun`)).toBe("0");
       expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBeNull();
       expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBeNull();
     });
@@ -614,7 +794,7 @@ describe("ThemeProvider", () => {
     // survive a visit untouched — neither read, nor migrated, nor removed.
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, "teal");
-    window.localStorage.setItem(SURFACE_HUE_STORAGE_KEY, "40");
+    window.localStorage.setItem(`${SURFACE_HUE_STORAGE_KEY}-fun`, "40");
     storage.forgetTraffic();
 
     renderProvider({ isSurfaceLocked: true, isAccentLocked: true });
@@ -624,17 +804,17 @@ describe("ThemeProvider", () => {
     for (const key of [
       SURFACE_STORAGE_KEY,
       ACCENT_STORAGE_KEY,
-      SURFACE_HUE_STORAGE_KEY,
-      ACCENT_HUE_STORAGE_KEY,
-      SURFACE_CHROMA_STORAGE_KEY,
-      ACCENT_CHROMA_STORAGE_KEY,
+      `${SURFACE_HUE_STORAGE_KEY}-fun`,
+      `${ACCENT_HUE_STORAGE_KEY}-fun`,
+      `${SURFACE_CHROMA_STORAGE_KEY}-fun`,
+      `${ACCENT_CHROMA_STORAGE_KEY}-fun`,
     ]) {
       expect(storage.reads).not.toContain(key);
       expect(storage.writes.map(([written]) => written)).not.toContain(key);
       expect(storage.removals).not.toContain(key);
     }
     expect(window.localStorage.getItem(SURFACE_STORAGE_KEY)).toBe("abyss");
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("40");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("40");
     // Both colour axes null disengages the axis attribute entirely: the page renders
     // the authored palette, exactly what a locked publication wants.
     await waitFor(() => expect(document.documentElement.dataset.chroma).toBeUndefined());
@@ -658,19 +838,19 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
     expect(screen.getByTestId("surface-chroma")).toHaveTextContent("0.4");
     const midDragKeys = storage.writes.map(([key]) => key);
-    expect(midDragKeys).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(midDragKeys).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
+    expect(midDragKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
+    expect(midDragKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
 
     // Once the drag rests, the settled coordinates persist — exactly once each.
     await waitFor(() => {
-      expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
-      expect(window.localStorage.getItem(SURFACE_CHROMA_STORAGE_KEY)).toBe("0.4");
+      expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
+      expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");
     });
-    expect(storage.writes.filter(([key]) => key === SURFACE_HUE_STORAGE_KEY)).toEqual([
-      [SURFACE_HUE_STORAGE_KEY, "120"],
+    expect(storage.writes.filter(([key]) => key === `${SURFACE_HUE_STORAGE_KEY}-fun`)).toEqual([
+      [`${SURFACE_HUE_STORAGE_KEY}-fun`, "120"],
     ]);
-    expect(storage.writes.filter(([key]) => key === SURFACE_CHROMA_STORAGE_KEY)).toEqual([
-      [SURFACE_CHROMA_STORAGE_KEY, "0.4"],
+    expect(storage.writes.filter(([key]) => key === `${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toEqual([
+      [`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.4"],
     ]);
   });
 
@@ -686,7 +866,7 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Rotate surface" }));
     unmount();
 
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
   });
 
   it("flushes a pending drag persist on pagehide", async () => {
@@ -701,6 +881,6 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Rotate surface" }));
     window.dispatchEvent(new Event("pagehide"));
 
-    expect(window.localStorage.getItem(SURFACE_HUE_STORAGE_KEY)).toBe("120");
+    expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
   });
 });

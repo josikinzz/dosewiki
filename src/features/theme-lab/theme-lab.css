@@ -32,7 +32,10 @@
   }
 
   html.pl-sidebar-open body {
-    padding-right: var(--pl-sidebar-width);
+    /* !important holds the reserved gutter against Radix Select's scroll lock,
+       which zeroes body padding (padding-right: 0px !important) while a
+       Theme/Font dropdown is open. */
+    padding-right: var(--pl-sidebar-width) !important;
   }
 }
 

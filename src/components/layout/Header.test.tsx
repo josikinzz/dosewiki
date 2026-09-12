@@ -141,12 +141,16 @@ describe("Header", () => {
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
       const panel = await screen.findByRole("dialog", { name: "Appearance settings" });
 
+      // The panel opens on the colour tab: the look picker and mode row publish their
+      // axes, and the type glyph beside them leads to the font tab.
       expect(
         [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
           control.getAttribute("data-appearance-axis"),
         ),
-      ).toEqual(["color-scheme", "visual-style", "font"]);
-      expect(within(panel).getByRole("radiogroup", { name: "Font" })).toBeInTheDocument();
+      ).toEqual(["visual-style", "color-scheme"]);
+      expect(
+        within(panel).getByRole("button", { name: "Show font controls" }),
+      ).toBeInTheDocument();
 
       await user.click(screen.getAllByRole("button", { name: "Appearance settings" })[0]!);
       await waitFor(() => {

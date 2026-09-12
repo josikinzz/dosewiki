@@ -21,7 +21,9 @@ import { AppearanceCog } from "./AppearanceCog";
  * exist so a dev's first provider-backed page needs no second mount. The hint
  * is read after hydration so the server and first client markup agree. This is
  * presentation, not a security boundary — the Lab's own routes stay gated
- * server-side.
+ * server-side. A local `next dev` server skips the gate: `NODE_ENV` is
+ * "development" only there, so the entry is unconditional on a dev's own
+ * machine and unchanged on any deployment.
  *
  * `className` lands on the trigger itself, with no wrapper, so a caller positioning the
  * button directly never fights an intermediate box for the offset.
@@ -34,10 +36,20 @@ import { AppearanceCog } from "./AppearanceCog";
 export function AppearanceControls({
   className,
   iconSize,
+  alignOffset,
+  sideOffset,
   allowThemeLab = true,
 }: {
   className?: string;
   iconSize?: number;
+  /**
+   * Shift along the popover's alignment axis, straight through to the content. The
+   * mobile header mount lands the panel on the corner inset the mobile nav sheet
+   * reaches; the desktop mount leaves it anchored to the trigger.
+   */
+  alignOffset?: number;
+  /** Shift away from the trigger along the side axis, straight through. */
+  sideOffset?: number;
   allowThemeLab?: boolean;
 }) {
   const { isVisualStyleLocked, isSurfaceLocked, isAccentLocked, isFontLocked } = useTheme();
@@ -52,12 +64,19 @@ export function AppearanceControls({
   }, []);
 
   const hasThemeLab =
-    allowThemeLab && SITE_FLAVOR_CONFIG.flavor === "dosewiki" && (sessionSaysDev || editorHere);
+    allowThemeLab &&
+    SITE_FLAVOR_CONFIG.flavor === "dosewiki" &&
+    // A local `next dev` server is a dev's own machine: the entry is the point of
+    // running one, so it needs no session or hint there. Deployed builds (including
+    // preview deployments) keep the session/hint gate below.
+    (process.env.NODE_ENV === "development" || sessionSaysDev || editorHere);
 
   return (
     <AppearanceCog
       className={className}
       iconSize={iconSize}
+      alignOffset={alignOffset}
+      sideOffset={sideOffset}
       showVisualStyle={!isVisualStyleLocked}
       showColorScheme={SITE_FLAVOR_CONFIG.showColorSchemeToggle}
       showSurface={!isSurfaceLocked}

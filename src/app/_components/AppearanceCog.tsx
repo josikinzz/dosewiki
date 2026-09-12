@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -15,12 +16,15 @@ import {
 } from "@/components/ui/popover";
 import { setThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 import { cn } from "@/lib/utils";
-import { AppearanceAxes, type AppearanceAxesRows } from "./AppearanceAxes";
+import type { AppearanceAxesRows } from "./AppearanceAxes";
+import { AppearancePanel } from "./AppearancePanel";
 import { useT } from "@/i18n/client";
 
 /**
- * Which controls this instrument offers. AppearanceAxes owns reader preferences;
- * the cog adds the dev-only Theme Lab action that is not an appearance axis.
+ * Which controls this instrument offers. The reader panel owns the reader preferences;
+ * the cog adds the dev-only Theme Lab action that is not an appearance axis. The Fun/Pro
+ * style axis is deliberately absent: it stays a Theme Lab authoring axis, not a reader
+ * menu row.
  */
 export type AppearanceCogRows = AppearanceAxesRows & {
   /** Opens the protected Theme Lab drawer when publication policy permits it. */
@@ -30,35 +34,63 @@ export type AppearanceCogRows = AppearanceAxesRows & {
 /**
  * One 44px trigger for every reader-facing appearance choice.
  *
- * The popover owns its compact, permanently dark shell. `AppearanceAxes` supplies the
- * same named controls used by Theme Lab; the optional dev-only Theme Lab action follows
- * those reader preferences rather than competing with them.
+ * The popover owns its compact, permanently dark shell. `AppearancePanel` supplies the
+ * two-tab reader menu — Colour first, Font behind the type glyph — and the optional
+ * dev-only Theme Lab action follows those reader preferences rather than competing
+ * with them.
  */
 export function AppearanceCog({
   className,
   iconSize = 28,
+  alignOffset,
+  sideOffset,
   showVisualStyle,
   showColorScheme,
   showAccent,
   showSurface,
   showFont,
   showMoreSettings,
-}: AppearanceCogRows & { className?: string; iconSize?: number }) {
+}: AppearanceCogRows & {
+  className?: string;
+  iconSize?: number;
+  /**
+   * Shift along the alignment axis, passed straight to the popover content. The
+   * mobile header mount uses it to land the panel's right edge on the same corner
+   * inset the mobile nav sheet reaches — the trigger sits one button + one gap left
+   * of the corner because the hamburger owns it.
+   */
+  alignOffset?: number;
+  /** Shift away from the trigger along the side axis, straight through. */
+  sideOffset?: number;
+}) {
   const t = useT();
   const appearanceTriggerRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
+  // The panel anchors to one of two header mounts (desktop bar, mobile cluster) and the
+  // bars trade places at the lg breakpoint. A panel left open across that crossing would
+  // keep floating against an anchor the layout just hid — pinned to a corner its trigger
+  // no longer occupies. When the open trigger's hit area collapses to zero, the panel
+  // closes; the reader reopens it from the mount they can actually see.
+  useEffect(() => {
+    if (!popoverOpen) {
+      return;
+    }
+
+    const closeIfTriggerHidden = () => {
+      if (appearanceTriggerRef.current && appearanceTriggerRef.current.getBoundingClientRect().width === 0) {
+        setPopoverOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", closeIfTriggerHidden);
+    return () => window.removeEventListener("resize", closeIfTriggerHidden);
+  }, [popoverOpen]);
+
   // A cog that opens an empty panel is worse than no cog. Effect Index with its style locked
   // and its accent locked still has day/night, so this is reached only by a build that offers
   // a reader nothing at all.
-  if (
-    !showVisualStyle &&
-    !showColorScheme &&
-    !showSurface &&
-    !showAccent &&
-    !showFont &&
-    !showMoreSettings
-  ) {
+  if (!showColorScheme && !showSurface && !showAccent && !showFont && !showMoreSettings) {
     return null;
   }
 
@@ -99,7 +131,8 @@ export function AppearanceCog({
         // Radix places the panel `sideOffset + arrow height` from the trigger, so 0 here
         // plus the 8px stem below lands the visible edge 8px under the cog — the same
         // gap the mobile nav panel keeps (`top-[calc(100%+0.5rem)]` in Header.tsx).
-        sideOffset={0}
+        sideOffset={sideOffset ?? 0}
+        alignOffset={alignOffset ?? 0}
         collisionPadding={12}
         aria-label={t("Appearance settings")}
         /**
@@ -126,13 +159,12 @@ export function AppearanceCog({
           className="theme-popover-arrow"
         />
         <div className="max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain p-3">
-          <AppearanceAxes
+          <AppearancePanel
             showVisualStyle={showVisualStyle}
             showColorScheme={showColorScheme}
             showSurface={showSurface}
             showAccent={showAccent}
             showFont={showFont}
-            discloseColorGroups
             surfaceLabel={t("Background")}
             footerAction={
               showMoreSettings ? (

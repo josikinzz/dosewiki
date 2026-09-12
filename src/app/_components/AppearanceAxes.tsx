@@ -17,8 +17,8 @@ import { getDefaultAppearanceColors } from "@/theme/appearanceChroma";
 import { proAccentRepresentativeSeed } from "@/theme/chromaMath";
 import { BASE_SURFACE_PRO_SEEDS, BASE_SURFACE_TINT } from "@/theme/surfaces";
 import { FontPicker } from "./FontPicker";
+import { StylePicker } from "./StylePicker";
 import { ThemeToggle } from "./ThemeToggle";
-import { VisualStyleToggle } from "./VisualStyleToggle";
 
 /**
  * The rails are *legends*, not swatches: they render at a fixed, legible
@@ -67,8 +67,11 @@ function hueTrackGradient(swatch: string): string {
  * second gesture to drag it. Coarse pointers get direct manipulation instead:
  * the first contact sets the value, captures that pointer, and every move
  * continues the same drag. Mouse input stays entirely native.
+ *
+ * Exported because the reader panel's reading-type sliders run on the same
+ * contract — one drag gesture, mouse input untouched — under different domains.
  */
-function useDirectTouchRange(max: number, onChange: (value: number) => void) {
+export function useDirectTouchRange(max: number, onChange: (value: number) => void) {
   const activePointerRef = useRef<number | null>(null);
 
   const updateFromPointer = (event: ReactPointerEvent<HTMLInputElement>) => {
@@ -121,8 +124,10 @@ function useDirectTouchRange(max: number, onChange: (value: number) => void) {
  * site default while they never moved this slider. `tick` is that default:
  * the exact rotation Reset restores for the active style/scheme variant, so
  * the mark moves when the reader switches Fun/Pro or light/dark.
+ *
+ * Exported because the reader panel renders the same rails verbatim.
  */
-function HueSlider({
+export function HueSlider({
   label,
   swatch,
   degrees,
@@ -188,8 +193,10 @@ function HueSlider({
  * page is actually painted. `tick` is that default: the exact level Reset
  * restores for the active style/scheme variant, so the mark moves when the
  * reader switches Fun/Pro or light/dark.
+ *
+ * Exported because the reader panel renders the same rails verbatim.
  */
-function ChromaSlider({
+export function ChromaSlider({
   label,
   swatch,
   hue,
@@ -260,7 +267,7 @@ function ChromaSlider({
  * axis's base swatch. Saturation 0 paints a neutral grey — the honest signal
  * that the palette is currently unmuted.
  */
-function axisDot(swatch: string, hue: number, level: number): string {
+export function axisDot(swatch: string, hue: number, level: number): string {
   return `oklch(from ${swatch} ${RAIL_LIGHTNESS} ${(RAIL_CHROMA * level).toFixed(4)} calc(h + ${hue}))`;
 }
 
@@ -337,7 +344,7 @@ function ColorAxisDisclosure({
  * reader's collapsed disclosure and the Theme Lab's always-open group, so the
  * two surfaces can never offer different tuning controls.
  */
-function ColorAxisSliders({
+export function ColorAxisSliders({
   name,
   swatch,
   degrees,
@@ -491,7 +498,7 @@ export function AppearanceAxes({
       {hasPreferenceControls ? (
         <div className="flex flex-col gap-2">
           {showColorScheme ? <ThemeToggle /> : null}
-          {showVisualStyle ? <VisualStyleToggle /> : null}
+          {showVisualStyle ? <StylePicker /> : null}
           {showFont ? <FontPicker /> : null}
         </div>
       ) : null}
