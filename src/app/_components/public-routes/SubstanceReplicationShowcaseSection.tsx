@@ -1,5 +1,6 @@
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
+import { getRequestLocale } from "@/i18n/server";
 import { getSubstanceShowcaseWorks } from "./showcaseCollections";
 
 /**
@@ -19,7 +20,9 @@ export async function SubstanceReplicationShowcaseSection({
 }: {
   slug: string;
 }) {
-  const collection = await getSubstanceShowcaseWorks(slug);
+  // The mirror reads the same collection with the effect names translated.
+  const locale = getRequestLocale();
+  const collection = await getSubstanceShowcaseWorks(slug, locale);
   if (!collection || collection.works.length === 0) return null;
   const { works, collectionLabel } = collection;
 

@@ -10,16 +10,19 @@ import {
 } from "@/features/replications/components/showcaseModel";
 import type { ShowcaseWork } from "@/features/replications/components/showcaseWork";
 import type { SubstanceArticle } from "@/schema";
+import type { UiLocale } from "@/i18n/messages";
 import { t } from "@/i18n/server";
 import { publicHref } from "@/utils/publicHref";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import {
   getPublicContributorProfiles,
   getPublicEffectBySlug,
+  getPublicEffects,
   getPublicReplicationsByEffect,
   getPublicReplicationsForSubstance,
   getPublicSubstanceBySlug,
 } from "@server/convex/publicData";
+import { getLocalizedEffectNames } from "@server/translation/localizedRecords";
 
 /**
  * The two lazily fetchable showcase collections, shared verbatim between the
@@ -40,15 +43,21 @@ import {
  * The substance article's complete ordered collection: the per-substance
  * matcher's gallery flattened by `buildShowcaseWorks`, with effect names
  * inverted from the article's own chips and bylines resolved against claimed
- * contributor profiles. Null when the slug names no substance.
+ * contributor profiles. Null when the slug names no substance. A work whose
+ * effect the article never chips takes the effect index's name, so the store
+ * can translate it like any other effect title; only a slug the index does
+ * not know humanises. On a locale mirror the names come back as the store
+ * translates them; the matcher itself always runs on the English article.
  */
 export const getSubstanceShowcaseWorks = cache(
   async (
     slug: string,
+    locale: UiLocale = "en",
   ): Promise<{ works: ShowcaseWork[]; collectionLabel: string } | null> => {
-    const [substance, gallery] = await Promise.all([
+    const [substance, gallery, effects] = await Promise.all([
       getPublicSubstanceBySlug(slug),
       getPublicReplicationsForSubstance(slug),
+      getPublicEffects(),
     ]);
     if (!substance) return null;
     // Same projection the article view model applies before rendering.
@@ -66,9 +75,13 @@ export const getSubstanceShowcaseWorks = cache(
       ? await getPublicContributorProfiles()
       : [];
 
+    const effectNameBySlug = new Map(effects.map((effect) => [effect.slug, effect.name]));
+    for (const [effectSlug, name] of visualEffectNameBySlug(article.subjective_effects)) {
+      effectNameBySlug.set(effectSlug, name);
+    }
     const works = buildShowcaseWorks(
       gallery.items,
-      visualEffectNameBySlug(article.subjective_effects),
+      effectNameBySlug,
       (artistName) => {
         const profile = findContributorProfileByAuthorName(
           contributorProfiles,
@@ -81,7 +94,11 @@ export const getSubstanceShowcaseWorks = cache(
           ?.avatarUrl ?? null,
       gallery.carouselOrder,
     );
-    return { works, collectionLabel: t("{{name}} replications", { name: article.title }) };
+    const effectNames = await getLocalizedEffectNames(works.map((work) => work.effectName), locale);
+    return {
+      works: works.map((work) => ({ ...work, effectName: effectNames.get(work.effectName) ?? work.effectName })),
+      collectionLabel: t("{{name}} replications", { name: article.title }),
+    };
   },
 );
 
@@ -93,6 +110,7 @@ export const getSubstanceShowcaseWorks = cache(
 export const getEffectShowcaseWorks = cache(
   async (
     effectSlug: string,
+    locale: UiLocale = "en",
   ): Promise<{ works: ShowcaseWork[]; effectName?: string } | null> => {
     const [effect, replications] = await Promise.all([
       getPublicEffectBySlug(effectSlug),
@@ -100,13 +118,16 @@ export const getEffectShowcaseWorks = cache(
     ]);
     // Explicitly tagged collections can exist before an editorial effect article.
     if (!effect && replications.length === 0) return null;
+    const effectName = effect
+      ? (await getLocalizedEffectNames([effect.name], locale)).get(effect.name)
+      : undefined;
     return {
       works: buildEffectShowcaseWorks(replications, {
         effectSlug,
-        effectName: effect?.name,
+        effectName,
         galleryOrder: effect?.gallery_order,
       }),
-      effectName: effect?.name,
+      effectName,
     };
   },
 );

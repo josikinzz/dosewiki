@@ -5,6 +5,7 @@ import {
   getSubstanceShowcaseWorks,
 } from "@/app/_components/public-routes/showcaseCollections";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -22,6 +23,10 @@ const CACHE_CONTROL =
  * prefix of what this returns. An unknown slug is an empty collection, not an
  * error: the client degrades identically either way and the answer stays
  * cacheable.
+ *
+ * `?locale=<code>` names a live locale mirror: the same collection with the
+ * effect names the mirror's strip already shows. The URL is the cache key, so
+ * each locale holds its own CDN entry.
  */
 export async function GET(request: Request) {
   const rateLimited = await enforceRateLimit(request, "publicContentApiRead");
@@ -39,11 +44,13 @@ export async function GET(request: Request) {
         { status: 400, headers: { "Cache-Control": "private, no-store" } },
       );
     }
+    const requestedLocale = searchParams.get("locale");
+    const locale = LIVE_LOCALE_CODES.find((code) => code === requestedLocale) ?? "en";
 
     const collection =
       substanceSlug !== null
-        ? await getSubstanceShowcaseWorks(substanceSlug)
-        : await getEffectShowcaseWorks(effectSlug as string);
+        ? await getSubstanceShowcaseWorks(substanceSlug, locale)
+        : await getEffectShowcaseWorks(effectSlug as string, locale);
     return NextResponse.json(
       { works: collection?.works ?? [] },
       { headers: { "Cache-Control": CACHE_CONTROL } },

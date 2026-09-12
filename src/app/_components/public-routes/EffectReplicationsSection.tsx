@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { t } from "@/i18n/server";
+import { getRequestLocale, t } from "@/i18n/server";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { MediaPlaceholder } from "@/components/layout/PublicFeedbackPrimitives";
@@ -23,7 +23,8 @@ export async function EffectReplicationsSection({
 }: {
   effectSlug: string;
 }) {
-  const collection = await getEffectShowcaseWorks(effectSlug);
+  const locale = getRequestLocale();
+  const collection = await getEffectShowcaseWorks(effectSlug, locale);
   const works = collection?.works ?? [];
   const effectName = collection?.effectName;
 

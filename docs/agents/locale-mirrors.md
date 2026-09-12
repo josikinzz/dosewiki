@@ -23,7 +23,7 @@ its coverage audit runs clean, the only one.
   through `scripts/translation/engine.mjs`, so they cannot drift apart.
   `prompt_version` (digest of model, prompt, glossary) is stamped on every row;
   a prompt or glossary change is followed by `live-mirror.ts stale --write`.
-- **Canonical terms.** The frozen glossary (377 terms: effect names,
+- **Canonical terms.** The frozen glossary (380 terms: effect names,
   categories, chemical and psychoactive classes, enum labels) is injected into
   every prompt and post-checked as `GLOSSARY_MISS` (reported, not blocking).
   Substance names, receptors, statutes, and brands stay in Latin script by
@@ -38,7 +38,7 @@ its coverage audit runs clean, the only one.
 | Pages | `src/app/zh/**`: homepage, `/substances`, `/[slug]`, `/effects(/[slug])`, `/reports(/[slug])`, `/articles(/[slug])`, `/replications` (+ tabs, `/[slug]`, `/viewer/[slug]`, `/artist/[key]`), `/about`. Same loaders and components as the English routes with a `LiveLocale`; `noindex`, English canonical, `lang="zh-Hans"` |
 | Record kinds | `lib/translation/liveTranslation.ts` `TranslationRecordKind`: `article` (substances), `effect`, `report`, `library` (long-form archive), `replication` (gallery titles). Job slugs carry the kind as a prefix except substances |
 | Corpora | `scripts/translation/corpora.mjs` per kind: which keys translate and which are the record (numbers, names, urls, ids). Reports translate the narrative plus the free-text `dose`, `roa`, and `time` lines authors write |
-| Reads | `lib/translation/localizedRecords.ts` (cached `getLocalizedPublic*`), consumed by `lib/next/routeLoaders.*`; the substance page's related-report rail localizes in `src/app/_components/public-routes/SubstanceTripReportsSection.tsx` |
+| Reads | `lib/translation/localizedRecords.ts` (cached `getLocalizedPublic*`), consumed by `lib/next/routeLoaders.*`; the substance page's related-report rail localizes in `src/app/_components/public-routes/SubstanceTripReportsSection.tsx`. Effect names printed beside replications (showcase chips and captions, the permalink's "Represents" line, the `/api/replications/showcase?locale=` long tail) go through `getLocalizedEffectNames`, which reads the effect record's own `name` segment so the chip always matches the effect heading |
 | Store | Postgres `translationSegments`, `translationJobs` (outbox per record, lease, 5 attempts), `translationRejections` (units the model failed, with defect codes) in `lib/postgres/schema.runtime.ts`; migrations `0006`, `0007` |
 | Triggers | `src/app/api/save-to-convex/revalidateSavedPaths.ts` (substance, effect, report, library, replication targets), `src/app/api/dev/writing-article/route.ts`, `src/app/api/dev/replications/publishReplicationRecord.ts` |
 | Worker | `GET /api/cron/translation-refresh` on `dosewiki-admin` every five minutes behind `CRON_SECRET`: claims due jobs, translates the hashes the store lacks, records rejections, expires the record's public and mirror caches |

@@ -51,7 +51,7 @@ describe("replication showcase collection", () => {
       "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
     );
     await expect(response.json()).resolves.toEqual({ works: [showcaseWork] });
-    expect(mocks.getSubstanceShowcaseWorks).toHaveBeenCalledWith("lsd");
+    expect(mocks.getSubstanceShowcaseWorks).toHaveBeenCalledWith("lsd", "en");
     expect(mocks.getEffectShowcaseWorks).not.toHaveBeenCalled();
   });
 
@@ -64,8 +64,20 @@ describe("replication showcase collection", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ works: [showcaseWork] });
-    expect(mocks.getEffectShowcaseWorks).toHaveBeenCalledWith("drifting");
+    expect(mocks.getEffectShowcaseWorks).toHaveBeenCalledWith("drifting", "en");
     expect(mocks.getSubstanceShowcaseWorks).not.toHaveBeenCalled();
+  });
+
+  it("reads a live mirror's collection for ?locale= and falls back to English for any other value", async () => {
+    await GET(
+      new Request("https://dose.wiki/api/replications/showcase?effect=drifting&locale=zh-Hans"),
+    );
+    expect(mocks.getEffectShowcaseWorks).toHaveBeenLastCalledWith("drifting", "zh-Hans");
+
+    await GET(
+      new Request("https://dose.wiki/api/replications/showcase?substance=lsd&locale=nl"),
+    );
+    expect(mocks.getSubstanceShowcaseWorks).toHaveBeenLastCalledWith("lsd", "en");
   });
 
   it("rejects requests naming neither or both collections", async () => {

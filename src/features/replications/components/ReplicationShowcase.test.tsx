@@ -10,6 +10,7 @@ import {
 } from "./showcaseModel";
 import type { ShowcaseWork } from "./showcaseWork";
 import { VIEWER_SOUND_STORAGE_KEY } from "@/features/replications/viewer/viewerPreferences";
+import { UiLocaleProvider } from "@/i18n/client";
 
 vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ src, alt }: { src: string; alt: string }) => (
@@ -238,6 +239,27 @@ describe("ReplicationShowcase", () => {
     expect(viewer).toHaveAttribute("data-item-count", "2");
     expect(window.location.search).toBe("?viewer=long-tail-work");
     window.history.replaceState({}, "", "/");
+  });
+
+  it("asks the collection route for the mirror's locale so the long tail matches the strip", () => {
+    const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <UiLocaleProvider locale="zh-Hans">
+        <ReplicationShowcase
+          works={[work()]}
+          totalCount={2}
+          effectSlug="drifting"
+          collectionSource={{ kind: "effect", slug: "drifting" }}
+        />
+      </UiLocaleProvider>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: /Drifting \(wood grain\)/ }));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/replications/showcase?effect=drifting&locale=zh-Hans",
+    );
   });
 
   it("strips an unresolvable deep link only after the lazy fetch settles", async () => {

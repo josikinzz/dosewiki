@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
-import { useT } from "@/i18n/client";
+import { useT, useUiLocale } from "@/i18n/client";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
 import { shouldLoopReplicationMotion } from "@/features/replications/viewer/qualityLadder";
@@ -108,7 +108,9 @@ export interface ReplicationShowcaseProps {
    * (`/api/replications/showcase`). When set, the server serializes only the
    * compact `works` strip; the expanded viewer's long tail — and `?viewer=`
    * deep links to works beyond the strip — resolve against the fetched
-   * collection, degrading to the bundled works when the fetch fails.
+   * collection, degrading to the bundled works when the fetch fails. A locale
+   * mirror asks the route for its locale so the tail arrives translated like
+   * the strip; English is the route's default and adds nothing to the URL.
    */
   collectionSource?: { kind: "substance" | "effect"; slug: string };
   /** The owning substance article's slug. */
@@ -247,6 +249,7 @@ export function ReplicationShowcase({
   }, []);
   const collectionSourceKind = collectionSource?.kind;
   const collectionSourceSlug = collectionSource?.slug;
+  const uiLocale = useUiLocale();
   /**
    * Fire-and-forget, at most once. Callers never await it: the overlay opens
    * over the bundled works and its playlist extends in place when the full
@@ -262,7 +265,9 @@ export function ReplicationShowcase({
     }
     remoteCollectionRequestedRef.current = true;
     void fetch(
-      `/api/replications/showcase?${collectionSourceKind}=${encodeURIComponent(collectionSourceSlug)}`,
+      `/api/replications/showcase?${collectionSourceKind}=${encodeURIComponent(collectionSourceSlug)}${
+        uiLocale === "en" ? "" : `&locale=${uiLocale}`
+      }`,
     )
       .then(async (response) => {
         if (!response.ok) {
@@ -281,7 +286,7 @@ export function ReplicationShowcase({
         // viewer still work, only the long tail beyond the cap is missing.
         setRemoteCollectionFailed(true);
       });
-  }, [collectionSourceKind, collectionSourceSlug]);
+  }, [collectionSourceKind, collectionSourceSlug, uiLocale]);
   const effectiveCollection = remoteCollection ?? collectionWorks;
   const viewerCollection = useMemo<ReplicationViewerCollection>(() => {
     const label =

@@ -52,6 +52,9 @@ import { extractSegments, buildWorkUnits, type Segment } from "./segment-manifes
 import { isBlocking } from "./validate.mjs";
 
 const LOCALE = "zh-Hans";
+/** Units per translateUnits call and calls in flight during a stale replay: 6 x 8 requests at most. */
+const STALE_CHUNK = 200;
+const STALE_CONCURRENCY = 6;
 
 const { values, positionals } = parseArgs({
   args: process.argv.slice(2),
@@ -269,22 +272,57 @@ async function retranslateStale() {
     'SELECT "hash", "source" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
     [LOCALE, hashes],
   );
-  // Context class is not stored; rebuild it by re-segmenting the live corpus so
-  // safety segments keep their reminder. Segments no longer in any article
-  // are translated as prose, which is harmless: they render nowhere.
-  const classByHash = new Map<string, "safety" | "prose">();
-  const documents = await getPublicDataReadAdapter().getPublicFullSubstanceDocuments();
-  for (const segment of extractSegments({ items: documents as unknown as Record<string, unknown>[] }).segments) {
-    if (segment.contextClass === "safety" || !classByHash.has(segment.hash)) classByHash.set(segment.hash, segment.contextClass);
+  // Context class and markup are not stored; rebuild them by re-segmenting
+  // the live corpus of every kind so safety segments keep their reminder and
+  // markup segments keep their gate. Segments no longer in any record are
+  // translated as plain prose, which is harmless: they render nowhere.
+  const reads = getPublicDataReadAdapter();
+  const segmentByHash = new Map<string, Pick<Segment, "contextClass" | "markup">>();
+  for (const kind of live.TRANSLATION_RECORD_KINDS) {
+    for (const record of await live.publicRecords(reads, kind)) {
+      for (const segment of live.segmentsOf(record, kind)) {
+        const known = segmentByHash.get(segment.hash);
+        if (!known || (segment.contextClass === "safety" && known.contextClass !== "safety")) {
+          segmentByHash.set(segment.hash, { contextClass: segment.contextClass, markup: segment.markup });
+        }
+      }
+    }
   }
-  const units = buildWorkUnits(rows.map((row) => ({
-    slug: "", path: "", pointer: [], group: "", markup: false,
-    contextClass: classByHash.get(row.hash) ?? "prose",
-    hash: row.hash, words: row.source.trim().split(/\s+/).length, source: row.source,
-  })));
-  for (let start = 0; start < units.length; start += 200) {
-    const result = await live.translateUnits(units.slice(start, start + 200), LOCALE, apiKey);
-    console.log(`  ${Math.min(start + 200, units.length)}/${units.length}: ${result.stored} stored, ${result.rejected.length} rejected`);
+  const units = buildWorkUnits(rows.map((row) => {
+    const known = segmentByHash.get(row.hash);
+    return {
+      slug: "", path: "", pointer: [], group: "",
+      markup: known?.markup ?? false,
+      contextClass: known?.contextClass ?? "prose",
+      hash: row.hash, words: row.source.trim().split(/\s+/).length, source: row.source,
+    };
+  }));
+  // Each chunk is one translateUnits call with its own request pool; several
+  // chunks in flight keep the model busy across a whole-corpus replay. A chunk
+  // whose write fails (the pooler dropping a connection mid-statement) simply
+  // stays stale for the next run instead of ending the replay.
+  const chunks: (typeof units)[] = [];
+  for (let start = 0; start < units.length; start += STALE_CHUNK) chunks.push(units.slice(start, start + STALE_CHUNK));
+  let cursor = 0;
+  let done = 0;
+  let failed = 0;
+  await Promise.all(Array.from({ length: Math.min(STALE_CONCURRENCY, chunks.length) }, async () => {
+    while (cursor < chunks.length) {
+      const chunk = chunks[cursor];
+      cursor += 1;
+      try {
+        const result = await live.translateUnits(chunk, LOCALE, apiKey);
+        done += chunk.length;
+        console.log(`  ${done}/${units.length}: ${result.stored} stored, ${result.rejected.length} rejected`);
+      } catch (error) {
+        failed += chunk.length;
+        console.log(`  chunk of ${chunk.length} failed, still stale: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }));
+  if (failed > 0) {
+    console.log(`Still stale   ${failed} unit(s) after failed chunks; run stale again`);
+    process.exitCode = 1;
   }
 }
 

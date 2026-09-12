@@ -4,12 +4,19 @@ import { getEffectShowcaseWorks, getSubstanceShowcaseWorks } from "./showcaseCol
 
 const reads = vi.hoisted(() => ({
   getPublicEffectBySlug: vi.fn(),
+  getPublicEffects: vi.fn(),
   getPublicReplicationsByEffect: vi.fn(),
   getPublicSubstanceBySlug: vi.fn(),
   getPublicReplicationsForSubstance: vi.fn(),
   getPublicContributorProfiles: vi.fn(),
 }));
 vi.mock("@server/convex/publicData", () => reads);
+const STORED: Record<string, string> = { Drifting: "视觉漂移", "Environmental patterning": "环境图案化" };
+const translations = vi.hoisted(() => ({
+  getLocalizedEffectNames: vi.fn(async (names: readonly string[], locale: string) =>
+    new Map(names.map((name) => [name, locale === "en" ? name : STORED[name] ?? name]))),
+}));
+vi.mock("@server/translation/localizedRecords", () => translations);
 
 const taggedWork: ReplicationWithUrl = {
   _id: "tagged-work",
@@ -28,6 +35,7 @@ const taggedWork: ReplicationWithUrl = {
 describe("effect showcase collection eligibility", () => {
   beforeEach(() => {
     reads.getPublicEffectBySlug.mockReset().mockResolvedValue(null);
+    reads.getPublicEffects.mockReset().mockResolvedValue([]);
     reads.getPublicReplicationsByEffect.mockReset().mockResolvedValue([]);
     reads.getPublicSubstanceBySlug.mockReset().mockResolvedValue(null);
     reads.getPublicReplicationsForSubstance.mockReset().mockResolvedValue({ items: [] });
@@ -64,5 +72,41 @@ describe("effect showcase collection eligibility", () => {
     reads.getPublicReplicationsByEffect.mockResolvedValue(rows);
     expect((await getSubstanceShowcaseWorks("lsd"))?.works.map(work => work.slug)).toEqual(order);
     expect((await getEffectShowcaseWorks("drifting"))?.works.map(work => work.slug)).toEqual(order);
+  });
+
+  it("names a work's effect from the chips, then the effect index, then the slug, and translates the first two on a mirror", async () => {
+    reads.getPublicSubstanceBySlug.mockResolvedValue({
+      slug: "lsd",
+      title: "LSD",
+      subjective_effects: { sensory: { visual: { subcategories: { distortions: { effects: [{ name: "Drifting" }] } } } } },
+    });
+    reads.getPublicEffects.mockResolvedValue([
+      { slug: "drifting", name: "Visual drifting" },
+      { slug: "environmental-patterning", name: "Environmental patterning" },
+    ]);
+    const item = (effectSlug: string) => ({
+      replication: { ...taggedWork, slug: `work-${effectSlug}` },
+      provenance: { matchedVia: "specific_drug", effectSlug },
+    });
+    reads.getPublicReplicationsForSubstance.mockResolvedValue({
+      items: [item("drifting"), item("environmental-patterning"), item("no-such-effect")],
+    });
+    reads.getPublicEffectBySlug.mockResolvedValue({ slug: "drifting", name: "Drifting" });
+    reads.getPublicReplicationsByEffect.mockResolvedValue([taggedWork]);
+
+    expect((await getSubstanceShowcaseWorks("lsd"))?.works.map((work) => work.effectName)).toEqual([
+      "Drifting",
+      "Environmental patterning",
+      "no such effect",
+    ]);
+    expect((await getSubstanceShowcaseWorks("lsd", "zh-Hans"))?.works.map((work) => work.effectName)).toEqual([
+      "视觉漂移",
+      "环境图案化",
+      "no such effect",
+    ]);
+    const effect = await getEffectShowcaseWorks("drifting", "zh-Hans");
+    expect(effect?.effectName).toBe("视觉漂移");
+    expect(effect?.works.map((work) => work.effectName)).toEqual(["视觉漂移"]);
+    expect((await getEffectShowcaseWorks("drifting"))?.effectName).toBe("Drifting");
   });
 });

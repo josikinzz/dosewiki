@@ -48,6 +48,8 @@ export const ZH_HANS_GLOSSARY = Object.freeze({
   dissociative: "解离剂",
   deliriant: "谵妄剂",
   dosage: "剂量",
+  empathogenic: "共情",
+  entactogenic: "共情",
   "harm reduction": "减害",
   hallucinogen: "致幻剂",
   psychedelic: "迷幻剂",

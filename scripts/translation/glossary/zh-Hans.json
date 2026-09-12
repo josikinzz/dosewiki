@@ -4,7 +4,7 @@
   "model": "z-ai/glm-5.3-flash",
   "note": "Each rendering was produced by translating the term alone. Edit a value here to overrule the model; the runner and the validator both read this file.",
   "counts": {
-    "terms": 377,
+    "terms": 380,
     "rejected": 2,
     "collisions": 0
   },
@@ -511,6 +511,14 @@
       "target": "情绪抑制",
       "kind": "effect-name"
     },
+    "Empathogen": {
+      "target": "共感剂",
+      "kind": "psychoactive-class"
+    },
+    "Empathogens": {
+      "target": "共感剂",
+      "kind": "psychoactive-class"
+    },
     "Empathy, affection, and sociability enhancement": {
       "target": "共情、情感与社交性增强",
       "kind": "effect-name"
@@ -520,7 +528,11 @@
       "kind": "effect-name"
     },
     "Entactogen": {
-      "target": "致成瘾共情感",
+      "target": "共情剂",
+      "kind": "psychoactive-class"
+    },
+    "Entactogens": {
+      "target": "共情剂",
       "kind": "psychoactive-class"
     },
     "Environmental cubism": {

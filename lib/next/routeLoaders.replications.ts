@@ -8,7 +8,7 @@ import {
   getPublicReplicationBySlug,
   type PublicReplicationIdentityAttribution,
 } from "@server/convex/publicData";
-import { getLocalizedPublicReplicationBySlug } from "@server/translation/localizedRecords";
+import { getLocalizedEffectNames, getLocalizedPublicReplicationBySlug } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import {
   isPublishableReplication,
@@ -100,7 +100,11 @@ export const loadReplicationRoute = cache(
       (creator
         ? findContributorProfileByAuthorName(contributorProfiles, creator)
         : null);
-    const subject = effect?.name ?? null;
+    // The mirror's "Represents" line reads the effect's stored title segment,
+    // so it names the effect exactly as its article heading does.
+    const subject = effect && locale
+      ? (await getLocalizedEffectNames([effect.name], locale.code)).get(effect.name) ?? effect.name
+      : effect?.name ?? null;
 
     return {
       kind: "ok",

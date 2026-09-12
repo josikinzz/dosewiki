@@ -26,8 +26,10 @@ import {
   type TripReportDetailRecord,
 } from "@server/convex/publicData";
 import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
+import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import type { PublicGalleryReplicationPreview, ReplicationWithUrl } from "../../src/types/replications";
 import { localizeRecord, localizeRecords } from "./liveTranslation";
+import { readTranslations } from "./segmentStore";
 
 export const getLocalizedPublicSubstanceBySlug = cache(async (
   slug: string,
@@ -142,3 +144,22 @@ export const getLocalizedPublicReplicationBySlug = cache(async (
   const localized = await localizeRecord(replication, locale, "replication");
   return localized.record;
 });
+
+/**
+ * English effect names to their stored translations, for the surfaces that
+ * print an effect's name beside a replication: showcase chips and captions,
+ * viewer subjects, the permalink's "Represents" line. An effect's name is the
+ * `name` leaf of its record, so this reads the row the effect heading renders
+ * from and the chip can never disagree with the article. A name the store
+ * lacks maps to itself; English asks the store nothing.
+ */
+export async function getLocalizedEffectNames(
+  names: readonly string[],
+  locale: string,
+): Promise<Map<string, string>> {
+  const unique = [...new Set(names)];
+  if (locale === "en" || unique.length === 0) return new Map(unique.map((name) => [name, name]));
+  const hashes = unique.map((name) => segmentHash(name));
+  const translations = await readTranslations(locale, hashes);
+  return new Map(unique.map((name, index) => [name, translations.get(hashes[index]) ?? name]));
+}

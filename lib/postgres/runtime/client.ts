@@ -117,7 +117,13 @@ const scheduler = {
 export class PostgresConvexClient {
   private idMap: Promise<IdTableMap> | null = null;
 
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: Pool) {
+    // The server closing an idle client (pooler idle timeout, failover) surfaces
+    // here after pg has already evicted it; unhandled, the event ends the process.
+    pool.on("error", (error) => {
+      console.error(`postgres: idle client closed: ${error.message}`);
+    });
+  }
 
   /** Imported ids carry no table tag; load their map once per process so `normalizeId` stays synchronous. */
   private ensureIdMap(): Promise<IdTableMap> {
