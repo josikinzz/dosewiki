@@ -108,7 +108,7 @@ function ReagentRow({
           </span>
         ) : null}
       </div>
-      <span className="sr-only">{description}</span>
+      <span className="sr-only">{t(description)}</span>
     </article>
   );
 }

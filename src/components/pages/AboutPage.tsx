@@ -211,7 +211,7 @@ export const AboutPage = memo(function AboutPage({
           {founders.map((profile) => (
             <li key={profile.key}>
               <ContributorCard
-                contributor={{ ...profile, subtitle: profile.role || undefined }}
+                contributor={{ ...profile, subtitle: profile.role ? t(profile.role) : undefined }}
                 href={publicHref.contributor(profile.key)}
               />
             </li>

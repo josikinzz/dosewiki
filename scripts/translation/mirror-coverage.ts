@@ -14,8 +14,11 @@
  *   render   Fetches mirror pages over HTTPS and flags every visible text line
  *            with no Han character. This catches what the store cannot see:
  *            chrome that bypasses t(), pages with no mirror route, record
- *            fields the corpus excludes, and stale ISR pages. Paths come from
- *            the English sitemap unless --paths is given.
+ *            fields the corpus excludes, and stale ISR pages. A Latin line
+ *            that is itself a UI-catalog key is reported as `catalog`: the
+ *            translation exists and a component rendered the key raw, which
+ *            is a code bug however short the line. Paths come from the
+ *            English sitemap unless --paths is given.
  *
  * Usage:
  *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/mirror-coverage.ts store
@@ -36,7 +39,7 @@
  *
  * Exit status is 1 when any miss is found, so the command doubles as a gate.
  */
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 
@@ -164,8 +167,17 @@ function printStore({ records, totals }: Awaited<ReturnType<typeof storeLens>>) 
 const HAN = /[\u4e00-\u9fff]/;
 /** Lines the English mirror legitimately leaves alone: bare URLs, citation lines, numbers, code. */
 const LEGITIMATE = [/^https?:\/\//, /^\S+@\S+$/, /^[\d\s.,:/%+-]+$/, /^\[cite:/];
+/** Short lines are mostly names and numbers; free-text heuristics only run above this length. */
+const PROSE_MIN_LENGTH = 12;
 
-type RenderPage = { path: string; status: number; lines: number; cjk: number; english: string[]; names: string[]; verdict: "ok" | "partial" | "english" | "error" };
+type RenderPage = { path: string; status: number; lines: number; cjk: number; catalog: string[]; english: string[]; names: string[]; verdict: "ok" | "partial" | "english" | "error" };
+
+/** Keys whose translation differs from the English: rendering one of these raw is a code bug. */
+async function loadCatalogKeys(): Promise<Set<string>> {
+  const file = path.join("src", "i18n", "messages", `${LOCALE}.json`);
+  const catalog = JSON.parse(await readFile(file, "utf8")) as Record<string, string>;
+  return new Set(Object.entries(catalog).filter(([key, value]) => value !== key).map(([key]) => key));
+}
 
 /**
  * Substance, artist, sponsor, and effect names stay in Latin script by rule 2
@@ -186,7 +198,7 @@ function visibleLines(html: string): string[] {
     .replace(/&#x27;|&#39;/g, "'")
     .replace(/&quot;/g, '"')
     .replace(/&amp;/g, "&");
-  return stripped.split("\n").map((line) => line.trim()).filter((line) => line.length >= 12);
+  return stripped.split("\n").map((line) => line.trim()).filter((line) => line.length >= 2);
 }
 
 async function sitemapPaths(): Promise<string[]> {
@@ -197,6 +209,7 @@ async function sitemapPaths(): Promise<string[]> {
 }
 
 async function renderLens(): Promise<{ pages: RenderPage[]; totals: Record<string, number> }> {
+  const catalogKeys = await loadCatalogKeys();
   const host = values.host;
   const base = values.base ?? `https://${host}`;
   const paths = values.paths
@@ -214,21 +227,24 @@ async function renderLens(): Promise<{ pages: RenderPage[]; totals: Record<strin
         const html = await response.text();
         const lines = visibleLines(html);
         const latin = [...new Set(lines.filter((line) => !HAN.test(line) && !LEGITIMATE.some((pattern) => pattern.test(line))))];
-        const english = latin.filter((line) => !looksLikeName(line));
-        const names = latin.filter(looksLikeName);
+        const catalog = latin.filter((line) => catalogKeys.has(line));
+        const prose = latin.filter((line) => !catalogKeys.has(line) && line.length >= PROSE_MIN_LENGTH);
+        const english = prose.filter((line) => !looksLikeName(line));
+        const names = prose.filter(looksLikeName);
         const cjk = (html.match(/[\u4e00-\u9fff]/g) ?? []).length;
-        const verdict = response.status !== 200 ? "error" : cjk < 20 ? "english" : english.length > 0 ? "partial" : "ok";
-        pages.push({ path: pagePath, status: response.status, lines: lines.length, cjk, english, names, verdict });
+        const verdict = response.status !== 200 ? "error" : cjk < 20 ? "english" : english.length + catalog.length > 0 ? "partial" : "ok";
+        pages.push({ path: pagePath, status: response.status, lines: lines.length, cjk, catalog, english, names, verdict });
       } catch (error) {
-        pages.push({ path: pagePath, status: 0, lines: 0, cjk: 0, english: [String(error)], names: [], verdict: "error" });
+        pages.push({ path: pagePath, status: 0, lines: 0, cjk: 0, catalog: [], english: [String(error)], names: [], verdict: "error" });
       }
     }
   }));
   pages.sort((a, b) => a.path.localeCompare(b.path));
-  const totals = { pages: pages.length, ok: 0, partial: 0, english: 0, error: 0, englishLines: 0 };
+  const totals = { pages: pages.length, ok: 0, partial: 0, english: 0, error: 0, englishLines: 0, catalogLines: 0 };
   for (const page of pages) {
     totals[page.verdict] += 1;
     totals.englishLines += page.english.length;
+    totals.catalogLines += page.catalog.length;
   }
   return { pages, totals };
 }
@@ -238,7 +254,10 @@ function printRender({ pages, totals }: Awaited<ReturnType<typeof renderLens>>) 
   for (const page of pages) for (const line of page.english) repeated.set(line, (repeated.get(line) ?? 0) + 1);
   for (const page of pages) {
     if (page.verdict === "ok") continue;
-    console.log(`${page.path}: ${page.verdict} (${page.status}, ${page.english.length} English lines, ${page.names.length} name-like, ${page.cjk} Han chars)`);
+    console.log(`${page.path}: ${page.verdict} (${page.status}, ${page.catalog.length} raw catalog keys, ${page.english.length} English lines, ${page.names.length} name-like, ${page.cjk} Han chars)`);
+    for (const line of values.verbose ? page.catalog : page.catalog.slice(0, 5)) {
+      console.log(`    [catalog] ${line.slice(0, 110)}`);
+    }
     for (const line of values.verbose ? page.english : page.english.slice(0, 3)) {
       console.log(`    ${line.slice(0, 110)}`);
     }
@@ -251,7 +270,7 @@ function printRender({ pages, totals }: Awaited<ReturnType<typeof renderLens>>) 
   }
   console.log("");
   console.log(`Pages         ${totals.pages} fetched: ${totals.ok} ok, ${totals.partial} partial, ${totals.english} English, ${totals.error} error`);
-  console.log(`Lines         ${totals.englishLines} English lines`);
+  console.log(`Lines         ${totals.catalogLines} raw catalog keys, ${totals.englishLines} English lines`);
 }
 
 async function writeReport(name: string, report: unknown): Promise<string> {

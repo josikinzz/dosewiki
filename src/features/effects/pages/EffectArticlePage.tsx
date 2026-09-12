@@ -61,6 +61,7 @@ function EffectArticleRichSection({
   assignHeadingId,
   artistCreditLinks,
 }: EffectArticleRichSectionProps) {
+  const t = useT();
   if (!content) {
     return null;
   }
@@ -69,7 +70,7 @@ function EffectArticleRichSection({
     <ArticleSection
       id={section.id}
       icon={section.icon ?? icons.subjectiveEffectIndex}
-      heading={section.title ?? ""}
+      heading={section.title ? t(section.title) : ""}
       spacing="effect"
       className={className}
     >

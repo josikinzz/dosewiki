@@ -71,10 +71,20 @@ The store lens finds segments that were never translated or were rejected
 (with defect codes). The render lens finds what the store cannot see: chrome
 that bypasses `t()`, pages with no mirror route, record fields the corpus
 excludes, translations stored but not incorporated by some loader, and stale
-ISR pages. Lines of one to three words with no sentence punctuation are
-reported separately as name-like; they are mostly substance, artist, and
-sponsor names and are expected. Run the render lens after every deploy and the
-store lens after every bulk write.
+ISR pages. A Latin line that is itself a catalog key with a differing
+translation is reported as `[catalog]`: the translation exists and a component
+rendered the key raw, which is a code bug however short the line (this is how
+the raw class labels on effect-page substance panels were caught). Other
+lines of one to three words with no sentence punctuation are reported
+separately as name-like; they are mostly substance, artist, and sponsor names
+and are expected. Run the render lens after every deploy and the store lens
+after every bulk write.
+
+Labels that arrive as data (index category and class names, section titles,
+stored roles, reagent descriptions) are translated inside the shared component
+that renders them, never by the caller: `CategoryGrid` translates group and
+section names for every page that mounts it. A caller-side `t()` map covers
+one route and leaves the next one English.
 
 ## Operator script
 

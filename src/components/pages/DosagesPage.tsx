@@ -195,24 +195,9 @@ export function DosagesPage({
     [layout, lookup],
   );
 
-  // Group names and section labels are editorial data; the mirror renders
-  // them through the UI catalog with English fallbacks. Keys stay English.
-  const localizedGroups = useMemo<DosageCategoryGroup[]>(
-    () =>
-      psychoactiveGroups.map((group) => ({
-        ...group,
-        name: t(group.name),
-        sections: group.sections?.map((section) => ({
-          ...section,
-          name: section.name == null ? section.name : t(section.name),
-        })),
-      })),
-    [psychoactiveGroups, t],
-  );
-
   const groupsByKey = useMemo(
-    () => new Map(localizedGroups.map((group) => [group.key, group])),
-    [localizedGroups],
+    () => new Map(psychoactiveGroups.map((group) => [group.key, group])),
+    [psychoactiveGroups],
   );
 
   const superTabs = useMemo(
@@ -222,11 +207,11 @@ export function DosagesPage({
 
   const tabItems = useMemo<PublicSegmentedTabItem[]>(
     () =>
-      buildSubstanceIndexTabItems(localizedGroups).map((item) => ({
+      buildSubstanceIndexTabItems(psychoactiveGroups).map((item) => ({
         ...item,
         label: typeof item.label === "string" ? t(item.label) : item.label,
       })),
-    [localizedGroups, t],
+    [psychoactiveGroups, t],
   );
 
   const handleTabChange = (value: string) => {
@@ -252,7 +237,7 @@ export function DosagesPage({
 
   const resolvedGroups = useMemo(() => {
     if (activeTab === "all") {
-      return orderCategoriesForAllTab(localizedGroups).map((group) => ({
+      return orderCategoriesForAllTab(psychoactiveGroups).map((group) => ({
         ...group,
         columns: undefined,
         column: undefined,
@@ -266,8 +251,8 @@ export function DosagesPage({
         .map((group) => ({ ...group, columns: undefined, column: undefined }));
     }
     const group = groupsByKey.get(activeTab);
-    return group ? splitGroupBySections(group) : localizedGroups;
-  }, [activeTab, localizedGroups, superTabs, groupsByKey]);
+    return group ? splitGroupBySections(group) : psychoactiveGroups;
+  }, [activeTab, psychoactiveGroups, superTabs, groupsByKey]);
 
   const isFiltered = activeTab !== "all";
   const isSingleCategoryView = isFiltered && groupsByKey.has(activeTab);
@@ -296,7 +281,7 @@ export function DosagesPage({
   return (
     <PublicContentShell width="wide" focusTarget className="max-w-none 2xl:px-8">
       <IndexItem />
-      <IndexCategory groups={localizedGroups} />
+      <IndexCategory groups={psychoactiveGroups} />
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <div>
           <PageHeader

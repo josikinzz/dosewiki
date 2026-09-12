@@ -7,6 +7,7 @@ import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/commo
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import IndexCategory from "@/features/dev/tools/index-layout/IndexCategory.editor";
 import IndexItem from "@/features/dev/tools/index-layout/IndexItem.editor";
+import { useT } from "@/i18n/client";
 
 const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
 
@@ -83,14 +84,21 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   tone,
   hideIcon,
 }: CategoryGroupCardProps) {
-  const toggleLabel = `${isExpanded ? "Collapse" : "Expand"} ${group.name} category`;
+  const t = useT();
+  // Category and class labels are editorial index data; the kit translates
+  // them here so every caller (index, category, mechanism, effect pages)
+  // localizes the same way. Keys stay English.
+  const groupName = t(group.name);
+  const toggleLabel = isExpanded
+    ? t("Collapse {{category}} category", { category: groupName })
+    : t("Expand {{category}} category", { category: groupName });
   const listId = `${group.key}-list`;
   const visibleSections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
   const hasSections = visibleSections.length > 0;
 
   return (
     <IndexCard
-      title={group.name}
+      title={groupName}
       icon={group.icon}
       count={group.total}
       expanded={isExpanded}
@@ -103,7 +111,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
           : undefined
       }
       onIconClick={() => void onCopy(group)}
-      iconActionLabel={`Copy ${group.name} list to clipboard`}
+      iconActionLabel={t("Copy {{category}} list to clipboard", { category: groupName })}
       iconActiveState={isCopied}
       toggleLabel={toggleLabel}
       tone={tone}
@@ -112,14 +120,14 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
     >
       {group.total === 0 ? (
         <p className="py-2 pl-1 text-sm italic theme-text-faint">
-          No missing substances right now.
+          {t("No missing substances right now.")}
         </p>
       ) : hasSections ? (
         <div className="space-y-6 pt-1">
           {visibleSections.map((section, index) => (
             <IndexCardSection
               key={section.name ?? `section-${index}`}
-              title={section.name}
+              title={section.name == null ? section.name : t(section.name)}
               count={section.drugs.length}
               showDivider={index > 0}
             >
