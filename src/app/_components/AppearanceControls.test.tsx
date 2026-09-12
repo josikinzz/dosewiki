@@ -112,6 +112,21 @@ async function swapTab(user: UserEvent, panel: HTMLElement, target: "colour" | "
   );
 }
 
+/**
+ * Open the cog and land on the tab a test actually exercises. The panel opens on Colour
+ * and keeps Font one swap away, but no test below should have to know that: asking for
+ * the tab it needs keeps every case honest if the opening tab ever moves again.
+ */
+async function openCogOn(user: UserEvent, tab: "colour" | "font") {
+  const panel = await openCog(user);
+
+  if (tab === "font") {
+    await swapTab(user, panel, "font");
+  }
+
+  return panel;
+}
+
 describe("AppearanceCog", () => {
   // Pin the starting appearance in both places the provider can restore it from, so the
   // checked Dark option and the Lexend default mean the same thing under every flavor.
@@ -143,21 +158,22 @@ describe("AppearanceCog", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const panel = await openCog(user);
-    // The panel opens on the font tab: the face picker, the paintbrush swap beside it,
-    // and the four reading-type sliders. No colour rail is mounted until the swap.
+    // The panel opens on the colour tab: the look picker, the mode row, the type-glyph
+    // swap beside them, and the four colour rails. No reading-type slider is mounted
+    // until the swap.
     expect(
       [...panel.querySelectorAll("[data-appearance-axis]")].map((control) =>
         control.getAttribute("data-appearance-axis"),
       ),
-    ).toEqual(["font"]);
+    ).toEqual(["visual-style", "color-scheme"]);
     expect(within(panel).getAllByRole("slider").map((slider) => slider.getAttribute("aria-label"))).toEqual(
-      TYPE_SLIDER_NAMES,
+      [...COLOR_SLIDER_NAMES],
     );
     expect(
-      within(panel).getByRole("button", { name: "Show colour controls" }),
+      within(panel).getByRole("button", { name: "Show font controls" }),
     ).toBeInTheDocument();
     expect(
-      within(panel).queryByRole("slider", { name: "Background hue" }),
+      within(panel).queryByRole("slider", { name: "Text size" }),
     ).not.toBeInTheDocument();
   });
 
@@ -165,7 +181,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
+    const panel = await openCogOn(user, "font");
 
     // A fresh reader parks on the defaults — ×1 text scale, the standard face's authored
     // negative tracking, the authored leading. The fractional axes run on scaled integer
@@ -214,7 +230,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
+    const panel = await openCogOn(user, "font");
     const font = within(panel).getByRole("combobox", { name: "Font" });
     expect(font).toHaveAttribute("data-appearance-axis", "font");
     expect(font).toHaveAttribute("data-appearance-value", "standard");
@@ -240,7 +256,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
+    const panel = await openCogOn(user, "font");
     const leading = within(panel).getByRole<HTMLInputElement>("slider", {
       name: "Line height",
     });
@@ -268,7 +284,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
+    const panel = await openCogOn(user, "font");
     fireEvent.change(within(panel).getByRole("slider", { name: "Text size" }), {
       target: { value: "105" },
     });
@@ -317,8 +333,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
 
     // The colour tab: the Style picker, the two-way Mode pill, both rails always
     // open, and the swap control offering the way back.
@@ -347,8 +362,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
     const mode = within(panel).getByRole("radiogroup", { name: "Mode" });
     expect(within(mode).getByRole("radio", { name: "Dark" })).toHaveAttribute(
       "aria-checked",
@@ -390,8 +404,7 @@ describe("AppearanceCog", () => {
     try {
       window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, "system");
       renderCog();
-      const panel = await openCog(user);
-      await swapTab(user, panel, "colour");
+      const panel = await openCogOn(user, "colour");
       const mode = within(panel).getByRole("radiogroup", { name: "Mode" });
 
       // A system reader is painted dark (the stub says so), so the Dark segment is the
@@ -455,8 +468,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
     const slider = within(panel).getByRole<HTMLInputElement>("slider", {
       name: "Background hue",
     });
@@ -500,7 +512,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
+    const panel = await openCogOn(user, "font");
     const slider = within(panel).getByRole<HTMLInputElement>("slider", {
       name: "Text size",
     });
@@ -537,7 +549,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
+    const panel = await openCogOn(user, "font");
     fireEvent.click(within(panel).getByRole("combobox", { name: "Font" }));
     fireEvent.click(await screen.findByRole("option", { name: "Blinker" }));
     await swapTab(user, panel, "colour");
@@ -558,8 +570,7 @@ describe("AppearanceCog", () => {
       <SchemeToggle />,
     );
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
     // Driven from inside the panel: selecting the loose pill instead would be an outside
     // click and dismiss the popover before the assertion.
     await user.click(within(panel).getByRole("radio", { name: "Light" }));
@@ -586,34 +597,11 @@ describe("AppearanceCog", () => {
     const panel = await screen.findByRole("dialog", {
       name: "Appearance settings",
     });
-    // Font tab: the face picker, the paintbrush swap, the three reading-type
-    // sliders, and the permanent reset row.
-    const fontTabSequence = [
-      within(panel).getByRole("combobox", { name: "Font" }),
-      within(panel).getByRole("button", { name: "Show colour controls" }),
-      within(panel).getByRole("slider", { name: "Text size" }),
-      within(panel).getByRole("slider", { name: "Letter spacing" }),
-      within(panel).getByRole("slider", { name: "Line height" }),
-      within(panel).getByRole("button", { name: "Reset to defaults" }),
-    ];
-
-
-    await waitFor(() => {
-      expect(fontTabSequence[0]).toHaveFocus();
-    });
-
-    for (const control of fontTabSequence.slice(1)) {
-      await user.tab();
-      expect(control).toHaveFocus();
-    }
-
-    // The swap hands the panel to the colour tab. The click lands focus on the swap
-    // control itself — the same slot in the new tab's first row. The Style picker sits
-    // BEFORE the swap in DOM order, so the forward walk starts at the Mode pill's
-    // checked radio: first colour rail, permanent Reset colors fixture, dev-only
-    // Theme Lab action. A shift-tab confirms the Style picker behind the focus point.
-    await swapTab(user, panel, "colour");
+    // Colour tab: the look picker, the type-glyph swap, the Mode pill, the four colour
+    // rails, the permanent reset row, and the dev-only Theme Lab action.
     const colourTabSequence = [
+      within(panel).getByRole("combobox", { name: "Style" }),
+      within(panel).getByRole("button", { name: "Show font controls" }),
       within(panel).getByRole("radio", { name: "Dark" }),
       within(panel).getByRole("slider", { name: "Background hue" }),
       within(panel).getByRole("slider", { name: "Background saturation" }),
@@ -622,14 +610,34 @@ describe("AppearanceCog", () => {
       within(panel).getByRole("button", { name: "Reset colors" }),
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     ];
-    expect(within(panel).getByRole("button", { name: "Show font controls" })).toHaveFocus();
-    // The Style picker sits immediately before the swap in DOM order — shift-tab
-    // from the focus point confirms it, then tab returns to the swap.
+
+    await waitFor(() => {
+      expect(colourTabSequence[0]).toHaveFocus();
+    });
+
+    for (const control of colourTabSequence.slice(1)) {
+      await user.tab();
+      expect(control).toHaveFocus();
+    }
+
+    // The swap hands the panel to the font tab. The click lands focus on the swap
+    // control itself — the same slot in the new tab's first row. The face picker sits
+    // BEFORE the swap in DOM order, so a shift-tab confirms it behind the focus point,
+    // then the forward walk covers the three reading-type sliders and the permanent
+    // reset fixture.
+    await swapTab(user, panel, "font");
+    const fontTabSequence = [
+      within(panel).getByRole("slider", { name: "Text size" }),
+      within(panel).getByRole("slider", { name: "Letter spacing" }),
+      within(panel).getByRole("slider", { name: "Line height" }),
+      within(panel).getByRole("button", { name: "Reset to defaults" }),
+    ];
+    expect(within(panel).getByRole("button", { name: "Show colour controls" })).toHaveFocus();
     await user.tab({ shift: true });
-    expect(within(panel).getByRole("combobox", { name: "Style" })).toHaveFocus();
+    expect(within(panel).getByRole("combobox", { name: "Font" })).toHaveFocus();
     await user.tab();
-    expect(within(panel).getByRole("button", { name: "Show font controls" })).toHaveFocus();
-    for (const control of colourTabSequence) {
+    expect(within(panel).getByRole("button", { name: "Show colour controls" })).toHaveFocus();
+    for (const control of fontTabSequence) {
       await user.tab();
       expect(control).toHaveFocus();
     }
@@ -641,9 +649,9 @@ describe("AppearanceCog", () => {
     expect(cog).toHaveFocus();
 
     await user.keyboard(" ");
-    // Reopening seats focus on the panel's first row — the font tab's face picker.
+    // Reopening seats focus on the panel's first row — the colour tab's look picker.
     const reopened = screen.getByRole("dialog", { name: "Appearance settings" });
-    expect(within(reopened).getByRole("combobox", { name: "Font" })).toHaveFocus();
+    expect(within(reopened).getByRole("combobox", { name: "Style" })).toHaveFocus();
   });
 
   it("keeps Escape inside the panel, so it cannot also close the page around it", async () => {
@@ -693,8 +701,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
     const accentHue = within(panel).getByRole<HTMLInputElement>("slider", {
       name: "Accent hue",
     });
@@ -719,8 +726,7 @@ describe("AppearanceCog", () => {
     const user = userEvent.setup();
     renderCog();
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
 
     // Every rail is live — saturation 0 is a coordinate, not a disabled state — and a
     // fresh reader parks on the default Fun-dark matrix entry.
@@ -839,8 +845,7 @@ describe("AppearanceCog", () => {
         </ThemeProvider>,
       );
 
-      const panel = await openCog(user);
-      await swapTab(user, panel, "colour");
+      const panel = await openCogOn(user, "colour");
 
       expect(panel).toHaveClass("theme-overlay-surface");
       expect(panel.querySelectorAll("[data-appearance-axis]")).toHaveLength(2);
@@ -900,8 +905,7 @@ describe("AppearanceControls", () => {
       </ThemeProvider>,
     );
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
 
     // The reader panel never offered the style axis after the tab reshape; a locked
     // style changes nothing about what a reader is offered here.
@@ -957,8 +961,7 @@ describe("AppearanceControls", () => {
       </ThemeProvider>,
     );
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
 
     expect(
       within(panel).queryByRole("slider", { name: "Accent hue" }),
@@ -985,8 +988,7 @@ describe("AppearanceControls", () => {
       </ThemeProvider>,
     );
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
     await user.click(
       within(panel).getByRole("button", { name: "Open Theme Lab" }),
     );
@@ -1012,8 +1014,7 @@ describe("AppearanceControls", () => {
       </ThemeProvider>,
     );
 
-    const panel = await openCog(user);
-    await swapTab(user, panel, "colour");
+    const panel = await openCogOn(user, "colour");
 
     // The retained holding surface still exposes appearance preferences while intentionally
     // withholding Theme Lab authoring and sharing.

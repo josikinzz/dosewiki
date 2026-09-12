@@ -33,9 +33,10 @@ import {
 } from "./AppearanceAxes";
 
 /**
- * Which way the panel is currently turned. Font first: the reading controls are what a
- * reader reaches for most (the doc's own words — "default to font control first"), so
- * the panel opens on them.
+ * Which way the panel is currently turned. Colour first: the look controls are what a
+ * reader reaches for most, so the panel opens on them and the reading-type controls sit
+ * one swap away. A publication that offers no colour axis at all opens on Font instead,
+ * because an empty opening tab is worse than the wrong one.
  */
 type AppearanceTab = "font" | "colour";
 
@@ -70,11 +71,11 @@ export type AppearancePanelRows = {
 };
 
 /**
- * The two halves of the reader's appearance menu, on the sketch's terms: a Font tab
- * then the Background and Accent rails always open, then "Reset colors" beside the
- * dev-only Theme Lab entry). One icon swaps between them — the paintbrush on the font
- * tab, the type glyph on the colour tab — rendered as a bare control beside the tab's
- * first row, with no card of its own.
+ * The two halves of the reader's appearance menu: a Colour tab that opens on the look
+ * picker and mode row, with the Background and Accent rails always open and "Reset
+ * colors" beside the dev-only Theme Lab entry, then a Font tab behind one swap. One icon
+ * swaps between them — the type glyph on the colour tab, the paintbrush on the font
+ * tab — rendered as a bare control beside the tab's first row, with no card of its own.
  *
  * Everything is read from and written to `ThemeContext`; this component holds no
  * appearance state of its own beyond which tab is showing. The range inputs write the
@@ -106,7 +107,12 @@ export function AppearancePanel({
   footerAction?: ReactNode;
 }) {
   const t = useT();
-  const [tab, setTab] = useState<AppearanceTab>(showFont ? "font" : "colour");
+  // Same reachability test `colourTabReachable` applies below, inlined because the
+  // initial tab is resolved before those derivations run: open on Colour, and fall back
+  // to Font only where this publication offers no colour axis to open onto.
+  const [tab, setTab] = useState<AppearanceTab>(
+    showSurface || showAccent || showColorScheme ? "colour" : "font",
+  );
   const {
     colorScheme,
     visualStyle,

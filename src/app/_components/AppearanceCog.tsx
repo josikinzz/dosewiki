@@ -35,7 +35,7 @@ export type AppearanceCogRows = AppearanceAxesRows & {
  * One 44px trigger for every reader-facing appearance choice.
  *
  * The popover owns its compact, permanently dark shell. `AppearancePanel` supplies the
- * two-tab reader menu — Font first, Colour behind the paintbrush — and the optional
+ * two-tab reader menu — Colour first, Font behind the type glyph — and the optional
  * dev-only Theme Lab action follows those reader preferences rather than competing
  * with them.
  */
