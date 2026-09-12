@@ -10,6 +10,7 @@ import {
 
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
+import { useT } from "@/i18n/client";
 import { BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
 import { getDefaultAppearanceColors } from "@/theme/appearanceChroma";
 import {
@@ -104,6 +105,7 @@ export function AppearancePanel({
    */
   footerAction?: ReactNode;
 }) {
+  const t = useT();
   const [tab, setTab] = useState<AppearanceTab>(showFont ? "font" : "colour");
   const {
     colorScheme,
@@ -166,7 +168,7 @@ export function AppearancePanel({
         {showFont ? (
           <div className="flex flex-col gap-3">
             <TypeSliderRow
-              label="Text size"
+              label={t("Text size")}
               min={Math.round(TEXT_SIZE_RANGE[0] * 100)}
               max={Math.round(TEXT_SIZE_RANGE[1] * 100)}
               step={5}
@@ -182,7 +184,7 @@ export function AppearancePanel({
                 220.00000000000003), the read-out carries the unit, and `aria-valuetext`
                 announces it. */}
             <TypeSliderRow
-              label="Letter spacing"
+              label={t("Letter spacing")}
               min={Math.round(READER_TRACKING_RANGE[0] * 100)}
               max={Math.round(READER_TRACKING_RANGE[1] * 100)}
               step={1}
@@ -196,7 +198,7 @@ export function AppearancePanel({
               onChange={(value) => setLetterSpacing(value / 100)}
             />
             <TypeSliderRow
-              label="Line height"
+              label={t("Line height")}
               min={Math.round(READER_LEADING_RANGE[0] * 100)}
               max={Math.round(READER_LEADING_RANGE[1] * 100)}
               step={5}
@@ -227,7 +229,7 @@ export function AppearancePanel({
               className="theme-focus-ring inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
             >
               <Icon icon="fluent:arrow-reset-24-filled" size={14} />
-              <span>Reset to defaults</span>
+              <span>{t("Reset to defaults")}</span>
             </button>
           </div>
         ) : null}
@@ -272,13 +274,13 @@ export function AppearancePanel({
 
       {showAccent ? (
         <ColorAxisGroup
-          axisName="Accent"
+          axisName={t("Accent")}
           dotColor={axisDot(accentSwatch, effectiveAccentHue, accentChroma)}
           degrees={effectiveAccentHue}
           percent={Math.round(accentChroma * 100)}
         >
           <ColorAxisSliders
-            name="Accent"
+            name={t("Accent")}
             swatch={accentSwatch}
             degrees={effectiveAccentHue}
             level={accentChroma}
@@ -310,7 +312,7 @@ export function AppearancePanel({
               className="theme-focus-ring inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-secondary [@media(pointer:coarse)]:h-11"
             >
               <Icon icon="fluent:arrow-reset-24-filled" size={14} />
-              <span>Reset colors</span>
+              <span>{t("Reset colors")}</span>
             </button>
           ) : null}
           {footerAction ? <div className="ml-auto">{footerAction}</div> : null}
@@ -334,11 +336,14 @@ function TabSwapButton({
   target: AppearanceTab;
   onSwap: (tab: AppearanceTab) => void;
 }) {
+  const t = useT();
+  const swapLabel =
+    target === "colour" ? t("Show colour controls") : t("Show font controls");
   return (
     <button
       type="button"
-      aria-label={target === "colour" ? "Show colour controls" : "Show font controls"}
-      title={target === "colour" ? "Show colour controls" : "Show font controls"}
+      aria-label={swapLabel}
+      title={swapLabel}
       onClick={() => onSwap(target)}
       className="theme-focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-dose-text-muted transition-colors hover:bg-dose-surface-muted hover:text-dose-text-primary [@media(pointer:coarse)]:h-11"
     >

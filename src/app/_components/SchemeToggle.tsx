@@ -2,6 +2,7 @@
 
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
+import { useT } from "@/i18n/client";
 import { AppearanceTogglePill } from "./AppearanceTogglePill";
 
 /**
@@ -15,22 +16,23 @@ import { AppearanceTogglePill } from "./AppearanceTogglePill";
  * a dev can still hand the axis back to the OS.
  */
 export function SchemeToggle() {
+  const t = useT();
   const { colorScheme, setColorScheme } = useTheme();
 
   return (
     <AppearanceTogglePill
       axis="color-scheme"
-      label="Mode"
+      label={t("Mode")}
       value={colorScheme}
       options={[
         {
           value: "dark",
-          label: "Dark",
+          label: t("Dark"),
           icon: <Icon icon="lucide:moon" size={16} />,
         },
         {
           value: "light",
-          label: "Light",
+          label: t("Light"),
           icon: <Icon icon="lucide:sun" size={16} />,
         },
       ]}

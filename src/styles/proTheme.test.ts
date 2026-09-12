@@ -405,7 +405,8 @@ describe("pro visual style", () => {
     expect(skin).toContain("--font-family-body: var(--font-family-standard-body)");
     expect(skin).toContain("--font-family-display: var(--font-pro, var(--font-display))");
 
-    const base = read(path.join(REPO_ROOT, "src", "styles", "base.css"));
+    // Collapsed whitespace: the contract is the fallback chain, not the formatter's wrap.
+    const base = read(path.join(REPO_ROOT, "src", "styles", "base.css")).replace(/\s+/g, " ");
     expect(base).toContain("--font-family-standard-body: var(--font-body, Inter), Inter");
     expect(base).toContain("--font-family-body: var(--font-family-standard-body)");
   });

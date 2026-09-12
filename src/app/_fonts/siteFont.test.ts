@@ -123,7 +123,9 @@ describe("site font selection", () => {
       expect(fs.existsSync(path.join(REPO_ROOT, face))).toBe(true);
     }
     expect(fs.existsSync(path.join(REPO_ROOT, "public/fonts/inter/OFL.txt"))).toBe(true);
-    expect(read("src/styles/base.css")).toContain(
+    // Collapsed whitespace: the contract is the declaration's fallback order, not the
+    // line the formatter happens to wrap it onto.
+    expect(read("src/styles/base.css").replace(/\s+/g, " ")).toContain(
       "--font-family-standard-body: var(--font-body, Inter), Inter,",
     );
 
