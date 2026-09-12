@@ -112,11 +112,12 @@ export const proFont = localFont({
 });
 
 /**
- * The default reading face — Lexend, the face every dose.wiki reader opens on
- * (`data-font` absent, see `src/styles/font-type.css`) and the first option in the
- * appearance popout's font picker. Registered on the body face's terms: `preload: true`
- * (the default, written out because it is the whole point) plus `display: "swap"` — it
- * paints on every page, so it carries the same preload the Inter body face does.
+ * The dyslexia-friendly reading face — Lexend, offered in the appearance popout's font
+ * picker and painted only for a reader who chooses it (`data-font="lexend"`, see
+ * `src/styles/font-type.css`). Registered on the Pro face's terms rather than the body
+ * face's: `preload: false`, because the face is a reader preference, not something every
+ * page paints, so an unchoosing reader downloads none of it. The retired binary toggle's
+ * stored value migrates onto this face, so the readers who had it keep it.
  *
  * One source, not four: Google serves Lexend as a single variable font (wght
  * 100–900), so the committed latin subset covers every weight the sheets ask
@@ -127,7 +128,7 @@ export const proFont = localFont({
 export const dyslexicFont = localFont({
   variable: "--font-dyslexic",
   display: "swap",
-  preload: true,
+  preload: false,
   src: [
     {
       path: "../../../public/fonts/lexend/lexend-variable-normal-latin.woff2",

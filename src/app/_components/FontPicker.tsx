@@ -9,23 +9,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useT } from "@/i18n/client";
+import { msg, useT } from "@/i18n/client";
+import { isFontPreference } from "@/theme";
 
 /**
- * The five faces on this axis, in picker order. Lexend first: it is the site's default
- * reading face, so the picker opens on it and a reader re-selecting the default is
- * "removing" the choice, on the never-write-a-default rule every axis follows.
+ * The faces on this axis, in picker order. Standard first: it is the site's default
+ * reading face, so the picker opens on it and a reader re-selecting it is "removing" the
+ * choice, on the never-write-a-default rule every axis follows.
  *
- * Every label is a stable preview kept in the face it selects, independent of the
- * active preference: "Lexend" is the same face every page already paints, "Inter" and
- * "Blinker" resolve their self-hosted registrations, "Titillium Web" the Pro face, and
- * "System UI" the reader's own platform sans (see `src/styles/font-type.css`).
+ * Every label is a stable preview kept in the face it selects, independent of the active
+ * preference: "Standard" is the authored pairing every page already paints, "Lexend" the
+ * dyslexia-friendly face the retired binary toggle used, "Inter" and "Blinker" resolve
+ * their self-hosted registrations, "Titillium Web" the Pro face, and "System UI" the
+ * reader's own platform sans (see `src/styles/font-type.css`).
  */
 const FONT_OPTIONS: readonly {
   value: FontPreference;
   label: string;
   labelClassName: string;
 }[] = [
+  {
+    value: "standard",
+    label: msg("Standard"),
+    labelClassName: "theme-font-preview-standard",
+  },
   {
     value: "lexend",
     label: "Lexend",
@@ -73,7 +80,9 @@ export function FontPicker({ className }: { className?: string }) {
     <Select
       value={fontPreference}
       onValueChange={(value) => {
-        if (value === "lexend" || value === "inter" || value === "blinker" || value === "titillium" || value === "system") {
+        // The axis owns its validity set; a hand-written union here would silently drift
+        // from it the next time a face is added.
+        if (isFontPreference(value)) {
           setFontPreference(value);
         }
       }}
@@ -87,13 +96,13 @@ export function FontPicker({ className }: { className?: string }) {
         {/* The trigger's value rides the selected face: reading the picker is already a
             preview of what each option renders as. */}
         <SelectValue asChild>
-          <span className={active.labelClassName}>{active.label}</span>
+          <span className={active.labelClassName}>{t(active.label)}</span>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {FONT_OPTIONS.map((option) => (
           <SelectItem key={option.value} value={option.value}>
-            <span className={option.labelClassName}>{option.label}</span>
+            <span className={option.labelClassName}>{t(option.label)}</span>
           </SelectItem>
         ))}
       </SelectContent>

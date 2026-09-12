@@ -60,28 +60,57 @@ export type VisualStyle = "fun" | "pro";
 
 /**
  * The type axis: which face the two `--font-family-*` tokens resolve to.
- * `"lexend"` is the site default (every dose.wiki reader opens on it) and is carried as
- * *no* root attribute at all — `src/styles/font-type.css` re-seats both tokens to Lexend
- * for every dose.wiki document that carries no `data-font`. Each other value re-seats
- * both tokens to its own face via `data-font="<face>"` on the document root, on both
- * visual styles and both colour schemes. A face list, not a binary toggle — dose.wiki
- * offers the picker, Effect Index locks the axis and never carries the attribute, reads
- * the storage key, or ships the faces.
+ * `"standard"` is the site default and is carried as *no* root attribute at all: the
+ * authored `base.css` pairing (the Inter body face, the Blinker display face, and the
+ * negative tracking ramp) is what a document with no `data-font` already wears, so the
+ * default state re-seats nothing. Each other value re-seats both tokens to its own face
+ * via `data-font="<face>"` on the document root, on both visual styles and both colour
+ * schemes. A face list, not a binary toggle — dose.wiki offers the picker, Effect Index
+ * locks the axis and never carries the attribute, reads the storage key, or ships the
+ * faces.
  */
-export type FontPreference = "lexend" | "inter" | "blinker" | "titillium" | "system";
+export type FontPreference =
+  | "standard"
+  | "lexend"
+  | "inter"
+  | "blinker"
+  | "titillium"
+  | "system";
 
 /**
- * The runtime validity set for the type axis, in picker order. `"lexend"` — the default —
- * is deliberately absent from the *painted* set: the default is the absence of
+ * The runtime validity set for the type axis, in picker order. `"standard"` — the
+ * default — is deliberately absent from the *painted* set: the default is the absence of
  * `data-font`, never a stored or painted value, on the never-write-a-default rule every
  * reader axis follows.
  */
-export const PAINTED_FONT_PREFERENCES: readonly Exclude<FontPreference, "lexend">[] = [
+export const PAINTED_FONT_PREFERENCES: readonly Exclude<FontPreference, "standard">[] = [
+  "lexend",
   "inter",
   "blinker",
   "titillium",
   "system",
 ];
+
+/**
+ * Stored values from the retired binary toggle, mapped onto the face that reproduces
+ * them. A reader who turned the dyslexic toggle on was wearing Lexend, and that is an
+ * accessibility choice, so the stored key resolves to the Lexend face rather than
+ * decaying to the default the way an unrecognised value does.
+ */
+export const LEGACY_FONT_PREFERENCES: Readonly<Record<string, FontPreference>> = {
+  dyslexic: "lexend",
+};
+
+/**
+ * Resolve a stored type-axis value, translating the retired binary-toggle vocabulary.
+ * Returns null for anything the axis does not recognise, which reads as "never saved".
+ */
+export function resolveStoredFontPreference(
+  value: string | null | undefined,
+): FontPreference | null {
+  const migrated = value == null ? null : (LEGACY_FONT_PREFERENCES[value] ?? value);
+  return isFontPreference(migrated) ? migrated : null;
+}
 
 /**
  * The colour axes: continuous hue rotations and saturation levels over the one authored
@@ -195,7 +224,10 @@ export function isVisualStyle(value: string | null | undefined): value is Visual
 }
 
 export function isFontPreference(value: string | null | undefined): value is FontPreference {
-  return value === "lexend" || PAINTED_FONT_PREFERENCES.includes(value as Exclude<FontPreference, "lexend">);
+  return (
+    value === "standard" ||
+    PAINTED_FONT_PREFERENCES.includes(value as Exclude<FontPreference, "standard">)
+  );
 }
 
 /**
@@ -532,18 +564,22 @@ export function buildThemeBootstrapScript(policy: AppearancePolicy = SITE_FLAVOR
   // toggle is offered, on the locked-axis rule the other axes follow — a locked
   // publication's script carries neither the storage keys nor the attribute write, so
   // Effect Index's pinned bootstrap stays byte-identical. The face key either holds one
-  // of the paintable faces or the axis is at its default Lexend, which is the *absence*
-  // of `data-font` (the server never renders the attribute; the font sheet re-seats the
-  // tokens for every dose.wiki document that carries none). The three numbers are saved
-  // values on their slider domains; anything else — including a stored "dyslexic" from
-  // the binary-toggle era, which maps onto the default face — reads as "never saved".
+  // of the paintable faces or the axis is at its default Standard, which is the *absence*
+  // of `data-font` (the server never renders the attribute, and the authored base.css
+  // pairing is already what a document with no attribute wears). LEGACY maps the retired
+  // binary toggle's stored "dyslexic" onto the Lexend face pre-paint, so a reader who
+  // chose the dyslexia-friendly face keeps it without a flash of the default. The three
+  // numbers are saved values on their slider domains; anything else reads as
+  // "never saved".
   const fontWrite = !policy.showFontToggle
     ? ""
     : `\n\n  const FACES = ${JSON.stringify(
         Object.fromEntries(PAINTED_FONT_PREFERENCES.map((face) => [face, true])),
       )};
+  const LEGACY = ${JSON.stringify(LEGACY_FONT_PREFERENCES)};
   try {
-    const stored = window.localStorage.getItem(${JSON.stringify(FONT_STORAGE_KEY)});
+    const raw = window.localStorage.getItem(${JSON.stringify(FONT_STORAGE_KEY)});
+    const stored = Object.prototype.hasOwnProperty.call(LEGACY, raw) ? LEGACY[raw] : raw;
     if (Object.prototype.hasOwnProperty.call(FACES, stored)) {
       root.dataset.font = stored;
     }

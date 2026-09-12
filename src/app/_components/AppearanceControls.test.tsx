@@ -167,13 +167,14 @@ describe("AppearanceCog", () => {
 
     const panel = await openCog(user);
 
-    // A fresh reader parks on the defaults — ×1 text scale, Lexend's zero tracking, the
-    // authored leading. The fractional axes run on scaled integer slider domains
-    // (value × 100), so the parked DOM values are the scaled counts. Paragraph spacing
-    // is absent: it is a fixed site value, not a preference, so no slider offers it.
+    // A fresh reader parks on the defaults — ×1 text scale, the standard face's authored
+    // negative tracking, the authored leading. The fractional axes run on scaled integer
+    // slider domains (value × 100), so the parked DOM values are the scaled counts.
+    // Paragraph spacing is absent: it is a fixed site value, not a preference, so no
+    // slider offers it.
     const defaults: Record<(typeof TYPE_SLIDER_NAMES)[number], string> = {
       "Text size": "100",
-      "Letter spacing": "0",
+      "Letter spacing": "-1",
       "Line height": "170",
     };
     for (const name of TYPE_SLIDER_NAMES) {
@@ -216,7 +217,7 @@ describe("AppearanceCog", () => {
     const panel = await openCog(user);
     const font = within(panel).getByRole("combobox", { name: "Font" });
     expect(font).toHaveAttribute("data-appearance-axis", "font");
-    expect(font).toHaveAttribute("data-appearance-value", "lexend");
+    expect(font).toHaveAttribute("data-appearance-value", "standard");
 
     fireEvent.click(font);
     fireEvent.click(await screen.findByRole("option", { name: "Inter" }));

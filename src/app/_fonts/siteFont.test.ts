@@ -146,15 +146,16 @@ describe("site font selection", () => {
     expect(read("src/styles/pro-theme.css")).toContain("var(--font-pro, var(--font-display))");
   });
 
-  it("registers the default face preloaded, and only where the font axis exists", () => {
+  it("registers the dyslexia-friendly face lazily, and only where the font axis exists", () => {
     const source = stripComments(read(FLAVOR_MODULES.dosewiki));
     const dyslexicRegistration = source.slice(source.indexOf("export const dyslexicFont"));
 
-    // Lexend is the site's default reading face: it paints on every page, so it carries
-    // the body face's preload rather than the Pro face's lazy terms. Swap display, and
+    // Lexend is a reader preference, not the site default: it paints only under
+    // `data-font="lexend"`, so it carries the Pro face's lazy terms rather than the body
+    // face's preload and an unchoosing reader downloads none of it. Swap display, and
     // the one committed variable-font subset covering 400/600/700.
     expect(dyslexicRegistration).toContain('variable: "--font-dyslexic"');
-    expect(dyslexicRegistration).toContain("preload: true");
+    expect(dyslexicRegistration).toContain("preload: false");
     expect(dyslexicRegistration).toContain('display: "swap"');
     expect(dyslexicRegistration).toContain('weight: "100 900"');
     const face = "public/fonts/lexend/lexend-variable-normal-latin.woff2";
@@ -168,15 +169,17 @@ describe("site font selection", () => {
     expect(effectindex.toLowerCase()).not.toContain("lexend");
   });
 
-  it("offers the five bundled faces from the picker, each label set in its face", () => {
+  it("offers the bundled faces from the picker, each label set in its face", () => {
     // The picker is the font axis's whole surface: the default first (re-selecting it is
     // "removing" the choice, on the never-write-a-default rule), then the other faces
     // this build already ships, then the reader's own system sans. No option may name a
-    // face the repo does not commit.
+    // face the repo does not commit. Only the default's label is translatable; the rest
+    // are face names.
     const pickerSource = stripComments(read("src/app/_components/FontPicker.tsx"));
 
-    const options = [...pickerSource.matchAll(/value: "([a-z]+)",\s*\n\s*label: "([^"]+)",\s*\n\s*labelClassName: "([^"]+)"/g)];
+    const options = [...pickerSource.matchAll(/value: "([a-z]+)",\s*\n\s*label: (?:msg\()?"([^"]+)"\)?,\s*\n\s*labelClassName: "([^"]+)"/g)];
     expect(options.map(([, value]) => value)).toEqual([
+      "standard",
       "lexend",
       "inter",
       "blinker",
@@ -184,6 +187,7 @@ describe("site font selection", () => {
       "system",
     ]);
     expect(options.map(([, , label]) => label)).toEqual([
+      "Standard",
       "Lexend",
       "Inter",
       "Blinker",
@@ -204,8 +208,10 @@ describe("site font selection", () => {
     ]) {
       expect(read("src/app/_fonts/dosewiki.ts")).toContain(face.replace("public/", "../../../public/"));
     }
-    expect(fontSheet).toContain("html[data-site=\"dosewiki\"][data-site][data-site]:not([data-font])");
-    for (const face of ["inter", "blinker", "titillium", "system"]) {
+    // The default state re-seats nothing: no `:not([data-font])` block may exist, or the
+    // picker's Standard entry would paint a face instead of removing a choice.
+    expect(fontSheet).not.toContain(":not([data-font])");
+    for (const face of ["lexend", "inter", "blinker", "titillium", "system"]) {
       expect(fontSheet).toContain(`html[data-font="${face}"][data-font][data-font]`);
     }
   });

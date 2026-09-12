@@ -91,6 +91,9 @@ function AppearanceProbe() {
       <button type="button" onClick={() => setFontPreference("lexend")}>
         Pick Lexend
       </button>
+      <button type="button" onClick={() => setFontPreference("standard")}>
+        Pick Standard
+      </button>
       <button type="button" onClick={() => setTextSize(1.05)}>
         Set text size
       </button>
@@ -392,6 +395,16 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
+      // Lexend is a paintable face now, not the default: it carries an attribute and a
+      // stored value like any other pick.
+      expect(document.documentElement.dataset.font).toBe("lexend");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("lexend");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Pick Standard" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("font-preference")).toHaveTextContent("standard");
       // The default is the ABSENT state: no attribute, no stored value — the document
       // and storage look exactly as if the reader never picked.
       expect(document.documentElement.dataset.font).toBeUndefined();
@@ -400,10 +413,11 @@ describe("ThemeProvider", () => {
     });
   });
 
-  it("migrates the binary-toggle era's dyslexic pick onto the default face", async () => {
+  it("migrates the binary-toggle era's dyslexic pick onto the Lexend face", async () => {
     // Exactly the state a reader of the old toggle could return with: the retired value
-    // in storage. Lexend is now the default face — which is what that pick reproduced —
-    // so the adoption clears the key and leaves no attribute behind.
+    // in storage. The default no longer carries Lexend, so the adoption rewrites the key
+    // to the face that pick reproduced instead of clearing it — dropping it would move a
+    // reader who chose the dyslexia-friendly face onto the standard one.
     window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
     storage.forgetTraffic();
 
@@ -411,8 +425,8 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
-      expect(document.documentElement.dataset.font).toBeUndefined();
-      expect(storage.removals).toContain(FONT_STORAGE_KEY);
+      expect(document.documentElement.dataset.font).toBe("lexend");
+      expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBe("lexend");
     });
   });
 
@@ -516,7 +530,7 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Set text size" }));
 
     expect(screen.getByTestId("font-locked")).toHaveTextContent("true");
-    expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
+    expect(screen.getByTestId("font-preference")).toHaveTextContent("standard");
     expect(screen.getByTestId("text-size")).toHaveTextContent("null");
     expect(document.documentElement.dataset.font).toBeUndefined();
     for (const key of [

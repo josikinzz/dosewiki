@@ -656,8 +656,7 @@ describe("theme token interface", () => {
     expect(document.documentElement.dataset.font).toBe("inter");
 
     // The default is the ABSENCE of the attribute — the key either holds a paintable
-    // face or the axis contributes nothing to the painted frame. The retired
-    // binary-toggle value maps onto the default face, which is what it reproduced.
+    // face or the axis contributes nothing to the painted frame.
     delete document.documentElement.dataset.font;
     installMockStorage({ [FONT_STORAGE_KEY]: "papyrus" });
 
@@ -665,12 +664,14 @@ describe("theme token interface", () => {
 
     expect(document.documentElement.dataset.font).toBeUndefined();
 
+    // The retired binary-toggle value paints the Lexend face it reproduced, rather than
+    // decaying to the default: the dyslexia-friendly pick survives pre-paint.
     delete document.documentElement.dataset.font;
     installMockStorage({ [FONT_STORAGE_KEY]: "dyslexic" });
 
     Function(buildThemeBootstrapScript(DOSEWIKI))();
 
-    expect(document.documentElement.dataset.font).toBeUndefined();
+    expect(document.documentElement.dataset.font).toBe("lexend");
   });
 
   it("restores the saved reading-type numbers pre-paint", () => {

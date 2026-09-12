@@ -43,6 +43,7 @@ import {
   isColorSchemePreference,
   isFontPreference,
   isVisualStyle,
+  LEGACY_FONT_PREFERENCES,
   type Appearance,
   type ColorSchemePreference,
   type ColorScheme,
@@ -141,11 +142,12 @@ type ThemeContextValue = {
    */
   hasCustomColors: boolean;
   /**
-   * The type axis: the face the two `--font-family-*` tokens resolve to. "lexend" is the
-   * site default every dose.wiki reader opens on and is expressed by *removing* the root
-   * attribute and the storage key, so a reader on the default face stores nothing; each
-   * other face re-seats both tokens via `data-font="<face>"` on the root. An untoggled
-   * reader fetches no face beyond the ones every page already paints.
+   * The type axis: the face the two `--font-family-*` tokens resolve to. "standard" is
+   * the site default every dose.wiki reader opens on — the authored base.css pairing of
+   * the Inter body face and the Blinker display face — and is expressed by *removing* the
+   * root attribute and the storage key, so a reader on the default face stores nothing;
+   * each other face re-seats both tokens via `data-font="<face>"` on the root. An
+   * untoggled reader fetches no face beyond the ones every page already paints.
    */
   fontPreference: FontPreference;
   setFontPreference: (value: FontPreference) => void;
@@ -513,7 +515,7 @@ export function ThemeProvider({
   const colorScheme =
     colorSchemePreference === "system" ? systemColorScheme : colorSchemePreference;
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialVisualStyle);
-  const [fontPreference, setFontPreferenceState] = useState<FontPreference>("lexend");
+  const [fontPreference, setFontPreferenceState] = useState<FontPreference>("standard");
   /**
    * The reading-type axes' saved slots, on the saved-colour-coordinates' exact terms:
    * null while the reader never moved that slider, effective values resolved by the
@@ -553,7 +555,7 @@ export function ThemeProvider({
     chromaSlots.surfaceHue !== null ||
     chromaSlots.accentHue !== null;
   const hasCustomType =
-    fontPreference !== "lexend" ||
+    fontPreference !== "standard" ||
     savedTextSize !== null ||
     savedLetterSpacing !== null ||
     savedLineHeight !== null;
@@ -630,10 +632,11 @@ export function ThemeProvider({
     }
 
     // The type axes, on the style lock's exact terms. The bootstrap painted
-    // `data-font` (or nothing — the default Lexend) from storage pre-paint; adopt what
-    // it resolved. A saved value from the binary-toggle era ("dyslexic") maps onto the
-    // default face — which is what that pick reproduces now — and its key is removed so
-    // the retired value never answers again.
+    // `data-font` (or nothing — the default Standard) from storage pre-paint; adopt what
+    // it resolved. A saved value from the binary-toggle era ("dyslexic") is rewritten to
+    // the Lexend face it reproduced, not removed: that pick is an accessibility choice,
+    // and the default no longer carries it, so dropping the key would quietly move the
+    // reader onto the standard face on their next visit.
     if (!isFontLocked) {
       const paintedFont = resolvePaintedAxis("font", FONT_STORAGE_KEY, isFontPreference);
 
@@ -642,12 +645,16 @@ export function ThemeProvider({
       }
 
       try {
-        if (window.localStorage.getItem(FONT_STORAGE_KEY) === "dyslexic") {
-          removeStoredKey(FONT_STORAGE_KEY);
+        const stored = window.localStorage.getItem(FONT_STORAGE_KEY);
+        const migrated = stored == null ? null : LEGACY_FONT_PREFERENCES[stored];
+        if (migrated) {
+          persistPreference(FONT_STORAGE_KEY, migrated);
+          setFontPreferenceState(migrated);
         }
       } catch {
-        // A blocked read also cannot be cleared; the painted attribute still applies.
+        // A blocked read also cannot be rewritten; the painted attribute still applies.
       }
+
 
       const readAxis = (storageKey: string, min: number, max: number) => {
         try {
@@ -797,7 +804,7 @@ export function ThemeProvider({
     }
 
     const root = document.documentElement;
-    const nextFont = fontPreference === "lexend" ? undefined : fontPreference;
+    const nextFont = fontPreference === "standard" ? undefined : fontPreference;
 
     if (root.dataset.font !== nextFont) {
       // A family swap restyles and reflows the whole document; run it under
