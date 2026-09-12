@@ -1,3 +1,75 @@
+## 2026-09-12 Reader appearance menu (font and colour controls under the header cog)
+
+All three surfaces serve commit `9b734e8e` on
+`integration/appearance-on-prod-line`, each uploaded from its own isolated
+detached `git worktree` at that commit: dosewiki-public
+`dosewiki-public-dmn8ypd14`, dosewiki-admin `dosewiki-admin-illwbuytx`,
+effectindex `effectindex-z21v1pylh`. Roll back to `dosewiki-public-hs698hfwx`,
+`dosewiki-admin-ei1yoya4s`, and `effectindex-iw9fhf1d7` with the explicit
+`--scope josies-projects-f217d517`.
+
+The release carries the reader appearance menu authored on
+`Lyrea/appearance-menu` (10 commits, `f6c8c064` through `c3950e30`): a two-tab
+popover under the existing header cog, with a five-face font dropdown (Lexend
+default, Inter, Blinker, Titillium Web, System UI), Text size, Letter spacing
+and Line height sliders on the Font tab, and Dark/Light plus the Background and
+Accent rails on the Colour tab. The binary dyslexic toggle retires onto Lexend
+and `font-type.css` replaces `dyslexic-type.css`. It also carries the four
+`no-corpus-drain` commits the previous release predated (`3713c38a` through
+`1aaf104a`, the replications and articles mirror plus CategoryGrid labels).
+
+The author's branch forked at `f955725b` (2026-09-04), before the PlanetScale
+cutover and the locale mirrors, so it was replayed onto the production line
+rather than merged: merging drags the `main` / `no-corpus-drain` divergence in
+for 130 conflicts, while cherry-picking the 10 appearance commits gives 9. Four
+integration decisions are worth keeping:
+
+- `AppearanceCog` and `FontPicker` were rewritten from a base that predated the
+  2026-09-11 locale pass. The branch's structure was kept and `t()` re-applied;
+  `discloseColorGroups` went away with `AppearanceAxes`, which the new
+  `AppearancePanel` replaces in the reader menu.
+- `ThemeLab.module.css` arrived with a bare `:global(body)` rule, which fails a
+  production CSS-module compile (`not pure`). The rule already existed in the
+  plain `theme-lab.css`; only the branch's `!important` (which holds the
+  reserved gutter against Radix Select's scroll lock) moved there.
+- `AppearancePanel` shipped with no catalog import, so the new reader menu would
+  have rendered English on the mirror. Thirteen strings now resolve through
+  `t()`/`msg()` and the zh-Hans catalog grew to 1,950 entries.
+- The branch carried cp1252/UTF-8 mojibake in five files, reader-visible as
+  `0Â°` in the hue read-outs, plus stray BOMs. Both are repaired; the same files
+  are clean on `no-corpus-drain`, so the damage was the author's editor.
+
+Generated artifacts were regenerated on the merged tree rather than taken from
+either side: `iconData.generated.json`, the appearance palette/chroma/sheet
+JSON, and the dose.wiki theme bootstrap CSP hash
+(`sha256-e9qVua8Jsun1jR1ddFS9AI1KSILW+ZMZF2LAKNbex6Q=`; the Effect Index script
+stayed byte-identical). That hash only reaches `/dev` documents, because public
+documents keep the hash-free static `script-src`.
+
+No Convex functions were published: the public and Effect Index projects hold no
+deploy key and the editor build ran with `--build-env CONVEX_DEPLOY_KEY=`.
+
+Gates on the release commit: `tsc --noEmit` clean, 615 test files and 5,921
+tests, `provenance:check` with 55 tracked exports and no issues, and a local
+`next build --webpack` reporting zero editorial browser modules and zero browser
+Convex clients on the public artifact.
+
+Live checks: the cog opens both tabs on `dose.wiki` and `www.dose.wiki`, the
+hue read-outs render `0°` rather than `0Â°`, selecting Titillium Web sets
+`data-font="titillium"`, `zh.dose.wiki` serves the panel as 外观设置 / 文字大小 /
+字间距 / 行高 / 恢复默认设置 with `noindex` and an English canonical,
+`effectindex.com/effects` renders with zero CJK chrome, `effectindex.com/donate`
+200s while `dose.wiki/donate` 404s, `/preview/home` still 308s to `/`, and
+anonymous `dev.dose.wiki/dev` 307s to `/sign-in`.
+
+Two mirror defects survive this release and are not regressions from it. The
+catalog is flat and keyed by English source text, so the scheme toggle's `Light`
+resolves to 轻度, the dose-intensity sense seeded by
+`dosageDurationLabels.ts`; `ThemeToggle` already had this. And the colour rails'
+`Hue` and `Saturation` sub-labels are composed as `` `${name} hue` ``, so they
+never become catalog keys and stay English. Fixing either means giving the
+catalog a disambiguation mechanism.
+
 ## 2026-09-11 zh.dose.wiki crash fix, About, class definitions, library archive
 
 All three surfaces serve commit `17e2257e` on `no-corpus-drain`: dosewiki-public
