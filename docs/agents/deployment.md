@@ -1,3 +1,62 @@
+## 2026-09-12 Reader appearance menu, second pass (default face restored, Colour opens first)
+
+All three surfaces serve commit `62046387` on
+`integration/appearance-on-prod-line`, each uploaded from its own isolated
+detached `git worktree` at that commit: dosewiki-public
+`dosewiki-public-j4vuj0jhx`, dosewiki-admin `dosewiki-admin-ow9h6zs3j`,
+effectindex `effectindex-4hfnrvvtb`. Roll back to `dosewiki-public-dmn8ypd14`,
+`dosewiki-admin-illwbuytx`, and `effectindex-z21v1pylh` with the explicit
+`--scope josies-projects-f217d517`.
+
+Two operator corrections to the release earlier the same day.
+
+The first restores the default reading face. The authored branch had made
+Lexend the site default, which is the *absence* of `data-font`, so every reader
+who had never touched the picker was moved onto it and the display scale and
+tracking moved with them. The default is `"standard"` again: the absence of the
+attribute now re-seats nothing, so a document with no choice wears exactly the
+authored `base.css` pairing (the Inter body face, the Blinker display face, the
+negative tracking ramp, the full display clamps) that shipped before the menu
+existed. Lexend becomes an ordinary paintable face with its own
+`data-font="lexend"` block carrying the tracking and display-size re-seats it
+needs, and the picker gains a Standard entry ahead of the five faces.
+
+Two consequences worth keeping. Lexend drops to `preload: false`, the Pro
+face's terms, because it no longer paints on every page: a reader who never
+chooses it fetches none of it, and the public document went from five font
+preloads to four. And the retired binary toggle's stored `"dyslexic"` no longer
+decays onto the default: `LEGACY_FONT_PREFERENCES` maps it to the Lexend face in
+both the pre-paint bootstrap and the provider, and the provider *rewrites* the
+key rather than removing it. Removing it was correct only while the default was
+Lexend; against a Standard default it would have moved every reader who had
+chosen the dyslexia-friendly face onto the standard one on their next visit.
+
+The second correction opens the menu on the Colour tab, with Font one swap
+behind the type glyph. `AppearanceControls.test.tsx` grew an `openCogOn` helper
+so its cases name the tab they exercise instead of depending on which one opens
+first; the keyboard-walk case now walks Colour, swaps, then walks Font.
+
+The dose.wiki theme bootstrap hash moved with the default-face change to
+`sha256-9gQoeeQFqs7RBA5n+VWUs1OsvwenesMr+i0CaieUyDo=`; the Effect Index script
+stayed byte-identical. The tab reorder is React state and touches no bootstrap.
+The zh-Hans catalog regained `Standard` (标准) and stands at 1,951 entries.
+
+Gates: `tsc --noEmit` clean and 615 test files with 5,921 tests green. A loaded
+run reported ten failures across `publicData.changelog`, `save-to-convex`,
+`ArticleContextBridge`, `ArticleDraftFormFieldsRHF`, `MyReportsTab` and
+`WritingTab`; all six files pass in isolation and the run that flagged them took
+563s against the clean run's 234s, so they are load-induced flakes rather than
+regressions. A local build with a missing `.env.local` fails at "collect page
+data for /[slug]": the release worktrees need the file before `bun run build`.
+
+Live checks: a reader with no stored face gets no `data-font`, body on
+`bodyFont` and headings on `siteFont`, with four font preloads and no Lexend
+fetch; a reader carrying the legacy `dyslexic` key lands on `data-font="lexend"`
+with the key rewritten to `lexend` and survives a second visit; the menu opens
+on Colour and the Font tab shows Standard parked at `-0.01 em`; and
+`zh.dose.wiki` opens the same menu as 生动 / 深色 / 背景 / 强调色 / 重置颜色 with
+标准 on the font tab.
+
 ## 2026-09-12 Reader appearance menu (font and colour controls under the header cog)
 
 All three surfaces serve commit `9b734e8e` on
