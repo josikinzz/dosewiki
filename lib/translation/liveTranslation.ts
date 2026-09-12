@@ -19,12 +19,13 @@ import { createHash } from "node:crypto";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize";
 import { CORPORA } from "../../scripts/translation/corpora.mjs";
 import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type WorkUnit } from "../../scripts/translation/engine.mjs";
-import { resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
+import { LOCALES, glossaryTermPattern, resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
+import { glossaryDigestInput, loadGlossary, type Glossary } from "./glossary";
 import {
   clearTranslationRejections,
-  missingTranslationHashes,
+  pendingTranslationHashes,
   readTranslations,
   writeTranslationRejections,
   writeTranslations,
@@ -86,6 +87,31 @@ export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRec
     if (jobSlug.startsWith(prefix)) return { kind, slug: jobSlug.slice(prefix.length) };
   }
   return { kind: "article", slug: jobSlug };
+}
+
+/** The `translationJobs` slug for one record: bare for substances, kind-prefixed otherwise. */
+export function translationJobSlug(kind: TranslationRecordKind, slug: string): string {
+  return kind === "article" ? slug : `${kind}/${slug}`;
+}
+
+/**
+ * Every public record, of every kind, with a segment that mentions any of
+ * `terms` by the glossary matcher: the records a glossary edit can change.
+ * Reads the whole corpus, as the coverage lens and the stale replay do.
+ */
+export async function recordsMentioning(
+  reads: PublicDataReadAdapter,
+  terms: readonly string[],
+): Promise<Array<{ kind: TranslationRecordKind; slug: string }>> {
+  const patterns = terms.map((term) => glossaryTermPattern(term));
+  const hits: Array<{ kind: TranslationRecordKind; slug: string }> = [];
+  for (const kind of TRANSLATION_RECORD_KINDS) {
+    for (const record of await publicRecords(reads, kind)) {
+      const segments = segmentsOf(record, kind);
+      if (segments.some((segment) => patterns.some((pattern) => pattern.test(segment.source)))) hits.push({ kind, slug: record.slug });
+    }
+  }
+  return hits;
 }
 
 /**
@@ -177,23 +203,39 @@ export async function publicRecords(
 
 export const TRANSLATION_MODEL = DEFAULT_MODEL;
 
+/** Every locale the pipeline can translate into, live or not; the Glossary tab drafts for any of them. */
+export const TRANSLATION_LOCALE_CODES: readonly string[] = Object.keys(LOCALES);
+
 /** Requests in flight per refresh; a refresh runs inside one cron invocation, not a 100-wide batch run. */
 const REFRESH_CONCURRENCY = 8;
 
-export function getTranslationLocale(code: string): TranslationLocale {
-  return resolveLocale(code);
-}
+/**
+ * Everything a translation run needs to agree on: the locale's prompt, the
+ * approved glossary it injects, and the digest the two produce. Loaded once
+ * per run so every batch in it is stamped with the digest it was made under.
+ */
+export type TranslationContext = {
+  locale: TranslationLocale;
+  glossary: Glossary;
+  promptVersion: string;
+};
 
-/** Digest of everything that shapes an answer besides the segment itself. */
-export function promptVersionFor(locale: TranslationLocale): string {
+/** Digest of everything that shapes an answer besides the segment itself: model, system prompt, approved glossary. */
+export function promptVersionFor(locale: TranslationLocale, glossary: Glossary): string {
   return createHash("sha256")
     .update(TRANSLATION_MODEL)
     .update("\u0000")
     .update(locale.systemPrompt)
     .update("\u0000")
-    .update(JSON.stringify(Object.entries(locale.glossary).sort(([a], [b]) => a.localeCompare(b))))
+    .update(glossaryDigestInput(glossary))
     .digest("hex")
     .slice(0, 16);
+}
+
+export async function loadTranslationContext(localeCode: string): Promise<TranslationContext> {
+  const locale = resolveLocale(localeCode);
+  const glossary = await loadGlossary(localeCode);
+  return { locale, glossary, promptVersion: promptVersionFor(locale, glossary) };
 }
 
 export function segmentsOf(record: { slug: string }, kind: TranslationRecordKind = "article"): Segment[] {
@@ -255,11 +297,11 @@ export type RefreshOutcome = {
  */
 export async function translateUnits(
   units: readonly WorkUnit[],
-  localeCode: string,
+  context: TranslationContext,
   apiKey: string,
 ): Promise<Pick<RefreshOutcome, "stored" | "rejected" | "usage">> {
-  const locale = getTranslationLocale(localeCode);
-  const promptVersion = promptVersionFor(locale);
+  const { locale, glossary, promptVersion } = context;
+  const localeCode = locale.code;
   const usage = { prompt: 0, completion: 0, requests: 0 };
   const rows: TranslationSegmentRow[] = [];
   const rejected: RefreshOutcome["rejected"] = [];
@@ -274,6 +316,7 @@ export async function translateUnits(
         const verdicts = await translateBatchWithRetries({
           units: batch,
           locale,
+          glossary,
           model: TRANSLATION_MODEL,
           apiKey,
           onUsage: (used) => {
@@ -313,19 +356,23 @@ export async function translateUnits(
   return { stored: rows.length, rejected, usage };
 }
 
-/** Bring one record's locale up to date with its current English. */
+/** Bring one record's locale up to date with its current English and the current prompt digest. */
 export async function refreshRecordTranslations(
   record: { slug: string },
-  localeCode: string,
+  context: TranslationContext,
   kind: TranslationRecordKind,
   apiKey: string,
 ): Promise<RefreshOutcome> {
+  const localeCode = context.locale.code;
   const segments = segmentsOf(record, kind);
   const units = buildWorkUnits(segments);
-  const missing = new Set(await missingTranslationHashes(localeCode, units.map((unit) => unit.hash)));
-  const pending = units.filter((unit) => missing.has(unit.hash));
-  const result = pending.length > 0
-    ? await translateUnits(pending, localeCode, apiKey)
+  // Missing hashes and hashes stamped with another digest both go back to the
+  // model: a scoped stale replay marks the segments a glossary edit touched
+  // and enqueues their records, and this is where the cron picks them up.
+  const pending = new Set(await pendingTranslationHashes(localeCode, units.map((unit) => unit.hash), context.promptVersion));
+  const due = units.filter((unit) => pending.has(unit.hash));
+  const result = due.length > 0
+    ? await translateUnits(due, context, apiKey)
     : { stored: 0, rejected: [], usage: { prompt: 0, completion: 0, requests: 0 } };
-  return { slug: record.slug, locale: localeCode, segments: segments.length, requested: pending.length, ...result };
+  return { slug: record.slug, locale: localeCode, segments: segments.length, requested: due.length, ...result };
 }

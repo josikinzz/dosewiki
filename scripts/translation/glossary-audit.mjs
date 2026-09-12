@@ -26,11 +26,19 @@
  *                 homonyms ("respiratory depression" against the mood effect)
  *                 legitimately take different renderings.
  *
+ *   4. DISAGREE   with --glossary: a term whose approved rendering in the
+ *                 Postgres glossary (lib/translation/glossary.ts) is not the
+ *                 rendering the corpus pinned. Either the corpus predates the
+ *                 approval (run a scoped `live-mirror.ts stale --term`) or
+ *                 the reviewer should reconsider the gloss.
+ *
  * Pinning is derived, never guessed. A term's rendering is the one the corpus
  * already uses where the term stands alone as a whole value, which the hash
  * cache guarantees is singular.
  *
- * Pure analysis: reads artifacts, writes a report, touches no live data.
+ * Pure analysis over the artifacts; `--glossary` adds one read of the
+ * approved glossary (DATA_BACKEND=postgres). Writes a report, touches no
+ * live data.
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
@@ -229,6 +237,18 @@ export function findUnpinned(terms, prose, { excludedSenses = {}, minMentions = 
   return findings.sort((a, b) => b.missing - a.missing);
 }
 
+/** Approved glossary entries whose target is not what the corpus pinned for the same term. */
+export function findGlossaryDisagreements(terms, glossary) {
+  const byKey = new Map([...terms.values()].map((term) => [canonical(term.source), term]));
+  return Object.entries(glossary)
+    .flatMap(([source, approved]) => {
+      const term = byKey.get(canonical(source));
+      if (!term || term.pinned === approved) return [];
+      return [{ source, approved, pinned: term.pinned, occurrences: term.occurrences }];
+    })
+    .sort((a, b) => b.occurrences - a.occurrences);
+}
+
 /** The one artifact a reviewer who reads the target language actually opens. */
 export function reviewSheet(terms) {
   return [...terms.values()]
@@ -274,7 +294,7 @@ function discoverPairs(locale) {
     });
 }
 
-function main() {
+async function main() {
   const { values } = parseArgs({
     options: {
       all: { type: "boolean", default: false },
@@ -282,6 +302,7 @@ function main() {
       pair: { type: "string", multiple: true, default: [] },
       senses: { type: "string" },
       terms: { type: "string" },
+      glossary: { type: "boolean", default: false },
       out: { type: "string" },
       "max-rows": { type: "string", default: "25" },
       help: { type: "boolean", default: false },
@@ -303,6 +324,11 @@ function main() {
   --terms   JSON array of source terms. Restricts the prose scan to curated
             terminology. Display labels whose grammatical form legitimately
             varies in a sentence, such as legal statuses, belong outside it.
+  --glossary
+            Read the approved glossary for --locale from Postgres
+            (DATA_BACKEND=postgres): scope the prose scan to its terms and
+            report DISAGREE, terms whose approved rendering differs from the
+            corpus pin. Combines with --terms.
   --out     Write the full report as JSON, plus a .tsv review sheet beside it.`);
     process.exit(values.help ? 0 : 1);
   }
@@ -312,15 +338,20 @@ function main() {
     console.error(`No corpus artifacts found for ${values.locale}. Run translate:locale first.`);
     process.exit(1);
   }
-  console.log(`Corpora       ${corpora.map((corpus) => corpus.label).join(", ")}`);
   const excludedSenses = values.senses ? JSON.parse(readFileSync(values.senses, "utf8")) : {};
+  const glossary = values.glossary ? await loadApprovedGlossary(values.locale) : null;
   const { terms, prose } = buildTermIndex(corpora);
   const collisions = findCollisions(terms);
   const drift = findDrift(terms);
-  const scoped = values.terms
-    ? new Map([...terms].filter(([, term]) => new Set(JSON.parse(readFileSync(values.terms, "utf8")).map(canonical)).has(canonical(term.source))))
+  const curated = [
+    ...(values.terms ? JSON.parse(readFileSync(values.terms, "utf8")) : []),
+    ...Object.keys(glossary ?? {}),
+  ];
+  const scoped = curated.length > 0
+    ? new Map([...terms].filter(([, term]) => new Set(curated.map(canonical)).has(canonical(term.source))))
     : terms;
   const unpinned = findUnpinned(scoped, prose, { excludedSenses });
+  const disagreements = glossary ? findGlossaryDisagreements(terms, glossary) : [];
   const maxRows = Number(values["max-rows"]);
 
   console.log(`Corpora   ${corpora.map((corpus) => corpus.label).join(", ")}`);
@@ -343,8 +374,15 @@ function main() {
     for (const sample of item.samples) console.log(`      e.g. ${sample}`);
   }
 
+  if (glossary) {
+    console.log(`\nDISAGREE   ${disagreements.length} approved glossary terms the corpus pins differently (${Object.keys(glossary).length} approved terms read)`);
+    for (const item of disagreements.slice(0, maxRows)) {
+      console.log(`  ${item.source}  approved ${item.approved}  pinned ${item.pinned} (${item.occurrences})`);
+    }
+  }
+
   if (values.out) {
-    const report = { generatedAt: new Date().toISOString(), corpora: corpora.map((c) => c.label), termCount: terms.size, collisions, drift, unpinned };
+    const report = { generatedAt: new Date().toISOString(), corpora: corpora.map((c) => c.label), termCount: terms.size, collisions, drift, unpinned, disagreements };
     writeFileSync(values.out, `${JSON.stringify(report, null, 2)}\n`);
     const sheetPath = values.out.replace(/\.json$/, "") + ".review.tsv";
     writeFileSync(sheetPath, `source\tpinned\toccurrences\tvariants\n${reviewSheet(terms).join("\n")}\n`);
@@ -356,4 +394,23 @@ function main() {
   process.exitCode = collisions.length > 0 || drift.length > 0 ? 1 : 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+/**
+ * The Postgres loader is imported on demand: it pulls `server-only` and the
+ * runtime client, which node's test runner cannot resolve, and the analysis
+ * functions above must stay importable without a database.
+ */
+async function loadApprovedGlossary(locale) {
+  const { loadGlossary } = await import("../../lib/translation/glossary.ts");
+  return loadGlossary(locale);
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  try {
+    await main();
+  } finally {
+    if (process.env.DATA_BACKEND === "postgres" && process.env.POSTGRES_POOLED_URL) {
+      const { getPostgresConvexClient } = await import("../../lib/postgres/runtime/backend.ts");
+      await getPostgresConvexClient().end();
+    }
+  }
+}

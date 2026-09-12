@@ -231,6 +231,17 @@ const REGISTRY = [
     destination: SHELL,
   },
   {
+    id: "glossary",
+    label: "Glossary",
+    group: "site",
+    aliases: ["translation-glossary"],
+    // The locale mirrors' term list: approving a rendering changes every prompt, so the floor is admin.
+    role: "admin",
+    data: NO_DATA,
+    saveFamily: "immediate",
+    destination: SHELL,
+  },
+  {
     id: "my-reports",
     label: "My reports",
     group: "site",

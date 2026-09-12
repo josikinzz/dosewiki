@@ -85,6 +85,10 @@ const MembersTab = dynamic(
   () => import("../tools/members/MembersTab").then((m) => m.MembersTab),
   { ssr: false, loading },
 );
+const GlossaryTab = dynamic(
+  () => import("../tools/glossary/GlossaryTab").then((m) => m.GlossaryTab),
+  { ssr: false, loading },
+);
 const MyReportsTab = dynamic(
   () => import("../tools/my-reports/MyReportsTab").then((m) => m.MyReportsTab),
   { ssr: false, loading },
@@ -245,6 +249,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
         ) : controller.activeTab === "members" ? (
           <MembersTab />
+        ) : controller.activeTab === "glossary" ? (
+          <GlossaryTab />
         ) : controller.activeTab === "my-reports" ? (
           <MyReportsTab canApprove={controller.canApprove} />
         ) : controller.activeTab === "articles" ? (

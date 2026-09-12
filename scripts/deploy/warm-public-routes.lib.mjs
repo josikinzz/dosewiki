@@ -221,8 +221,11 @@ export async function warmUrls(urls, options = {}) {
     }
     return warmUrl(url, { ...options, now });
   });
+  // Skipped lanes return null; `warmUrl` never throws, so a `{ error }` pool
+  // wrapper has no `url`. A failed request is a result with `error` set and
+  // must stay in the list, or the summary can never report a failure.
   return {
-    results: results.filter((entry) => entry && !entry.error),
+    results: results.filter((entry) => entry !== null && typeof entry.url === "string"),
     remaining: skipped,
   };
 }

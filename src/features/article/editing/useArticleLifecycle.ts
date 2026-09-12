@@ -4,9 +4,40 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SubstanceArticle } from "@/schema";
 import { ConvexError } from "convex/values";
 import { validateArticleChange, type ArticleDocument } from "../../../../convex/lib/articleLifecycleValidation";
-import { applyEditableFieldWrite } from "../../../../convex/lib/articleFieldWrites";
+import { applyEditableFieldWrite, parseEditableFieldPath, type EditableFieldValue } from "../../../../convex/lib/articleFieldWrites";
+import { findEquivalentReference } from "../../../../lib/citations/referenceIdentity.mjs";
 import { ArticleFieldCommitError, type ArticleEditContextValue } from "./ArticleEditContext";
 import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
+
+/**
+ * What the local preview holds at one allow-listed field path, or `null` when
+ * the path does not resolve to a leaf this editor can hold. Reads only; the
+ * write walker in `articleFieldWrites` owns every mutation and its guards.
+ */
+function readEditableFieldValue(document: Record<string, unknown>, path: string): EditableFieldValue | null {
+  const parts = parseEditableFieldPath(path);
+  if (!parts) return null;
+  let cursor: unknown = document;
+  for (const segment of parts.segments) {
+    if (typeof cursor !== "object" || cursor === null || Array.isArray(cursor)) return null;
+    cursor = (cursor as Record<string, unknown>)[segment.key];
+    if (segment.index === null) continue;
+    if (!Array.isArray(cursor)) return null;
+    cursor = cursor[segment.index];
+  }
+  if (typeof cursor === "string") return cursor;
+  if (typeof cursor !== "object" || cursor === null || Array.isArray(cursor)) return null;
+  if (!("min" in cursor) || !("max" in cursor) || !("unit" in cursor)) return null;
+  const { min, max, unit } = cursor;
+  if (typeof unit !== "string") return null;
+  const lower = typeof min === "number" ? min : null;
+  const upper = typeof max === "number" ? max : null;
+  // A bound that is present but not a number means this leaf is not the range
+  // the field would hold, so answer nothing rather than a coerced shape.
+  if (lower === null && min !== null && min !== undefined) return null;
+  if (upper === null && max !== null && max !== undefined) return null;
+  return { min: lower, max: upper, unit };
+}
 
 export type ArticleRevision = {
   revisionId: string; actorEmail: string; createdAt: string; before: SubstanceArticle;
@@ -115,6 +146,27 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     if (result.ok === false) throw new ArticleFieldCommitError(result.reason, result.conflict ? "FIELD_CONFLICT" : null);
     preview({ ...current.current, [result.topLevelKey]: result.topLevelValue });
     return result.value;
+  }, [preview]);
+  // A refused write earns the recovery panel only when this can name what the
+  // local preview actually holds now. Same kind or nothing: a path holding the
+  // other kind answers null rather than something the field would coerce.
+  const refreshStoredValue: ArticleEditContextValue["refreshStoredValue"] = useCallback((path, like) => {
+    const stored = readEditableFieldValue(current.current as unknown as Record<string, unknown>, path);
+    if (stored === null) return null;
+    return typeof like === "string" ? (typeof stored === "string" ? stored : null) : (typeof stored === "string" ? null : stored);
+  }, []);
+  /**
+   * Append one reference to the local preview and answer with the id a
+   * citation marker must use. An equivalent source already on the article
+   * answers with its own id and appends nothing, so citing the same paper
+   * twice cannot fork it into two references.
+   */
+  const addReference: ArticleEditContextValue["addReference"] = useCallback((reference) => {
+    const references = current.current.references ?? [];
+    const existing = findEquivalentReference(references, reference);
+    if (existing?.id) return existing.id;
+    preview({ ...current.current, references: [...references, reference] });
+    return reference.id;
   }, [preview]);
 
   const refresh = useCallback(async () => {
@@ -240,6 +292,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const getArticle = useCallback(() => current.current, []);
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
   return { article, published: snapshot?.article ?? initialArticle, history: snapshot?.history ?? [],
-    hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, commit, preview, act, discardLocal,
+    hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, commit, refreshStoredValue, addReference, preview, act, discardLocal,
     dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, proposals: snapshot?.proposals ?? [] };
 }

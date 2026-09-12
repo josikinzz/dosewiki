@@ -161,11 +161,16 @@ test("the unresolved citation placeholder counts as a marker", () => {
   );
 });
 
-test("glossary drift is reported without blocking", () => {
-  const defects = defectsFor("The comedown is gentle.", "退坡很温和。");
+test("glossary drift is reported without blocking, and only for terms the source mentions as whole words", () => {
+  const glossary = { comedown: "退效", tolerance: "耐受性" };
+  const defects = validateSegment({ source: "The comedown is gentle.", target: "退坡很温和。", locale: zh, glossary });
 
-  assert.ok(defects.includes(DEFECT_CODES.GLOSSARY_MISS));
-  assert.equal(isBlocking(defects), false);
+  assert.ok(defects.defects.includes(DEFECT_CODES.GLOSSARY_MISS));
+  assert.deepEqual(defects.details.glossaryMisses, ["comedown"]);
+  assert.equal(isBlocking(defects.defects), false);
+  // "comedowns" is not "comedown", and a segment without a glossary never drifts.
+  assert.equal(validateSegment({ source: "The comedowns vary.", target: "退坡各异。", locale: zh, glossary }).defects.includes(DEFECT_CODES.GLOSSARY_MISS), false);
+  assert.equal(defectsFor("The comedown is gentle.", "退坡很温和。").includes(DEFECT_CODES.GLOSSARY_MISS), false);
 });
 
 test("model replies survive fences and surrounding prose", () => {

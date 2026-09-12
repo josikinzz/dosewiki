@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildTermIndex, findCollisions, findDrift, findUnpinned } from "./glossary-audit.mjs";
+import { buildTermIndex, findCollisions, findDrift, findGlossaryDisagreements, findUnpinned } from "./glossary-audit.mjs";
 
 /** A corpus pair shaped like the real artifacts: same structure, translated leaves. */
 const corpus = (label, pairs) => ({
@@ -106,4 +106,12 @@ test("statute titles are not scanned, because the pipeline never translates them
 test("an untranslated leaf contributes no rendering", () => {
   const { terms } = buildTermIndex([corpus("a", [["Serotonin", "Serotonin"], ["5-HT2A", "5-HT2A"]])]);
   assert.equal(terms.size, 0);
+});
+
+test("an approved gloss the corpus pins differently is a disagreement; agreement, case, and unknown terms are not", () => {
+  const { terms } = buildTermIndex([
+    corpus("effects", [["Euphoria", "欣快"], ["Euphoria", "欣快"], ["Anxiety", "焦虑"]]),
+  ]);
+  const findings = findGlossaryDisagreements(terms, { euphoria: "愉悦", Anxiety: "焦虑", Sedation: "镇静" });
+  assert.deepEqual(findings, [{ source: "euphoria", approved: "愉悦", pinned: "欣快", occurrences: 2 }]);
 });

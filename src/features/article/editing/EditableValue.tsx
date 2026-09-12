@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -18,11 +19,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import {
+  FieldMarkerProvider,
   isArticleFieldConflict,
   useArticleEdit,
   type EditableFieldValue,
   type EditableValueInput,
 } from "./ArticleEditContext";
+import { CitePopover } from "./CitePopover";
+import { parseCitationMarkers, type CitationMarkerSpan } from "@/lib/citations/citationTokens";
 
 interface EditableValueProps<T extends EditableValueInput = string> {
   /** Concrete article field path, e.g. `dosage.routes[2].notes`. */
@@ -138,10 +142,51 @@ export function EditableValue<T extends EditableValueInput = string>({
   // Esc unmounts a focused textarea, and some browsers still fire blur on the
   // way out. Without this the cancel would immediately commit what it discarded.
   const cancelledRef = useRef(false);
+  // Where the caret belongs when the textarea mounts, set by a marker
+  // activation and consumed once.
+  const pendingCaretRef = useRef<number | null>(null);
+  // The span a chosen citation replaces instead of being inserted beside it.
+  // Set when a citation-needed flag opened this field: the sentinel is the
+  // thing being answered, so the new marker takes its place.
+  const replaceRangeRef = useRef<{ start: number; end: number } | null>(null);
+  const [citeOpen, setCiteOpen] = useState(false);
 
   useEffect(() => {
     if (!isEditing) setDraft(text);
   }, [isEditing, text]);
+
+  /**
+   * Place a citation marker where the editor was typing.
+   *
+   * The caret is read from the textarea because that is where the editor put
+   * it; with nothing focused the marker goes to the end, which is where a
+   * citation belongs for the sentence just finished. A selection is kept and
+   * the marker follows it rather than replacing the words it supports.
+   *
+   * A field opened from a citation-needed flag replaces the sentinel instead,
+   * so answering a flag never leaves both the flag and the answer in place.
+   */
+  const insertAtCaret = useCallback((marker: string) => {
+    const field = textareaRef.current;
+    const replacing = replaceRangeRef.current;
+    replaceRangeRef.current = null;
+    setDraft((current) => {
+      const at = replacing
+        ? replacing.start
+        : field ? Math.max(field.selectionStart, field.selectionEnd) : current.length;
+      const after = replacing ? replacing.end : at;
+      const next = `${current.slice(0, at)}${marker}${current.slice(after)}`;
+      if (field) {
+        const caret = at + marker.length;
+        // After the popover closes, so the field owns focus again.
+        requestAnimationFrame(() => {
+          field.focus();
+          field.setSelectionRange(caret, caret);
+        });
+      }
+      return next;
+    });
+  }, []);
 
   const finish = useCallback(() => {
     restoreFocusRef.current =
@@ -266,7 +311,11 @@ export function EditableValue<T extends EditableValueInput = string>({
     textareaRef.current = node;
     if (!node) return;
     node.focus();
-    node.setSelectionRange(node.value.length, node.value.length);
+    // A marker activation asked for a specific caret; everything else opens at
+    // the end of the value, which is where a person resumes typing.
+    const at = pendingCaretRef.current ?? node.value.length;
+    pendingCaretRef.current = null;
+    node.setSelectionRange(at, at);
   }, []);
 
   const startEditing = useCallback(() => {
@@ -277,6 +326,47 @@ export function EditableValue<T extends EditableValueInput = string>({
     setConflict(null);
     setIsEditing(true);
   }, [text]);
+  /**
+   * Open this field at one of its own markers.
+   *
+   * A citation-needed flag is the entry point the citation campaign leaves
+   * behind, so activating it opens the editor with the caret on the sentinel
+   * and the cite control already showing. Choosing a source then replaces the
+   * sentinel rather than leaving the editor to delete raw text by hand.
+   */
+  const citeAtMarker = useCallback((marker: CitationMarkerSpan) => {
+    cancelledRef.current = false;
+    setDraft(text);
+    setStatus("");
+    setError(null);
+    setConflict(null);
+    pendingCaretRef.current = marker.start;
+    replaceRangeRef.current = { start: marker.start, end: marker.end };
+    setCiteOpen(true);
+    setIsEditing(true);
+  }, [text]);
+  /**
+   * Drop one marker from the stored value. The reference stays on the article:
+   * a claim losing its citation is not the source leaving the bibliography.
+   */
+  const removeMarker = useCallback((marker: CitationMarkerSpan) => {
+    if (!editing) return;
+    const next = `${text.slice(0, marker.start)}${text.slice(marker.end)}`.replace(/ {2,}/g, " ");
+    const parsed = parse ? parse(next) : (next as T);
+    if (parsed === null) return;
+    setStatus("Applying to preview…");
+    editing
+      .commit(path, parsed as EditableFieldValue, value as EditableFieldValue)
+      .then(() => setStatus("Citation removed from local preview."))
+      .catch((reason: unknown) => {
+        setStatus("");
+        setError(reason instanceof Error ? reason.message : "Unable to remove this citation.");
+      });
+  }, [editing, parse, path, text, value]);
+  const markerContext = useMemo(
+    () => ({ markers: parseCitationMarkers(text), citeAtMarker, removeMarker }),
+    [text, citeAtMarker, removeMarker],
+  );
   const cancelEditing = () => {
     cancelledRef.current = true;
     setError(null);
@@ -309,7 +399,7 @@ export function EditableValue<T extends EditableValueInput = string>({
         <Textarea
           ref={focusOnMount}
           aria-label={`Edit ${fieldLabel}`}
-          aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}${draft.includes("[cite:") ? ` ${fieldId}-citations` : ""}`}
+          aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}`}
           aria-invalid={!!error}
           variant={error ? "error" : "default"}
           textareaSize="sm"
@@ -338,22 +428,28 @@ export function EditableValue<T extends EditableValueInput = string>({
           // The wrapper handles only focus leaving the complete editor.
         />
         <span id={`${fieldId}-hint`} className="theme-text-faint mt-1 block text-sm leading-snug">
-          {isPending
-            ? "Applying to preview…"
-            : "Enter applies locally · Shift+Enter new line · Esc cancels"}
-          {!isPending ? " · Leaving the field also applies locally" : null}
+          {isPending ? "Applying to preview…" : "Enter applies · Esc cancels"}
         </span>
-        {draft.includes("[cite:") ? (
-          <span id={`${fieldId}-citations`} className="theme-text-faint mt-1 block text-sm leading-snug">
-            Keep [cite:…] markers with the text they support.
-          </span>
-        ) : null}
-        <span className="mt-2 flex flex-wrap gap-2">
+        <span className="mt-2 flex flex-wrap items-center gap-2">
+          {editing.addReference && !conflict ? (
+            <CitePopover
+              open={citeOpen}
+              onOpenChange={setCiteOpen}
+              references={editing.references ?? []}
+              addReference={editing.addReference}
+              onInsert={insertAtCaret}
+              disabled={isPending}
+            />
+          ) : null}
+          {/* Enter and Esc already do this on a keyboard. A touch editor has
+              neither, so the explicit pair renders only where it is the only
+              way to finish the field. */}
           {!conflict ? (
             <Button
               type="button"
               variant="glass"
               size="quiet"
+              className="hidden [@media(pointer:coarse)]:inline-flex"
               disabled={isPending}
               onPointerDown={(event) => event.preventDefault()}
               onClick={(event) => {
@@ -368,6 +464,7 @@ export function EditableValue<T extends EditableValueInput = string>({
             type="button"
             variant="pill"
             size="quiet"
+            className="hidden [@media(pointer:coarse)]:inline-flex"
             disabled={isPending}
             onPointerDown={(event) => event.preventDefault()}
             onClick={(event) => {
@@ -471,10 +568,13 @@ export function EditableValue<T extends EditableValueInput = string>({
         className,
       )}
       onClick={(event: ReactMouseEvent<HTMLElement>) => {
-        // Citation markers inside the value stay clickable as links.
+        // Citation markers inside the value stay clickable as links, and in an
+        // editing surface they carry their own controls; either way the click
+        // belongs to the marker and must not also open the field.
         if (
           event.target instanceof Element &&
-          event.target.closest("a") !== null
+          (event.target.closest("a") !== null ||
+            event.target.closest("[data-citation-control]") !== null)
         ) {
           return;
         }
@@ -492,11 +592,13 @@ export function EditableValue<T extends EditableValueInput = string>({
         }
       }}
     >
-      {text.trim() || !emptyLabel ? (
-        children
-      ) : (
-        <span className="theme-text-faint italic">{emptyLabel}</span>
-      )}
+      <FieldMarkerProvider value={markerContext}>
+        {text.trim() || !emptyLabel ? (
+          children
+        ) : (
+          <span className="theme-text-faint italic">{emptyLabel}</span>
+        )}
+      </FieldMarkerProvider>
       <Icon
         icon="lucide:pencil-line"
         size={12}

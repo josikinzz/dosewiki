@@ -16,7 +16,7 @@ import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
 import { authorizeCronRequest } from "@server/http/cronAuthorization";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { getDataBackend } from "@server/postgres/runtime/backend";
-import { parseTranslationJobSlug, readTranslationRecord, refreshRecordTranslations, type RefreshOutcome } from "@server/translation/liveTranslation";
+import { loadTranslationContext, parseTranslationJobSlug, readTranslationRecord, refreshRecordTranslations, type RefreshOutcome, type TranslationContext } from "@server/translation/liveTranslation";
 import { claimTranslationJobs, completeTranslationJob, failTranslationJob } from "@server/translation/segmentStore";
 
 export const runtime = "nodejs";
@@ -64,6 +64,9 @@ async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun
   const started = Date.now();
   const run: TranslationRefreshRun = { claimed: 0, completed: 0, failed: 0, outcomes: [] };
   const reads = getPublicDataReadAdapter();
+  // One prompt digest per locale per run: every segment this invocation stores was made under the glossary as approved when it started.
+  const contexts: Record<string, Promise<TranslationContext>> = {};
+  const contextFor = (locale: string) => (contexts[locale] ??= loadTranslationContext(locale));
 
   while (Date.now() - started < RUN_BUDGET_MS) {
     const jobs = await claimTranslationJobs(JOBS_PER_RUN);
@@ -80,7 +83,7 @@ async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun
           run.completed += 1;
           continue;
         }
-        const outcome = await refreshRecordTranslations({ ...record, slug }, job.locale, kind, apiKey);
+        const outcome = await refreshRecordTranslations({ ...record, slug }, await contextFor(job.locale), kind, apiKey);
         if (outcome.stored > 0) {
           await publishPublicCache({ targets: [{ kind, slug }], source: "manual" });
         }

@@ -181,7 +181,6 @@ export async function setIupacNameHandler(
   };
 }
 
-
 export async function deleteSubstanceHandler(
   ctx: MutationCtx,
   args: EditorArgs & { id: number },

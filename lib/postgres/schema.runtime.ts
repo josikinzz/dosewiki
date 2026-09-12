@@ -82,3 +82,28 @@ export const translationRejections = pgTable(
   },
   (t) => [primaryKey({ columns: [t.locale, t.hash] })],
 );
+
+/**
+ * The reviewed term list one locale's prompts are held to. A row is drafted by
+ * the model (`source` model, `status` draft) or written by a reviewer in the
+ * Glossary tab (`source` human); only approved rows reach a prompt and the
+ * prompt digest. Owned by lib/translation/glossary.ts.
+ */
+export const translationGlossary = pgTable(
+  "translationGlossary",
+  {
+    locale: text("locale").notNull(),
+    term: text("term").notNull(),
+    target: text("target").notNull(),
+    /** Where the term came from: effect-name, effect-category, chemical-class, psychoactive-class, frequency, enum:<group>, register. */
+    kind: text("kind").notNull(),
+    /** draft | approved */
+    status: text("status").notNull(),
+    /** model | human */
+    source: text("source").notNull(),
+    reviewed_at: bigint("reviewed_at", { mode: "number" }),
+    reviewed_by: text("reviewed_by"),
+    updated_at: bigint("updated_at", { mode: "number" }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.locale, t.term] }), index("translationGlossary_by_status").on(t.locale, t.status)],
+);

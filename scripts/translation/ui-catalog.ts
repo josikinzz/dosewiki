@@ -7,19 +7,19 @@
  * as the article segments, and writes the catalog back sorted by key.
  *
  * Two data sources add keys the scanner cannot see because they reach the page
- * as data rendered through `t()`: the frozen glossary (effect names, effect
- * categories, chemical and psychoactive classes; pre-translated, so no model
- * call) and the Copy Studio blocks (checked-in defaults, plus the live rows
- * with `--live-copy`, since an editor may have changed them). The
+ * as data rendered through `t()`: the approved glossary in Postgres (effect
+ * names, effect categories, chemical and psychoactive classes; pre-translated,
+ * so no model call) and the Copy Studio blocks (checked-in defaults, plus the
+ * live rows with `--live-copy`, since an editor may have changed them). The
  * pre-translated Layout run seeds any key it already answered.
  *
- * Usage:
- *   bun scripts/translation/ui-catalog.ts            # report only
- *   bun scripts/translation/ui-catalog.ts --write    # call the model, write the catalog
- *   bun scripts/translation/ui-catalog.ts --write --seed=notes-and-plans/exports/translation/zh-Hans/layout --live-copy
+ * Usage (always through Postgres, where the glossary lives):
+ *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts            # report only
+ *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --write    # call the model, write the catalog
+ *   ... --write --seed=notes-and-plans/exports/translation/zh-Hans/layout --live-copy
  *
- * `--live-copy` reads through the app's read adapter: set DATA_BACKEND and the
- * Postgres URL (or leave both unset for Convex) exactly as the app would.
+ * Set DATA_BACKEND and the Postgres URL exactly as the app would; `--live-copy`
+ * reads the Copy Studio rows through the same adapter.
  */
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
@@ -30,6 +30,7 @@ import { fileURLToPath } from "node:url";
 import { Glob } from "bun";
 
 import { splitAboutMarkdown } from "../../src/data/content/aboutSections";
+import { readGlossaryRows } from "../../lib/translation/glossary";
 import * as live from "../../lib/translation/liveTranslation";
 import { planBatches, translateBatchWithRetries, type WorkUnit } from "./engine.mjs";
 import { segmentHash } from "./segment-manifest.mjs";
@@ -181,17 +182,11 @@ async function loadSeed(): Promise<Map<string, string>> {
   return seed;
 }
 
-/** Frozen glossary terms whose kinds reach the page as data: pre-translated keys. */
+/** Approved glossary terms whose kinds reach the page as data: pre-translated keys. */
 async function loadGlossaryKeys(): Promise<Map<string, string>> {
-  const file = path.join(repoRoot, "scripts/translation/glossary", `${localeCode}.json`);
   const out = new Map<string, string>();
-  if (!existsSync(file)) return out;
-  const document = JSON.parse(await readFile(file, "utf8")) as {
-    terms?: Record<string, string | { target: string; kind?: string }>;
-  };
-  for (const [term, record] of Object.entries(document.terms ?? {})) {
-    if (typeof record === "string") continue;
-    if (record.kind && GLOSSARY_KINDS.has(record.kind) && record.target) out.set(term, record.target);
+  for (const row of await readGlossaryRows(localeCode, { status: "approved" })) {
+    if (GLOSSARY_KINDS.has(row.kind)) out.set(row.term, row.target);
   }
   return out;
 }
@@ -276,10 +271,16 @@ async function main() {
   if (pending.length > 0) {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is required to translate");
-    const locale = live.getTranslationLocale(localeCode);
+    const context = await live.loadTranslationContext(localeCode);
     const rejected: string[] = [];
     for (const batch of planBatches(pending)) {
-      const verdicts = await translateBatchWithRetries({ units: batch, locale, model: live.TRANSLATION_MODEL, apiKey });
+      const verdicts = await translateBatchWithRetries({
+        units: batch,
+        locale: context.locale,
+        glossary: context.glossary,
+        model: live.TRANSLATION_MODEL,
+        apiKey,
+      });
       for (const verdict of verdicts) {
         if (isBlocking(verdict.defects) || verdict.target.length === 0) {
           rejected.push(`${JSON.stringify(verdict.unit.source)} (${verdict.defects.join(", ")})`);

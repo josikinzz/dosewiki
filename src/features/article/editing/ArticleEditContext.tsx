@@ -3,6 +3,8 @@
 import { createContext, useContext } from "react";
 
 import type { EditableFieldValue } from "../../../../convex/lib/articleFieldWrites";
+import type { Reference } from "@/schema";
+import type { CitationMarkerSpan } from "@/lib/citations/citationTokens";
 
 export type { EditableFieldValue, EditableRangeValue } from "../../../../convex/lib/articleFieldWrites";
 
@@ -107,6 +109,26 @@ export interface ArticleEditContextValue {
     path: string,
     like: EditableFieldValue,
   ) => EditableFieldValue | null;
+  /**
+   * Append one reference to the local preview and answer with the id a
+   * citation marker must address.
+   *
+   * A source the article already cites answers with its own stored id and
+   * appends nothing, so citing the same paper from two sentences cannot fork
+   * it into two references. Synchronous because the surface holds the article
+   * in memory; minting an id needs no round trip.
+   *
+   * Optional for the same reason as `registerDraft`: a surface that cannot
+   * hold a new reference must not have to pretend it can.
+   */
+  addReference?: (reference: Reference) => string;
+  /**
+   * The sources the local preview already cites, so a field can offer one for
+   * reuse instead of minting a second reference for the same paper. Empty or
+   * absent means the surface has none to offer, never that the article has no
+   * references.
+   */
+  references?: Reference[];
 }
 
 const ArticleEditContext = createContext<ArticleEditContextValue | null>(null);
@@ -116,4 +138,53 @@ export const ArticleEditProvider = ArticleEditContext.Provider;
 /** `null` on the public path; a commit handle inside an editing surface. */
 export function useArticleEdit(): ArticleEditContextValue | null {
   return useContext(ArticleEditContext);
+}
+
+/**
+ * What a rendered citation marker can do to the field that contains it.
+ *
+ * A marker is drawn deep inside prose by `CitedText`, which knows the text but
+ * not the field path. The editable field knows the path and holds the raw
+ * value, so it publishes this instead of every section threading a path down
+ * to each marker.
+ *
+ * This lives beside `ArticleEditContextValue` because the public renderer
+ * consumes it: `public-editor-boundary.mjs` admits exactly this module and the
+ * feature's barrel into the public browser build, and a marker has to behave
+ * as a plain link and a plain flag there.
+ */
+export interface FieldMarkerContextValue {
+  /**
+   * Markers present in the field's RAW value. A render site addresses one by
+   * kind and ordinal; a marker the renderer synthesized for display (the
+   * legality note's appended sentinel, for one) has no entry here and stays
+   * non-interactive, because there is nothing in the stored text to rewrite.
+   */
+  markers: CitationMarkerSpan[];
+  /**
+   * Open the field with the caret at this marker and the cite control already
+   * showing. Used by a citation-needed flag, whose whole purpose is to be
+   * replaced by a real citation.
+   */
+  citeAtMarker: (marker: CitationMarkerSpan) => void;
+  /** Remove exactly this marker from the field. The reference itself stays. */
+  removeMarker: (marker: CitationMarkerSpan) => void;
+}
+
+const FieldMarkerContext = createContext<FieldMarkerContextValue | null>(null);
+
+export const FieldMarkerProvider = FieldMarkerContext.Provider;
+
+/** `null` wherever markers are read-only, which is every public render. */
+export function useFieldMarkers(): FieldMarkerContextValue | null {
+  return useContext(FieldMarkerContext);
+}
+
+/** The nth marker of one kind in the field's raw value, when it exists. */
+export function findMarker(
+  markers: CitationMarkerSpan[],
+  kind: CitationMarkerSpan["kind"],
+  ordinal: number,
+): CitationMarkerSpan | null {
+  return markers.find((marker) => marker.kind === kind && marker.ordinal === ordinal) ?? null;
 }

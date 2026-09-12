@@ -29,6 +29,7 @@ vi.mock("../tools/substance-editor/SubstanceEditorTab", () => tool("SubstanceEdi
 vi.mock("../tools/feedback/FeedbackTab", () => tool("FeedbackTab"));
 vi.mock("../tools/trip-report-portal/TripReportPortalTab", () => tool("TripReportPortalTab"));
 vi.mock("../tools/members/MembersTab", () => tool("MembersTab"));
+vi.mock("../tools/glossary/GlossaryTab", () => tool("GlossaryTab"));
 vi.mock("../tools/my-reports/MyReportsTab", () => tool("MyReportsTab"));
 
 import { DevModePageView } from "./DevModePageView";

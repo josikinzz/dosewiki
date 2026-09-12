@@ -10,6 +10,7 @@ import { notFound, redirect } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
+import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 import { UiLocaleProvider } from "@/i18n/client";
 import { setRequestLocale } from "@/i18n/server";
@@ -18,9 +19,13 @@ import { MachineTranslationNotice } from "./MachineTranslationNotice";
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-/** Rendered on first request; the long tail never pays a build-time render for a mirror. */
+/**
+ * The same tiers as the English `/[slug]`: the ISR cache does not survive a
+ * deploy, so the high and normal priority articles are prerendered here too
+ * and the low priority long tail renders on first request.
+ */
 export async function generateStaticParams() {
-  return [];
+  return await getStaticSubstanceParams();
 }
 
 const LOCALE = LIVE_LOCALES["zh.dose.wiki"];

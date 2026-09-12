@@ -7,13 +7,14 @@
  * defective ones alone, and reassembles a same-structure locale artifact plus a
  * QA packet.
  *
- * Nothing here touches Convex. The input is the published export and the output
- * is a local artifact under notes-and-plans/exports.
+ * Nothing here writes Convex or Postgres. The input is the published export,
+ * the glossary is read from Postgres (`translationGlossary`, approved rows),
+ * and the output is a local artifact under notes-and-plans/exports.
  *
  * Usage:
  *   export OPENROUTER_API_KEY="sk-or-..."
- *   node scripts/translation/translate.mjs --locale=zh-Hans --slug=2c-b
- *   node scripts/translation/translate.mjs --locale=zh-Hans --concurrency=100 --resume
+ *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/translate.mjs --locale=zh-Hans --slug=2c-b
+ *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/translate.mjs --locale=zh-Hans --concurrency=100 --resume
  *
  * Options:
  *   --locale=<code>        Target locale (zh-Hans, nl). Default zh-Hans.
@@ -41,6 +42,7 @@ import { resolveLocale } from "./locales.mjs";
 import { validateSegment, isBlocking, DEFECT_CODES } from "./validate.mjs";
 import { buildQaPacket } from "./qa-packet.mjs";
 import { DEFAULT_MODEL, MAX_ATTEMPTS, planBatches, translateBatchWithRetries } from "./engine.mjs";
+import { loadGlossary } from "../../lib/translation/glossary.ts";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 
 
@@ -167,6 +169,7 @@ async function main() {
   }
 
   const locale = resolveLocale(options.locale);
+  const glossary = await loadGlossary(options.locale);
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey && !options.dryRun) {
     console.error("Error: OPENROUTER_API_KEY environment variable is required");
@@ -203,7 +206,7 @@ async function main() {
     for (const unit of units) {
       const entry = checkpoint.get(unit.hash);
       if (!entry) continue;
-      const evaluation = validateSegment({ source: unit.source, target: entry.target, locale, markup: unit.markup });
+      const evaluation = validateSegment({ source: unit.source, target: entry.target, locale, glossary, markup: unit.markup });
       if (isBlocking(evaluation.defects)) {
         checkpoint.delete(unit.hash);
         revalidated += 1;
@@ -229,7 +232,7 @@ async function main() {
     for (const unit of units) {
       const entry = checkpoint.get(unit.hash);
       if (!entry || typeof entry.target !== "string") continue;
-      const evaluation = validateSegment({ source: unit.source, target: entry.target, locale, markup: unit.markup });
+      const evaluation = validateSegment({ source: unit.source, target: entry.target, locale, glossary, markup: unit.markup });
       if (!evaluation.defects.includes(DEFECT_CODES.GLOSSARY_MISS)) continue;
       checkpoint.delete(unit.hash);
       reglossaried += 1;
@@ -293,6 +296,7 @@ async function main() {
       verdicts = await translateBatchWithRetries({
         units: batch,
         locale,
+        glossary,
         model: options.model,
         apiKey,
         onUsage: (usage, attempt) => {
@@ -350,6 +354,7 @@ async function main() {
 
   const packet = buildQaPacket({
     locale,
+    glossary,
     model: options.model,
     manifest,
     segments,

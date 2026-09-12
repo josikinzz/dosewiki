@@ -5,7 +5,14 @@
 // harm-potential section renders `ArticleText` there) while the accessible
 // label and the caution marker still translate through the client `useT`.
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useT } from "@/i18n/client";
+import { findMarker, useFieldMarkers } from "@/features/article/editing/ArticleEditContext";
 import { cn } from "@/lib/utils";
 
 export type CitationSupProps = Omit<
@@ -25,6 +32,7 @@ export type CitationLink = {
   accessibleLabel: string;
   href: string;
   label: string;
+  markerOrdinal?: number;
   referenceId?: string;
   title?: string;
 };
@@ -37,6 +45,7 @@ export function CitationSup({
   ...props
 }: CitationSupProps) {
   const t = useT();
+  const fieldMarkers = useFieldMarkers();
   return (
     <sup
       className={cn(
@@ -45,22 +54,68 @@ export function CitationSup({
       )}
       {...props}
     >
-      {citations.map((citation, index) => (
-        <a
-          key={`${citation.href}-${citation.label}-${index}`}
-          href={citation.href}
-          data-reference-id={citation.referenceId}
-          aria-label={t(citation.accessibleLabel, { number: citation.label })}
-          title={citation.title}
-          onClick={onCitationClick ? (event) => onCitationClick(citation, event) : undefined}
-          className={cn(
-            "theme-citation-marker inline-flex items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
-            linkClassName,
-          )}
-        >
-          {citation.label}
-        </a>
-      ))}
+      {citations.map((citation, index) => {
+        const marker =
+          fieldMarkers && citation.markerOrdinal !== undefined
+            ? findMarker(fieldMarkers.markers, "cite", citation.markerOrdinal)
+            : null;
+        const citationClassName = cn(
+          "theme-citation-marker inline-flex items-center rounded-[0.12rem] px-[0.22em] py-[0.02em] font-medium leading-[1.05] tabular-nums no-underline",
+          linkClassName,
+        );
+
+        if (!fieldMarkers || !marker) {
+          return (
+            <a
+              key={`${citation.href}-${citation.label}-${index}`}
+              href={citation.href}
+              data-reference-id={citation.referenceId}
+              aria-label={t(citation.accessibleLabel, { number: citation.label })}
+              title={citation.title}
+              onClick={
+                onCitationClick ? (event) => onCitationClick(citation, event) : undefined
+              }
+              className={citationClassName}
+            >
+              {citation.label}
+            </a>
+          );
+        }
+
+        return (
+          <DropdownMenu key={`${citation.href}-${citation.label}-${index}`}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                data-citation-control
+                data-reference-id={citation.referenceId}
+                aria-label={t(citation.accessibleLabel, { number: citation.label })}
+                title={citation.title}
+                className={citationClassName}
+              >
+                {citation.label}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <a
+                  href={citation.href}
+                  onClick={
+                    onCitationClick
+                      ? (event) => onCitationClick(citation, event)
+                      : undefined
+                  }
+                >
+                  Open reference
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => fieldMarkers.removeMarker(marker)}>
+                Remove this citation
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      })}
     </sup>
   );
 }
@@ -74,11 +129,29 @@ export function CitationSup({
  * suppresses it when the claim already carries a resolved citation or when
  * the previous claim in the same block is already flagged.
  */
-export function CitationNeededMarker() {
+export function CitationNeededMarker({ markerOrdinal }: { markerOrdinal?: number }) {
   const t = useT();
-  return (
-    <span className="theme-citation-needed-marker relative -top-[0.42em] ml-0.5 inline-block whitespace-nowrap align-baseline text-[0.62em] italic leading-none">
-      {t("citation needed")}
-    </span>
-  );
+  const fieldMarkers = useFieldMarkers();
+  const marker =
+    fieldMarkers && markerOrdinal !== undefined
+      ? findMarker(fieldMarkers.markers, "needed", markerOrdinal)
+      : null;
+  const className =
+    "theme-citation-needed-marker relative -top-[0.42em] ml-0.5 inline-block whitespace-nowrap align-baseline text-[0.62em] italic leading-none";
+
+  if (fieldMarkers && marker) {
+    return (
+      <button
+        type="button"
+        data-citation-control
+        aria-label="Add a citation here"
+        className={className}
+        onClick={() => fieldMarkers.citeAtMarker(marker)}
+      >
+        {t("citation needed")}
+      </button>
+    );
+  }
+
+  return <span className={className}>{t("citation needed")}</span>;
 }

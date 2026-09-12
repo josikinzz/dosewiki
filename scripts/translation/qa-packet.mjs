@@ -7,6 +7,7 @@
  * a warning, and glossary drift.
  */
 
+import { glossaryTermPattern } from "./locales.mjs";
 import { DEFECT_CODES, isBlocking } from "./validate.mjs";
 
 const SAMPLE_SIZE = 20;
@@ -25,6 +26,7 @@ function percent(part, total) {
 
 export function buildQaPacket({
   locale,
+  glossary = {},
   model,
   manifest,
   segments,
@@ -77,8 +79,8 @@ export function buildQaPacket({
 
   const safetyUnits = validated.filter((unit) => unit.contextClass === "safety");
   const glossaryDrift = [];
-  for (const [term, expected] of Object.entries(locale.glossary ?? {})) {
-    const pattern = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+  for (const [term, expected] of Object.entries(glossary)) {
+    const pattern = glossaryTermPattern(term);
     const seen = validated.filter((unit) => pattern.test(unit.source));
     if (seen.length === 0) continue;
     const held = seen.filter((unit) => translations.get(unit.hash).target.includes(expected));

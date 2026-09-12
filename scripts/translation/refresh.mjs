@@ -14,8 +14,8 @@
  * That also means an unchanged translation is byte-identical across refreshes:
  * it is not retranslated, it is reused.
  *
- * Usage:
- *   node scripts/translation/refresh.mjs [--locale zh-Hans] [--corpus a,b] [--plan] [--no-packs]
+ * Usage (the glossary lives in Postgres, so the same variables as translate.mjs):
+ *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/refresh.mjs [--locale zh-Hans] [--corpus a,b] [--plan] [--no-packs]
  */
 
 import { readFile, writeFile, rename } from "node:fs/promises";
@@ -125,6 +125,8 @@ async function main() {
 
     changed.push(id);
     await run("bun", [
+      "--preload",
+      "./scripts/postgres/preload-server-only.ts",
       "scripts/translation/translate.mjs",
       `--locale=${locale}`,
       `--corpus=${id}`,

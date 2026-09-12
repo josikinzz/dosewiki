@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
+import { FieldMarkerProvider } from "@/features/article/editing/ArticleEditContext";
+import { parseCitationMarkers } from "@/lib/citations/citationTokens";
 import type { SubstanceArticle } from "@/schema";
 import { ArticleText, CitedText, CitationMarker } from "./CitedText";
 
@@ -22,6 +25,18 @@ function makeArticle(summary: string, referenceIds: string[]) {
     summary,
     references: referenceIds.map((id) => makeReference(id, id)),
   } as SubstanceArticle;
+}
+
+function renderWithMarkers(text: string, article: SubstanceArticle) {
+  const citeAtMarker = vi.fn();
+  const removeMarker = vi.fn();
+  const markers = parseCitationMarkers(text);
+  const result = render(
+    <FieldMarkerProvider value={{ markers, citeAtMarker, removeMarker }}>
+      <CitedText text={text} article={article} />
+    </FieldMarkerProvider>,
+  );
+  return { ...result, citeAtMarker, markers, removeMarker };
 }
 
 describe("CitedText", () => {
@@ -110,6 +125,27 @@ describe("CitedText", () => {
   });
 });
 
+describe("CitedText citation editing controls", () => {
+  it("removes the second of two citations by its raw-text ordinal", async () => {
+    const user = userEvent.setup();
+    const text = "First [cite:first]. Second [cite:second].";
+    const article = makeArticle(text, ["first", "second"]);
+    const { markers, removeMarker } = renderWithMarkers(text, article);
+
+    const secondCitation = screen.getByRole("button", { name: "Citation 2" });
+    expect(secondCitation).toHaveAttribute("data-citation-control");
+    await user.click(secondCitation);
+    expect(screen.getByRole("menuitem", { name: "Open reference" })).toHaveAttribute(
+      "href",
+      "#ref-second",
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Remove this citation" }));
+
+    expect(removeMarker).toHaveBeenCalledOnce();
+    expect(removeMarker).toHaveBeenCalledWith(markers[1]);
+  });
+});
+
 describe("CitedText citation-needed marker", () => {
   it("renders the [citation-needed] token as a free-floating marker, not text or a link", () => {
     const text = "Unsupported claim [citation-needed]. Next sentence.";
@@ -190,5 +226,52 @@ describe("CitedText citation-needed marker", () => {
     expect(container.textContent).toBe(text);
     expect(container.querySelector("span")).not.toBeInTheDocument();
     expect(container.querySelector("sup")).not.toBeInTheDocument();
+  });
+});
+
+describe("CitedText citation-needed editing controls", () => {
+  it("addresses a visible flag by scanned ordinal even when an earlier flag is suppressed", async () => {
+    const user = userEvent.setup();
+    const text =
+      "Supported [cite:first][citation-needed]. Later unsupported [citation-needed].";
+    const article = makeArticle(text, ["first"]);
+    const { citeAtMarker, markers } = renderWithMarkers(text, article);
+
+    const button = screen.getByRole("button", { name: "Add a citation here" });
+    await user.click(button);
+
+    expect(citeAtMarker).toHaveBeenCalledOnce();
+    expect(citeAtMarker).toHaveBeenCalledWith(markers[2]);
+    expect(markers[2]?.start).toBe(text.lastIndexOf("[citation-needed]"));
+  });
+
+  it("addresses a collapsed flag run by the first flag in that run", async () => {
+    const user = userEvent.setup();
+    const text = "A [citation-needed]. B [citation-needed].";
+    const article = makeArticle(text, []);
+    const { citeAtMarker, markers } = renderWithMarkers(text, article);
+
+    const button = screen.getByRole("button", { name: "Add a citation here" });
+    expect(button).toHaveAttribute("data-citation-control");
+    await user.click(button);
+
+    expect(citeAtMarker).toHaveBeenCalledWith(markers[0]);
+  });
+
+  it("leaves a synthesized flag non-interactive when no raw span resolves", () => {
+    const text = "Synthesized [citation-needed].";
+    const article = makeArticle(text, []);
+    render(
+      <FieldMarkerProvider
+        value={{ markers: [], citeAtMarker: vi.fn(), removeMarker: vi.fn() }}
+      >
+        <CitedText text={text} article={article} />
+      </FieldMarkerProvider>,
+    );
+
+    expect(screen.getByText("citation needed")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Add a citation here" }),
+    ).not.toBeInTheDocument();
   });
 });

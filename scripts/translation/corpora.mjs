@@ -508,7 +508,8 @@ const SUMMARY_CORPUS = {
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
     // Section membership mirrors the live loader (lib/next/routeLoaders.substances.tsx).
-    const { PSYCHOACTIVE_SUMMARY_DEFINITIONS } = await import(absolute);
+    // Only the batch CLI takes this branch; the bundlers must not try to resolve the path.
+    const { PSYCHOACTIVE_SUMMARY_DEFINITIONS } = await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ absolute);
     const { dataset: effectIndex } = await openDataLoader("EffectIndex")();
     const publicEffects = Array.isArray(effectIndex.items) ? effectIndex.items : [];
     const items = PSYCHOACTIVE_SUMMARY_DEFINITIONS.map((definition) => ({
@@ -558,7 +559,7 @@ const EFFECT_CATEGORY_CORPUS = {
     if (absolute.endsWith(".json")) {
       return { dataset: JSON.parse(await readFile(absolute, "utf8")), origin: absolute };
     }
-    const { EFFECT_CATEGORY_DEFINITIONS, effectMatchesCategorySlug } = await import(absolute);
+    const { EFFECT_CATEGORY_DEFINITIONS, effectMatchesCategorySlug } = await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ absolute);
     const copyBlocks = JSON.parse(await readFile(path.resolve(repoRoot(), "src/data/content/copyBlocks.json"), "utf8"));
     const copyByKey = new Map(copyBlocks.map((block) => [block.key, block.body]));
     const { dataset: effectIndex } = await openDataLoader("EffectIndex")();

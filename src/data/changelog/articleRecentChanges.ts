@@ -111,7 +111,7 @@ export const SINGLE_CLAUSE_MESSAGES = [
   msg("Sourced a claim"), msg("Cleared a citation-needed flag"),
 ];
 
-function describeProseDiff(diff: string): string {
+export function describeProseDiff(diff: string): string {
   const removed: string[] = [];
   const added: string[] = [];
   for (const line of diff.split("\n")) {
@@ -161,6 +161,31 @@ function describeProseDiff(diff: string): string {
 }
 
 /**
+ * "dosage.routes[0].dose_ranges.heavy" as words: the public section the field
+ * belongs to, and the field inside it. An array index rides on its parent
+ * segment, so it reads as "Routes 1" rather than a bare number.
+ *
+ * Shared by the changelog row and the editor's prefilled change note, so a
+ * field is named the same way wherever a person reads about it.
+ */
+export function articleFieldPathWords(path: string): Pick<ChangeDescription, "section" | "field"> {
+  const segments = path
+    .split(".")
+    .filter((segment) => segment.length > 0)
+    .map((segment): ChangeFieldSegment => {
+      const indexed = /^(.*)\[(\d+)\]$/.exec(segment);
+      return indexed
+        ? { label: toWords(indexed[1]), index: Number(indexed[2]) + 1 }
+        : { label: toWords(segment), index: null };
+    });
+  const [head, ...rest] = segments;
+  const headKey = path.split(".")[0].replace(/\[\d+\]$/, "");
+  const section = sectionsByField[headKey] ?? null;
+  const fieldSegments = section ? rest : [head, ...rest];
+  return { section, field: fieldSegments.length > 0 ? fieldSegments : null };
+}
+
+/**
  * Turn a stored save message and its sliced diff into what a reader should
  * see: a verb phrase, the section it happened in (linked when the section has
  * a public anchor), and the field inside it as words.
@@ -184,27 +209,13 @@ export function describeChange(message: string, diff: string): ChangeDescription
 
   const inline = INLINE_EDIT_MESSAGE.exec(trimmed);
   if (inline) {
-    // "dosage.routes[0].dose_ranges.heavy": an index is part of its parent
-    // segment, so it reads as "Routes 1" rather than a bare number.
-    const segments = inline[1]
-      .split(".")
-      .filter((segment) => segment.length > 0)
-      .map((segment): ChangeFieldSegment => {
-        const indexed = /^(.*)\[(\d+)\]$/.exec(segment);
-        return indexed
-          ? { label: toWords(indexed[1]), index: Number(indexed[2]) + 1 }
-          : { label: toWords(segment), index: null };
-      });
-    const [head, ...rest] = segments;
-    const headKey = inline[1].split(".")[0].replace(/\[\d+\]$/, "");
-    const section = sectionsByField[headKey] ?? null;
-    const fieldSegments = section ? rest : [head, ...rest];
+    const words = articleFieldPathWords(inline[1]);
     return {
       kind: "prose",
       message: describeProseDiff(diff),
       detail: null,
-      section,
-      field: fieldSegments.length > 0 ? fieldSegments : null,
+      section: words.section,
+      field: words.field,
     };
   }
 

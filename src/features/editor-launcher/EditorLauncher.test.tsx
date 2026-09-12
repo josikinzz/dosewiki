@@ -1,5 +1,5 @@
 // @vitest-environment-options {"url":"https://approved-editor.example.test"}
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect, useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -36,6 +36,19 @@ function PrivateDraft() {
     return () => setDirty("fixture-draft", false);
   }, [draft, setDirty]);
   return mode === "edit" ? <input aria-label="Private draft" value={draft} onChange={(event) => setDraft(event.target.value)} /> : <p>Public reading</p>;
+}
+function ShortcutFixture() {
+  const { mode } = useContextualEditing();
+  return <>
+    <output aria-label="Editing mode">{mode}</output>
+    <input aria-label="Shortcut input" />
+    <textarea aria-label="Shortcut textarea" />
+    <select aria-label="Shortcut select" defaultValue="">
+      <option value="">Choose</option>
+      <option value="e">E</option>
+    </select>
+    <div role="textbox" aria-label="Shortcut contenteditable" contentEditable suppressContentEditableWarning />
+  </>;
 }
 async function openTools() {
   const user = userEvent.setup();
@@ -118,6 +131,54 @@ describe("reading-page editor navigation", () => {
     expect(screen.queryByRole("button", { name: "Open dev tools" })).not.toBeInTheDocument();
   });
 
+
+  it("toggles contextual editing with E while leaving typing and modified keys alone", async () => {
+    const view = render(<EditorLauncherProvider><ShortcutFixture /></EditorLauncherProvider>);
+    const user = userEvent.setup();
+    const mode = screen.getByRole("status", { name: "Editing mode" });
+    const editButton = await screen.findByRole("button", { name: "Edit page" });
+    expect(editButton).toHaveAttribute("title", expect.stringContaining("Press E to toggle editing"));
+
+    await user.keyboard("e");
+    expect(mode).toHaveTextContent("edit");
+    await user.keyboard("E");
+    expect(mode).toHaveTextContent("view");
+
+    const input = screen.getByRole("textbox", { name: "Shortcut input" });
+    await user.click(input);
+    await user.keyboard("e");
+    expect(input).toHaveValue("e");
+    expect(mode).toHaveTextContent("view");
+
+    const textarea = screen.getByRole("textbox", { name: "Shortcut textarea" });
+    await user.click(textarea);
+    await user.keyboard("E");
+    expect(textarea).toHaveValue("E");
+    expect(mode).toHaveTextContent("view");
+
+    const editable = screen.getByRole("textbox", { name: "Shortcut contenteditable" });
+    await user.click(editable);
+    await user.keyboard("e");
+    expect(mode).toHaveTextContent("view");
+
+    await user.click(screen.getByRole("combobox", { name: "Shortcut select" }));
+    await user.keyboard("e");
+    expect(mode).toHaveTextContent("view");
+
+    await user.click(document.body);
+    await user.keyboard("{Meta>}e{/Meta}{Control>}e{/Control}{Alt>}e{/Alt}");
+    expect(mode).toHaveTextContent("view");
+    const prevented = new KeyboardEvent("keydown", { key: "e", bubbles: true, cancelable: true });
+    prevented.preventDefault();
+    document.dispatchEvent(prevented);
+    expect(mode).toHaveTextContent("view");
+
+    auth.role = "viewer";
+    view.rerender(<EditorLauncherProvider><ShortcutFixture /></EditorLauncherProvider>);
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Edit page" })).not.toBeInTheDocument());
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "e", bubbles: true }));
+    expect(mode).toHaveTextContent("view");
+  });
   it("returns to a retained draft after sign-in without treating entry as destructive navigation", async () => {
     const page = <EditorLauncherProvider><PrivateDraft /></EditorLauncherProvider>;
     const view = render(page);

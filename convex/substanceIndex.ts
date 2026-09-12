@@ -625,6 +625,7 @@ export const replaceAgentReviewFlagsForArticle = mutation({
   handler: replaceAgentReviewFlagsHandler,
 });
 
+
 const editableFieldValueValidator = v.union(
   v.string(),
   v.object({
@@ -634,6 +635,10 @@ const editableFieldValueValidator = v.union(
   }),
 );
 
+/**
+ * Kept for the publication rehearsal's refusal check, the admin-floor matrix,
+ * and the server-write capability test. The retired HTTP route is not a caller.
+ */
 export const setArticleField = mutation({
   args: {
     apiKey: v.optional(v.string()),

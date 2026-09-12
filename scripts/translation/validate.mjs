@@ -8,6 +8,7 @@
 
 import traditionalCharset from "./traditional-charset.json" with { type: "json" };
 
+import { glossaryTermPattern } from "./locales.mjs";
 import { markupTokens } from "./markup.mjs";
 
 export const DEFECT_CODES = Object.freeze({
@@ -264,10 +265,11 @@ function latinWordRatio(source, target) {
  * @param {object} input
  * @param {string} input.source - English source segment
  * @param {string} input.target - model output
- * @param {object} input.locale - locale config (script gate, length band, glossary)
+ * @param {object} input.locale - locale config (script gate, length band)
+ * @param {Record<string, string>} [input.glossary] - approved `term -> target` map to hold the segment to
  * @returns {{defects: string[], details: object}}
  */
-export function validateSegment({ source, target, locale, markup = false }) {
+export function validateSegment({ source, target, locale, glossary = {}, markup = false }) {
   const defects = [];
   const details = {};
 
@@ -358,8 +360,8 @@ export function validateSegment({ source, target, locale, markup = false }) {
   }
 
   const glossaryMisses = [];
-  for (const [term, expected] of Object.entries(locale.glossary ?? {})) {
-    const termPattern = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+  for (const [term, expected] of Object.entries(glossary)) {
+    const termPattern = glossaryTermPattern(term);
     if (termPattern.test(source) && !trimmed.includes(expected)) {
       glossaryMisses.push(term);
     }

@@ -7,6 +7,7 @@
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadReportRoute } from "@server/next/routeLoaders.reports";
+import { getStaticReportParams } from "@server/next/staticParams";
 import { TripReportDetailPage } from "@/features/reports/pages/TripReportDetailPage";
 import type { TripReportSubstance } from "@/types/tripReport";
 import { UiLocaleProvider } from "@/i18n/client";
@@ -18,8 +19,9 @@ import { slugify } from "@/utils/slug";
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-export function generateStaticParams() {
-  return [];
+/** Every published report, as the English `/reports/[slug]` prerenders. */
+export async function generateStaticParams() {
+  return await getStaticReportParams();
 }
 
 const LOCALE = LIVE_LOCALES["zh.dose.wiki"];

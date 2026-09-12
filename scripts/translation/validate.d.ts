@@ -7,6 +7,7 @@ export function validateSegment(input: {
   source: string;
   target: unknown;
   locale: TranslationLocale;
+  glossary?: Readonly<Record<string, string>>;
   markup?: boolean;
 }): { defects: string[]; details: Record<string, unknown> };
 export function parseModelJson(raw: unknown): { ok: boolean; code: string | null; value: Record<string, unknown> | null };

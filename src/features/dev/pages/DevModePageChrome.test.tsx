@@ -187,10 +187,10 @@ describe("DevModePageChrome rail", () => {
     expect(within(nav).getByRole("button", { name: "Intake" })).toBeTruthy();
     expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
 
-    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 7 locked" });
+    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 8 locked" });
     const menu = openMenu(lockedTrigger);
     const items = within(menu).getAllByRole("menuitem");
-    expect(items).toHaveLength(7);
+    expect(items).toHaveLength(8);
     for (const item of items) {
       expect(item.getAttribute("aria-disabled")).toBe("true");
       expect(within(item).getByText("Admin role required")).toBeTruthy();
@@ -214,10 +214,10 @@ describe("DevModePageChrome rail", () => {
     const ownTools = Array.from(site.querySelectorAll("button")).map((el) => el.textContent?.trim());
     expect(ownTools).toEqual(["Contributors", "Playlists", "My reports"]);
 
-    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 13 locked" });
+    const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 14 locked" });
     const menu = openMenu(lockedTrigger);
     const items = within(menu).getAllByRole("menuitem");
-    expect(items).toHaveLength(13);
+    expect(items).toHaveLength(14);
     expect(within(menu).getByText("Substances").parentElement?.textContent).toContain("Editor role required");
     expect(within(menu).getByText("Members").parentElement?.textContent).toContain("Admin role required");
 

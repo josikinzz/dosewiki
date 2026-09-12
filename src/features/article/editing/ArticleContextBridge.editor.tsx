@@ -22,6 +22,7 @@ import { ArticleEditProvider, type ArticleEditContextValue } from "./ArticleEdit
 import { ArticleSectionEditorContext } from "./ArticleSectionEditor.editor";
 import { ARTICLE_SECTION_LABELS, ArticleSectionForm, type ArticleEditorSection, type SectionFormHandle } from "./ArticleSectionForm";
 import { ArticleChangeDiff, articleFieldChanges } from "./ArticleChangeDiff";
+import { synthesizeChangeNote } from "./changeNote";
 import { ArticleProposalReview } from "./ArticleProposalReview";
 import { useArticleLifecycle, articlePublicationErrors, type ArticleRevision } from "./useArticleLifecycle";
 import type { SubstanceArticle } from "@/schema";
@@ -81,6 +82,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     form.resetForm(lifecycle.article);
   }, [formEpoch, form.resetForm, lifecycle.article]);
   const [summary, setSummary] = useState("");
+  // Blank is not agreement, and neither is an untouched prefill: this records
+  // whether the note on screen is the editor's sentence or the one the diff
+  // wrote, so the prefill keeps tracking the changes until a person types.
+  const [summaryEdited, setSummaryEdited] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
@@ -142,6 +147,30 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const refreshControl = lifecycle.loaded ? <Button variant="outline" size="sm" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onClick={() => { void attempt(refreshBaseline); }}>Refresh latest baseline</Button> : null;
   const changes = useMemo(() => active ? articleFieldChanges(lifecycle.published, lifecycle.article) : [], [active, lifecycle.published, lifecycle.article]);
   const problems = useMemo(() => active ? articlePublicationErrors(lifecycle.article, lifecycle.published) : [], [active, lifecycle.article, lifecycle.published]);
+  // The note arrives written. It keeps following the changed fields while the
+  // editor has not touched it, because collecting an open field or a section
+  // form can add a change after the panel opens.
+  useEffect(() => {
+    if (!review || summaryEdited) return;
+    setSummary(synthesizeChangeNote(changes));
+  }, [review, summaryEdited, changes]);
+  // Publishing is one named action, not a pair of icons. An editor without
+  // publication rights submits the same change for review through it.
+  const canPublish = role === "admin" && !lifecycle.revisionOf;
+  const primaryLabel = canPublish ? "Publish" : lifecycle.revisionOf ? "Submit proposal revision" : "Submit for review";
+  const countLabel = changes.length === 1 ? "1 change" : `${changes.length} changes`;
+  const actionBlocked = operationLocked || changes.length === 0 || problems.length > 0;
+  const runPrimary = () => {
+    if (actionBlocked) return;
+    void attempt(async () => {
+      await lifecycle.act(canPublish ? "publish" : "submit", summary);
+      // The write answered with the published article and the lifecycle has
+      // already adopted it. Refreshing the route here would re-run the page
+      // and re-drain the editor library, which reads as a reload of work the
+      // editor just watched land.
+      setSummary(""); setSummaryEdited(false); setReview(false);
+    });
+  };
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
     void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); setDiscardOpen(false); closePanel(); router.refresh(); });
   }}>Retry previous operation</Button> : null;
@@ -168,6 +197,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         <div className="flex shrink-0 items-center gap-1">
           {lifecycle.ready ? <>
             <Button variant="outline" size="icon" aria-label="Save draft" title="Save draft" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}><Icon icon="lucide:save" size={16} /></Button>
+            {changes.length > 0 && <Button className="h-9 px-3 text-sm" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>{primaryLabel} ({countLabel})</Button>}
             <Button variant="ghost" size="icon" aria-label="Review changes and history" title="Review changes and history" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} /></Button>
           </> : !lifecycle.loaded && <Button variant="outline" size="icon" aria-label="Load private draft" title="Load private draft" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}><Icon icon="lucide:download" size={16} /></Button>}
           <DropdownMenu>
@@ -191,7 +221,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
       {(localError || lifecycle.error) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
     </Surface>
-    <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: lifecycle.commit, registerDraft } : null}>
+    <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: lifecycle.commit, registerDraft, refreshStoredValue: lifecycle.refreshStoredValue, addReference: lifecycle.addReference, references: lifecycle.article.references ?? [] } : null}>
       <ArticleLayout {...layoutProps} content={layoutProps?.content ? { ...layoutProps.content, chemistryPresentation: buildArticleChemistryPresentation(lifecycle.article) } : undefined} fromSubstanceSlug={slug} article={lifecycle.article} />
     </ArticleEditProvider>
     <ContextualEditorPanel title={section ? `Edit ${ARTICLE_SECTION_LABELS[section].toLowerCase()}` : "Review article changes"} open={!!section || review} onOpenChange={(open) => {
@@ -203,21 +233,25 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         {review && <>
           <section className="space-y-4">
           <h3 className="theme-text-primary font-semibold">Your changes</h3>
+          {changes.length === 0 && <p className="theme-text-muted text-sm">No article fields changed.</p>}
           {changes.length > 0 && <>
+          <label htmlFor={summaryId} className="theme-text-primary block space-y-2 text-sm">Change note<Input id={summaryId} value={summary} onChange={(event) => { setSummary(event.target.value); setSummaryEdited(true); }} onKeyDown={(event) => {
+            if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+            event.preventDefault();
+            runPrimary();
+          }} /></label>
+          <p className="theme-text-muted text-sm">Written from the changed fields. Edit it if the change deserves more than the diff already says.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={actionBlocked} onClick={runPrimary}>{primaryLabel} ({countLabel})</Button>
+            {canPublish && <Button variant="outline" disabled={actionBlocked} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); setSummary(""); setSummaryEdited(false); setReview(false); }); }}>Submit for review instead</Button>}
+          </div>
           <p className="theme-text-muted text-sm">Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged.</p>
           </>}
-          <ArticleChangeDiff before={lifecycle.published} after={lifecycle.article} />
           {problems.length > 0 && <div role="alert" className="theme-text-primary space-y-2 text-sm">{problems.map((problem, index) => {
             const key = problem.split(/[.:[ ]/, 1)[0] as ArticleEditorSection;
             return <div key={index} className="space-y-1"><p>{problem}</p>{key in ARTICLE_SECTION_LABELS && <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => openSection(key)}>Edit {ARTICLE_SECTION_LABELS[key].toLowerCase()}</Button>}</div>;
           })}</div>}
-          {changes.length > 0 && <>
-          <label htmlFor={summaryId} className="theme-text-primary block space-y-2 text-sm">Change summary<Input id={summaryId} value={summary} onChange={(event) => setSummary(event.target.value)} /></label>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" disabled={operationLocked || changes.length === 0 || problems.length > 0} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); setReview(false); }); }}>{lifecycle.revisionOf ? "Submit proposal revision" : "Submit for review"}</Button>
-            {role === "admin" && !lifecycle.revisionOf && <Button disabled={operationLocked || changes.length === 0 || problems.length > 0} onClick={() => { void attempt(async () => { await lifecycle.act("publish", summary); router.refresh(); setReview(false); }); }}>Publish change to live article</Button>}
-          </div>
-          </>}
+          <ArticleChangeDiff before={lifecycle.published} after={lifecycle.article} />
           </section>
           <section className="space-y-4">
             <ExpandButton variant="inline" className="min-h-11 w-full justify-between gap-3 text-sm font-semibold before:inset-0" isExpanded={historyExpanded} onToggle={() => setHistoryExpanded((value) => !value)} label="Article history" ariaLabel="Article history" ariaControls={historyId} />

@@ -1,74 +1,33 @@
 /**
  * Locale configuration for corpus translation.
  *
- * A locale owns its script gate, length band, glossary, and the register notes
- * appended to the shared prompt. Adding a locale is configuration, not code.
+ * A locale owns its script gate, length band, and the register notes appended
+ * to the shared prompt. Adding a locale is configuration, not code.
  *
- * The glossary has two halves. The seed below is the harm-reduction register,
- * small enough to read and stable enough to hand-hold. The frozen file beside
- * it carries every effect name, effect category, drug class, and frequency
- * label, each rendered once by `build-glossary.mjs` and then held to. The file
- * wins where the two disagree, because the file is the one a reviewer edits.
+ * The glossary is not here. It lives in Postgres (`translationGlossary`,
+ * loaded by `lib/translation/glossary.ts`) so a reviewer can approve or edit
+ * one term at a time; every caller passes the loaded `term -> target` map to
+ * the engine beside the locale. `scripts/translation/glossary/<code>.json` is
+ * an export of that table for review and diffing, never read at runtime.
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import zhHansGlossary from "./glossary/zh-Hans.json" with { type: "json" };
-
-/** Where `build-glossary.mjs` writes a locale's freeze. Resolved on call: a bundled import never needs a file URL. */
+/** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code) {
   return path.join(path.dirname(fileURLToPath(import.meta.url)), "glossary", `${code}.json`);
 }
 
 /**
- * The frozen files, imported statically so a bundled server module (the live
- * mirror refresh) carries them without a filesystem read at request time. A
- * locale without a freeze yet maps to nothing here.
+ * The one matcher for "this source mentions the term": whole word, case
+ * insensitive. The prompt builder, the validator, the QA packet, and the
+ * scoped stale replay all use it, so what gets injected is what gets checked
+ * and what gets retranslated.
  */
-const FROZEN_GLOSSARIES = Object.freeze({
-  "zh-Hans": zhHansGlossary,
-});
-
-/** The frozen terms for one locale, or an empty map before the freeze runs. */
-export function loadFrozenGlossary(code) {
-  const document = FROZEN_GLOSSARIES[code];
-  if (!document) return {};
-  return Object.fromEntries(
-    Object.entries(document.terms ?? {}).map(([term, record]) => [
-      term,
-      typeof record === "string" ? record : record.target,
-    ]),
-  );
+export function glossaryTermPattern(term) {
+  return new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
 }
-
-export const ZH_HANS_GLOSSARY = Object.freeze({
-  "come-up": "上头",
-  comedown: "退效",
-  dissociative: "解离剂",
-  deliriant: "谵妄剂",
-  dosage: "剂量",
-  empathogenic: "共情",
-  entactogenic: "共情",
-  "harm reduction": "减害",
-  hallucinogen: "致幻剂",
-  psychedelic: "迷幻剂",
-  "set and setting": "心态与环境",
-  stimulant: "兴奋剂",
-  tolerance: "耐受性",
-  "trip report": "体验报告",
-  withdrawal: "戒断反应",
-});
-
-export const NL_GLOSSARY = Object.freeze({
-  "come-up": "opkomst",
-  comedown: "afbouw",
-  dosage: "dosering",
-  "harm reduction": "harm reduction",
-  psychedelic: "psychedelicum",
-  tolerance: "tolerantie",
-  withdrawal: "ontwenning",
-});
 
 const SHARED_RULES = `## Rules
 1. NUMBERS, UNITS, DOSAGES: never alter, convert, round, reorder, or omit. "20-30 mg" stays "20-30 mg". Unit symbols stay in Latin script: mg stays mg, ug stays ug, ml stays ml. Do not spell a unit out in the target language.
@@ -86,7 +45,6 @@ export const LOCALES = Object.freeze({
     label: "Simplified Chinese (mainland)",
     scriptGate: "simplified",
     lengthBand: [0.12, 1.2],
-    glossary: ZH_HANS_GLOSSARY,
     systemPrompt: `You are a professional Simplified Chinese (zh-Hans) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
 
 ${SHARED_RULES}
@@ -99,7 +57,6 @@ ${SHARED_RULES}
     label: "Dutch",
     scriptGate: "none",
     lengthBand: [0.6, 1.8],
-    glossary: NL_GLOSSARY,
     systemPrompt: `You are a professional Dutch (nl) localizer for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
 
 ${SHARED_RULES}
@@ -112,15 +69,16 @@ export function resolveLocale(code) {
   if (!locale) {
     throw new Error(`Unknown locale ${code}. Known: ${Object.keys(LOCALES).join(", ")}`);
   }
-  return { ...locale, glossary: Object.freeze({ ...locale.glossary, ...loadFrozenGlossary(code) }) };
+  return locale;
 }
 
 /**
  * The batch instruction. Segments travel as a JSON object keyed by opaque ids
  * so the model cannot merge, split, or reorder them, and the reply parses
- * without heuristics.
+ * without heuristics. `glossary` is the approved `term -> target` map; only
+ * the terms a segment in the batch mentions are injected.
  */
-export function buildBatchPrompt(locale, units, { retryNote } = {}) {
+export function buildBatchPrompt(locale, units, { retryNote, glossary = {} } = {}) {
   const payload = Object.fromEntries(units.map((unit) => [unit.id, unit.source]));
   const safety = units.some((unit) => unit.contextClass === "safety");
 
@@ -154,8 +112,8 @@ export function buildBatchPrompt(locale, units, { retryNote } = {}) {
     );
   }
 
-  const glossaryTerms = Object.entries(locale.glossary ?? {})
-    .filter(([term]) => units.some((unit) => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(unit.source)))
+  const glossaryTerms = Object.entries(glossary)
+    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.source)))
     .map(([term, expected]) => `${term} -> ${expected}`);
 
   if (glossaryTerms.length > 0) {

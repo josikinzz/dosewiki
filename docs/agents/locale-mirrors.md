@@ -17,17 +17,29 @@ its coverage audit runs clean, the only one.
   edit changes the hash of the edited leaf; only that leaf goes back to the
   model. Untouched leaves keep their stored translation.
 - **One model, one prompt.** `z-ai/glm-5.3-flash` via OpenRouter with the
-  system prompt, shared rules, and frozen glossary in
-  `scripts/translation/locales.mjs` and `scripts/translation/glossary/`. The
+  system prompt and shared rules in `scripts/translation/locales.mjs`. The
   batch CLI, the cron, the operator script, and the UI catalog builder all go
-  through `scripts/translation/engine.mjs`, so they cannot drift apart.
-  `prompt_version` (digest of model, prompt, glossary) is stamped on every row;
-  a prompt or glossary change is followed by `live-mirror.ts stale --write`.
-- **Canonical terms.** The frozen glossary (380 terms: effect names,
-  categories, chemical and psychoactive classes, enum labels) is injected into
-  every prompt and post-checked as `GLOSSARY_MISS` (reported, not blocking).
-  Substance names, receptors, statutes, and brands stay in Latin script by
-  prompt rule 2, so short Latin lines on a mirror page are expected.
+  through `scripts/translation/engine.mjs`, which receives the glossary as an
+  argument from its caller, so they cannot drift apart. `prompt_version`
+  (digest of model, prompt, and the approved glossary) is stamped on every
+  row; a prompt change is followed by `live-mirror.ts stale --write`, a
+  glossary edit by the scoped form below or the tab's retranslate action.
+- **Canonical terms.** The glossary lives in Postgres
+  (`translationGlossary`, migration `0008`; `lib/translation/glossary.ts`):
+  one row per locale and term with `target`, `kind`, `status` (`draft` |
+  `approved`), `source` (`model` | `human`), and who reviewed it. Only
+  approved rows reach a prompt or the digest. It is reviewed in
+  `/dev/glossary` (admin): draft the missing terms by machine, approve or
+  edit each gloss (editing approves), then "Start main translation" for a
+  locale with no drafts left, or "Retranslate affected segments" after an
+  edit. zh-Hans holds 395 approved terms (effect names, categories, chemical
+  and psychoactive classes, enum labels, the harm-reduction register); they
+  are injected into every prompt that mentions them and post-checked as
+  `GLOSSARY_MISS` (reported, not blocking). `scripts/translation/glossary/
+  <locale>.json` is an export of the table (`npm run translate:glossary --
+  --locale zh-Hans --export`) for diffing; nothing reads it. Substance names,
+  receptors, statutes, and brands stay in Latin script by prompt rule 2, so
+  short Latin lines on a mirror page are expected.
 
 ## Shape
 
@@ -39,7 +51,7 @@ its coverage audit runs clean, the only one.
 | Record kinds | `lib/translation/liveTranslation.ts` `TranslationRecordKind`: `article` (substances), `effect`, `report`, `library` (long-form archive), `replication` (gallery titles). Job slugs carry the kind as a prefix except substances |
 | Corpora | `scripts/translation/corpora.mjs` per kind: which keys translate and which are the record (numbers, names, urls, ids). Reports translate the narrative plus the free-text `dose`, `roa`, and `time` lines authors write |
 | Reads | `lib/translation/localizedRecords.ts` (cached `getLocalizedPublic*`), consumed by `lib/next/routeLoaders.*`; the substance page's related-report rail localizes in `src/app/_components/public-routes/SubstanceTripReportsSection.tsx`. Effect names printed beside replications (showcase chips and captions, the permalink's "Represents" line, the `/api/replications/showcase?locale=` long tail) go through `getLocalizedEffectNames`, which reads the effect record's own `name` segment so the chip always matches the effect heading |
-| Store | Postgres `translationSegments`, `translationJobs` (outbox per record, lease, 5 attempts), `translationRejections` (units the model failed, with defect codes) in `lib/postgres/schema.runtime.ts`; migrations `0006`, `0007` |
+| Store | Postgres `translationSegments`, `translationJobs` (outbox per record, lease, 5 attempts), `translationRejections` (units the model failed, with defect codes), `translationGlossary` (reviewed terms per locale, edited in `/dev/glossary` through `src/app/api/dev/translation-glossary/*`) in `lib/postgres/schema.runtime.ts`; migrations `0006`, `0007`, `0008` |
 | Triggers | `src/app/api/save-to-convex/revalidateSavedPaths.ts` (substance, effect, report, library, replication targets), `src/app/api/dev/writing-article/route.ts`, `src/app/api/dev/replications/publishReplicationRecord.ts` |
 | Worker | `GET /api/cron/translation-refresh` on `dosewiki-admin` every five minutes behind `CRON_SECRET`: claims due jobs, translates the hashes the store lacks, records rejections, expires the record's public and mirror caches |
 | UI chrome | `src/i18n/` (`t`, `msg`, `useT`) resolving `src/i18n/messages/zh-Hans.json`, built by `scripts/translation/ui-catalog.ts` from every `t()`/`msg()` literal plus copy blocks, About sections, index labels, changelog field labels, and the glossary. Missing key renders English |
@@ -99,7 +111,27 @@ bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live
 bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts backfill --kind=replication --allow-remote --write
 bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts enqueue --kind=report --all --allow-remote --write
 bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts run --limit=20 --allow-remote --write     # work the queue like the cron
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts stale --allow-remote --write              # after a prompt or glossary change
+bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts stale --allow-remote --write              # after a system prompt change: every row on an old digest
+bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts stale --term=Entactogen --allow-remote --write   # after a glossary edit: only rows mentioning the term (repeatable)
+```
+
+`stale --term` prints the rows it selects (`Matched rows  29 mentioning
+"Entactogen"` on 2026-09-12), marks them stale, restamps every other row on an
+older digest with the current one (a segment that does not mention the term
+receives a byte-identical prompt, so the restamp is exact), and replays the
+marked rows. The `/dev/glossary` tab's "Retranslate affected segments" does
+the same marking and then enqueues the records that mention the term for the
+cron, which retranslates missing and stale hashes alike.
+
+Glossary drafting and export (reads through Postgres; drafting also needs
+`OPENROUTER_API_KEY`):
+
+```bash
+export DATA_BACKEND=postgres
+npm run translate:glossary -- --locale nl --dry-run     # count the terms the locale lacks
+npm run translate:glossary -- --locale nl               # draft them as `draft` rows (or the tab's "Draft missing terms")
+npm run translate:glossary -- --locale zh-Hans --export # snapshot the table to scripts/translation/glossary/zh-Hans.json
+npm run translate:audit -- --all --glossary             # corpus audit scoped to the approved glossary, plus DISAGREE
 ```
 
 `backfill` is the command for a new kind, a corpus change, or a validator fix:
@@ -125,8 +157,28 @@ After a UI string change: `DATA_BACKEND=postgres bun --preload
   protection on `all_except_custom_domains` every cron on the project silently
   never ran (2026-01 to 2026-09-11).
 - Production builds must run with `DATA_BACKEND=postgres`, or the prerendered
-  mirror index pages ship with English titles; a local `npm run build` needs it
+  mirror pages ship with English titles; a local `npm run build` needs it
   too before a mirror smoke.
+- The mirror prerenders the same tiers as English, because the ISR page cache
+  does not survive a deploy: `src/app/zh/[slug]` the high and normal priority
+  substances (`getStaticSubstanceParams`, about 266), `src/app/zh/reports/[slug]`
+  every published report (`getStaticReportParams`, about 166), and the index
+  pages (`/zh`, `/zh/substances`, `/zh/effects`, `/zh/reports`, `/zh/articles`,
+  the `/zh/replications` tabs, `/zh/about`) as static routes. Effects, library
+  articles, replication permalinks, viewer deep links, and artist pages return
+  `[]` like their English routes and render on first request. A mirror page
+  reads its locale from the route's `LOCALE` constant, never from the request,
+  so a prerendered path never reaches `headers()`.
+- After a deploy, warm the long tail: `npm run mirror:warm -- --skip=/replications/`
+  walks the English sitemap and requests every non-gallery path (about 900) on
+  `zh.dose.wiki` with no database access, printing status counts, edge cache
+  hits, and p50/p95 latency; a cold pass takes under two minutes. Without
+  `--skip` it also warms the 8,700 gallery permalinks and artist pages, about
+  an hour cold. `--paths=/,/substances,/2c-b` warms a list instead, `--limit=<n>`
+  bounds a run, and `--base=http://localhost:3100` points it at a local
+  `next start` with `Host: zh.dose.wiki`. The build measured on 2026-09-12:
+  1,047 static pages in 7.2 min against 616 in 6.0 min before the mirror
+  tiers, 9.1 min wall.
 - `zh.dose.wiki` is a domain on the public project (DNS CNAME like `www`) and
   is listed in `lib/next/publicHostPolicy.ts`.
 
@@ -145,9 +197,11 @@ After a UI string change: `DATA_BACKEND=postgres bun --preload
 
 Not before the zh coverage audit runs clean. Then:
 
-1. Add the locale to `LOCALES` in `scripts/translation/locales.mjs`, freeze
-   its glossary with `npm run translate:glossary`, register the file in
-   `FROZEN_GLOSSARIES`.
+1. Add the locale to `LOCALES` in `scripts/translation/locales.mjs` (script
+   gate, length band, register notes). Draft its glossary with `npm run
+   translate:glossary -- --locale <code>` or the Glossary tab's "Draft missing
+   terms", then review every draft in `/dev/glossary` (approve as it stands or
+   type the rendering) until the locale shows zero drafts.
 2. Add the host to `LIVE_LOCALES` in `lib/next/localeHostPolicy.ts` (its
    `code` union), `PUBLIC_HOSTS`, `ROOT_ROUTE_SEGMENTS` in
    `lib/next/publicRouteAvailability.ts`, and mirror every route under
@@ -155,4 +209,6 @@ Not before the zh coverage audit runs clean. Then:
 3. Add the locale to `UI_LOCALES` and `CATALOGS` in `src/i18n/messages.ts`,
    generalize the locale constant in `live-mirror.ts`, `mirror-coverage.ts`,
    and `ui-catalog.ts`, then build its catalog.
-4. Add the domain on Vercel, run `backfill`, run both coverage lenses.
+4. Add the domain on Vercel, then either "Start main translation" in the tab
+   (enqueues every record for the cron, slow but hands-free) or run
+   `backfill` from a workstation, and run both coverage lenses.

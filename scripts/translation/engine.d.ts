@@ -30,6 +30,8 @@ export function planBatches(units: readonly WorkUnit[], batchChars?: number): Wo
 export function translateBatchWithRetries(input: {
   units: readonly WorkUnit[];
   locale: TranslationLocale;
+  /** The approved `term -> target` map, loaded by the caller from Postgres. */
+  glossary: Readonly<Record<string, string>>;
   model: string;
   apiKey: string;
   onUsage?: (usage: BatchUsage, attempt: number) => void;

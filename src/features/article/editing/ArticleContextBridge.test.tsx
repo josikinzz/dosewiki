@@ -7,7 +7,8 @@ import ArticleContextBridge from "./ArticleContextBridge.editor";
 import ArticleSectionEditor from "./ArticleSectionEditor.editor";
 import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }), useSelectedLayoutSegments: () => [] }));
+const mocks = vi.hoisted(() => ({ refresh: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: mocks.refresh }), useSelectedLayoutSegments: () => [] }));
 vi.mock("../components/ArticleLayout", () => ({
   ArticleLayout: ({ article }: { article: SubstanceArticle }) => <><article aria-label="Article preview">{article.summary}</article><ArticleSectionEditor section="dosage" /></>,
 }));
@@ -140,5 +141,67 @@ describe("private article session boundaries", () => {
     await user.type(duration, "15-30 minutes");
     await user.click(within(editor).getByRole("button", { name: "Preview locally" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Edit dosage and duration" })).toBeNull());
+  });
+});
+
+// What `articleRevisionResult` actually returns: the published article and its
+// new hash. The client adopts both, which is why publishing needs no refresh.
+const published = (summary: string) => Response.json({
+  ok: true, revisionId: "rev-1", changeId: "change-1", draftVersion: 2,
+  article: { ...article, summary }, baseHash: "published-revision",
+});
+
+describe("publishing one change", () => {
+  it("names the action with its change count, arrives with the note written, and does not reload the page", async () => {
+    mocks.refresh.mockClear();
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(published(ownerSummary))
+      .mockResolvedValue(Response.json(snapshot(null)));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    await screen.findByText(ownerSummary);
+
+    // One field differs from the published article, and the bar says so.
+    await user.click(await screen.findByRole("button", { name: "Publish (1 change)" }));
+
+    const note = await screen.findByLabelText("Change note");
+    expect(note).toHaveValue("Reworded 4 words in Summary");
+
+    // Enter in the note is the whole confirmation.
+    await user.type(note, "{Enter}");
+
+    await waitFor(() => {
+      const posted = request.mock.calls.find(([, init]) => init?.method === "POST");
+      expect(posted).toBeTruthy();
+      expect(JSON.parse(String(posted?.[1]?.body))).toMatchObject({
+        action: "publish",
+        summary: "Reworded 4 words in Summary",
+      });
+    });
+    expect(mocks.refresh).not.toHaveBeenCalled();
+  });
+
+  it("sends the editor's own note once they have written one", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(published(ownerSummary))
+      .mockResolvedValue(Response.json(snapshot(null)));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    await screen.findByText(ownerSummary);
+    await user.click(await screen.findByRole("button", { name: "Publish (1 change)" }));
+
+    const note = await screen.findByLabelText("Change note");
+    await user.clear(note);
+    await user.type(note, "Corrected the onset claim");
+    await user.click(screen.getByRole("button", { name: "Publish (1 change)" }));
+
+    await waitFor(() => {
+      const posted = request.mock.calls.find(([, init]) => init?.method === "POST");
+      expect(JSON.parse(String(posted?.[1]?.body))).toMatchObject({ summary: "Corrected the onset claim" });
+    });
   });
 });

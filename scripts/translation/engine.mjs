@@ -115,10 +115,10 @@ export async function sendBatch({ locale, model, apiKey, userMessage }) {
   throw lastError;
 }
 
-export async function translateBatch({ units, locale, model, apiKey, retryNote }) {
+export async function translateBatch({ units, locale, glossary, model, apiKey, retryNote }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
   const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
-  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote });
+  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary });
 
   const response = await sendBatch({ locale, model, apiKey, userMessage });
 
@@ -173,14 +173,14 @@ export function retryNoteFor(defects) {
 
 /**
  * Translate one planned batch to a verdict per unit: the batch goes out once,
- * then each unit whose reply fails a blocking check is re-sent alone with the
- * defect named, up to `MAX_ATTEMPTS`. Returns every unit with its final
- * target, defects, and attempt count; the caller decides what to keep, and
- * `isBlocking(defects)` is the line between shippable and not.
+ * and every unit that fails a blocking check goes back alone with a note
+ * about what went wrong, up to MAX_ATTEMPTS. `glossary` is the locale's
+ * approved `term -> target` map, loaded by the caller; the engine never reads
+ * it from anywhere itself.
  */
-export async function translateBatchWithRetries({ units, locale, model, apiKey, onUsage }) {
+export async function translateBatchWithRetries({ units, locale, glossary, model, apiKey, onUsage }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
-    const { usage, results } = await translateBatch({ units: unitsToRun, locale, model, apiKey, retryNote });
+    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, model, apiKey, retryNote });
     onUsage?.(usage, attempt);
     return results;
   };
@@ -197,7 +197,7 @@ export async function translateBatchWithRetries({ units, locale, model, apiKey, 
     const unit = result.unit;
     let target = result.target;
     let evaluation = typeof target === "string"
-      ? validateSegment({ source: unit.source, target, locale, markup: unit.markup })
+      ? validateSegment({ source: unit.source, target, locale, glossary, markup: unit.markup })
       : { defects: [result.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
     let attempts = 1;
 
@@ -207,7 +207,7 @@ export async function translateBatchWithRetries({ units, locale, model, apiKey, 
         const retry = await attemptUnits([unit], attempts, retryNoteFor(evaluation.defects));
         target = retry[0]?.target ?? null;
         evaluation = typeof target === "string"
-          ? validateSegment({ source: unit.source, target, locale, markup: unit.markup })
+          ? validateSegment({ source: unit.source, target, locale, glossary, markup: unit.markup })
           : { defects: [retry[0]?.parseCode ?? DEFECT_CODES.EMPTY_OUTPUT], details: {} };
       } catch {
         evaluation = { defects: [DEFECT_CODES.UNPARSABLE_OUTPUT], details: {} };

@@ -36,6 +36,42 @@ export function stripCitationTokens(text: string): string {
 }
 
 /**
+ * Every marker in one field's raw text, in the order it appears, with the
+ * offsets a write needs to replace or remove exactly one of them.
+ *
+ * `ordinal` counts within the marker's own kind, because that is how a render
+ * site can address a marker it drew: the prose renderer collapses and
+ * suppresses flags, so the nth flag on screen is not the nth marker overall.
+ */
+export type CitationMarkerSpan = {
+  kind: "cite" | "needed";
+  /** Reference id for a `[cite:<id>]` marker, `null` for a flag. */
+  id: string | null;
+  ordinal: number;
+  start: number;
+  end: number;
+};
+
+export function parseCitationMarkers(text: unknown): CitationMarkerSpan[] {
+  if (typeof text !== "string" || text.length === 0) return [];
+  const spans: CitationMarkerSpan[] = [];
+  let cites = 0;
+  let flags = 0;
+  for (const match of text.matchAll(CITATION_MARKER_PATTERN)) {
+    const start = match.index ?? 0;
+    const isCite = match[1] !== undefined;
+    spans.push({
+      kind: isCite ? "cite" : "needed",
+      id: isCite ? match[1] : null,
+      ordinal: isCite ? cites++ : flags++,
+      start,
+      end: start + match[0].length,
+    });
+  }
+  return spans;
+}
+
+/**
  * True when any text field in the substance record carries the
  * `[citation-needed]` sentinel — i.e. the citation audit has stripped at least
  * one refuted marker on this article. Serializing the whole record is the

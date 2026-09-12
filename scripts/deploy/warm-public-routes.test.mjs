@@ -186,6 +186,19 @@ test("warmUrls stops dispatching after the deadline and reports the rest as rema
   assert.deepEqual(remaining, ["https://a/4"]);
 });
 
+test("warmUrls keeps a failed request in its results so the summary can count it", async () => {
+  const fetchImpl = async (url) =>
+    fakeResponse(String(url).endsWith("/missing") ? 404 : 200, { "x-vercel-cache": "MISS" });
+  const { results } = await warmUrls(["https://a/ok", "https://a/missing"], { fetchImpl, retries: 0 });
+  assert.deepEqual(
+    results.map(({ url, ok, status, error }) => ({ url, ok, status, error })),
+    [
+      { url: "https://a/ok", ok: true, status: 200, error: null },
+      { url: "https://a/missing", ok: false, status: 404, error: "HTTP 404" },
+    ],
+  );
+});
+
 test("summarizeWarmResults counts hits, misses, failures, and the slowest URLs", () => {
   const results = [
     { url: "https://a/1", ok: true, status: 200, cache: "hit", durationMs: 50, error: null },

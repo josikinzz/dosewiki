@@ -17,6 +17,7 @@
  *   bun scripts/translation/live-mirror.ts run --limit=20 --allow-remote --write
  *   bun scripts/translation/live-mirror.ts backfill --kind=replication --allow-remote --write
  *   bun scripts/translation/live-mirror.ts stale --allow-remote --write
+ *   bun scripts/translation/live-mirror.ts stale --term=Entactogen --term="Come Up" --allow-remote --write
  *
  * Commands:
  *   import   Load a batch run's translations.jsonl into translationSegments.
@@ -33,6 +34,12 @@
  *            travel in full batches, so a new kind or corpus field lands in
  *            minutes rather than one job at a time. Rejections are recorded.
  *   stale    Retranslate stored rows whose prompt digest differs from today's.
+ *            With --term (repeatable), after a glossary edit: only rows whose
+ *            English mentions a term (whole word, case insensitive, the
+ *            prompt's own matcher) are marked and replayed; every other row
+ *            on an older digest is restamped with the current one, since a
+ *            segment without the term gets a byte-identical prompt. Use the
+ *            plain form after a system prompt change.
  *   status   Counts only; never writes.
  *
  * Without --write every command reports what it would do and exits.
@@ -66,6 +73,7 @@ const { values, positionals } = parseArgs({
     corpus: { type: "string", default: "substances" },
     kind: { type: "string", default: "article" },
     limit: { type: "string", default: "50" },
+    term: { type: "string", multiple: true, default: [] },
     target: { type: "string" },
     write: { type: "boolean", default: false },
     "allow-remote": { type: "boolean", default: false },
@@ -88,7 +96,8 @@ delete process.env.POSTGRES_DIRECT_URL;
 
 const write = values.write;
 const limit = Number(values.limit);
-const promptVersion = live.promptVersionFor(live.getTranslationLocale(LOCALE));
+const context = await live.loadTranslationContext(LOCALE);
+const promptVersion = context.promptVersion;
 
 function requireApiKey(): string {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -161,7 +170,6 @@ function requireKind(value: string): live.TranslationRecordKind {
 
 async function enqueue() {
   const kind = requireKind(values.kind);
-  const prefix = kind === "article" ? "" : `${kind}/`;
   let bare: string[];
   if (values.all) {
     bare = await live.publicRecordSlugs(getPublicDataReadAdapter(), kind);
@@ -170,7 +178,7 @@ async function enqueue() {
   } else {
     throw new Error("enqueue needs --all or --slug=a,b");
   }
-  const slugs = bare.map((slug) => `${prefix}${slug}`);
+  const slugs = bare.map((slug) => live.translationJobSlug(kind, slug));
   console.log(`Enqueue       ${slugs.length} ${kind}(s) for ${LOCALE}`);
   if (!write) {
     console.log("Dry run: pass --write to enqueue.");
@@ -204,7 +212,7 @@ async function runQueue() {
           console.log(`  ${job.slug}: not public, cleared`);
           continue;
         }
-        const outcome = await live.refreshRecordTranslations({ ...record, slug }, job.locale, kind, apiKey);
+        const outcome = await live.refreshRecordTranslations({ ...record, slug }, context, kind, apiKey);
         await store.completeTranslationJob(job);
         console.log(
           `  ${job.slug}: ${outcome.segments} segments, ${outcome.requested} requested, ${outcome.stored} stored, ${outcome.rejected.length} rejected, ${outcome.usage.requests} requests`,
@@ -250,7 +258,7 @@ async function backfill() {
   let stored = 0;
   let rejected = 0;
   for (let start = 0; start < pending.length; start += 200) {
-    const result = await live.translateUnits(pending.slice(start, start + 200), LOCALE, apiKey);
+    const result = await live.translateUnits(pending.slice(start, start + 200), context, apiKey);
     stored += result.stored;
     rejected += result.rejected.length;
     console.log(`  ${Math.min(start + 200, pending.length)}/${pending.length}: ${result.stored} stored, ${result.rejected.length} rejected`);
@@ -260,6 +268,18 @@ async function backfill() {
 }
 
 async function retranslateStale() {
+  const terms = values.term.map((term) => term.trim()).filter(Boolean);
+  if (terms.length > 0) {
+    const mentioning = await store.readTranslationsMentioning(LOCALE, terms);
+    console.log(`Matched rows  ${mentioning.length} mentioning ${terms.map((term) => JSON.stringify(term)).join(", ")}`);
+    if (mentioning.length === 0) return;
+    if (!write) {
+      console.log("Dry run: pass --write to mark them stale, restamp the rest, and retranslate.");
+      return;
+    }
+    const scoped = await store.scopeStaleTranslations(LOCALE, mentioning.map((row) => row.hash), promptVersion);
+    console.log(`Scoped        ${scoped.marked} marked stale, ${scoped.restamped} restamped to ${promptVersion}`);
+  }
   const hashes = await store.readStaleTranslationHashes(LOCALE, promptVersion);
   console.log(`Stale rows    ${hashes.length} (prompt digest != ${promptVersion})`);
   if (hashes.length === 0) return;
@@ -311,7 +331,7 @@ async function retranslateStale() {
       const chunk = chunks[cursor];
       cursor += 1;
       try {
-        const result = await live.translateUnits(chunk, LOCALE, apiKey);
+        const result = await live.translateUnits(chunk, context, apiKey);
         done += chunk.length;
         console.log(`  ${done}/${units.length}: ${result.stored} stored, ${result.rejected.length} rejected`);
       } catch (error) {
@@ -328,10 +348,7 @@ async function retranslateStale() {
 
 async function status() {
   const client = getPostgresConvexClient();
-  const [segments] = await client.sql<{ n: string; current: string }>(
-    'SELECT COUNT(*)::text AS n, COUNT(*) FILTER (WHERE "prompt_version" = $2)::text AS current FROM "translationSegments" WHERE "locale" = $1',
-    [LOCALE, promptVersion],
-  );
+  const segments = await store.translationSegmentCounts(LOCALE, promptVersion);
   const [jobs] = await client.sql<{ due: string; done: string; failing: string }>(
     `SELECT COUNT(*) FILTER (WHERE "completed_at" IS NULL)::text AS due,
             COUNT(*) FILTER (WHERE "completed_at" IS NOT NULL)::text AS done,
@@ -340,8 +357,8 @@ async function status() {
     [LOCALE],
   );
   console.log(`Locale        ${LOCALE}`);
-  console.log(`Prompt        ${promptVersion}`);
-  console.log(`Segments      ${segments?.n ?? 0} stored, ${segments?.current ?? 0} on the current prompt`);
+  console.log(`Prompt        ${promptVersion} (${Object.keys(context.glossary).length} approved glossary terms)`);
+  console.log(`Segments      ${segments.total} stored, ${segments.current} on the current prompt`);
   console.log(`Jobs          ${jobs?.due ?? 0} due, ${jobs?.done ?? 0} completed, ${jobs?.failing ?? 0} carrying an error`);
 }
 

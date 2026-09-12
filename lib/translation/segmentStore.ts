@@ -8,6 +8,7 @@
 import "server-only";
 
 import { getDataBackend, getPostgresConvexClient } from "@server/postgres/runtime/backend";
+import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
 
 export type TranslationSegmentRow = {
   locale: string;
@@ -46,6 +47,17 @@ export async function readTranslations(locale: string, hashes: readonly string[]
 export async function missingTranslationHashes(locale: string, hashes: readonly string[]): Promise<string[]> {
   const stored = await readTranslations(locale, hashes);
   return hashes.filter((hash) => !stored.has(hash));
+}
+
+/** Hashes among `hashes` with no row, or a row stamped with another prompt digest: what a record refresh sends to the model. */
+export async function pendingTranslationHashes(locale: string, hashes: readonly string[], promptVersion: string): Promise<string[]> {
+  if (hashes.length === 0 || getDataBackend() !== "postgres") return [];
+  const rows = await db().sql<{ hash: string }>(
+    'SELECT "hash" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[]) AND "prompt_version" = $3',
+    [locale, [...hashes], promptVersion],
+  );
+  const current = new Set(rows.map((row) => row.hash));
+  return hashes.filter((hash) => !current.has(hash));
 }
 
 /** Insert or replace segments; a replaced row is a deliberate retranslation. */
@@ -125,6 +137,59 @@ export async function readStaleTranslationHashes(locale: string, promptVersion: 
     [locale, promptVersion],
   );
   return rows.map((row) => row.hash);
+}
+
+/** How many segments the locale stores and how many carry the current digest; the rest are due for a stale replay. */
+export async function translationSegmentCounts(locale: string, promptVersion: string): Promise<{ total: number; current: number }> {
+  const [row] = await db().sql<{ n: string; current: string }>(
+    'SELECT COUNT(*)::text AS n, COUNT(*) FILTER (WHERE "prompt_version" = $2)::text AS current FROM "translationSegments" WHERE "locale" = $1',
+    [locale, promptVersion],
+  );
+  return { total: Number(row?.n ?? 0), current: Number(row?.current ?? 0) };
+}
+
+/**
+ * Stored rows whose English mentions any of `terms`, by the matcher the
+ * prompt builder injects glossary lines with (whole word, case insensitive).
+ * The database narrows by substring; the regex decides.
+ */
+export async function readTranslationsMentioning(locale: string, terms: readonly string[]): Promise<Array<{ hash: string; source: string }>> {
+  const matched = new Map<string, { hash: string; source: string }>();
+  for (const term of terms) {
+    const pattern = glossaryTermPattern(term);
+    const rows = await db().sql<{ hash: string; source: string }>(
+      'SELECT "hash", "source" FROM "translationSegments" WHERE "locale" = $1 AND "source" ILIKE $2',
+      [locale, `%${term.replace(/[\\%_]/g, (char) => `\\${char}`)}%`],
+    );
+    for (const row of rows) if (pattern.test(row.source)) matched.set(row.hash, row);
+  }
+  return [...matched.values()];
+}
+
+/** A digest no run ever produces; a row carrying it is stale whatever the current digest is. */
+const STALE_MARK = "stale";
+
+/**
+ * Narrow "stale" to `hashes` after a glossary edit: those rows are marked for
+ * replay, and every other row on an older digest is restamped with the
+ * current one. The restamp is exact, not a shortcut: a glossary line is only
+ * injected into a prompt whose segment mentions the term, so a segment that
+ * does not mention it receives a byte-identical prompt under the new digest.
+ */
+export async function scopeStaleTranslations(
+  locale: string,
+  hashes: readonly string[],
+  promptVersion: string,
+): Promise<{ marked: number; restamped: number }> {
+  const marked = await db().sql<{ hash: string }>(
+    'UPDATE "translationSegments" SET "prompt_version" = $3 WHERE "locale" = $1 AND "hash" = ANY($2::text[]) RETURNING "hash"',
+    [locale, [...hashes], STALE_MARK],
+  );
+  const restamped = await db().sql<{ hash: string }>(
+    'UPDATE "translationSegments" SET "prompt_version" = $2 WHERE "locale" = $1 AND "prompt_version" <> $2 AND "prompt_version" <> $3 RETURNING "hash"',
+    [locale, promptVersion, STALE_MARK],
+  );
+  return { marked: marked.length, restamped: restamped.length };
 }
 
 /**

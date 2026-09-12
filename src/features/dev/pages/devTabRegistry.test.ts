@@ -59,6 +59,7 @@ describe("devTabRegistry", () => {
       "banners",
       "replications",
       "members",
+      "glossary",
     ]);
     expect(byRole("editor")).toEqual([
       "articles",

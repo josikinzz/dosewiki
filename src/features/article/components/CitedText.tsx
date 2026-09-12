@@ -28,6 +28,8 @@ type InlineCitationToken = {
   /** Raw text between the previous token (or the text start) and this one. */
   gap: string;
   kind: "cite" | "needed";
+  /** Zero-based position among markers of this kind in the raw scanned text. */
+  ordinal: number;
   /** Resolved target for a numbered `[cite:<id>]`; undefined when dangling. */
   link?: CitationLink;
   /** Whether a `[citation-needed]` token survives the suppression pass. */
@@ -38,12 +40,14 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
   const numbering = buildCitationNumbering(article.references ?? [], article);
   const tokens: InlineCitationToken[] = [];
   let cursor = 0;
+  let citeOrdinal = 0;
+  let neededOrdinal = 0;
 
   for (const match of text.matchAll(CITATION_MARKER_PATTERN)) {
     const index = match.index ?? 0;
     const gap = text.slice(cursor, index);
     if (match[1] === undefined) {
-      tokens.push({ gap, kind: "needed" });
+      tokens.push({ gap, kind: "needed", ordinal: neededOrdinal++ });
     } else {
       const number = numbering.numbersById.get(match[1]);
       const reference = number
@@ -52,16 +56,19 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
       tokens.push({
         gap,
         kind: "cite",
+        ordinal: citeOrdinal,
         link:
           number && reference
             ? {
                 accessibleLabel: msg("Citation {{number}}"),
                 href: `#${reference.anchorId}`,
                 label: String(number),
+                markerOrdinal: citeOrdinal,
                 referenceId: match[1],
               }
             : undefined,
       });
+      citeOrdinal += 1;
     }
     cursor = index + match[0].length;
   }
@@ -125,7 +132,12 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
     pending += token.gap;
     flushPending();
     flushAdjacent();
-    nodes.push(<CitationNeededMarker key={`citation-needed-${nodes.length}`} />);
+    nodes.push(
+      <CitationNeededMarker
+        key={`citation-needed-${nodes.length}`}
+        markerOrdinal={token.ordinal}
+      />,
+    );
   }
 
   pending += text.slice(cursor);
