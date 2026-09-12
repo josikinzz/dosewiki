@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { msg, useT } from "@/i18n/client";
 
 /**
  * The looks on this axis, in picker order. The labels name the look rather than the
@@ -22,8 +23,8 @@ const STYLE_OPTIONS: readonly {
   value: VisualStyle;
   label: string;
 }[] = [
-  { value: "fun", label: "Vivid" },
-  { value: "pro", label: "Clinical" },
+  { value: "fun", label: msg("Vivid") },
+  { value: "pro", label: msg("Clinical") },
 ];
 
 /**
@@ -34,6 +35,7 @@ const STYLE_OPTIONS: readonly {
  * row is omitted rather than rendered inert.
  */
 export function StylePicker({ className }: { className?: string }) {
+  const t = useT();
   const { visualStyle, setVisualStyle } = useTheme();
   const active = STYLE_OPTIONS.find((option) => option.value === visualStyle) ?? STYLE_OPTIONS[0];
 
@@ -47,19 +49,19 @@ export function StylePicker({ className }: { className?: string }) {
       }}
     >
       <SelectTrigger
-        aria-label="Style"
+        aria-label={t("Style")}
         data-appearance-axis="visual-style"
         data-appearance-value={visualStyle}
         className={className}
       >
         <SelectValue asChild>
-          <span>{active.label}</span>
+          <span>{t(active.label)}</span>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {STYLE_OPTIONS.map((option) => (
           <SelectItem key={option.value} value={option.value}>
-            <span>{option.label}</span>
+            <span>{t(option.label)}</span>
           </SelectItem>
         ))}
       </SelectContent>

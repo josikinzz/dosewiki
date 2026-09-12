@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   createContext,
@@ -73,7 +73,7 @@ export {
   ACCENT_CHROMA_STORAGE_KEY,
   ACCENT_HUE_STORAGE_KEY,
   // The retired colourway keys: still exported because the migration below is
-  // observable â€” tests and the bootstrap name them â€” not because anything may
+  // observable — tests and the bootstrap name them — not because anything may
   // write them again.
   ACCENT_STORAGE_KEY,
   COLOR_SCHEME_STORAGE_KEY,
@@ -95,10 +95,10 @@ export {
  * cannot agree about what the reader chose.
  */
 type ThemeContextValue = {
-  /** The resolved scheme the document is painted with â€” never "system". */
+  /** The resolved scheme the document is painted with — never "system". */
   colorScheme: ColorScheme;
   /**
-   * What the reader chose: an explicit scheme, or "system" â€” follow the OS
+   * What the reader chose: an explicit scheme, or "system" — follow the OS
    * `prefers-color-scheme` live. This is what the Mode control renders and
    * what the storage key holds; `colorScheme` is its resolution.
    */
@@ -110,10 +110,10 @@ type ThemeContextValue = {
   toggleColorScheme: () => void;
   toggleVisualStyle: () => void;
   /**
-   * The effective saturation levels â€” always a decimal in 0..1: the reader's
+   * The effective saturation levels — always a decimal in 0..1: the reader's
    * saved level, or the current appearance combination's default while they
    * have never moved that slider. The setters take null to mean "back to the
-   * default level": the storage key is removed â€” a default is never written â€”
+   * default level": the storage key is removed — a default is never written —
    * and the exposed level returns to the current combination's default. Each
    * level rides its parent axis's lock.
    */
@@ -123,7 +123,7 @@ type ThemeContextValue = {
   setAccentChroma: (value: number | null) => void;
   /**
    * The hue axes: the reader's saved rotation in integer degrees 0..359, or
-   * null while they never moved that slider â€” null means the current
+   * null while they never moved that slider — null means the current
    * visual-style and colour-scheme combination's default. Consumers resolve
    * the effective hue. The setters take null on the chroma setters' terms: key
    * removed, back to the default.
@@ -167,7 +167,7 @@ type ThemeContextValue = {
   setLetterSpacing: (value: number | null) => void;
   setLineHeight: (value: number | null) => void;
   /**
-   * Whether the type axis is currently carrying any saved value â€” the face choice or
+   * Whether the type axis is currently carrying any saved value — the face choice or
    * any of the three reading-type numbers. It is what lets the panel offer "Reset to
    * defaults", on the colour axes' terms.
    */
@@ -225,7 +225,7 @@ type AppearanceGuard<T extends string> = (value: string | null | undefined) => v
  * The document attribute is the first source, not the storage key: the bootstrap has already
  * validated storage and painted the result, so reading the document is how this provider ends
  * up agreeing with the frame the reader is looking at. Storage is consulted only for a
- * document carrying no valid attribute â€” a nested provider, or a bare test render.
+ * document carrying no valid attribute — a nested provider, or a bare test render.
  */
 function resolvePaintedAxis<T extends string>(
   datasetKey: "theme" | "visualStyle" | "font",
@@ -267,8 +267,8 @@ function persistPreference(storageKey: string, value: string) {
 /**
  * How long an axis slider must rest before its value is persisted. A drag
  * emits dozens of state changes per second and every localStorage write is
- * synchronous main-thread IO, so storage hears the settled value â€” the
- * decision â€” rather than the path the thumb took to it.
+ * synchronous main-thread IO, so storage hears the settled value — the
+ * decision — rather than the path the thumb took to it.
  */
 const AXIS_PERSIST_DEBOUNCE_MS = 200;
 
@@ -279,7 +279,7 @@ const AXIS_PERSIST_DEBOUNCE_MS = 200;
  * generated custom-property graph, so each write forces a full-document style
  * recalculation; on weak hardware a single recalculation can run hundreds of
  * milliseconds, and issuing one per frame freezes the page for the entire
- * drag. Spacing is proportional to the *measured* cost â€” a device that
+ * drag. Spacing is proportional to the *measured* cost — a device that
  * restyles inside the budget keeps its fully live per-frame preview.
  */
 const CHROMA_PAINT_BUDGET_MS = 24;
@@ -288,16 +288,16 @@ const CHROMA_PAINT_BUDGET_MS = 24;
  * The spacing ceiling. It must stay well above the worst plausible single
  * recalculation: spacing only creates paint-free frames while it exceeds the
  * cost it is spacing out (a ceiling at or below the cost degenerates back to
- * a paint every frame). Even at the ceiling the page repaints ~1Ã—/second
+ * a paint every frame). Even at the ceiling the page repaints ~1×/second
  * mid-drag, and the trailing paint always lands the settled value.
  */
 const CHROMA_PAINT_MAX_DELAY_MS = 1000;
 
 /**
- * A saved axis number â€” a chroma level's decimal or a hue's integer degrees â€”
+ * A saved axis number — a chroma level's decimal or a hue's integer degrees —
  * persists as its string, and null removes the key: a missing key is what "the
- * site default" means to the pre-paint bootstrap, so removal â€” not writing the
- * default's current value â€” is what keeps a reader on the default as it
+ * site default" means to the pre-paint bootstrap, so removal — not writing the
+ * default's current value — is what keeps a reader on the default as it
  * evolves.
  */
 function persistAxisNumber(storageKey: string, value: number | null) {
@@ -313,7 +313,7 @@ function persistAxisNumber(storageKey: string, value: number | null) {
 /**
  * The reader's saved level or hue, or null when they never saved one. Storage,
  * not the painted custom property: the bootstrap paints stored ?? default, so
- * the property alone cannot say whether the reader chose the value it carries â€”
+ * the property alone cannot say whether the reader chose the value it carries —
  * and adopting a painted default as "saved" would persist it, freezing the
  * reader on a default they never picked.
  */
@@ -383,8 +383,8 @@ let transitionLockSequence = 0;
  * attribute is present, so a whole-document restyle lands as one clean
  * recalculation instead of fanning out into ~300ms of per-frame transition
  * repaints and thousands of transition events. The attribute is removed two
- * animation frames later â€” the frame *after* the one that painted the new
- * appearance â€” which keeps the removal's own restyle off the interaction's
+ * animation frames later — the frame *after* the one that painted the new
+ * appearance — which keeps the removal's own restyle off the interaction's
  * critical path and guarantees no transition ever observes the flip.
  */
 function withTransitionsSuppressed(mutate: () => void) {
@@ -426,7 +426,7 @@ function applyAppearanceToDocument({
   // bundled CSS. Ensure the one(s) this appearance needs BEFORE flipping the
   // attributes they key on: flipping first would paint a frame of Pro (or
   // light) markup with no Pro (or light) rules on the reader's first toggle.
-  // Both ensure calls are idempotent â€” for a reader whose sheet was server-
+  // Both ensure calls are idempotent — for a reader whose sheet was server-
   // rendered or bootstrap-injected, `sheet` is already populated and the flip
   // below stays synchronous.
   const sequence = ++applyAppearanceSequence;
@@ -500,7 +500,7 @@ export function ThemeProvider({
   isColorSchemePersistent?: boolean;
 }) {
   /**
-   * The saved axis value â€” possibly "system" â€” and the OS scheme it resolves
+   * The saved axis value — possibly "system" — and the OS scheme it resolves
    * through. The painted scheme is derived, never stored: while the
    * preference is "system" it tracks `prefers-color-scheme` live, so an OS
    * day/night flip restyles the page with no reload. The OS scheme opens on
@@ -559,8 +559,8 @@ export function ThemeProvider({
     savedLineHeight !== null;
   /**
    * Until the mount effect has read back what the bootstrap resolved, this provider is still
-   * holding the server's opening guess. Applying it would be harmless â€” the document already
-   * says so â€” but *persisting* it would overwrite a saved preference with a default the reader
+   * holding the server's opening guess. Applying it would be harmless — the document already
+   * says so — but *persisting* it would overwrite a saved preference with a default the reader
    * never chose, so both effects wait for this.
    */
   const [hydrated, setHydrated] = useState(false);
@@ -586,7 +586,7 @@ export function ThemeProvider({
   const chromaDelayTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // The scheme axis stores a *preference* â€” possibly "system" â€” while the
+    // The scheme axis stores a *preference* — possibly "system" — while the
     // painted attribute only ever carries its resolution, so storage is the
     // first source here, not the document: adopting a system reader's painted
     // attribute as their preference would silently pin them to one scheme.
@@ -630,9 +630,9 @@ export function ThemeProvider({
     }
 
     // The type axes, on the style lock's exact terms. The bootstrap painted
-    // `data-font` (or nothing â€” the default Lexend) from storage pre-paint; adopt what
+    // `data-font` (or nothing — the default Lexend) from storage pre-paint; adopt what
     // it resolved. A saved value from the binary-toggle era ("dyslexic") maps onto the
-    // default face â€” which is what that pick reproduces now â€” and its key is removed so
+    // default face — which is what that pick reproduces now — and its key is removed so
     // the retired value never answers again.
     if (!isFontLocked) {
       const paintedFont = resolvePaintedAxis("font", FONT_STORAGE_KEY, isFontPreference);
@@ -749,7 +749,7 @@ export function ThemeProvider({
 
   /**
    * The OS scheme, tracked for as long as the provider lives. One media query
-   * and one listener â€” subscribing unconditionally instead of only under a
+   * and one listener — subscribing unconditionally instead of only under a
    * "system" preference keeps the resolution race-free: the preference can
    * arrive from hydration or a toggle at any time and the resolved scheme is
    * already current. The listener only fires on actual OS flips, so the idle
@@ -769,7 +769,7 @@ export function ThemeProvider({
 
   /**
    * Scheme and style: applied and persisted synchronously per change. These
-   * are toggle paths â€” one event per reader intention â€” so there is nothing
+   * are toggle paths — one event per reader intention — so there is nothing
    * to throttle, and a flip must reach storage before any navigation.
    */
   useEffect(() => {
@@ -787,8 +787,8 @@ export function ThemeProvider({
 
   /**
    * The type axes: applied and persisted synchronously per change, like scheme and style.
-   * The default face removes both the attribute and the key â€” the absent state, never a
-   * stored value â€” so a reader on Lexend's document and storage look exactly as if the
+   * The default face removes both the attribute and the key — the absent state, never a
+   * stored value — so a reader on Lexend's document and storage look exactly as if the
    * axis did not exist.
    */
   useEffect(() => {
@@ -827,11 +827,11 @@ export function ThemeProvider({
    * for the whole drag. Each paint therefore probes what it actually cost,
    * and while that cost exceeds CHROMA_PAINT_BUDGET_MS further paints keep a
    * proportional distance (capped at CHROMA_PAINT_MAX_DELAY_MS). React state
-   * â€” and so the sliders' thumbs and rails â€” still tracks every tick, and
+   * — and so the sliders' thumbs and rails — still tracks every tick, and
    * the trailing paint always lands the settled value.
    *
-   * Painted values are the effective ones on unlocked axes â€” the saved number
-   * or the default â€” and null under a lock, which is how the runtime knows to
+   * Painted values are the effective ones on unlocked axes — the saved number
+   * or the default — and null under a lock, which is how the runtime knows to
    * leave that axis's properties off the root (all four null disengages the
    * axis attribute entirely: Effect Index renders its authored palette).
    */
@@ -953,9 +953,9 @@ export function ThemeProvider({
   }, [hydrated, savedChroma, savedTextSize, savedLetterSpacing, savedLineHeight, isSurfaceLocked, isAccentLocked, isFontLocked]);
 
   /**
-   * The debounce's safety net: a drag followed by an immediate exit â€”
+   * The debounce's safety net: a drag followed by an immediate exit —
    * provider unmount, or a hard navigation's pagehide (which also covers
-   * entering the bfcache) â€” flushes the pending persist so the settled value
+   * entering the bfcache) — flushes the pending persist so the settled value
    * is never lost to the debounce window.
    */
   useEffect(() => {
@@ -1124,7 +1124,7 @@ export function ThemeProvider({
   /**
    * Flips to the explicit opposite of the *resolved* scheme, so a system
    * reader who reaches for the toggle gets the scheme they were looking at,
-   * inverted and pinned â€” never a no-op relative to what they see.
+   * inverted and pinned — never a no-op relative to what they see.
    */
   const toggleColorScheme = useCallback(() => {
     setColorSchemePreferenceState(colorScheme === "dark" ? "light" : "dark");

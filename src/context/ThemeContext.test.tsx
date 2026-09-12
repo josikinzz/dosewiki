@@ -1,4 +1,4 @@
-﻿import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
@@ -392,7 +392,7 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("font-preference")).toHaveTextContent("lexend");
-      // The default is the ABSENT state: no attribute, no stored value â€” the document
+      // The default is the ABSENT state: no attribute, no stored value — the document
       // and storage look exactly as if the reader never picked.
       expect(document.documentElement.dataset.font).toBeUndefined();
       expect(window.localStorage.getItem(FONT_STORAGE_KEY)).toBeNull();
@@ -402,7 +402,7 @@ describe("ThemeProvider", () => {
 
   it("migrates the binary-toggle era's dyslexic pick onto the default face", async () => {
     // Exactly the state a reader of the old toggle could return with: the retired value
-    // in storage. Lexend is now the default face â€” which is what that pick reproduced â€”
+    // in storage. Lexend is now the default face — which is what that pick reproduced —
     // so the adoption clears the key and leaves no attribute behind.
     window.localStorage.setItem(FONT_STORAGE_KEY, "dyslexic");
     storage.forgetTraffic();
@@ -430,7 +430,7 @@ describe("ThemeProvider", () => {
     await waitFor(() => {
       expect(screen.getByTestId("has-custom-type")).toHaveTextContent("true");
       // The text-size axis is a unitless scale over the text tokens, never a root
-      // font-size â€” a font-size write would reproduce browser zoom.
+      // font-size — a font-size write would reproduce browser zoom.
       expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("1.05");
       expect(document.documentElement.style.fontSize).toBe("");
       // The written values carry their CSS units: a bare number substitutes into
@@ -452,7 +452,7 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("text-size")).toHaveTextContent("null");
-      // The default is the ABSENT write: the axis disengages instead of painting Ã—1.
+      // The default is the ABSENT write: the axis disengages instead of painting ×1.
       expect(document.documentElement.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
       expect(window.localStorage.getItem(TEXT_SIZE_STORAGE_KEY)).toBeNull();
       expect(storage.removals).toContain(TEXT_SIZE_STORAGE_KEY);
@@ -472,7 +472,7 @@ describe("ThemeProvider", () => {
       expect(window.localStorage.getItem(LINE_HEIGHT_STORAGE_KEY)).toBe("1.55");
     });
 
-    // Dragging the thumb back to 1.7 â€” the resting default â€” must not save a copy of
+    // Dragging the thumb back to 1.7 — the resting default — must not save a copy of
     // the default: the axis disengages, the key is removed, and hasCustomType drops,
     // exactly as if the slider had never moved.
     await user.click(screen.getByRole("button", { name: "Set leading to default" }));
@@ -538,8 +538,8 @@ describe("ThemeProvider", () => {
 
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
 
-    // The effective level is the Fun-dark default, exposed as a number â€” the
-    // sliders park on it â€” while hue remains null so "never chose" stays
+    // The effective level is the Fun-dark default, exposed as a number — the
+    // sliders park on it — while hue remains null so "never chose" stays
     // observable through the context.
     const defaults = DEFAULT_APPEARANCE_COLORS.fun.dark;
     expect(screen.getByTestId("surface-chroma")).toHaveTextContent(String(defaults.surfaceLevel));
@@ -752,8 +752,8 @@ describe("ThemeProvider", () => {
   });
 
   it("maps the retired achromatic ids to saturation 0, overriding a stored level", async () => {
-    // Graphite/Neutral were "grey", which is now just saturation 0: the stored level â€”
-    // saved back when the reader wore a chromatic colourway â€” must not resurrect colour.
+    // Graphite/Neutral were "grey", which is now just saturation 0: the stored level —
+    // saved back when the reader wore a chromatic colourway — must not resurrect colour.
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "graphite");
     window.localStorage.setItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`, "0.8");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, "neutral");
@@ -777,7 +777,7 @@ describe("ThemeProvider", () => {
 
   it("never touches the colour keys while both colour axes are locked", async () => {
     // Effect Index: a dose.wiki reader's saved coordinates and un-migrated ids must
-    // survive a visit untouched â€” neither read, nor migrated, nor removed.
+    // survive a visit untouched — neither read, nor migrated, nor removed.
     window.localStorage.setItem(SURFACE_STORAGE_KEY, "abyss");
     window.localStorage.setItem(ACCENT_STORAGE_KEY, "teal");
     window.localStorage.setItem(`${SURFACE_HUE_STORAGE_KEY}-fun`, "40");
@@ -818,7 +818,7 @@ describe("ThemeProvider", () => {
     await user.click(screen.getByRole("button", { name: "Rotate surface" }));
     await user.click(screen.getByRole("button", { name: "Saturate surface" }));
 
-    // Mid-drag the context â€” and so the sliders â€” already moved, but storage heard
+    // Mid-drag the context — and so the sliders — already moved, but storage heard
     // nothing: localStorage writes are synchronous main-thread IO, and a tick is
     // not a decision.
     expect(screen.getByTestId("surface-hue")).toHaveTextContent("120");
@@ -827,7 +827,7 @@ describe("ThemeProvider", () => {
     expect(midDragKeys).not.toContain(`${SURFACE_HUE_STORAGE_KEY}-fun`);
     expect(midDragKeys).not.toContain(`${SURFACE_CHROMA_STORAGE_KEY}-fun`);
 
-    // Once the drag rests, the settled coordinates persist â€” exactly once each.
+    // Once the drag rests, the settled coordinates persist — exactly once each.
     await waitFor(() => {
       expect(window.localStorage.getItem(`${SURFACE_HUE_STORAGE_KEY}-fun`)).toBe("120");
       expect(window.localStorage.getItem(`${SURFACE_CHROMA_STORAGE_KEY}-fun`)).toBe("0.4");

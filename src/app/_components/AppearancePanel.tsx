@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   type CSSProperties,
@@ -34,7 +34,7 @@ import {
 
 /**
  * Which way the panel is currently turned. Font first: the reading controls are what a
- * reader reaches for most (the doc's own words â€” "default to font control first"), so
+ * reader reaches for most (the doc's own words — "default to font control first"), so
  * the panel opens on them.
  */
 type AppearanceTab = "font" | "colour";
@@ -72,14 +72,14 @@ export type AppearancePanelRows = {
 /**
  * The two halves of the reader's appearance menu, on the sketch's terms: a Font tab
  * then the Background and Accent rails always open, then "Reset colors" beside the
- * dev-only Theme Lab entry). One icon swaps between them â€” the paintbrush on the font
- * tab, the type glyph on the colour tab â€” rendered as a bare control beside the tab's
+ * dev-only Theme Lab entry). One icon swaps between them — the paintbrush on the font
+ * tab, the type glyph on the colour tab — rendered as a bare control beside the tab's
  * first row, with no card of its own.
  *
  * Everything is read from and written to `ThemeContext`; this component holds no
  * appearance state of its own beyond which tab is showing. The range inputs write the
- * context per input tick â€” that is what keeps them controlled and the thumb, readout,
- * and rail gradients live â€” and per-tick writes are safe because the provider
+ * context per input tick — that is what keeps them controlled and the thumb, readout,
+ * and rail gradients live — and per-tick writes are safe because the provider
  * rAF-throttles the document paint and debounces persistence: nothing here needs its
  * own throttle.
  *
@@ -99,7 +99,7 @@ export function AppearancePanel({
   /** Reader-facing surface-axis name: "Background" for readers, "Surface" for authors. */
   surfaceLabel?: string;
   /**
-   * A caller-owned action that shares the colour tab's footer row with Reset â€” the
+   * A caller-owned action that shares the colour tab's footer row with Reset — the
    * cog's dev-only Theme Lab entry. Rendered right-aligned so the two never claim a
    * row each.
    */
@@ -132,7 +132,7 @@ export function AppearancePanel({
   const effectiveSurfaceHue = surfaceHue ?? defaultColors.surfaceHue;
   const effectiveAccentHue = accentHue ?? defaultColors.accentHue;
   // The reading-type sliders park on the site defaults while the reader never saved a
-  // value â€” the same resolve-the-effective-value rule the colour rails follow.
+  // value — the same resolve-the-effective-value rule the colour rails follow.
   const effectiveTextSize = textSize ?? DEFAULT_TEXT_SIZE;
   // Tracking's resting value follows the face: Lexend's letterfit is the default face's
   // whole point, so it rests at zero; the other faces carry the authored negative ramp.
@@ -140,7 +140,7 @@ export function AppearancePanel({
     letterSpacing ?? (fontPreference === "lexend" ? DEFAULT_LETTER_SPACING_LEXEND : DEFAULT_LETTER_SPACING_STANDARD);
   const effectiveLineHeight = lineHeight ?? DEFAULT_LINE_HEIGHT;
 
-  // The rails must show the palette the reader is actually wearing, per axis â€” the same
+  // The rails must show the palette the reader is actually wearing, per axis — the same
   // fixed-legibility anchors AppearanceAxes paints (see that file for the reasoning).
   const surfaceSwatch =
     visualStyle === "pro"
@@ -177,8 +177,8 @@ export function AppearancePanel({
               display={`${Math.round(effectiveTextSize * 100)}%`}
               onChange={(value) => setTextSize(value / 100)}
             />
-            {/* The fractional axes run on integer slider domains â€” a value scaled by
-                100 (tracking, leading) â€” because range inputs snap values to
+            {/* The fractional axes run on integer slider domains — a value scaled by
+                100 (tracking, leading) — because range inputs snap values to
                 `min + n * step`, and a fractional step's float error parks a thumb off
                 its default. The bounds are rounded for the same reason (2.2 * 100 is
                 220.00000000000003), the read-out carries the unit, and `aria-valuetext`
@@ -324,7 +324,7 @@ export function AppearancePanel({
 
 /**
  * The one control that turns the panel between its two halves. A bare icon beside the
- * tab's first row â€” deliberately not a card, not a segmented pair: the sketch's
+ * tab's first row — deliberately not a card, not a segmented pair: the sketch's
  * correction removes the box that used to sit behind it. The glyph names the tab it
  * opens (paintbrush for colour, type for font), so the same control reads as a
  * destination, not a state.
@@ -496,7 +496,7 @@ function useDirectTypeRange(
 /**
  * One always-open colour axis: the named dot row (swatch, plain-language name, and the
  * live (degrees · percent) coordinate) over its Hue/Saturation slider pair. The reader
- * panel keeps the rails open rather than collapsed â€” the tab already separates the
+ * panel keeps the rails open rather than collapsed — the tab already separates the
  * colour work from the type work, so a second disclosure inside the tab would be a
  * card inside a card, the exact thing the sketch removes.
  */

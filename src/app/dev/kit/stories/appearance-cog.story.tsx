@@ -1,4 +1,4 @@
-﻿import { AppearanceCog } from "@/app/_components/AppearanceCog";
+import { AppearanceCog } from "@/app/_components/AppearanceCog";
 
 import type { StoryDef } from "../registry/types";
 
@@ -108,16 +108,16 @@ export const appearanceCogStory: StoryDef = {
     },
   ],
   whenToUse: [
-    "Any surface that offers appearance choices â€” mount AppearanceControls, which resolves the rows from publication policy.",
+    "Any surface that offers appearance choices — mount AppearanceControls, which resolves the rows from publication policy.",
   ],
   whenNotToUse: [
-    "Editor-only workbench context â€” that remains on the protected /dev/themes route.",
+    "Editor-only workbench context — that remains on the protected /dev/themes route.",
     "A single axis on its own. The cog exists so a surface carries one control instead of a row of pills.",
   ],
   notes: [
     "Mount AppearanceControls, not AppearanceCog: the row props are publication policy, not a caller decision.",
     "The panel uses the sticky header's dark chrome palette in both page schemes and a drop shadow, never a modal backdrop.",
-    "Two tabs, font first: the face picker and the reading-type sliders, then the colour rails. One bare icon swaps between them â€” paintbrush on the font tab, type glyph on the colour tab â€” with no card of its own. The Fun/Pro style axis and the System scheme option remain authoring/Theme Lab surfaces, not reader rows.",
+    "Two tabs, font first: the face picker and the reading-type sliders, then the colour rails. One bare icon swaps between them — paintbrush on the font tab, type glyph on the colour tab — with no card of its own. The Fun/Pro style axis and the System scheme option remain authoring/Theme Lab surfaces, not reader rows.",
     "Each colour axis is a labelled (hue, saturation) pair over the authored palette, always open inside its tab. Reset to defaults is the font tab's permanent fixture; Reset colors appears only while a colour axis carries a saved coordinate. Each restores only its own tab's axes.",
     "Escape closes the panel and is stopped inside it, so it cannot also reach a page-level Escape handler above the portal. Closing returns focus to the cog.",
   ],
