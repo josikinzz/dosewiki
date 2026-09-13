@@ -584,6 +584,36 @@ describe("getPublicGalleryReplications", () => {
     await expect(getPublicGalleryReplications()).resolves.toEqual(corpus);
   });
 
+  it("withholds audio, which the frame surfaces downstream cannot draw", async () => {
+    // This corpus feeds the /replications explorer, its artist/effect focus
+    // views and the sitemap's focus families — masonry tiles, rails and the
+    // immersive viewer's still/motion stages, all of which need a poster. The
+    // publishable audio row reaches readers through its permalink, the effect
+    // article's audio subsection, the `/replications/audio` index and the
+    // public API instead.
+    mocks.queryConvex.mockImplementation(async (functionName: string) => {
+      if (functionName === "replications:getPublicGalleryPage") {
+        return {
+          items: [
+            work("drifting", "Josie Kins"),
+            { ...work("a-recording", "Josie Kins"), type: "audio", format: "mp3" },
+          ],
+          cursor: "done",
+          isDone: true,
+        };
+      }
+      if (functionName === "contributorProfiles:getAll") return [];
+      if (functionName === "replicationTaxonomy:getPublicArtistsByKeys") return [];
+      throw new Error(`Unexpected Convex read: ${functionName}`);
+    });
+
+    const { getPublicGalleryReplications } = await import("./publicData.replications");
+
+    expect((await getPublicGalleryReplications()).map((item) => item.slug)).toEqual([
+      "drifting",
+    ]);
+  });
+
   it("omits nullable media URLs from the serialized preview contract", async () => {
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
       if (functionName === "replications:getPublicGalleryPage") {

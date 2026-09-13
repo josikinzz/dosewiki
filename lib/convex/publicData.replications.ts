@@ -8,6 +8,7 @@ import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import {
   isPublishableReplication,
+  isVisualReplication,
   type GalleryReplication,
   type PublicGalleryReplicationPreview,
   type ReplicationWithUrl,
@@ -76,6 +77,10 @@ const getPublicReplicationArtistTaxonomyBatch = cache(publicDataCache(async (
  * beside that heading and add a step to the permalink's artist walk. See the
  * note on `getPublicReplications` in `publicData.effects` for why the gate sits
  * on this side of Convex.
+ *
+ * The rail and that walk are both frame carousels, so this read also narrows to
+ * the kinds a frame can draw. A published audio work by the same contributor
+ * reaches readers through the `/replications/audio` index and its own permalink.
  */
 export const getReplicationsByContributor = cache(publicDataCache(async (
   profile: NormalizedUserProfile,
@@ -85,9 +90,9 @@ export const getReplicationsByContributor = cache(publicDataCache(async (
     return [];
   }
 
-  return (await getPublicDataReadAdapter().getPublicReplicationsByArtistNames(artistNames)).filter(
-    isPublishableReplication,
-  );
+  return (await getPublicDataReadAdapter().getPublicReplicationsByArtistNames(artistNames))
+    .filter(isPublishableReplication)
+    .filter(isVisualReplication);
 }, ["convex-public-replications-by-contributor"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [
@@ -407,14 +412,21 @@ export function projectPublicGalleryReplicationPreview(
 
 /**
  * The /replications gallery corpus: `getPublicReplications` minus the works of
- * artists excluded via their contributor profile, projected down to the slim
- * `PublicGalleryReplicationPreview` shape. This feeds ONLY the gallery
- * surface — the main explorer, its artist/effect focus views, and the focus
- * families in the sitemap. Effect-article replication sections, substance
- * showcases, contributor profile pages, permalinks, and the public API all stay
- * on the unfiltered, full-fidelity reads; the exclusion is a
- * gallery-presentation choice, not an unpublication, and the projection is a
- * payload choice, not a data change.
+ * artists excluded via their contributor profile, minus the kinds a frame
+ * cannot draw, projected down to the slim `PublicGalleryReplicationPreview`
+ * shape. This feeds ONLY the gallery surface — the main explorer, its
+ * artist/effect focus views, and the focus families in the sitemap.
+ * Effect-article replication sections, substance showcases, contributor profile
+ * pages, permalinks, and the public API all stay on the unfiltered,
+ * full-fidelity reads; the exclusion is a gallery-presentation choice, not an
+ * unpublication, and the projection is a payload choice, not a data change.
+ *
+ * `isVisualReplication` is the same kind of choice. Every surface downstream of
+ * this corpus is a frame — masonry tiles, artist rails, the immersive viewer's
+ * still and motion stages, the swipe deck — and its type filter chips offer
+ * image and video. A published audio row reaches readers through the effect
+ * article's Audio Replications section, the `/replications/audio` index, its own
+ * permalink and the public API, none of which read this corpus.
  *
  * Composed from two tagged caches rather than being an `unstable_cache` of its
  * own: the filter and projection are cheap, and this way revalidating either
@@ -427,7 +439,9 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
     getPublicContributorProfiles(),
   ]);
 
-  const visible = dropGalleryExcludedArtistWorks(replications, profiles);
+  const visible = dropGalleryExcludedArtistWorks(replications, profiles).filter(
+    isVisualReplication,
+  );
   const artistKeys = [...new Set(visible.map((row) => row.artist.trim().toLowerCase()).filter(Boolean))];
   const artistTaxonomy = (
     await Promise.all(
@@ -453,9 +467,9 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
  * One indexed public-gallery lookup for an immersive-view deep link.
  *
  * This deliberately reuses the existing `by_slug` Convex read rather than
- * walking gallery pages. The row still passes the gallery's publication and
- * contributor opt-out gates before its slim projection crosses into page
- * props.
+ * walking gallery pages. The row still passes the gallery's publication,
+ * frame-drawability and contributor opt-out gates before its slim projection
+ * crosses into page props.
  */
 export const getPublicGalleryReplicationBySlug = cache(async (
   slug: string,
@@ -467,6 +481,7 @@ export const getPublicGalleryReplicationBySlug = cache(async (
   if (
     !replication ||
     !isPublishableReplication(replication) ||
+    !isVisualReplication(replication) ||
     dropGalleryExcludedArtistWorks([replication], profiles).length === 0
   ) {
     return null;

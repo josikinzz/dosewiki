@@ -37,7 +37,11 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { TOUCH_ICON, TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { ContributorDirectory } from "@server/contributorDirectory";
-import type { PublicGalleryReplicationPreview } from "@/types/replications";
+import {
+  isVisualReplication,
+  type PublicGalleryReplicationPreview,
+  type ReplicationType,
+} from "@/types/replications";
 import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { MediaRail } from "@/features/effects/gallery/MediaRail";
 import {
@@ -161,7 +165,11 @@ function isGalleryReplicationPreview(
     typeof value.artist === "string" &&
     (!("artist_url" in value) || typeof value.artist_url === "string") &&
     "type" in value &&
-    (value.type === "image" || value.type === "video") &&
+    // The frame kinds come from the shared table, not restated here. This
+    // corpus is narrowed with `isVisualReplication` server-side
+    // (`getPublicGalleryReplications`), so a page payload claiming an audio row
+    // is a payload this surface cannot draw and is rejected as malformed.
+    isVisualReplication(value as { type: ReplicationType }) &&
     "format" in value &&
     typeof value.format === "string" &&
     (!("effect_slug" in value) || typeof value.effect_slug === "string") &&

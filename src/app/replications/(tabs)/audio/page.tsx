@@ -4,7 +4,10 @@ import { SmartLink } from "@/components/common/SmartLink";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SectionCard } from "@/components/common/SectionCard";
-import { getPublicEffectArticles } from "@server/convex/publicData";
+import {
+  getPublicEffectArticles,
+  getPublicReplications,
+} from "@server/convex/publicData";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
 import { AudioReplicationCard } from "@/features/effects/components/AudioReplicationCard";
@@ -27,8 +30,14 @@ export async function generateMetadata() {
 }
 
 export default async function ReplicationAudioPage() {
-  const effects = await getPublicEffectArticles();
-  const entries = collectAudioReplications(effects);
+  const [effects, replications] = await Promise.all([
+    getPublicEffectArticles(),
+    getPublicReplications(),
+  ]);
+  const entries = collectAudioReplications(
+    effects,
+    replications.filter((row) => row.type === "audio"),
+  );
   const artistCount = countAudioReplicationArtists(entries);
 
   return (

@@ -93,19 +93,33 @@ export function isReplicationRow(row: { role?: MediaRole }): boolean {
 }
 
 /**
- * The media kinds a replication surface can actually draw today.
+ * The media kinds a replication surface can actually present today.
  *
- * `audio` is storable but nothing renders it: every tile, rail, carousel and the
- * permalink branch on `type === 'video'` with an *image* fallback, so an audio
- * row would be handed to `<AppImage src="….mp3">` beneath a pill reading
- * "Image". Until one of those surfaces grows a real audio branch, an audio row
- * is a row we cannot draw — the same category as a row whose storage id
- * resolves to no URL, which every surface already drops.
+ * `audio` joined `image` and `video` once a surface could draw it: the effect
+ * article's Audio Replications section, the `/replications/audio` index, and
+ * the permalink all render an audio row through `AudioReplicationPlayer`, the
+ * transport that already served the inline `subjectiveEffects.audio_replications`
+ * clips. Rights posture for those rows follows the publication rights policy
+ * recorded in the media review repo
+ * (`Data/publication-rights-policy-2026-09-11.json`, ledger t72/t16); nothing
+ * in this module decides it.
  *
- * Widen this set together with those branches, never ahead of them.
+ * Keyed membership rather than an `!== 'audio'` comparison, so a kind added to
+ * the union later is withheld until a surface can present it. `strictNullChecks`
+ * is off in both tsconfigs, so a row is not proof of its own shape; an absent or
+ * unrecognised `type` is not in the table and is withheld too.
  */
-const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
-  new Set<ReplicationType>(["image", "video"]);
+const PRESENTABLE_REPLICATION_TYPES: Partial<Record<ReplicationType, true>> = {
+  image: true,
+  video: true,
+  audio: true,
+};
+
+/** The media kinds a *frame* surface can draw: a poster, a tile, a still. */
+const VISUAL_REPLICATION_TYPES: Partial<Record<ReplicationType, true>> = {
+  image: true,
+  video: true,
+};
 
 /**
  * Whether the public replication surfaces may publish a stored row.
@@ -118,7 +132,7 @@ const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
  *    asserts something untrue about it: the permalink emits JSON-LD reading
  *    "A replication of the subjective effect X", the gallery counts it as a work
  *    by its credited artist, and the sitemap offers that page to crawlers.
- *  - it is a media kind nothing can draw yet (see above).
+ *  - it is a media kind nothing can present yet (see above).
  *  - it is a confirmed duplicate whose provenance and media remain stored but
  *    whose public route is consolidated into a designated keeper.
  *
@@ -128,10 +142,11 @@ const PRESENTABLE_REPLICATION_TYPES: ReadonlySet<ReplicationType> =
  * whose rights travel with it most needs to stay visible — and a future
  * article-figure gallery reads the same rows through a helper of its own.
  *
- * Set membership rather than an `!== 'audio'` comparison, so a kind added to the
- * union later is withheld until a surface can draw it. `strictNullChecks` is off
- * in both tsconfigs, so a row is not proof of its own shape; an absent or
- * unrecognised `type` is not in the set and is withheld too.
+ * It is also not a *drawability* gate. A published row still has to reach a
+ * surface that can render its kind: frame surfaces narrow further with
+ * {@link isVisualReplication}, and the audio surfaces select `type === 'audio'`
+ * directly. An open-coded `type === 'image' || type === 'video'` in a new frame
+ * surface is a second convention and will drift from this table.
  */
 export function isPublishableReplication(row: {
   role?: MediaRole;
@@ -143,8 +158,24 @@ export function isPublishableReplication(row: {
     isReplicationRow(row) &&
     row.publication_state !== "duplicate-suppressed" &&
     row.replication_status !== "not-replication" &&
-    PRESENTABLE_REPLICATION_TYPES.has(row.type)
+    PRESENTABLE_REPLICATION_TYPES[row.type] === true
   );
+}
+
+/**
+ * Narrow a publishable row to the kinds a frame surface can draw.
+ *
+ * Tiles, rails, carousels, the immersive viewer and the permalink preview are
+ * all built around a poster image; handing them an audio row would render
+ * `<AppImage src="….mp3">` beneath a pill reading "Image". They filter with
+ * this rather than restating the kinds, so widening
+ * {@link PRESENTABLE_REPLICATION_TYPES} again cannot silently leak a kind into
+ * a frame.
+ */
+export function isVisualReplication<T extends { type: ReplicationType }>(
+  row: T,
+): row is T & { type: "image" | "video" } {
+  return VISUAL_REPLICATION_TYPES[row.type] === true;
 }
 
 /**

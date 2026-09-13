@@ -20,6 +20,7 @@ import {
   getExternalSourceUrl,
   getRightsSummary,
 } from "@/features/effects/components/replicationCredit";
+import { AudioReplicationPlayer } from "@/features/effects/components/AudioReplicationPlayer";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import type { ReplicationWithUrl } from "@/types/replications";
 import type { PublicReplicationIdentityAttribution } from "@server/convex/publicData";
@@ -77,8 +78,16 @@ export function ReplicationDetailPage({
     collectionPath,
     replication.slug,
   );
+  // The immersive viewer is a frame surface — its stages are a still and a
+  // <video> — so an audio work has no viewer route and no poster. Its transport
+  // is the page's own media instead of a shortcut into a collection.
+  const isAudio = replication.type === "audio";
   const isVideo = replication.type === "video";
-  const previewSource = isVideo ? replication.thumbnail_url : replication.url;
+  const previewSource = isAudio
+    ? undefined
+    : isVideo
+      ? replication.thumbnail_url
+      : replication.url;
   const artistName =
     identityAttribution?.creator.display_name.trim() ||
     replication.artist?.trim() ||
@@ -114,20 +123,30 @@ export function ReplicationDetailPage({
             )}
           </p>
         </div>
-        <Button asChild className="shrink-0">
-          <Link href={viewerHref}>
-            <Icon
-              icon={isVideo ? "lucide:play" : "lucide:maximize-2"}
-              className="h-4 w-4"
-              aria-hidden
-            />
-            Open in {effectName ? `${effectName} replications` : "viewer"}
-          </Link>
-        </Button>
+        {isAudio ? null : (
+          <Button asChild className="shrink-0">
+            <Link href={viewerHref}>
+              <Icon
+                icon={isVideo ? "lucide:play" : "lucide:maximize-2"}
+                className="h-4 w-4"
+                aria-hidden
+              />
+              Open in {effectName ? `${effectName} replications` : "viewer"}
+            </Link>
+          </Button>
+        )}
       </header>
 
       <figure className="mt-5">
-        {previewSource ? (
+        {isAudio ? (
+          // Audio's own transport, in the position a poster would occupy. The
+          // same player the effect article and the audio index use, so one clip
+          // sounds and behaves identically wherever it is reached from.
+          <AudioReplicationPlayer
+            src={replication.url}
+            label={replication.title}
+          />
+        ) : previewSource ? (
           // A sighted-user shortcut to the same viewer the header button
           // opens: hidden from the accessibility tree so the button stays the
           // single named route, and the play badge replaces the old "playback
@@ -163,7 +182,7 @@ export function ReplicationDetailPage({
           <MediaPlaceholder
             kind="empty"
             title="Preview unavailable"
-            description="Open the viewer to load the original media."
+            description="Open the original media with the link below."
             className="aspect-video"
           />
         )}
@@ -171,10 +190,16 @@ export function ReplicationDetailPage({
         {/* The file's vital signs read as the preview's caption. */}
         <figcaption className="theme-text-faint mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
           <PublicPill
-            icon={isVideo ? "lucide:video" : "lucide:image"}
+            icon={
+              isAudio
+                ? "lucide:volume-2"
+                : isVideo
+                  ? "lucide:video"
+                  : "lucide:image"
+            }
             size="sm"
           >
-            {isVideo ? "Video" : "Image"}
+            {isAudio ? "Audio" : isVideo ? "Video" : "Image"}
           </PublicPill>
           {replication.width && replication.height ? (
             <span className="tabular-nums">
@@ -192,7 +217,7 @@ export function ReplicationDetailPage({
             rel="noopener noreferrer"
             className={`${proseLinkClassName} ml-auto`}
           >
-            Open full size
+            {isAudio ? "Open audio file" : "Open full size"}
           </a>
         </figcaption>
       </figure>

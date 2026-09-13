@@ -34,7 +34,14 @@ export async function GET(request: Request) {
   const effect = searchParams.get("effect");
   const type = searchParams.get("type");
 
-  if (limit === null || offset === null || (effect && !SLUG_RE.test(effect)) || (type && type !== "image" && type !== "video")) {
+  // `type` mirrors the published kind enum in the OpenAPI document, audio
+  // included; a value outside it is a client error rather than an empty page.
+  if (
+    limit === null ||
+    offset === null ||
+    (effect && !SLUG_RE.test(effect)) ||
+    (type && type !== "image" && type !== "video" && type !== "audio")
+  ) {
     return NextResponse.json(
       publicApiError("invalid_request", "limit, cursor, effect, or type is invalid."),
       { status: 400, headers: getPublicApiResponseHeaders({ cache: false }) },

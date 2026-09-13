@@ -433,17 +433,28 @@ describe("contributor and replication route loaders", () => {
     });
   });
 
-  it("gives an audio row no permalink rather than describing it as an image", async () => {
-    // The detail page branches `type === "video"` with an image fallback, so an
-    // audio row would render `<AppImage src="….mp3">` beneath a pill reading
-    // "Image" and offer an "Open full size" link to the audio file.
+  it("gives an audio row a permalink now that the page has an audio branch", async () => {
+    // This used to 404: the page branched `type === "video"` with an image
+    // fallback, so an audio row rendered `<AppImage src="….mp3">` beneath a pill
+    // reading "Image". The page now renders the shared audio transport and an
+    // "Audio" pill, so withholding the route would hide a work the site can
+    // present — and would keep it out of the sitemap for no reason.
     publicData.getPublicReplicationBySlug.mockResolvedValueOnce(
       buildReplication({ slug: "a-recording", type: "audio", format: "mp3" }),
     );
+    publicData.getPublicEffectBySlug.mockResolvedValueOnce({
+      slug: "tracers",
+      name: "Tracers",
+      summary: "",
+      tags: ["visual"],
+    } as SubjectiveEffectDetailRecord);
 
-    await expect(loadReplicationRoute("a-recording")).resolves.toEqual({
-      kind: "not-found",
-    });
+    const result = await loadReplicationRoute("a-recording");
+
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.pageProps.replication.type).toBe("audio");
   });
 
   it("still renders an ordinary stored row, which carries no role at all", async () => {

@@ -1,4 +1,7 @@
-import type { GalleryReplication } from "@/types/replications";
+import {
+  isVisualReplication,
+  type GalleryReplication,
+} from "@/types/replications";
 
 /**
  * Pure view model for the Effect Index homepage panels.
@@ -310,8 +313,9 @@ function humanizeSlug(slug: string): string {
  * "Featured" is editorial curation rather than derived data, so the list is checked in
  * (`src/data/config/effectIndexFeaturedReplications.json`) rather than stored as a
  * `featured` field the `replications` table does not have. A slug that no longer resolves,
- * or whose media has no URL, is skipped silently — a curated list will always drift behind
- * the data, and a broken tile is worse than a shorter carousel.
+ * whose media has no URL, or whose kind the panel cannot draw, is skipped silently — a
+ * curated list will always drift behind the data, and a broken tile is worse than a
+ * shorter carousel.
  */
 export function resolveFeaturedReplications(
   slugs: readonly string[],
@@ -330,7 +334,13 @@ export function resolveFeaturedReplications(
     // to introduce and the link would point at `/effects/undefined`. Reading the
     // name off the missing slug threw here. Every curated slug resolves to a row
     // with an effect today, so the carousel is unchanged.
-    if (!replication?.url || !replication.effect_slug) {
+    // A published audio row is skipped on the same terms: the panel is a
+    // still/video stage, so `isVisualReplication` is the kind it can draw.
+    if (
+      !replication?.url ||
+      !replication.effect_slug ||
+      !isVisualReplication(replication)
+    ) {
       return [];
     }
 

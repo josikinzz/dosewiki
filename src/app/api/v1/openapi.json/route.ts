@@ -75,11 +75,13 @@ export async function GET(request: Request) {
         // endpoint can no longer promise. Dropping a required field only relaxes
         // the contract, and every published row today still carries one.
         //
-        // `type` stays `image | video` on purpose. The store can hold `audio`,
-        // but nothing on this site presents audio yet, so the reads behind this
-        // endpoint withhold those rows entirely (see `isPublishableReplication`)
-        // and the enum stays true of everything the API can return.
-        Replication: { type: "object", properties: { slug: { type: "string" }, title: { type: "string" }, artist: { type: "string" }, artist_url: { type: "string", format: "uri" }, type: { type: "string", enum: ["image", "video"] }, effect_slug: { type: "string" }, url: { type: "string", format: "uri" }, thumbnail_url: { type: "string", format: "uri" }, preview_url: { type: "string", format: "uri" }, motion_url: { type: "string", format: "uri" }, motion_poster_url: { type: "string", format: "uri" }, width: { type: "number" }, height: { type: "number" }, format: { type: "string" }, file_size: { type: "number" }, duration: { type: "number" }, has_audio: { type: "boolean" }, order_index: { type: "integer" }, rights: { type: "object", properties: { status: { type: "string" }, license_name: { type: "string" }, license_url: { type: "string" }, credit_line: { type: "string" }, source_url: { type: "string" }, rightsholder: { type: "string" } }, required: ["status"] } }, required: ["slug", "title", "artist", "type", "url", "format", "rights"] },
+        // `type` includes `audio`: the store holds audio rows, the site now
+        // presents them (the effect article's audio subsection, the
+        // `/replications/audio` index, and the work's own permalink), so
+        // `isPublishableReplication` serves them here too. `width`, `height`
+        // and the rendition URLs are simply absent on those objects, which the
+        // schema already permits.
+        Replication: { type: "object", properties: { slug: { type: "string" }, title: { type: "string" }, artist: { type: "string" }, artist_url: { type: "string", format: "uri" }, type: { type: "string", enum: ["image", "video", "audio"] }, effect_slug: { type: "string" }, url: { type: "string", format: "uri" }, thumbnail_url: { type: "string", format: "uri" }, preview_url: { type: "string", format: "uri" }, motion_url: { type: "string", format: "uri" }, motion_poster_url: { type: "string", format: "uri" }, width: { type: "number" }, height: { type: "number" }, format: { type: "string" }, file_size: { type: "number" }, duration: { type: "number" }, has_audio: { type: "boolean" }, order_index: { type: "integer" }, rights: { type: "object", properties: { status: { type: "string" }, license_name: { type: "string" }, license_url: { type: "string" }, credit_line: { type: "string" }, source_url: { type: "string" }, rightsholder: { type: "string" } }, required: ["status"] } }, required: ["slug", "title", "artist", "type", "url", "format", "rights"] },
         Error: { type: "object", properties: { error: { type: "object", properties: { code: { type: "string" }, message: { type: "string" } }, required: ["code", "message"] }, meta: ref("Meta") }, required: ["error", "meta"] },
       },
       responses: {

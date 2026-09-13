@@ -26,7 +26,10 @@ export interface MediaRankInput {
 /**
  * 0 — video with a confirmed audio track.
  * 1 — other motion media: silent or unprobed video, or a GIF-format loop.
- * 2 — everything else (stills, and any row the caller could not type).
+ * 2 — everything else: stills, audio-only works, and any row the caller could
+ *     not type. Audio has no frame to open a frame playlist on, and the only
+ *     surfaces that mix it with stills are catalogue listings, so it sorts with
+ *     them rather than earning a rank of its own.
  */
 export function replicationMediaRank(media: MediaRankInput): MediaRank {
   if (media.type === "video") return media.has_audio === true ? 0 : 1;

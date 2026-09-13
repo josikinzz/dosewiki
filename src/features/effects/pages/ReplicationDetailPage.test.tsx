@@ -230,4 +230,42 @@ describe("ReplicationDetailPage", () => {
       "https://gallery.example/works/tracers?size=large",
     );
   });
+
+  it("plays an audio work here instead of describing it as an image", () => {
+    // The page used to branch `type === "video"` with an image fallback, so an
+    // audio row rendered `<AppImage src="….mp3">` under a pill reading "Image"
+    // and offered a viewer link the immersive frame stages cannot serve. It now
+    // renders the same transport the effect article and audio index use.
+    const { container } = render(
+      <ReplicationDetailPage
+        {...props}
+        replication={{
+          ...replication,
+          slug: "a-recording",
+          title: "A recording",
+          type: "audio",
+          format: "mp3",
+          url: "https://cdn.test/a-recording.mp3",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("group", { name: "Audio player: A recording" }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("audio")).toHaveAttribute(
+      "src",
+      "https://cdn.test/a-recording.mp3",
+    );
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Audio")).toBeInTheDocument();
+    expect(screen.queryByText("Image")).toBeNull();
+    // No viewer route: the immersive viewer's stages are a still and a <video>.
+    expect(
+      screen.queryByRole("link", { name: /^Open in / }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("link", { name: "Open audio file" }),
+    ).toHaveAttribute("href", "https://cdn.test/a-recording.mp3");
+  });
 });

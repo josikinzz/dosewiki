@@ -24,6 +24,7 @@ import { z } from "zod";
 import { applyCuratedOrder } from "../../lib/curatedOrder";
 import {
   isPublishableReplication,
+  isVisualReplication,
   type MediaRole,
   type ReplicationDrugClass,
   type ReplicationTitleDrug,
@@ -231,10 +232,17 @@ export function isCombinationReplication(row: SubstanceGalleryMatchableRow): boo
   return routes.length === 0 && titleDrugClassesOf(row).length > 1;
 }
 
-/** Corpus-wide eligibility shared by automatic and direct placement. */
+/**
+ * Corpus-wide eligibility shared by automatic and direct placement.
+ *
+ * The showcase is a frame carousel with a poster per slide, so it takes only
+ * the kinds a frame can draw; a published audio row belongs to the audio
+ * surfaces instead.
+ */
 export function isShowcaseEligible(row: SubstanceGalleryMatchableRow): boolean {
   return (
     isPublishableReplication(row)
+    && isVisualReplication(row)
     && row.showcase_excluded !== true
     && !isCombinationReplication(row)
   );

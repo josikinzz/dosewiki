@@ -9,7 +9,10 @@ import {
   visualEffectNamesOf,
 } from "@/data/substanceVisualEffects";
 import { sortByMediaRank } from "@/features/replications/mediaRank";
-import type { ReplicationWithUrl } from "@/types/replications";
+import {
+  isVisualReplication,
+  type ReplicationWithUrl,
+} from "@/types/replications";
 import { applyCuratedOrder } from "@server/curatedOrder";
 
 import type { ShowcaseWork } from "./showcaseWork";
@@ -54,7 +57,7 @@ export function buildShowcaseWorks(
     ...sortByMediaRank(fallback, (item) => item.replication),
   ];
   for (const { replication, provenance } of ranked) {
-    if (replication.type !== "video" && replication.type !== "image") continue;
+    if (!isVisualReplication(replication)) continue;
     const artistName = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
       : null;
@@ -116,12 +119,7 @@ export function buildEffectShowcaseWorks(
     galleryOrder,
     (replication) => replication.slug,
   );
-  const drawable = ordered.filter(
-    (
-      replication,
-    ): replication is ReplicationWithUrl & { type: "image" | "video" } =>
-      replication.type === "image" || replication.type === "video",
-  );
+  const drawable = ordered.filter(isVisualReplication);
   return drawable.map((replication) => {
     const artistName = hasKnownCreator(replication.artist)
       ? replication.artist.trim()

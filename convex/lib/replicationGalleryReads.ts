@@ -18,7 +18,7 @@ const publicGalleryPreviewValidator = v.object({
   title: v.string(),
   artist: v.string(),
   artist_url: v.optional(v.string()),
-  type: v.union(v.literal("image"), v.literal("video")),
+  type: v.union(v.literal("image"), v.literal("video"), v.literal("audio")),
   format: v.string(),
   effect_slug: v.optional(v.string()),
   effect_tags: v.optional(v.array(v.string())),
@@ -64,12 +64,24 @@ export function clampPublicGalleryPageSize(requested: number): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_GALLERY_PAGE_SIZE);
 }
 
+/**
+ * Publishability, restated inside Convex for the paginated corpus read.
+ *
+ * Kept in lockstep with `isPublishableReplication` in
+ * `src/types/replications.ts`, which is the definition; this is the same three
+ * withholding reasons plus the presentable-kind check, because the corpus page
+ * is assembled here and a row dropped after pagination would make pages
+ * silently short. Audio is presentable: it is served by `/api/v1/replications`
+ * and owns a permalink. Narrowing to the kinds a *frame* surface can draw is a
+ * separate, app-side decision — see `getPublicGalleryReplications` in
+ * `lib/convex/publicData.replications.ts`.
+ */
 function isPublishableGalleryRow(row: Doc<"replications">): boolean {
   return (
     (row.role ?? "replication") === "replication" &&
     row.publication_state !== "duplicate-suppressed" &&
     row.replication_status !== "not-replication" &&
-    (row.type === "image" || row.type === "video")
+    (row.type === "image" || row.type === "video" || row.type === "audio")
   );
 }
 
@@ -94,7 +106,7 @@ async function projectGalleryRow(
     title: row.title,
     artist: row.artist,
     ...(row.artist_url ? { artist_url: row.artist_url } : {}),
-    type: row.type as "image" | "video",
+    type: row.type as "image" | "video" | "audio",
     format: row.format,
     ...(row.effect_slug ? { effect_slug: row.effect_slug } : {}),
     ...(row.effect_tags ? { effect_tags: row.effect_tags } : {}),

@@ -94,7 +94,14 @@ describe("the replication publication gate", () => {
     ]);
   });
 
-  it("withholds audio, which every surface would otherwise draw as an image", async () => {
+  it("publishes audio, which the site now has a player for", async () => {
+    // This used to assert the opposite: audio was withheld because every
+    // surface would have drawn it as an image. The site now presents audio
+    // through `AudioReplicationPlayer` — on the effect article, the
+    // `/replications/audio` index, the work's permalink, and the public API —
+    // so these two reads publish it. Narrowing to the kinds a *frame* can draw
+    // is a separate decision made per surface with `isVisualReplication`, and
+    // is covered in `publicData.replications.test.ts`.
     const image = row({ slug: "a-picture", type: "image" });
     const audio = row({ slug: "a-recording", type: "audio", format: "mp3" });
 
@@ -103,9 +110,13 @@ describe("the replication publication gate", () => {
       audio,
     ]);
 
-    expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["a-picture"]);
+    expect((await getPublicReplications()).map((item) => item.slug)).toEqual([
+      "a-picture",
+      "a-recording",
+    ]);
     expect((await getPublicReplicationsByEffect("geometry")).map((item) => item.slug)).toEqual([
       "a-picture",
+      "a-recording",
     ]);
   });
 
