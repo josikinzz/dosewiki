@@ -60,7 +60,7 @@ export interface SubstanceRecord {
   content: SubstanceContent;
 }
 
-export type SubstanceMechanism = NormalizedMechanism;
+type SubstanceMechanism = NormalizedMechanism
 
 function buildMechanisms(mechanismTags: string[]): SubstanceMechanism[] {
   return normalizeMechanisms(mechanismTags);

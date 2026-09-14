@@ -8,7 +8,7 @@
 
 export type SearchEntryType = "substance" | "category" | "effect" | "report" | "profile";
 
-export const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
+const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
   substance: 0,
   profile: 1,
   report: 2,
@@ -30,7 +30,7 @@ export const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
  * - Keyword hits (classes, mechanisms, prose) are always last; they exist to
  *   make the long tail reachable, not to compete with name matches.
  */
-export const SCORE = {
+const SCORE = {
   labelExact: 0,
   aliasExact: 1,
   reportSubstanceAliasExact: 2,
@@ -44,7 +44,7 @@ export const SCORE = {
   reportSubstanceAliasSubstring: 10,
   keywordPrefix: 11,
   keywordSubstring: 12,
-} as const;
+} as const
 
 /**
  * Blob delimiter. Keywords may contain spaces, so the separator has to be a
@@ -79,8 +79,8 @@ export const normalizeSearchKey = (value: string | undefined): string =>
  * removed, so `allad` and `AL-LAD` compare equal. Only ever compared against
  * other compact forms; word-boundary logic stays on the folded/spaced form.
  */
-export const compactSearchText = (value: string | undefined | null): string =>
-  foldSearchText(value).replace(/[^a-z0-9]+/g, "");
+const compactSearchText = (value: string | undefined | null): string =>
+  foldSearchText(value).replace(/[^a-z0-9]+/g, "")
 
 /** The compact fields an index or manifest loader precomputes per entry. */
 export interface CompactMatchFields {
@@ -111,7 +111,7 @@ const isWordCharacter = (code: number): boolean =>
   (code >= 97 && code <= 122) || (code >= 48 && code <= 57);
 
 /** True when `query` starts any word inside `text` (not just the whole string). */
-export const hasWordPrefix = (text: string, query: string): boolean => {
+const hasWordPrefix = (text: string, query: string): boolean => {
   let from = text.indexOf(query);
   while (from >= 0) {
     if (from === 0 || !isWordCharacter(text.charCodeAt(from - 1))) {
@@ -120,7 +120,7 @@ export const hasWordPrefix = (text: string, query: string): boolean => {
     from = text.indexOf(query, from + 1);
   }
   return false;
-};
+}
 
 /**
  * Shortest entry in `values` satisfying `predicate`, or `null` when none do.
@@ -172,18 +172,16 @@ export interface MatchableEntry {
   keywordBlob: string;
 }
 
-export interface ScoredMatch {
-  score: number;
-  /**
-   * Length of the text that produced the hit. Used as a tiebreaker so the query
-   * covering more of a short name outranks the same hit buried in a long one —
-   * `eth` scores ETH-LAD above Ethylphenidate, and alias `ethanol` above a
-   * 70-character IUPAC name. Keyword tiers fall back to the label length.
-   */
-  matchLength: number;
-}
+interface ScoredMatch { score: number;
+/**
+ * Length of the text that produced the hit. Used as a tiebreaker so the query
+ * covering more of a short name outranks the same hit buried in a long one —
+ * `eth` scores ETH-LAD above Ethylphenidate, and alias `ethanol` above a
+ * 70-character IUPAC name. Keyword tiers fall back to the label length.
+ */
+matchLength: number; }
 
-export const computeScore = (
+const computeScore = (
   entry: MatchableEntry,
   query: string,
   compactQuery: string = compactSearchText(query),
@@ -297,7 +295,7 @@ export const computeScore = (
     return { score: SCORE.keywordSubstring, matchLength: labelLength };
   }
   return null;
-};
+}
 
 export interface RankedMatch<TEntry extends MatchableEntry> extends ScoredMatch {
   entry: TEntry;
@@ -343,7 +341,7 @@ const compareMatches = <TEntry extends MatchableEntry>(
 };
 
 /** Canonical query normalization. Every caller must go through this. */
-export const normalizeSearchQuery = (query: string): string => foldSearchText(query).trim();
+const normalizeSearchQuery = (query: string): string => foldSearchText(query).trim()
 
 export interface RunSearchOptions {
   limit?: number;

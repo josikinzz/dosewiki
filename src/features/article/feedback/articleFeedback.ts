@@ -10,7 +10,7 @@
 
 import { msg } from "@/i18n/messages";
 
-export const ARTICLE_FEEDBACK_SCHEMA_VERSION = 1;
+const ARTICLE_FEEDBACK_SCHEMA_VERSION = 1;
 
 export const ARTICLE_FEEDBACK_CATEGORIES = [
   "inaccurate",
@@ -46,7 +46,7 @@ export const ARTICLE_FEEDBACK_IMPORTANCE_LABELS: Record<ArticleFeedbackImportanc
   low: msg("Low — minor or cosmetic"),
 };
 
-export const ARTICLE_FEEDBACK_STATUSES = [
+const ARTICLE_FEEDBACK_STATUSES = [
   "new",
   "reviewing",
   "resolved",
@@ -75,9 +75,9 @@ export const ARTICLE_FEEDBACK_STATUS_TRANSITIONS: Record<
 };
 
 export const ARTICLE_FEEDBACK_DETAILS_MAX_LENGTH = 4000;
-export const ARTICLE_FEEDBACK_URL_MAX_LENGTH = 2000;
-export const ARTICLE_FEEDBACK_EMAIL_MAX_LENGTH = 254;
-export const ARTICLE_FEEDBACK_SUBSTANCE_MAX_LENGTH = 200;
+const ARTICLE_FEEDBACK_URL_MAX_LENGTH = 2000;
+const ARTICLE_FEEDBACK_EMAIL_MAX_LENGTH = 254;
+const ARTICLE_FEEDBACK_SUBSTANCE_MAX_LENGTH = 200;
 
 export type ArticleFeedbackInput = {
   substance_slug: string;
@@ -135,14 +135,14 @@ export function isArticleFeedbackStatus(value: unknown): value is ArticleFeedbac
   );
 }
 
-export function isArticleFeedbackCategory(value: unknown): value is ArticleFeedbackCategory {
+function isArticleFeedbackCategory(value: unknown): value is ArticleFeedbackCategory {
   return (
     typeof value === "string" &&
     ARTICLE_FEEDBACK_CATEGORIES.includes(value as ArticleFeedbackCategory)
   );
 }
 
-export function isArticleFeedbackImportance(value: unknown): value is ArticleFeedbackImportance {
+function isArticleFeedbackImportance(value: unknown): value is ArticleFeedbackImportance {
   return (
     typeof value === "string" &&
     ARTICLE_FEEDBACK_IMPORTANCES.includes(value as ArticleFeedbackImportance)
@@ -237,7 +237,7 @@ export function createArticleFeedbackRow(
   };
 }
 
-export function normalizeArticleFeedbackInput(
+function normalizeArticleFeedbackInput(
   input: ArticleFeedbackInput,
 ): NormalizedArticleFeedbackInput {
   return {

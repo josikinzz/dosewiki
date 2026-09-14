@@ -1,11 +1,9 @@
 import yaml from "yaml";
 
-export function titleToSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+function titleToSlug(title) { return title
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, ""); }
 
 export function getArticleSlug(article) {
   return article.slug || titleToSlug(article.title);

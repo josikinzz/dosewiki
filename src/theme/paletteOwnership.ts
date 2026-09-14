@@ -9,6 +9,4 @@ export function paletteTokenRole(token: string): PaletteRole {
   return "surface";
 }
 
-export function selectPaletteRole(values: Readonly<Record<string, string>>, role: PaletteRole) {
-  return Object.fromEntries(Object.entries(values).filter(([token]) => paletteTokenRole(token) === role));
-}
+

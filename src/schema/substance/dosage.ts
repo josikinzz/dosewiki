@@ -22,22 +22,22 @@ export const dosageRouteSchema = z.object({
 });
 
 /** DXM-specific plateau dose */
-export const plateauDoseSchema = z.object({
+const plateauDoseSchema = z.object({
   min: z.number().nullable(),
   max: z.number().nullable(),
   unit: z.string(),
   effects: z.string(),
-});
+})
 
 /** DXM-specific plateau dosing */
-export const plateauDosingSchema = z.object({
+const plateauDosingSchema = z.object({
   first_plateau: plateauDoseSchema,
   second_plateau: plateauDoseSchema,
   third_plateau: plateauDoseSchema,
   fourth_plateau: plateauDoseSchema,
   fifth_plateau: plateauDoseSchema.nullable(),
   notes: z.string().nullable(),
-});
+})
 
 /** Dosage section */
 export const dosageSchema = z.object({
@@ -47,6 +47,4 @@ export const dosageSchema = z.object({
 
 export type DoseRanges = z.infer<typeof doseRangesSchema>;
 export type DosageRoute = z.infer<typeof dosageRouteSchema>;
-export type PlateauDose = z.infer<typeof plateauDoseSchema>;
 export type PlateauDosing = z.infer<typeof plateauDosingSchema>;
-export type Dosage = z.infer<typeof dosageSchema>;

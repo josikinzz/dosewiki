@@ -115,10 +115,10 @@ export async function sendBatch({ locale, model, apiKey, userMessage }) {
   throw lastError;
 }
 
-export async function translateBatch({ units, locale, glossary, model, apiKey, retryNote }) {
+export async function translateBatch({ units, locale, glossary, glosses, kinds, model, apiKey, retryNote }) {
   const idByHash = new Map(units.map((unit, index) => [unit.hash, `s${index}`]));
   const payloadUnits = units.map((unit) => ({ ...unit, id: idByHash.get(unit.hash) }));
-  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary });
+  const userMessage = buildBatchPrompt(locale, payloadUnits, { retryNote, glossary, glosses, kinds });
 
   const response = await sendBatch({ locale, model, apiKey, userMessage });
 
@@ -175,12 +175,13 @@ export function retryNoteFor(defects) {
  * Translate one planned batch to a verdict per unit: the batch goes out once,
  * and every unit that fails a blocking check goes back alone with a note
  * about what went wrong, up to MAX_ATTEMPTS. `glossary` is the locale's
- * approved `term -> target` map, loaded by the caller; the engine never reads
- * it from anywhere itself.
+ * approved `term -> target` map, `glosses` the locale-independent
+ * `term -> gloss` map, and `kinds` the approved `term -> kind` map, all
+ * loaded by the caller; the engine never reads them from anywhere itself.
  */
-export async function translateBatchWithRetries({ units, locale, glossary, model, apiKey, onUsage }) {
+export async function translateBatchWithRetries({ units, locale, glossary, glosses, kinds, model, apiKey, onUsage }) {
   const attemptUnits = async (unitsToRun, attempt, retryNote) => {
-    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, model, apiKey, retryNote });
+    const { usage, results } = await translateBatch({ units: unitsToRun, locale, glossary, glosses, kinds, model, apiKey, retryNote });
     onUsage?.(usage, attempt);
     return results;
   };

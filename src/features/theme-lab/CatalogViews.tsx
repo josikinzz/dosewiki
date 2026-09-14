@@ -39,7 +39,7 @@ export interface ColorGroup {
  * cannot separate it from the swatch beside it, so the state is carried by a
  * pencil glyph plus an accessible name — shape and text, not hue.
  */
-export function ChangedMark() {
+function ChangedMark() {
   return (
     <span className={styles.tokenDot} role="img" aria-label="changed">
       <Icon icon="lucide:pencil" size={10} />
@@ -58,7 +58,7 @@ export function TokenSwatch({ background }: { background: string }) {
 
 /** A length token has no color to show, so its row chip wears its own value —
  *  the corner shape *is* the swatch. */
-export function RadiusSwatch({ value }: { value: string }) {
+function RadiusSwatch({ value }: { value: string }) {
   return <span className={styles.radiusSwatch} style={{ borderRadius: value }} aria-hidden="true" />;
 }
 
@@ -96,7 +96,7 @@ export function FontSwatch({ value }: { value: string }) {
  *  alias rather than naming the theme custom property in an arbitrary value —
  *  the same declaration, in the form `src/theme`'s token audit keeps feature
  *  TSX on (the audit scans comments too, so do not spell it out here either). */
-export function HueSwatch({ value }: { value: string }) {
+function HueSwatch({ value }: { value: string }) {
   return (
     <span
       aria-hidden="true"
@@ -197,7 +197,7 @@ function lengthValue(id: string, value: string) {
   return value.trim() || getLengthSpec(id)?.fallback || "";
 }
 
-export function EmptyResults() {
+function EmptyResults() {
   return <p className={styles.mergedHint}>No colors match your search.</p>;
 }
 

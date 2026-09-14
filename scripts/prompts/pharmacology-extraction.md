@@ -2,15 +2,12 @@
 
 Extract every pharmacodynamics or pharmacokinetics passage from the supplied collected-source file for one substance. Use only the supplied documents. Extraction preserves source text verbatim; it is not summarisation, synthesis or rewriting.
 
-## 1. Identify sources and output mode
+## 1. Identify sources
 
-In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Source count, length and quality vary.
+The staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Source count, length and quality vary.
 
 Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
-
-Continue when every source boundary and the active output mode are identified.
 
 ## 2. Find and classify every pharmacology passage
 
@@ -58,13 +55,13 @@ Continue when every source has been reviewed and each qualifying or uncertain pa
 - Keep administration route names attached to half-life and bioavailability values wherever stated, including oral, insufflated, sublingual, smoked, vaporised, intravenous, intramuscular and rectal routes.
 - Copy a selected table whole: header, separator and every data row, with every column intact. Include its introductory sentence. A selected sentence introducing a table also requires the table beneath it. Retain the original table format.
 - Preserve hedges and limitations with their claims, including assumptions based on structural similarity. Keep each claim under its own source; never supply a mechanism from memory or transfer a claim from a related substance.
-- In excerpt mode, author only the metadata, headings, separators and markers defined in step 4. All extracted text remains source text, without added explanation or merged sentences.
+- Author only the metadata, headings, separators and markers defined in step 4. All extracted text remains source text, without added explanation or merged sentences.
 
-Continue when every selected unit is intact, with its attached context and original provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
+Continue when every selected unit is intact, with its attached context and original provenance. Each passage must match its source character for character; the downstream substring check rejects any drift.
 
-## 4. Emit the active output format
+## 4. Emit the excerpt document
 
-When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
+Output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Pharmacology Quotes
@@ -97,7 +94,7 @@ Before responding, confirm:
 - Every selected table has its header, separator, all rows and columns, and introductory context.
 - Values retain their targets, assay/species context and routes wherever supplied; all wording and hedges remain source-faithful.
 - Unsupported PD or PK remains absent.
-- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- The response follows the excerpt-document format exactly.
 - Every downstream field below has been checked for available evidence. These fields guide coverage, not output labels or reorganisation.
 
 | Field | Half | What feeds it |

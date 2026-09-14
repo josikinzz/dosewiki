@@ -8,12 +8,10 @@ import { curatedEffectPosition, type GalleryReplication } from "@/types/replicat
 
 export const PUBLIC_API_VERSION = "v1" as const;
 export const PUBLIC_API_BASE_PATH = "/api/v1" as const;
-export const PUBLIC_API_DEFAULT_LIMIT = 25;
-export const PUBLIC_API_MAX_LIMIT = 100;
-export const PUBLIC_API_CACHE_CONTROL =
-  "public, max-age=60, stale-while-revalidate=3600";
-export const PUBLIC_API_CDN_CACHE_CONTROL =
-  "public, s-maxage=300, stale-while-revalidate=3600";
+const PUBLIC_API_DEFAULT_LIMIT = 25
+const PUBLIC_API_MAX_LIMIT = 100
+const PUBLIC_API_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=3600"
+const PUBLIC_API_CDN_CACHE_CONTROL = "public, s-maxage=300, stale-while-revalidate=3600"
 export const PUBLIC_API_DISCLAIMER =
   "DoseWiki content is provided for harm-reduction education and is not medical advice.";
 

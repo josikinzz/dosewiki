@@ -17,7 +17,8 @@ import { IndexPanelGrid, INDEX_PANEL_STACK_CLASS_NAME } from "@/components/commo
 import { arrangeGroupsByLayout, type ColumnLayoutTable } from "@/features/article/components/sections/CategoryGrid";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import type { BoardCategory, BoardSection } from "./boardModel";
-import { IndexLayoutCard, type BoardActions } from "./IndexLayoutCard";
+import { IndexLayoutCard } from "./IndexLayoutCard";
+import type { BoardActions } from "./IndexLayoutCardMenus";
 import { parseRowId } from "./LayoutDrugRow";
 import type { LayoutSlot } from "./layoutOps";
 

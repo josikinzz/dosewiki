@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  groupByArtist,
-  matchesQuery,
-} from "@/features/effects/gallery/galleryModel";
+import { groupByArtist } from "@/features/effects/gallery/galleryModel";
+import { matchesQuery } from "@/features/effects/gallery/galleryFilters";
 import {
   PRODUCTION_SHAPED_REPLICATION_COUNT,
   productionShapedReplicationGallery,

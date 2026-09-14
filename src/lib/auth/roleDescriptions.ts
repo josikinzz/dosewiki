@@ -44,6 +44,22 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
       "Open the global change review queue or read another editor's submissions.",
     ],
   },
+  translator: {
+    role: "translator",
+    summary: "Reviews how the site's terms are written in a language. Renders the taxonomy, never changes it.",
+    can: [
+      "Approve and edit glossary renderings for a locale.",
+      "Export and import the glossary sheet.",
+      "Edit their own profile.",
+      "Build and rearrange their own replication playlists.",
+      "Edit their own trip reports.",
+    ],
+    cannot: [
+      "Start or queue translations. That spends money.",
+      "Open the article tools or the review queue.",
+      "Change anything someone else owns.",
+    ],
+  },
   contributor: {
     role: "contributor",
     summary: "Owns their own things on the site and nothing else.",
@@ -65,5 +81,6 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
 /** The roles an invite can grant, in the order the pickers list them. */
 export const INVITABLE_ROLE_DESCRIPTIONS: readonly RoleDescription[] = [
   ROLE_DESCRIPTIONS.editor,
+  ROLE_DESCRIPTIONS.translator,
   ROLE_DESCRIPTIONS.contributor,
 ];

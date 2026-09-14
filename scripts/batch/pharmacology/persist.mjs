@@ -84,19 +84,17 @@ export async function persistSuccessfulUpdate(result, persistenceContext) {
   return persist(result);
 }
 
-export function applyPharmacologyUpdate(article, result) {
-  article.pharmacology = { ...result.pharmacology };
-  mergeRouteDataIntoDosageDuration(article, article.pharmacology);
-  assertNoPublicProseArtifactLanguage(article, {
-    sections: ["pharmacology", "dosage", "duration"],
-    sourcePath: `batch:pharmacology:${result.slug || getArticleSlug(article)}`,
-  });
-  assertNoPublicProseNamedSourceAttribution(article, {
-    sections: ["pharmacology", "dosage", "duration"],
-    sourcePath: `batch:pharmacology:${result.slug || getArticleSlug(article)}`,
-  });
-  return article;
-}
+function applyPharmacologyUpdate(article, result) { article.pharmacology = { ...result.pharmacology };
+mergeRouteDataIntoDosageDuration(article, article.pharmacology);
+assertNoPublicProseArtifactLanguage(article, {
+  sections: ["pharmacology", "dosage", "duration"],
+  sourcePath: `batch:pharmacology:${result.slug || getArticleSlug(article)}`,
+});
+assertNoPublicProseNamedSourceAttribution(article, {
+  sections: ["pharmacology", "dosage", "duration"],
+  sourcePath: `batch:pharmacology:${result.slug || getArticleSlug(article)}`,
+});
+return article; }
 
 export async function processAll(apiKey, articles, systemPrompt, options, persistenceContext) {
   const { concurrency, verbose, dryRun } = options;

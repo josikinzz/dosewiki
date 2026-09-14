@@ -255,7 +255,7 @@ function createConsoleReporter(options: CliOptions): ParseSourceCorpusReporter {
   };
 }
 
-export function createParseSourceCorpusCliOptions(options: CliOptions): ParseSourceCorpusOptions {
+function createParseSourceCorpusCliOptions(options: CliOptions): ParseSourceCorpusOptions {
   return {
     substance: options.substance || undefined,
     catalog: createFileSystemSourceCatalog(SOURCES_DIR),

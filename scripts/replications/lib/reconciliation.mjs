@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export const LEGACY_EFFECT_SLUG_ALIASES = {
+const LEGACY_EFFECT_SLUG_ALIASES = {
   breathing: "drifting",
   melting: "drifting",
   flowing: "drifting",
@@ -18,7 +18,7 @@ export const LEGACY_EFFECT_SLUG_ALIASES = {
   "visual-geometry": "geometry",
   "color-enhancement": "colour-enhancement",
   "peripheral-pareidolia": "increased-pareidolia",
-};
+}
 
 const REPLICATION_EFFECT_OVERRIDES = {
   "hatmancometh-unknown": "shadow-people",

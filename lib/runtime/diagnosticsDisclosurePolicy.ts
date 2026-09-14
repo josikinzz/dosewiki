@@ -9,20 +9,20 @@ export type DiagnosticsAudience =
   | "local-developer"
   | "build-preflight";
 
-export type DiagnosticIssueSeverity = "info" | "warning" | "error";
+type DiagnosticIssueSeverity = "info" | "warning" | "error"
 
-export type DiagnosticDisclosureIssue = {
+type DiagnosticDisclosureIssue = {
   severity: DiagnosticIssueSeverity;
   message: string;
   capability?: string;
   envVars?: string[];
-};
+}
 
-export type DiagnosticKeyPresenceFact = {
+type DiagnosticKeyPresenceFact = {
   name: string;
   configured: boolean;
   sensitive?: boolean;
-};
+}
 
 export type DiagnosticDisclosureFacts = {
   now: Date;

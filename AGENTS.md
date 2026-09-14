@@ -2,47 +2,33 @@
 
 ## Start Here
 
-- Read [CONTEXT.md](CONTEXT.md) for the canonical vocabulary before non-trivial changes.
-- For replication intake, gallery classification, taxonomy, or promotion, follow the [replication classification field guide](docs/agents/replication-classification-guide.html).
-- For Reddit archive media moving from reviewed local evidence through R2, Convex, and both public sites, follow the [Reddit replication intake runbook](docs/agents/reddit-replication-intake.md).
-- For UI work, reuse the [UI kit](docs/ui-kit.md), then follow [.impeccable.md](.impeccable.md) and the [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
-- For environment or deployment work, use [README environment guidance](README.md#environment-and-deployment) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
-- For a trip report submitted as one flat body, follow the [trip report timeline runbook](docs/agents/trip-report-timeline.md) so the reshape stays lossless.
-- For the machine-translated locale mirrors (`zh.dose.wiki`), their store, cron, and operator script, follow the [locale mirrors runbook](docs/agents/locale-mirrors.md).
-- For `/sectionmaxxing` or `/goal continue the sectionmaxxing process till completion`, follow the [sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). It regenerates five non-legality narrative sections on every URL-only/hidden article with isolated Sol-low workers; it is not the `citation-pi` entailment audit.
+- Read [CONTEXT.md](CONTEXT.md) for canonical project language.
+- For replication classification, taxonomy, promotion, or gallery intake, follow the [replication classification field guide](docs/agents/replication-classification-guide.html). For reviewed Reddit archive media moving through R2, Postgres, and public sites, follow the [Reddit replication intake runbook](docs/agents/reddit-replication-intake.md).
+- For flat-body trip reports, follow the [timeline runbook](docs/agents/trip-report-timeline.md). For `zh.dose.wiki` translation storage, cron, or operator work, follow the [locale mirrors runbook](docs/agents/locale-mirrors.md).
+- For `/sectionmaxxing`, follow the [sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). It regenerates five non-legality narrative sections on URL-only and hidden articles; publishing stays separately approved.
+- For molecule editing or rendering, follow [molecule editor notes](src/features/dev/tools/molecule-editor/NOTES.md) and [OpenChemLib fork ownership](docs/architecture/openchemlib-fork.md).
+- For UI work, reuse the portable [UI kit](docs/ui-kit.md) and [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md).
+- For generated data, inspect `src/data/artifactLineageManifest.json`, change the producer input, and run its recorded command. Treat generated Postgres schema, Convex functions, and migrations as producer-owned outputs; never hand-edit `convex/_generated/`, `src/data/schema/*.generated.ts`, or generated migration metadata.
 
 ## Hard Invariants
 
-- dose.wiki and Effect Index use this repository, branch, and production Convex data through two Vercel projects. Publication identity and route availability differ by the build-time flavor in `src/config/siteFlavor.ts`; content and data writes can affect both sites.
-- `dose.wiki` and `www.dose.wiki` are the launched public hosts. One `dosewiki-admin` production build also serves `dev.dose.wiki` and `dosewiki-admin.vercel.app`; those two editor hosts remain closed to crawlers.
-- Write public links as App Paths (`/2c-b`). The retired `/preview` addresses permanently redirect to App Paths and must never appear in new hrefs. Public-host editor, review, and sign-in links hand off to `dev.dose.wiki`; credentialed editor APIs remain unavailable on the public origin.
-- DoseWiki owns the canonical public replication carousel and immersive viewer for Osmanthus too. `/embed/replications` must render the existing `ReplicationShowcase` and `ReplicationViewerOverlay`, not a second implementation. Keep its versioned message contract in `HANDOFF.md`, exact-origin framing policy in `lib/next/replicationEmbedPolicy.ts`, and public-build editorial isolation intact. Publisher UI releases update the embedded consumer at runtime; never introduce a consumer-side playback fork. Deploy the publisher endpoint before a consumer cutover.
-- All configured Convex reads and writes, including local, development, preview, and production, target `prod:glad-minnow-656`. The Effect Index deployment remains credential-free and read-only. Never configure active work against retired `enchanted-echidna-791`.
-- Before a Convex write, run `npm run convex:doctor`, read [Convex credentials](docs/agents/convex-credentials.md), set `TARGET_CONVEX_URL` explicitly, and complete the command's confirmation gates.
-- PlanetScale: org `disregardeverythingisay`, database `dosewiki`, branch `main`, engine Postgres. Since the 2026-09-10 cutover ([ticket 23](notes-and-plans/plans/convex-to-planetscale/decisions.md)) it is runtime truth for all three production deployments; Convex `glad-minnow-656` is a frozen pre-cutover copy kept through the ticket 24 observation window and must not be written. Agents may run read-only SQL against PlanetScale, preferably through `POSTGRES_POOLED_URL` (the PS-5 direct limit is 25 sessions and pgbouncer holds most of them). Writes go only through `npm run postgres:migrate`, `npm run postgres:import`, and `npm run postgres:rehearse-publication` (scratch rows it deletes), each with `--allow-remote` and `POSTGRES_IMPORT_CONFIRM` set. Schema changes outside versioned migrations, Traffic Control, webhooks, and role or credential creation require owner approval. Connection URLs live in `.env.local` only.
-- `DATA_BACKEND=postgres` runs the unchanged `convex/` functions in-process against Postgres (`lib/postgres/runtime/`). It is explicit only: any other value means Convex, so a preview build never inherits a Postgres writer. Such a process MUST carry the Convex deployment variables the handlers read from `process.env` (`npx convex env list`); `lib/postgres/runtime/deploymentEnv.ts` refuses to start without `REPLICATION_MEDIA_BASE_URL`, because a missing media base URL makes the public gallery silently drop most of its rows. `CONVEX_ADMIN_KEY` and `GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT` belong only to a writing deployment: on Postgres the admin key is the write credential, so the read-only public and Effect Index deployments must never carry it. Never hand-edit `lib/postgres/schema.generated.ts`, `lib/postgres/runtime/functions.generated.ts`, or `lib/postgres/migrations/`: regenerate with `npm run generate:postgres-schema`, `npm run generate:postgres-functions`, and `npm run postgres:migrate:generate`.
+- PlanetScale Postgres is production runtime truth. Convex `glad-minnow-656` is a frozen recovery source during the ticket 24 observation window. Never write Convex in normal operation. Any rollback write is owner-gated and follows [the recovery procedure](notes-and-plans/plans/convex-to-planetscale/release-manifest.md#10-post-write-rollback-postgres-to-convex).
+- Production data commands use `DATA_BACKEND=postgres`, an explicit `--target` or `TARGET_POSTGRES_URL`, and every guard named by the command. A dry run is not authorization. Implementing a guarded command does not add it to the operator-write allowlist. See [data credentials](docs/agents/convex-credentials.md).
+- `DATA_WRITES_FROZEN=1` must fail closed at every write boundary. Never weaken the freeze, explicit-target checks, confirmation phrases, role checks, or intent-scoped credential selection.
+- Public DoseWiki, editor DoseWiki, and Effect Index are separate build artifacts and Vercel projects. `dosewiki-public` serves `dose.wiki` and `www.dose.wiki`; `dosewiki-admin` serves `dev.dose.wiki` and `dosewiki-admin.vercel.app`; Effect Index uses its own read-only flavor. See [deployment routing](docs/agents/deployment.md).
+- DoseWiki owns the replication embed used by Osmanthus. `/embed/replications` reuses `ReplicationShowcase` and `ReplicationViewerOverlay`; keep the versioned contract in `HANDOFF.md`, framing policy in `lib/next/replicationEmbedPolicy.ts`, public-build editorial isolation, and publisher-first release order.
+- Public and Effect Index artifacts carry no admin key or editorial browser modules. Only the editor deployment may carry the write credential tier. `REPLICATION_MEDIA_BASE_URL` is required for Postgres runtime reads.
+- Write links as App Paths. `/preview` exists only for permanent compatibility redirects. Public editor, review, and sign-in links hand off to `dev.dose.wiki`.
+- Preserve Auth.js identity, database-backed roles, service-write allowlists, content ownership, revision checks, human editorial authority, and recovery history. Never infer authorization from a credential alone.
+- Local source changes are not deployed changes. Never claim production state without deployment evidence.
 
-## Common Commands
+## Commands and Verification
 
-- Install: `bun install --frozen-lockfile` (Bun 1.3.5 owns `bun.lock`).
-- Inspect the current command surface in `package.json`; `npm run ...` package scripts remain supported.
-
-## Editing Rules
-
-- Treat PlanetScale Postgres as runtime truth (Convex until 2026-09-10). Local JSON and Markdown are backups, migration inputs, exports, prompts, or generated artifacts unless active code says otherwise.
-- For generated data, check `src/data/artifactLineageManifest.json`, update the producer input, and rerun its recorded command. Do not hand-edit `convex/_generated/` or `src/data/schema/*.generated.ts`.
-- For the committed OpenChemLib distribution, follow [fork ownership and verification](docs/architecture/openchemlib-fork.md).
-- Treat `/preview` as a compatibility-only pre-launch prefix. `middleware.ts` may parse it to issue a permanent redirect; client route state must use ordinary App Paths.
-
-## Verification
-
-- Match verification to scope: `npm run verify:fast` (tests + typecheck) for ordinary app-code changes, `npm run verify:app` when routing, middleware, or build config change, `npm run verify:workflow` for script/data workflow changes, or `npm run verify:all` when both change.
-- Never delete `.next` as a build-fix reflex: `.next/cache` holds the persistent Convex data cache, the difference between a ~1 minute warm build and a ~4 minute cold one.
-- After article-schema changes, run `npm run generate:schema` and include the generated helper updates.
-- After generated-data or lineage changes, run `npm run provenance:check`.
-- Verify host- and middleware-shaped work against `npm run build && npx next start` or a deployment: middleware never runs under `next dev`, so a dev-server check passes without executing it.
-- When adding a test, follow the [test ownership policy](docs/architecture/operations-and-direction.md#test-ownership-policy): one contract at its lowest stable layer, no source-text scans outside named architecture policies, no workstation-gated skips. Vendored OpenChemLib changes run `npm run openchemlib:test`.
+- Install with `bun install --frozen-lockfile`; Bun 1.3.5 owns `bun.lock`.
+- `package.json` is the executable command catalog. Use the narrow verification command for the changed surface.
+- Never delete `.next` as a build-fix reflex; `.next/cache` contains the persistent data cache.
+- Routing, middleware, and build-config work must be checked with a production-shaped build or deployment because middleware does not run under `next dev`.
 
 ## Style
 
-- Em dashes are banned in all text because they read as AI slop.
+- Em dashes are banned in all text.

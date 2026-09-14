@@ -13,7 +13,7 @@ import { evaluateGeneratedExportRetention } from "./local-artifact-hygiene-polic
 
 export const ARTIFACT_LINEAGE_MANIFEST_PATH = "src/data/artifactLineageManifest.json";
 export const ARTIFACT_LINEAGE_RUN_DIR = "src/data/.lineage";
-export const ARTIFACT_LINEAGE_DOC_PATHS = ["README.md", "AGENTS.md", "scripts/README.md"];
+const ARTIFACT_LINEAGE_DOC_PATHS = ["README.md", "AGENTS.md", "scripts/README.md"]
 const REFERENCES_ERA_SUBSTANCE_SCHEMA_PATH = "src/schema/substance.schema.ts";
 const REFERENCES_ERA_BACKUP_ARTIFACT_IDS = new Set(["substance-index-export", "substance-index-backups"]);
 
@@ -88,10 +88,8 @@ export function listArtifactLineagePathMatches(pathPattern, { rootDir = process.
     .sort((left, right) => left.localeCompare(right));
 }
 
-export function readArtifactLineageManifest({ rootDir = process.cwd() } = {}) {
-  const manifestPath = resolve(rootDir, ARTIFACT_LINEAGE_MANIFEST_PATH);
-  return JSON.parse(readFileSync(manifestPath, "utf-8"));
-}
+function readArtifactLineageManifest({ rootDir = process.cwd() } = {}) { const manifestPath = resolve(rootDir, ARTIFACT_LINEAGE_MANIFEST_PATH);
+return JSON.parse(readFileSync(manifestPath, "utf-8")); }
 
 export function findArtifactLineageEntry(artifactPath, { rootDir = process.cwd(), manifest } = {}) {
   const relativePath = toRelativePath(artifactPath, rootDir);
@@ -99,35 +97,27 @@ export function findArtifactLineageEntry(artifactPath, { rootDir = process.cwd()
   return sourceManifest.artifacts.find((entry) => matchesArtifactPath(entry, relativePath)) ?? null;
 }
 
-export function hashFile(pathname) {
-  return createHash("sha256").update(readFileSync(pathname)).digest("hex");
+function hashFile(pathname) { return createHash("sha256").update(readFileSync(pathname)).digest("hex"); }
+
+function summarizeArtifactFile(pathname) { if (!existsSync(pathname)) {
+  return { exists: false };
 }
 
-export function summarizeArtifactFile(pathname) {
-  if (!existsSync(pathname)) {
-    return { exists: false };
-  }
+const stats = statSync(pathname);
+return {
+  exists: true,
+  byteSize: stats.size,
+  contentSha256: hashFile(pathname),
+}; }
 
-  const stats = statSync(pathname);
-  return {
-    exists: true,
-    byteSize: stats.size,
-    contentSha256: hashFile(pathname),
-  };
-}
+function commandName(argv = process.argv) { return argv.map((part) => (part.includes(" ") ? JSON.stringify(part) : part)).join(" "); }
 
-export function commandName(argv = process.argv) {
-  return argv.map((part) => (part.includes(" ") ? JSON.stringify(part) : part)).join(" ");
-}
-
-export function sidecarPathForArtifact(artifactPath, { rootDir = process.cwd() } = {}) {
-  const relativePath = toRelativePath(artifactPath, rootDir);
-  return resolve(
-    rootDir,
-    ARTIFACT_LINEAGE_RUN_DIR,
-    `${relativePath.replaceAll("/", "__")}.lineage.json`,
-  );
-}
+function sidecarPathForArtifact(artifactPath, { rootDir = process.cwd() } = {}) { const relativePath = toRelativePath(artifactPath, rootDir);
+return resolve(
+  rootDir,
+  ARTIFACT_LINEAGE_RUN_DIR,
+  `${relativePath.replaceAll("/", "__")}.lineage.json`,
+); }
 
 export function buildArtifactLineageRecord({
   artifactPath,
@@ -259,42 +249,38 @@ export function validateArtifactLineageManifest({ rootDir = process.cwd(), manif
   return errors;
 }
 
-export function collectDocumentedDataArtifactPaths({
+function collectDocumentedDataArtifactPaths({
   rootDir = process.cwd(),
   docsPaths = ARTIFACT_LINEAGE_DOC_PATHS,
-} = {}) {
-  const dataArtifactPattern = /src\/data\/[A-Za-z0-9_.*/-]+\.(?:json|md|ts)/g;
-  const paths = new Set();
+} = {}) { const dataArtifactPattern = /src\/data\/[A-Za-z0-9_.*/-]+\.(?:json|md|ts)/g;
+const paths = new Set();
 
-  for (const docsPath of docsPaths) {
-    const absoluteDocsPath = resolve(rootDir, docsPath);
-    if (!existsSync(absoluteDocsPath)) {
-      continue;
-    }
-
-    const contents = readFileSync(absoluteDocsPath, "utf-8");
-    for (const match of contents.matchAll(dataArtifactPattern)) {
-      paths.add(match[0].replaceAll("\\", "/"));
-    }
+for (const docsPath of docsPaths) {
+  const absoluteDocsPath = resolve(rootDir, docsPath);
+  if (!existsSync(absoluteDocsPath)) {
+    continue;
   }
 
-  return Array.from(paths).sort((left, right) => left.localeCompare(right));
-}
-
-export function collectTrackedGeneratedExportPaths({ rootDir = process.cwd() } = {}) {
-  try {
-    return execFileSync("git", ["ls-files", "notes-and-plans/exports"], {
-      cwd: rootDir,
-      encoding: "utf-8",
-    })
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .sort((left, right) => left.localeCompare(right));
-  } catch {
-    return [];
+  const contents = readFileSync(absoluteDocsPath, "utf-8");
+  for (const match of contents.matchAll(dataArtifactPattern)) {
+    paths.add(match[0].replaceAll("\\", "/"));
   }
 }
+
+return Array.from(paths).sort((left, right) => left.localeCompare(right)); }
+
+function collectTrackedGeneratedExportPaths({ rootDir = process.cwd() } = {}) { try {
+  return execFileSync("git", ["ls-files", "notes-and-plans/exports"], {
+    cwd: rootDir,
+    encoding: "utf-8",
+  })
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
+} catch {
+  return [];
+} }
 
 export function collectArtifactLineageVerification({
   rootDir = process.cwd(),

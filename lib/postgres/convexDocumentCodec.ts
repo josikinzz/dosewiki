@@ -51,14 +51,14 @@ export function decodeInteger(encoded: string): bigint {
   return bytes.readBigInt64LE(0);
 }
 
-export function encodeInteger(value: bigint): string {
+function encodeInteger(value: bigint): string {
   const bytes = Buffer.alloc(8);
   bytes.writeBigInt64LE(value, 0);
   return bytes.toString("base64");
 }
 
 /** A float needs the wrapper when plain JSON would lose it. */
-export function needsFloatWrapper(value: number): boolean {
+function needsFloatWrapper(value: number): boolean {
   return !Number.isFinite(value) || Object.is(value, -0);
 }
 

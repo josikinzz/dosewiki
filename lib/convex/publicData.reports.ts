@@ -19,23 +19,17 @@ function reportBelongsToContributor(report: TripReportRecord, profile: Normalize
   const reportProfileKey =
     typeof report.subject.profile_key === "string" ? report.subject.profile_key.trim().toUpperCase() : "";
 
-  // A stored profile key is an explicit claim of authorship and outranks the
-  // free-text byline, which may still carry an old spelling.
   if (reportProfileKey && reportProfileKey === profileKey) {
     return true;
   }
 
-  // A reviewed report arrived through the public submission form, where the
-  // byline is a string an anonymous person typed. Only the key an editor
-  // assigned at promotion can list it on a contributor's page; matching the
-  // name alone would put an impersonator's report in their own report list,
-  // which is the same claim `publicData.reportProfileProjection` refuses.
-  if (report.attribution_locked || report.attribution_review) {
+  if (report.attribution_locked) {
     return false;
   }
 
   return profileMatchesName(profile, report.subject.name);
 }
+
 
 /*
  * Persisted reads are the leaf Convex calls below, each a top-level
@@ -48,9 +42,16 @@ function reportBelongsToContributor(report: TripReportRecord, profile: Normalize
  * report read instead of being shared across them.
  */
 
-const getPublicTripReportRecords = cache(publicDataCache(async (): Promise<TripReportRecord[]> => {
+const getPublicTripReportPreviewRecords = cache(publicDataCache(async (): Promise<TripReportRecord[]> => {
+  return await getPublicDataReadAdapter().getPublicTripReportPreviews();
+}, ["convex-public-trip-report-preview-records-v1"], {
+  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
+}));
+
+const getPublicTripReportDetailRecords = cache(publicDataCache(async (): Promise<TripReportDetailRecord[]> => {
   return await getPublicDataReadAdapter().getPublicTripReportRecords();
-}, ["convex-public-trip-report-records-v1"], {
+}, ["convex-public-trip-report-detail-records-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
 }));
@@ -64,14 +65,6 @@ const getPublicTripReportRecordBySlug = cache(publicDataCache(async (
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
 }));
 
-const getPublicTripReportRecordsByAuthor = cache(publicDataCache(async (
-  authorName: string,
-): Promise<TripReportRecord[]> => {
-  return await getPublicDataReadAdapter().getPublicTripReportsByAuthor(authorName);
-}, ["convex-public-trip-report-records-by-author-v1"], {
-  revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.reports],
-}));
 
 const getPublicTripReportRecordsBySubstanceNames = cache(publicDataCache(async (
   substanceNames: string[],
@@ -84,7 +77,7 @@ const getPublicTripReportRecordsBySubstanceNames = cache(publicDataCache(async (
 
 export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicTripReportRecords(),
+    getPublicTripReportPreviewRecords(),
     getPublicContributorProfiles(),
   ]);
 
@@ -100,9 +93,9 @@ export const getFeaturedReports = cache(async (limit = 8) => {
  * like the permalink read, for the public open-data download. Only rows from
  * the published `tripReports` table are read; submissions never appear here.
  */
-export const getPublicReportDetails = cache(async (): Promise<TripReportRecord[]> => {
+export const getPublicReportDetails = cache(async (): Promise<TripReportDetailRecord[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicTripReportRecords(),
+    getPublicTripReportDetailRecords(),
     getPublicContributorProfiles(),
   ]);
 
@@ -124,16 +117,20 @@ export const getPublicReportBySlug = cache(async (slug: string): Promise<TripRep
 
 export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicTripReportRecordsByAuthor(authorName),
+    getPublicTripReportPreviewRecords(),
     getPublicContributorProfiles(),
   ]);
+  const lowerName = authorName.toLowerCase();
 
-  return projectPublicReportPreviews(reports, profiles);
+  return projectPublicReportPreviews(
+    reports.filter((report) => report.subject.name.toLowerCase() === lowerName),
+    profiles,
+  );
 });
 
 export const getReportsByContributor = cache(async (profile: NormalizedUserProfile): Promise<PublicReportPreview[]> => {
   const [reports, profiles] = await Promise.all([
-    getPublicTripReportRecords(),
+    getPublicTripReportPreviewRecords(),
     getPublicContributorProfiles(),
   ]);
 

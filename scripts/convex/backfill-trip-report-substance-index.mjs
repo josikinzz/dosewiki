@@ -28,15 +28,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { deploymentNameFromUrl } from "../lib/convex-function-inventory.mjs";
-import {
-  assertDataOpsWriteAllowed,
-  createDataOpsRunContext,
-  getFlagValue,
-  printDataOpsRunContext,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+createDataOpsRunContext,
+getFlagValue,
+printDataOpsRunContext,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const REQUESTED_INDEX = getFlagValue(process.argv.slice(2), "--index") ?? "tripReports";

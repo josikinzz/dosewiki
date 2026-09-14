@@ -16,6 +16,8 @@ export type PublicationSource =
   | "proposal-apply"
   | "proposal-revert"
   | "save-quote"
+  | "article-publish"
+  | "article-restore"
   | "manual"
   | "test-write";
 
@@ -24,6 +26,8 @@ const PUBLICATION_SOURCES: readonly PublicationSource[] = [
   "proposal-apply",
   "proposal-revert",
   "save-quote",
+  "article-publish",
+  "article-restore",
   "manual",
   "test-write",
 ];

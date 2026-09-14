@@ -6,24 +6,18 @@ import {
 } from './orders.mjs';
 import { orderObject, reorderOrderedRecord } from './core.mjs';
 
-export function reorderDurationStage(stage, options) {
-  if (!stage) return stage;
-  return orderObject(stage, DURATION_STAGE_ORDER, { ...options, context: 'duration_stage' });
-}
+function reorderDurationStage(stage, options) { if (!stage) return stage;
+return orderObject(stage, DURATION_STAGE_ORDER, { ...options, context: 'duration_stage' }); }
 
-export function reorderDurationStages(stages, options) {
-  if (stages === null || stages === undefined) return stages;
-  return reorderOrderedRecord(stages, DURATION_STAGES_ORDER, (stage) => reorderDurationStage(stage, options));
-}
+function reorderDurationStages(stages, options) { if (stages === null || stages === undefined) return stages;
+return reorderOrderedRecord(stages, DURATION_STAGES_ORDER, (stage) => reorderDurationStage(stage, options)); }
 
-export function reorderDurationRoute(route, options) {
-  if (!route) return route;
-  const result = { ...route };
-  if (result.stages) {
-    result.stages = reorderDurationStages(result.stages, options);
-  }
-  return orderObject(result, DURATION_ROUTE_ORDER, { ...options, context: 'duration_route' });
+function reorderDurationRoute(route, options) { if (!route) return route;
+const result = { ...route };
+if (result.stages) {
+  result.stages = reorderDurationStages(result.stages, options);
 }
+return orderObject(result, DURATION_ROUTE_ORDER, { ...options, context: 'duration_route' }); }
 
 export function reorderDuration(duration, options) {
   if (!duration) return duration;

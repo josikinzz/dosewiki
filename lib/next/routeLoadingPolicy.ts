@@ -4,11 +4,11 @@ export type LoadingRouteFamily = "page" | "substance" | "category" | "effect" | 
 
 export type RouteLoadingDensity = "compact" | "normal" | "spacious";
 
-export type SkeletonBlock = {
+type SkeletonBlock = {
   width: string;
   height: string;
   tone?: "strong" | "soft";
-};
+}
 
 export type RouteLoadingSection = {
   key: string;
@@ -17,13 +17,13 @@ export type RouteLoadingSection = {
   blocks: SkeletonBlock[];
 };
 
-export type RouteLoadingLandmark = {
+type RouteLoadingLandmark = {
   id: string;
   role: "main" | "section";
   ariaBusy: true;
   ariaLive: "polite";
   focusTarget: boolean;
-};
+}
 
 export type RouteLoadingViewModel = {
   family: LoadingRouteFamily;

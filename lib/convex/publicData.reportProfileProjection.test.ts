@@ -7,7 +7,7 @@ import {
   projectPublicReportPreviews,
   resolveReportContributorProfile,
 } from "./publicData.reportProfileProjection";
-import type { TripReportDetailRecord, TripReportPreviewRecord } from "../../src/types/tripReport";
+import { getTripReportExcerpt, type TripReportDetailRecord, type TripReportPreviewRecord } from "../../src/types/tripReport";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 
 const profile = (overrides: Partial<NormalizedUserProfile>): NormalizedUserProfile => ({
@@ -27,11 +27,7 @@ const report = (overrides: Partial<TripReportPreviewRecord>): TripReportPreviewR
   featured: false,
   subject: { name: "Author Name" },
   substances: [{ name: "LSD" }],
-  introduction: "A short introduction.",
-  onset: [],
-  peak: [],
-  offset: [],
-  conclusion: undefined,
+  excerpt: "A short introduction.",
   ...overrides,
 });
 
@@ -103,7 +99,7 @@ describe("public report profile projection", () => {
   it("projects previews with profile avatars and author profile keys", () => {
     const projected = projectPublicReportPreview(
       report({
-        introduction: "One ".repeat(80),
+        excerpt: "One ".repeat(34).trimEnd() + "…",
         subject: { name: "legacy alice", trip_date: "2024-01-01" },
       }),
       [profile({ aliases: ["legacy alice"], avatarUrl: "https://example.com/profile.png" })],
@@ -128,17 +124,13 @@ describe("public report profile projection", () => {
   });
 
   it("uses timeline body text when a report has no introduction", () => {
-    const projected = projectPublicReportPreview(
-      report({
-        introduction: undefined,
-        onset: [{ time: "T+00:10", description: "The room began to stretch outward." }],
-        peak: [{ description: "Complex colors moved across the ceiling." }],
-        conclusion: "I felt calm afterward.",
-      }),
-      [],
-    );
-
-    expect(projected.introduction).toBe(
+    expect(getTripReportExcerpt({
+      introduction: undefined,
+      onset: [{ time: "T+00:10", description: "The room began to stretch outward." }],
+      peak: [{ description: "Complex colors moved across the ceiling." }],
+      offset: [],
+      conclusion: "I felt calm afterward.",
+    })).toBe(
       "The room began to stretch outward. Complex colors moved across the ceiling. I felt calm afterward.",
     );
   });
@@ -234,8 +226,13 @@ describe("public report profile projection", () => {
       report({ slug: "b", title: "Beta", featured: true }),
       report({ slug: "a", title: "Alpha", featured: true }),
     ];
+    const detailRecords = [
+      detailReport({ slug: "z", title: "Zed", featured: false }),
+      detailReport({ slug: "b", title: "Beta", featured: true }),
+      detailReport({ slug: "a", title: "Alpha", featured: true }),
+    ];
 
     expect(projectPublicReportPreviews(records, []).map((entry) => entry.slug)).toEqual(["a", "b", "z"]);
-    expect(projectPublicReportDetails(records, []).map((entry) => entry.slug)).toEqual(["a", "b", "z"]);
+    expect(projectPublicReportDetails(detailRecords, []).map((entry) => entry.slug)).toEqual(["a", "b", "z"]);
   });
 });

@@ -16,7 +16,7 @@ const DURATION_UNIT_ALIASES: Record<string, string> = {
   d: "days",
 };
 
-export function normalizeDurationUnit(unit: string): string {
+function normalizeDurationUnit(unit: string): string {
   const normalized = unit.trim().toLowerCase();
   return DURATION_UNIT_ALIASES[normalized] || DURATION_UNIT_ALIASES[unit] || unit;
 }

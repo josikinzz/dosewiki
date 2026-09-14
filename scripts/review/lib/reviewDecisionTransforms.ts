@@ -30,16 +30,6 @@ import { parseDurationRange } from "../../parsers/base/duration";
 
 export type Range = { min: number | null; max: number | null; unit: string };
 
-export const DURATION_STAGES = [
-  "onset",
-  "come_up",
-  "peak",
-  "offset",
-  "after_effects",
-  "total_duration",
-] as const;
-
-export const DOSE_TIERS = ["threshold", "light", "moderate", "strong", "heavy"] as const;
 
 /** Thrown whenever a transform cannot proceed without guessing. */
 export class RefusalError extends Error {
@@ -180,7 +170,7 @@ const PMID_PATTERN = /\bPMID:?\s*(\d{4,9})\b/i;
 const PMC_URL_PATTERN = /pmc\.ncbi\.nlm\.nih\.gov\/articles\/PMC\d+/i;
 
 /** Pulls a persistent identifier out of a review bibliography string. */
-export function identifiersFromBibliography(source: ReviewSource): {
+function identifiersFromBibliography(source: ReviewSource): {
   doi?: string;
   pmid?: string;
 } {
@@ -553,7 +543,7 @@ export function setByPath(root: unknown, path: string, value: unknown): void {
 
 /* ------------------------------------------------------------- visibility - */
 
-export const HIDDEN_INDEX_CATEGORY = "hidden";
+const HIDDEN_INDEX_CATEGORY = "hidden";
 
 /**
  * Returns the visibility fields for the requested outcome.

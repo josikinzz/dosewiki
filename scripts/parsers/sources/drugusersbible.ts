@@ -8,7 +8,7 @@ import {
 } from "../base";
 import { getParseableSourceDescriptor } from "../source-identity";
 
-export class DrugUsersBibleParser implements SourceParser {
+class DrugUsersBibleParser implements SourceParser {
   source = getParseableSourceDescriptor("drugusersbible");
   sourceId = this.source.id;
 

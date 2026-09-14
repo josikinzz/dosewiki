@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import { formattingLocale } from "@/i18n/messages";
 import { UserContributionsSection } from "./UserProfileExpandableSections";
 
 const entry = (overrides: Partial<ChangeLogEntry> = {}): ChangeLogEntry => ({
@@ -42,16 +43,40 @@ describe("UserContributionsSection", () => {
       <UserContributionsSection
         profileKey="LYREA"
         history={[
-          entry({ id: "a", createdAt: "2026-08-13T18:05:00.000Z" }),
-          entry({ id: "b", createdAt: "2026-08-13T09:00:00.000Z" }),
-          entry({ id: "c", createdAt: "2026-08-12T10:00:00.000Z" }),
+          entry({
+            id: "a",
+            createdAt: "2026-08-13T12:05:00.000Z",
+            commit: { sha: "", url: "", message: "First same-day contribution" },
+          }),
+          entry({
+            id: "b",
+            createdAt: "2026-08-13T12:00:00.000Z",
+            commit: { sha: "", url: "", message: "Second same-day contribution" },
+          }),
+          entry({
+            id: "c",
+            createdAt: "2026-08-12T12:00:00.000Z",
+            commit: { sha: "", url: "", message: "Previous-day contribution" },
+          }),
         ]}
       />,
     );
 
-    // Two distinct days -> two group headings, not one per row.
-    expect(screen.getByText("Aug 13, 2026")).toBeInTheDocument();
-    expect(screen.getByText("Aug 12, 2026")).toBeInTheDocument();
+    const dayFormat = new Intl.DateTimeFormat(formattingLocale("en"), {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const currentDay = screen.getByText(dayFormat.format(new Date("2026-08-13T12:05:00.000Z")));
+    const previousDay = screen.getByText(dayFormat.format(new Date("2026-08-12T12:00:00.000Z")));
+    const currentGroup = within(currentDay.parentElement!);
+    const previousGroup = within(previousDay.parentElement!);
+
+    expect(currentGroup.getByText("First same-day contribution")).toBeInTheDocument();
+    expect(currentGroup.getByText("Second same-day contribution")).toBeInTheDocument();
+    expect(currentGroup.queryByText("Previous-day contribution")).not.toBeInTheDocument();
+    expect(previousGroup.getByText("Previous-day contribution")).toBeInTheDocument();
+    expect(previousGroup.queryByText("First same-day contribution")).not.toBeInTheDocument();
   });
 
   it("collapses to four rows and expands the remainder through the count control", async () => {

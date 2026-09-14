@@ -28,8 +28,8 @@ import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-quer
 import type { FunctionArgs, FunctionReturnType } from "convex/server";
 import type { api } from "../../convex/_generated/api";
 
-export const EDITOR_LIST_REFETCH_MS = 15_000;
-export const EDITOR_DOCUMENT_REFETCH_MS = 5_000;
+const EDITOR_LIST_REFETCH_MS = 15_000;
+const EDITOR_DOCUMENT_REFETCH_MS = 5_000;
 
 /** `list` for collections and rails; `document` for the record the editor is working on. */
 export type EditorReadFreshness = "list" | "document";
@@ -82,7 +82,7 @@ const EDITOR_PAGE_ROUTES: { [N in EditorPaginatedReadName]: string } = {
 };
 
 /** The `["editor", name, args]` key every editor read is stored under. */
-export function editorReadKey(name: EditorReadName | EditorPaginatedReadName, args?: Record<string, unknown>) {
+function editorReadKey(name: EditorReadName | EditorPaginatedReadName, args?: Record<string, unknown>) {
   return args === undefined ? (["editor", name] as const) : (["editor", name, args] as const);
 }
 
@@ -141,7 +141,7 @@ export type EditorPaginatedStatus = "LoadingFirstPage" | "CanLoadMore" | "Loadin
  * results stay on screen, so a caller that waits for `Exhausted` never sees a
  * partial list.
  */
-export function useEditorPaginatedRead<N extends EditorPaginatedReadName>(
+function useEditorPaginatedRead<N extends EditorPaginatedReadName>(
   name: N,
   args: Record<string, never> | "skip",
   options: { initialNumItems: number },

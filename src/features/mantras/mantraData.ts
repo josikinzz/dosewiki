@@ -1,4 +1,4 @@
-export type MantraSource = {
+type MantraSource = {
   title: string;
   organization: string;
   url: string;
@@ -40,9 +40,6 @@ export type MantraVisualStrand = {
   sources: MantraSource[];
 };
 
-export const GAZE_SECOND_PRESETS = [9, 21, 54, 108] as const;
-
-export const DEFAULT_GAZE_SECONDS = 21;
 
 export const MANTRA_ENTRIES: MantraEntry[] = [
   {
@@ -203,7 +200,7 @@ export const MANTRA_ENTRIES: MantraEntry[] = [
   },
 ];
 
-export const ADDITIONAL_VISUAL_MANTRAS: MantraVisualStrand[] = [
+const ADDITIONAL_VISUAL_MANTRAS: MantraVisualStrand[] = [
   {
     id: "clairvoyance",
     title: "Six Syllables of Clairvoyance",

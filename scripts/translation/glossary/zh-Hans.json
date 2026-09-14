@@ -1,6 +1,6 @@
 {
   "locale": "zh-Hans",
-  "exportedAt": "2026-09-12T19:13:59.720Z",
+  "exportedAt": "2026-09-13T00:29:31.573Z",
   "note": "Export of the translationGlossary table for review and diffing. Nothing reads this file; edit terms in /dev/glossary and regenerate with build-glossary.mjs --export.",
   "counts": {
     "approved": 395,

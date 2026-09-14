@@ -4,7 +4,7 @@
  */
 import { msg } from "@/i18n/messages";
 
-export const COUNTRY_CODES: Record<string, string> = {
+const COUNTRY_CODES: Record<string, string> = {
   [msg("United States")]: "us",
   [msg("United Kingdom")]: "gb",
   [msg("Germany")]: "de",
@@ -94,7 +94,7 @@ export const COUNTRY_CODES: Record<string, string> = {
   [msg("Vietnam")]: "vn",
   [msg("Yemen")]: "ye",
   [msg("Zambia")]: "zm",
-};
+}
 
 /**
  * Get the ISO country code for a country name.
@@ -117,6 +117,4 @@ export function getCountryCode(name: string): string | null {
  * Get all country names sorted alphabetically.
  * Useful for autocomplete/dropdown.
  */
-export function getAllCountryNames(): string[] {
-  return Object.keys(COUNTRY_CODES).sort();
-}
+

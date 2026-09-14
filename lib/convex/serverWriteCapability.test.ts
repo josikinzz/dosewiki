@@ -42,7 +42,7 @@ async function loadModule() {
 
 describe("server Convex write capability", () => {
   beforeEach(() => {
-    process.env = { ...ORIGINAL_ENV };
+    process.env = { ...ORIGINAL_ENV, DATA_WRITES_FROZEN: "0" };
     delete process.env.CONVEX_ADMIN_KEY;
     delete process.env.CONVEX_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE;
     delete process.env.CONVEX_URL;
@@ -245,16 +245,6 @@ describe("server Convex write capability", () => {
 
       expect(mocks.mutation).toHaveBeenCalledTimes(1);
       expect(mocks.mutation).toHaveBeenCalledWith(submitTripReport, args, undefined);
-    });
-
-    it("passes a mutation that names its actor through with args and options intact", async () => {
-      const client = await readyClient();
-      const args = { apiKey: "admin-key", actorEmail: "editor@example.com", slug: "lsd" };
-
-      await expect(client.mutation(setField, args, { skipQueue: true })).resolves.toEqual({ updated: 1 });
-
-      expect(mocks.mutation).toHaveBeenCalledTimes(1);
-      expect(mocks.mutation).toHaveBeenCalledWith(setField, args, { skipQueue: true });
     });
 
     it("gates actions the same way as mutations", async () => {

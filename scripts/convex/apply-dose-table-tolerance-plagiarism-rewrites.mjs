@@ -11,18 +11,14 @@ import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 import { sanitizeObjectKeys, stripConvexMetadata } from "../batch/summary/articles.mjs";
 import { normalizeArticleForRouteEquivalenceSave } from "./route-equivalence-fill.mjs";
-import {
-  assertDataOpsWriteAllowed,
-  backupBeforeWrite,
-  batchAndApplyMutations,
-  createDataOpsRunContext,
-  printDataOpsRunContext,
-  requireAdminIntentToken,
-  requireSourceUrl,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+backupBeforeWrite,
+batchAndApplyMutations,
+createDataOpsRunContext,
+printDataOpsRunContext,
+requireAdminIntentToken,
+requireSourceUrl,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const CONFIRMATION_FLAG = "--confirm-plagiarism-rewrite";

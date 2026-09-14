@@ -26,26 +26,31 @@ import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import type { OkRouteResult, RouteMetadataSource } from "./routeLoaderResults";
 import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
 import { readContributorReplications } from "./routeLoaders.contributorReplications";
+import type { LiveLocale } from "./localeHostPolicy";
+import {
+  getLocalizedEffectArticlesByContributor,
+  getLocalizedPublicContributorByKey,
+  getLocalizedReportsByContributor,
+  localizeContributorReplications,
+} from "../translation/localizedRecords";
 
 const REPORT_HREF_PREFIX = "/reports/";
 
 
-export interface ContributorRoutePageProps {
-  profile: NormalizedUserProfile;
-  history: ChangeLogEntry[];
-  bioContent: ReactNode;
-  reportHrefPrefix: string;
-  tripReports: ReportCardModel[];
-  /** Replications credited to this contributor: curated works first, then newest. */
-  replications: ReplicationWithUrl[];
-  /** Effect articles crediting this contributor, alphabetically. */
-  effectArticles: ContributorEffectCredit[];
-  /** Substance articles this contributor expert-reviewed, alphabetically. */
-  reviewedArticles: ContributorReviewedArticle[];
-  /** Staff "Editor's note" under the bio; null renders nothing. */
-  editorNote: UserProfileEditorNote | null;
-  verifiedReplicator: boolean;
-}
+interface ContributorRoutePageProps { profile: NormalizedUserProfile;
+history: ChangeLogEntry[];
+bioContent: ReactNode;
+reportHrefPrefix: string;
+tripReports: ReportCardModel[];
+/** Replications credited to this contributor: curated works first, then newest. */
+replications: ReplicationWithUrl[];
+/** Effect articles crediting this contributor, alphabetically. */
+effectArticles: ContributorEffectCredit[];
+/** Substance articles this contributor expert-reviewed, alphabetically. */
+reviewedArticles: ContributorReviewedArticle[];
+/** Staff "Editor's note" under the bio; null renders nothing. */
+editorNote: UserProfileEditorNote | null;
+verifiedReplicator: boolean; }
 
 export type ContributorRouteResult =
   | (OkRouteResult<ContributorRoutePageProps> & {
@@ -63,9 +68,14 @@ export type ContributorRouteResult =
   | { kind: "not-found"; normalizedKey: string };
 
 export const loadContributorRoute = cache(
-  async (profileKey: string): Promise<ContributorRouteResult> => {
+  async (
+    profileKey: string,
+    locale: LiveLocale | null = null,
+  ): Promise<ContributorRouteResult> => {
     const normalizedKey = decodeURIComponent(profileKey).trim().toUpperCase();
-    const profile = await getPublicContributorByKey(normalizedKey);
+    const profile = locale
+      ? await getLocalizedPublicContributorByKey(normalizedKey, locale.code)
+      : await getPublicContributorByKey(normalizedKey);
 
     if (!profile) {
       return { kind: "not-found", normalizedKey };
@@ -130,16 +140,23 @@ export const loadContributorRoute = cache(
     // contributor's reports, works and article credits can never disagree about
     // which credits are theirs. The reviewed-articles read is key-only: the
     // reviewer-email matching stays inside Convex.
-    const [reports, replications, effectArticles, reviewedArticles, history, staffNoteSigner, identity] =
+    const [reports, canonicalReplications, effectArticles, reviewedArticles, history, staffNoteSigner, identity] =
       await Promise.all([
-        getReportsByContributor(profile),
+        locale
+          ? getLocalizedReportsByContributor(profile, locale.code)
+          : getReportsByContributor(profile),
         readContributorReplications(profile),
-        getEffectArticlesByContributor(profile),
+        locale
+          ? getLocalizedEffectArticlesByContributor(profile, locale.code)
+          : getEffectArticlesByContributor(profile),
         getReviewedArticlesByContributor(profile.key),
         getPublicProfileHistory(profile),
         staffNote ? getPublicContributorByKey("JOSIE") : Promise.resolve(null),
         getPublicContributorIdentity(profile.key),
       ]);
+    const replications = locale
+      ? await localizeContributorReplications(canonicalReplications, locale.code)
+      : canonicalReplications;
 
     const signerArtistKey = staffNoteSigner
       ? artistPageKeys.get(staffNoteSigner.key.trim().toUpperCase()) ?? null

@@ -40,14 +40,10 @@ ${extractedContent}
 `;
 }
 
-export function getOutputPath(slug, category) {
-  const config = CATEGORIES[category];
-  return join(CONFIG.projectRoot, config.outputDir, `${slug}${config.outputSuffix}`);
-}
+function getOutputPath(slug, category) { const config = CATEGORIES[category];
+return join(CONFIG.projectRoot, config.outputDir, `${slug}${config.outputSuffix}`); }
 
-export function outputExists(slug, category) {
-  return existsSync(getOutputPath(slug, category));
-}
+
 
 export function saveOutput(slug, category, content) {
   const config = CATEGORIES[category];

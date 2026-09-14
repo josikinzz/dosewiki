@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Doc } from "../convex/_generated/dataModel";
-import { publicTripReport } from "../convex/lib/tripReportPublicProjection";
+import { publicTripReport, publicTripReportPreview } from "../convex/lib/tripReportPublicProjection";
 
 function publishedReport(): Doc<"tripReports"> {
   return {
@@ -34,6 +34,19 @@ describe("public trip report privacy", () => {
     expect(visible.onset).toEqual(stored.onset);
     expect(visible.introduction).toBe("Original introduction.\n");
     expect(visible.license).toBe("author-retained");
+  });
+
+  it("returns the identical excerpt without narrative or timeline bodies", () => {
+    const visible = publicTripReportPreview(publishedReport());
+
+    expect(visible.excerpt).toBe("Original introduction. First entry. Second entry.");
+    expect(visible).not.toHaveProperty("introduction");
+    expect(visible).not.toHaveProperty("onset");
+    expect(visible).not.toHaveProperty("peak");
+    expect(visible).not.toHaveProperty("offset");
+    expect(visible).not.toHaveProperty("conclusion");
+    expect(visible.subject).toEqual(publishedReport().subject);
+    expect(visible.substances).toEqual(publishedReport().substances);
   });
 
   it("dates the publication from the row's creation, never from the moderation decision", () => {

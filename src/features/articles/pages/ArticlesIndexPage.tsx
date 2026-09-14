@@ -7,6 +7,7 @@ import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { getRequestLocale, t } from "@/i18n/server";
+import { formattingLocale } from "@/i18n/messages";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import { articleHref } from "../domain/articleGuides";
@@ -89,7 +90,7 @@ export function ArticlesIndexPage({
 function publishedMonthLabel(publishedMonth: string): string {
   const match = /^(\d{4})-(\d{2})$/.exec(publishedMonth);
   if (!match) return publishedMonth;
-  return new Intl.DateTimeFormat(getRequestLocale() === "en" ? "en-GB" : getRequestLocale(), { month: "long", year: "numeric", timeZone: "UTC" })
+  return new Intl.DateTimeFormat(formattingLocale(getRequestLocale()), { month: "long", year: "numeric", timeZone: "UTC" })
     .format(new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1)));
 }
 

@@ -9,29 +9,14 @@ import {
   workflowDryRunPolicies,
 } from './workflow-command-surface.mjs';
 
-export const workflowDocsToCheck = [
+const workflowDocsToCheck = [
   'README.md',
   'CLAUDE.md',
   'AGENTS.md',
   'scripts/README.md',
   'docs/architecture/project-layout.md',
-];
+]
 
-export const workflowEnvVars = [
-  'CONVEX_ADMIN_KEY',
-  'OPENROUTER_API_KEY',
-  'SCRY_API_KEY',
-  'VITE_CONVEX_URL',
-  'CONVEX_PUBLIC_READ_URL',
-  'TARGET_CONVEX_URL',
-];
-
-export const workflowEnvDocsToCheck = [
-  'README.md',
-  'scripts/README.md',
-];
-
-export const stableWorkflowInventoryDocs = ['scripts/README.md'];
 
 const scriptSourceExtensions = new Set(['.cjs', '.js', '.mjs', '.ts', '.tsx']);
 
@@ -57,31 +42,23 @@ const deprecatedScriptForbiddenPatterns = [
   },
 ];
 
-export function cleanCommandToken(value) {
-  return value.replace(/[),.;:]+$/g, '');
-}
+function cleanCommandToken(value) { return value.replace(/[),.;:]+$/g, ''); }
 
-export function extractPackageCommands(content) {
-  const commands = [];
-  const pattern = /\bnpm run ([a-z0-9:_-]+)/g;
-  for (const match of content.matchAll(pattern)) {
-    commands.push(cleanCommandToken(match[1]));
-  }
-  return commands;
+function extractPackageCommands(content) { const commands = [];
+const pattern = /\bnpm run ([a-z0-9:_-]+)/g;
+for (const match of content.matchAll(pattern)) {
+  commands.push(cleanCommandToken(match[1]));
 }
+return commands; }
 
-export function extractScriptPaths(command) {
-  const paths = [];
-  const pattern = /(?:^|\s)(?:node|bun|tsx|ts-node)(?:\s+--[^\s]+)*\s+(scripts\/[^\s'"`)]+?\.(?:mjs|ts|js|cjs))/g;
-  for (const match of command.matchAll(pattern)) {
-    paths.push(cleanCommandToken(match[1]));
-  }
-  return paths;
+function extractScriptPaths(command) { const paths = [];
+const pattern = /(?:^|\s)(?:node|bun|tsx|ts-node)(?:\s+--[^\s]+)*\s+(scripts\/[^\s'"`)]+?\.(?:mjs|ts|js|cjs))/g;
+for (const match of command.matchAll(pattern)) {
+  paths.push(cleanCommandToken(match[1]));
 }
+return paths; }
 
-export function extractEnvVars(content) {
-  return [...new Set(content.match(/\b[A-Z][A-Z0-9_]{2,}\b/g) ?? [])];
-}
+
 
 function walkScriptFiles(repoRoot, relativeDir, files = []) {
   const absoluteDir = resolve(repoRoot, relativeDir);
@@ -123,25 +100,23 @@ function activeScriptPaths(repoRoot, packageScripts) {
   return [...paths].sort();
 }
 
-export function pathPatternExists(repoRoot, packageScripts, pathPattern) {
-  if (!pathPattern.includes('*') && !pathPattern.includes('{')) {
-    return existsSync(resolve(repoRoot, pathPattern));
-  }
-
-  const normalizedPattern = pathPattern
-    .replace(/[.+?^$()|[\]\\]/g, '\\$&')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\{[^/]+\}/g, '[^/]+');
-  const regex = new RegExp(`^${normalizedPattern}$`);
-
-  const candidatePaths = new Set([
-    ...walkScriptFiles(repoRoot, 'scripts'),
-    ...Object.values(packageScripts).flatMap(extractScriptPaths),
-  ]);
-  return [...candidatePaths].some(
-    (scriptPath) => regex.test(scriptPath) && existsSync(resolve(repoRoot, scriptPath)),
-  );
+function pathPatternExists(repoRoot, packageScripts, pathPattern) { if (!pathPattern.includes('*') && !pathPattern.includes('{')) {
+  return existsSync(resolve(repoRoot, pathPattern));
 }
+
+const normalizedPattern = pathPattern
+  .replace(/[.+?^$()|[\]\\]/g, '\\$&')
+  .replace(/\*/g, '[^/]*')
+  .replace(/\{[^/]+\}/g, '[^/]+');
+const regex = new RegExp(`^${normalizedPattern}$`);
+
+const candidatePaths = new Set([
+  ...walkScriptFiles(repoRoot, 'scripts'),
+  ...Object.values(packageScripts).flatMap(extractScriptPaths),
+]);
+return [...candidatePaths].some(
+  (scriptPath) => regex.test(scriptPath) && existsSync(resolve(repoRoot, scriptPath)),
+); }
 
 export function validateStableWorkflowCommands(packageScripts) {
   const failures = [];
@@ -364,39 +339,3 @@ export function validateDocumentedCommands(repoRoot, packageScripts, docPaths = 
   return failures;
 }
 
-export function validateStableWorkflowDocCoverage(repoRoot, docPaths = stableWorkflowInventoryDocs) {
-  const failures = [];
-
-  for (const docPath of docPaths) {
-    const content = readFileSync(resolve(repoRoot, docPath), 'utf8');
-    for (const commandName of stableWorkflowCommandNames) {
-      if (!content.includes(`npm run ${commandName}`) && !content.includes(`\`${commandName}\``)) {
-        failures.push(`${docPath}: missing stable workflow command ${commandName}`);
-      }
-    }
-  }
-
-  return failures;
-}
-
-export function validateWorkflowEnvCoverage(repoRoot, docPaths = workflowEnvDocsToCheck) {
-  const failures = [];
-  const metadataEnvVars = new Set(extractEnvVars(stableWorkflowCommands.flatMap((command) => command.env).join('\n')));
-
-  for (const envVar of workflowEnvVars) {
-    if (!metadataEnvVars.has(envVar)) {
-      failures.push(`workflow metadata: missing ${envVar}`);
-    }
-  }
-
-  for (const docPath of docPaths) {
-    const contentEnvVars = new Set(extractEnvVars(readFileSync(resolve(repoRoot, docPath), 'utf8')));
-    for (const envVar of workflowEnvVars) {
-      if (!contentEnvVars.has(envVar)) {
-        failures.push(`${docPath}: missing workflow env var ${envVar}`);
-      }
-    }
-  }
-
-  return failures;
-}

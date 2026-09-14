@@ -1,12 +1,14 @@
 import "server-only";
 
-import { publicDataCache } from "../convex/publicData.cache";
-import { cache } from "react";
-
 import {
+  publicDataCache,
   PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CONVEX_CACHE_TAGS,
 } from "../convex/publicData.cache";
+import { cache } from "react";
+import { CORPORA } from "../../scripts/translation/corpora.mjs";
+import { localizeDataset } from "../translation/liveTranslation";
+
 import { getPublicDataReadAdapter } from "../convex/publicData.reads";
 import {
   clampSafetyBannerIconSize,
@@ -130,6 +132,38 @@ export const getWarningBannerPresets = cache(
     tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.banners],
   },),
 );
+
+/**
+ * Splices stored translations into the reader-facing fields of canonical
+ * warning presets. The banner corpus excludes identity, enablement, slug
+ * membership, tone, and icon, so those values survive byte-for-byte while
+ * missing translations remain English.
+ */
+export async function localizeWarningBannerPresets(
+  presets: WarningBannerPreset[],
+  locale: string,
+): Promise<WarningBannerPreset[]> {
+  if (presets.length === 0) {
+    return presets;
+  }
+
+  const localized = await localizeDataset(
+    { items: presets as unknown as Record<string, unknown>[] },
+    CORPORA.banners,
+    locale,
+  );
+  return localized.dataset.items as unknown as WarningBannerPreset[];
+}
+
+/**
+ * Request-cached composition for locale article routes. The canonical preset
+ * read and the page's ISR cache retain their existing cache ownership.
+ */
+export const getLocalizedWarningBannerPresets = cache(async (
+  locale: string,
+): Promise<WarningBannerPreset[]> => (
+  localizeWarningBannerPresets(await getWarningBannerPresets(), locale)
+));
 
 /**
  * The site-wide safety-banner glyph size — one editor setting on the

@@ -2,7 +2,6 @@ export {
   appendResult,
   buildProgressSnapshot,
   createRunArtifacts,
-  ensureArtifactDirs as ensureRunDirs,
   updateProgress,
   writeBackup,
   writeDebugArtifact,

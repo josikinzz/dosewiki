@@ -15,12 +15,8 @@ import {
   normalizeReferenceMetadataProvenance,
   stripReferenceHtmlMarkup,
 } from "../../lib/citations/referenceIdentity.mjs";
-import {
-  backupBeforeWrite,
-  getFlagValue,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { backupBeforeWrite,
+getFlagValue,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import {
   assertProductionWriteAllowed,

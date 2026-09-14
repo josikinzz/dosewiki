@@ -30,7 +30,7 @@ import {
 } from "./appearanceTypography";
 import tokenInterface from "./theme-token-interface.json";
 
-export const THEME_TOKEN_INTERFACE = tokenInterface;
+const THEME_TOKEN_INTERFACE = tokenInterface;
 
 /**
  * The colour axis: canvas, surfaces, ink, borders, accents, controls and browser chrome.
@@ -83,7 +83,7 @@ export type FontPreference =
  * `data-font`, never a stored or painted value, on the never-write-a-default rule every
  * reader axis follows.
  */
-export const PAINTED_FONT_PREFERENCES: readonly Exclude<FontPreference, "standard">[] = [
+const PAINTED_FONT_PREFERENCES: readonly Exclude<FontPreference, "standard">[] = [
   "lexend",
   "inter",
   "blinker",
@@ -101,16 +101,6 @@ export const LEGACY_FONT_PREFERENCES: Readonly<Record<string, FontPreference>> =
   dyslexic: "lexend",
 };
 
-/**
- * Resolve a stored type-axis value, translating the retired binary-toggle vocabulary.
- * Returns null for anything the axis does not recognise, which reads as "never saved".
- */
-export function resolveStoredFontPreference(
-  value: string | null | undefined,
-): FontPreference | null {
-  const migrated = value == null ? null : (LEGACY_FONT_PREFERENCES[value] ?? value);
-  return isFontPreference(migrated) ? migrated : null;
-}
 
 /**
  * The colour axes: continuous hue rotations and saturation levels over the one authored
@@ -121,8 +111,8 @@ export function resolveStoredFontPreference(
  * {@link LEGACY_ACCENT_TO_HUE}, which map a stored id onto the hue rotation (and, for the
  * achromatic Graphite/Neutral pair, the saturation level 0) that reproduces its look.
  */
-export { isAccent, LEGACY_ACCENT_TO_HUE, type AccentId, type ProAccentSeeds } from "./accents";
-export { isSurface, LEGACY_SURFACE_TO_HUE, type SurfaceId } from "./surfaces";
+export { LEGACY_ACCENT_TO_HUE } from "./accents";
+export { LEGACY_SURFACE_TO_HUE } from "./surfaces";
 
 /**
  * One resolved appearance: a point on the two attribute axes. The colour axes (hue and
@@ -177,7 +167,6 @@ export const LINE_HEIGHT_STORAGE_KEY = THEME_TOKEN_INTERFACE.lineHeightStorageKe
  */
 export const ACCENT_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentStorageKey;
 export const SURFACE_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceStorageKey;
-export const APPEARANCE_STORAGE_KEY = THEME_TOKEN_INTERFACE.appearanceStorageKey;
 export const SURFACE_CHROMA_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceChromaStorageKey;
 export const ACCENT_CHROMA_STORAGE_KEY = THEME_TOKEN_INTERFACE.accentChromaStorageKey;
 export const SURFACE_HUE_STORAGE_KEY = THEME_TOKEN_INTERFACE.surfaceHueStorageKey;
@@ -193,21 +182,6 @@ export const APPEARANCE_META_COLORS = THEME_TOKEN_INTERFACE.metaColors as Readon
   Record<VisualStyle, Readonly<Record<ColorScheme, string>>>
 >;
 
-export const THEME_CLASS = {
-  textPrimary: "theme-text-primary",
-  textSecondary: "theme-text-secondary",
-  textMuted: "theme-text-muted",
-  textFaint: "theme-text-faint",
-  accentHeading: "theme-accent-heading",
-  cardSurface: "theme-card-surface",
-  overlaySurface: "theme-overlay-surface",
-  publicCard: "theme-public-card",
-  publicCardSubtle: "theme-public-card-subtle",
-  linkMuted: "theme-link-muted",
-  iconButton: "theme-icon-button",
-  focusSkipLink: "theme-skip-link",
-  pageShell: "theme-page-shell",
-} as const;
 
 export function isColorScheme(value: string | null | undefined): value is ColorScheme {
   return SUPPORTED_COLOR_SCHEMES.includes(value as ColorScheme);

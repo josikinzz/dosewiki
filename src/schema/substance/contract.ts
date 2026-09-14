@@ -5,9 +5,9 @@
  * truth for what a substance article looks like. It is enforced at three
  * tiers:
  *
- * 1. Strict contract (this module) — `validateSubstanceArticleContract` /
- *    `parseSubstanceArticleContract`. Every substance-writing Convex mutation
- *    runs this (via `convex/lib/validators.ts#validateArticleForIngestion`)
+ * 1. Strict contract (this module) — `validateSubstanceArticleContract`. Every
+ *    substance-writing Convex mutation runs this (via
+ *    `convex/lib/validators.ts#validateArticleForIngestion`)
  *    before any insert/patch, so nothing structurally invalid is persisted.
  * 2. Light arg validator (`convex/lib/validators.ts#substanceArticleLightValidator`)
  *    — the Convex function-boundary layer. It only pins identity fields
@@ -72,9 +72,6 @@ export function validateSubstanceArticleContract(
   };
 }
 
-export function parseSubstanceArticleContract(value: unknown): SubstanceArticleStorage {
-  return substanceArticleStorageSchema.parse(value);
-}
 
 export function formatSubstanceArticleContractIssues(
   issues: readonly SubstanceArticleContractIssue[],

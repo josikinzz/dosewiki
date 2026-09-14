@@ -3,7 +3,7 @@ import type { VCodeContent } from "@/features/effects/vcode/types";
 import type { NarrativeHistoryEntry } from "@/features/effects/editing/NarrativeHistory";
 
 export type WritingKind = "article" | "blog";
-export type WritingStatus = "draft" | "published";
+type WritingStatus = "draft" | "published";
 
 /** One row of `effectIndexArticles.listForEditor`. */
 export interface WritingListEntry {

@@ -1,21 +1,19 @@
-export type AuditStatus =
-  | "exact_match"
-  | "source_verified_match"
-  | "structure_mismatch"
-  | "name_unparsed"
-  | "smiles_invalid"
-  | "missing_iupac"
-  | "missing_smiles"
-  | "missing_both"
-  | "audit_error";
+type AuditStatus = | "exact_match"
+| "source_verified_match"
+| "structure_mismatch"
+| "name_unparsed"
+| "smiles_invalid"
+| "missing_iupac"
+| "missing_smiles"
+| "missing_both"
+| "audit_error"
 
-export type InchiDifference =
-  | "exact"
-  | "constitutional"
-  | "charge_or_protonation"
-  | "hydrogen_or_bonding"
-  | "stereochemistry"
-  | "other";
+type InchiDifference = | "exact"
+| "constitutional"
+| "charge_or_protonation"
+| "hydrogen_or_bonding"
+| "stereochemistry"
+| "other"
 
 export interface ChemistryAuditRow {
   slug: string;
@@ -60,15 +58,13 @@ export interface InchiComparison {
   exact: boolean;
 }
 
-export interface IupacNameAuditReviewDecision {
-  slug: string;
-  iupacName: string;
-  inchiKey: string;
-  sourceName: string;
-  sourceUrl: string;
-  reviewedAt: string;
-  rationale: string;
-}
+interface IupacNameAuditReviewDecision { slug: string;
+iupacName: string;
+inchiKey: string;
+sourceName: string;
+sourceUrl: string;
+reviewedAt: string;
+rationale: string; }
 
 export interface ClassifiedAuditRow extends ChemistryAuditRow {
   status: AuditStatus;

@@ -1,8 +1,4 @@
-export const legalityWorkflowCommandNames = Object.freeze([
-  "legality:export",
-  "legality:validate",
-  "legality:apply",
-]);
+
 
 export function buildLegalityWorkflowCommands({
   command,

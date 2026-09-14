@@ -167,7 +167,7 @@ export const deriveArticleSlug = (article: TagRegistryInput): string | undefined
   return slugifyDrugName(primary, fallback);
 };
 
-export const cloneArticle = (article: ArticleRecord): ArticleRecord => {
+const cloneArticle = (article: ArticleRecord): ArticleRecord => {
   return structuredClone(article);
 };
 

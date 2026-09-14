@@ -123,17 +123,38 @@ export function validateArticleChange(before: ArticleDocument, input: unknown, p
   if (referencesChanged && references.length > MAX_ARTICLE_REFERENCES) invalid("references", `Keep at most ${MAX_ARTICLE_REFERENCES} sources per article.`);
   const ids = new Set(references.map((reference) => reference.id));
   const oldIds = new Set(oldReferences.map((reference) => reference.id));
-  if (referencesChanged) for (const [index, ref] of references.entries()) {
-    const old = oldReferences.find((entry) => entry.id === ref.id);
-    if (same(old, ref)) continue;
-    const normalized = normalizeIncomingReference(ref);
-    if (normalized.ok === false) invalid(`references[${index}]`, normalized.reason);
-    if (references.some((entry, other) => other !== index && entry.id === ref.id)) invalid(`references[${index}].id`, "Use a unique stable reference ID.");
-    if (old && !haveCompatibleReferenceIdentity(old, ref)) invalid(`references[${index}].id`, "This ID already names another source. Add a new reference ID instead.");
-    const equivalent = oldReferences.find((entry) => entry.id !== ref.id && haveCompatibleReferenceIdentity(entry, ref) && referenceIdentitiesOverlap(entry, ref))
-      ?? references.find((entry, other) => other < index && haveCompatibleReferenceIdentity(entry, ref) && referenceIdentitiesOverlap(entry, ref));
-    if (equivalent) invalid(`references[${index}].id`, `Keep canonical source ID ${equivalent.id}.`);
-    if (!restoring) references[index] = { ...normalized.reference, metadataProvenance: old?.metadataProvenance ?? normalized.reference.metadataProvenance };
+  if (referencesChanged) {
+    const unchangedReferenceCounts = new Map<string, number>();
+    for (const ref of oldReferences) {
+      const hash = contentHash(ref);
+      unchangedReferenceCounts.set(hash, (unchangedReferenceCounts.get(hash) ?? 0) + 1);
+    }
+    for (const [index, ref] of references.entries()) {
+      const hash = contentHash(ref);
+      const unchangedCount = unchangedReferenceCounts.get(hash) ?? 0;
+      if (unchangedCount > 0) {
+        unchangedReferenceCounts.set(hash, unchangedCount - 1);
+        continue;
+      }
+      const old = oldReferences.find((entry) => entry.id === ref.id);
+      const normalized = normalizeIncomingReference(ref);
+      if (normalized.ok === false) invalid(`references[${index}]`, normalized.reason);
+      if (references.some((entry, other) => other !== index && entry.id === ref.id)) invalid(`references[${index}].id`, "Use a unique stable reference ID.");
+      if (old && !haveCompatibleReferenceIdentity(old, ref)) invalid(`references[${index}].id`, "This ID already names another source. Add a new reference ID instead.");
+      const equivalent = references.find((entry, other) => other !== index && entry.id !== ref.id && haveCompatibleReferenceIdentity(entry, ref) && referenceIdentitiesOverlap(entry, ref));
+      if (equivalent) invalid(`references[${index}].id`, `Keep canonical source ID ${equivalent.id}.`);
+      if (!restoring) {
+        let previousSource = old;
+        if (!previousSource) {
+          for (const candidate of oldReferences) {
+            if (ids.has(candidate.id) || !haveCompatibleReferenceIdentity(candidate, ref) || !referenceIdentitiesOverlap(candidate, ref)) continue;
+            if (previousSource) { previousSource = undefined; break; }
+            previousSource = candidate;
+          }
+        }
+        references[index] = { ...normalized.reference, metadataProvenance: previousSource?.metadataProvenance ?? normalized.reference.metadataProvenance };
+      }
+    }
   }
   if (publication) walk(article, before, "", (value, old, path) => {
     if (path.startsWith("references") || path.startsWith("editorial_review") || path.startsWith("section_gaps")) return;
@@ -171,16 +192,26 @@ export function validateArticleChange(before: ArticleDocument, input: unknown, p
     const countries = article.legality.countries as Record<string, CountryLegality>;
     for (const [country, entry] of Object.entries(countries)) {
       if (same(before.legality?.countries?.[country], entry)) continue;
+      const previous = before.legality?.countries?.[country];
       const path = `legality.countries.${country}`;
       if (!entry.status.trim() || !entry.canonicalStatus) invalid(`${path}.canonicalStatus`, "Choose the canonical legal status.");
+      const classificationChanged = entry.status !== previous?.status
+        || entry.canonicalStatus !== previous?.canonicalStatus
+        || entry.designation !== previous?.designation
+        || entry.citationNeeded !== previous?.citationNeeded;
       if (!entry.instrument?.trim()) invalid(`${path}.instrument`, "Name the legal instrument.");
-      const sources = extractCitationTokens(`${entry.status} ${entry.notes} ${entry.instrument}`);
-      if (!sources.length) invalid(`${path}.notes`, "Cite a primary legal source with a [cite:reference-id] marker.");
-      for (const source of sources) {
-        const ref = references.find((row) => row.id === source.id);
-        if (!ref || ref.sourceType !== "government_or_regulatory") invalid(`${path}.notes`, `Reference ${source.id} must identify a government or regulatory primary legal source.`);
+      let hasSources = false;
+      for (const field of ["status", "notes", "instrument"] as const) {
+        const sources = extractCitationTokens(entry[field] ?? "");
+        hasSources ||= sources.length > 0;
+        if (!classificationChanged && entry[field] === previous?.[field]) continue;
+        for (const source of sources) {
+          const ref = references.find((row) => row.id === source.id);
+          if (!ref || ref.sourceType !== "government_or_regulatory") invalid(`${path}.${field}`, `Reference ${source.id} must identify a government or regulatory primary legal source.`);
+        }
       }
-      if (/\b(refuter|research pass|worker output|proposal artifact|citation audit|source search)\b/i.test(entry.notes)) invalid(`${path}.notes`, "Keep research-process notes in private evidence; public notes must describe the law.");
+      if (!hasSources) invalid(`${path}.notes`, "Cite a primary legal source with a [cite:reference-id] marker.");
+      if ((classificationChanged || entry.notes !== previous?.notes) && /\b(refuter|research pass|worker output|proposal artifact|citation audit|source search)\b/i.test(entry.notes)) invalid(`${path}.notes`, "Keep research-process notes in private evidence; public notes must describe the law.");
     }
   }
   return restoring ? input as ArticleDocument : article;

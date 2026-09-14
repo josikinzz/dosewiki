@@ -197,7 +197,10 @@ describe("lossless contributor profile merges", () => {
   });
 
   it("fails closed on membership ownership, third-party token ownership, and missing target verification", async () => {
-    await expect(plannedProfileMergeChanges(input, captured({ source: { ...(captured() as any).state.source, membershipEmail: "source@example.test" }, target: { ...(captured() as any).state.target, membershipEmail: "target@example.test" } }))).rejects.toThrow(/membership owners/);
+    const baseline = captured() as unknown as {
+      state: { source: StoredRow; target: StoredRow };
+    };
+    await expect(plannedProfileMergeChanges(input, captured({ source: { ...baseline.state.source, membershipEmail: "source@example.test" }, target: { ...baseline.state.target, membershipEmail: "target@example.test" } }))).rejects.toThrow(/membership owners/);
     await expect(plannedProfileMergeChanges(input, captured({ identityTokens: [row("token", { normalized_token: "wheressuede", owner_profile_ids: [SOURCE, "third"] })] }))).rejects.toThrow(/another owner/);
     await expect(plannedProfileMergeChanges(input, captured({ targetVerification: null }))).rejects.toThrow(/Target verification is absent/);
   });

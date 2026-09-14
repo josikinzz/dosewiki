@@ -12,25 +12,12 @@ import {
   toContributorDisplayName,
 } from "../../lib/contributorProfileIdentity";
 
-export type UserProfileLink = {
+type UserProfileLink = {
   label: string;
   url: string;
-};
+}
 
-export type UserProfileRecord = {
-  key: string;
-  displayName?: string;
-  aliases?: string[];
-  avatarStorageId?: string | null;
-  avatarUrl?: string | null;
-  bio?: string | null;
-  role?: string | null;
-  links?: UserProfileLink[] | null;
-  membershipEmail?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  updatedBy?: string | null;
-};
+
 
 export type NormalizedUserProfile = {
   key: string;

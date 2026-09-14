@@ -22,7 +22,8 @@ import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type WorkUnit } 
 import { LOCALES, glossaryTermPattern, resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { isBlocking } from "../../scripts/translation/validate.mjs";
-import { glossaryDigestInput, loadGlossary, type Glossary } from "./glossary";
+import { glossaryDigestInput, readGlossaryRows, type Glossary } from "./glossary";
+import { glossDigestInput, loadGlosses } from "./glossaryGloss";
 import {
   clearTranslationRejections,
   pendingTranslationHashes,
@@ -35,7 +36,7 @@ import type { PublicDataReadAdapter } from "../convex/publicData.reads";
 import { isPublishableReplication } from "../../src/types/replications";
 
 /** Which runtime record corpus a translation job addresses. */
-export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication";
+export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication" | "profile";
 
 /** Every kind, in the order the operator tooling reports them. */
 export const TRANSLATION_RECORD_KINDS: readonly TranslationRecordKind[] = [
@@ -44,12 +45,26 @@ export const TRANSLATION_RECORD_KINDS: readonly TranslationRecordKind[] = [
   "report",
   "library",
   "replication",
+  "profile",
 ];
 
 /** The batch corpus plus the runtime-only keys a public record carries that an export does not. */
 const LIVE_SUBSTANCE_CORPUS = {
   ...CORPORA.substances,
   excludedKeys: [...CORPORA.substances.excludedKeys, "publicRevision", "section_gaps", "editorial_review"],
+};
+
+/** Contributor records are projected to `{ slug, bio }` before segmentation. */
+const LIVE_PROFILE_CORPUS = {
+  id: "profiles",
+  label: "Contributor profiles",
+  dataset: "ContributorProfiles",
+  itemKey: "slug",
+  excludedGroups: [],
+  excludedKeys: ["slug"],
+  conditionalKeys: {},
+  safetyGroups: [],
+  markupFields: {},
 };
 
 /**
@@ -69,6 +84,7 @@ const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> 
   report: { ...CORPORA.reports, excludedKeys: [...CORPORA.reports.excludedKeys] },
   library: { ...CORPORA.articles, excludedKeys: [...CORPORA.articles.excludedKeys, "authors"] },
   replication: { ...CORPORA.replications, excludedKeys: [...CORPORA.replications.excludedKeys] },
+  profile: LIVE_PROFILE_CORPUS,
 };
 
 /** Effect and library bodies reconcile their derived `*_ast` trees against the translated raw. */
@@ -78,7 +94,7 @@ const CORPUS_PARSE: Partial<Record<TranslationRecordKind, NonNullable<Parameters
 };
 
 /** The job table keys every record by slug; the non-substance kinds carry a namespace prefix so one row always resolves to exactly one corpus. */
-const PREFIXED_KINDS = ["effect", "report", "library", "replication"] as const;
+const PREFIXED_KINDS = ["effect", "report", "library", "replication", "profile"] as const;
 
 /** The corpus and bare slug one `translationJobs` row addresses; a bare slug is a substance article. */
 export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRecordKind; slug: string } {
@@ -140,6 +156,12 @@ export async function readTranslationRecord(
       const replication = await reads.getPublicReplicationBySlug(slug);
       return replication && isPublishableReplication(replication) ? replication : null;
     }
+    case "profile": {
+      const profile = (await reads.getPublicContributorProfiles()).find(
+        (candidate) => candidate.key.trim().toUpperCase() === slug.trim().toUpperCase(),
+      );
+      return profile ? { slug: profile.key, bio: profile.bio } : null;
+    }
   }
 }
 
@@ -160,6 +182,8 @@ export async function publicRecordSlugs(reads: PublicDataReadAdapter, kind: Tran
       return (await reads.getPublicReplications())
         .filter((replication) => isPublishableReplication(replication))
         .map(({ slug }) => slug);
+    case "profile":
+      return (await reads.getPublicContributorProfiles()).map(({ key }) => key);
   }
 }
 
@@ -175,6 +199,11 @@ export async function publicRecords(
 ): Promise<Array<{ slug: string } & Record<string, unknown>>> {
   type PublicRecord = { slug: string } & Record<string, unknown>;
   switch (kind) {
+    case "profile":
+      return (await reads.getPublicContributorProfiles()).map((profile) => ({
+        slug: profile.key,
+        bio: profile.bio,
+      })) as PublicRecord[];
     case "report":
       return (await reads.getPublicTripReportRecords()) as unknown as PublicRecord[];
     case "library":
@@ -211,35 +240,51 @@ const REFRESH_CONCURRENCY = 8;
 
 /**
  * Everything a translation run needs to agree on: the locale's prompt, the
- * approved glossary it injects, and the digest the two produce. Loaded once
- * per run so every batch in it is stamped with the digest it was made under.
+ * approved glossary it injects, the kind of each approved term (so the
+ * prompt confines surface-specific kinds to their surface), the English
+ * glosses that ride beside each injected term, and the digest the prompt
+ * and the two maps produce. Loaded once per run so every batch in it is
+ * stamped with the digest it was made under.
  */
 export type TranslationContext = {
   locale: TranslationLocale;
   glossary: Glossary;
+  /** `term -> kind` for the approved rows; see `kindInContext` in locales.mjs. */
+  kinds: Readonly<Record<string, string>>;
+  /** `term -> gloss`, locale-independent; injected beside the rendering of any term a batch mentions. */
+  glosses: Readonly<Record<string, string>>;
   promptVersion: string;
 };
 
-/** Digest of everything that shapes an answer besides the segment itself: model, system prompt, approved glossary. */
-export function promptVersionFor(locale: TranslationLocale, glossary: Glossary): string {
+/** Digest of everything that shapes an answer besides the segment itself: model, system prompt, approved glossary, glosses. */
+export function promptVersionFor(locale: TranslationLocale, glossary: Glossary, glosses: Readonly<Record<string, string>>): string {
   return createHash("sha256")
     .update(TRANSLATION_MODEL)
     .update("\u0000")
     .update(locale.systemPrompt)
     .update("\u0000")
     .update(glossaryDigestInput(glossary))
+    .update("\u0000")
+    .update(glossDigestInput(glosses))
     .digest("hex")
     .slice(0, 16);
 }
 
 export async function loadTranslationContext(localeCode: string): Promise<TranslationContext> {
   const locale = resolveLocale(localeCode);
-  const glossary = await loadGlossary(localeCode);
-  return { locale, glossary, promptVersion: promptVersionFor(locale, glossary) };
+  const [rows, glosses] = await Promise.all([readGlossaryRows(localeCode, { status: "approved" }), loadGlosses()]);
+  const glossary: Glossary = Object.fromEntries(rows.map((row) => [row.term, row.target]));
+  const kinds = Object.fromEntries(rows.map((row) => [row.term, row.kind]));
+  return { locale, glossary, kinds, glosses, promptVersion: promptVersionFor(locale, glossary, glosses) };
 }
 
 export function segmentsOf(record: { slug: string }, kind: TranslationRecordKind = "article"): Segment[] {
   return extractSegments({ items: [record as unknown as Record<string, unknown>] }, LIVE_CORPORA[kind]).segments;
+}
+
+/** The deduped work units of one record, each stamped with the corpus it came from so the prompt can scope glossary kinds. */
+export function workUnitsOf(segments: readonly Segment[], kind: TranslationRecordKind): WorkUnit[] {
+  return buildWorkUnits(segments).map((unit) => ({ ...unit, contextKind: kind }));
 }
 
 export type LocalizedRecord<T> = { record: T; applied: number; missing: number };
@@ -279,6 +324,33 @@ export async function localizeRecords<T extends { slug: string }>(
   return { records: assembled.dataset.items as T[], applied: assembled.applied, missing: assembled.missing };
 }
 
+/**
+ * Splice flat-store translations into an arbitrary corpus-shaped dataset.
+ * This is for reader datasets such as warning banners that are not translation
+ * job record kinds; untranslated leaves remain canonical English.
+ */
+export async function localizeDataset<T extends Record<string, unknown>>(
+  dataset: { items: readonly T[] },
+  corpus: typeof LIVE_SUBSTANCE_CORPUS,
+  localeCode: string,
+): Promise<{ dataset: { items: T[] }; applied: number; missing: number }> {
+  const items = dataset.items as T[];
+  const segments = extractSegments({ items }, corpus).segments;
+  const translations = await readTranslations(
+    localeCode,
+    [...new Set<string>(segments.map((segment: Segment) => segment.hash))],
+  );
+  const assembled = assembleLocaleDataset({ items }, segments, translations, {
+    locale: localeCode,
+    corpus,
+  });
+  return {
+    dataset: assembled.dataset as { items: T[] },
+    applied: assembled.applied,
+    missing: assembled.missing,
+  };
+}
+
 export type RefreshOutcome = {
   slug: string;
   locale: string;
@@ -300,7 +372,7 @@ export async function translateUnits(
   context: TranslationContext,
   apiKey: string,
 ): Promise<Pick<RefreshOutcome, "stored" | "rejected" | "usage">> {
-  const { locale, glossary, promptVersion } = context;
+  const { locale, glossary, kinds, glosses, promptVersion } = context;
   const localeCode = locale.code;
   const usage = { prompt: 0, completion: 0, requests: 0 };
   const rows: TranslationSegmentRow[] = [];
@@ -317,6 +389,8 @@ export async function translateUnits(
           units: batch,
           locale,
           glossary,
+          kinds,
+          glosses,
           model: TRANSLATION_MODEL,
           apiKey,
           onUsage: (used) => {
@@ -365,7 +439,7 @@ export async function refreshRecordTranslations(
 ): Promise<RefreshOutcome> {
   const localeCode = context.locale.code;
   const segments = segmentsOf(record, kind);
-  const units = buildWorkUnits(segments);
+  const units = workUnitsOf(segments, kind);
   // Missing hashes and hashes stamped with another digest both go back to the
   // model: a scoped stale replay marks the segments a glossary edit touched
   // and enqueues their records, and this is where the cron picks them up.

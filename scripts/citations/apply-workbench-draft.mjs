@@ -4,17 +4,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
-import {
-  assertDataOpsWriteAllowed,
-  backupBeforeWrite,
-  createDataOpsRunContext,
-  getFlagValue,
-  printDataOpsRunContext,
-  requireAdminIntentToken,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+backupBeforeWrite,
+createDataOpsRunContext,
+getFlagValue,
+printDataOpsRunContext,
+requireAdminIntentToken,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 import {
   DEFAULT_DRAFT_PATH,
   assertWorkbenchDraftPromotionAllowed,
@@ -40,17 +36,18 @@ function printHelp() {
 Apply a completed external citation workbench draft through the site citation write path.
 
 Usage:
-  TARGET_CONVEX_URL=https://<deployment>.convex.cloud npm run citations:apply-workbench -- --slug=2c-b --dry-run --expected-deployment=<deployment>
-  TARGET_CONVEX_URL=https://<deployment>.convex.cloud npm run citations:apply-workbench -- --slug=2c-b --write --confirm-citation-write --expected-deployment=<deployment>
+  DATA_BACKEND=postgres TARGET_POSTGRES_URL=<postgres-url> npm run citations:apply-workbench -- --slug=2c-b --dry-run --allow-remote --expected-deployment=<host>/<database>
+  DATA_BACKEND=postgres TARGET_POSTGRES_URL=<postgres-url> npm run citations:apply-workbench -- --slug=2c-b --write --allow-remote --confirm-citation-write --confirm-write=apply-citation-workbench-draft --expected-deployment=<host>/<database>
 
 Options:
-  --slug=<slug>                 Article slug (default: 2c-b)
+  --slug=<slug>                 Required article slug
   --draft=<path>                Workbench citation-draft.json path
-  --write                       Persist the adapted draft to Convex
+  --write                       Persist the adapted draft to Postgres
   --confirm-citation-write      Required with --write
   --confirm-write=apply-citation-workbench-draft
                                Shared production confirmation required with --write
-  --expected-deployment=<id>    Required for dry-run and write; must match TARGET_CONVEX_URL
+  --expected-deployment=<id>    Required for dry-run and write; must match the explicit Postgres target
+  --allow-remote                Required for non-loopback targets, with POSTGRES_IMPORT_CONFIRM=<host>
   --help, -h                    Show this help message
 `);
 }
@@ -69,7 +66,7 @@ const runContext = createDataOpsRunContext({
   intent: "citation-pilot",
   argv,
   sourceUrlKeys: [],
-  targetUrlKeys: ["TARGET_CONVEX_URL"],
+  targetUrlKeys: [],
   dryRunFlag: "--dry-run",
   executeFlag: "--write",
   requiresExecute: true,
@@ -109,7 +106,7 @@ async function main() {
   console.log(`Workbench draft: ${options.draftPath}`);
   console.log("");
 
-  requireTargetUrl(runContext, "Convex citation target URL");
+  requireTargetUrl(runContext, "Postgres citation target URL");
   const client = createDataClient({ target: targetUrl }).client;
   const article = await client.query(api.substanceIndex.getBySlug, { slug: options.slug });
   if (!article) {
@@ -152,7 +149,7 @@ async function main() {
   console.log("");
 
   if (!options.write) {
-    console.log("No writes performed. Re-run with the same TARGET_CONVEX_URL and --expected-deployment, plus --write --confirm-citation-write and the shared confirmation phrase.");
+    console.log("No writes performed. Re-run with the same explicit Postgres target and --expected-deployment, plus --write --confirm-citation-write and the shared confirmation phrase.");
     return;
   }
 

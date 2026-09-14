@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { unstable_cache } from "next/cache";
 import { getDataBackend } from "../postgres/runtime/backend";
 import { getPublicServerReadTarget } from "./runtimeTargets";
@@ -35,6 +36,19 @@ export const PUBLIC_CHANGELOG_LISTS_TAG = "convex-public:changelog-lists";
 // Measure the escaped body, leaving headroom below 2 MB for its fixed metadata.
 const MAX_PUBLIC_CACHE_BYTES = 1_800_000;
 
+let postgresTargetUrl: string | undefined;
+let postgresTargetIdentity = "";
+
+function getPostgresCacheTarget(): string {
+  const url = process.env.POSTGRES_POOLED_URL || process.env.POSTGRES_DIRECT_URL || "unconfigured";
+  if (url !== postgresTargetUrl) {
+    // Next includes cache keys in revalidation errors. Never put credentials there.
+    postgresTargetIdentity = `postgres:${createHash("sha256").update(url).digest("hex")}`;
+    postgresTargetUrl = url;
+  }
+  return postgresTargetIdentity;
+}
+
 type PublicCachedValue<Result> =
   | { cacheable: true; value: Result }
   | { cacheable: false };
@@ -52,14 +66,16 @@ export function publicDataCache<Args extends unknown[], Result>(
   options: {
     revalidate?: number | false;
     tags?: string[] | ((...args: Args) => string[]);
+    awaitRefresh?: boolean;
   },
 ): (...args: Args) => Promise<Result> {
   const callbackKey = callback.toString();
+  const { awaitRefresh, ...cacheOptions } = options;
   return async (...args) => {
     // Backend identity is part of the namespace: a Postgres-served process never reuses Convex-tagged entries.
     const target =
       getDataBackend() === "postgres"
-        ? `postgres:${process.env.POSTGRES_POOLED_URL || process.env.POSTGRES_DIRECT_URL || "unconfigured"}`
+        ? getPostgresCacheTarget()
         : getPublicServerReadTarget().selectedUrl ?? "unconfigured";
     const tags = typeof options.tags === "function" ? options.tags(...args) : options.tags;
     let currentRead: Promise<Result> | undefined;
@@ -71,7 +87,13 @@ export function publicDataCache<Args extends unknown[], Result>(
         return { cacheable: false };
       }
       return entry;
-    }, [...keyParts, target, callbackKey], { ...options, tags })(...args);
+    }, [...keyParts, target, callbackKey], { ...cacheOptions, tags })(...args);
+    if (awaitRefresh && cached.cacheable && currentRead) {
+      // A stale page returns immediately from Next while its refresh runs.
+      // Wait before advancing the cursor, preserving Next's stale-on-error
+      // behavior and leaving refresh error reporting to Next itself.
+      await currentRead.catch(() => undefined);
+    }
     if (cached.cacheable) return cached.value;
     // Share this invocation's read with background refresh too. A sentinel hit
     // always resolves current content, never the former oversized cache value.

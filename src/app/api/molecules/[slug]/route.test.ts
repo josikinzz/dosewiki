@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import type * as SiteFlavorModule from "@/config/siteFlavor";
 import { describeMoleculeImageRoute } from "@/test/moleculeImageRoute";
 import { GET } from "./route";
 
@@ -6,6 +7,16 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
   query: vi.fn(),
 }));
+vi.mock("@/config/siteFlavor", async (importOriginal) => {
+  const actual = await importOriginal<typeof SiteFlavorModule>();
+  return {
+    ...actual,
+    SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
+    isEffectIndex: (config = actual.SITE_FLAVOR_CONFIGS.dosewiki) =>
+      actual.isEffectIndex(config),
+  };
+});
+
 
 vi.mock("@server/convex/serverClient", () => ({
   queryConvex: mocks.query,

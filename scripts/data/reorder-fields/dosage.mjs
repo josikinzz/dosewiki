@@ -8,47 +8,37 @@ import {
 } from './orders.mjs';
 import { orderObject, reorderOrderedRecord } from './core.mjs';
 
-export function reorderDoseRange(doseRange, options) {
-  if (!doseRange) return doseRange;
-  return orderObject(doseRange, DOSE_RANGE_ORDER, { ...options, context: 'dose_range' });
-}
+function reorderDoseRange(doseRange, options) { if (!doseRange) return doseRange;
+return orderObject(doseRange, DOSE_RANGE_ORDER, { ...options, context: 'dose_range' }); }
 
-export function reorderDoseRanges(doseRanges, options) {
-  if (!doseRanges) return doseRanges;
-  return reorderOrderedRecord(doseRanges, DOSE_RANGES_ORDER, (entry) => reorderDoseRange(entry, options));
-}
+function reorderDoseRanges(doseRanges, options) { if (!doseRanges) return doseRanges;
+return reorderOrderedRecord(doseRanges, DOSE_RANGES_ORDER, (entry) => reorderDoseRange(entry, options)); }
 
-export function reorderPlateauDose(plateauDose, options) {
-  if (!plateauDose) return plateauDose;
-  return orderObject(plateauDose, PLATEAU_DOSE_ORDER, { ...options, context: 'plateau_dose' });
-}
+function reorderPlateauDose(plateauDose, options) { if (!plateauDose) return plateauDose;
+return orderObject(plateauDose, PLATEAU_DOSE_ORDER, { ...options, context: 'plateau_dose' }); }
 
-export function reorderPlateauDosing(plateauDosing, options) {
-  if (plateauDosing === null || plateauDosing === undefined) return plateauDosing;
-  const result = {};
-  for (const plateau of PLATEAU_DOSING_ORDER) {
-    if (Object.prototype.hasOwnProperty.call(plateauDosing, plateau)) {
-      result[plateau] = plateau === 'notes'
-        ? plateauDosing[plateau]
-        : reorderPlateauDose(plateauDosing[plateau], options);
-    }
+function reorderPlateauDosing(plateauDosing, options) { if (plateauDosing === null || plateauDosing === undefined) return plateauDosing;
+const result = {};
+for (const plateau of PLATEAU_DOSING_ORDER) {
+  if (Object.prototype.hasOwnProperty.call(plateauDosing, plateau)) {
+    result[plateau] = plateau === 'notes'
+      ? plateauDosing[plateau]
+      : reorderPlateauDose(plateauDosing[plateau], options);
   }
-  for (const key of Object.keys(plateauDosing)) {
-    if (!PLATEAU_DOSING_ORDER.includes(key)) {
-      result[key] = plateauDosing[key];
-    }
-  }
-  return result;
 }
+for (const key of Object.keys(plateauDosing)) {
+  if (!PLATEAU_DOSING_ORDER.includes(key)) {
+    result[key] = plateauDosing[key];
+  }
+}
+return result; }
 
-export function reorderDosageRoute(route, options) {
-  if (!route) return route;
-  const result = { ...route };
-  if (result.dose_ranges) {
-    result.dose_ranges = reorderDoseRanges(result.dose_ranges, options);
-  }
-  return orderObject(result, DOSAGE_ROUTE_ORDER, { ...options, context: 'dosage_route' });
+function reorderDosageRoute(route, options) { if (!route) return route;
+const result = { ...route };
+if (result.dose_ranges) {
+  result.dose_ranges = reorderDoseRanges(result.dose_ranges, options);
 }
+return orderObject(result, DOSAGE_ROUTE_ORDER, { ...options, context: 'dosage_route' }); }
 
 export function reorderDosage(dosage, options) {
   if (!dosage) return dosage;

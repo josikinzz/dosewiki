@@ -12,7 +12,7 @@ import {
 } from "../base";
 import { getParseableSourceDescriptor } from "../source-identity";
 
-export class WikipediaParser implements SourceParser {
+class WikipediaParser implements SourceParser {
   source = getParseableSourceDescriptor("wikipedia");
   sourceId = this.source.id;
 

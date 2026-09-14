@@ -11,25 +11,25 @@ import { z } from "zod";
  */
 
 /** One neighbour to point a reader at. `slug` must resolve to a dose.wiki article. */
-export const sectionGapNeighbourSchema = z.object({
+const sectionGapNeighbourSchema = z.object({
   slug: z.string(),
   name: z.string(),
   /** One short clause on why this one, e.g. "closest documented analogue". */
   note: z.string().optional(),
-});
+})
 
-export const sectionGapReasonSchema = z.enum([
+const sectionGapReasonSchema = z.enum([
   /** Extraction ran and every indexed source returned nothing. An evidenced absence. */
   "sources-silent",
   /** Sources exist and have not been worked yet. */
   "not-written",
-]);
+])
 
-export const sectionGapOverrideSchema = z.object({
+const sectionGapOverrideSchema = z.object({
   reason: sectionGapReasonSchema.optional(),
   /** Replaces the article-level list for this section only. */
   neighbours: z.array(sectionGapNeighbourSchema).optional(),
-});
+})
 
 export const sectionGapsSchema = z.object({
   /** Reads mid-sentence: "likely somewhat similar to other <family>". */
@@ -44,4 +44,3 @@ export const sectionGapsSchema = z.object({
 
 export type SectionGapNeighbour = z.infer<typeof sectionGapNeighbourSchema>;
 export type SectionGapReason = z.infer<typeof sectionGapReasonSchema>;
-export type SectionGaps = z.infer<typeof sectionGapsSchema>;

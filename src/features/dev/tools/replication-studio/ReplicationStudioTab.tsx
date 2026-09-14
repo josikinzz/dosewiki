@@ -4,14 +4,6 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   ActionNotice,
@@ -30,16 +22,19 @@ import { ReplicationFacetRail } from "./ReplicationFacetRail";
 import { ReplicationGrid } from "./ReplicationGrid";
 import { SubstanceGalleryPanel } from "./SubstanceGalleryPanel";
 import {
+  ReplicationStudioLeaveDialogs,
+  type PendingPlaylistLeave,
+} from "./ReplicationStudioLeaveDialogs";
+import {
+  ReplicationStudioWorkspaceNav,
+  type StudioWorkspace,
+} from "./ReplicationStudioWorkspaceNav";
+import {
   EMPTY_STUDIO_FACETS,
   activeFacetCount,
 } from "./replicationStudioModel";
 import { useReplicationStudioController } from "./useReplicationStudioController";
 
-type StudioWorkspace = "featured" | "playlists" | "substances" | null;
-
-type PendingPlaylistLeave =
-  | { kind: "workspace"; next: StudioWorkspace }
-  | { kind: "review"; substanceSlug: string };
 
 export function ReplicationStudioTab({
   initialSubstanceSlug,
@@ -137,101 +132,18 @@ export function ReplicationStudioTab({
 
   return (
     <div className="space-y-4">
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-baseline gap-3">
-          <div className="flex items-baseline gap-2">
-            <h2 className="theme-accent-emphasis font-display text-xl font-semibold">
-              Replication Studio
-            </h2>
-            <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">dev tool</span>
-          </div>
-          <p className="theme-text-faint font-mono text-xs">
-            {rows.length} rows · {artists.length} artists ·{" "}
-            {new Set(rows.map((row) => row.effect_slug).filter(Boolean)).size} effects
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 border-y border-[color:var(--editor-panel-border)] py-2">
-          <nav aria-label="Replication Studio workspace" className="flex flex-wrap items-center gap-1">
-            <Button
-              type="button"
-              variant={activePanel === null ? "accent" : "ghost"}
-              size="sm"
-              aria-current={activePanel === null ? "page" : undefined}
-              onClick={() => requestWorkspace(null)}
-            >
-              <Icon icon="lucide:library" size={15} />
-              Library
-            </Button>
-            <Button
-              type="button"
-              variant={activePanel === "playlists" ? "accent" : "ghost"}
-              size="sm"
-              aria-current={activePanel === "playlists" ? "page" : undefined}
-              onClick={() => requestWorkspace("playlists")}
-            >
-              <Icon icon="lucide:list-music" size={15} />
-              Playlists
-            </Button>
-            <Button
-              type="button"
-              variant={activePanel === "substances" ? "accent" : "ghost"}
-              size="sm"
-              aria-current={activePanel === "substances" ? "page" : undefined}
-              onClick={() => requestWorkspace("substances")}
-            >
-              <Icon icon="lucide:images" size={15} />
-              Drug galleries
-            </Button>
-          </nav>
-          <div className="h-5 w-px bg-[var(--editor-panel-border)]" aria-hidden="true" />
-          <Button
-            type="button"
-            variant={activePanel === "featured" ? "secondary" : "quiet"}
-            size="sm"
-            aria-current={activePanel === "featured" ? "page" : undefined}
-            onClick={() => requestWorkspace("featured")}
-          >
-            <Icon icon="lucide:star" size={15} />
-            Featured
-          </Button>
-          <div className="flex-1" />
-          {activePanel === null ? (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={busy}
-                onClick={() => void controller.loadCorpus()}
-              >
-                <Icon icon="lucide:refresh-cw" size={15} />
-                Reload
-              </Button>
-              <Button
-                type="button"
-                variant="accent"
-                size="sm"
-                onClick={() => incoming.fileInputRef.current?.click()}
-              >
-                <Icon icon="lucide:upload" size={15} />
-                Upload
-              </Button>
-            </>
-          ) : null}
-        </div>
-        <input
-          ref={incoming.fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,video/*,audio/mpeg,.mp3"
-          className="sr-only"
-          onChange={(event) => {
-            incoming.addFiles(event.target.files);
-            event.target.value = "";
-          }}
-        />
-      </header>
+      <ReplicationStudioWorkspaceNav
+        activePanel={activePanel}
+        rowCount={rows.length}
+        artistCount={artists.length}
+        effectCount={new Set(rows.map((row) => row.effect_slug).filter(Boolean)).size}
+        busy={busy}
+        fileInputRef={incoming.fileInputRef}
+        onRequestWorkspace={requestWorkspace}
+        onReload={() => void controller.loadCorpus()}
+        onUpload={() => incoming.fileInputRef.current?.click()}
+        onFiles={incoming.addFiles}
+      />
 
       {feedback ? (
         <ActionNotice tone={feedback.tone} onDismiss={() => controller.setFeedback(null)}>
@@ -470,74 +382,25 @@ export function ReplicationStudioTab({
           </div>
         ) : null}
       </div>
-      <Dialog
-        open={pendingPlaylistLeave !== null}
-        onOpenChange={(open) => {
-          if (!open) setPendingPlaylistLeave(null);
+      <ReplicationStudioLeaveDialogs
+        pendingPlaylistLeave={pendingPlaylistLeave}
+        pendingShowcaseLeave={pendingLeave}
+        onCancelPlaylistLeave={() => setPendingPlaylistLeave(null)}
+        onConfirmPlaylistLeave={() => {
+          const pending = pendingPlaylistLeave;
+          setPendingPlaylistLeave(null);
+          setPlaylistDirty(false);
+          if (pending?.kind === "review") {
+            controller.navigateToSubstance(pending.substanceSlug);
+          } else {
+            controller.setActivePanel(pending?.next ?? null);
+          }
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Leave Playlists with unsaved changes?</DialogTitle>
-            <DialogDescription>
-              The open playlist has changes that were never saved. Leaving this workspace discards
-              them.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setPendingPlaylistLeave(null)}>
-              Keep editing
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                const pending = pendingPlaylistLeave;
-                setPendingPlaylistLeave(null);
-                setPlaylistDirty(false);
-                if (pending?.kind === "review") {
-                  controller.navigateToSubstance(pending.substanceSlug);
-                } else {
-                  controller.setActivePanel(pending?.next ?? null);
-                }
-              }}
-            >
-              Discard changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={pendingLeave !== null}
-        onOpenChange={(open) => {
-          if (!open) controller.setPendingLeave(null);
+        onCancelShowcaseLeave={() => controller.setPendingLeave(null)}
+        onConfirmShowcaseLeave={() => {
+          if (pendingLeave) controller.leaveSubstances(pendingLeave.next);
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Leave the showcase with unsaved changes?</DialogTitle>
-            <DialogDescription>
-              This board has curation that was never saved. Leaving now throws it away; the article
-              keeps whatever is already stored.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => controller.setPendingLeave(null)}>
-              Keep editing
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                if (pendingLeave) controller.leaveSubstances(pendingLeave.next);
-              }}
-            >
-              Discard changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      />
 
       <div
         aria-hidden={!incoming.dragging}

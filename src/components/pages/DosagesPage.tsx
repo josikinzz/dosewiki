@@ -26,12 +26,11 @@ import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
 // helper itself has no runtime dependencies.
 import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibilityPolicy";
 import { slugify } from "@/utils/slug";
-import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
+import { replaceCurrentIndexViewPath, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import {
   SUBSTANCE_INDEX_DEFAULT_VIEW,
   SUBSTANCE_INDEX_LEGACY_COVER_ID,
   parseLegacySubstanceIndexHash,
-  replaceCurrentIndexViewPath,
   substanceIndexViewPath,
   type SubstanceIndexView,
 } from "@/utils/indexViewRoutes";

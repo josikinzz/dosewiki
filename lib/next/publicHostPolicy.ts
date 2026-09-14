@@ -1,10 +1,15 @@
+import { PUBLIC_LOCALES } from "../../src/i18n/localeRegistry.mjs";
+
 export const PUBLIC_HOSTS: Record<string, true> = {
   "dose.wiki": true,
   "www.dose.wiki": true,
-  "zh.dose.wiki": true,
   "effectindex.com": true,
   "www.effectindex.com": true,
 };
+
+for (const { publicHost } of PUBLIC_LOCALES) {
+  if (publicHost) PUBLIC_HOSTS[publicHost] = true;
+}
 
 export function normalizeHost(host: string | null | undefined): string {
   const value = host?.trim().toLowerCase() ?? "";
@@ -21,7 +26,7 @@ export function isPublicHost(host: string | null | undefined): boolean {
  * Keeping sessions on one host avoids cross-origin redirects that silently discard
  * authentication cookies.
  */
-export const EDITOR_DEPLOYMENT_ORIGIN = "https://dev.dose.wiki";
+const EDITOR_DEPLOYMENT_ORIGIN = "https://dev.dose.wiki"
 
 /** Non-public hosts that must remain closed to crawlers. */
 export const EDITOR_HOSTS: Record<string, true> = {

@@ -1,7 +1,7 @@
-export type EffectEntry = {
+type EffectEntry = {
   name: string;
   description: string;
-};
+}
 
 export type EffectCategory = Record<string, {
   note: string;
@@ -37,28 +37,26 @@ export function getObject(value: unknown): Record<string, unknown> {
   return isObjectRecord(value) ? value : {};
 }
 
-export function normalizeEffectsArray(value: unknown): EffectEntry[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .map((entry) => {
-      if (typeof entry === "string") {
-        return { name: entry, description: "" };
-      }
-
-      if (!isObjectRecord(entry)) {
-        return null;
-      }
-
-      return {
-        name: getString(entry.name),
-        description: getString(entry.description),
-      };
-    })
-    .filter((entry): entry is EffectEntry => entry !== null && entry.name.length > 0);
+function normalizeEffectsArray(value: unknown): EffectEntry[] { if (!Array.isArray(value)) {
+  return [];
 }
+
+return value
+  .map((entry) => {
+    if (typeof entry === "string") {
+      return { name: entry, description: "" };
+    }
+
+    if (!isObjectRecord(entry)) {
+      return null;
+    }
+
+    return {
+      name: getString(entry.name),
+      description: getString(entry.description),
+    };
+  })
+  .filter((entry): entry is EffectEntry => entry !== null && entry.name.length > 0); }
 
 export function getEffectCategory(value: unknown): EffectCategory {
   if (Array.isArray(value)) {

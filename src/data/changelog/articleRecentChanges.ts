@@ -106,10 +106,6 @@ function toWords(segment: string): string {
  * locale catalog carries them; the row renders `t(message)`. A compound
  * sentence ("Added a citation and reworded 2 words") stays English.
  */
-export const SINGLE_CLAUSE_MESSAGES = [
-  msg("Edited"), msg("Added a citation"), msg("Removed a citation"), msg("Changed a word"),
-  msg("Sourced a claim"), msg("Cleared a citation-needed flag"),
-];
 
 export function describeProseDiff(diff: string): string {
   const removed: string[] = [];

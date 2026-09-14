@@ -8,16 +8,12 @@ import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { stripCitationMarkers } from "../citations/citation-only-validator.mjs";
-import {
-  assertDataOpsWriteAllowed,
-  backupBeforeWrite,
-  createDataOpsRunContext,
-  getFlagValue,
-  requireAdminIntentToken,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+backupBeforeWrite,
+createDataOpsRunContext,
+getFlagValue,
+requireAdminIntentToken,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
 function requireSlug(argv) {
   const slug = getFlagValue(argv, "--slug")?.trim();

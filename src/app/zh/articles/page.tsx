@@ -10,7 +10,7 @@ import { loadArticlesIndexRoute } from "@server/next/routeLoaders.publications";
 import { ArticlesIndexPage } from "@/features/articles/pages/ArticlesIndexPage";
 import { getCopy } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 

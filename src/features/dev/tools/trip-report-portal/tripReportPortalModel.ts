@@ -18,7 +18,7 @@ import type {
   TripReportEditableSubstance,
 } from "../../../../../convex/lib/tripReportEditing";
 
-export type TripReportSubmissionStatus =
+type TripReportSubmissionStatus =
   | "submitted"
   | "reviewing"
   | "accepted"
@@ -56,7 +56,7 @@ export const EMPTY_PORTAL_FACETS: PortalFacets = { substance: [], author: [], ta
  * rest of a subject (age, setting, medications…) belongs to the editor form,
  * which reads it from the report body fetched on selection.
  */
-export type PortalSubjectSummary = { name: string; trip_date?: string };
+type PortalSubjectSummary = { name: string; trip_date?: string };
 
 export type PortalRow = {
   /** Convex document id for a published report, public submission id otherwise. */

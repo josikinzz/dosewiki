@@ -34,17 +34,17 @@ interface ArticleSectionBase {
   body: ArticleBodyContent;
 }
 
-export interface ArticleOverviewSectionModel extends ArticleSectionBase {
+interface ArticleOverviewSectionModel extends ArticleSectionBase {
   kind: "overview";
 }
 
-export interface ArticleProseSectionModel extends ArticleSectionBase {
+interface ArticleProseSectionModel extends ArticleSectionBase {
   kind: "section";
   title: string;
   icon: IconName;
 }
 
-export interface ArticleCommentaryAttribution {
+interface ArticleCommentaryAttribution {
   name: string;
 }
 
@@ -56,7 +56,7 @@ export interface ArticleCommentarySectionModel extends ArticleSectionBase {
   attribution?: ArticleCommentaryAttribution;
 }
 
-export type ArticleSectionModel =
+type ArticleSectionModel =
   | ArticleOverviewSectionModel
   | ArticleProseSectionModel
   | ArticleCommentarySectionModel;
@@ -72,7 +72,7 @@ export interface ArticleModel {
   sectionIds: string[];
 }
 
-export const ARTICLE_OVERVIEW_SECTION_ID = "overview";
+const ARTICLE_OVERVIEW_SECTION_ID = "overview";
 const COMMENTARY_ICON: IconName = "lucide:quote";
 const DEFAULT_SECTION_ICON: IconName = icons.bookOpenText;
 

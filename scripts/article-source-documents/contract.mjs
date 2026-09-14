@@ -91,7 +91,7 @@ export function normalizeArticleSourceDocument(input, options = {}) {
   return normalized;
 }
 
-export function normalizeSourceMetadata(source) {
+function normalizeSourceMetadata(source) {
   return {
     id: String(source.id),
     fileName: source.fileName ?? "",
@@ -101,7 +101,7 @@ export function normalizeSourceMetadata(source) {
   };
 }
 
-export function normalizeContents(contents) {
+function normalizeContents(contents) {
   if (!contents || typeof contents !== "object" || Array.isArray(contents)) return {};
 
   return Object.fromEntries(

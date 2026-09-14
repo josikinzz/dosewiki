@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import sharp from "sharp";
 
 import {
@@ -16,22 +14,22 @@ import {
 } from "../socialCardPrimitives";
 export const SUBJECTIVE_EFFECT_SOCIAL_CARD_RENDERER_VERSION = "2026-08-25.1";
 
-export type SubjectiveEffectSocialCardContext = {
+type SubjectiveEffectSocialCardContext = {
   label: string;
   iconName: string;
-};
+}
 
-export type SubjectiveEffectSocialCardMedia = {
+type SubjectiveEffectSocialCardMedia = {
   filePath: string;
-};
+}
 
-export type SubjectiveEffectSocialCardReplication = {
+type SubjectiveEffectSocialCardReplication = {
   slug: string;
   title: string;
   creatorLabel: string;
   media: SubjectiveEffectSocialCardMedia;
   creatorAvatar?: SubjectiveEffectSocialCardMedia;
-};
+}
 
 export type SubjectiveEffectSocialCardInput = {
   name: string;
@@ -57,34 +55,6 @@ const CREATOR_AVATAR_X = CARD_MARGIN;
 const CREATOR_AVATAR_Y = 828;
 const REPLICATION_TEXT_X = CREATOR_AVATAR_X + CREATOR_AVATAR_SIZE + 18;
 
-export const SUBJECTIVE_EFFECT_SOCIAL_CARD_EXAMPLE: SubjectiveEffectSocialCardInput = {
-  name: "Geometry",
-  slug: "geometry",
-  iconName: "lucide:eye",
-  summary:
-    "Geometry is the experience of a person's field of vision becoming partially or completely encompassed by fast-moving, colourful, and extremely complex geometric patterns, form constants, shapes, fractals, and colours.",
-  taxonomy: ["Sensory", "Visual", "Geometric patterns"],
-  context: [
-    {
-      label: "7-level intensity scale",
-      iconName: "lucide:layers-3",
-    },
-  ],
-  landscapeReplication: {
-    slug: "day-tripping-u-soulproof",
-    title: "Day tripping",
-    creatorLabel: "/u/soulproof",
-    media: {
-      filePath: "/tmp/dosewiki-social-prototypes/day-tripping.jpg",
-    },
-    creatorAvatar: {
-      filePath: path.join(
-        process.cwd(),
-        "public/profile-avatars/usoulproof/avatar.webp",
-      ),
-    },
-  },
-};
 
 function fitLineWithEllipsis(
   text: string,

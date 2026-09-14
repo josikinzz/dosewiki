@@ -71,7 +71,7 @@ export interface RouteChromeNavItem {
   submenu?: readonly RouteChromeNavChild[];
 }
 
-export interface RouteChromeExternalNavItem {
+interface RouteChromeExternalNavItem {
   id: string;
   label: string;
   href: string;

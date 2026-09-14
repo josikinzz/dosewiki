@@ -35,7 +35,7 @@ import {
   type EditorNoticeMessage,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
-import { getRoleDisplayName, type AppRole } from "@/lib/auth/roles";
+import { getRoleDisplayName, isManagedRole, MANAGED_ROLES, type AppRole, type ManagedRole } from "@/lib/auth/roles";
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 import InviteCodesPanel from "./InviteCodesPanel";
 import { RoleGuide } from "./RoleGuide";
@@ -48,7 +48,6 @@ import {
   setMemberRole,
   sortRoster,
   unbanMember,
-  type ManagedRole,
   type MemberRoster,
   type MemberRow,
 } from "./membersModel";
@@ -56,14 +55,12 @@ import {
 const ROLE_PILL_TONE: Record<AppRole, EditorStatusPillTone> = {
   admin: "info",
   editor: "success",
+  translator: "success",
   contributor: "neutral",
   viewer: "caution",
 };
 
-const ROLE_OPTIONS = [
-  { value: "editor", label: "Editor" },
-  { value: "contributor", label: "Contributor" },
-];
+const ROLE_OPTIONS = MANAGED_ROLES.map((value) => ({ value, label: getRoleDisplayName(value) }));
 
 const SELF_LOCK_REASON = "This is your own account.";
 const ADMIN_LOCK_REASON = "Admin accounts are managed from the seed script.";
@@ -450,8 +447,7 @@ function RowActions({
   const label = row.username ?? row.email;
   // A legacy `viewer` row has no option of its own; the select shows the
   // placeholder until an admin picks a real role.
-  const selectValue =
-    row.role === "editor" || row.role === "contributor" ? row.role : "";
+  const selectValue = isManagedRole(row.role) ? row.role : "";
   return (
     <div
       className="flex flex-wrap items-center gap-2"
@@ -469,7 +465,7 @@ function RowActions({
           title={reason}
           onChange={(event) => {
             const next = event.target.value;
-            if (next === "editor" || next === "contributor") {
+            if (isManagedRole(next)) {
               onChangeRole(row, next);
             }
           }}

@@ -19,30 +19,29 @@ export type GalleryCandidate = {
   removed_count: number;
 };
 
-export type GalleryMatchProvenance =
-  | {
-      matchedVia: "specific_drug";
-      effectSlug: string;
-      effectName: string;
-      substanceSlug: string;
-    }
-  | {
-      matchedVia: "drug_class";
-      effectSlug: string;
-      effectName: string;
-      drugClass: "dissociatives" | "deliriants";
-    }
-  | {
-      matchedVia: "visual_disconnection";
-      effectSlug: "visual-disconnection";
-      effectName: string;
-      drugClass: "dissociatives";
-    }
-  | {
-      matchedVia: "curated";
-      effectSlug: string;
-      effectName: string;
-    };
+type GalleryMatchProvenance = | {
+    matchedVia: "specific_drug";
+    effectSlug: string;
+    effectName: string;
+    substanceSlug: string;
+  }
+| {
+    matchedVia: "drug_class";
+    effectSlug: string;
+    effectName: string;
+    drugClass: "dissociatives" | "deliriants";
+  }
+| {
+    matchedVia: "visual_disconnection";
+    effectSlug: "visual-disconnection";
+    effectName: string;
+    drugClass: "dissociatives";
+  }
+| {
+    matchedVia: "curated";
+    effectSlug: string;
+    effectName: string;
+  }
 
 /** The media fields the panel rows draw, resolved server-side. */
 export type GalleryMatchReplication = {
@@ -249,7 +248,7 @@ export function applyBoardDrag(
 }
 
 /** Which ordering band a row occupies: stored priority or automatic placement. */
-export type GalleryBand = "curated" | "auto";
+type GalleryBand = "curated" | "auto"
 
 export type GalleryBoardRow = {
   match: GalleryMatch;

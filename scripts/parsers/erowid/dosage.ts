@@ -124,7 +124,7 @@ function normalizeRouteHeader(routeName: string): string | undefined {
   return normalizeRouteName(normalizedRoute);
 }
 
-export function parseErowidDoseRanges(content: string): ParsedDosageRoute["ranges"] {
+function parseErowidDoseRanges(content: string): ParsedDosageRoute["ranges"] {
   const ranges: ParsedDosageRoute["ranges"] = {};
   let match: RegExpExecArray | null;
 

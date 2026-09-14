@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import type { ContributorReviewedArticle } from "@/types/reviewedArticles";
+import { useT } from "@/i18n/client";
 
 /**
  * The substance articles a contributor expert-reviewed, as a tag list.
@@ -74,6 +75,7 @@ export function UserProfileReviewedArticlesSection({
   reviewedArticles,
   contributorName,
 }: UserProfileReviewedArticlesSectionProps) {
+  const t = useT();
   // A contributor with no completed reviews renders no section at all, the
   // same way the works carousel and the effect credits stay absent rather
   // than showing an empty shell.
@@ -85,7 +87,7 @@ export function UserProfileReviewedArticlesSection({
     <section className="space-y-5">
       <PublicSectionHeading
         icon={icons.shieldCheck}
-        title="Reviewed articles"
+        title={t("Reviewed articles")}
         titleElement="h2"
         actions={
           <PublicPill tone="neutral" size="sm">
@@ -95,14 +97,14 @@ export function UserProfileReviewedArticlesSection({
       />
 
       <ExpandableList
-        ariaLabelBase="reviewed articles"
+        ariaLabelBase={t("reviewed articles")}
         items={reviewedArticles}
         collapsedCount={Math.max(reviewedArticles.length - PREVIEW_LIMIT, 0)}
       >
         {({ items }) => (
           <ReviewedArticleTags
             reviewedArticles={items}
-            ariaLabel={`Substance articles ${contributorName} reviewed`}
+            ariaLabel={t("Substance articles {{name}} reviewed", { name: contributorName })}
           />
         )}
       </ExpandableList>

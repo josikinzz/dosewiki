@@ -38,7 +38,7 @@ import type { PublicChangelogRow } from "./publicData.shared";
  * and collapses diffs, so this is comfortably above the old 5-entry cap while
  * the diff text keeps the payload the dominant cost.
  */
-export const PUBLIC_PROFILE_HISTORY_LIMIT = 20;
+const PUBLIC_PROFILE_HISTORY_LIMIT = 20;
 
 /**
  * Diff text longer than this is cut at a line boundary and closed with a
@@ -194,7 +194,7 @@ export const getPublicProfileHistory = cache(
  * screen space: 8 rows × ≤50 KB sliced diff stays far inside the 2 MB cache
  * entry limit.
  */
-export const PUBLIC_ARTICLE_HISTORY_LIMIT = 8;
+const PUBLIC_ARTICLE_HISTORY_LIMIT = 8;
 
 /** How many edits the site-wide /changes page lists, with or without an article filter. */
 export const PUBLIC_CHANGES_PAGE_LIMIT = 60;

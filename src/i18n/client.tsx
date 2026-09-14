@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, type ReactNode } from "react";
 import { useSelectedLayoutSegments } from "next/navigation";
 import { localeForPathname, translateMessage, type MessageValues, type UiLocale } from "./messages";
+import { LOCALE_REGISTRY } from "./localeRegistry.mjs";
 
 const UiLocaleContext = createContext<UiLocale | null>(null);
 
@@ -11,18 +12,13 @@ export function UiLocaleProvider({ locale, children }: { locale: UiLocale; child
   return <UiLocaleContext.Provider value={locale}>{children}</UiLocaleContext.Provider>;
 }
 
-/**
- * The UI locale a client component renders in. Inside a localized page the
- * provider decides. The root chrome sits above every page, so it reads the
- * matched route tree instead: the mirror is reached through a middleware
- * rewrite, so `usePathname()` still reports the browser URL (`/2c-b`), while
- * the layout segments carry the `/zh` prefix on the server render and on
- * hydration alike. Both are `null`-safe for trees outside the app router.
- */
 export function useUiLocale(): UiLocale {
   const provided = useContext(UiLocaleContext);
   const segments = useSelectedLayoutSegments() as string[] | null;
   if (provided) return provided;
+  if (typeof window !== "undefined" && window.location.hostname.toLowerCase() === LOCALE_REGISTRY["zh-Hans"].publicHost) {
+    return "zh-Hans";
+  }
   return segments ? localeForPathname(`/${segments.join("/")}`) : "en";
 }
 

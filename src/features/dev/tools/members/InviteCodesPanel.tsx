@@ -25,11 +25,9 @@ import {
   type MintedInvite,
 } from "./inviteCodeRequests";
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
+import { getRoleDisplayName, MANAGED_ROLES } from "@/lib/auth/roles";
 
-const ROLE_OPTIONS: { value: InviteCodeRole; label: string }[] = [
-  { value: "editor", label: "Editor" },
-  { value: "contributor", label: "Contributor" },
-];
+const ROLE_OPTIONS = MANAGED_ROLES.map((value) => ({ value, label: getRoleDisplayName(value) }));
 
 const STATUS_TONE: Record<InviteCodeStatus, EditorStatusPillTone> = {
   active: "success",

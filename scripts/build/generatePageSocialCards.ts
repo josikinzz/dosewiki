@@ -14,12 +14,12 @@ import {
   renderPageSocialCardPng,
 } from "../../lib/og/pageSocialCard";
 import { PAGE_SOCIAL_CARD_KEYS } from "../../src/data/mappings/pageSocialCardUrl";
+import { countGallery } from "../../src/features/effects/gallery/galleryModel";
 import {
-  countGallery,
   isDisplayable,
   isWithheldFromArtistViews,
-  type GalleryCounts,
-} from "../../src/features/effects/gallery/galleryModel";
+} from "../../src/features/effects/gallery/galleryArtistIdentity";
+import type { GalleryCounts } from "../../src/features/effects/gallery/galleryTypes";
 import type { PublicGalleryReplicationPreview } from "../../src/types/replications";
 
 const OUTPUT_DIR = path.join(process.cwd(), "public/images/social/pages");
@@ -41,6 +41,12 @@ const RENDER_INPUT_PATHS = [
   "public/dosewiki-molecules.json",
   "public/fonts/Blinker-Regular.ttf",
   "public/fonts/Blinker-SemiBold.ttf",
+  "public/flags/cn.svg",
+  "public/flags/nl.svg",
+  "public/flags/pl.svg",
+  "public/flags/cz.svg",
+  "public/flags/fr.svg",
+  "public/flags/de.svg",
 ] as const;
 
 type CardManifest = {

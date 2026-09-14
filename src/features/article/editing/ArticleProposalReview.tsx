@@ -5,7 +5,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorStatusPill, useConfirm } from "@/features/dev/components";
-import { ProposalReview } from "@/features/dev/tools/queue/QueueTab";
+import { ProposalReview } from "@/features/dev/tools/queue/ProposalReview";
 import { canLoadIntoEditor, STATUS_LABELS, STATUS_PILL_TONE, type ProposalDetail, type ProposalSummary } from "@/features/dev/tools/queue/queueModel";
 import { approveProposal, fetchProposal, postComment, rejectProposal, revertProposal } from "@/features/dev/tools/queue/queueRequests";
 import type { SubstanceArticle } from "@/schema";

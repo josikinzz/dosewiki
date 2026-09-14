@@ -14,12 +14,12 @@ export type SubmissionStatus =
   | "spam"
   | "exported";
 
-export type TimelineEntry = {
+type TimelineEntry = {
   time?: string;
   description: string;
-};
+}
 
-export type TripReportSubjectDraft = {
+type TripReportSubjectDraft = {
   name: string;
   trip_date?: string;
   age?: string;
@@ -28,13 +28,13 @@ export type TripReportSubjectDraft = {
   weight?: string;
   medications?: string;
   setting?: string;
-};
+}
 
-export type TripReportSubstanceDraft = {
+type TripReportSubstanceDraft = {
   name: string;
   dose?: string;
   roa?: string;
-};
+}
 
 export type TripReportDraft = {
   title: string;
@@ -81,10 +81,10 @@ export type TripReportSubmissionRow = {
   updated_at: string;
 };
 
-export type ConvexTripReportImportPayload = TripReportDraft & {
+type ConvexTripReportImportPayload = TripReportDraft & {
   slug: string;
   featured: boolean;
-};
+}
 
 export type IntakeState = {
   nextId: number;

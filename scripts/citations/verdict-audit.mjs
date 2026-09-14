@@ -128,7 +128,7 @@ async function main() {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(audit, null, 2)}\n`);
   console.log(`Citation verdict audit: ${path}`);
-  const { perSlug, ...headline } = audit.totals;
+  const { perSlug: _perSlug, ...headline } = audit.totals;
   console.log(JSON.stringify(headline, null, 2));
 }
 

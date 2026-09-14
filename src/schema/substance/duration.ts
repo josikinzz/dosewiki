@@ -28,4 +28,3 @@ export const durationSchema = z.object({
 
 export type DurationStages = z.infer<typeof durationStagesSchema>;
 export type DurationRoute = z.infer<typeof durationRouteSchema>;
-export type Duration = z.infer<typeof durationSchema>;

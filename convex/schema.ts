@@ -66,6 +66,7 @@ import { reagentTestDocumentValidator } from "./reagentTestContract";
 export const membershipRoleValidator = v.union(
   v.literal("admin"),
   v.literal("editor"),
+  v.literal("translator"),
   v.literal("contributor"),
   v.literal("viewer"),
 );
@@ -94,7 +95,7 @@ const membership = v.object({
 // once at mint time; only its hash is stored.
 const inviteCode = v.object({
   codeHash: v.string(),
-  role: v.union(v.literal("editor"), v.literal("contributor")),
+  role: v.union(v.literal("editor"), v.literal("translator"), v.literal("contributor")),
   createdBy: v.string(),
   createdAt: v.string(),
   expiresAt: v.string(),

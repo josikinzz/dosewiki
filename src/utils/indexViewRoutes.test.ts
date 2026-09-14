@@ -8,12 +8,12 @@ import {
   effectIndexViewPath,
   parseLegacyEffectIndexHash,
   parseLegacySubstanceIndexHash,
-  replaceCurrentIndexViewPath,
   reportsIndexViewFromSlug,
   reportsIndexViewPath,
   substanceIndexViewFromSlug,
   substanceIndexViewPath,
 } from "./indexViewRoutes";
+import { replaceCurrentIndexViewPath } from "./navigation";
 
 describe("canonical index view routes", () => {
   it("round-trips every Substance Index view and keeps All on the bare route", () => {

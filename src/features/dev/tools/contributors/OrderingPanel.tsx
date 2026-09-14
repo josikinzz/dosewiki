@@ -61,7 +61,7 @@ export type OrderablePanelItem = {
  * the second one read like a publish, which is exactly the confusion a playlist
  * is meant to remove.
  */
-export type OrderingPanelVerbs = {
+type OrderingPanelVerbs = {
   add: string;
   remove: string;
   addIcon: string;
@@ -70,7 +70,7 @@ export type OrderingPanelVerbs = {
   divider: string;
   /** Shown when nothing is above the line yet. */
   headEmpty: string;
-};
+}
 
 const CURATION_VERBS: OrderingPanelVerbs = {
   add: "Curate",

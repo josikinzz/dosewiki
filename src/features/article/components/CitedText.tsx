@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { CitationNeededMarker, CitationSup, type CitationLink } from "./CitationMarks";
 
 export { CitationNeededMarker, CitationSup } from "./CitationMarks";
-export type { CitationLink, CitationSupProps } from "./CitationMarks";
+export type { CitationLink } from "./CitationMarks";
 
 function renderCitationSup(citations: CitationLink[], key: string) {
   return <CitationSup key={key} citations={citations} />;

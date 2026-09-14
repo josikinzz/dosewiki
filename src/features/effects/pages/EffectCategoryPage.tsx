@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t } from "@/i18n/server";
 import { Icon, type IconName } from "@/components/common/Icon";
 import {
   IndexCard,
@@ -77,16 +78,16 @@ export function EffectCategoryPage({
   descriptions,
 }: EffectCategoryPageProps) {
   const definition = getEffectCategoryDefinition(categorySlug);
-  const title = definition?.name ?? titleFromSlug(categorySlug);
+  const title = t(definition?.name ?? titleFromSlug(categorySlug));
   const icon: IconName =
     resolveEffectCategoryIcon(categorySlug) ?? definition?.icon ?? "lucide:tag";
   // Editable copy wins; the checked-in definition is the fallback, and the copy
   // defaults hold that same prose, so an un-seeded read is a no-op.
-  const paragraphs = toParagraphs(
+  const paragraphs = toParagraphs(t(
     descriptions?.[categorySlug] ??
       definition?.description ??
       `Effects tagged with "${categorySlug}".`,
-  );
+  ));
 
   const filteredEffects = effects
     .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
@@ -96,7 +97,11 @@ export function EffectCategoryPage({
     categorySlug,
     effects: filteredEffects,
     descriptions,
-  });
+  }).map((group) => ({
+    ...group,
+    title: t(group.title),
+    description: group.description ? t(group.description) : undefined,
+  }));
 
   const tocItems: PublicTableOfContentsItem[] = groups.map((group) => ({
     id: group.id,
@@ -132,13 +137,13 @@ export function EffectCategoryPage({
           <Button variant="ghostPill" size="pill" asChild>
             <Link href={backHref ?? publicHref.effects()}>
               <Icon icon="lucide:arrow-left" size={16} />
-              Back to Effects Index
+              {t("Back to Effects Index")}
             </Link>
           </Button>
         </div>
 
         <header className="flex flex-col gap-4 border-b border-dose-divider pb-8">
-          <p className="type-kicker theme-text-faint">Effect category</p>
+          <p className="type-kicker theme-text-faint">{t("Effect category")}</p>
           <h1 className="type-page-title theme-accent-heading flex flex-wrap items-center gap-x-4 gap-y-2">
             <Icon
               icon={icon}
@@ -159,9 +164,14 @@ export function EffectCategoryPage({
             <GuideLinkLine scale={ARTICLE_GUIDES_BY_CLASS.dissociative.scale} />
           ) : null}
           <p className="type-detail-copy theme-text-faint">
-            {filteredEffects.length} effect
-            {filteredEffects.length === 1 ? "" : "s"}
-            {groups.length > 0 ? ` across ${groups.length} groups` : ""}
+            {groups.length > 0
+              ? t("{{effects}} effects across {{groups}} groups", {
+                  effects: filteredEffects.length,
+                  groups: groups.length,
+                })
+              : t(filteredEffects.length === 1 ? "{{count}} effect" : "{{count}} effects", {
+                  count: filteredEffects.length,
+                })}
           </p>
         </header>
 
@@ -169,8 +179,8 @@ export function EffectCategoryPage({
           <StateCard
             badge="No matches"
             badgeVariant="secondary"
-            title="No effects match this category"
-            description="This category exists, but there are no imported effects mapped to it yet."
+            title={t("No effects match this category")}
+            description={t("This category exists, but there are no imported effects mapped to it yet.")}
             icon="lucide:search-x"
             tone="neutral"
             compact

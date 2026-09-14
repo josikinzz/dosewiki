@@ -1,34 +1,25 @@
-import { ConvexError, v } from "convex/values";
-import { query, internalQuery, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { v } from "convex/values";
+import { query, internalQuery } from "./_generated/server";
 import { mutation, internalMutation } from "./lib/indexedMutation";
-import type { Doc, Id } from "./_generated/dataModel";
-import { requireRole, roleMeetsFloor } from "./lib/auth";
-import { findRevisionOperation, recordRevision } from "./lib/contentRevisions";
-import {
-  assertAuthorNameClaimAdjudicated,
-  normalizeAssignedProfileKey,
-  normalizeAuthorMatchName,
-  resolveEditorAssignedProfileKey,
-} from "./lib/tripReportAttribution";
-import {
-  editableSnapshotOf,
-  editableSnapshotsAgree,
-  normalizeEditableFields,
-  validateEditableFields,
-  type TripReportEditableFields,
-} from "./lib/tripReportEditing";
+import { requireRole } from "./lib/auth";
+import { recordRevision } from "./lib/contentRevisions";
 import {
   timelineEntryValidator,
   tripReportImportInputValidator,
   tripReportSubstanceValidator,
 } from "./tripReportContract";
-import { findMembershipByEmail, ownsReport, refuseNotOwner } from "./lib/tripReportOwnership";
 import {
   findTripReportsBySubstanceNames,
 } from "./lib/tripReportSubstanceIndex";
 import { backfillPublicReadIndexPage, getPublicReadIndexStatus } from "./lib/publicReadIndexBackfill";
-import { publicTripReport } from "./lib/tripReportPublicProjection";
-import { contentHash } from "../lib/proposals/contentHash";
+import { publicTripReport, publicTripReportPreview } from "./lib/tripReportPublicProjection";
+import {
+  assignOwnerHandler,
+  getPortalRecordHandler,
+  getPortalRowsHandler,
+  listOwnedHandler,
+  updateHandler,
+} from "./lib/tripReportPortalHandlers";
 
 /**
  * Trip report functions.
@@ -43,6 +34,50 @@ export const getAll = query({
   args: {},
   handler: async (ctx) => {
     return (await ctx.db.query("tripReports").collect()).map(publicTripReport);
+  },
+});
+
+const PUBLIC_REPORT_PAGE_SIZE = 32;
+const PUBLIC_REPORT_MAX_PAGE_SIZE = 100;
+const publicReportPageArgs = {
+  cursor: v.optional(v.string()),
+  limit: v.optional(v.number()),
+};
+
+function clampPublicReportPageSize(requested: number | undefined): number {
+  const normalized = Math.floor(requested ?? PUBLIC_REPORT_PAGE_SIZE);
+  return Math.min(Math.max(normalized, 1), PUBLIC_REPORT_MAX_PAGE_SIZE);
+}
+
+/** Bounded compact corpus page for public lists and contributor references. */
+export const getPublicPreviewsPage = query({
+  args: publicReportPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("tripReports").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicReportPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(publicTripReportPreview),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+/** Bounded full public records for open-data and other detail-corpus consumers. */
+export const getPublicDetailsPage = query({
+  args: publicReportPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("tripReports").paginate({
+      cursor: args.cursor ?? null,
+      numItems: clampPublicReportPageSize(args.limit),
+    });
+    return {
+      items: result.page.map(publicTripReport),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
   },
 });
 
@@ -219,43 +254,8 @@ const editableTripReportFieldsValidator = v.object({
  */
 export const getPortalRows = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
-  handler: async (ctx, args) => {
-    await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "editor",
-    );
-
-    const reports = await ctx.db.query("tripReports").collect();
-
-    return reports.map((report) => {
-      const fields = editableSnapshotOf(report);
-
-      return {
-        id: report._id,
-        slug: report.slug,
-        title: fields.title,
-        subject: { name: fields.subject.name, trip_date: fields.subject.trip_date },
-        substances: fields.substances,
-        tags: fields.tags,
-        featured: report.featured ?? false,
-        license: report.license,
-        profileKey: report.subject.profile_key,
-        ownerEmail: report.owner_email,
-        attributionReview: report.attribution_review,
-        createdAt: report._creationTime,
-      };
-    });
-  },
+  handler: getPortalRowsHandler,
 });
-
-async function reportRevision(ctx: QueryCtx | MutationCtx, report: Doc<"tripReports">) {
-  const latest = await ctx.db.query("contentRevisions")
-    .withIndex("by_table_key", (q) => q.eq("table", "tripReports").eq("key", report.slug))
-    .order("desc").first();
-  return contentHash({ report, journalId: latest?._id ?? null });
-}
-
 /**
  * The full editable slice of one report, for the portal's editor pane.
  *
@@ -275,33 +275,7 @@ export const getPortalRecord = query({
     slug: v.optional(v.string()),
     contextual: v.optional(v.boolean()),
   },
-  handler: async (ctx, args) => {
-    const actor = await requireRole(
-      ctx,
-      { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-      "contributor",
-    );
-
-    const report = args.id ? await ctx.db.get(args.id) : args.slug
-      ? await ctx.db.query("tripReports").withIndex("by_slug", (q) => q.eq("slug", args.slug!)).unique()
-      : null;
-    if (!report) {
-      throw new Error(`Trip report ${args.id} no longer exists.`);
-    }
-    if (!roleMeetsFloor(actor.role, "editor") && !ownsReport(actor, report)) {
-      refuseNotOwner(report);
-    }
-    if (args.contextual && actor.role !== "admin" && !ownsReport(actor, report)) refuseNotOwner(report);
-
-    return {
-      id: report._id,
-      slug: report.slug,
-      ...(!args.contextual ? { ownerEmail: report.owner_email } : {}),
-      canEdit: actor.role === "admin" || ownsReport(actor, report),
-      fields: editableSnapshotOf(report),
-      revision: await reportRevision(ctx, report),
-    };
-  },
+  handler: getPortalRecordHandler,
 });
 
 /**
@@ -328,170 +302,6 @@ export const getPortalRecord = query({
  * byline) stays an admin decision, and `featured` and `slug` were never part
  * of this write.
  */
-type EditableFieldsInput = typeof editableTripReportFieldsValidator.type;
-
-type UpdateArgs = {
-  apiKey?: string;
-  actorEmail?: string;
-  id: Id<"tripReports">;
-  expected: EditableFieldsInput;
-  expectedRevision: string;
-  updates: EditableFieldsInput;
-  profileKey?: string;
-  confirmAuthorNameClaim?: boolean;
-  operationId?: string;
-};
-
-/**
- * The keys an owner may not touch. The wire validator already drops `featured`,
- * `slug` and `subject.profile_key`, so at the mutation seam this is the same
- * contract stated once, in a form the handler tests can exercise: a caller
- * that names one of them is refused rather than silently ignored.
- */
-function assertOwnerEditsContentOnly(
-  row: Doc<"tripReports">,
-  args: UpdateArgs,
-  updates: TripReportEditableFields,
-): void {
-  const carried = args.updates as Record<string, unknown>;
-  const subject = carried.subject as Record<string, unknown> | undefined;
-  const locked = ["featured", "slug"].filter((key) => key in carried);
-  if (subject && "profile_key" in subject) {
-    locked.push("subject.profile_key");
-  }
-  if (args.profileKey !== undefined) {
-    locked.push("profileKey");
-  }
-  if (normalizeAuthorMatchName(updates.subject.name) !== normalizeAuthorMatchName(row.subject.name)) {
-    locked.push("subject.name");
-  }
-  if (locked.length > 0) {
-    throw new ConvexError({
-      code: "EDITOR_ONLY_REPORT_FIELD",
-      message: `Only an admin can change ${locked.join(", ")} on trip report ${row.slug}.`,
-    });
-  }
-}
-
-export async function updateHandler(ctx: MutationCtx, args: UpdateArgs) {
-  const actor = await requireRole(
-    ctx,
-    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-    "contributor",
-  );
-
-  const row = await ctx.db.get(args.id);
-  if (!row) {
-    throw new Error(`Trip report ${args.id} no longer exists.`);
-  }
-
-  if (actor.role !== "admin" && !ownsReport(actor, row)) refuseNotOwner(row);
-  const requestIdentity = contentHash({ id: args.id, expectedRevision: args.expectedRevision, expected: normalizeEditableFields(args.expected), updates: normalizeEditableFields(args.updates), profileKey: args.profileKey, confirmAuthorNameClaim: args.confirmAuthorNameClaim });
-  const prior = await findRevisionOperation(ctx, "tripReports", row.slug, args.operationId, actor.email);
-  if (prior) {
-    if (prior.requestIdentity !== requestIdentity || !prior.after || !prior.revision) {
-      throw new ConvexError({ code: "REPORT_OPERATION_REUSED", message: "This publication ID belongs to a different report correction. Reconcile the original correction before publishing again." });
-    }
-    return { updated: contentHash(prior.before) !== contentHash(prior.after), slug: row.slug, fields: editableSnapshotOf(prior.after as Doc<"tripReports">), revision: contentHash({ report: prior.after, journalId: prior._id }) };
-  }
-  if (!args.expectedRevision || args.expectedRevision !== await reportRevision(ctx, row)) {
-    throw new ConvexError({ code: "REPORT_CONFLICT", message: "This report or its attribution changed since it was opened. Your local corrections are retained; reload and reconcile before publishing." });
-  }
-  if (!editableSnapshotsAgree(editableSnapshotOf(row), normalizeEditableFields(args.expected))) {
-    throw new ConvexError({ code: "REPORT_CONFLICT", message: "This report's editable fields changed since it was opened. Your local corrections are retained; reload and reconcile before publishing." });
-  }
-
-  const updates = normalizeEditableFields(args.updates);
-  if (actor.role !== "admin") {
-    if (!ownsReport(actor, row)) {
-      refuseNotOwner(row);
-    }
-    assertOwnerEditsContentOnly(row, args, updates);
-  }
-
-  const problems = validateEditableFields(updates);
-  if (problems.length > 0) {
-    throw new Error(`Trip report ${row.slug} cannot be saved: ${problems.join(" ")}`);
-  }
-
-  const storedProfileKey = normalizeAssignedProfileKey(row.subject.profile_key);
-  const reassigningProfile = args.profileKey !== undefined;
-  const assignedProfileKey = reassigningProfile
-    ? await resolveEditorAssignedProfileKey(ctx, args.profileKey)
-    : storedProfileKey;
-
-  // Only a byline that actually moved is adjudicated. Re-saving a legacy
-  // report whose byline has always matched a contributor is not a new claim,
-  // and blocking it would make those reports uneditable.
-  const bylineMoved =
-    normalizeAuthorMatchName(updates.subject.name) !== normalizeAuthorMatchName(row.subject.name);
-
-  if (bylineMoved) {
-    await assertAuthorNameClaimAdjudicated(ctx, {
-      authorName: updates.subject.name,
-      assignedProfileKey,
-      confirmAuthorNameClaim: args.confirmAuthorNameClaim,
-    });
-  }
-
-  const subject: typeof row.subject = { ...updates.subject };
-  if (row.subject.avatar_url !== undefined) {
-    subject.avatar_url = row.subject.avatar_url;
-  }
-  if (row.subject.pdf_url !== undefined) {
-    subject.pdf_url = row.subject.pdf_url;
-  }
-  if (assignedProfileKey) {
-    subject.profile_key = assignedProfileKey;
-  }
-
-  const patch: Parameters<typeof ctx.db.patch>[1] = {
-    title: updates.title,
-    subject,
-    substances: updates.substances,
-    introduction: updates.introduction,
-    onset: updates.onset,
-    peak: updates.peak,
-    offset: updates.offset,
-    conclusion: updates.conclusion,
-    tags: updates.tags,
-  };
-
-  // The marker records an editor's attribution decision for a byline that
-  // arrived from an anonymous submitter. Re-stamp it when this edit is itself
-  // such a decision; a report that never carried one stays legacy, because
-  // its byline was editor-written all along.
-  const attributionDecided = bylineMoved || assignedProfileKey !== storedProfileKey;
-  if (row.attribution_review && attributionDecided) {
-    patch.attribution_review = {
-      reviewed_by: actor.name || actor.email,
-      reviewed_at: new Date().toISOString(),
-      decision: assignedProfileKey ? ("assigned" as const) : ("declined" as const),
-    };
-  }
-  // An untouched field retains the exact stored bytes, including legacy
-  // whitespace, media markup, and optional-value distinctions.
-  const baseline = editableSnapshotOf(row);
-  for (const key of ["title", "substances", "introduction", "onset", "peak", "offset", "conclusion", "tags"] as const) {
-    if (JSON.stringify(baseline[key]) === JSON.stringify(updates[key])) delete patch[key];
-  }
-  for (const key of ["name", "trip_date", "age", "gender", "height", "weight", "medications", "setting"] as const) {
-    if (baseline.subject[key] === updates.subject[key]) {
-      if (row.subject[key] === undefined) delete subject[key];
-      else subject[key] = row.subject[key];
-    }
-  }
-  const revision = args.operationId ?? new Date().toISOString();
-  if (editableSnapshotsAgree(baseline, updates) && !attributionDecided) {
-    if (args.operationId) await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, after: row, actor, operationId: args.operationId, revision, publications: ["dose.wiki", "Effect Index"], requestIdentity });
-    return { updated: false, slug: row.slug, fields: baseline, revision: await reportRevision(ctx, row) };
-  }
-
-  await recordRevision(ctx, { table: "tripReports", key: row.slug, action: "update", before: row, after: { ...row, ...patch }, actor, operationId: args.operationId, revision, publications: ["dose.wiki", "Effect Index"], requestIdentity });
-  await ctx.db.patch(args.id, patch);
-
-  return { updated: true, slug: row.slug, fields: updates, revision: await reportRevision(ctx, { ...row, ...patch } as Doc<"tripReports">) };
-}
 
 export const update = mutation({
   args: {
@@ -508,46 +318,6 @@ export const update = mutation({
   },
   handler: updateHandler,
 });
-
-function summarizeOwnedReport(report: Doc<"tripReports">) {
-  return {
-    id: report._id,
-    slug: report.slug,
-    title: report.title.trim(),
-    ownerEmail: report.owner_email,
-    tripDate: report.subject.trip_date,
-    createdAt: report._creationTime,
-  };
-}
-
-export async function listOwnedHandler(
-  ctx: QueryCtx,
-  args: { apiKey?: string; actorEmail?: string; all?: boolean },
-) {
-  const actor = await requireRole(
-    ctx,
-    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-    "contributor",
-  );
-
-  if (args.all === true) {
-    if (actor.role !== "admin") {
-      throw new ConvexError({
-        code: "FORBIDDEN",
-        message: "Only an admin can list every owned report.",
-      });
-    }
-    const reports = await ctx.db.query("tripReports").collect();
-    return reports.filter((report) => report.owner_email !== undefined).map(summarizeOwnedReport);
-  }
-
-  const reports = await ctx.db
-    .query("tripReports")
-    .withIndex("by_owner_email", (q) => q.eq("owner_email", actor.email))
-    .collect();
-  return reports.map(summarizeOwnedReport);
-}
-
 /**
  * The reports the actor owns, for My reports (`/dev/my-reports`). Contributor
  * floor. An admin may pass `all: true` for every report that has an owner.
@@ -560,39 +330,6 @@ export const listOwned = query({
   },
   handler: listOwnedHandler,
 });
-
-export async function assignOwnerHandler(
-  ctx: MutationCtx,
-  args: { apiKey?: string; actorEmail?: string; slug: string; email: string },
-) {
-  await requireRole(
-    ctx,
-    { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
-    "admin",
-  );
-
-  const report = await ctx.db
-    .query("tripReports")
-    .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-    .unique();
-  if (!report) {
-    throw new ConvexError({
-      code: "REPORT_NOT_FOUND",
-      message: `No trip report has the slug "${args.slug}".`,
-    });
-  }
-
-  const membership = await findMembershipByEmail(ctx, args.email);
-  if (!membership) {
-    throw new ConvexError({
-      code: "MEMBER_NOT_FOUND",
-      message: `No membership for ${args.email.trim()}.`,
-    });
-  }
-
-  await ctx.db.patch(report._id, { owner_email: membership.email });
-  return { slug: report.slug, ownerEmail: membership.email };
-}
 
 /**
  * Hand a report to a member. Admin only: ownership is what lets a contributor

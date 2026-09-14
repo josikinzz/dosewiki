@@ -6,12 +6,14 @@ import { FocusedSearchResultsPage } from "@/components/pages/FocusedSearchResult
 import { useGlobalSearchSuggestions } from "@/components/common/useGlobalSearchSuggestions";
 import { Surface } from "@/components/ui/surface";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 
 interface LiveSearchResultsPageProps {
   initialQuery: string;
 }
 
 export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPageProps) {
+  const t = useT();
   const searchParams = useSearchParams();
   const query = searchParams.get("q") ?? initialQuery;
   const trimmed = query.trim();
@@ -37,9 +39,10 @@ export function LiveSearchResultsPage({ initialQuery }: LiveSearchResultsPagePro
           >
             <SearchEmptyState
               icon="lucide:search"
-              title={`Search ${SITE_FLAVOR_CONFIG.name}`}
-              description="Start typing in the header to find substances, effects, reports, and profiles."
-              headingLevel="h1"
+              title={t("Search {{siteName}}", { siteName: SITE_FLAVOR_CONFIG.name })}
+              description={t(
+                "Start typing in the header to find substances, effects, reports, and profiles.",
+              )}
             />
           </Surface>
         </section>

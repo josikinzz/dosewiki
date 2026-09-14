@@ -9,11 +9,11 @@ import metrics from "./homeTileGlyphMetrics.generated.json";
  * sets; `dx`/`dy` recentre ink that sits off-centre in its own box, as fractions of
  * the SVG box.
  */
-export type HomeTileGlyphMetrics = {
+type HomeTileGlyphMetrics = {
   readonly scale: number;
   readonly dx: number;
   readonly dy: number;
-};
+}
 
 const GLYPH_METRICS: Readonly<Record<string, HomeTileGlyphMetrics>> = metrics;
 

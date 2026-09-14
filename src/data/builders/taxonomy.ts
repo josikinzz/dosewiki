@@ -11,20 +11,17 @@ import type {
 
 export type CanonicalRoute = (typeof routeSynonymData.canonicalRoutes)[number];
 
-export type TaxonomySurface =
-  | "route"
-  | "category"
-  | "psychoactive"
-  | "chemical"
-  | "mechanism"
-  | "effect";
+type TaxonomySurface = | "route"
+| "category"
+| "psychoactive"
+| "chemical"
+| "mechanism"
+| "effect"
 
 export type TaxonomyRouteSurface = Exclude<TaxonomySurface, "route">;
 
-export interface TaxonomyRouteIntent {
-  surface: TaxonomyRouteSurface;
-  pathname: string;
-}
+interface TaxonomyRouteIntent { surface: TaxonomyRouteSurface;
+pathname: string; }
 
 export interface TaxonomyIdentifier {
   surface: TaxonomySurface;
@@ -120,9 +117,6 @@ function normalizeRouteTokenInternal(value: string | undefined | null): string {
   return collapsed.replace(/[.-]+$/g, "");
 }
 
-export function normalizeRouteToken(value: string | undefined | null): string {
-  return normalizeRouteTokenInternal(value);
-}
 
 const synonymEntries: NormalizedSynonymEntry[] = routeSynonymData.synonyms.map((entry) => {
   const normalized = normalizeRouteTokenInternal(entry.match);
@@ -202,7 +196,7 @@ function resolveDirectRoute(normalized: string): CanonicalRoute[] {
   return [];
 }
 
-export function resolveCanonicalRoutes(descriptor: string): CanonicalRoute[] {
+function resolveCanonicalRoutes(descriptor: string): CanonicalRoute[] {
   const normalized = normalizeRouteTokenInternal(descriptor);
   if (!normalized) {
     return [];
@@ -244,13 +238,6 @@ export function resolveRouteTaxonomy(descriptor: string): RouteTaxonomyResolutio
   };
 }
 
-export function getCanonicalRoute(descriptor: string): CanonicalRoute | undefined {
-  const routes = resolveCanonicalRoutes(descriptor);
-  if (routes.length === 1) {
-    return routes[0];
-  }
-  return undefined;
-}
 
 export function canonicalizeRouteLabel(label: string): {
   canonicalRoutes: CanonicalRoute[];
@@ -263,13 +250,7 @@ export function canonicalizeRouteLabel(label: string): {
   };
 }
 
-export function isCanonicalRoute(value: string): value is CanonicalRoute {
-  return (routeSynonymData.canonicalRoutes as string[]).includes(value);
-}
 
-export function getSynonymEntries(): ReadonlyArray<NormalizedSynonymEntry> {
-  return synonymEntries;
-}
 
 export function parseQualifiedTaxonomyLabel(entry: string): QualifiedTaxonomyLabel {
   return parseQualifiedMechanismLabel(entry);

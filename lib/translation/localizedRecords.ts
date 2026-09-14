@@ -12,6 +12,9 @@ import type { PublicEffectArticle, PublicEffectIndexArticle, PublicSubstanceReco
 import {
   getPublicEffectArticles,
   getPublicEffectBySlug,
+  getPublicContributorByKey,
+  getPublicContributorProfiles,
+  getPublicReportDetails,
   getPublicEffectIndexArticleBySlug,
   getPublicEffects,
   getPublicGalleryReplicationBySlug,
@@ -25,11 +28,36 @@ import {
   type SubjectiveEffectDetailRecord,
   type TripReportDetailRecord,
 } from "@server/convex/publicData";
+import { profileMatchesName } from "../contributorProfileIdentity";
+import { projectPublicReportPreviews } from "../convex/publicData.reportProfileProjection";
+import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import type { ContributorEffectCredit } from "../../src/types/effectCredits";
+import { getTripReportExcerpt } from "../../src/types/tripReport";
 import { getPublicSubstanceBySlug } from "@server/convex/publicData.substances";
 import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import type { PublicGalleryReplicationPreview, ReplicationWithUrl } from "../../src/types/replications";
 import { localizeRecord, localizeRecords } from "./liveTranslation";
 import { readTranslations } from "./segmentStore";
+
+/**
+ * Resolve stored translations for a small set of independent reader-facing
+ * strings. Search uses this after ranking the English index so translated
+ * labels do not change relevance and Latin queries keep working.
+ */
+export async function getLocalizedLeaves(
+  values: readonly string[],
+  locale: string,
+): Promise<Map<string, string>> {
+  const unique = [...new Set(values.filter((value) => value.trim().length > 0))];
+  if (locale === "en" || unique.length === 0) {
+    return new Map(unique.map((value) => [value, value]));
+  }
+  const hashes = unique.map((value) => segmentHash(value));
+  const translations = await readTranslations(locale, hashes);
+  return new Map(
+    unique.map((value, index) => [value, translations.get(hashes[index]) ?? value]),
+  );
+}
 
 export const getLocalizedPublicSubstanceBySlug = cache(async (
   slug: string,
@@ -60,6 +88,39 @@ export const getLocalizedPublicReportBySlug = cache(async (
   if (!report) return null;
   const localized = await localizeRecord({ ...report, slug }, locale, "report");
   return localized.record;
+});
+
+/** One public contributor profile with only its self-authored bio localized. */
+export const getLocalizedPublicContributorByKey = cache(async (
+  key: string,
+  locale: string,
+): Promise<NormalizedUserProfile | null> => {
+  const profile = await getPublicContributorByKey(key);
+  if (!profile) return null;
+  const localized = await localizeRecord(
+    { slug: profile.key, bio: profile.bio },
+    locale,
+    "profile",
+  );
+  return { ...profile, bio: localized.record.bio };
+});
+
+/** Public contributor profiles with localized bios for lists and profile joins. */
+export const getLocalizedPublicContributorProfiles = cache(async (
+  locale: string,
+): Promise<NormalizedUserProfile[]> => {
+  const profiles = await getPublicContributorProfiles();
+  if (profiles.length === 0) return profiles;
+  const localized = await localizeRecords(
+    profiles.map((profile) => ({ slug: profile.key, bio: profile.bio })),
+    locale,
+    "profile",
+  );
+  const bioByKey = new Map(localized.records.map(({ slug, bio }) => [slug, bio]));
+  return profiles.map((profile) => ({
+    ...profile,
+    bio: bioByKey.get(profile.key) ?? profile.bio,
+  }));
 });
 
 /** The reports-index read: every report preview with its stored segments spliced in. */
@@ -143,6 +204,61 @@ export const getLocalizedPublicReplicationBySlug = cache(async (
   if (!replication) return null;
   const localized = await localizeRecord(replication, locale, "replication");
   return localized.record;
+});
+
+/** Localize already canonically joined contributor works without changing credit identity. */
+export async function localizeContributorReplications(
+  replications: readonly ReplicationWithUrl[],
+  locale: string,
+): Promise<ReplicationWithUrl[]> {
+  if (replications.length === 0) return [];
+  const localized = await localizeRecords([...replications], locale, "replication");
+  return localized.records;
+}
+
+/** Join on canonical report identity, localize details, then derive contributor cards. */
+export const getLocalizedReportsByContributor = cache(async (
+  profile: NormalizedUserProfile,
+  locale: string,
+): Promise<PublicReportPreview[]> => {
+  const [reports, profiles, previews] = await Promise.all([
+    getPublicReportDetails(),
+    getPublicContributorProfiles(),
+    getPublicReports(),
+  ]);
+  const joined = reports.filter((report) => {
+    const reportProfileKey = report.subject.profile_key?.trim().toUpperCase() ?? "";
+    if (reportProfileKey && reportProfileKey === profile.key.trim().toUpperCase()) return true;
+    return !report.attribution_locked && profileMatchesName(profile, report.subject.name);
+  });
+  if (joined.length === 0) return [];
+  const localized = await localizeRecords(joined, locale, "report");
+  const publishedAtBySlug = new Map(previews.map((preview) => [preview.slug, preview.publishedAt]));
+  return projectPublicReportPreviews(
+    localized.records.map((report) => ({
+      ...report,
+      excerpt: getTripReportExcerpt(report),
+      published_at: publishedAtBySlug.get(report.slug),
+    })),
+    profiles,
+    { fallbackAuthorProfileKey: profile.key },
+  );
+});
+
+/** Join credits by canonical effect slug, then project only localized display fields. */
+export const getLocalizedEffectArticlesByContributor = cache(async (
+  profile: NormalizedUserProfile,
+  locale: string,
+): Promise<ContributorEffectCredit[]> => {
+  const effects = await getPublicEffectArticles();
+  const joined = effects.filter((effect) =>
+    (effect.contributors ?? []).some((contributor) => profileMatchesName(profile, contributor)),
+  );
+  if (joined.length === 0) return [];
+  const localized = await localizeRecords(joined, locale, "effect");
+  return localized.records
+    .map((effect) => ({ slug: effect.slug, name: effect.name }))
+    .sort((left, right) => left.name.localeCompare(right.name));
 });
 
 /**

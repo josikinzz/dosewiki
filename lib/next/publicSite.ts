@@ -10,7 +10,8 @@ import {
   type SiteFlavorConfig,
   type SiteSocialCard,
 } from "../../src/config/siteFlavor";
-import { t } from "../../src/i18n/requestLocale";
+import { getRequestLocale, t } from "../../src/i18n/requestLocale";
+import { resolveLocaleIdentity } from "../../src/i18n/localeRegistry.mjs";
 
 export { buildCanonicalPath, getPublicRoutePath, type PublicRouteIdentity };
 
@@ -88,7 +89,7 @@ function buildShortDescriptionSuffix(siteName: string): string {
  * A per-page Open Graph image override (e.g. the substance molecule card).
  * `path` is a site-relative asset or route path; the builder makes it absolute.
  */
-export type PublicPageSocialImage = {
+type PublicPageSocialImage = {
   path: string;
   width: number;
   height: number;
@@ -173,6 +174,7 @@ export function buildPublicPageMetadata(
       url: absoluteUrl,
       siteName: site.name,
       type: "website",
+      locale: resolveLocaleIdentity(getRequestLocale()).htmlLanguage,
       images: [
         {
           url: socialCardUrl,

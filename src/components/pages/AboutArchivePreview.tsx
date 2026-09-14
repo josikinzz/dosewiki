@@ -11,7 +11,7 @@ import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import type { PublicDownloadStats } from "@server/open-data/downloadStats";
 import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArchiveSnapshot";
 
-export type AboutDownloadKey = "substances" | "effects" | "reports" | "molecules";
+type AboutDownloadKey = "substances" | "effects" | "reports" | "molecules";
 
 /**
  * The files to list, each with the count and size measured on the file itself
@@ -325,7 +325,7 @@ export function AboutArchivePreview({
               className="theme-json-preview-action h-8 min-h-0 gap-1.5 rounded-lg px-2.5 text-xs hover:bg-transparent"
             >
               <Icon icon={hasCopied ? "lucide:check" : "lucide:copy"} size={12} />
-              {hasCopied ? "Copied" : "Copy"}
+              {hasCopied ? t("Copied") : t("Copy")}
             </Button>
             <Button
               variant="ghost"
@@ -334,7 +334,7 @@ export function AboutArchivePreview({
               className="theme-json-preview-action h-8 min-h-0 gap-1.5 rounded-lg px-2.5 text-xs hover:bg-transparent"
             >
               <Icon icon="lucide:dices" size={12} />
-              Shuffle
+              {t("Shuffle")}
             </Button>
           </div>
         </div>

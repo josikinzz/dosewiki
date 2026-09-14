@@ -18,6 +18,13 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubjectiveEffectDetailRecord } from "../convex/publicData";
 import type { PublicSubstanceRecord } from "../convex/publicData.shared";
 
+const localizedRecords = vi.hoisted(() => ({
+  getLocalizedPublicEffectArticles: vi.fn(),
+  getLocalizedPublicEffectBySlug: vi.fn(),
+  getLocalizedPublicEffects: vi.fn(),
+}));
+vi.mock("@server/translation/localizedRecords", () => localizedRecords);
+
 const { publicData, publicLibrary, publicMolecules, reagentData, warningBanners } =
   getRouteLoaderMocks();
 
@@ -296,6 +303,48 @@ describe("substance, effect, publication, and report route loaders", () => {
         .find((section) => section.title === "Physical Effects")
         ?.effects.map((effect) => effect.slug),
     ).toEqual(["physical-disconnection", "pain-relief"]);
+  });
+
+  it("selects psychoactive summary effects by their English names and renders the localized records on a mirror", async () => {
+    const english = [
+      {
+        slug: "cognitive-disconnection",
+        name: "Cognitive disconnection",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "cognitive", "disconnective"],
+      },
+      {
+        slug: "physical-disconnection",
+        name: "Physical disconnection",
+        summary: "",
+        description_raw: "",
+        tags: ["dissociative", "physical", "disconnective"],
+      },
+    ];
+    publicData.getPublicEffectArticles.mockResolvedValueOnce(english);
+    localizedRecords.getLocalizedPublicEffectArticles.mockResolvedValueOnce([
+      { ...english[0], name: "认知脱离" },
+      { ...english[1], name: "身体脱离" },
+    ]);
+
+    const result = await loadPsychoactiveSummaryRoute(["dissociative"], {
+      code: "zh-Hans",
+      pathPrefix: "/zh",
+      htmlLang: "zh-Hans",
+    });
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(localizedRecords.getLocalizedPublicEffectArticles).toHaveBeenCalledWith("zh-Hans");
+    expect(
+      result.pageProps.sections[0].effects.map((effect) => [effect.slug, effect.name]),
+    ).toEqual([
+      ["physical-disconnection", "身体脱离"],
+      ["cognitive-disconnection", "认知脱离"],
+    ]);
   });
 
   it("rejects non-curated psychoactive summary paths before reading effects", async () => {

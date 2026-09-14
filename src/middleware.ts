@@ -482,12 +482,15 @@ export async function middleware(request: NextRequest) {
     return browserPolicy.secure(NextResponse.redirect(launchedUrl, 308));
   }
 
-  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route,
-  // `/effects/<slug>` and `/reports/<slug>` their effect/report routes, and
-  // the homepage plus the three indexes render their localized routes; every
-  // other path on the mirror host serves the English page so navigation never
-  // leaves the host. A mirror route addressed directly on any other host
-  // would be a second URL for the page, so it is unroutable there.
+  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route;
+  // category and chemical-class details, other record paths
+  // (`/effects/<slug>`, `/reports/<slug>`, ..., psychoactive summaries), and
+  // supported Substance Index class views render their localized detail or
+  // index routes. The homepage, indexes, tab views, and `/search` likewise
+  // render localized routes with the query string intact. Every other path on
+  // the mirror host serves the English page so navigation never leaves it. A
+  // route addressed directly on any other host would be a second URL for the
+  // page, so it is unroutable there.
   const localeHost = localeForHost(request.headers.get("host"));
   const localizedSlug = localeHost ? publicSubstanceSlugForPath(appPath) : null;
   if (localeHost && localizedSlug) {

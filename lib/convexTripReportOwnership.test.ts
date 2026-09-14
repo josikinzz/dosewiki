@@ -1,7 +1,8 @@
 import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "../convex/_generated/server";
-import { assignOwnerHandler, getPortalRecord, listOwnedHandler, updateHandler } from "../convex/tripReports";
+import { getPortalRecord } from "../convex/tripReports";
+import { assignOwnerHandler, listOwnedHandler, updateHandler } from "../convex/lib/tripReportPortalHandlers";
 import { create, promoteHandler } from "../convex/tripReportSubmissions";
 
 // Convex registered functions keep the original handler on `_handler`; there is

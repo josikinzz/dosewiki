@@ -43,7 +43,7 @@ export type EffectArticleReplicationState =
   | { kind: "server"; galleryOrder: string[] }
   | { kind: "fallback"; galleryOrder: string[] };
 
-export interface EffectArticleHeroModel {
+interface EffectArticleHeroModel {
   name: string;
   summary?: string;
   icon: IconName;
@@ -70,21 +70,21 @@ export interface EffectArticleRichSectionModel extends EffectArticleBaseSectionM
   attribution?: EffectArticleAttributionModel;
 }
 
-export interface EffectArticleReplicationsSectionModel extends EffectArticleBaseSectionModel {
+interface EffectArticleReplicationsSectionModel extends EffectArticleBaseSectionModel {
   kind: "replications";
   title: "Replications";
   icon: "lucide:image";
   state: Exclude<EffectArticleReplicationState, { kind: "none" }>;
 }
 
-export interface EffectArticleAudioReplicationsSectionModel extends EffectArticleBaseSectionModel {
+interface EffectArticleAudioReplicationsSectionModel extends EffectArticleBaseSectionModel {
   kind: "audioReplications";
   title: "Audio Replications";
   icon: "lucide:volume-2";
   items: NonNullable<SubjectiveEffectArticle["audio_replications"]>;
 }
 
-export interface EffectArticleRelatedSubstancesSectionModel extends EffectArticleBaseSectionModel {
+interface EffectArticleRelatedSubstancesSectionModel extends EffectArticleBaseSectionModel {
   kind: "relatedSubstances";
   title: "Related Substances";
   icon: "lucide:flask-conical";
@@ -92,26 +92,26 @@ export interface EffectArticleRelatedSubstancesSectionModel extends EffectArticl
   total: number;
 }
 
-export interface EffectArticleSourcesSectionModel extends EffectArticleBaseSectionModel {
+interface EffectArticleSourcesSectionModel extends EffectArticleBaseSectionModel {
   kind: "sources";
   citations?: SubjectiveEffectArticle["citations"];
   externalLinks?: SubjectiveEffectArticle["external_links"];
   seeAlso?: SubjectiveEffectArticle["see_also"];
 }
 
-export interface EffectArticleContributorsSectionModel extends EffectArticleBaseSectionModel {
+interface EffectArticleContributorsSectionModel extends EffectArticleBaseSectionModel {
   kind: "contributors";
   contributors: string[];
 }
 
-export interface EffectArticleAttributionModel {
+interface EffectArticleAttributionModel {
   name: string;
   avatarSrc: string;
   /** When the attributed writing was authored, e.g. "~2017–2021". */
   era?: string;
 }
 
-export type EffectArticleSectionModel =
+type EffectArticleSectionModel =
   | EffectArticleRichSectionModel
   | EffectArticleReplicationsSectionModel
   | EffectArticleAudioReplicationsSectionModel
@@ -130,13 +130,31 @@ interface BuildEffectArticleModelOptions {
   replications?: EffectArticleReplicationState;
 }
 
-export const EFFECT_PERSONAL_COMMENTARY_ATTRIBUTION: EffectArticleAttributionModel = {
+const EFFECT_PERSONAL_COMMENTARY_ATTRIBUTION: EffectArticleAttributionModel = {
   name: "Josie Kins",
   avatarSrc: "/profile-avatars/josie/avatar.webp",
   era: "~2017–2021",
 };
 
-export function getEffectArticleIcon(tags: string[]): IconName {
+/**
+ * Every heading an effect article can carry, by section kind, so the table of
+ * contents, the section headings and the glossary drafter all read one list.
+ * Overview, sources and contributors render no heading of their own; their
+ * entries are the TOC labels.
+ */
+export const EFFECT_ARTICLE_SECTION_TITLES = {
+  overview: msg("Overview"),
+  analysis: msg("Analysis"),
+  styleVariations: msg("Style Variations"),
+  replications: msg("Replications"),
+  audioReplications: msg("Audio Replications"),
+  personalCommentary: msg("Personal Commentary"),
+  relatedSubstances: msg("Related Substances"),
+  sources: msg("References"),
+  contributors: msg("Contributors"),
+} as const;
+
+function getEffectArticleIcon(tags: string[]): IconName {
   const tagSet = new Set(tags.map(t => t.toLowerCase()));
   if (tagSet.has("visual")) return "lucide:eye";
   if (tagSet.has("auditory")) return "lucide:ear";
@@ -176,7 +194,7 @@ export function buildEffectArticleModel({
   if (analysisContent) {
     sections.push({
       id: "analysis",
-      kind: "analysis",      title: msg("Analysis"),
+      kind: "analysis",      title: EFFECT_ARTICLE_SECTION_TITLES.analysis,
       icon: "lucide:microscope",
       content: analysisContent,
       citations: effect.citations,
@@ -188,7 +206,7 @@ export function buildEffectArticleModel({
   if (styleVariationsContent) {
     sections.push({
       id: "style-variations",
-      kind: "styleVariations",      title: msg("Style Variations"),
+      kind: "styleVariations",      title: EFFECT_ARTICLE_SECTION_TITLES.styleVariations,
       icon: "lucide:palette",
       content: styleVariationsContent,
       citations: effect.citations,
@@ -199,7 +217,7 @@ export function buildEffectArticleModel({
   if (replications?.kind === "server" || replications?.kind === "fallback") {
     sections.push({
       id: "replications",
-      kind: "replications",      title: msg("Replications"),
+      kind: "replications",      title: EFFECT_ARTICLE_SECTION_TITLES.replications,
       icon: "lucide:image",
       state: replications,
     });
@@ -208,7 +226,7 @@ export function buildEffectArticleModel({
   if (hasItems(effect.audio_replications)) {
     sections.push({
       id: "audio-replications",
-      kind: "audioReplications",      title: msg("Audio Replications"),
+      kind: "audioReplications",      title: EFFECT_ARTICLE_SECTION_TITLES.audioReplications,
       icon: "lucide:volume-2",
       items: effect.audio_replications,
     });
@@ -221,7 +239,7 @@ export function buildEffectArticleModel({
   if (personalCommentaryContent) {
     sections.push({
       id: "commentary",
-      kind: "personalCommentary",      title: msg("Personal Commentary"),
+      kind: "personalCommentary",      title: EFFECT_ARTICLE_SECTION_TITLES.personalCommentary,
       icon: "lucide:quote",
       content: unwrapTopLevelQuotes(personalCommentaryContent),
       citations: effect.citations,
@@ -233,7 +251,7 @@ export function buildEffectArticleModel({
   if (effectDetail?.groups.length) {
     sections.push({
       id: "related-substances",
-      kind: "relatedSubstances",      title: msg("Related Substances"),
+      kind: "relatedSubstances",      title: EFFECT_ARTICLE_SECTION_TITLES.relatedSubstances,
       icon: "lucide:flask-conical",
       groups: effectDetail.groups,
       total: effectDetail.definition.total,
@@ -282,11 +300,11 @@ export function getEffectArticleTocItems(article: EffectArticleModel): PublicTab
   return article.sections.map((section): PublicTableOfContentsItem => {
     switch (section.kind) {
       case "overview":
-        return { id: section.id, label: msg("Overview"), icon: article.hero.icon };
+        return { id: section.id, label: EFFECT_ARTICLE_SECTION_TITLES.overview, icon: article.hero.icon };
       case "sources":
-        return { id: section.id, label: msg("References"), icon: "lucide:list-ordered" };
+        return { id: section.id, label: EFFECT_ARTICLE_SECTION_TITLES.sources, icon: "lucide:list-ordered" };
       case "contributors":
-        return { id: section.id, label: msg("Contributors"), icon: "lucide:users" };
+        return { id: section.id, label: EFFECT_ARTICLE_SECTION_TITLES.contributors, icon: "lucide:users" };
       default:
         return {
           id: section.id,

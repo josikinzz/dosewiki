@@ -1,19 +1,13 @@
 /**
  * UI copy for the locale mirrors.
  *
- * Messages are keyed by their English source text: the English literal in the
- * component is the key, and `src/i18n/messages/<locale>.json` maps it to the
- * machine translation. `scripts/translation/ui-catalog.mjs` scans every
- * `t("...")` and `msg("...")` literal, translates the missing ones with the
- * same model and prompt as the article segments, and rewrites the catalog. A
- * key with no entry renders its English, so a freshly added string is never
- * blank on the mirror.
- *
- * `{{name}}` placeholders (the pipeline's own token syntax, which its validator
- * guards) are substituted after lookup so the translated sentence can move them.
+ * Messages are keyed by their English source text. A missing key always renders
+ * its English source, so ordinary locale additions remain safe before the
+ * checked-in catalog catches up.
  */
 import { localeForPathPrefix } from "@server/next/localeHostPolicy";
 import zhHans from "./messages/zh-Hans.json";
+import { LOCALE_REGISTRY } from "./localeRegistry.mjs";
 
 export type UiLocale = "en" | "zh-Hans";
 
@@ -37,15 +31,9 @@ export function formatMessage(template: string, values?: MessageValues): string 
 }
 
 export function translateMessage(locale: UiLocale, text: string, values?: MessageValues): string {
-  const catalog = CATALOGS[locale];
-  return formatMessage(catalog[text] ?? text, values);
+  return formatMessage(CATALOGS[locale][text] ?? text, values);
 }
 
-/**
- * Marks an English literal that reaches the reader through a lookup table
- * rather than a direct `t()` call, so the catalog builder still finds it.
- * Wrap the stored value at render time with `t(...)`.
- */
 export function msg<T extends string>(text: T): T {
   return text;
 }
@@ -53,4 +41,19 @@ export function msg<T extends string>(text: T): T {
 /** Locale of an app-router pathname: the mirror route prefix, else English. */
 export function localeForPathname(pathname: string | null | undefined): UiLocale {
   return pathname ? (localeForPathPrefix(pathname)?.code ?? "en") : "en";
+}
+
+/** A validated public locale query parameter, or the supplied fallback. */
+export function parseUiLocale(value: string | null | undefined, fallback: UiLocale = "en"): UiLocale {
+  return value === "en" || value === "zh-Hans" ? value : fallback;
+}
+
+/** Locale identity used for reader-visible dates and numbers. */
+export function formattingLocale(locale: UiLocale): string {
+  return LOCALE_REGISTRY[locale].formattingLocale;
+}
+
+/** Isolate an embedded identifier only when the surrounding locale is RTL. */
+export function isolateLocaleIdentifier(locale: UiLocale, identifier: string): string {
+  return LOCALE_REGISTRY[locale].direction === "rtl" ? `\u2068${identifier}\u2069` : identifier;
 }

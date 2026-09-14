@@ -19,7 +19,7 @@ type Row = {
   _id: string;
   email: string;
   username?: string;
-  role: "admin" | "editor" | "contributor" | "viewer";
+  role: "admin" | "editor" | "translator" | "contributor" | "viewer";
   name?: string;
   passwordHash?: string;
   passwordUpdatedAt?: string;

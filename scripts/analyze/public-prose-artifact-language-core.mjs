@@ -1,7 +1,7 @@
 const DEFAULT_SNIPPET_RADIUS = 54;
 const DEFAULT_VALUE_LIMIT = 360;
 
-export const PUBLIC_PROSE_ROOTS = Object.freeze([
+const PUBLIC_PROSE_ROOTS = Object.freeze([
   "summary",
   "comparisons",
   "pharmacology",
@@ -11,9 +11,9 @@ export const PUBLIC_PROSE_ROOTS = Object.freeze([
   "harm_potential",
   "history_culture",
   "legality",
-]);
+])
 
-export const ARTIFACT_LANGUAGE_PATTERNS = Object.freeze([
+const ARTIFACT_LANGUAGE_PATTERNS = Object.freeze([
   {
     id: "the_quote",
     label: "the quote",
@@ -64,7 +64,7 @@ export const ARTIFACT_LANGUAGE_PATTERNS = Object.freeze([
     label: "according to quote/source material",
     pattern: /\baccording\s+to\s+(?:the\s+)?(?:quote(?:s)?|source\s+material|provided\s+source(?:s)?)\b/iu,
   },
-]);
+])
 
 const NAMED_SOURCE_NAME_PATTERN = String.raw`(?:TripSit(?:\s+Factsheets?)?|Psychonaut\s*Wiki|PsychonautWiki|PsychWiki|Erowid|DrugBank|Wikipedia|Wikimedia|PubChem|ChEMBL|DailyMed|Drugs\.com|Drugs[-\s]Forum|Bluelight|DMT[-\s]?Nexus|PiHKAL|TiHKAL|ChemSpider|Wikidata|PubMed|NCBI|PMC|NIST|Isomer\s*Design|Safer\s*Party|Disregard\s+Everything\s+I\s+Say|DEIS|Drug\s+Users\s+Bible|DUB|The\s+Drug\s+Classroom|Drug\s+Classroom|DrugClass|D\.?\s*M\.?\s*Turner|Nervewing|ProtestKit|DanceSafe|Reddit)`;
 const NAMED_SOURCE_DESCRIPTOR_PATTERN = String.raw`(?:article|page|entry|database|monograph|profile|listing|label|excerpt|vault|wiki|data|record|factsheets?|fact\s+sheets?|experience\s+reports?|drug\s+profile|dosage\s+chart|combination(?:s)?\s+(?:guide|chart))`;
@@ -72,7 +72,7 @@ const OPTIONAL_ATTRIBUTION_ADVERB_PATTERN = String.raw`(?:(?:also|specifically|e
 const ATTRIBUTION_VERB_PATTERN = String.raw`(?:state|states|stated|says?|said|reports?|reported|indicates?|indicated|lists?|listed|notes?|noted|describes?|described|mentions?|mentioned|identifies?|identified|records?|recorded|provides?|provided|gives?|gave|classifies?|classified|categorizes?|categorized|labels?|labeled|calls?|called|warns?|warned|advises?|advised|suggests?|suggested|estimates?|estimated)`;
 const PASSIVE_ATTRIBUTION_VERB_PATTERN = String.raw`(?:listed|noted|reported|described|mentioned|identified|recorded|provided|given|classified|categorized|labeled|called|estimated|suggested)`;
 
-export const NAMED_SOURCE_ATTRIBUTION_PATTERNS = Object.freeze([
+const NAMED_SOURCE_ATTRIBUTION_PATTERNS = Object.freeze([
   {
     id: "named_source_subject_attribution",
     label: "named source attribution",
@@ -105,7 +105,7 @@ export const NAMED_SOURCE_ATTRIBUTION_PATTERNS = Object.freeze([
       "iu",
     ),
   },
-]);
+])
 
 const ARTICLE_ARRAY_KEYS = [
   "articles",
@@ -123,23 +123,19 @@ const PROPOSAL_ARRAY_KEYS = [
   "rewrites",
 ];
 
-export class PublicProseArtifactLanguageError extends Error {
-  constructor(report, options = {}) {
-    super(formatArtifactLanguageFindings(report.findings, options));
-    this.name = "PublicProseArtifactLanguageError";
-    this.report = report;
-    this.findings = report.findings;
-  }
-}
+class PublicProseArtifactLanguageError extends Error { constructor(report, options = {}) {
+  super(formatArtifactLanguageFindings(report.findings, options));
+  this.name = "PublicProseArtifactLanguageError";
+  this.report = report;
+  this.findings = report.findings;
+} }
 
-export class PublicProseNamedSourceAttributionError extends Error {
-  constructor(report, options = {}) {
-    super(formatNamedSourceAttributionFindings(report.findings, options));
-    this.name = "PublicProseNamedSourceAttributionError";
-    this.report = report;
-    this.findings = report.findings;
-  }
-}
+class PublicProseNamedSourceAttributionError extends Error { constructor(report, options = {}) {
+  super(formatNamedSourceAttributionFindings(report.findings, options));
+  this.name = "PublicProseNamedSourceAttributionError";
+  this.report = report;
+  this.findings = report.findings;
+} }
 
 export function auditPublicProseArtifactLanguage(input, options = {}) {
   const patterns = resolveLanguagePatterns(options);
@@ -220,14 +216,12 @@ export function extractPublicProseFields(article, options = {}) {
   return fields;
 }
 
-export function extractAuditRecords(input, options = {}) {
-  return extractRecordsFromValue(input, {
-    sourcePath: options.sourcePath ?? null,
-    fallbackSlug: options.slug ?? null,
-    fallbackTitle: options.title ?? null,
-    sections: options.sections,
-  });
-}
+function extractAuditRecords(input, options = {}) { return extractRecordsFromValue(input, {
+  sourcePath: options.sourcePath ?? null,
+  fallbackSlug: options.slug ?? null,
+  fallbackTitle: options.title ?? null,
+  sections: options.sections,
+}); }
 
 export function formatArtifactLanguageFindings(findings, options = {}) {
   return formatPublicProseLanguageFindings(findings, {
@@ -264,7 +258,7 @@ function formatPublicProseLanguageFindings(findings, options = {}) {
   return lines.join("\n");
 }
 
-export function slugify(value) {
+function slugify(value) {
   return String(value ?? "")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")

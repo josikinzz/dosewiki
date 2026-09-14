@@ -1,12 +1,7 @@
 import { buildCitationWorkflowCommands } from './citation-command-surface.mjs';
 import { buildLegalityWorkflowCommands } from './legality-command-surface.mjs';
 
-export const workflowCommandConventions = {
-  argumentForwarding:
-    'Pass workflow arguments after --, for example: npm run batch:legality -- --dry-run.',
-  directScriptPolicy:
-    'Package scripts are the stable operator surface. Direct node scripts/... paths remain supported for low-level adapters and existing shell history.',
-};
+
 
 export const workflowAccessTargets = Object.freeze({
   convexSource: 'convex-source',

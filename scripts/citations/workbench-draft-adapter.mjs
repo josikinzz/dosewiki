@@ -535,54 +535,50 @@ function buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft }) {
   return { article: nextArticle, changes };
 }
 
-export function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) {
-  if (isMarkerOnlyWorkbenchDraft(workbenchDraft)) {
-    return buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft });
-  }
-
-  const nextArticle = stripConvexStorageFields(clone(article));
-  const changes = [];
-  const mergedReferences = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
-  nextArticle.references = mergedReferences.references.sort((left, right) => String(left.id).localeCompare(String(right.id)));
-  const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, mergedReferences.remap);
-
-  for (const evidence of normalizedWorkbenchDraft.evidence ?? []) {
-    if (evidence.status === "supported") {
-      applySupportedClaim(nextArticle, changes, evidence);
-    }
-  }
-
-  recordChange(changes, "references", article.references ?? [], nextArticle.references);
-  return { article: nextArticle, changes };
+function buildArticleFromWorkbenchDraft({ article, workbenchDraft }) { if (isMarkerOnlyWorkbenchDraft(workbenchDraft)) {
+  return buildArticleFromMarkerOnlyWorkbenchDraft({ article, workbenchDraft });
 }
 
-export function buildEvidenceFromWorkbenchDraft(workbenchDraft) {
-  const normalizedReferences = (workbenchDraft.references ?? []).map(normalizeWorkbenchReference);
-  const { remap: referenceIdAliasMap } = mergeReferenceCollections(
-    [],
-    normalizedReferences,
-    { allowTrustedScalarOverride: true },
-  );
-  const referencesById = new Map(
-    normalizedReferences
-      .filter((reference) => reference.id)
-      .map((reference) => [resolveReferenceId(referenceIdAliasMap, reference.id), reference]),
-  );
-  const normalizedWorkbenchDraft = rewriteEvidenceReferenceIds(workbenchDraft, referenceIdAliasMap);
-  const sourcesById = new Map(
-    (normalizedWorkbenchDraft.sources ?? [])
-      .filter((source) => normalizeString(source?.id))
-      .map((source) => [normalizeString(source.id), source]),
-  );
+const nextArticle = stripConvexStorageFields(clone(article));
+const changes = [];
+const mergedReferences = mergeReferences(nextArticle.references ?? [], workbenchDraft.references ?? []);
+nextArticle.references = mergedReferences.references.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+const normalizedWorkbenchDraft = rewriteWorkbenchDraftReferenceIds(workbenchDraft, mergedReferences.remap);
 
-  return (normalizedWorkbenchDraft.evidence ?? []).map((evidence) => {
-    const normalizedEvidence = {
-      ...evidence,
-      fieldPath: evidencePathFor(evidence) || evidence.fieldPath,
-    };
-    return buildEvidenceRow(workbenchDraft, normalizedEvidence, referencesById, sourcesById);
-  });
+for (const evidence of normalizedWorkbenchDraft.evidence ?? []) {
+  if (evidence.status === "supported") {
+    applySupportedClaim(nextArticle, changes, evidence);
+  }
 }
+
+recordChange(changes, "references", article.references ?? [], nextArticle.references);
+return { article: nextArticle, changes }; }
+
+function buildEvidenceFromWorkbenchDraft(workbenchDraft) { const normalizedReferences = (workbenchDraft.references ?? []).map(normalizeWorkbenchReference);
+const { remap: referenceIdAliasMap } = mergeReferenceCollections(
+  [],
+  normalizedReferences,
+  { allowTrustedScalarOverride: true },
+);
+const referencesById = new Map(
+  normalizedReferences
+    .filter((reference) => reference.id)
+    .map((reference) => [resolveReferenceId(referenceIdAliasMap, reference.id), reference]),
+);
+const normalizedWorkbenchDraft = rewriteEvidenceReferenceIds(workbenchDraft, referenceIdAliasMap);
+const sourcesById = new Map(
+  (normalizedWorkbenchDraft.sources ?? [])
+    .filter((source) => normalizeString(source?.id))
+    .map((source) => [normalizeString(source.id), source]),
+);
+
+return (normalizedWorkbenchDraft.evidence ?? []).map((evidence) => {
+  const normalizedEvidence = {
+    ...evidence,
+    fieldPath: evidencePathFor(evidence) || evidence.fieldPath,
+  };
+  return buildEvidenceRow(workbenchDraft, normalizedEvidence, referencesById, sourcesById);
+}); }
 
 export function buildWorkbenchApplyDraft({ article, workbenchDraft }) {
   return buildWorkbenchPromotionPlan({ article, workbenchDraft });

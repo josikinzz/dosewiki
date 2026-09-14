@@ -1,13 +1,25 @@
 import { safeAuthReturnPath } from "./returnPath";
 
-export const APP_ROLES = ["admin", "editor", "contributor", "viewer"] as const;
+const APP_ROLES = ["admin", "editor", "translator", "contributor", "viewer"] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
 
 /** Lowest role a route or mutation admits. `viewer` is never a floor. */
-export type RoleFloor = "admin" | "editor" | "contributor";
+export type RoleFloor = "admin" | "editor" | "translator" | "contributor";
 
-const ROLE_RANK: Record<AppRole, number> = { viewer: 0, contributor: 1, editor: 2, admin: 3 };
+const ROLE_RANK: Record<AppRole, number> = { viewer: 0, contributor: 1, translator: 2, editor: 3, admin: 4 };
+
+/**
+ * The roles an admin can hand out, by invite or from the roster. `admin` is
+ * seeded from a workstation and `viewer` is a legacy value nobody grants.
+ */
+export const MANAGED_ROLES = ["editor", "translator", "contributor"] as const;
+
+export type ManagedRole = (typeof MANAGED_ROLES)[number];
+
+export function isManagedRole(value: unknown): value is ManagedRole {
+  return typeof value === "string" && MANAGED_ROLES.includes(value as ManagedRole);
+}
 
 export function roleMeetsFloor(role: AppRole | null | undefined, floor: RoleFloor): boolean {
   return role != null && ROLE_RANK[role] >= ROLE_RANK[floor];
@@ -21,7 +33,7 @@ export function canDraft(role: AppRole | null | undefined): boolean {
   return roleMeetsFloor(role, "editor");
 }
 
-export function isAppRole(value: unknown): value is AppRole {
+function isAppRole(value: unknown): value is AppRole {
   return typeof value === "string" && APP_ROLES.includes(value as AppRole);
 }
 

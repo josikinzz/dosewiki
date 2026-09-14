@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AuthError, requireRole, roleMeetsFloor, type AuthorizedRole, type RoleFloor } from "./auth";
 
-const FLOORS: RoleFloor[] = ["admin", "editor", "contributor"];
+const FLOORS: RoleFloor[] = ["admin", "editor", "translator", "contributor"];
 const SERVER_KEY = "test";
 
 type MembershipRow = { email: string; role: AuthorizedRole; bannedAt?: number } | null;
@@ -17,8 +17,9 @@ function createCtx(row: MembershipRow, identity: Identity = null) {
 
 /** Stored role, or `null` for an email with no membership row at all. */
 const STORED_ROLES: Array<{ label: string; role: AuthorizedRole | null; passes: RoleFloor[] }> = [
-  { label: "admin", role: "admin", passes: ["admin", "editor", "contributor"] },
-  { label: "editor", role: "editor", passes: ["editor", "contributor"] },
+  { label: "admin", role: "admin", passes: ["admin", "editor", "translator", "contributor"] },
+  { label: "editor", role: "editor", passes: ["editor", "translator", "contributor"] },
+  { label: "translator", role: "translator", passes: ["translator", "contributor"] },
   { label: "contributor", role: "contributor", passes: ["contributor"] },
   { label: "viewer", role: "viewer", passes: [] },
   { label: "none", role: null, passes: [] },
@@ -28,15 +29,23 @@ describe("roleMeetsFloor", () => {
   it.each<[AuthorizedRole, RoleFloor, boolean]>([
     ["admin", "admin", true],
     ["admin", "editor", true],
+    ["admin", "translator", true],
     ["admin", "contributor", true],
     ["editor", "admin", false],
     ["editor", "editor", true],
+    ["editor", "translator", true],
     ["editor", "contributor", true],
+    ["translator", "admin", false],
+    ["translator", "editor", false],
+    ["translator", "translator", true],
+    ["translator", "contributor", true],
     ["contributor", "admin", false],
     ["contributor", "editor", false],
+    ["contributor", "translator", false],
     ["contributor", "contributor", true],
     ["viewer", "admin", false],
     ["viewer", "editor", false],
+    ["viewer", "translator", false],
     ["viewer", "contributor", false],
   ])("%s against floor %s is %s", (role, floor, expected) => {
     expect(roleMeetsFloor(role, floor)).toBe(expected);

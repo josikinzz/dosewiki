@@ -16,6 +16,7 @@ import { Pool } from "pg";
 import { assertDeploymentEnv } from "./deploymentEnv";
 import { loadIdTableMap, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
 import { validateValue, type ValidatorJson } from "./validate";
+import { POOL_ACQUISITION_TIMEOUT_MS, setTransactionTimeouts } from "../transactionTimeouts";
 
 type Registered = {
   isQuery?: boolean;
@@ -131,7 +132,16 @@ export class PostgresConvexClient {
       this.idMap = (async () => {
         const client = await this.pool.connect();
         try {
-          return await loadIdTableMap(serialExecutor(client));
+          await client.query("BEGIN READ ONLY");
+          try {
+            await setTransactionTimeouts(client);
+            const map = await loadIdTableMap(serialExecutor(client));
+            await client.query("COMMIT");
+            return map;
+          } catch (error) {
+            await client.query("ROLLBACK").catch(() => {});
+            throw error;
+          }
         } finally {
           client.release();
         }
@@ -145,7 +155,7 @@ export class PostgresConvexClient {
 
   static fromUrl(connectionString: string, max = 4): PostgresConvexClient {
     assertDeploymentEnv();
-    return new PostgresConvexClient(new Pool({ connectionString, max }));
+    return new PostgresConvexClient(new Pool({ connectionString, max, connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS }));
   }
 
   async end(): Promise<void> {
@@ -155,11 +165,24 @@ export class PostgresConvexClient {
   /**
    * One parameterized statement outside the Convex function surface, for the
    * runtime-owned tables in `schema.runtime.ts` that no handler knows about.
-   * Autocommit: callers needing atomicity express it in the statement itself.
+   * The bounded transaction preserves the statement's result and atomicity.
    */
   async sql<Row extends Record<string, unknown>>(text: string, values: unknown[] = []): Promise<Row[]> {
-    const result = await this.pool.query<Row>(text, values);
-    return result.rows;
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      try {
+        await setTransactionTimeouts(client);
+        const result = await client.query<Row>(text, values);
+        await client.query("COMMIT");
+        return result.rows;
+      } catch (error) {
+        await client.query("ROLLBACK").catch(() => {});
+        throw error;
+      }
+    } finally {
+      client.release();
+    }
   }
 
   async query<Query extends FunctionReference<"query">>(reference: Query, ...rest: OptionalRestArgs<Query>): Promise<FunctionReturnType<Query>> {
@@ -171,9 +194,10 @@ export class PostgresConvexClient {
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
-      const executor = serialExecutor(client);
-      const startedAt = performance.now();
       try {
+        await setTransactionTimeouts(client);
+        const executor = serialExecutor(client);
+        const startedAt = performance.now();
         const result = await this.runQueryOn(executor, idMap, fn, args);
         await client.query("COMMIT");
         trace("query", name, executor, startedAt);
@@ -197,9 +221,10 @@ export class PostgresConvexClient {
       const client = await this.pool.connect();
       try {
         await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
-        const executor = serialExecutor(client);
-        const startedAt = performance.now();
         try {
+          await setTransactionTimeouts(client);
+          const executor = serialExecutor(client);
+          const startedAt = performance.now();
           const result = await this.runMutationOn(executor, idMap, fn, args);
           await client.query("COMMIT");
           trace("mutation", name, executor, startedAt, attempt);

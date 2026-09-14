@@ -103,7 +103,7 @@ function vintDecode(data: Uint8Array): { value: number; length: number } | null 
   return null;
 }
 
-export function encodeConvexId(id: ConvexId): string {
+function encodeConvexId(id: ConvexId): string {
   if (!Number.isInteger(id.tableNumber) || id.tableNumber <= 0) throw new Error(`Invalid table number ${id.tableNumber}`);
   if (id.internalId.length !== INTERNAL_ID_LENGTH) throw new Error(`Internal id must be ${INTERNAL_ID_LENGTH} bytes`);
   const head = vintEncode(id.tableNumber);

@@ -22,7 +22,7 @@ export interface MechanismRouteSource<TRecord> extends MechanismRouteSubstanceIn
   record: TRecord;
 }
 
-export interface MechanismQualifierAccumulator<TRecord> {
+interface MechanismQualifierAccumulator<TRecord> {
   key: string;
   label: string;
   qualifier?: string;

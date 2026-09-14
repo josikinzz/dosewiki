@@ -10,6 +10,10 @@ import {
 } from "@server/convex/publicData";
 import { getPublicCategoryDetail, getPublicMechanismDetail } from "@server/convex/publicLibrary";
 import {
+  getLocalizedPublicEffectArticles,
+  getLocalizedPublicEffects,
+} from "@server/translation/localizedRecords";
+import {
   buildArtistCreditLinks,
   type ArtistCreditLinks,
 } from "../../src/features/effects/vcode/artistCreditLinks";
@@ -19,6 +23,7 @@ import {
   getEffectCategoryRouteAlias,
   getEffectCategoryRouteAliasParams,
 } from "./publicRouteAliases";
+import type { LiveLocale } from "./localeHostPolicy";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import {
   getStaticEffectCategoryParams,
@@ -46,7 +51,7 @@ export interface TaxonomyRouteDescriptor<TFamily extends TaxonomyRouteFamily, TD
   getStaticParams?: () => Promise<TaxonomyRouteParams<TFamily>[]>;
 }
 
-export type TaxonomyOkRouteResult<TDetail> = {
+type TaxonomyOkRouteResult<TDetail> = {
   kind: "ok";
   detail: NonNullable<TDetail>;
   metadata: RouteMetadataSource;
@@ -117,7 +122,7 @@ export async function loadTaxonomyStaticParams<TFamily extends TaxonomyRouteFami
 
 type CategoryDetailData = Awaited<ReturnType<typeof getPublicCategoryDetail>>;
 
-export const categoryRouteDescriptor: TaxonomyRouteDescriptor<"category", CategoryDetailData> = {
+const categoryRouteDescriptor: TaxonomyRouteDescriptor<"category", CategoryDetailData> = {
   routeFamily: "category",
   getAlias: ({ categoryKey }) => {
     const alias = getCategoryRouteAlias(categoryKey);
@@ -139,7 +144,10 @@ export type CategoryRouteResult =
     })
   | Exclude<TaxonomyRouteResult<CategoryDetailData>, { kind: "ok" }>;
 
-export const loadCategoryRoute = cache(async (categoryKey: string): Promise<CategoryRouteResult> => {
+export const loadCategoryRoute = cache(async (
+  categoryKey: string,
+  locale: LiveLocale | null = null,
+): Promise<CategoryRouteResult> => {
   const result = await loadTaxonomyRoute(categoryRouteDescriptor, { categoryKey });
 
   if (result.kind !== "ok") {
@@ -147,7 +155,9 @@ export const loadCategoryRoute = cache(async (categoryKey: string): Promise<Cate
   }
 
   const [effects, galleryReplications] = await Promise.all([
-    getPublicEffectArticles(),
+    locale
+      ? getLocalizedPublicEffectArticles(locale.code)
+      : getPublicEffectArticles(),
     getPublicGalleryReplications(),
   ]);
 
@@ -160,12 +170,17 @@ export const loadCategoryRoute = cache(async (categoryKey: string): Promise<Cate
 
 type EffectCategoryDetailData = PublicEffectPreview[] | null;
 
-async function getEffectCategoryDetail(categorySlug: string): Promise<EffectCategoryDetailData> {
+async function getEffectCategoryDetail(
+  categorySlug: string,
+  locale: LiveLocale | null = null,
+): Promise<EffectCategoryDetailData> {
   if (!getEffectCategoryDefinition(categorySlug)) {
     return null;
   }
 
-  const effects = await getPublicEffects();
+  const effects = locale
+    ? await getLocalizedPublicEffects(locale.code)
+    : await getPublicEffects();
 
   return effects
     .filter((effect) => effectMatchesCategorySlug(effect, categorySlug))
@@ -193,13 +208,20 @@ export const effectCategoryRouteDescriptor: TaxonomyRouteDescriptor<
   }),
 };
 
-export const loadEffectCategoryRoute = cache((categorySlug: string) =>
-  loadTaxonomyRoute(effectCategoryRouteDescriptor, { categorySlug }),
+export const loadEffectCategoryRoute = cache((
+  categorySlug: string,
+  locale: LiveLocale | null = null,
+) => locale
+  ? loadTaxonomyRoute(
+      { ...effectCategoryRouteDescriptor, getDetail: ({ categorySlug: slug }) => getEffectCategoryDetail(slug, locale) },
+      { categorySlug },
+    )
+  : loadTaxonomyRoute(effectCategoryRouteDescriptor, { categorySlug }),
 );
 
 type MechanismDetailData = Awaited<ReturnType<typeof getPublicMechanismDetail>>;
 
-export const mechanismRouteDescriptor: TaxonomyRouteDescriptor<"mechanism", MechanismDetailData> = {
+const mechanismRouteDescriptor: TaxonomyRouteDescriptor<"mechanism", MechanismDetailData> = {
   routeFamily: "mechanism",
   getDetail: ({ mechanismSlug }) => getPublicMechanismDetail(mechanismSlug),
   getMetadata: ({ detail }) => ({
@@ -233,7 +255,7 @@ async function getMechanismQualifierDetail({
   return { mechanism, qualifier };
 }
 
-export const mechanismQualifierRouteDescriptor: TaxonomyRouteDescriptor<
+const mechanismQualifierRouteDescriptor: TaxonomyRouteDescriptor<
   "mechanismQualifier",
   MechanismQualifierDetailData
 > = {

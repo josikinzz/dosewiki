@@ -1,31 +1,24 @@
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { flavoredCopyText, getCopy } from "@server/next/copyBlocks";
-import { getPublicChemicalClassTreePayload } from "@server/convex/publicChemicalClassIndex";
+import { loadChemicalClassTreeRoute } from "@server/next/routeLoaders.chemicalClasses";
 import { ChemicalClassTreePage } from "@/features/chemical-classes/pages/ChemicalClassTreePage";
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { t } from "@/i18n/server";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
 export const revalidate = 3600;
 
 export async function generateMetadata() {
-  const payload = await getPublicChemicalClassTreePayload();
-  const classCount = Object.keys(payload.nodes).length;
-  const copy = await getCopy();
+  const result = await loadChemicalClassTreeRoute();
 
   return buildPublicPageMetadata({
-    title: "Chemical Classes",
-    description: flavoredCopyText(
-      copy,
-      "seo-chemical-classes-description",
-      `Browse the chemical class tree - ${classCount} classes organized by structural lineage on ${SITE_FLAVOR_CONFIG.name}.`,
-    ),
-    route: { family: "chemicalClasses" },
+    title: result.metadata.title,
+    description: t(result.metadata.description, result.metadata.values),
+    route: result.canonicalRoute,
     socialImage: pageSocialCardImage("chemical-classes", "dose.wiki Chemical Class Index"),
   });
 }
 
 export default async function ChemicalClassesPage() {
-  const payload = await getPublicChemicalClassTreePayload();
+  const result = await loadChemicalClassTreeRoute();
 
-  return <ChemicalClassTreePage payload={payload} />;
+  return <ChemicalClassTreePage payload={result.payload} />;
 }

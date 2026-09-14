@@ -19,10 +19,10 @@ export const CONFIG = {
   promptFallbackFile: join(PROJECT_ROOT, "src/data/config/sectionPrompts/tolerance.md"),
 };
 
-export const INPUT_BOUNDS = {
+const INPUT_BOUNDS = {
   concurrency: { min: 1, max: 50 },
   limit: { min: 1, max: 10000 },
-};
+}
 
 export function parseArgs() {
   return parseBatchCliArgs(process.argv.slice(2), {

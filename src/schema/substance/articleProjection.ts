@@ -26,18 +26,18 @@ type ProjectedDurationRouteInput =
 type ProjectedHarmPotentialInput =
   SubstanceArticleProjectionInput["harm_potential"];
 
-export type ProjectedCitation = {
+type ProjectedCitation = {
   label: string;
   href?: string;
-};
+}
 
-export type ProjectedSectionAvailability = {
+type ProjectedSectionAvailability = {
   routes: boolean;
   pharmacology: boolean;
   interactions: boolean;
   harmPotential: boolean;
   citations: boolean;
-};
+}
 
 export type SubstanceArticlePublicProjection = {
   raw: SubstanceArticleProjectionInput;

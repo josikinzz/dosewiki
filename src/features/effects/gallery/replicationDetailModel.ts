@@ -1,6 +1,6 @@
 import type { ReplicationWithUrl } from '@/types/replications';
 import { applyCuratedOrder } from '@server/curatedOrder';
-import { sortWithinGroup, sortWorksByDate } from './galleryModel';
+import { sortWithinGroup, sortWorksByDate } from './galleryOrdering';
 
 /**
  * Ordering for the replication surfaces (article galleries, contributor rails,

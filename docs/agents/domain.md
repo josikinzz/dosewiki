@@ -6,7 +6,7 @@ This repository has one domain glossary at root.
 
 - Read `CONTEXT.md` before naming or changing citation workflow concepts, legality research, article-review state, or replication surfaces.
 - Read `ARCHITECTURE.md` before changing runtime ownership, route boundaries, data flow, or deployment architecture.
-- Read `docs/architecture/runtime-and-data.md` before changing authentication, write boundaries, Convex ownership, or runtime data flow.
+- Read `docs/architecture/runtime-and-data.md` before changing authentication, write boundaries, Postgres ownership, retiring Convex recovery, or runtime data flow.
 - Read the relevant record in `docs/adr/` before changing an invariant it owns.
 
 ## Vocabulary

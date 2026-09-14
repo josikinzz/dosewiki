@@ -7,7 +7,6 @@
  * extends the approved Fun/dark social cards: pure black, Blinker, orchid
  * accents, an upper-left dose.wiki lockup, and one upper-left lighting model.
  */
-import path from "node:path";
 
 import sharp from "sharp";
 
@@ -24,15 +23,15 @@ import {
 } from "../socialCardPrimitives";
 export const TRIP_REPORT_SOCIAL_CARD_RENDERER_VERSION = "2026-08-25.1";
 
-export type TripReportSocialCardSubstance = {
+type TripReportSocialCardSubstance = {
   name: string;
   dose?: string;
   roa?: string;
-};
+}
 
-export type TripReportSocialCardMedia = {
+type TripReportSocialCardMedia = {
   filePath: string;
-};
+}
 
 export type TripReportSocialCardInput = {
   title: string;
@@ -400,20 +399,3 @@ export async function renderTripReportSocialCardPng(
   return renderSocialCardSvgPng(svg);
 }
 
-/**
- * Public Convex record: tripReports:getBySlug({ slug: "drowning-in-its-throat" }).
- * The excerpt is the opening of the T1:00 peak entry, verbatim.
- */
-export const TRIP_REPORT_SOCIAL_CARD_EXAMPLE = {
-  title: "Drowning in Its Throat",
-  author: "nervewing",
-  avatar: {
-    filePath: path.join(process.cwd(), "public/profile-avatars/nervewing/avatar.webp"),
-  },
-  substances: [{ name: "3-HO-PCP", dose: "10 mg", roa: "Intranasal" }],
-  excerpt:
-    "It is beginning to crash down on me, drag me out like a riptide. I feel so distant, distant from my fingers, distant from my body, distant from my mind; Icy pure dissociation.",
-  excerptContext: "T1:00 · Peak",
-  date: "04/2018",
-  tags: ["arylcyclohexylamine", "dissociative"],
-} as const satisfies TripReportSocialCardInput;

@@ -738,7 +738,7 @@ function isSiteFlavor(value: string): value is SiteFlavor {
 export function resolveSiteFlavor(
   // `NEXT_PUBLIC_*` is the Next.js contract for build-time inlining into client bundles;
   // `import.meta.env` is a Vite concept and does not exist here.
-  // eslint-disable-next-line vercel-guardrails/enforce-env-prefix
+   
   env: SiteFlavorEnv = { NEXT_PUBLIC_SITE_FLAVOR: process.env.NEXT_PUBLIC_SITE_FLAVOR },
 ): SiteFlavor {
   const normalized = env.NEXT_PUBLIC_SITE_FLAVOR?.trim().toLowerCase() ?? "";

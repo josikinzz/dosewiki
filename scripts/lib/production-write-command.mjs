@@ -32,33 +32,31 @@ function validateOperation(operation) {
   return operation;
 }
 
-export function deploymentFingerprintFromUrl(targetUrl) {
-  if (!targetUrl) {
-    return null;
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(targetUrl);
-  } catch {
-    throw new Error("Production write target must be a valid HTTPS Convex URL.");
-  }
-
-  if (parsed.protocol !== "https:") {
-    throw new Error("Production write target must use HTTPS.");
-  }
-
-  const suffix = ".convex.cloud";
-  if (!parsed.hostname.endsWith(suffix)) {
-    throw new Error("Production write target must be a Convex deployment cloud URL.");
-  }
-
-  const fingerprint = parsed.hostname.slice(0, -suffix.length);
-  if (!fingerprint || fingerprint.includes(".")) {
-    throw new Error("Production write target must identify one exact Convex deployment.");
-  }
-  return fingerprint;
+function deploymentFingerprintFromUrl(targetUrl) { if (!targetUrl) {
+  return null;
 }
+
+let parsed;
+try {
+  parsed = new URL(targetUrl);
+} catch {
+  throw new Error("Production write target must be a valid HTTPS Convex URL.");
+}
+
+if (parsed.protocol !== "https:") {
+  throw new Error("Production write target must use HTTPS.");
+}
+
+const suffix = ".convex.cloud";
+if (!parsed.hostname.endsWith(suffix)) {
+  throw new Error("Production write target must be a Convex deployment cloud URL.");
+}
+
+const fingerprint = parsed.hostname.slice(0, -suffix.length);
+if (!fingerprint || fingerprint.includes(".")) {
+  throw new Error("Production write target must identify one exact Convex deployment.");
+}
+return fingerprint; }
 
 /**
  * Convex: `--target-url` or TARGET_CONVEX_URL; fingerprint is the deployment slug.

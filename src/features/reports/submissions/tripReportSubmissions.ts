@@ -1,15 +1,15 @@
 import { createHmac } from "node:crypto";
 
-export const TRIP_REPORT_SUBMISSION_SCHEMA_VERSION = 1;
+const TRIP_REPORT_SUBMISSION_SCHEMA_VERSION = 1
 
-export const SUBMISSION_STATUSES = [
+const SUBMISSION_STATUSES = [
   "submitted",
   "reviewing",
   "accepted",
   "rejected",
   "spam",
   "exported",
-] as const;
+] as const
 
 export type TripReportSubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
@@ -44,7 +44,7 @@ export type TripReportSubmissionSubstanceInput = {
   roa?: string;
 };
 
-export type TripReportSubmissionReportInput = {
+type TripReportSubmissionReportInput = {
   title: string;
   subject: TripReportSubmissionSubjectInput;
   substances: TripReportSubmissionSubstanceInput[];
@@ -54,18 +54,18 @@ export type TripReportSubmissionReportInput = {
   offset: TimelineEntryInput[];
   conclusion?: string;
   tags: string[];
-};
+}
 
-export type SubmitterRestrictedSubjectField = "profile_key" | "avatar_url" | "pdf_url";
+type SubmitterRestrictedSubjectField = "profile_key" | "avatar_url" | "pdf_url"
 
-export type NormalizedTripReportSubmissionSubject = Omit<
+type NormalizedTripReportSubmissionSubject = Omit<
   TripReportSubmissionSubjectInput,
   SubmitterRestrictedSubjectField
->;
+>
 
-export type NormalizedTripReportSubmissionReport = Omit<TripReportSubmissionReportInput, "subject"> & {
+type NormalizedTripReportSubmissionReport = Omit<TripReportSubmissionReportInput, "subject"> & {
   subject: NormalizedTripReportSubmissionSubject;
-};
+}
 
 export type TripReportSubmissionInput = {
   report: TripReportSubmissionReportInput;
@@ -138,11 +138,9 @@ export type TransitionTripReportSubmissionOptions = {
 export const IGNORED_PROFILE_KEY_WARNING =
   "Contributor profile key was ignored; an editor assigns report attribution when publishing.";
 
-export const IGNORED_AVATAR_URL_WARNING =
-  "Avatar URL was ignored; a published report shows the avatar of the contributor profile it is attributed to.";
+const IGNORED_AVATAR_URL_WARNING = "Avatar URL was ignored; a published report shows the avatar of the contributor profile it is attributed to."
 
-export const IGNORED_PDF_URL_WARNING =
-  "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter.";
+const IGNORED_PDF_URL_WARNING = "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter."
 
 const VALID_TRANSITIONS: Record<TripReportSubmissionStatus, TripReportSubmissionStatus[]> = {
   submitted: ["reviewing", "accepted", "rejected", "spam"],
@@ -289,7 +287,7 @@ type NormalizedTripReportSubmissionInput = Omit<
   user_agent?: string;
 };
 
-export function normalizeTripReportSubmissionInput(
+function normalizeTripReportSubmissionInput(
   input: TripReportSubmissionInput,
 ): NormalizedTripReportSubmissionInput {
   return {

@@ -28,15 +28,15 @@ export type DevSaveCredentials = {
   key: string;
 };
 
-export type ManualLayoutType = "psychoactive" | "chemical" | "mechanism";
+type ManualLayoutType = "psychoactive" | "chemical" | "mechanism"
 
-export type ManualLayoutDocument = {
+type ManualLayoutDocument = {
   type: ManualLayoutType;
   label: string;
   data: unknown;
   originalData: unknown;
   changelog: MarkdownChange;
-};
+}
 
 export type DevSaveDraft = {
   articles: SubstanceArticle[];
@@ -71,12 +71,11 @@ export type DevSaveCommandResult = {
   actionLabel?: string;
 };
 
-export type DevSaveAvailability =
-  | { ok: true }
-  | {
-      ok: false;
-      message: string;
-    };
+type DevSaveAvailability = | { ok: true }
+| {
+    ok: false;
+    message: string;
+  }
 
 export type DevSaveCommandAdapter = {
   noChangesMessage: string;

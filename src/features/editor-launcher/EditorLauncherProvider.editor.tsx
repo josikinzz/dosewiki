@@ -162,4 +162,3 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export default EditorLauncherProvider;

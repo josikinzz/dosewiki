@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { useT, useUiLocale } from "@/i18n/client";
 import type { ArticleRecentChange, ChangeFieldSegment } from "@/data/changelog/articleRecentChanges";
 import { fieldWords } from "@/data/changelog/articleRecentChanges";
-import type { Translate } from "@/i18n/messages";
+import { formattingLocale, UI_LOCALES, type Translate, type UiLocale } from "@/i18n/messages";
 import { publicHref } from "@/utils/publicHref";
 
 interface RecentChangesListProps {
@@ -28,14 +28,24 @@ interface RecentChangesListProps {
 // Zone is fixed (UTC) so every render agrees; the locale follows the page's
 // UI locale, which is hydration-stable because both the server render and the
 // client hydrate read it from the same matched route segments.
-const dayFormats = {
-  en: new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }),
-  "zh-Hans": new Intl.DateTimeFormat("zh-Hans", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }),
-} as const;
-const timeFormats = {
-  en: new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" }),
-  "zh-Hans": new Intl.DateTimeFormat("zh-Hans", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" }),
-} as const;
+const dayFormats = Object.fromEntries(UI_LOCALES.map((locale) => [
+  locale,
+  new Intl.DateTimeFormat(formattingLocale(locale), {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }),
+])) as Record<UiLocale, Intl.DateTimeFormat>;
+const timeFormats = Object.fromEntries(UI_LOCALES.map((locale) => [
+  locale,
+  new Intl.DateTimeFormat(formattingLocale(locale), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "UTC",
+  }),
+])) as Record<UiLocale, Intl.DateTimeFormat>;
 
 const linkClassName = cn(
   "rounded underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2",
@@ -170,7 +180,8 @@ function RecentChangeRow({
         ) : null}
       </div>
       {hasDiff && isDiffExpanded ? (
-        change.kind === "bulk" ? (
+        <div lang="en" data-source-language="en">
+          {change.kind === "bulk" ? (
           // A Dev-editor save is a structural JSON diff, one section per
           // article: the code-style renderer keeps its columns readable.
           <ChangelogDiff
@@ -186,7 +197,8 @@ function RecentChangeRow({
             citations={citations}
             className="theme-public-card-subtle mb-3 rounded-xl border px-4 py-3 sm:ml-[4rem]"
           />
-        )
+          )}
+        </div>
       ) : null}
     </li>
   );

@@ -11,12 +11,19 @@ const reads = vi.hoisted(() => ({
   getPublicContributorProfiles: vi.fn(),
 }));
 vi.mock("@server/convex/publicData", () => reads);
-const STORED: Record<string, string> = { Drifting: "视觉漂移", "Environmental patterning": "环境图案化" };
 const translations = vi.hoisted(() => ({
-  getLocalizedEffectNames: vi.fn(async (names: readonly string[], locale: string) =>
-    new Map(names.map((name) => [name, locale === "en" ? name : STORED[name] ?? name]))),
+  getLocalizedPublicEffects: vi.fn(),
+  getLocalizedPublicEffectBySlug: vi.fn(),
 }));
 vi.mock("@server/translation/localizedRecords", () => translations);
+const recordTranslations = vi.hoisted(() => ({
+  localizeRecords: vi.fn(async (records: readonly ReplicationWithUrl[]) => ({
+    records: records.map((record) => ({ ...record, title: `中文：${record.title}` })),
+    applied: records.length,
+    missing: 0,
+  })),
+}));
+vi.mock("@server/translation/liveTranslation", () => recordTranslations);
 
 const taggedWork: ReplicationWithUrl = {
   _id: "tagged-work",
@@ -40,6 +47,9 @@ describe("effect showcase collection eligibility", () => {
     reads.getPublicSubstanceBySlug.mockReset().mockResolvedValue(null);
     reads.getPublicReplicationsForSubstance.mockReset().mockResolvedValue({ items: [] });
     reads.getPublicContributorProfiles.mockReset().mockResolvedValue([]);
+    translations.getLocalizedPublicEffects.mockReset().mockResolvedValue([]);
+    translations.getLocalizedPublicEffectBySlug.mockReset().mockResolvedValue(null);
+    recordTranslations.localizeRecords.mockClear();
   });
 
   it("plays an explicitly tagged collection before its editorial article exists", async () => {
@@ -74,7 +84,7 @@ describe("effect showcase collection eligibility", () => {
     expect((await getEffectShowcaseWorks("drifting"))?.works.map(work => work.slug)).toEqual(order);
   });
 
-  it("names a work's effect from the chips, then the effect index, then the slug, and translates the first two on a mirror", async () => {
+  it("joins mirror effect names by canonical slug rather than English chip text", async () => {
     reads.getPublicSubstanceBySlug.mockResolvedValue({
       slug: "lsd",
       title: "LSD",
@@ -93,6 +103,11 @@ describe("effect showcase collection eligibility", () => {
     });
     reads.getPublicEffectBySlug.mockResolvedValue({ slug: "drifting", name: "Drifting" });
     reads.getPublicReplicationsByEffect.mockResolvedValue([taggedWork]);
+    translations.getLocalizedPublicEffects.mockResolvedValue([
+      { slug: "drifting", name: "视觉漂移" },
+      { slug: "environmental-patterning", name: "环境图案化" },
+    ]);
+    translations.getLocalizedPublicEffectBySlug.mockResolvedValue({ slug: "drifting", name: "视觉漂移" });
 
     expect((await getSubstanceShowcaseWorks("lsd"))?.works.map((work) => work.effectName)).toEqual([
       "Drifting",
@@ -109,4 +124,5 @@ describe("effect showcase collection eligibility", () => {
     expect(effect?.works.map((work) => work.effectName)).toEqual(["视觉漂移"]);
     expect((await getEffectShowcaseWorks("drifting"))?.effectName).toBe("Drifting");
   });
+
 });

@@ -1,4 +1,4 @@
-/* eslint-disable vercel-guardrails/enforce-env-prefix */
+ 
 import { ConvexError } from "convex/values";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

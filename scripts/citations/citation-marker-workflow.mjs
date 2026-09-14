@@ -9,13 +9,10 @@ import {
   CITABLE_ARTICLE_SURFACE,
   EXCLUDED_CITATION_SURFACE,
   isCitableSection,
-  isExcludedCitationSection as isExcludedSection,
 } from "./formal-citations-section-config.mjs";
 import {
   CITE_MARKER_PATTERN,
-  collectCitationMarkersFromText,
   collectCitationMarkersFromValue,
-  stripCitationMarkersFromText,
   stripCitationMarkersFromValue,
   strippedValuesEqual,
   validateCitationOnlyEdit,
@@ -27,11 +24,7 @@ export const CITABLE_ARTICLE_SECTIONS = CITABLE_ARTICLE_SURFACE;
 export const EXCLUDED_CITATION_SECTIONS = EXCLUDED_CITATION_SURFACE;
 export {
   CITE_MARKER_PATTERN,
-  collectCitationMarkersFromText,
-  collectCitationMarkersFromValue,
-  stripCitationMarkersFromText,
   stripCitationMarkersFromValue,
-  validateCitationOnlyEdit,
 };
 
 function clone(value) {
@@ -76,11 +69,9 @@ function referenceIdsFrom(references) {
   );
 }
 
-export function assertCitableSectionKey(sectionKey) {
-  if (!isCitableSection(sectionKey)) {
-    throw new Error(`${sectionKey} is not in the citable article surface.`);
-  }
-}
+function assertCitableSectionKey(sectionKey) { if (!isCitableSection(sectionKey)) {
+  throw new Error(`${sectionKey} is not in the citable article surface.`);
+} }
 
 function validateMarkerValue({
   sectionKey,
@@ -226,20 +217,7 @@ export function buildArticleWideCitationPacket({
   };
 }
 
-export function mergeValidatedMarkedSectionsIntoArticle({ article, markedSections }) {
-  const nextArticle = clone(article);
-  for (const sectionKey of CITABLE_ARTICLE_SECTIONS) {
-    if (Object.hasOwn(markedSections ?? {}, sectionKey)) {
-      nextArticle[sectionKey] = clone(markedSections[sectionKey]);
-    }
-  }
-  return nextArticle;
-}
 
-export function isCitableArticleSection(sectionKey) {
-  return isCitableSection(sectionKey);
-}
 
-export function isExcludedCitationSection(sectionKey) {
-  return isExcludedSection(sectionKey);
-}
+
+

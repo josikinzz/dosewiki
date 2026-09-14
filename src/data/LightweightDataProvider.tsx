@@ -99,10 +99,4 @@ export function useLightweightData(): LightweightData {
   return context;
 }
 
-/**
- * Hook to check if lightweight data is available.
- */
-export function useLightweightDataReady(): boolean {
-  const context = useContext(LightweightDataContext);
-  return context !== null;
-}
+

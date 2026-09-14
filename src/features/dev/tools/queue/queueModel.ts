@@ -9,9 +9,9 @@ import type { ProposalStatus } from "../../../../../lib/proposals/proposalStatus
 
 export type { ProposalStatus };
 
-export type ProposalTargetKind = "article" | "indexLayout" | "about" | "copyBlock";
+type ProposalTargetKind = "article" | "indexLayout" | "about" | "copyBlock"
 
-export type ProposalTarget = { kind: ProposalTargetKind; key: string; baseHash: string };
+type ProposalTarget = { kind: ProposalTargetKind; key: string; baseHash: string }
 
 export type ProposalComment = { authorName: string; at: string; text: string };
 
@@ -49,13 +49,13 @@ export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
 /** What `POST /api/dev/proposals/<id>/approve` answers. */
 export type ApproveOutcome = { status: "applied" | "changes_requested"; conflictReason?: string };
 
-export type QueueGroupId = "submitted" | "changes_requested" | "applied" | "closed";
+type QueueGroupId = "submitted" | "changes_requested" | "applied" | "closed"
 
-export type QueueGroup = {
+type QueueGroup = {
   id: QueueGroupId;
   label: string;
   statuses: readonly ProposalStatus[];
-};
+}
 
 /** Rail order: what an admin has to act on first, closed proposals last. */
 export const QUEUE_GROUPS: readonly QueueGroup[] = [

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 export const SECOND_PASS_SCHEMA_VERSION = "dosewiki_citation_second_pass_plan_v1";
-export const SECOND_PASS_EXCLUDED_SECTIONS = Object.freeze(["tolerance"]);
-export const SECOND_PASS_EXCLUDED_SLUGS = Object.freeze(["deschloroketamine"]);
+const SECOND_PASS_EXCLUDED_SECTIONS = Object.freeze(["tolerance"])
+const SECOND_PASS_EXCLUDED_SLUGS = Object.freeze(["deschloroketamine"])
 
 const WAVE_ORDER = Object.freeze({
   wave_1_obvious: 1,

@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Drug-class safety banners as they appear on a public substance article.
  *
@@ -24,6 +26,7 @@ import {
 } from "@/components/ui/safety-banner";
 import { cn } from "@/lib/utils";
 import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
+import { useT } from "@/i18n/client";
 
 export interface SubstanceWarningBannersProps {
   banners: WarningBannerPreset[];
@@ -43,6 +46,7 @@ export function SubstanceWarningBanners({
   iconSize,
   className,
 }: SubstanceWarningBannersProps) {
+  const t = useT();
   // The overwhelmingly common case: no preset is enabled on this slug. Bail
   // before emitting anything at all — an empty wrapper would still be a flex
   // child of StickyTocLayout's `gap-8` content column and would open a visible
@@ -58,14 +62,14 @@ export function SubstanceWarningBanners({
           icon={preset.icon}
           iconSize={iconSize}
         >
-          <SafetyBannerTitle severityLabel={preset.severityLabel} tone={preset.tone}>
-            {preset.headline}
+          <SafetyBannerTitle severityLabel={t(preset.severityLabel)} tone={preset.tone}>
+            {t(preset.headline)}
           </SafetyBannerTitle>
           {/* Every visible string here is a stored, editor-authored field. The
               mechanism text is `points` and nothing else: a line is a paragraph
               unless the editor opened it with a markdown list marker, so bullets
               are something they ask for rather than a shape imposed on them. */}
-          <SafetyBannerPoints points={preset.points} />
+          <SafetyBannerPoints points={preset.points.map((point) => t(point))} />
         </SafetyBanner>
       ))}
     </div>

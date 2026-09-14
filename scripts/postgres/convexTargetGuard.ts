@@ -7,7 +7,7 @@
  * `allowProduction: false` regardless of the flags they were given.
  */
 
-export const PRODUCTION_CONVEX_DEPLOYMENT = "glad-minnow-656";
+const PRODUCTION_CONVEX_DEPLOYMENT = "glad-minnow-656"
 
 /** Deployment name carried by a `CONVEX_DEPLOY_KEY` (`<type>:<name>|<secret>`), `CONVEX_DEPLOYMENT` (`<type>:<name>`), or a `*.convex.cloud` URL. */
 export function deploymentNameFrom(value: string | undefined): string | null {

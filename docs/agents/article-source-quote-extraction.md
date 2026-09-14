@@ -4,16 +4,9 @@ This is the shared current contract for the seven `.cursor/commands/*.md` quote-
 
 ## Inputs and source access
 
-Work on one named substance slug and one adapter at a time. Article-source documents live in the production PlanetScale Postgres database and require the scoped `articleSourceMigration` credential; read them through `createDataClient()` from `scripts/lib/data-client.ts` under `DATA_BACKEND=postgres` (ceremony in [data credentials](convex-credentials.md)). The `bunx convex run` form below reaches only the retiring Convex rollback backend.
+Work on one named substance slug and one adapter at a time. Article-source documents live in the production PlanetScale Postgres database and require the scoped `articleSourceMigration` credential. Read them through `createDataClient()` from `scripts/lib/data-client.ts` under the shared Postgres ceremony in [data credentials](convex-credentials.md). Do not use the retiring Convex deployment for a current extraction.
 
-```bash
-SLUG=lsd
-: "${CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION:?Set the scoped article-source read token}"
-SOURCE_JSON="${TMPDIR:-/tmp}/${SLUG}-article-sources.json"
-bunx convex run --deployment glad-minnow-656 articleSources:getBySlug \
-  "{\"slug\":\"${SLUG}\",\"apiKey\":\"${CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION}\"}" \
-  > "$SOURCE_JSON"
-```
+The adapter command must set `DATA_BACKEND=postgres`, bind `TARGET_POSTGRES_URL` explicitly, pass `--allow-remote`, and complete a read-only dry run before producing output. `POSTGRES_IMPORT_CONFIRM` must name `aws-us-east-1-2.pg.psdb.cloud`. Preserve the credential's existing `CONVEX_ADMIN_TOKEN_ARTICLE_SOURCE_MIGRATION` environment name because the Postgres compatibility layer consumes that exact intent-token name.
 
 The query result is the source of truth for this run. It contains a `sources` array and a `contents` object keyed by source `id`. A `null` result means that the slug has no article-source document; report that condition instead of inventing source content.
 

@@ -8,6 +8,7 @@ const PUBLIC_SUBSTANCE_DOCUMENT_PAGE_SIZE = 4;
 const PUBLIC_SUBSTANCE_SLUG_PAGE_SIZE = 160;
 const PUBLIC_REPLICATION_GALLERY_PAGE_SIZE = 64;
 const PUBLIC_MATCHABLE_REPLICATION_PAGE_SIZE = 256;
+const PUBLIC_TRIP_REPORT_PAGE_SIZE = 32;
 
 const publicSubstancePageArgs = (cursor?: string) => ({
   ...(cursor ? { cursor } : {}),
@@ -149,7 +150,20 @@ export const publicDataReadCatalog = {
     functionName: "substanceGalleries:getPublicGalleryBySubstance",
     args: (substanceSlug: string) => ({ substance_slug: substanceSlug }),
   },
-  publicTripReportRecords: { functionName: "tripReports:getAll", args: () => ({}) },
+  publicTripReportPreviews: {
+    functionName: "tripReports:getPublicPreviewsPage",
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_TRIP_REPORT_PAGE_SIZE,
+    }),
+  },
+  publicTripReportRecords: {
+    functionName: "tripReports:getPublicDetailsPage",
+    args: (cursor?: string) => ({
+      ...(cursor ? { cursor } : {}),
+      limit: PUBLIC_TRIP_REPORT_PAGE_SIZE,
+    }),
+  },
   publicTripReportBySlug: { functionName: "tripReports:getBySlug", args: (slug: string) => ({ slug }) },
   publicTripReportsByAuthor: {
     functionName: "tripReports:getByAuthor",

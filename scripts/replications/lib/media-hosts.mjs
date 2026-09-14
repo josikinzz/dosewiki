@@ -22,14 +22,14 @@ export const PRODUCTION_HOST = "glad-minnow-656.convex.cloud";
  * The development deployment. Media here is NOT safe: a dev deployment can be
  * reset at any time, and 65 replication thumbnails are currently served from it.
  */
-export const DEV_HOST = "enchanted-echidna-791.convex.cloud";
+const DEV_HOST = "enchanted-echidna-791.convex.cloud";
 
 /**
  * Deployments that appear only as literal URL strings in production rows. This
  * repository has no admin credential for either, no way to enumerate them, and
  * no way to recover a file once it is gone. They are referenced by data alone.
  */
-export const ORPHAN_HOSTS = Object.freeze([
+const ORPHAN_HOSTS = Object.freeze([
   "warmhearted-mosquito-204.convex.cloud",
   "adept-goldfish-624.convex.cloud",
 ]);

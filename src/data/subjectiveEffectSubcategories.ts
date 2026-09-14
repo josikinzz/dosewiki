@@ -91,10 +91,15 @@ const SUBCATEGORY_REGISTRY: Record<string, SubcategoryMeta> = {
   "4comingdown": { label: msg("4. Coming Down"), icon: "lucide:trending-down" },
 };
 
+/** Every distinct subcategory label the registry can render, for the glossary drafter. */
+export const SUBCATEGORY_LABELS: readonly string[] = [
+  ...new Set([...SENSORY_CATEGORIES, ...Object.values(SUBCATEGORY_REGISTRY)].map(({ label }) => label)),
+];
+
 /** Keys that are grouping artifacts, not real subcategories: always render flat. */
 const FLAT_SUBCATEGORY_KEYS = new Set(["general", "other"]);
 
-export function normalizeSubcategoryKey(key: string): string {
+function normalizeSubcategoryKey(key: string): string {
   return key.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 

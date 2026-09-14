@@ -6,9 +6,9 @@ import aboutConfigSource from "./aboutConfig.json";
  * Shape persisted in src/data/content/aboutConfig.json.
  *  - founderProfileKeys: array of profile keys (uppercase strings) to surface as founders.
  */
-export type AboutConfig = {
+type AboutConfig = {
   founderProfileKeys: string[];
-};
+}
 
 const PLACEHOLDER_PATTERN = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
 
@@ -57,11 +57,11 @@ const normalizeConfig = (value: unknown): AboutConfig => {
 };
 
 export const aboutMarkdown = sanitizeMarkdown(aboutContentSource);
-export const aboutSubtitleMarkdown = sanitizeMarkdown(aboutSubtitleSource);
+const aboutSubtitleMarkdown = sanitizeMarkdown(aboutSubtitleSource)
 export const aboutConfig = normalizeConfig(aboutConfigSource);
 export const aboutFounderKeys = aboutConfig.founderProfileKeys;
 
-export type AboutPlaceholderValues = Record<string, string | number | undefined>;
+type AboutPlaceholderValues = Record<string, string | number | undefined>
 
 const applyPlaceholders = (markdown: string, values: unknown): string => {
   if (!markdown) {
@@ -87,8 +87,6 @@ const applyPlaceholders = (markdown: string, values: unknown): string => {
   });
 };
 
-export const resolveAboutMarkdown = (values: AboutPlaceholderValues): string =>
-  applyPlaceholders(aboutMarkdown, values);
 
 export const resolveAboutSubtitle = (values: AboutPlaceholderValues): string =>
   applyPlaceholders(aboutSubtitleMarkdown, values);

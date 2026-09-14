@@ -2,15 +2,12 @@
 
 Extract every tolerance passage from the supplied collected-source file for one substance article. Use only the supplied source documents. Extraction preserves source text verbatim; it is not summarisation, synthesis, rewriting or explanation.
 
-## 1. Identify sources and output mode
+## 1. Identify sources
 
-In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. There may be one to a dozen sources, ranging from a few lines to many pages. Source names may be slugs; retain them exactly as written.
+The staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. There may be one to a dozen sources, ranging from a few lines to many pages. Source names may be slugs; retain them exactly as written.
 
 Account for every source in input order, including empty documents. Keep each passage attached to its originating source.
 
-If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
-
-Continue when every source boundary and the active output mode are identified.
 
 ## 2. Decide which passages qualify
 
@@ -47,13 +44,13 @@ Continue when every source has been reviewed and every qualifying or uncertain p
 - Copy the whole paragraph, whole list item or whole table row. Every sentence remains complete, including when the tolerance fact occupies only part of the unit.
 - Copy text directly from its source, character for character: spelling, punctuation, markdown, links, typos, numbers and units. Keep all qualifications as written, without conversion, rounding or reformatting.
 - Keep source boundaries intact. Never invent a tolerance timeline or supplement the source from memory or another source.
-- In excerpt mode, author only the metadata, source headings, separators and markers in step 4. Separate multiple passages from the same source with a single blank line; `---` marks only the end of a source block.
+- Author only the metadata, source headings, separators and markers in step 4. Separate multiple passages from the same source with a single blank line; `---` marks only the end of a source block.
 
-Continue when all selected units retain their complete wording and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
+Continue when all selected units retain their complete wording and provenance. Each passage must match its source character for character; the downstream substring check rejects any drift.
 
-## 4. Emit the active output format
+## 4. Emit the excerpt document
 
-When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
+Output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Tolerance Quotes
@@ -87,7 +84,7 @@ Before responding, confirm:
 - Every qualifying or uncertain passage is included as a complete unit; unrelated meanings of tolerance alone are excluded.
 - All copied claims, timings, numbers and qualifications retain their original wording and source.
 - Empty results reflect missing source evidence rather than an incomplete search.
-- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- The response follows the excerpt-document format exactly.
 - The four downstream fields below have been checked for available evidence. They identify high-value passages, not a narrower selection rule: other passages still qualify under step 2.
 
 | Field | What it needs from the source |

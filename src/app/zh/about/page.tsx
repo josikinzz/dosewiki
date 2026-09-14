@@ -11,9 +11,9 @@ import {
   getIndexLayoutByType,
   getPublicAboutPreviewSubstances,
   getPublicAboutData,
-  getPublicContributorProfiles,
   getPublicDataOverview,
 } from "@server/convex/publicData";
+import { getLocalizedPublicContributorProfiles } from "@server/translation/localizedRecords";
 import { getMoleculePackDownloadStats, getOpenDataDownloadStats } from "@server/open-data/downloadStats";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { flavoredCopyKey, getCopy } from "@server/next/copyBlocks";
@@ -28,7 +28,7 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import { msg } from "@/i18n/messages";
 import { setRequestLocale, t } from "@/i18n/server";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 
@@ -76,7 +76,7 @@ export default async function LocalizedAboutPage() {
     getPublicAboutPreviewSubstances(),
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
-    getPublicContributorProfiles(),
+    getLocalizedPublicContributorProfiles(LOCALE.code),
     getOpenDataDownloadStats("SubstanceIndex"),
     getOpenDataDownloadStats("EffectIndex"),
     getOpenDataDownloadStats("TripReports"),

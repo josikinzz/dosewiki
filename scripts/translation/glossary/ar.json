@@ -1,0 +1,4168 @@
+{
+  "locale": "ar",
+  "note": "مسودة محلية أعدها الذكاء الاصطناعي، غير مراجعة وغير معتمدة بشريًا. تتطلب جميع المصطلحات مراجعة ناطقين أصليين بالعربية ومتخصصين في المجالات المعنية. لا يفعّل هذا الملف اللغة ولا ينشر محتوى. تحتاج العلاقات الكيميائية المزعومة في المصدر إلى مراجعة، ولا سيما Anilinopiperidine مقابل Anilidopiperidine، وBenzhydryl مقابل Diphenylmethanol، وNitrogen oxide مقابل Non-metal nitride، وإلحاق Benzodifuran وEthanolamine وPhenylpiperazine وThiophene بفئات ليست مرادفات بنيوية مطابقة. احتُفظ بالتسميات المميزة بدل دمج تلك الهويات الكيميائية. احتُفظ كذلك بـ Dephenylmethane وDiarycycloheptene كما وردتا لالتباس تسميتهما، وبـ Nitazepipne وNitazepyne تجنبًا لاختلاق مصطلحات. تتطلب مصطلحات السيكديليا والانفصال والحالات المتجاوزة للذات مراجعة تخصصية لغوية.",
+  "counts": {
+    "approved": 0,
+    "draft": 693
+  },
+  "terms": {
+    "1,2-Diarylethylamine (diarylethylamines)": {
+      "target": "1,2-ثنائي أريل إيثيل أمين (ثنائيات أريل إيثيل أمين)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,3-Propanediol dicarbamate": {
+      "target": "ثنائي كربامات 1,3-بروبانديول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,4-Benzodiazepine (benzodiazepines)": {
+      "target": "1,4-بنزوديازيبين (البنزوديازيبينات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,5-Benzodiazepine": {
+      "target": "1,5-بنزوديازيبين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1. Taking Off": {
+      "target": "1. الإقلاع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-Dimethoxyamphetamine (DOx)": {
+      "target": "2,5-ثنائي ميثوكسي أمفيتامين (DOx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-Dimethoxyphenethylamine (2C-x)": {
+      "target": "2,5-ثنائي ميثوكسي فينيثيل أمين (2C-x)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-dimethoxyamphetamine": {
+      "target": "2,5-ثنائي ميثوكسي أمفيتامين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Amino-5-aryloxazoline (aminorexes)": {
+      "target": "2-أمينو-5-أريل أوكسازولين (الأمينوركسات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Aminoindane (aminoindanes)": {
+      "target": "2-أمينو إندان (الأمينو إندانات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Benzylbenzimidazole (nitazenes)": {
+      "target": "2-بنزيل بنزيميدازول (النيتازينات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Benzylpiperidine": {
+      "target": "2-بنزيل بيبيريدين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Phenylmorpholine (phenylmorpholines)": {
+      "target": "2-فينيل مورفولين (الفينيل مورفولينات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Pyrrolidinone (racetams)": {
+      "target": "2-بيروليدينون (الراسيتامات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-amino-5-aryloxazoline": {
+      "target": "2-أمينو-5-أريل أوكسازولين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2. The Waiting Room": {
+      "target": "2. غرفة الانتظار",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NB3OMe": {
+      "target": "25x-NB3OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NB4OMe": {
+      "target": "25x-NB4OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBF": {
+      "target": "25x-NBF",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBOH": {
+      "target": "25x-NBOH",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBOMe": {
+      "target": "25x-NBOMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2C-X": {
+      "target": "2C-X",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-Dimethoxyamphetamine (3C-x)": {
+      "target": "3,5-ثنائي ميثوكسي أمفيتامين (3C-x)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-Dimethoxyphenethylamine (scalines)": {
+      "target": "3,5-ثنائي ميثوكسي فينيثيل أمين (السكالينات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-dimethoxyamphetamine": {
+      "target": "3,5-ثنائي ميثوكسي أمفيتامين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-dimethoxyphenethylamine": {
+      "target": "3,5-ثنائي ميثوكسي فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "3. The Other Side": {
+      "target": "3. الجانب الآخر",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "3C-x": {
+      "target": "3C-x",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "4. Coming Down": {
+      "target": "4. الهبوط",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "A-typical Hallucinogen": {
+      "target": "مهلوس غير نمطي",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Abnormal heartbeat": {
+      "target": "اضطراب نظم القلب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Adamantane": {
+      "target": "أدامانتان",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Adamantane derivative": {
+      "target": "مشتق الأدامانتان",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Addiction suppression": {
+      "target": "تثبيط الدافع الإدماني",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "After Effects": {
+      "target": "التأثيرات المتبقية",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "After images": {
+      "target": "الصور اللاحقة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alcohol": {
+      "target": "كحول",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (indole)": {
+      "target": "قلويد (إندول)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (mesembrine)": {
+      "target": "قلويد (ميسيمبرين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (phenethylamine)": {
+      "target": "قلويد (فينيثيل أمين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (pyridine)": {
+      "target": "قلويد (بيريدين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (tropane)": {
+      "target": "قلويد (تروبان)",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkyl amine": {
+      "target": "أمين ألكيلي",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "All Effects": {
+      "target": "جميع التأثيرات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "All media": {
+      "target": "جميع الوسائط",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alterations": {
+      "target": "تغيرات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amine": {
+      "target": "أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Aminoindane": {
+      "target": "أمينو إندان",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Aminorex": {
+      "target": "أمينوركس",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amnesia": {
+      "target": "فقد الذاكرة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine": {
+      "target": "أمفيتامين",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine (psychedelic)": {
+      "target": "أمفيتامين (سيكديلي)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine (substituted)": {
+      "target": "أمفيتامين (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamines": {
+      "target": "أمفيتامينات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amplifications": {
+      "target": "تضخيمات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis": {
+      "target": "التحليل",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis enhancement": {
+      "target": "تعزيز القدرة على التحليل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis suppression": {
+      "target": "تثبيط القدرة على التحليل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analytical": {
+      "target": "تحليلية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine": {
+      "target": "أنيليدوبيبيريدين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine (fentanyls)": {
+      "target": "أنيليدوبيبيريدين (الفنتانيلات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine (opioid)": {
+      "target": "أنيليدوبيبيريدين (أفيوني)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilinopiperidine": {
+      "target": "أنيلينوبيبيريدين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilinopiperidine (opioid)": {
+      "target": "أنيلينوبيبيريدين (أفيوني)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anticipatory response": {
+      "target": "استجابة توقعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antidepressant": {
+      "target": "مضاد للاكتئاب",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antihistamines": {
+      "target": "مضادات الهيستامين",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antipsychotic": {
+      "target": "مضاد للذهان",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anxiety": {
+      "target": "القلق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anxiety suppression": {
+      "target": "تثبيط القلق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Appetite enhancement": {
+      "target": "زيادة الشهية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Appetite suppression": {
+      "target": "تثبيط الشهية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Approved replicator": {
+      "target": "فنان محاكاة معتمد",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artist": {
+      "target": "الفنان",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artist practice": {
+      "target": "الممارسة الفنية",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artists": {
+      "target": "الفنانون",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylalkylamine": {
+      "target": "أريل ألكيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylcyclohexyl-related NMDA antagonist": {
+      "target": "مضاد لمستقبلات NMDA مرتبط بأريل سيكلوهكسيل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylcyclohexylamine": {
+      "target": "أريل سيكلوهكسيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Audio": {
+      "target": "صوت",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Audio Replications": {
+      "target": "محاكاة صوتية",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory": {
+      "target": "سمعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory Effects": {
+      "target": "تأثيرات سمعية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory distortion": {
+      "target": "تشوه سمعي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory enhancement": {
+      "target": "تعزيز السمع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory hallucination": {
+      "target": "هلوسة سمعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory misinterpretation": {
+      "target": "سوء تفسير سمعي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory suppression": {
+      "target": "تثبيط السمع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomic": {
+      "target": "الجهاز العصبي الذاتي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomous entity": {
+      "target": "كيان مستقل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomous voice communication": {
+      "target": "تواصل مع صوت مستقل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Back pain": {
+      "target": "ألم الظهر",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Barbiturate": {
+      "target": "باربيتورات",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Barbiturates": {
+      "target": "الباربيتورات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzamide": {
+      "target": "بنزاميد",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzeneacetamide": {
+      "target": "بنزين أسيتاميد",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzeneacetamide (U-compounds)": {
+      "target": "بنزين أسيتاميد (مركبات U)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzhydrol": {
+      "target": "بنزهيدرول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzhydryl": {
+      "target": "بنزهيدريل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole": {
+      "target": "بنزيميدازول",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole (nitazene)": {
+      "target": "بنزيميدازول (نيتازين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole opioid": {
+      "target": "أفيونيات البنزيميدازول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzochromene": {
+      "target": "بنزوكرومين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine": {
+      "target": "بنزوديازيبين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (1,5-benzodiazepine)": {
+      "target": "بنزوديازيبين (1,5-بنزوديازيبين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (N-trifluoroethyl substituted)": {
+      "target": "بنزوديازيبين (مستبدل بـ N-ثلاثي فلورو إيثيل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (prodrug)": {
+      "target": "بنزوديازيبين (طليعة دواء)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (triazolobenzodiazepine)": {
+      "target": "بنزوديازيبين (تريازولوبنزوديازيبين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepines": {
+      "target": "البنزوديازيبينات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodifuran": {
+      "target": "بنزوديفوران",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran": {
+      "target": "بنزوفوران",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (benzodihydrodifuran)": {
+      "target": "بنزوفوران (بنزوديهيدروديفوران)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (dihydrobenzofuran)": {
+      "target": "بنزوفوران (ثنائي هيدروبنزوفوران)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (psychedelic)": {
+      "target": "بنزوفوران (سيكديلي)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (substituted)": {
+      "target": "بنزوفوران (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuranethylamine (benzofurans)": {
+      "target": "بنزوفوران إيثيل أمين (البنزوفورانات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzoylindole": {
+      "target": "بنزويل إندول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylamine": {
+      "target": "بنزيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylpiperazine (piperazines)": {
+      "target": "بنزيل بيبيرازين (البيبيرازينات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylpiperidine": {
+      "target": "بنزيل بيبيريدين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Beta-carboline": {
+      "target": "β-كاربولين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily": {
+      "target": "جسدية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily control enhancement": {
+      "target": "تعزيز التحكم الجسدي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily pressures": {
+      "target": "إحساس بضغط جسدي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Body odour alteration": {
+      "target": "تغير رائحة الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brain zaps": {
+      "target": "صعقات دماغية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brightness alteration": {
+      "target": "تغير السطوع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brominated indole alkaloid": {
+      "target": "قلويد إندولي مبروم",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bronchodilation": {
+      "target": "توسع القصبات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Buccal": {
+      "target": "عبر مخاطية الخد",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid": {
+      "target": "كانابينويد",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid (phytocannabinoid)": {
+      "target": "كانابينويد (كانابينويد نباتي)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid (synthetic)": {
+      "target": "كانابينويد (اصطناعي)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Carbamate": {
+      "target": "كربامات",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cardiovascular": {
+      "target": "قلبية وعائية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cardiovascular Effects": {
+      "target": "تأثيرات قلبية وعائية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Catharsis": {
+      "target": "تنفيس انفعالي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cathinone": {
+      "target": "كاثينون",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cathinone (substituted)": {
+      "target": "كاثينون (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Caution": {
+      "target": "الحذر",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Changes in felt bodily form": {
+      "target": "تغير الإحساس بشكل الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Changes in felt gravity": {
+      "target": "تغير الإحساس بالجاذبية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Chromatic aberration": {
+      "target": "زيغ لوني",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Citations": {
+      "target": "الاستشهادات",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Classification": {
+      "target": "التصنيف",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Closed-eye": {
+      "target": "مع إغماض العينين",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive": {
+      "target": "معرفية",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Amplifications": {
+      "target": "تضخيمات معرفية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Effects": {
+      "target": "تأثيرات معرفية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Suppressions": {
+      "target": "تثبيطات معرفية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive disconnection": {
+      "target": "انفصال معرفي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive dysphoria": {
+      "target": "كدر نفسي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive euphoria": {
+      "target": "نشوة نفسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive fatigue": {
+      "target": "إرهاق ذهني",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour enhancement": {
+      "target": "تعزيز الألوان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour replacement": {
+      "target": "استبدال الألوان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour shifting": {
+      "target": "تبدل الألوان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour suppression": {
+      "target": "خمود الألوان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Come Up": {
+      "target": "تصاعد التأثير",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Comfortable": {
+      "target": "مريحة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Common": {
+      "target": "شائع",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Component controllability": {
+      "target": "قابلية التحكم بمكونات التجربة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Compulsive redosing": {
+      "target": "إلحاح قهري لتكرار الجرعة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Conceptual thinking": {
+      "target": "تفكير مفاهيمي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Confirmed": {
+      "target": "مؤكد",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Confusion": {
+      "target": "تشوش ذهني",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Constipation": {
+      "target": "إمساك",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Content family": {
+      "target": "فئة المحتوى",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Contributors": {
+      "target": "المساهمون",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Controlled precursor": {
+      "target": "سليفة كيميائية خاضعة للرقابة",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Coordination": {
+      "target": "التناسق الحركي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cough suppression": {
+      "target": "تثبيط السعال",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Creativity enhancement": {
+      "target": "تعزيز الإبداع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Creativity suppression": {
+      "target": "تثبيط الإبداع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cycloalkylamine": {
+      "target": "سيكلوألكيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cyclopyrrolone": {
+      "target": "سيكلوبيرولون",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "DOx": {
+      "target": "DOx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dangerous": {
+      "target": "خطير",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dark surrealism": {
+      "target": "سريالية قاتمة",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased blood pressure": {
+      "target": "انخفاض ضغط الدم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased heart rate": {
+      "target": "بطء القلب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased libido": {
+      "target": "انخفاض الرغبة الجنسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decriminalized": {
+      "target": "منزوع التجريم",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dehydration": {
+      "target": "جفاف الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Deja vu": {
+      "target": "Déjà vu",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Deliriants": {
+      "target": "مسببات الهذيان",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Delirium": {
+      "target": "هذيان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Delusion": {
+      "target": "ضلالة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depersonalization": {
+      "target": "تبدد الشخصية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dephenylmethane": {
+      "target": "Dephenylmethane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depicted effect": {
+      "target": "التأثير المصوَّر",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depression": {
+      "target": "اكتئاب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depression reduction": {
+      "target": "تخفيف الاكتئاب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depth perception distortions": {
+      "target": "تشوهات إدراك العمق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Derealization": {
+      "target": "تبدد الواقع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarrhea": {
+      "target": "إسهال",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarycycloheptene": {
+      "target": "Diarycycloheptene",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarylethylamine": {
+      "target": "ثنائي أريل إيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarylethylamine (substituted)": {
+      "target": "ثنائي أريل إيثيل أمين (مستبدل)",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dibenzopyran": {
+      "target": "ثنائي بنزوبيران",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Difficulty urinating": {
+      "target": "صعوبة التبول",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diffraction": {
+      "target": "حيود الضوء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diol (alkanediol)": {
+      "target": "ديول (ألكانديول)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylheptane (opioid)": {
+      "target": "ثنائي فينيل هبتان (أفيوني)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanethiol": {
+      "target": "ثنائي فينيل ميثان ثيول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanethiol (modafinils)": {
+      "target": "ثنائي فينيل ميثان ثيول (المودافينيلات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanol": {
+      "target": "ثنائي فينيل ميثانول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanol (benzhydrols)": {
+      "target": "ثنائي فينيل ميثانول (البنزهيدرولات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethylsulfinylacetamide (modafinil analogue)": {
+      "target": "ثنائي فينيل ميثيل سلفينيل أسيتاميد (نظير المودافينيل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylpropylamine": {
+      "target": "ثنائي فينيل بروبيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disconnective": {
+      "target": "انفصالية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disconnective Effects": {
+      "target": "تأثيرات الانفصال",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disinhibition": {
+      "target": "زوال الكبح السلوكي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disregard Everything I Say": {
+      "target": "Disregard Everything I Say",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dissociatives": {
+      "target": "المواد التفارقية",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Distortions": {
+      "target": "تشوهات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dizziness": {
+      "target": "دوار",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dosage & Duration": {
+      "target": "مقدار الجرعة ومدة التأثير",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dosage independent intensity": {
+      "target": "شدة تأثير مستقلة عن مقدار الجرعة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Double vision": {
+      "target": "ازدواج الرؤية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dream potentiation": {
+      "target": "تعزيز الأحلام",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dream suppression": {
+      "target": "تثبيط الأحلام",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drifting": {
+      "target": "تموج وانسياب بصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug": {
+      "target": "المادة النفسية التأثير",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug class": {
+      "target": "فئة المادة النفسية التأثير",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug class in title": {
+      "target": "فئة المادة في العنوان",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug in title": {
+      "target": "المادة في العنوان",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dry mouth": {
+      "target": "جفاف الفم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Duration": {
+      "target": "مدة التأثير",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Editorial Review": {
+      "target": "المراجعة التحريرية",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Effect Index": {
+      "target": "Effect Index",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Effect illustrations": {
+      "target": "رسوم توضيحية للتأثيرات",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego death": {
+      "target": "فناء الأنا",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego inflation": {
+      "target": "تضخم الأنا",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego replacement": {
+      "target": "استبدال الأنا",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ehrlich": {
+      "target": "Ehrlich",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotion intensification": {
+      "target": "اشتداد الانفعالات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotion suppression": {
+      "target": "تثبيط الانفعالات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotional": {
+      "target": "انفعالية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathogen": {
+      "target": "معزز الانفتاح العاطفي",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathogens": {
+      "target": "معززات الانفتاح العاطفي",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathy, affection, and sociability enhancement": {
+      "target": "تعزيز التعاطف والمودة والاجتماعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Enhancement and suppression cycles": {
+      "target": "دورات التعزيز والتثبيط",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Enhancements": {
+      "target": "تعزيزات حسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Entactogen": {
+      "target": "معزز الانفتاح العاطفي",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Entactogens": {
+      "target": "معززات الانفتاح العاطفي",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Environmental cubism": {
+      "target": "تكعيبية المحيط",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Environmental patterning": {
+      "target": "تشكل أنماط في المحيط",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ethanolamine": {
+      "target": "إيثانول أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ethanolamine derivative (antihistamine)": {
+      "target": "مشتق الإيثانول أمين (مضاد للهيستامين)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ether": {
+      "target": "إيثر",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Euphoria": {
+      "target": "النشوة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Excessive yawning": {
+      "target": "تثاؤب مفرط",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Existential self-realization": {
+      "target": "إدراك الذات الوجودي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Experiential replications": {
+      "target": "محاكاة التجارب",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Explanatory figures": {
+      "target": "أشكال توضيحية",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "External hallucination": {
+      "target": "هلوسة خارجية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Extremely High": {
+      "target": "مرتفع للغاية",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Extremely Low": {
+      "target": "منخفض للغاية",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Feelings of impending doom": {
+      "target": "شعور بكارثة وشيكة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Fentanyl analogues": {
+      "target": "نظائر الفنتانيل",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Field of view alteration": {
+      "target": "تغير مجال الرؤية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Focus enhancement": {
+      "target": "تعزيز التركيز",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Focus suppression": {
+      "target": "تثبيط التركيز",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Folin": {
+      "target": "Folin",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frame rate suppression": {
+      "target": "انخفاض معدل الإطارات البصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frequent": {
+      "target": "متكرر",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frequent urination": {
+      "target": "كثرة التبول",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Froehde": {
+      "target": "Froehde",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Furanolactone": {
+      "target": "فورانولاكتون",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue": {
+      "target": "نظير GABA",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue (gabapentinoid)": {
+      "target": "نظير GABA (غابابنتينويد)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue (prodrug)": {
+      "target": "نظير GABA (طليعة دواء)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogues": {
+      "target": "نظائر GABA",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gabapentinoid": {
+      "target": "غابابنتينويد",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gait alteration": {
+      "target": "تغير المشية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gallic": {
+      "target": "حمض الغاليك",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Generative abstract art": {
+      "target": "فن تجريدي توليدي",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometric Patterns": {
+      "target": "أنماط هندسية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometry": {
+      "target": "هندسة بصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometry Video Script": {
+      "target": "نص تعليق فيديو الهندسة البصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Glossolalia": {
+      "target": "التكلم بألسنة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory": {
+      "target": "ذوقية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory Effects": {
+      "target": "تأثيرات ذوقية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory enhancement": {
+      "target": "تعزيز التذوق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory hallucination": {
+      "target": "هلوسة ذوقية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory suppression": {
+      "target": "تثبيط التذوق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hallucinatory Effects": {
+      "target": "تأثيرات هلوسية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hallucinatory States": {
+      "target": "حالات هلوسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Harm Potential": {
+      "target": "احتمال الضرر",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Harmala alkaloid": {
+      "target": "قلويد الحرمل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Headache": {
+      "target": "صداع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Heavy": {
+      "target": "جرعة كبيرة جدًا",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hexahydroazepinoindole": {
+      "target": "سداسي هيدرو أزيبينو إندول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hexahydroazepinoindole (ibogalogs)": {
+      "target": "سداسي هيدرو أزيبينو إندول (نظائر الإيبوغايين)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "High": {
+      "target": "مرتفع",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "History & Culture": {
+      "target": "التاريخ والثقافة",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hofmann": {
+      "target": "Hofmann",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "IM": {
+      "target": "IM",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "IV": {
+      "target": "IV",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "IV/IM": {
+      "target": "IV/IM",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Iboga alkaloid": {
+      "target": "قلويد الإيبوغا",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ibogalog": {
+      "target": "نظير الإيبوغايين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Identification": {
+      "target": "التعريف الكيميائي",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Identity alteration": {
+      "target": "تغير الهوية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Illegal": {
+      "target": "غير قانوني",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Illegal (analog/blanket ban)": {
+      "target": "غير قانوني (حظر النظائر أو حظر شامل)",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Images": {
+      "target": "صور",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Imidazobenzodiazepine": {
+      "target": "إيميدازوبنزوديازيبين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Imidazopyridine": {
+      "target": "إيميدازوبيريدين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Immersion enhancement": {
+      "target": "تعزيز الاستغراق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Impairment": {
+      "target": "اختلال معرفي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased blood pressure": {
+      "target": "ارتفاع ضغط الدم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased bodily temperature": {
+      "target": "ارتفاع حرارة الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased heart rate": {
+      "target": "تسرع القلب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased libido": {
+      "target": "زيادة الرغبة الجنسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased music appreciation": {
+      "target": "زيادة الاستمتاع بالموسيقى",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased pareidolia": {
+      "target": "زيادة الباريدوليا",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased perspiration": {
+      "target": "زيادة التعرق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased phlegm production": {
+      "target": "زيادة إنتاج البلغم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased salivation": {
+      "target": "زيادة إفراز اللعاب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased sense of humor": {
+      "target": "زيادة الحس الفكاهي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased suggestibility": {
+      "target": "زيادة القابلية للإيحاء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indazole": {
+      "target": "إندازول",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indazolecarboxamide (synthetic cannabinoid)": {
+      "target": "إندازول كربوكساميد (كانابينويد اصطناعي)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indole": {
+      "target": "إندول",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indole alkaloid": {
+      "target": "قلويد إندولي",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Inhaled": {
+      "target": "بالاستنشاق",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Injected": {
+      "target": "بالحقن",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Insufflated": {
+      "target": "بنشوق المسحوق عبر الأنف",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Interactions": {
+      "target": "التداخلات الدوائية",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Internal hallucination": {
+      "target": "هلوسة داخلية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intramuscular": {
+      "target": "داخل العضل",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intranasal": {
+      "target": "داخل الأنف",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intravenous": {
+      "target": "داخل الوريد",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Introspection": {
+      "target": "استبطان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Irritability": {
+      "target": "التهيج",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Isoxazole": {
+      "target": "إيزوكسازول",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Itchiness": {
+      "target": "حكة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Jamais vu": {
+      "target": "Jamais vu",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Language suppression": {
+      "target": "تثبيط القدرة اللغوية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Laughter fits": {
+      "target": "نوبات ضحك",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Legal (regulated)": {
+      "target": "قانوني (منظَّم)",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Legality": {
+      "target": "الوضع القانوني",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Library": {
+      "target": "المكتبة",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Liebermann": {
+      "target": "Liebermann",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Light": {
+      "target": "جرعة صغيرة",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Limited": {
+      "target": "محدودة",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Low": {
+      "target": "منخفض",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Lysergamide": {
+      "target": "ليسرغاميد",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "MDxx": {
+      "target": "MDxx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Machinescapes": {
+      "target": "مشاهد آلية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Magnification": {
+      "target": "تكبير بصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mandelin": {
+      "target": "Mandelin",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mania": {
+      "target": "هوس",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Marquis": {
+      "target": "Marquis",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mecke": {
+      "target": "Mecke",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Media": {
+      "target": "الوسائط",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory enhancement": {
+      "target": "تعزيز الذاكرة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory replays": {
+      "target": "إعادة معايشة الذكريات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory suppression": {
+      "target": "تثبيط الذاكرة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mesembrine alkaloid": {
+      "target": "قلويد الميسيمبرين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Meta": {
+      "target": "بيانات الصفحة",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Methylenedioxyphenethylamine (MDxx)": {
+      "target": "ميثيلين ديوكسي فينيثيل أمين (MDxx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mindfulness": {
+      "target": "اليقظة الذهنية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Miscellaneous": {
+      "target": "متفرقات",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mixed emotions": {
+      "target": "انفعالات مختلطة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Modafinil-like": {
+      "target": "شبيهات المودافينيل",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Moderate": {
+      "target": "جرعة متوسطة",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "More Info": {
+      "target": "مزيد من المعلومات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan": {
+      "target": "مورفينان",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan (opioid)": {
+      "target": "مورفينان (أفيوني)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan (substituted)": {
+      "target": "مورفينان (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motivation enhancement": {
+      "target": "تعزيز الدافعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motivation suppression": {
+      "target": "تثبيط الدافعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motor control loss": {
+      "target": "فقد التحكم الحركي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mouth numbing": {
+      "target": "خدر الفم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multiple thought streams": {
+      "target": "مسارات تفكير متعددة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multisensory": {
+      "target": "متعددة الحواس",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multisensory Effects": {
+      "target": "تأثيرات متعددة الحواس",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle cramp": {
+      "target": "تشنج عضلي مؤلم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle relaxation": {
+      "target": "ارتخاء العضلات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle tension": {
+      "target": "توتر عضلي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle twitching": {
+      "target": "نفضات عضلية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Fluorobenzyl)phenethylamine (x-NBF)": {
+      "target": "N-(2-فلوروبنزيل)فينيثيل أمين (x-NBF)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Hydroxybenzyl)phenethylamine (x-NBOH)": {
+      "target": "N-(2-هيدروكسي بنزيل)فينيثيل أمين (x-NBOH)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Methoxybenzyl)phenethylamine (x-NBOMe)": {
+      "target": "N-(2-ميثوكسي بنزيل)فينيثيل أمين (x-NBOMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-fluorobenzyl)phenethylamine": {
+      "target": "N-(2-فلوروبنزيل)فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-hydroxybenzyl)phenethylamine": {
+      "target": "N-(2-هيدروكسي بنزيل)فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(3-Methoxybenzyl)phenethylamine (x-NB3OMe)": {
+      "target": "N-(3-ميثوكسي بنزيل)فينيثيل أمين (x-NB3OMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(3-methoxybenzyl)phenethylamine": {
+      "target": "N-(3-ميثوكسي بنزيل)فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(4-Methoxybenzyl)phenethylamine (x-NB4OMe)": {
+      "target": "N-(4-ميثوكسي بنزيل)فينيثيل أمين (x-NB4OMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(4-methoxybenzyl)phenethylamine": {
+      "target": "N-(4-ميثوكسي بنزيل)فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-Benzylphenethylamine (x-NBx)": {
+      "target": "N-بنزيل فينيثيل أمين (x-NBx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-benzylphenethylamine": {
+      "target": "N-بنزيل فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NB3OMe": {
+      "target": "NB3OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NB4OMe": {
+      "target": "NB4OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBF": {
+      "target": "NBF",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOH": {
+      "target": "NBOH",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOMe": {
+      "target": "NBOMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOMes": {
+      "target": "NBOMes",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBx": {
+      "target": "NBx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthoylindole (synthetic cannabinoid)": {
+      "target": "نفثويل إندول (كانابينويد اصطناعي)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthylaminopropane": {
+      "target": "نفثيل أمينو بروبان",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthylaminopropane (substituted)": {
+      "target": "نفثيل أمينو بروبان (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Natural": {
+      "target": "طبيعية",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nausea": {
+      "target": "غثيان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nausea suppression": {
+      "target": "تثبيط الغثيان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Near universal": {
+      "target": "شبه شامل",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Negative": {
+      "target": "أدلة مناقضة",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neoclerodane diterpenoid": {
+      "target": "ديتربينويد نيوكليروداني",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neurological": {
+      "target": "عصبية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neurological Effects": {
+      "target": "تأثيرات عصبية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nicotinic alkaloid": {
+      "target": "قلويد نيكوتيني",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazene": {
+      "target": "نيتازين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazepipne": {
+      "target": "Nitazepipne",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazepyne": {
+      "target": "Nitazepyne",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitrogen oxide": {
+      "target": "أكسيد النيتروجين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "No Evidence": {
+      "target": "لا دليل على التسرطن بعد الدراسة",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Noble gas": {
+      "target": "غاز نبيل",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Non-metal nitride": {
+      "target": "نتريد لافلزي",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "None": {
+      "target": "لا دراسات",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nootropic": {
+      "target": "محسن للوظائف المعرفية",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Not scheduled": {
+      "target": "غير مدرج في جداول المواد الخاضعة للرقابة",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novel Cognitive States": {
+      "target": "حالات معرفية غير مألوفة",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novel States": {
+      "target": "حالات غير مألوفة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novelty enhancement": {
+      "target": "تعزيز الإحساس بالجدة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Object activation": {
+      "target": "دب الحياة في الأشياء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Object alteration": {
+      "target": "تغير أشكال الأشياء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Offset": {
+      "target": "انحسار التأثير",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory": {
+      "target": "شمية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory Effects": {
+      "target": "تأثيرات شمية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory enhancement": {
+      "target": "تعزيز الشم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory hallucination": {
+      "target": "هلوسة شمية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory suppression": {
+      "target": "تثبيط الشم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Onset": {
+      "target": "الزمن حتى بدء التأثير",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Open-eye": {
+      "target": "مع فتح العينين",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Opioid": {
+      "target": "أفيوني",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Optical and perceptual art": {
+      "target": "فن الخداع البصري والإدراكي",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Optical sliding": {
+      "target": "انزلاق النظر",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Oral": {
+      "target": "عن طريق الفم",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Orgasm suppression": {
+      "target": "تثبيط بلوغ النشوة الجنسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other": {
+      "target": "أخرى",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other GABAergics": {
+      "target": "مواد أخرى مؤثرة في GABA",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other antidepressants": {
+      "target": "مضادات اكتئاب أخرى",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other deliriants": {
+      "target": "مسببات هذيان أخرى",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other dissociatives": {
+      "target": "مواد تفارقية أخرى",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other entactogens": {
+      "target": "معززات أخرى للانفتاح العاطفي",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other opioids": {
+      "target": "أفيونيات أخرى",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other stimulants": {
+      "target": "منبهات أخرى",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Overview": {
+      "target": "نظرة عامة",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Oxazolinone": {
+      "target": "أوكسازولينون",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pain relief": {
+      "target": "تسكين الألم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Panic attack": {
+      "target": "نوبة هلع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Paranoia": {
+      "target": "ارتياب اضطهادي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Peak": {
+      "target": "ذروة التأثير",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception": {
+      "target": "الإدراك",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of bodily heaviness": {
+      "target": "الإحساس بثقل الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of bodily lightness": {
+      "target": "الإحساس بخفة الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of eternalism": {
+      "target": "إدراك الوجود المتزامن لجميع الأزمنة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of interdependent opposites": {
+      "target": "إدراك ترابط الأضداد",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of predeterminism": {
+      "target": "إدراك الحتمية المسبقة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of self-design": {
+      "target": "إدراك التصميم الذاتي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Peripheral information misinterpretation": {
+      "target": "سوء تفسير المعلومات في أطراف الرؤية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal Commentary": {
+      "target": "تعليق شخصي",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal bias suppression": {
+      "target": "تثبيط التحيز الشخصي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal meaning enhancement": {
+      "target": "تعزيز المعنى الشخصي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personality regression": {
+      "target": "نكوص الشخصية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perspective distortion": {
+      "target": "تشوه المنظور",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perspective hallucination": {
+      "target": "هلوسة المنظور",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pharmacology": {
+      "target": "علم الأدوية",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine": {
+      "target": "فينيثيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine (N-benzylated)": {
+      "target": "فينيثيل أمين (مبنزل عند N)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine (substituted)": {
+      "target": "فينيثيل أمين (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenidate": {
+      "target": "فينيدات",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylalkylpyrrolidine": {
+      "target": "فينيل ألكيل بيروليدين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylmorpholine": {
+      "target": "فينيل مورفولين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylmorpholine (substituted)": {
+      "target": "فينيل مورفولين (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpiperazine": {
+      "target": "فينيل بيبيرازين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpropylamine": {
+      "target": "فينيل بروبيل أمين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpropylaminopentane": {
+      "target": "فينيل بروبيل أمينو بنتان",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenyltropane": {
+      "target": "فينيل تروبان",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Photophobia": {
+      "target": "رهاب الضوء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical": {
+      "target": "جسدية",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Alterations": {
+      "target": "تغيرات جسدية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Amplifications": {
+      "target": "تضخيمات جسدية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Effects": {
+      "target": "تأثيرات جسدية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Suppressions": {
+      "target": "تثبيطات جسدية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical autonomy": {
+      "target": "استقلالية الجسد",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical disconnection": {
+      "target": "انفصال جسدي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical euphoria": {
+      "target": "نشوة جسدية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical fatigue": {
+      "target": "إرهاق جسدي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Piperazine": {
+      "target": "بيبيرازين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Piperidine": {
+      "target": "بيبيريدين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pipradrol homologue": {
+      "target": "مجانس البيبرادرول",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Positive": {
+      "target": "أدلة مؤيدة",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Possible": {
+      "target": "ممكن",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Prescription only": {
+      "target": "بوصفة طبية فقط",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Probable": {
+      "target": "مرجح",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychedelics": {
+      "target": "مُغيِّرات الوعي السيكديليّة",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychological States": {
+      "target": "حالات نفسية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "PsychonautWiki": {
+      "target": "PsychonautWiki",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychosis": {
+      "target": "ذهان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pupil constriction": {
+      "target": "تضيق الحدقة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pupil dilation": {
+      "target": "توسع الحدقة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Purine alkaloid": {
+      "target": "قلويد بوريني",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrazolopyrimidine": {
+      "target": "بيرازولوبيريميدين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyridine alkaloid": {
+      "target": "قلويد البيريدين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidine": {
+      "target": "بيروليدين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidine (substituted)": {
+      "target": "بيروليدين (مستبدل)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidinophenone": {
+      "target": "بيروليدينوفينون",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Quinazolinone": {
+      "target": "كينازولينون",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Racetam": {
+      "target": "راسيتام",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Racetam and peptide-like": {
+      "target": "راسيتامات وشبيهات الببتيدات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rare": {
+      "target": "نادر",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Reagent Testing": {
+      "target": "الفحص بالكواشف",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rectal": {
+      "target": "عن طريق المستقيم",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Recursion": {
+      "target": "تكرار ذاتي متداخل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "References": {
+      "target": "المراجع",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rejuvenation": {
+      "target": "تجدد الحيوية النفسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Related Substances": {
+      "target": "مواد ذات صلة",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Relaxation": {
+      "target": "الاسترخاء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicates": {
+      "target": "يحاكي",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replication": {
+      "target": "محاكاة تأثير",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replications": {
+      "target": "محاكاة التأثيرات",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicator": {
+      "target": "فنان محاكاة",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicators": {
+      "target": "فنانو المحاكاة",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Respiratory": {
+      "target": "تنفسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Respiratory depression": {
+      "target": "تثبيط التنفس",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Restless legs": {
+      "target": "تململ الساقين",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Restricted": {
+      "target": "مقيد",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Robadope": {
+      "target": "Robadope",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Runny nose": {
+      "target": "سيلان الأنف",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "SEI": {
+      "target": "SEI",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scaline": {
+      "target": "سكالين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scalines": {
+      "target": "السكالينات",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sceletium alkaloid": {
+      "target": "قلويد Sceletium",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scenarios and plots": {
+      "target": "سيناريوهات وحبكات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scenery slicing": {
+      "target": "تقطيع المشهد",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scott": {
+      "target": "Scott",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sedation": {
+      "target": "تهدئة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sedative-hypnotics": {
+      "target": "مهدئات ومنومات",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Seizure": {
+      "target": "نوبة صرعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Seizure suppression": {
+      "target": "تثبيط النوبات الصرعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensed presence": {
+      "target": "الإحساس بحضور كائن",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensory": {
+      "target": "حسية",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensory overload": {
+      "target": "فرط الحمل الحسي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Serotonin syndrome": {
+      "target": "متلازمة السيروتونين",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Settings, sceneries, and landscapes": {
+      "target": "أمكنة ومشاهد ومناظر",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Shadow people": {
+      "target": "أشخاص الظل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Shakiness": {
+      "target": "ارتعاش",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Simon": {
+      "target": "Simon",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Skin flushing": {
+      "target": "احمرار الجلد",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sleep": {
+      "target": "النوم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sleepiness": {
+      "target": "النعاس",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smell & Taste": {
+      "target": "الشم & التذوق",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smell & Taste Effects": {
+      "target": "تأثيرات الشم & التذوق",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smoked": {
+      "target": "بالتدخين",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Social": {
+      "target": "اجتماعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sources": {
+      "target": "المصادر",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spatial disorientation": {
+      "target": "اضطراب التوجه المكاني",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spirituality enhancement": {
+      "target": "تعزيز الروحانية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spontaneous physical movements": {
+      "target": "حركات جسدية تلقائية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spontaneous tactile sensations": {
+      "target": "أحاسيس لمسية تلقائية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stamina enhancement": {
+      "target": "تعزيز القدرة على التحمل",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stimulation": {
+      "target": "تنبيه جسدي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stomach bloating": {
+      "target": "انتفاخ البطن",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stomach cramp": {
+      "target": "مغص المعدة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Strong": {
+      "target": "جرعة كبيرة",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Style Variations": {
+      "target": "تنويعات أسلوبية",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subcutaneous": {
+      "target": "تحت الجلد",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subjective Effect Index": {
+      "target": "فهرس التأثيرات الذاتية",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subjective Effects": {
+      "target": "التأثيرات الذاتية",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sublingual": {
+      "target": "تحت اللسان",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted amine": {
+      "target": "أمين مستبدل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted aminorex": {
+      "target": "أمينوركس مستبدل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted amphetamine": {
+      "target": "أمفيتامين مستبدل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted cathinone": {
+      "target": "كاثينون مستبدل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted phenethylamine": {
+      "target": "فينيثيل أمين مستبدل",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suggestibility suppression": {
+      "target": "تثبيط القابلية للإيحاء",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suicidal ideation": {
+      "target": "أفكار انتحارية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Summary": {
+      "target": "الملخص",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Supplements and oneirogens": {
+      "target": "مكملات ومحفزات الأحلام",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suppressions": {
+      "target": "تثبيطات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Symmetrical texture repetition": {
+      "target": "تكرار متناظر للأنسجة البصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Synaesthesia": {
+      "target": "الحس المواكب",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Synthetic": {
+      "target": "اصطناعية",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile": {
+      "target": "لمسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile Effects": {
+      "target": "تأثيرات لمسية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile distortion": {
+      "target": "تشوه لمسي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile enhancement": {
+      "target": "تعزيز اللمس",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile hallucination": {
+      "target": "هلوسة لمسية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile suppression": {
+      "target": "تثبيط اللمس",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Teeth chattering": {
+      "target": "اصطكاك الأسنان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Teeth grinding": {
+      "target": "صرير الأسنان",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temperature": {
+      "target": "حرارة الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temperature regulation suppression": {
+      "target": "تثبيط تنظيم حرارة الجسم",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temporary erectile dysfunction": {
+      "target": "ضعف انتصاب مؤقت",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tertiary alcohol": {
+      "target": "كحول ثالثي",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Texture liquidation": {
+      "target": "تمييع الأنسجة البصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thienodiazepine": {
+      "target": "ثينوديازيبين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thienotriazolodiazepine": {
+      "target": "ثينوتريازولوديازيبين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiobarbituric acid derivative": {
+      "target": "مشتق حمض الثيوباربيتوريك",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiophene": {
+      "target": "ثيوفين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiopropamine": {
+      "target": "ثيوبروبامين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought acceleration": {
+      "target": "تسارع التفكير",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought connectivity": {
+      "target": "ترابط الأفكار",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought deceleration": {
+      "target": "تباطؤ التفكير",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought disorganization": {
+      "target": "تفكك تنظيم التفكير",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought loops": {
+      "target": "حلقات فكرية متكررة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought organization": {
+      "target": "تنظيم التفكير",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Threshold": {
+      "target": "جرعة عتبة التأثير",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Time distortion": {
+      "target": "تشوه الإحساس بالزمن",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tinnitus": {
+      "target": "طنين الأذن",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Total": {
+      "target": "المدة الكلية",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tracers": {
+      "target": "آثار بصرية متتبعة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Traditional cultural art": {
+      "target": "فن ثقافي تقليدي",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Traditional psychedelic artists": {
+      "target": "فنانو السيكديليا التقليديون",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transdermal": {
+      "target": "عبر الجلد",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transformations": {
+      "target": "تحولات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal": {
+      "target": "متجاوزة للذات",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal Effects": {
+      "target": "حالات متجاوزة للذات",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal States": {
+      "target": "حالات متجاوزة للذات",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Triazolobenzodiazepine": {
+      "target": "تريازولوبنزوديازيبين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Trip Reports": {
+      "target": "تقارير التجارب",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "TripSit": {
+      "target": "TripSit",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tropane": {
+      "target": "تروبان",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine": {
+      "target": "تريبتامين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine (derivative)": {
+      "target": "تريبتامين (مشتق)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine (plant-derived)": {
+      "target": "تريبتامين (نباتي المصدر)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "U-compound": {
+      "target": "مركب U",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unattributed": {
+      "target": "مجهول الفنان",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unclassified content": {
+      "target": "محتوى غير مصنف",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable": {
+      "target": "غير مريحة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable Bodily Effects": {
+      "target": "تأثيرات بدنية عامة غير مريحة",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable Physical Effects": {
+      "target": "تأثيرات جسدية غير مريحة",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncommon": {
+      "target": "غير شائع",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unity and interconnectedness": {
+      "target": "الوحدة والترابط",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unknown": {
+      "target": "غير معلوم",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unsafe": {
+      "target": "غير آمن",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unspeakable horrors": {
+      "target": "أهوال لا توصف",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vaporized": {
+      "target": "باستنشاق البخار",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vasoconstriction": {
+      "target": "تضيق الأوعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vasodilation": {
+      "target": "توسع الأوعية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Verified replicator": {
+      "target": "فنان محاكاة موثق الهوية",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vibrating vision": {
+      "target": "اهتزاز الرؤية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Videos": {
+      "target": "مقاطع فيديو",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Viewing mode": {
+      "target": "نمط الرؤية",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visionary psychedelic art": {
+      "target": "فن سيكديلي رؤيوي",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual": {
+      "target": "بصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Amplifications": {
+      "target": "تضخيمات بصرية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Distortions": {
+      "target": "تشوهات بصرية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Effects": {
+      "target": "تأثيرات بصرية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Suppressions": {
+      "target": "تثبيطات بصرية",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual acuity enhancement": {
+      "target": "تعزيز حدة البصر",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual acuity suppression": {
+      "target": "انخفاض حدة البصر",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual agnosia": {
+      "target": "عمه بصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual auras": {
+      "target": "هالات بصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual disconnection": {
+      "target": "انفصال بصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual exposure to inner mechanics of consciousness": {
+      "target": "انكشاف بصري للآليات الداخلية للوعي",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual exposure to semantic concept network": {
+      "target": "انكشاف بصري لشبكة المفاهيم الدلالية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual flipping": {
+      "target": "انقلاب المشهد البصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual haze": {
+      "target": "ضباب بصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual processing acceleration": {
+      "target": "تسارع المعالجة البصرية",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual stretching": {
+      "target": "تمدد المشهد البصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual strobing": {
+      "target": "وميض بصري متقطع",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual twisting": {
+      "target": "التواء المشهد البصري",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Wakefulness": {
+      "target": "اليقظة",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Watery eyes": {
+      "target": "تدميع العينين",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Xanthine": {
+      "target": "زانثين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Z-drugs": {
+      "target": "أدوية Z",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "come-up": {
+      "target": "تصاعد التأثير",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "comedown": {
+      "target": "انحسار التأثير",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "deliriant": {
+      "target": "مسبب للهذيان",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dissociative": {
+      "target": "مادة تفارقية",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dosage": {
+      "target": "مقدار الجرعة",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dose.wiki": {
+      "target": "dose.wiki",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "empathogenic": {
+      "target": "معزز للانفتاح العاطفي",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "entactogenic": {
+      "target": "معزز للانفتاح العاطفي",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "hallucinogen": {
+      "target": "مهلوس",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "harm reduction": {
+      "target": "الحد من الضرر",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "psychedelic": {
+      "target": "مُغيِّر للوعي سيكديلي",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "set and setting": {
+      "target": "الحالة الذهنية والبيئة المحيطة",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "stimulant": {
+      "target": "منبه",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "tolerance": {
+      "target": "التحمل الدوائي",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "trip report": {
+      "target": "تقرير تجربة",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "withdrawal": {
+      "target": "أعراض الانسحاب",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "α-Methylphenethylamine (amphetamines)": {
+      "target": "α-ميثيل فينيثيل أمين (الأمفيتامينات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "α-Pyrrolidinophenone (pyrrolidinophenones)": {
+      "target": "α-بيروليدينوفينون (البيروليدينوفينونات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-Carboline": {
+      "target": "β-كاربولين",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-Ketoamphetamine (cathinones)": {
+      "target": "β-كيتوأمفيتامين (الكاثينونات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-keto phenethylamine": {
+      "target": "β-كيتو فينيثيل أمين",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "γ-Aminobutyric acid analogue (gabapentinoids)": {
+      "target": "نظير حمض γ-أمينوبوتيريك (الغابابنتينويدات)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    }
+  }
+}

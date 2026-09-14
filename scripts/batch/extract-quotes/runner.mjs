@@ -8,7 +8,7 @@ import {
   resolveLocalSourceFileMaterial,
 } from "../lib/source-material-resolver.mjs";
 
-export async function resolveExtractQuotesSourceMaterial(slug, category, options = {}) {
+async function resolveExtractQuotesSourceMaterial(slug, category, options = {}) {
   if (options.source === "convex") {
     const sourceData = await loadConvexArticleSourceDocument(options.sourceClient, slug);
     if (!sourceData) {
@@ -51,7 +51,7 @@ async function saveExtractedQuotes({ slug, category, content, options }) {
   return { storage: "local", path: saveOutput(slug, category, content) };
 }
 
-export async function processSubstance(apiKey, slug, category, systemPrompt, options = {}) {
+async function processSubstance(apiKey, slug, category, systemPrompt, options = {}) {
   const sourceMaterial = await resolveExtractQuotesSourceMaterial(slug, category, options);
   if (sourceMaterial.status !== "ready") {
     return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };

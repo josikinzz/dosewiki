@@ -171,19 +171,19 @@ npm run dev
 
 Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit credential values.
 
-- `lib/runtime/envContract.ts` defines runtime environment diagnostics.
-- `lib/convex/runtimeTargets.ts` defines which variable supplies each read or write capability.
-- `docs/agents/convex-credentials.md` covers the production Postgres write ceremony, intent-scoped credentials, and the retiring Convex checks.
-- `docs/agents/deployment.md` is the source of truth for Vercel projects, domains, and release safety.
+- `lib/runtime/envContract.ts` owns runtime environment diagnostics.
+- [Data credentials](docs/agents/convex-credentials.md) owns production targets, credentials, write gates, and recovery.
+- [Deployment routing](docs/agents/deployment.md) owns Vercel projects, domains, build separation, and release safety.
 
-Every deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`; only `dosewiki-admin` carries the write and intent-token tier (`CONVEX_ADMIN_KEY`, `CONVEX_ADMIN_TOKEN_*`, `GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT`). Effect Index reads the same production data but carries no write credentials. Convex variables (`NEXT_PUBLIC_CONVEX_URL`, `CONVEX_PUBLIC_READ_URL`, `TARGET_CONVEX_URL`) stay configured only for the retiring rollback backend and must still resolve to `glad-minnow-656`; `enchanted-echidna-791` is retired.
-Production writes use an intent-scoped admin token or the documented `CONVEX_ADMIN_KEY` compatibility fallback; the token names are unchanged on Postgres. Follow [Convex credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules into other files.
+Every production deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`. Only `dosewiki-admin` carries the write and intent-token tier. Public DoseWiki and Effect Index remain read-only and carry no admin credential. Convex `glad-minnow-656` is a frozen recovery source through the ticket 24 decision, not a normal write target.
+
+Production writes require an allowlisted command, explicit Postgres target, reviewed dry run, remote-target gates, and the command's confirmations. Implementing a guard does not authorize production use. Follow [data credentials](docs/agents/convex-credentials.md) rather than copying credential values or precedence rules here.
 
 `NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
 
 `dose.wiki` and `www.dose.wiki` use the public-only `dosewiki-public` build. `dev.dose.wiki` and `dosewiki-admin.vercel.app` use the separate, application-authenticated `dosewiki-admin` editor build and remain closed to crawlers. Public-host `/dev`, `/review`, and sign-in links hand off to `dev.dose.wiki`. Retired `/preview` addresses permanently redirect to ordinary App Paths.
 
-`PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the public projects, whose caches the editor project cannot expire directly. Set the shared secret on all three Vercel projects and production Convex; set the comma-separated public origin list on the editor project and production Convex only. Targets outside the public host allowlist are ignored. The receiver accepts signed content identities only and derives its own paths and tags, so the secret grants cache expiry and no editorial capability. Committed changes enter a durable Convex outbox that retries incomplete delivery. Article receipts distinguish accepted invalidation from a verified revision in canonical public HTML. Missing configuration is reported as `unconfigured`, not successful publication; the existing revalidation intervals remain a fallback. See [deployment routing](docs/agents/deployment.md) for recovery and release evidence.
+`PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the separate public projects. The signed receiver derives its own paths and tags, grants cache expiry only, and accepts only allowlisted public targets. The editor's durable outbox owns retry and revision receipts. Current variable placement and recovery steps live in [deployment routing](docs/agents/deployment.md); this source change does not deploy them.
 
 Vercel builds use `bun run build:vercel`. Read [deployment routing](docs/agents/deployment.md) before changing build keys, aliases, domains, or flavor settings.
 

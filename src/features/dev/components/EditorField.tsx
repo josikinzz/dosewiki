@@ -2,11 +2,9 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-export interface EditorFieldControlProps {
-  id: string;
-  "aria-describedby"?: string;
-  "aria-invalid"?: true;
-}
+interface EditorFieldControlProps { id: string;
+"aria-describedby"?: string;
+"aria-invalid"?: true; }
 
 export interface EditorFieldProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {

@@ -23,6 +23,7 @@ import {
   homePanelRowClassName,
 } from "./HomePanel";
 import type { EffectIndexHomeData } from "./homeModel";
+import { t } from "@/i18n/server";
 
 /**
  * The Effect Index homepage: the intro block, then two columns of content panels, in the
@@ -222,7 +223,7 @@ export function EffectIndexHomePage({
 
           {featuredArticle ? (
             <HomePanel
-              title="Featured Article"
+              title={t("Featured Article")}
               description={blurb("featuredArticle")}
               icon={icons.fileText}
               contentClassName=""
@@ -242,7 +243,7 @@ export function EffectIndexHomePage({
                 </p>
                 {featuredArticle.authorLine ? (
                   <p className="theme-text-secondary mt-0.5 text-[0.9375rem] italic">
-                    by {featuredArticle.authorLine}
+                    {t("by")} {featuredArticle.authorLine}
                   </p>
                 ) : null}
                 {featuredArticle.dateLabel || featuredArticle.readTimeLabel ? (

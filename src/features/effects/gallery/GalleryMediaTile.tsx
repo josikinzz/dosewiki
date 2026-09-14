@@ -12,7 +12,7 @@ import { audioWaveformBars } from "@/features/replications/audioWaveform";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getCreatorByline } from "../components/replicationCredit";
 import { useMotionAllowed } from "./inViewPlayback";
-import { workDateMs } from "./galleryModel";
+import { workDateMs } from "./galleryOrdering";
 
 /** `duration` in seconds as `m:ss`, or null when unusable. */
 function formatMediaDuration(seconds: number | undefined): string | null {

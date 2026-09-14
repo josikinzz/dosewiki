@@ -10,7 +10,7 @@ import { createHash, randomBytes } from "node:crypto";
  */
 
 const CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
-export const INVITE_CODE_LENGTH = 24;
+const INVITE_CODE_LENGTH = 24
 const GROUP_SIZE = 4;
 
 export function generateInviteCode(): string {

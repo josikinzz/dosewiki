@@ -40,28 +40,35 @@ import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
-import { GalleryMediaTile } from "@/features/effects/gallery/GalleryMediaTile";
 import { MediaRail } from "@/features/effects/gallery/MediaRail";
 import {
-  ARTIST_RAIL_PAGE,
-  DEFAULT_GALLERY_TAXONOMY_FILTERS,
-  defaultGalleryOrder,
-  effectHrefBuilder,
-  effectNameLookup,
-  galleryGroupUrlKey,
   groupByArtist,
   groupByEffect,
   groupByYear,
+  splitRailsAndPool,
+} from "@/features/effects/gallery/galleryModel";
+import {
+  effectHrefBuilder,
+  effectNameLookup,
+  galleryGroupUrlKey,
   isDisplayable,
   isWithheldFromArtistViews,
+  UNATTRIBUTED_KEY,
+} from "@/features/effects/gallery/galleryArtistIdentity";
+import {
   matchesQuery,
   matchesTaxonomyFilters,
   matchesType,
   matchesYear,
+} from "@/features/effects/gallery/galleryFilters";
+import {
   sortWithinGroup,
   sortWorksByDate,
-  splitRailsAndPool,
-  UNATTRIBUTED_KEY,
+} from "@/features/effects/gallery/galleryOrdering";
+import {
+  ARTIST_RAIL_PAGE,
+  DEFAULT_GALLERY_TAXONOMY_FILTERS,
+  defaultGalleryOrder,
   type GalleryCounts,
   type GalleryGroup,
   type GalleryMode,
@@ -69,7 +76,7 @@ import {
   type GalleryTypeFilter,
   type GalleryTaxonomyFilterState,
   type GalleryYearFilter,
-} from "@/features/effects/gallery/galleryModel";
+} from "@/features/effects/gallery/galleryTypes";
 import { findContributorProfileByAuthorName } from "@server/contributorProfileIdentity";
 import { ReplicationViewerOverlay } from "./viewer/ReplicationViewerOverlay";
 import { viewerCollectionFromGalleryGroups } from "./viewer/viewerModel";
@@ -83,6 +90,7 @@ import {
   ReplicationActiveFilterChips,
   ReplicationTaxonomyFilters,
 } from "./components/ReplicationTaxonomyFilters";
+import { IncrementalMasonry } from "./components/IncrementalMasonry";
 import {
   CONTROL_MENU_ITEM_CLASS,
   CONTROL_TRIGGER_CHEVRON_CLASS,
@@ -103,6 +111,7 @@ import {
   parseReplicationViewerSlug,
   type GalleryFocus,
 } from "./galleryUrlState";
+import { useCompleteGalleryCorpus } from "./useCompleteGalleryCorpus";
 
 /**
  * The two effect fields the gallery reads: `name` for lookups/labels and
@@ -116,7 +125,6 @@ interface EffectSummary {
   name: string;
 }
 
-type GalleryPageLoadState = "idle" | "loading" | "error";
 
 /**
  * Artists get the site's person glyph; effects get the very icon the app
@@ -199,8 +207,6 @@ const EFFECT_FOCUS_LABEL: Record<GalleryTypeFilter, string> = {
   video: msg("Video {{effect}} replications"),
 };
 
-/** Read out by the status line once the deferred corpus lands. */
-const CORPUS_LOADED_ANNOUNCEMENT = msg("Complete gallery loaded");
 
 /**
  * Effect names are article titles, and the corpus carries both `After images`
@@ -213,160 +219,17 @@ function optionCase(name: string): string {
   return name ? name[0].toLocaleUpperCase() + name.slice(1) : name;
 }
 
-function browseNeedsCompleteCorpus(browse: GalleryBrowseState): boolean {
-  return (Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[])
-    .some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
-}
-
-/**
- * Whether to spend the deferred corpus fetch — 1.6 MB compressed, ~6.8 MB of
- * JSON to parse — before the reader has asked for anything it answers.
- *
- * The default browse view is served entirely by the server's rail digest, so
- * until a search, a filter, "Show more artists" or a deep link needs the
- * corpus, that download buys nothing; every one of those paths already loads
- * it on demand through `runWithCompleteCorpus`. On a phone it is actively
- * expensive: it competes with the grid's own media for a slow radio, and the
- * state swap it lands regroups every row and re-renders every mounted tile
- * mid-scroll. Coarse pointers and Save-Data readers therefore wait to be
- * asked; hover-capable pointers keep the prefetch, where the bandwidth is
- * cheap and the same page already opens a hover-playback budget.
- */
-function shouldPrefetchCompleteCorpus(): boolean {
-  const connection = (
-    navigator as Navigator & { connection?: { saveData?: boolean } }
-  ).connection;
-  if (connection?.saveData) return false;
-  return !window.matchMedia?.("(pointer: coarse)").matches;
-}
-
-function isContributorDirectory(value: unknown): value is ContributorDirectory {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (entry) =>
-        Boolean(entry) &&
-        typeof entry === "object" &&
-        typeof entry.key === "string" &&
-        typeof entry.displayName === "string" &&
-        Array.isArray(entry.aliases) &&
-        entry.aliases.every((alias: unknown) => typeof alias === "string"),
-    )
-  );
-}
-
-function isGalleryReplicationPreview(
-  value: unknown,
-): value is PublicGalleryReplicationPreview {
-  if (!value || typeof value !== "object") return false;
-
-  return (
-    "_id" in value &&
-    typeof value._id === "string" &&
-    "slug" in value &&
-    typeof value.slug === "string" &&
-    "title" in value &&
-    typeof value.title === "string" &&
-    "artist" in value &&
-    typeof value.artist === "string" &&
-    (!("artist_url" in value) || typeof value.artist_url === "string") &&
-    "type" in value &&
-    (value.type === "image" ||
-      value.type === "video" ||
-      value.type === "audio") &&
-    "format" in value &&
-    typeof value.format === "string" &&
-    (!("effect_slug" in value) || typeof value.effect_slug === "string") &&
-    (!("effect_tags" in value) ||
-      (Array.isArray(value.effect_tags) &&
-        value.effect_tags.every((item) => typeof item === "string"))) &&
-    (!("viewing_mode_tags" in value) ||
-      (Array.isArray(value.viewing_mode_tags) &&
-        value.viewing_mode_tags.every(
-          (item) => item === "open-eye" || item === "closed-eye",
-        ))) &&
-    (!("title_drugs" in value) ||
-      (Array.isArray(value.title_drugs) &&
-        value.title_drugs.every(
-          (item) =>
-            item !== null &&
-            typeof item === "object" &&
-            "slug" in item &&
-            typeof item.slug === "string" &&
-            "name" in item &&
-            typeof item.name === "string",
-        ))) &&
-    (!("drug_classes" in value) ||
-      (Array.isArray(value.drug_classes) &&
-        value.drug_classes.every(
-          (item) =>
-            item === "psychedelics" ||
-            item === "dissociatives" ||
-            item === "deliriants" ||
-            item === "other",
-        ))) &&
-    (!("content_family" in value) ||
-      value.content_family === "experiential-replication" ||
-      value.content_family === "visionary-psychedelic-art" ||
-      value.content_family === "traditional-cultural-art" ||
-      value.content_family === "dark-surrealism" ||
-      value.content_family === "optical-perceptual-art" ||
-      value.content_family === "generative-abstract-art" ||
-      value.content_family === "effect-illustration" ||
-      value.content_family === "explanatory-figure" ||
-      value.content_family === "uncertain") &&
-    (!("artist_type_tags" in value) ||
-      (Array.isArray(value.artist_type_tags) &&
-        value.artist_type_tags.every(
-          (item) =>
-            item === "replicator" || item === "traditional-psychedelic-artist",
-        ))) &&
-    "url" in value &&
-    typeof value.url === "string" &&
-    (!("thumbnail_url" in value) || typeof value.thumbnail_url === "string") &&
-    (!("preview_url" in value) || typeof value.preview_url === "string") &&
-    (!("motion_url" in value) || typeof value.motion_url === "string") &&
-    (!("motion_poster_url" in value) ||
-      typeof value.motion_poster_url === "string") &&
-    (!("width" in value) || typeof value.width === "number") &&
-    (!("height" in value) || typeof value.height === "number") &&
-    (!("duration" in value) || typeof value.duration === "number") &&
-    (!("has_audio" in value) || typeof value.has_audio === "boolean") &&
-    "created_at" in value &&
-    typeof value.created_at === "string" &&
-    (!("date_info" in value) ||
-      (value.date_info !== null &&
-        typeof value.date_info === "object" &&
-        "kind" in value.date_info &&
-        (value.date_info.kind === "exact_date" ||
-          value.date_info.kind === "year" ||
-          value.date_info.kind === "range" ||
-          value.date_info.kind === "upper_bound" ||
-          value.date_info.kind === "inferred" ||
-          value.date_info.kind === "unknown") &&
-        (!("value" in value.date_info) ||
-          typeof value.date_info.value === "string"))) &&
-    (!("effect_order_index" in value) ||
-      (value.effect_order_index !== null &&
-        typeof value.effect_order_index === "object" &&
-        Object.values(value.effect_order_index).every(
-          (position) => typeof position === "number",
-        )))
-  );
-}
 
 /**
  * One server-precomputed artist rail: the group's identity and its
  * complete-corpus counts, without items. Items come from the inlined
  * `replications` subset until the complete corpus arrives.
  */
-export interface ArtistRailDigest {
-  key: string;
-  label: string;
-  count: number;
-  imageCount: number;
-  videoCount: number;
-}
+interface ArtistRailDigest { key: string;
+label: string;
+count: number;
+imageCount: number;
+videoCount: number; }
 
 export interface ReplicationsGalleryExplorerProps {
   replications: PublicGalleryReplicationPreview[];
@@ -439,34 +302,8 @@ export interface ReplicationsGalleryExplorerProps {
   rightsFootnote?: boolean;
 }
 
-/**
- * Phones get a denser, media-first masonry (two columns, hairline gutters,
- * and captions tightened by `mobileCompact` rather than hidden: a title only
- * a hover reveals is a title touch readers never get); from `sm` up the grid
- * relaxes back to the readable card layout.
- *
- * Two columns, not three: a 390px phone gave each of three columns ~125px,
- * so every tile was a thumbnail of a thumbnail and the page carried three
- * full-resolution decodes per row of a grid nobody could read.
- */
-const MASONRY_CLASS =
-  "columns-2 gap-1.5 sm:columns-3 sm:gap-3 lg:columns-4 [column-fill:_balance]";
-const MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid sm:mb-3";
-
 /** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
-
-// Rail paging and preview sizes are shared with the server-rendered index —
-// see ARTIST_RAIL_PAGE / RAIL_PREVIEW_LIMIT in galleryModel.
-
-/**
- * Masonry grids (search results, the pooled effect tail, focused groups)
- * mount tiles in pages of this size. Once the complete preview continuation
- * arrives, the in-view sentinel extends the grid as the reader approaches its
- * end, with a "Show more" button as the fallback affordance.
- */
-const MASONRY_PAGE = 60;
-
 /**
  * Browse-state URL writes go through native history, not `router.push`. Next
  * syncs `useSearchParams` from its patched `pushState`/`replaceState` — the
@@ -588,25 +425,6 @@ function GalleryExplorer({
   urlStateResolved,
 }: ReplicationsGalleryExplorerProps & GalleryUrlState) {
   const t = useT();
-  const [galleryReplications, setGalleryReplications] = useState(replications);
-  const galleryReplicationsRef = useRef(galleryReplications);
-  const [hasMore, setHasMore] = useState(Boolean(completeCorpusUrl));
-  const hasMoreRef = useRef(hasMore);
-  const [pageLoadState, setPageLoadState] =
-    useState<GalleryPageLoadState>("idle");
-  const [completionAnnouncement, setCompletionAnnouncement] = useState<
-    string | null
-  >(null);
-  const pageRequestRef = useRef<Promise<boolean> | null>(null);
-  const pageAbortRef = useRef<AbortController | null>(null);
-  // The index page inlines only the directory entries its prerendered rails
-  // can consult; the complete one arrives with the corpus that makes the rest
-  // of the artists reachable (see api/replications/gallery). Until then the
-  // inlined subset resolves every credit on screen.
-  const [fetchedContributorDirectory, setFetchedContributorDirectory] =
-    useState<ContributorDirectory | null>(null);
-  const contributorDirectory =
-    fetchedContributorDirectory ?? initialContributorDirectory;
   const browseStateKey = [
     browse.view,
     browse.query,
@@ -619,175 +437,31 @@ function GalleryExplorer({
     browse.drugClass,
     browse.family,
   ].join("\u0000");
-  const browseRequiresCompleteCorpus = browseNeedsCompleteCorpus(browse);
-  const observedBrowseStateKeyRef = useRef(browseStateKey);
-  const actionGenerationRef = useRef(0);
-  const pendingCorpusActionRef = useRef<{
-    generation: number;
-    action: () => void;
-  } | null>(null);
-
-  const cancelPendingCorpusAction = useCallback(() => {
-    actionGenerationRef.current += 1;
-    pendingCorpusActionRef.current = null;
-  }, []);
-
-  const queueCorpusAction = useCallback((action: () => void) => {
-    const generation = actionGenerationRef.current + 1;
-    actionGenerationRef.current = generation;
-    pendingCorpusActionRef.current = { generation, action };
-    return generation;
-  }, []);
-
-  const completeCorpusAction = useCallback((generation: number) => {
-    const pending = pendingCorpusActionRef.current;
-    if (!pending || pending.generation !== generation) return;
-    pendingCorpusActionRef.current = null;
-    pending.action();
-  }, []);
-
-  const loadCompleteCorpus = useCallback((): Promise<boolean> => {
-    if (!completeCorpusUrl || !hasMoreRef.current) {
-      return pageRequestRef.current ?? Promise.resolve(true);
-    }
-    if (pageRequestRef.current) return pageRequestRef.current;
-
-    setCompletionAnnouncement(null);
-    const controller = new AbortController();
-    pageAbortRef.current = controller;
-    setPageLoadState("loading");
-
-    const request = (async () => {
-      try {
-        const response = await fetch(completeCorpusUrl, {
-          signal: controller.signal,
-          headers: { Accept: "application/json" },
-        });
-        if (!response.ok) {
-          throw new Error(`Gallery request failed: ${response.status}`);
-        }
-        const payload: unknown = await response.json();
-        if (
-          !payload ||
-          typeof payload !== "object" ||
-          !("data" in payload) ||
-          !Array.isArray(payload.data) ||
-          !payload.data.every(isGalleryReplicationPreview)
-        ) {
-          throw new Error("Gallery response was malformed");
-        }
-        // A response without a usable directory keeps the inlined subset:
-        // deferred artists then group and sort by their own credit lines,
-        // exactly as an unclaimed credit does, rather than losing the corpus.
-        if (
-          "contributorDirectory" in payload &&
-          isContributorDirectory(payload.contributorDirectory)
-        ) {
-          setFetchedContributorDirectory(payload.contributorDirectory);
-        }
-        galleryReplicationsRef.current = payload.data;
-        hasMoreRef.current = false;
-        setGalleryReplications(payload.data);
-        setHasMore(false);
-        setPageLoadState("idle");
-        setCompletionAnnouncement(CORPUS_LOADED_ANNOUNCEMENT);
-        return true;
-      } catch {
-        if (!controller.signal.aborted) {
-          setPageLoadState("error");
-        }
-        return false;
-      } finally {
-        if (pageAbortRef.current === controller) pageAbortRef.current = null;
-        pageRequestRef.current = null;
-      }
-    })();
-
-    pageRequestRef.current = request;
-    return request;
-  }, [completeCorpusUrl]);
-
-  useEffect(
-    () => () => {
-      pageAbortRef.current?.abort();
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!urlStateResolved || !completeCorpusUrl || !hasMoreRef.current) return;
-    if (viewerSlugParam || browseRequiresCompleteCorpus) {
-      // Deep links and non-default browse states need the whole corpus to
-      // resolve correctly — fetch it immediately.
-      void loadCompleteCorpus();
-      return;
-    }
-    // The default view's prerendered rails are already complete, so the
-    // corpus fetch waits for browser idle instead of competing with the
-    // first paint's media — and on touch it waits to be asked for at all.
-    // Interactions that need the corpus sooner go through
-    // `runWithCompleteCorpus`, which starts the same deduplicated request
-    // eagerly on every device.
-    if (!shouldPrefetchCompleteCorpus()) return;
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (
-        callback: () => void,
-        options?: { timeout?: number },
-      ) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    let idleId: number | undefined;
-    let timeoutId: number | undefined;
-    if (typeof idleWindow.requestIdleCallback === "function") {
-      idleId = idleWindow.requestIdleCallback(
-        () => void loadCompleteCorpus(),
-        { timeout: 4000 },
-      );
-    } else {
-      timeoutId = window.setTimeout(() => void loadCompleteCorpus(), 2000);
-    }
-    return () => {
-      if (idleId !== undefined) idleWindow.cancelIdleCallback?.(idleId);
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-    };
-  }, [
+  const browseRequiresCompleteCorpus = (
+    Object.keys(GALLERY_BROWSE_DEFAULTS) as (keyof GalleryBrowseState)[]
+  ).some((key) => browse[key] !== GALLERY_BROWSE_DEFAULTS[key]);
+  const {
+    galleryReplications,
+    hasMore,
+    hasMoreRef,
+    pageLoadState,
+    completionAnnouncement,
+    contributorDirectory,
+    cancelPendingCorpusAction,
+    queueCorpusAction,
+    completeCorpusAction,
+    loadCompleteCorpus,
+    runWithCompleteCorpus,
+    retryCompleteCorpus,
+  } = useCompleteGalleryCorpus({
+    replications,
+    completeCorpusUrl,
+    initialContributorDirectory,
     browseStateKey,
     browseRequiresCompleteCorpus,
-    completeCorpusUrl,
-    loadCompleteCorpus,
     urlStateResolved,
     viewerSlugParam,
-  ]);
-
-  useEffect(() => {
-    if (observedBrowseStateKeyRef.current === browseStateKey) return;
-    observedBrowseStateKeyRef.current = browseStateKey;
-    cancelPendingCorpusAction();
-  }, [browseStateKey, cancelPendingCorpusAction]);
-
-  const runWithCompleteCorpus = useCallback(
-    (action: () => void) => {
-      const generation = queueCorpusAction(action);
-      if (!hasMoreRef.current) {
-        completeCorpusAction(generation);
-        return;
-      }
-      void loadCompleteCorpus().then((loaded) => {
-        if (loaded) completeCorpusAction(generation);
-      });
-    },
-    [completeCorpusAction, loadCompleteCorpus, queueCorpusAction],
-  );
-
-  const retryCompleteCorpus = useCallback(() => {
-    const generation = pendingCorpusActionRef.current?.generation;
-    return loadCompleteCorpus().then((loaded) => {
-      if (loaded && generation !== undefined) {
-        completeCorpusAction(generation);
-      }
-      return loaded;
-    });
-  }, [completeCorpusAction, loadCompleteCorpus]);
+  });
 
   const mode: GalleryMode = focus ? focus.kind : browse.view;
   const typeFilter = browse.type;
@@ -2203,112 +1877,3 @@ function GalleryExplorer({
   );
 }
 
-/**
- * A masonry grid that mounts its tiles in pages of `MASONRY_PAGE`. Every
- * item is already on the client — growth is pure rendering, no fetch — but
- * mounting a thousand-tile grid at once is what used to balloon the DOM and
- * client heap on broad searches and the effect view's pooled tail. A
- * sentinel below the grid extends it as the reader approaches its end; the
- * "Show more" button is the same affordance for keyboards, screen readers,
- * and environments without IntersectionObserver. Every tile opens the same
- * in-page viewer; the underlying anchor remains a permanent work link for
- * modified clicks, new tabs, and crawlers.
- */
-function IncrementalMasonry({
-  items,
-  showByline = true,
-  onOpen,
-  viewerSourcePath,
-}: {
-  items: PublicGalleryReplicationPreview[];
-  showByline?: boolean;
-  onOpen: (
-    event: React.MouseEvent,
-    replication: PublicGalleryReplicationPreview,
-  ) => void;
-  /** Canonical source-collection URL each tile's viewer href derives from. */
-  viewerSourcePath: string;
-}) {
-  const t = useT();
-  const [visibleCount, setVisibleCount] = useState(MASONRY_PAGE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  // A new result set (typed query, toggled filter, mode switch) restarts at
-  // the first page; the parent memoizes each grid's array so mere re-renders
-  // never rewind it.
-  useEffect(() => {
-    setVisibleCount(MASONRY_PAGE);
-  }, [items]);
-
-  const visible =
-    items.length > visibleCount ? items.slice(0, visibleCount) : items;
-  const exhausted = visible.length === items.length;
-
-  // Recreated after every growth step: a fresh observer reports the
-  // sentinel's *current* intersection, so a viewport tall enough to still
-  // reach it keeps growing without waiting for a scroll event.
-  useEffect(() => {
-    if (exhausted) return;
-    const node = sentinelRef.current;
-    if (!node || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setVisibleCount((count) => count + MASONRY_PAGE);
-        }
-      },
-      // Mount the next page well before the grid's end scrolls into view.
-      { rootMargin: "1200px 0px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [exhausted, visibleCount, items]);
-
-  return (
-    <>
-      <div className={MASONRY_CLASS}>
-        {visible.map((replication) => (
-          <GalleryMediaTile
-            key={replication._id}
-            replication={replication}
-            className={MASONRY_TILE_CLASS}
-            frameClassName="w-full"
-            /* Masonry columns: 2 across on phones, 3 from sm, then 4 across
-               the max-w-7xl measure — a column never exceeds ~320px. */
-            sizes="(max-width: 639px) 50vw, (max-width: 1024px) 33vw, 320px"
-            showByline={showByline}
-            mobileCompact
-            onOpen={onOpen}
-            viewerHref={buildReplicationViewerUrl(
-              viewerSourcePath,
-              replication.slug,
-            )}
-          />
-        ))}
-      </div>
-      {!exhausted ? (
-        <div
-          ref={sentinelRef}
-          className="flex flex-col items-center gap-1.5 pt-2"
-        >
-          <Button
-            type="button"
-            variant="pill"
-            size="pill"
-            onClick={() => setVisibleCount((count) => count + MASONRY_PAGE)}
-            className="min-h-11 gap-1.5"
-          >
-            {t("Show more works")}
-            <Icon icon="lucide:chevron-down" className="h-4 w-4" aria-hidden />
-          </Button>
-          <span className="theme-text-faint text-xs tabular-nums">
-            {t("Showing {{visible}} of {{total}} works", {
-              visible: visible.length,
-              total: items.length,
-            })}
-          </span>
-        </div>
-      ) : null}
-    </>
-  );
-}

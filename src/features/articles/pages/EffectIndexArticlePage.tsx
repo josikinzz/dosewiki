@@ -13,8 +13,8 @@ import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings";
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import { cn } from "@/lib/utils";
-import { formatArchiveDate } from "@/utils/archiveDate";
 import { icons } from "@/utils/iconNames";
+import { formattingLocale, translateMessage, type UiLocale } from "@/i18n/messages";
 import {
   buildEffectIndexArticleModel,
   type ArticleBodyContent,
@@ -42,6 +42,7 @@ interface EffectIndexArticle {
 
 interface EffectIndexArticlePageProps {
   article: EffectIndexArticle;
+  locale?: UiLocale;
   /**
    * Resolved from the article's `authorProfileKeys` by the route loader. Empty
    * for an article whose keys are missing or claim no profile, and then no
@@ -114,11 +115,22 @@ function resolveCommentaryAttribution(
 export function EffectIndexArticlePage({
   article,
   bylineAuthors = [],
+  locale = "en",
 }: EffectIndexArticlePageProps) {
+  const t = (text: string) => translateMessage(locale, text);
   // A date is not a tag: it gets a `<time>` of its own, set in figures rather
   // than in the tracked-out caps a tag wears, so the row reads as "published
   // then, filed under these" instead of as one undifferentiated run of chips.
-  const publishedLabel = formatArchiveDate(article.publicationDate);
+  const publishedDate = article.publicationDate ? new Date(article.publicationDate) : null;
+  const publishedLabel =
+    publishedDate && !Number.isNaN(publishedDate.getTime())
+      ? new Intl.DateTimeFormat(formattingLocale(locale), {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "UTC",
+        }).format(publishedDate)
+      : null;
   const publishedDateTime = article.publicationDate?.slice(0, 10);
 
   const model = buildEffectIndexArticleModel(article);
@@ -165,10 +177,10 @@ export function EffectIndexArticlePage({
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               {bylineAuthors.length > 0 ? (
                 <p className="theme-text-muted type-detail-copy">
-                  by{" "}
+                  {t("by")}{" "}
                   {bylineAuthors.map((author, index) => (
                     <span key={author.key}>
-                      {index > 0 ? (index === bylineAuthors.length - 1 ? " and " : ", ") : null}
+                      {index > 0 ? (index === bylineAuthors.length - 1 ? ` ${t("and")} ` : ", ") : null}
                       <Link
                         href={author.href}
                         className="theme-text-secondary underline-offset-2 hover:underline"

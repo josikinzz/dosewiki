@@ -20,18 +20,16 @@ export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
 }
 
-export async function resolveHarmPotentialSourceMaterial(article) {
-  const slug = getArticleSlug(article);
-  return resolveQuoteSourceMaterial({
-    slug,
-    loadQuotes: loadHarmPotentialQuotes,
-    buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-    missingReason: "No harm potential quotes in Convex",
-    emptyReason: "No harm potential quotes in Convex",
-  });
-}
+async function resolveHarmPotentialSourceMaterial(article) { const slug = getArticleSlug(article);
+return resolveQuoteSourceMaterial({
+  slug,
+  loadQuotes: loadHarmPotentialQuotes,
+  buildUserMessage: (quotes) => buildUserMessage(article, quotes),
+  missingReason: "No harm potential quotes in Convex",
+  emptyReason: "No harm potential quotes in Convex",
+}); }
 
-export async function processArticle(apiKey, article, systemPrompt, verbose) {
+async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = getArticleSlug(article);
   const sourceMaterial = await resolveHarmPotentialSourceMaterial(article);
   if (sourceMaterial.status !== "ready") {

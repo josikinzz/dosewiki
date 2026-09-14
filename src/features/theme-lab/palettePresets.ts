@@ -38,7 +38,6 @@ import { HUE_TOKEN_IDS } from "./paletteTokensHues";
 import { lagoon } from "./lagoonPreset";
 import { abyss, canopy, garnet, graphite, sunset } from "./presetAccentColourways";
 
-export type PresetThemeName = "dark" | "light";
 export type ThemeOverrideMap = Record<string, string>;
 
 /**

@@ -4,66 +4,70 @@ import {
   type SearchManifest,
   type SearchManifestIndex,
 } from "../data/builders/searchManifest";
+import type { UiLocale } from "../i18n/messages";
 
 const MAX_LOAD_ATTEMPTS = 2;
 
 /**
- * One manifest per document, shared by every search surface.
+ * One manifest per locale per document, shared by every search surface.
  *
- * The fetch and the fold-once build are module-level rather than per-hook so a
+ * Fetches and fold-once builds are module-level rather than per-hook so a
  * header search box and a results page mounted together do not each pay for
  * them. HTTP caching handles repeat visits, so nothing is mirrored into
- * `sessionStorage` where it could go stale against the served ETag.
+ * `sessionStorage` where it could go stale against the served locale ETag.
  */
-let manifestIndexPromise: Promise<SearchManifestIndex | null> | null = null;
+const manifestIndexPromises = new Map<UiLocale, Promise<SearchManifestIndex | null>>();
 /**
- * The resolved index, kept separately so a component mounting after the load
- * has it on its first render — the header search box warms the manifest, and
- * the results page that opens next matches without a state round trip.
+ * Resolved indexes are locale-qualified so navigation cannot briefly display
+ * labels from the previous language while the requested manifest loads.
  */
-let loadedManifestIndex: SearchManifestIndex | null = null;
-let loadAttempts = 0;
+const loadedManifestIndexes = new Map<UiLocale, SearchManifestIndex>();
+const loadAttemptsByLocale = new Map<UiLocale, number>();
 const manifestListeners = new Set<() => void>();
 
 function emitManifestChange() {
   for (const listener of manifestListeners) listener();
 }
 
-async function fetchSearchManifestIndex(): Promise<SearchManifestIndex | null> {
-  const response = await fetch("/api/search-manifest");
+async function fetchSearchManifestIndex(locale: UiLocale): Promise<SearchManifestIndex | null> {
+  const response = await fetch(`/api/search-manifest?locale=${encodeURIComponent(locale)}`);
   if (!response.ok) {
     throw new Error(`Search manifest request failed: ${response.status}`);
   }
 
   const manifest = (await response.json()) as SearchManifest;
+  if (manifest.locale !== locale) {
+    throw new Error(`Search manifest locale mismatch: requested ${locale}, received ${manifest.locale}`);
+  }
   return buildSearchManifestIndex(manifest);
 }
 
-export function loadSearchManifestIndex(): Promise<SearchManifestIndex | null> {
-  if (manifestIndexPromise) {
-    return manifestIndexPromise;
+export function loadSearchManifestIndex(
+  locale: UiLocale = "en",
+): Promise<SearchManifestIndex | null> {
+  const existing = manifestIndexPromises.get(locale);
+  if (existing) {
+    return existing;
   }
 
-  if (loadAttempts >= MAX_LOAD_ATTEMPTS) {
+  const attempts = loadAttemptsByLocale.get(locale) ?? 0;
+  if (attempts >= MAX_LOAD_ATTEMPTS) {
     return Promise.resolve(null);
   }
 
-  loadAttempts += 1;
-  manifestIndexPromise = fetchSearchManifestIndex()
+  loadAttemptsByLocale.set(locale, attempts + 1);
+  const promise = fetchSearchManifestIndex(locale)
     .then((index) => {
-      loadedManifestIndex = index;
+      if (index) loadedManifestIndexes.set(locale, index);
       emitManifestChange();
       return index;
     })
     .catch(() => {
-      // Local matching is an accelerator, never a requirement — the server
-      // endpoint still answers every query. Drop the cached promise so a later
-      // search can try again, up to the attempt cap.
-      manifestIndexPromise = null;
+      manifestIndexPromises.delete(locale);
       return null;
     });
-
-  return manifestIndexPromise;
+  manifestIndexPromises.set(locale, promise);
+  return promise;
 }
 
 /**
@@ -73,8 +77,12 @@ export function loadSearchManifestIndex(): Promise<SearchManifestIndex | null> {
  * a 304. Safe to call from every search surface: the module-level promise
  * makes it a no-op after the first call.
  */
-export function preloadSearchManifestIndex() {
-  if (typeof window === "undefined" || manifestIndexPromise || loadedManifestIndex) {
+export function preloadSearchManifestIndex(locale: UiLocale = "en") {
+  if (
+    typeof window === "undefined" ||
+    manifestIndexPromises.has(locale) ||
+    loadedManifestIndexes.has(locale)
+  ) {
     return;
   }
 
@@ -84,15 +92,15 @@ export function preloadSearchManifestIndex() {
       : (callback: () => void) => window.setTimeout(callback, 200);
 
   schedule(() => {
-    void loadSearchManifestIndex();
+    void loadSearchManifestIndex(locale);
   });
 }
 
 /** Test seam: forget any loaded manifest and reset the attempt counter. */
 export function resetSearchManifestForTests() {
-  manifestIndexPromise = null;
-  loadedManifestIndex = null;
-  loadAttempts = 0;
+  manifestIndexPromises.clear();
+  loadedManifestIndexes.clear();
+  loadAttemptsByLocale.clear();
   emitManifestChange();
 }
 
@@ -100,7 +108,10 @@ export function resetSearchManifestForTests() {
  * The manifest index once it is available, or `null` while it loads or if it
  * failed. `enabled` defers the request until the user actually engages search.
  */
-export function useSearchManifestIndex(enabled: boolean): SearchManifestIndex | null {
+export function useSearchManifestIndex(
+  enabled: boolean,
+  locale: UiLocale = "en",
+): SearchManifestIndex | null {
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
       if (!enabled) return () => {};
@@ -110,8 +121,8 @@ export function useSearchManifestIndex(enabled: boolean): SearchManifestIndex | 
     [enabled],
   );
   const getSnapshot = useCallback(
-    () => (enabled ? loadedManifestIndex : null),
-    [enabled],
+    () => (enabled ? (loadedManifestIndexes.get(locale) ?? null) : null),
+    [enabled, locale],
   );
   const index = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
@@ -120,8 +131,8 @@ export function useSearchManifestIndex(enabled: boolean): SearchManifestIndex | 
       return;
     }
 
-    void loadSearchManifestIndex();
-  }, [enabled, index]);
+    void loadSearchManifestIndex(locale);
+  }, [enabled, index, locale]);
 
   return index;
 }

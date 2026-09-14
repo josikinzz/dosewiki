@@ -7,7 +7,7 @@
 import type { ReactNode } from "react";
 
 import ReplicationsSectionLayout from "@/app/replications/(tabs)/layout";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 
 export const revalidate = 3600;

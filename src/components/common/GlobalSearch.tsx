@@ -14,7 +14,7 @@ import { preloadSearchManifestIndex } from "../../hooks/useSearchManifest";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { useT } from "@/i18n/client";
+import { useT, useUiLocale } from "@/i18n/client";
 
 const DEBOUNCE_MS = 200;
 /**
@@ -104,6 +104,7 @@ export function GlobalSearch({
   variant = "default",
 }: GlobalSearchProps) {
   const t = useT();
+  const locale = useUiLocale();
   const [query, setQuery] = useState(() => currentView.type === "search" ? currentView.query : "");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -142,8 +143,8 @@ export function GlobalSearch({
   // so the first keystroke matches names and aliases locally instead of
   // racing the manifest download.
   useEffect(() => {
-    preloadSearchManifestIndex();
-  }, []);
+    preloadSearchManifestIndex(locale);
+  }, [locale]);
 
   useEffect(() => {
     queryRef.current = query;

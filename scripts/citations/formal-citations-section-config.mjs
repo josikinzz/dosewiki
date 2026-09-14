@@ -1,11 +1,7 @@
 export {
-  CITATION_ENTAILMENT_VERDICTS,
   CITATION_SAFETY_CATEGORIES,
-  citationEvidenceGateErrors,
   classifyCitationSafetyClaim,
-  isEntailingCitationVerdict,
   requiresStrictCitationReview,
-  validateStrictCitationReviewEvidence,
 } from "../../lib/citations/citationSafety.mjs";
 
 export const FORMAL_CITATION_SECTION_CONFIG = Object.freeze([

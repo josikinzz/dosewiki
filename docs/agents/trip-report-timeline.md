@@ -69,6 +69,6 @@ Every refusal below means the lossless claim cannot be made yet. Each is repaire
 
 ## After the write
 
-`/reports/<slug>` is `revalidate = 3600`, and a direct Convex write skips Next revalidation, only the editor route `/api/dev/trip-reports/record` calls `revalidatePath`. The deployed page therefore serves its cached copy for up to an hour. Confirm the rendered rail against a running local dev server, and tell the user the public page trails.
+`/reports/<slug>` retains its historical endpoint and route name. The Postgres write path used by `/api/dev/trip-reports/record` performs the matching invalidation; an operator script may not. Inspect the route's current `revalidate` value, then confirm the rendered rail through the approved host after the cache window. Do not claim public freshness from the database readback alone.
 
 The pre-write row is saved under `outputs/trip-report-reshape/`. It is the restore path if a later edit breaks the text.

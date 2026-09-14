@@ -2,6 +2,7 @@ import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
+import type { AppRole } from "@/lib/auth/roles";
 
 import { GET, POST } from "./route";
 
@@ -61,7 +62,7 @@ vi.mock("@server/next/contributorAvatarUpload", () => ({
   uploadAvatarToConvex: vi.fn(),
 }));
 
-function signIn(role: "viewer" | "contributor" | "editor" | "admin", email: string) {
+function signIn(role: AppRole, email: string) {
   sessionMocks.requireRoleSession.mockImplementation(
     roleSessionFor(role, { email, name: "Someone" }),
   );

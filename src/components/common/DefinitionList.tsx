@@ -22,8 +22,7 @@ import { cn } from "@/lib/utils";
  * Both accept `className`, merged last via `cn`, and use --theme-* utilities
  * only.
  */
-export const definitionRowClassName =
-  "grid gap-x-6 gap-y-1.5 py-4 first:pt-0 last:pb-0 sm:grid-cols-[14rem_1fr]";
+const definitionRowClassName = "grid gap-x-6 gap-y-1.5 py-4 first:pt-0 last:pb-0 sm:grid-cols-[14rem_1fr]"
 
 export type DefinitionRowProps = Omit<
   React.HTMLAttributes<HTMLDivElement>,

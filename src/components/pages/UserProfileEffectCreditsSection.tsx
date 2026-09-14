@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
 import type { ContributorEffectCredit } from "@/types/effectCredits";
+import { useT } from "@/i18n/client";
 
 /**
  * The effect articles a contributor is credited on, as a tag list.
@@ -85,6 +86,7 @@ export function UserProfileEffectCreditsSection({
   credits,
   contributorName,
 }: UserProfileEffectCreditsSectionProps) {
+  const t = useT();
   // A contributor credited on no article renders no section at all, the same way
   // the works carousel and the trip reports section stay absent rather than
   // showing an empty shell.
@@ -96,7 +98,7 @@ export function UserProfileEffectCreditsSection({
     <section className="space-y-5">
       <PublicSectionHeading
         icon={icons.bookOpenText}
-        title="Effect articles"
+        title={t("Effect articles")}
         titleElement="h2"
         actions={
           <PublicPill tone="neutral" size="sm">
@@ -106,14 +108,14 @@ export function UserProfileEffectCreditsSection({
       />
 
       <ExpandableList
-        ariaLabelBase="effect articles"
+        ariaLabelBase={t("effect articles")}
         items={credits}
         collapsedCount={Math.max(credits.length - PREVIEW_LIMIT, 0)}
       >
         {({ items }) => (
           <EffectCreditTags
             credits={items}
-            ariaLabel={`Effect articles ${contributorName} contributed to`}
+            ariaLabel={t("Effect articles {{name}} contributed to", { name: contributorName })}
           />
         )}
       </ExpandableList>

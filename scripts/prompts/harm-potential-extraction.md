@@ -2,15 +2,12 @@
 
 Extract every harm-related passage from the supplied collected-source file for one psychoactive substance. Use only the supplied documents. Extraction preserves source text verbatim; it is not summarisation or article writing.
 
-## 1. Identify sources and output mode
+## 1. Identify sources
 
-In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the input begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Sources vary in number, length and quality.
+The input begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Sources vary in number, length and quality.
 
 Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
-
-Continue when every source boundary and the active output mode are identified.
 
 ## 2. Identify all harm content
 
@@ -46,7 +43,7 @@ Continue when every source has been examined and every qualifying or uncertain p
 - Preserve every character, including spelling, capitalisation, punctuation, markdown, inline links, footnote markers, numbers and units. Retain numerical precision and units without conversion, rounding or reformatting.
 - Keep hedges and evidence limitations attached to their claims, including reported, assumed or anecdotal status and citation-needed markers.
 - Use only claims made by the originating source. Never supply an LD50, interaction, contraindication, threshold, death count or organ finding from memory, a related substance or another source block.
-- In excerpt mode, every content line is copied from that source or is blank. Author only the metadata, source headings, separators and empty-source markers in step 4; add no headings, labels, quotation marks, formatting or commentary inside extracted content.
+- Every content line is copied from that source or is blank. Author only the metadata, source headings, separators and empty-source markers in step 4; add no headings, labels, quotation marks, formatting or commentary inside extracted content.
 
 ### Interaction lists, combination charts and tables
 
@@ -55,11 +52,11 @@ Continue when every source has been examined and every qualifying or uncertain p
 - Copy short structured lines as written, retaining their labels and values.
 - Keep each structure in its source format, with multi-line entries intact.
 
-Continue when every selected unit retains its full content, attached warnings, uncertainty and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
+Continue when every selected unit retains its full content, attached warnings, uncertainty and provenance. Each passage must match its source character for character; the downstream substring check rejects any drift.
 
-## 4. Emit the active output format
+## 4. Emit the excerpt document
 
-When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
+Output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Harm Potential Quotes
@@ -92,7 +89,7 @@ Before responding, confirm:
 - Every selected combination list and table is intact with its introductory warning or caption, names, rows and columns.
 - Species, route, numbers, units, conditions and uncertainty survive wherever supplied.
 - Every claim remains source-faithful and attached to its originating source.
-- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- The response follows the excerpt-document format exactly.
 - Every downstream field below has been checked for available evidence. These mappings guide coverage; do not sort, label or restructure output around them.
 
 | Field | Evidence to preserve |

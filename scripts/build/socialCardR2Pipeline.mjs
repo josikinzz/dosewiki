@@ -47,31 +47,27 @@ export function canonicalKey(sha256) {
  * are only re-rendered on an explicit offline rebuild), so a refresh must
  * accept them without a local file: they have nothing to upload.
  */
-export function publishedCardKey(cardPath, cdnBase = DEFAULT_CDN_BASE) {
-  const prefix = `${cdnBase.replace(/\/+$/, "")}/`;
-  if (!cardPath.startsWith(prefix)) return null;
-  const key = cardPath.slice(prefix.length);
-  return KEY_PATTERN.test(key) ? key : null;
-}
+function publishedCardKey(cardPath, cdnBase = DEFAULT_CDN_BASE) { const prefix = `${cdnBase.replace(/\/+$/, "")}/`;
+if (!cardPath.startsWith(prefix)) return null;
+const key = cardPath.slice(prefix.length);
+return KEY_PATTERN.test(key) ? key : null; }
 
-export function relativeCardPath(cardPath) {
-  if (cardPath.startsWith("/local/social-cards/")) {
-    return cardPath.slice("/local/social-cards/".length);
-  }
-  if (cardPath.startsWith("/images/social/")) {
-    return cardPath.slice("/images/social/".length);
-  }
-  let url;
-  try {
-    url = new URL(cardPath);
-  } catch {
-    throw new Error(`Unsupported social-card path: ${cardPath}`);
-  }
-  if (url.pathname.startsWith("/social-cards/")) {
-    return url.pathname.slice("/social-cards/".length);
-  }
+function relativeCardPath(cardPath) { if (cardPath.startsWith("/local/social-cards/")) {
+  return cardPath.slice("/local/social-cards/".length);
+}
+if (cardPath.startsWith("/images/social/")) {
+  return cardPath.slice("/images/social/".length);
+}
+let url;
+try {
+  url = new URL(cardPath);
+} catch {
   throw new Error(`Unsupported social-card path: ${cardPath}`);
 }
+if (url.pathname.startsWith("/social-cards/")) {
+  return url.pathname.slice("/social-cards/".length);
+}
+throw new Error(`Unsupported social-card path: ${cardPath}`); }
 
 function collectCardLeaves(value, trail = [], leaves = []) {
   for (const [key, child] of Object.entries(value ?? {})) {
@@ -231,31 +227,25 @@ export function createLedgerWriter(filename) {
   };
 }
 
-export function latestVerifiedObjects(records, planDigest) {
-  const verified = new Map();
-  for (const record of records) {
-    if (record.planDigest !== planDigest || record.type !== "object") continue;
-    if (VERIFIED_OBJECT_STATUSES.has(record.status)) verified.set(record.key, record);
-  }
-  return verified;
+function latestVerifiedObjects(records, planDigest) { const verified = new Map();
+for (const record of records) {
+  if (record.planDigest !== planDigest || record.type !== "object") continue;
+  if (VERIFIED_OBJECT_STATUSES.has(record.status)) verified.set(record.key, record);
 }
+return verified; }
 
-export function latestPreflightObjects(records, planDigest) {
-  const results = new Map();
-  for (const record of records) {
-    if (record.planDigest !== planDigest || record.type !== "object") continue;
-    if (VERIFIED_OBJECT_STATUSES.has(record.status) || record.status === "absent") results.set(record.key, record);
-  }
-  return results;
+function latestPreflightObjects(records, planDigest) { const results = new Map();
+for (const record of records) {
+  if (record.planDigest !== planDigest || record.type !== "object") continue;
+  if (VERIFIED_OBJECT_STATUSES.has(record.status) || record.status === "absent") results.set(record.key, record);
 }
+return results; }
 
 export function hasCompletedCanary(records, planDigest) {
   return records.some((record) => record.type === "canary-complete" && record.planDigest === planDigest);
 }
 
-export function hasCompletedFullRun(records, planDigest, objectCount) {
-  return records.some((record) => record.type === "full-complete" && record.planDigest === planDigest && record.objectCount === objectCount);
-}
+function hasCompletedFullRun(records, planDigest, objectCount) { return records.some((record) => record.type === "full-complete" && record.planDigest === planDigest && record.objectCount === objectCount); }
 
 /**
  * The verifier scopes its run to every unique key in the candidate manifest,
@@ -264,27 +254,25 @@ export function hasCompletedFullRun(records, planDigest, objectCount) {
  * this plan, and within that run an exact digest/size verification of every
  * object this plan publishes.
  */
-export function hasCompletedObjectVerification(records, plan) {
-  const completion = records.find((record) => (
-    record.type === "object-verification-complete"
-    && record.planDigest === plan.planDigest
-    && typeof record.runId === "string"
-    && record.runId.length > 0
-    && record.exhaustive === true
-    && record.objectCount >= plan.objects.length
-  ));
-  if (!completion) return false;
-  const verifiedByKey = new Map();
-  for (const record of records) {
-    if (record.type === "object-verified" && record.planDigest === plan.planDigest && record.runId === completion.runId) {
-      verifiedByKey.set(record.key, record);
-    }
+function hasCompletedObjectVerification(records, plan) { const completion = records.find((record) => (
+  record.type === "object-verification-complete"
+  && record.planDigest === plan.planDigest
+  && typeof record.runId === "string"
+  && record.runId.length > 0
+  && record.exhaustive === true
+  && record.objectCount >= plan.objects.length
+));
+if (!completion) return false;
+const verifiedByKey = new Map();
+for (const record of records) {
+  if (record.type === "object-verified" && record.planDigest === plan.planDigest && record.runId === completion.runId) {
+    verifiedByKey.set(record.key, record);
   }
-  return plan.objects.every((object) => {
-    const verified = verifiedByKey.get(object.key);
-    return verified && verified.sha256 === object.sha256 && verified.size === object.size;
-  });
 }
+return plan.objects.every((object) => {
+  const verified = verifiedByKey.get(object.key);
+  return verified && verified.sha256 === object.sha256 && verified.size === object.size;
+}); }
 
 export function selectCanaryObjects(plan, selectors) {
   if (!Array.isArray(selectors) || selectors.length === 0) throw new Error("Canary selector file must contain a non-empty JSON array");

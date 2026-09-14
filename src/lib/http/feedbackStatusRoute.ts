@@ -13,7 +13,7 @@ type StatusBody = {
   note?: unknown;
 };
 
-export type FeedbackStatusStore<Status extends string> = {
+type FeedbackStatusStore<Status extends string> = {
   transition(
     id: string,
     options: { status: Status; reviewer: string; actorEmail: string; note?: string },

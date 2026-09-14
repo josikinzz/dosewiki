@@ -69,7 +69,8 @@ const staticParams = vi.hoisted(() => ({
 }));
 
 /**
- * Both banner reads wrap `unstable_cache`, which throws
+ * The canonical banner reads wrap `unstable_cache`, and the localized read
+ * composes from that cached result. `unstable_cache` throws
  * "Invariant: incrementalCache missing" outside a Next request context. Mocked
  * like every other data dependency here; the resolver they feed
  * (`resolveEnabledBanners`) is covered directly in
@@ -80,6 +81,7 @@ const staticParams = vi.hoisted(() => ({
  */
 const warningBanners = vi.hoisted(() => ({
   getWarningBannerPresets: vi.fn(() => Promise.resolve([])),
+  getLocalizedWarningBannerPresets: vi.fn(() => Promise.resolve([])),
   getSafetyBannerIconSize: vi.fn(() => Promise.resolve(44)),
 }));
 

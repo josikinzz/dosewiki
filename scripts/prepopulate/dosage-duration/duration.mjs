@@ -1,14 +1,12 @@
 import { DURATION_STAGE_MAP } from "./config.mjs";
 import { getDurationSourcePriority, normalizeRoute, normalizeUnit } from "./normalize.mjs";
 
-export function transformDurationStage(stage) {
-  if (!stage) return { min: null, max: null, unit: "minutes" };
-  return {
-    min: stage.min ?? null,
-    max: stage.max ?? null,
-    unit: normalizeUnit(stage.unit),
-  };
-}
+function transformDurationStage(stage) { if (!stage) return { min: null, max: null, unit: "minutes" };
+return {
+  min: stage.min ?? null,
+  max: stage.max ?? null,
+  unit: normalizeUnit(stage.unit),
+}; }
 
 export function transformStages(stages) {
   const result = {
@@ -31,16 +29,14 @@ export function transformStages(stages) {
   return result;
 }
 
-export function countFilledDurationFields(stages) {
-  if (!stages) return 0;
-  let count = 0;
-  for (const stage of Object.values(stages)) {
-    if (stage && (stage.min != null || stage.max != null)) {
-      count += 1;
-    }
+function countFilledDurationFields(stages) { if (!stages) return 0;
+let count = 0;
+for (const stage of Object.values(stages)) {
+  if (stage && (stage.min != null || stage.max != null)) {
+    count += 1;
   }
-  return count;
 }
+return count; }
 
 export function selectBestDurationPerRoute(durationEntries) {
   if (!durationEntries?.length) return [];

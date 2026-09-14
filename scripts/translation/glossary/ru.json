@@ -1,0 +1,4168 @@
+{
+  "locale": "ru",
+  "note": "Локальный черновик, составленный ИИ без проверки и одобрения человеком. Требуется проверка носителями русского языка и профильными специалистами. Этот файл не активирует локаль и не публикует материалы. Спорные связи псевдонимов в источнике не означают химической тождественности: особенно требуют проверки Anilinopiperidine/Anilidopiperidine, Benzhydryl/Benzhydrol, Benzodifuran/2C-x, Ethanolamine/Diphenylmethanol, Phenylpiperazine/Benzylpiperazine, Nitrogen oxide/Non-metal nitride и β-keto phenethylamine/Phenethylamine. Названия химических структур сохранены раздельно; сомнительные написания Dephenylmethane и Diarycycloheptene, а также неустоявшиеся Nitazepipne и Nitazepyne оставлены в оригинале.",
+  "counts": {
+    "approved": 0,
+    "draft": 693
+  },
+  "terms": {
+    "1,2-Diarylethylamine (diarylethylamines)": {
+      "target": "1,2-Диарилэтиламин (диарилэтиламины)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,3-Propanediol dicarbamate": {
+      "target": "Дикарбамат 1,3-пропандиола",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,4-Benzodiazepine (benzodiazepines)": {
+      "target": "1,4-Бензодиазепин (бензодиазепины)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,5-Benzodiazepine": {
+      "target": "1,5-Бензодиазепин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1. Taking Off": {
+      "target": "1. Взлёт",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-Dimethoxyamphetamine (DOx)": {
+      "target": "2,5-Диметоксиамфетамин (DOx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-Dimethoxyphenethylamine (2C-x)": {
+      "target": "2,5-Диметоксифенэтиламин (2C-x)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-dimethoxyamphetamine": {
+      "target": "2,5-диметоксиамфетамин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Amino-5-aryloxazoline (aminorexes)": {
+      "target": "2-Амино-5-арилоксазолин (аминорексы)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Aminoindane (aminoindanes)": {
+      "target": "2-Аминоиндан (аминоинданы)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Benzylbenzimidazole (nitazenes)": {
+      "target": "2-Бензилбензимидазол (нитазены)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Benzylpiperidine": {
+      "target": "2-Бензилпиперидин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Phenylmorpholine (phenylmorpholines)": {
+      "target": "2-Фенилморфолин (фенилморфолины)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Pyrrolidinone (racetams)": {
+      "target": "2-Пирролидинон (рацетамы)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-amino-5-aryloxazoline": {
+      "target": "2-амино-5-арилоксазолин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2. The Waiting Room": {
+      "target": "2. Зал ожидания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NB3OMe": {
+      "target": "25x-NB3OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NB4OMe": {
+      "target": "25x-NB4OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBF": {
+      "target": "25x-NBF",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBOH": {
+      "target": "25x-NBOH",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBOMe": {
+      "target": "25x-NBOMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2C-X": {
+      "target": "2C-X",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-Dimethoxyamphetamine (3C-x)": {
+      "target": "3,5-Диметоксиамфетамин (3C-x)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-Dimethoxyphenethylamine (scalines)": {
+      "target": "3,5-Диметоксифенэтиламин (скалины)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-dimethoxyamphetamine": {
+      "target": "3,5-диметоксиамфетамин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-dimethoxyphenethylamine": {
+      "target": "3,5-диметоксифенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "3. The Other Side": {
+      "target": "3. По ту сторону",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "3C-x": {
+      "target": "3C-x",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "4. Coming Down": {
+      "target": "4. Возвращение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "A-typical Hallucinogen": {
+      "target": "Атипичный галлюциноген",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Abnormal heartbeat": {
+      "target": "Нарушение сердечного ритма",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Adamantane": {
+      "target": "Адамантан",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Adamantane derivative": {
+      "target": "Производное адамантана",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Addiction suppression": {
+      "target": "Подавление влечения к употреблению",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "After Effects": {
+      "target": "Остаточные эффекты",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "After images": {
+      "target": "Послеобразы",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alcohol": {
+      "target": "Спирт",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (indole)": {
+      "target": "Алкалоид (индольный)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (mesembrine)": {
+      "target": "Алкалоид (мезембриновый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (phenethylamine)": {
+      "target": "Алкалоид (фенэтиламиновый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (pyridine)": {
+      "target": "Алкалоид (пиридиновый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (tropane)": {
+      "target": "Алкалоид (тропановый)",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkyl amine": {
+      "target": "Алкиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "All Effects": {
+      "target": "Все эффекты",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "All media": {
+      "target": "Все типы медиа",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alterations": {
+      "target": "Изменения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amine": {
+      "target": "Амин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Aminoindane": {
+      "target": "Аминоиндан",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Aminorex": {
+      "target": "Аминорекс",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amnesia": {
+      "target": "Амнезия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine": {
+      "target": "Амфетамин",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine (psychedelic)": {
+      "target": "Амфетамин (психоделический)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine (substituted)": {
+      "target": "Амфетамин (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamines": {
+      "target": "Амфетамины",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amplifications": {
+      "target": "Усиления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis": {
+      "target": "Анализ",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis enhancement": {
+      "target": "Усиление аналитических способностей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis suppression": {
+      "target": "Подавление аналитических способностей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analytical": {
+      "target": "Аналитические эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine": {
+      "target": "Анилидопиперидин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine (fentanyls)": {
+      "target": "Анилидопиперидин (фентанилы)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine (opioid)": {
+      "target": "Анилидопиперидин (опиоид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilinopiperidine": {
+      "target": "Анилинопиперидин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilinopiperidine (opioid)": {
+      "target": "Анилинопиперидин (опиоид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anticipatory response": {
+      "target": "Реакция ожидания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antidepressant": {
+      "target": "Антидепрессант",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antihistamines": {
+      "target": "Антигистаминные препараты",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antipsychotic": {
+      "target": "Антипсихотик",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anxiety": {
+      "target": "Тревога",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anxiety suppression": {
+      "target": "Подавление тревоги",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Appetite enhancement": {
+      "target": "Усиление аппетита",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Appetite suppression": {
+      "target": "Подавление аппетита",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Approved replicator": {
+      "target": "Одобренный автор репликаций",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artist": {
+      "target": "Художник",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artist practice": {
+      "target": "Направление творчества",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artists": {
+      "target": "Художники",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylalkylamine": {
+      "target": "Арилалкиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylcyclohexyl-related NMDA antagonist": {
+      "target": "Антагонист NMDA, родственный арилциклогексиламинам",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylcyclohexylamine": {
+      "target": "Арилциклогексиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Audio": {
+      "target": "Аудио",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Audio Replications": {
+      "target": "Аудиорепликации",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory": {
+      "target": "Слуховые",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory Effects": {
+      "target": "Слуховые эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory distortion": {
+      "target": "Слуховые искажения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory enhancement": {
+      "target": "Усиление слухового восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory hallucination": {
+      "target": "Слуховая галлюцинация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory misinterpretation": {
+      "target": "Ошибочная интерпретация звука",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory suppression": {
+      "target": "Подавление слухового восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomic": {
+      "target": "Вегетативные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomous entity": {
+      "target": "Автономная сущность",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomous voice communication": {
+      "target": "Общение с автономным внутренним голосом",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Back pain": {
+      "target": "Боль в спине",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Barbiturate": {
+      "target": "Барбитурат",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Barbiturates": {
+      "target": "Барбитураты",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzamide": {
+      "target": "Бензамид",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzeneacetamide": {
+      "target": "Бензолацетамид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzeneacetamide (U-compounds)": {
+      "target": "Бензолацетамид (U-соединения)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzhydrol": {
+      "target": "Бензгидрол",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzhydryl": {
+      "target": "Бензгидрил",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole": {
+      "target": "Бензимидазол",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole (nitazene)": {
+      "target": "Бензимидазол (нитазен)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole opioid": {
+      "target": "Бензимидазольный опиоид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzochromene": {
+      "target": "Бензохромен",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine": {
+      "target": "Бензодиазепин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (1,5-benzodiazepine)": {
+      "target": "Бензодиазепин (1,5-бензодиазепин)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (N-trifluoroethyl substituted)": {
+      "target": "Бензодиазепин (N-трифторэтилзамещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (prodrug)": {
+      "target": "Бензодиазепин (пролекарство)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (triazolobenzodiazepine)": {
+      "target": "Бензодиазепин (триазолобензодиазепин)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepines": {
+      "target": "Бензодиазепины",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodifuran": {
+      "target": "Бензодифуран",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran": {
+      "target": "Бензофуран",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (benzodihydrodifuran)": {
+      "target": "Бензофуран (бензодигидродифуран)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (dihydrobenzofuran)": {
+      "target": "Бензофуран (дигидробензофуран)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (psychedelic)": {
+      "target": "Бензофуран (психоделический)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (substituted)": {
+      "target": "Бензофуран (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuranethylamine (benzofurans)": {
+      "target": "Бензофуранэтиламин (бензофураны)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzoylindole": {
+      "target": "Бензоилиндол",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylamine": {
+      "target": "Бензиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylpiperazine (piperazines)": {
+      "target": "Бензилпиперазин (пиперазины)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylpiperidine": {
+      "target": "Бензилпиперидин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Beta-carboline": {
+      "target": "Бета-карболин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily": {
+      "target": "Телесные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily control enhancement": {
+      "target": "Улучшение контроля над телом",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily pressures": {
+      "target": "Ощущения давления в теле",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Body odour alteration": {
+      "target": "Изменение запаха тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brain zaps": {
+      "target": "Ощущения электрических разрядов в голове",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brightness alteration": {
+      "target": "Изменение яркости",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brominated indole alkaloid": {
+      "target": "Бромированный индольный алкалоид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bronchodilation": {
+      "target": "Расширение бронхов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Buccal": {
+      "target": "Буккально",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid": {
+      "target": "Каннабиноид",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid (phytocannabinoid)": {
+      "target": "Каннабиноид (фитоканнабиноид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid (synthetic)": {
+      "target": "Каннабиноид (синтетический)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Carbamate": {
+      "target": "Карбамат",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cardiovascular": {
+      "target": "Сердечно-сосудистые",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cardiovascular Effects": {
+      "target": "Сердечно-сосудистые эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Catharsis": {
+      "target": "Катарсис",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cathinone": {
+      "target": "Катинон",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cathinone (substituted)": {
+      "target": "Катинон (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Caution": {
+      "target": "Требует осторожности",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Changes in felt bodily form": {
+      "target": "Изменение ощущаемой формы тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Changes in felt gravity": {
+      "target": "Изменение ощущения гравитации",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Chromatic aberration": {
+      "target": "Хроматическая аберрация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Citations": {
+      "target": "Ссылки на источники",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Classification": {
+      "target": "Классификация",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Closed-eye": {
+      "target": "С закрытыми глазами",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive": {
+      "target": "Когнитивные",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Amplifications": {
+      "target": "Усиление когнитивных функций и переживаний",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Effects": {
+      "target": "Когнитивные эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Suppressions": {
+      "target": "Подавление когнитивных функций и переживаний",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive disconnection": {
+      "target": "Отстранённость от собственных мыслей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive dysphoria": {
+      "target": "Психическая дисфория",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive euphoria": {
+      "target": "Психическая эйфория",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive fatigue": {
+      "target": "Умственная усталость",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour enhancement": {
+      "target": "Усиление насыщенности цветов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour replacement": {
+      "target": "Замещение цветов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour shifting": {
+      "target": "Переливание цветов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour suppression": {
+      "target": "Ослабление насыщенности цветов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Come Up": {
+      "target": "Нарастание эффектов",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Comfortable": {
+      "target": "Комфортные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Common": {
+      "target": "Часто",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Component controllability": {
+      "target": "Управляемость компонентов переживания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Compulsive redosing": {
+      "target": "Компульсивный повторный приём",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Conceptual thinking": {
+      "target": "Концептуальное мышление",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Confirmed": {
+      "target": "Канцерогенность подтверждена",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Confusion": {
+      "target": "Спутанность мышления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Constipation": {
+      "target": "Запор",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Content family": {
+      "target": "Категория контента",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Contributors": {
+      "target": "Авторы и редакторы",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Controlled precursor": {
+      "target": "Контролируемый прекурсор",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Coordination": {
+      "target": "Координация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cough suppression": {
+      "target": "Подавление кашля",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Creativity enhancement": {
+      "target": "Усиление творческих способностей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Creativity suppression": {
+      "target": "Подавление творческих способностей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cycloalkylamine": {
+      "target": "Циклоалкиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cyclopyrrolone": {
+      "target": "Циклопирролон",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "DOx": {
+      "target": "DOx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dangerous": {
+      "target": "Опасно",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dark surrealism": {
+      "target": "Мрачный сюрреализм",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased blood pressure": {
+      "target": "Снижение артериального давления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased heart rate": {
+      "target": "Снижение частоты сердечных сокращений",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased libido": {
+      "target": "Снижение либидо",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decriminalized": {
+      "target": "Декриминализовано",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dehydration": {
+      "target": "Обезвоживание",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Deja vu": {
+      "target": "Дежавю",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Deliriants": {
+      "target": "Делирианты",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Delirium": {
+      "target": "Делирий",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Delusion": {
+      "target": "Бред",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depersonalization": {
+      "target": "Деперсонализация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dephenylmethane": {
+      "target": "Dephenylmethane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depicted effect": {
+      "target": "Изображённый эффект",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depression": {
+      "target": "Депрессия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depression reduction": {
+      "target": "Ослабление депрессии",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depth perception distortions": {
+      "target": "Искажение восприятия глубины",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Derealization": {
+      "target": "Дереализация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarrhea": {
+      "target": "Диарея",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarycycloheptene": {
+      "target": "Diarycycloheptene",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarylethylamine": {
+      "target": "Диарилэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarylethylamine (substituted)": {
+      "target": "Диарилэтиламин (замещённый)",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dibenzopyran": {
+      "target": "Дибензопиран",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Difficulty urinating": {
+      "target": "Затруднённое мочеиспускание",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diffraction": {
+      "target": "Дифракция",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diol (alkanediol)": {
+      "target": "Диол (алкандиол)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylheptane (opioid)": {
+      "target": "Дифенилгептан (опиоид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanethiol": {
+      "target": "Дифенилметантиол",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanethiol (modafinils)": {
+      "target": "Дифенилметантиол (модафинилы)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanol": {
+      "target": "Дифенилметанол",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanol (benzhydrols)": {
+      "target": "Дифенилметанол (бензгидролы)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethylsulfinylacetamide (modafinil analogue)": {
+      "target": "Дифенилметилсульфинилацетамид (аналог модафинила)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylpropylamine": {
+      "target": "Дифенилпропиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disconnective": {
+      "target": "Эффекты отстранённости",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disconnective Effects": {
+      "target": "Эффекты отстранённости",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disinhibition": {
+      "target": "Расторможенность",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disregard Everything I Say": {
+      "target": "Disregard Everything I Say",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dissociatives": {
+      "target": "Диссоциативы",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Distortions": {
+      "target": "Искажения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dizziness": {
+      "target": "Головокружение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dosage & Duration": {
+      "target": "Дозировка и длительность",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dosage independent intensity": {
+      "target": "Интенсивность, не зависящая от дозы",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Double vision": {
+      "target": "Двоение в глазах",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dream potentiation": {
+      "target": "Усиление сновидений",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dream suppression": {
+      "target": "Подавление сновидений",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drifting": {
+      "target": "Дрейф изображения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug": {
+      "target": "Психоактивное вещество",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug class": {
+      "target": "Класс психоактивных веществ",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug class in title": {
+      "target": "Класс веществ в названии",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug in title": {
+      "target": "Вещество в названии",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dry mouth": {
+      "target": "Сухость во рту",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Duration": {
+      "target": "Длительность",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Editorial Review": {
+      "target": "Редакционная оценка",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Effect Index": {
+      "target": "Effect Index",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Effect illustrations": {
+      "target": "Иллюстрации эффектов",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego death": {
+      "target": "Смерть эго",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego inflation": {
+      "target": "Раздувание эго",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego replacement": {
+      "target": "Замещение эго",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ehrlich": {
+      "target": "Ehrlich",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotion intensification": {
+      "target": "Усиление эмоций",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotion suppression": {
+      "target": "Подавление эмоций",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotional": {
+      "target": "Эмоциональные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathogen": {
+      "target": "Энтактоген",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathogens": {
+      "target": "Энтактогены",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathy, affection, and sociability enhancement": {
+      "target": "Усиление эмпатии, привязанности и общительности",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Enhancement and suppression cycles": {
+      "target": "Циклы усиления и подавления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Enhancements": {
+      "target": "Усиление восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Entactogen": {
+      "target": "Энтактоген",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Entactogens": {
+      "target": "Энтактогены",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Environmental cubism": {
+      "target": "Кубизм окружающего пространства",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Environmental patterning": {
+      "target": "Узорообразование в окружающем пространстве",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ethanolamine": {
+      "target": "Этаноламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ethanolamine derivative (antihistamine)": {
+      "target": "Производное этаноламина (антигистаминное средство)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ether": {
+      "target": "Простой эфир",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Euphoria": {
+      "target": "Эйфория",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Excessive yawning": {
+      "target": "Чрезмерная зевота",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Existential self-realization": {
+      "target": "Экзистенциальное самоосознание",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Experiential replications": {
+      "target": "Репликации переживаний",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Explanatory figures": {
+      "target": "Пояснительные схемы",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "External hallucination": {
+      "target": "Внешняя галлюцинация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Extremely High": {
+      "target": "Крайне высокий риск",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Extremely Low": {
+      "target": "Крайне низкий риск",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Feelings of impending doom": {
+      "target": "Ощущение надвигающейся катастрофы",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Fentanyl analogues": {
+      "target": "Аналоги фентанила",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Field of view alteration": {
+      "target": "Изменение поля зрения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Focus enhancement": {
+      "target": "Усиление концентрации внимания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Focus suppression": {
+      "target": "Подавление концентрации внимания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Folin": {
+      "target": "Фолин",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frame rate suppression": {
+      "target": "Снижение частоты обновления зрительного восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frequent": {
+      "target": "Очень часто",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frequent urination": {
+      "target": "Учащённое мочеиспускание",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Froehde": {
+      "target": "Фрёде",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Furanolactone": {
+      "target": "Фуранолактон",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue": {
+      "target": "Аналог GABA",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue (gabapentinoid)": {
+      "target": "Аналог GABA (габапентиноид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue (prodrug)": {
+      "target": "Аналог GABA (пролекарство)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogues": {
+      "target": "Аналоги GABA",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gabapentinoid": {
+      "target": "Габапентиноид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gait alteration": {
+      "target": "Изменение походки",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gallic": {
+      "target": "Галловая кислота",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Generative abstract art": {
+      "target": "Генеративное абстрактное искусство",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometric Patterns": {
+      "target": "Геометрические узоры",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometry": {
+      "target": "Геометрия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometry Video Script": {
+      "target": "Сценарий видео о геометрии",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Glossolalia": {
+      "target": "Глоссолалия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory": {
+      "target": "Вкусовые",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory Effects": {
+      "target": "Вкусовые эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory enhancement": {
+      "target": "Усиление вкусового восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory hallucination": {
+      "target": "Вкусовая галлюцинация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory suppression": {
+      "target": "Подавление вкусового восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hallucinatory Effects": {
+      "target": "Галлюцинаторные эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hallucinatory States": {
+      "target": "Галлюцинаторные состояния",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Harm Potential": {
+      "target": "Потенциальный вред",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Harmala alkaloid": {
+      "target": "Алкалоид гармалы",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Headache": {
+      "target": "Головная боль",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Heavy": {
+      "target": "Очень высокая доза",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hexahydroazepinoindole": {
+      "target": "Гексагидроазепиноиндол",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hexahydroazepinoindole (ibogalogs)": {
+      "target": "Гексагидроазепиноиндол (ибогалоги)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "High": {
+      "target": "Высокий риск",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "History & Culture": {
+      "target": "История и культура",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hofmann": {
+      "target": "Хофманн",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "IM": {
+      "target": "в/м",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "IV": {
+      "target": "в/в",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "IV/IM": {
+      "target": "в/в / в/м",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Iboga alkaloid": {
+      "target": "Алкалоид ибоги",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ibogalog": {
+      "target": "Ибогалог",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Identification": {
+      "target": "Идентификационные сведения",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Identity alteration": {
+      "target": "Изменение чувства собственной идентичности",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Illegal": {
+      "target": "Незаконно",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Illegal (analog/blanket ban)": {
+      "target": "Незаконно (запрет аналогов или целых классов)",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Images": {
+      "target": "Изображения",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Imidazobenzodiazepine": {
+      "target": "Имидазобензодиазепин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Imidazopyridine": {
+      "target": "Имидазопиридин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Immersion enhancement": {
+      "target": "Усиление погружения в медиаконтент",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Impairment": {
+      "target": "Нарушение когнитивных функций",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased blood pressure": {
+      "target": "Повышение артериального давления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased bodily temperature": {
+      "target": "Повышение температуры тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased heart rate": {
+      "target": "Повышение частоты сердечных сокращений",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased libido": {
+      "target": "Повышение либидо",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased music appreciation": {
+      "target": "Усиление удовольствия от музыки",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased pareidolia": {
+      "target": "Усиление парейдолии",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased perspiration": {
+      "target": "Повышенное потоотделение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased phlegm production": {
+      "target": "Повышенное образование мокроты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased salivation": {
+      "target": "Повышенное слюноотделение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased sense of humor": {
+      "target": "Усиление чувства юмора",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased suggestibility": {
+      "target": "Повышенная внушаемость",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indazole": {
+      "target": "Индазол",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indazolecarboxamide (synthetic cannabinoid)": {
+      "target": "Индазолкарбоксамид (синтетический каннабиноид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indole": {
+      "target": "Индол",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indole alkaloid": {
+      "target": "Индольный алкалоид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Inhaled": {
+      "target": "Ингаляционно",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Injected": {
+      "target": "Инъекционно",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Insufflated": {
+      "target": "Путём вдувания в нос",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Interactions": {
+      "target": "Взаимодействия",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Internal hallucination": {
+      "target": "Внутренняя галлюцинация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intramuscular": {
+      "target": "Внутримышечно",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intranasal": {
+      "target": "Интраназально",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intravenous": {
+      "target": "Внутривенно",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Introspection": {
+      "target": "Интроспекция",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Irritability": {
+      "target": "Раздражительность",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Isoxazole": {
+      "target": "Изоксазол",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Itchiness": {
+      "target": "Зуд",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Jamais vu": {
+      "target": "Жамевю",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Language suppression": {
+      "target": "Подавление речевых функций",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Laughter fits": {
+      "target": "Приступы смеха",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Legal (regulated)": {
+      "target": "Легально (с ограничениями)",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Legality": {
+      "target": "Правовой статус",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Library": {
+      "target": "Библиотека",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Liebermann": {
+      "target": "Либерман",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Light": {
+      "target": "Низкая доза",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Limited": {
+      "target": "Ограниченные данные",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Low": {
+      "target": "Низкий риск",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Lysergamide": {
+      "target": "Лизергамид",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "MDxx": {
+      "target": "MDxx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Machinescapes": {
+      "target": "Машинные ландшафты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Magnification": {
+      "target": "Зрительное увеличение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mandelin": {
+      "target": "Манделин",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mania": {
+      "target": "Мания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Marquis": {
+      "target": "Марки",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mecke": {
+      "target": "Мекке",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Media": {
+      "target": "Медиа",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory enhancement": {
+      "target": "Улучшение памяти",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory replays": {
+      "target": "Повторное переживание воспоминаний",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory suppression": {
+      "target": "Подавление памяти",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mesembrine alkaloid": {
+      "target": "Мезембриновый алкалоид",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Meta": {
+      "target": "Сведения о странице",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Methylenedioxyphenethylamine (MDxx)": {
+      "target": "Метилендиоксифенэтиламин (MDxx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mindfulness": {
+      "target": "Осознанность",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Miscellaneous": {
+      "target": "Прочие вещества",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mixed emotions": {
+      "target": "Смешанные эмоции",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Modafinil-like": {
+      "target": "Модафинилоподобные вещества",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Moderate": {
+      "target": "Средняя доза",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "More Info": {
+      "target": "Дополнительная информация",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan": {
+      "target": "Морфинан",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan (opioid)": {
+      "target": "Морфинан (опиоид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan (substituted)": {
+      "target": "Морфинан (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motivation enhancement": {
+      "target": "Усиление мотивации",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motivation suppression": {
+      "target": "Подавление мотивации",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motor control loss": {
+      "target": "Утрата двигательного контроля",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mouth numbing": {
+      "target": "Онемение во рту",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multiple thought streams": {
+      "target": "Множественные потоки мыслей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multisensory": {
+      "target": "Мультисенсорные",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multisensory Effects": {
+      "target": "Мультисенсорные эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle cramp": {
+      "target": "Мышечная судорога",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle relaxation": {
+      "target": "Расслабление мышц",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle tension": {
+      "target": "Мышечное напряжение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle twitching": {
+      "target": "Мышечные подёргивания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Fluorobenzyl)phenethylamine (x-NBF)": {
+      "target": "N-(2-Фторбензил)фенэтиламин (x-NBF)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Hydroxybenzyl)phenethylamine (x-NBOH)": {
+      "target": "N-(2-Гидроксибензил)фенэтиламин (x-NBOH)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Methoxybenzyl)phenethylamine (x-NBOMe)": {
+      "target": "N-(2-Метоксибензил)фенэтиламин (x-NBOMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-fluorobenzyl)phenethylamine": {
+      "target": "N-(2-фторбензил)фенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-hydroxybenzyl)phenethylamine": {
+      "target": "N-(2-гидроксибензил)фенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(3-Methoxybenzyl)phenethylamine (x-NB3OMe)": {
+      "target": "N-(3-Метоксибензил)фенэтиламин (x-NB3OMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(3-methoxybenzyl)phenethylamine": {
+      "target": "N-(3-метоксибензил)фенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(4-Methoxybenzyl)phenethylamine (x-NB4OMe)": {
+      "target": "N-(4-Метоксибензил)фенэтиламин (x-NB4OMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(4-methoxybenzyl)phenethylamine": {
+      "target": "N-(4-метоксибензил)фенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-Benzylphenethylamine (x-NBx)": {
+      "target": "N-Бензилфенэтиламин (x-NBx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-benzylphenethylamine": {
+      "target": "N-бензилфенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NB3OMe": {
+      "target": "NB3OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NB4OMe": {
+      "target": "NB4OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBF": {
+      "target": "NBF",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOH": {
+      "target": "NBOH",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOMe": {
+      "target": "NBOMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOMes": {
+      "target": "NBOMes",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBx": {
+      "target": "NBx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthoylindole (synthetic cannabinoid)": {
+      "target": "Нафтоилиндол (синтетический каннабиноид)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthylaminopropane": {
+      "target": "Нафтиламинопропан",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthylaminopropane (substituted)": {
+      "target": "Нафтиламинопропан (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Natural": {
+      "target": "Природные",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nausea": {
+      "target": "Тошнота",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nausea suppression": {
+      "target": "Подавление тошноты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Near universal": {
+      "target": "Почти у всех",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Negative": {
+      "target": "Исследования опровергают утверждение",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neoclerodane diterpenoid": {
+      "target": "Неоклеродановый дитерпеноид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neurological": {
+      "target": "Неврологические",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neurological Effects": {
+      "target": "Неврологические эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nicotinic alkaloid": {
+      "target": "Никотиновый алкалоид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazene": {
+      "target": "Нитазен",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazepipne": {
+      "target": "Nitazepipne",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazepyne": {
+      "target": "Nitazepyne",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitrogen oxide": {
+      "target": "Оксид азота",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "No Evidence": {
+      "target": "Исследования не выявили канцерогенности",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Noble gas": {
+      "target": "Благородный газ",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Non-metal nitride": {
+      "target": "Нитрид неметалла",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "None": {
+      "target": "Исследования отсутствуют",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nootropic": {
+      "target": "Ноотроп",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Not scheduled": {
+      "target": "Не включено в списки контролируемых веществ",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novel Cognitive States": {
+      "target": "Необычные когнитивные состояния",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novel States": {
+      "target": "Необычные состояния",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novelty enhancement": {
+      "target": "Усиление чувства новизны",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Object activation": {
+      "target": "Оживление объектов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Object alteration": {
+      "target": "Изменение формы объектов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Offset": {
+      "target": "Спад эффектов",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory": {
+      "target": "Обонятельные",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory Effects": {
+      "target": "Обонятельные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory enhancement": {
+      "target": "Усиление обоняния",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory hallucination": {
+      "target": "Обонятельная галлюцинация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory suppression": {
+      "target": "Подавление обоняния",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Onset": {
+      "target": "Время до появления эффектов",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Open-eye": {
+      "target": "С открытыми глазами",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Opioid": {
+      "target": "Опиоид",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Optical and perceptual art": {
+      "target": "Оптическое и перцептивное искусство",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Optical sliding": {
+      "target": "Скольжение взгляда",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Oral": {
+      "target": "Перорально",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Orgasm suppression": {
+      "target": "Подавление оргазма",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other": {
+      "target": "Прочее",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other GABAergics": {
+      "target": "Другие GABA-ергические вещества",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other antidepressants": {
+      "target": "Другие антидепрессанты",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other deliriants": {
+      "target": "Другие делирианты",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other dissociatives": {
+      "target": "Другие диссоциативы",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other entactogens": {
+      "target": "Другие энтактогены",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other opioids": {
+      "target": "Другие опиоиды",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other stimulants": {
+      "target": "Другие стимуляторы",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Overview": {
+      "target": "Обзор",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Oxazolinone": {
+      "target": "Оксазолинон",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pain relief": {
+      "target": "Обезболивание",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Panic attack": {
+      "target": "Паническая атака",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Paranoia": {
+      "target": "Паранойя",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Peak": {
+      "target": "Пик эффектов",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception": {
+      "target": "Восприятие",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of bodily heaviness": {
+      "target": "Ощущение тяжести тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of bodily lightness": {
+      "target": "Ощущение лёгкости тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of eternalism": {
+      "target": "Восприятие этернализма",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of interdependent opposites": {
+      "target": "Восприятие взаимозависимости противоположностей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of predeterminism": {
+      "target": "Ощущение предопределённости",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of self-design": {
+      "target": "Ощущение себя творцом происходящего",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Peripheral information misinterpretation": {
+      "target": "Ошибочная интерпретация периферической зрительной информации",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal Commentary": {
+      "target": "Личный комментарий",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal bias suppression": {
+      "target": "Ослабление личных предубеждений",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal meaning enhancement": {
+      "target": "Усиление личной значимости",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personality regression": {
+      "target": "Регрессия личности",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perspective distortion": {
+      "target": "Искажение перспективы",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perspective hallucination": {
+      "target": "Галлюцинация с изменённой точкой наблюдения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pharmacology": {
+      "target": "Фармакология",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine": {
+      "target": "Фенэтиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine (N-benzylated)": {
+      "target": "Фенэтиламин (N-бензилированный)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine (substituted)": {
+      "target": "Фенэтиламин (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenidate": {
+      "target": "Фенидат",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylalkylpyrrolidine": {
+      "target": "Фенилалкилпирролидин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylmorpholine": {
+      "target": "Фенилморфолин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylmorpholine (substituted)": {
+      "target": "Фенилморфолин (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpiperazine": {
+      "target": "Фенилпиперазин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpropylamine": {
+      "target": "Фенилпропиламин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpropylaminopentane": {
+      "target": "Фенилпропиламинопентан",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenyltropane": {
+      "target": "Фенилтропан",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Photophobia": {
+      "target": "Светобоязнь",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical": {
+      "target": "Физические",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Alterations": {
+      "target": "Изменения телесных функций и ощущений",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Amplifications": {
+      "target": "Усиление телесных функций и ощущений",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Effects": {
+      "target": "Физические эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Suppressions": {
+      "target": "Подавление телесных функций и ощущений",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical autonomy": {
+      "target": "Автономность тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical disconnection": {
+      "target": "Отстранённость от тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical euphoria": {
+      "target": "Телесная эйфория",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical fatigue": {
+      "target": "Физическая усталость",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Piperazine": {
+      "target": "Пиперазин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Piperidine": {
+      "target": "Пиперидин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pipradrol homologue": {
+      "target": "Гомолог пипрадрола",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Positive": {
+      "target": "Исследования подтверждают утверждение",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Possible": {
+      "target": "Канцерогенность возможна",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Prescription only": {
+      "target": "Только по рецепту",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Probable": {
+      "target": "Канцерогенность вероятна",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychedelics": {
+      "target": "Психоделики",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychological States": {
+      "target": "Психологические состояния",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "PsychonautWiki": {
+      "target": "PsychonautWiki",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychosis": {
+      "target": "Психоз",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pupil constriction": {
+      "target": "Сужение зрачков",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pupil dilation": {
+      "target": "Расширение зрачков",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Purine alkaloid": {
+      "target": "Пуриновый алкалоид",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrazolopyrimidine": {
+      "target": "Пиразолопиримидин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyridine alkaloid": {
+      "target": "Пиридиновый алкалоид",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidine": {
+      "target": "Пирролидин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidine (substituted)": {
+      "target": "Пирролидин (замещённый)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidinophenone": {
+      "target": "Пирролидинофенон",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Quinazolinone": {
+      "target": "Хиназолинон",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Racetam": {
+      "target": "Рацетам",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Racetam and peptide-like": {
+      "target": "Рацетамы и пептидоподобные вещества",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rare": {
+      "target": "Редко",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Reagent Testing": {
+      "target": "Тестирование реактивами",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rectal": {
+      "target": "Ректально",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Recursion": {
+      "target": "Рекурсия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "References": {
+      "target": "Список литературы",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rejuvenation": {
+      "target": "Ощущение обновления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Related Substances": {
+      "target": "Родственные вещества",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Relaxation": {
+      "target": "Расслабление",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicates": {
+      "target": "Воссоздаёт",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replication": {
+      "target": "Репликация",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replications": {
+      "target": "Репликации",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicator": {
+      "target": "Автор репликаций",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicators": {
+      "target": "Авторы репликаций",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Respiratory": {
+      "target": "Дыхательные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Respiratory depression": {
+      "target": "Угнетение дыхания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Restless legs": {
+      "target": "Беспокойные ноги",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Restricted": {
+      "target": "Оборот ограничен",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Robadope": {
+      "target": "Robadope",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Runny nose": {
+      "target": "Насморк",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "SEI": {
+      "target": "SEI",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scaline": {
+      "target": "Скалин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scalines": {
+      "target": "Скалины",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sceletium alkaloid": {
+      "target": "Алкалоид Sceletium",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scenarios and plots": {
+      "target": "Сценарии и сюжеты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scenery slicing": {
+      "target": "Разрезание зрительной сцены",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scott": {
+      "target": "Scott",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sedation": {
+      "target": "Седация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sedative-hypnotics": {
+      "target": "Седативно-снотворные средства",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Seizure": {
+      "target": "Эпилептический приступ",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Seizure suppression": {
+      "target": "Подавление эпилептических приступов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensed presence": {
+      "target": "Ощущение присутствия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensory": {
+      "target": "Сенсорные",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensory overload": {
+      "target": "Сенсорная перегрузка",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Serotonin syndrome": {
+      "target": "Серотониновый синдром",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Settings, sceneries, and landscapes": {
+      "target": "Обстановка, виды и ландшафты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Shadow people": {
+      "target": "Теневые люди",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Shakiness": {
+      "target": "Дрожь",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Simon": {
+      "target": "Simon",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Skin flushing": {
+      "target": "Покраснение кожи",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sleep": {
+      "target": "Сон",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sleepiness": {
+      "target": "Сонливость",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smell & Taste": {
+      "target": "Обоняние & вкус",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smell & Taste Effects": {
+      "target": "Эффекты обоняния & вкуса",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smoked": {
+      "target": "Курение",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Social": {
+      "target": "Социальные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sources": {
+      "target": "Источники",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spatial disorientation": {
+      "target": "Пространственная дезориентация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spirituality enhancement": {
+      "target": "Усиление духовных переживаний",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spontaneous physical movements": {
+      "target": "Спонтанные движения тела",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spontaneous tactile sensations": {
+      "target": "Спонтанные тактильные ощущения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stamina enhancement": {
+      "target": "Повышение выносливости",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stimulation": {
+      "target": "Стимуляция",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stomach bloating": {
+      "target": "Вздутие живота",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stomach cramp": {
+      "target": "Спазм желудка",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Strong": {
+      "target": "Высокая доза",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Style Variations": {
+      "target": "Стилистические вариации",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subcutaneous": {
+      "target": "Подкожно",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subjective Effect Index": {
+      "target": "Индекс субъективных эффектов",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subjective Effects": {
+      "target": "Субъективные эффекты",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sublingual": {
+      "target": "Сублингвально",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted amine": {
+      "target": "Замещённый амин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted aminorex": {
+      "target": "Замещённый аминорекс",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted amphetamine": {
+      "target": "Замещённый амфетамин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted cathinone": {
+      "target": "Замещённый катинон",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted phenethylamine": {
+      "target": "Замещённый фенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suggestibility suppression": {
+      "target": "Снижение внушаемости",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suicidal ideation": {
+      "target": "Суицидальные мысли",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Summary": {
+      "target": "Краткое описание",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Supplements and oneirogens": {
+      "target": "Пищевые добавки и онейрогены",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suppressions": {
+      "target": "Подавления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Symmetrical texture repetition": {
+      "target": "Симметричное повторение текстур",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Synaesthesia": {
+      "target": "Синестезия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Synthetic": {
+      "target": "Синтетические",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile": {
+      "target": "Тактильные",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile Effects": {
+      "target": "Тактильные эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile distortion": {
+      "target": "Тактильные искажения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile enhancement": {
+      "target": "Усиление тактильного восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile hallucination": {
+      "target": "Тактильная галлюцинация",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile suppression": {
+      "target": "Подавление тактильного восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Teeth chattering": {
+      "target": "Стучание зубами",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Teeth grinding": {
+      "target": "Скрежетание зубами",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temperature": {
+      "target": "Температура",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temperature regulation suppression": {
+      "target": "Нарушение терморегуляции",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temporary erectile dysfunction": {
+      "target": "Временная эректильная дисфункция",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tertiary alcohol": {
+      "target": "Третичный спирт",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Texture liquidation": {
+      "target": "Размывание текстур",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thienodiazepine": {
+      "target": "Тиенодиазепин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thienotriazolodiazepine": {
+      "target": "Тиенотриазолодиазепин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiobarbituric acid derivative": {
+      "target": "Производное тиобарбитуровой кислоты",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiophene": {
+      "target": "Тиопропамин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiopropamine": {
+      "target": "Тиопропамин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought acceleration": {
+      "target": "Ускорение мышления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought connectivity": {
+      "target": "Усиление ассоциативных связей",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought deceleration": {
+      "target": "Замедление мышления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought disorganization": {
+      "target": "Дезорганизация мышления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought loops": {
+      "target": "Мыслительные петли",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought organization": {
+      "target": "Упорядочение мышления",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Threshold": {
+      "target": "Пороговая доза",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Time distortion": {
+      "target": "Искажение восприятия времени",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tinnitus": {
+      "target": "Шум в ушах",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Total": {
+      "target": "Общая длительность",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tracers": {
+      "target": "Зрительные шлейфы",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Traditional cultural art": {
+      "target": "Традиционное культурное искусство",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Traditional psychedelic artists": {
+      "target": "Художники традиционного психоделического направления",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transdermal": {
+      "target": "Трансдермально",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transformations": {
+      "target": "Превращения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal": {
+      "target": "Трансперсональные",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal Effects": {
+      "target": "Трансперсональные состояния",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal States": {
+      "target": "Трансперсональные состояния",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Triazolobenzodiazepine": {
+      "target": "Триазолобензодиазепин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Trip Reports": {
+      "target": "Отчёты о психоактивном опыте",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "TripSit": {
+      "target": "TripSit",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tropane": {
+      "target": "Тропан",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine": {
+      "target": "Триптамин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine (derivative)": {
+      "target": "Триптамин (производное)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine (plant-derived)": {
+      "target": "Триптамин (растительного происхождения)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "U-compound": {
+      "target": "U-соединение",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unattributed": {
+      "target": "Автор неизвестен",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unclassified content": {
+      "target": "Неклассифицированный контент",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable": {
+      "target": "Дискомфортные эффекты",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable Bodily Effects": {
+      "target": "Дискомфортные телесные эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable Physical Effects": {
+      "target": "Дискомфортные физические эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncommon": {
+      "target": "Нечасто",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unity and interconnectedness": {
+      "target": "Единство и взаимосвязанность",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unknown": {
+      "target": "Канцерогенность неизвестна",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unsafe": {
+      "target": "Небезопасно, сочетание не рекомендуется",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unspeakable horrors": {
+      "target": "Невыразимые ужасы",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vaporized": {
+      "target": "Вдыхание пара без горения",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vasoconstriction": {
+      "target": "Сужение сосудов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vasodilation": {
+      "target": "Расширение сосудов",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Verified replicator": {
+      "target": "Автор репликаций с подтверждённой личностью",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vibrating vision": {
+      "target": "Дрожание изображения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Videos": {
+      "target": "Видео",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Viewing mode": {
+      "target": "Режим наблюдения",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visionary psychedelic art": {
+      "target": "Визионерское психоделическое искусство",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual": {
+      "target": "Зрительные",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Amplifications": {
+      "target": "Усиление зрительного восприятия",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Distortions": {
+      "target": "Зрительные искажения",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Effects": {
+      "target": "Зрительные эффекты",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Suppressions": {
+      "target": "Подавление зрительного восприятия",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual acuity enhancement": {
+      "target": "Повышение остроты зрения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual acuity suppression": {
+      "target": "Снижение остроты зрения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual agnosia": {
+      "target": "Зрительная агнозия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual auras": {
+      "target": "Зрительные ауры",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual disconnection": {
+      "target": "Отстранённость от зрительного восприятия",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual exposure to inner mechanics of consciousness": {
+      "target": "Зрительное раскрытие внутренних механизмов сознания",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual exposure to semantic concept network": {
+      "target": "Зрительное раскрытие сети смысловых понятий",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual flipping": {
+      "target": "Переворачивание изображения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual haze": {
+      "target": "Зрительная дымка",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual processing acceleration": {
+      "target": "Ускорение обработки зрительной информации",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual stretching": {
+      "target": "Растяжение изображения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual strobing": {
+      "target": "Стробоскопическое мерцание",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual twisting": {
+      "target": "Закручивание изображения",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Wakefulness": {
+      "target": "Бодрствование",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Watery eyes": {
+      "target": "Слезотечение",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Xanthine": {
+      "target": "Ксантин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Z-drugs": {
+      "target": "Z-препараты",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "come-up": {
+      "target": "нарастание эффектов",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "comedown": {
+      "target": "спад эффектов",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "deliriant": {
+      "target": "делириант",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dissociative": {
+      "target": "диссоциатив",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dosage": {
+      "target": "дозировка",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dose.wiki": {
+      "target": "dose.wiki",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "empathogenic": {
+      "target": "энтактогенный",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "entactogenic": {
+      "target": "энтактогенный",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "hallucinogen": {
+      "target": "галлюциноген",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "harm reduction": {
+      "target": "снижение вреда",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "psychedelic": {
+      "target": "психоделик",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "set and setting": {
+      "target": "настрой и обстановка",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "stimulant": {
+      "target": "стимулятор",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "tolerance": {
+      "target": "толерантность",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "trip report": {
+      "target": "отчёт о психоактивном опыте",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "withdrawal": {
+      "target": "синдром отмены",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "α-Methylphenethylamine (amphetamines)": {
+      "target": "α-Метилфенэтиламин (амфетамины)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "α-Pyrrolidinophenone (pyrrolidinophenones)": {
+      "target": "α-Пирролидинофенон (пирролидинофеноны)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-Carboline": {
+      "target": "β-Карболин",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-Ketoamphetamine (cathinones)": {
+      "target": "β-Кетоамфетамин (катиноны)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-keto phenethylamine": {
+      "target": "β-кетофенэтиламин",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "γ-Aminobutyric acid analogue (gabapentinoids)": {
+      "target": "Аналог γ-аминомасляной кислоты (габапентиноиды)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    }
+  }
+}

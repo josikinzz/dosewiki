@@ -39,7 +39,7 @@ function normalizeTimeUnit(unit: string): "hours" | "minutes" {
   return "minutes";
 }
 
-export function parseErowidDurationStages(content: string): ParsedDurationRoute["stages"] {
+function parseErowidDurationStages(content: string): ParsedDurationRoute["stages"] {
   const stages: ParsedDurationRoute["stages"] = {};
   const stagePatterns: Array<{
     names: string[];

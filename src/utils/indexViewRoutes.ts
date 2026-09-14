@@ -104,19 +104,6 @@ export function reportsIndexViewPath(view: ReportsIndexView): string {
   });
 }
 
-/**
- * Update a tab's canonical path without refetching data the mounted index
- * already owns. `search` carries the index's own control state (filter, sort,
- * query) so a narrowed index is shareable and the Back button undoes it.
- */
-export function replaceCurrentIndexViewPath(appPath: string, search?: string): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const query = search ? `?${search}` : "";
-  window.history.replaceState(window.history.state, "", `${appPath}${query}`);
-}
-
 export function parseLegacySubstanceIndexHash(hash: string): SubstanceIndexView | null {
   const candidate = decodeHash(hash);
   if (candidate === SUBSTANCE_INDEX_DEFAULT_VIEW) {

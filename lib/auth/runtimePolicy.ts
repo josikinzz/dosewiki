@@ -2,7 +2,7 @@ export const DEVELOPMENT_AUTH_SECRET = "dosewiki-next-auth-development-secret";
 
 type AuthRuntimeEnv = Partial<Record<string, string | undefined>>;
 
-export type AuthDeploymentTarget = "local" | "preview" | "production";
+type AuthDeploymentTarget = "local" | "preview" | "production"
 
 /**
  * Sign-in is username + password against Convex memberships; the only

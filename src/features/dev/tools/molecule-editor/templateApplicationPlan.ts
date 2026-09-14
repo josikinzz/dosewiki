@@ -22,7 +22,7 @@ export interface TemplateApplicationMember {
   source: MoleculeDepictionSource;
 }
 
-export interface TemplateApplicationMol {
+interface TemplateApplicationMol {
   generate_aligned_coords(templateMol: TemplateApplicationMol, options: string): string;
   get_molblock(): string;
   get_smiles(): string;

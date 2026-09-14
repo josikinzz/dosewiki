@@ -58,8 +58,7 @@ export const EFFECT_INDEX_MOLECULE_PALETTES = {
   },
 } as const satisfies Record<ColorScheme, Record<string, string>>;
 
-export type EffectIndexMoleculeColorKey =
-  keyof (typeof EFFECT_INDEX_MOLECULE_PALETTES)["light"];
+type EffectIndexMoleculeColorKey = keyof (typeof EFFECT_INDEX_MOLECULE_PALETTES)["light"]
 export type MoleculeColorway = "brand" | "pro-light" | "pro-dark";
 
 /**

@@ -1,4 +1,4 @@
-export const STANDARD_SOURCE_PATTERNS = [
+const STANDARD_SOURCE_PATTERNS = [
   'psychonautwiki.org',
   'psychonautwiki.net',
   'erowid.org',

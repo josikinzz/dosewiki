@@ -31,7 +31,7 @@ const config = {
       ],
       project: [
         "auth.ts",
-        "middleware.ts",
+        "src/middleware.ts",
         "*.config.{js,mjs,cjs,ts,mts,cts}",
         ".claude/workflows/**/*.mjs",
         "convex/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
@@ -59,11 +59,7 @@ const config = {
         entry: "tailwind.config.mjs",
       },
       vitest: {
-        config: [
-          "vitest.config.ts",
-          "vitest.scripts.config.ts",
-          "scripts/test/vitest.workflow.config.ts",
-        ],
+        config: ["vitest.config.ts", "scripts/test/vitest.workflow.config.ts"],
         entry: [
           "src/**/*.{test,spec}.{ts,tsx}",
           "lib/**/*.{test,spec}.{ts,tsx}",
@@ -71,6 +67,10 @@ const config = {
           "tools/**/*.{test,spec}.{js,mjs,cjs,ts,tsx}",
         ],
       },
+    },
+    "tools/section-generation/runtime": {
+      entry: ["sdk.mjs"],
+      project: ["*.mjs"],
     },
     "lakebed/mantra-vision": {
       entry: ["client/index.tsx", "server/index.ts"],

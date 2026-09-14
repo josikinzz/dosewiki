@@ -1,6 +1,6 @@
 import manifest from "../entitySocialCardManifest.generated.json";
 
-export const ENTITY_SOCIAL_CARD_SIZE = 1200;
+const ENTITY_SOCIAL_CARD_SIZE = 1200
 
 export type EntitySocialCardKind = keyof typeof manifest.cards;
 

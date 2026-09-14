@@ -3,7 +3,7 @@
  * Pure: safe to import from client components.
  */
 
-export const USERNAME_PATTERN = /^[a-z0-9][a-z0-9_-]{2,31}$/;
+const USERNAME_PATTERN = /^[a-z0-9][a-z0-9_-]{2,31}$/;
 
 export const normalizeUsername = (input: string): string => input.trim().toLowerCase();
 

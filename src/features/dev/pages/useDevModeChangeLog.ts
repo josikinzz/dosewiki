@@ -20,14 +20,14 @@ export type ChangeNotice = {
   actionLabel?: string;
 };
 
-export type ChangeLogFilters = {
+type ChangeLogFilters = {
   articleSlug: string | null;
   startDate: string | null;
   endDate: string | null;
   searchQuery: string;
 };
 
-export type ChangeLogEntryFeedback = {
+type ChangeLogEntryFeedback = {
   entryId: string;
   tone: "success" | "danger";
   message: string;

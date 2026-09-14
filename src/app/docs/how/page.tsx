@@ -5,7 +5,6 @@ import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopy } from "@server/next/copyBlocks";
 // Committed copies of the prompts shown on this page. Generation uses editable
 // live copies of section prompts, which can differ from these files.
-import blockSelectionContract from "../../../../scripts/prompts/block-selection-contract.md?raw";
 import exDosageDuration from "../../../../scripts/prompts/dosage-duration-extraction.md?raw";
 import exHarmPotential from "../../../../scripts/prompts/harm-potential-extraction.md?raw";
 import exHistoryCulture from "../../../../scripts/prompts/history-culture-extraction.md?raw";
@@ -49,6 +48,8 @@ import { buildAboutPreviewSnapshots } from "@/components/pages/aboutArchiveSnaps
 import type { SubstanceArticle } from "@/schema";
 import { Mermaid } from "../_components/Mermaid";
 
+import { t } from "@/i18n/server";
+
 // The sample-record preview and substance count read Convex; refresh them on the
 // same cadence as the About page rather than per request.
 export const revalidate = 3600;
@@ -57,10 +58,10 @@ export async function generateMetadata() {
   const copy = await getCopy();
 
   return buildPublicPageMetadata({
-    title: "How dose.wiki substance articles are made",
+    title: t("How dose.wiki substance articles are made"),
     description:
       copy.text("seo-docs-how-description") ||
-      "A detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and editorial review.",
+      t("A detailed walkthrough of the dose.wiki content pipeline: scraping, quote extraction, AI synthesis, citations, and editorial review."),
     pathname: "/docs/how",
   });
 }
@@ -169,8 +170,8 @@ const withSize = <T extends { body: string }>(entry: T) => ({
   sizeLabel: `${Math.max(1, Math.round(entry.body.trim().length / 1024))} KB`,
 });
 
-// The eight topic prompts, in pipeline order. Each defines what counts as relevant
-// for its topic. None of them owns the output format (see BLOCK_CONTRACT).
+// The eight topic prompts, in pipeline order. Each defines topic relevance,
+// source-fidelity rules, and the excerpt-document output format.
 const EXTRACTION_PROMPTS = [
   { slug: "intro-text", label: "intro text", body: exIntro },
   { slug: "dosage-duration", label: "dosage & duration", body: exDosageDuration },
@@ -182,9 +183,6 @@ const EXTRACTION_PROMPTS = [
   { slug: "legality", label: "legality", body: exLegality },
 ].map(withSize);
 
-// Appended after every extraction prompt at run time. It supersedes the output format
-// each prompt describes, which is why it is published alongside them.
-const BLOCK_CONTRACT = blockSelectionContract.trim();
 
 // The six fully AI-written sections, largest prompt first.
 const SECTION_PROMPTS = [
@@ -1090,9 +1088,9 @@ export default async function DocsHowPage() {
             <p className={DOC_PROSE_CLASS}>
               Erowid, Isomer Design, SaferParty, The Drug Classroom, Disregard Everything I
               Say, and the Drug Users Bible contribute mostly narrative text. Their parsers
-              do not judge relevance. They split each page into labeled sections and blocks
-              so that the extraction stage (<SectionRef s="excerpts" />) can address them.
-              The LLM decides which blocks matter.
+              preserve labeled sections in each collected-source working copy. The extraction
+              stage (<SectionRef s="excerpts" />) reads those documents and decides which
+              passages matter.
             </p>
           </DisclosureCard>
         </div></section>
@@ -1117,14 +1115,12 @@ export default async function DocsHowPage() {
 
         <div className="mt-6 space-y-8">
           <div>
-            <h3 className={DOC_SUBHEAD_CLASS}>Block-id selection</h3>
+            <h3 className={DOC_SUBHEAD_CLASS}>Topic-by-topic extraction</h3>
             <p className={DOC_PROSE_CLASS}>
-              Each working copy is first split into numbered blocks (paragraphs, list
-              items, table rows, headings), and the LLM reads that block-indexed version.
-              It replies with nothing but the ids of the blocks to keep. A script then
-              copies those blocks out of the source character for character and assembles
-              the excerpt document. Because the LLM never emits source text, it has no
-              opportunity to alter it.
+              For each topic, the LLM reads the complete collected-source working copy and
+              produces an excerpt document directly. It copies qualifying passages under
+              their original source headings and uses the prompt&apos;s marker when a source
+              has no relevant material.
             </p>
             <p className={`${DOC_PROSE_CLASS} mt-3`}>
               Every source keeps its heading in the output even when it yielded nothing.
@@ -1133,12 +1129,10 @@ export default async function DocsHowPage() {
               from &quot;this source was skipped&quot;.
             </p>
             <p className={`${DOC_PROSE_CLASS} mt-3`}>
-              Our first version let the LLM reproduce each passage, but it did not preserve
-              the source wording. Each reproduction created an opportunity for wording to change.
-              One batch of 47 files turned an &quot;antihistamine&quot; into an
-              &quot;antihistaminic&quot;, dropped a &quot;however,&quot;, and shortened
-              the name of an organization by two words. Block selection prevents
-              that drift; a warning in the prompt only asked the model to avoid it.
+              Because the model emits the excerpt text, its output is not trusted on
+              instruction alone. The prompt requires character-for-character copying, and
+              the completed file is rejected if a passage cannot be found under the same
+              source heading in the working copy.
             </p>
           </div>
           <div>
@@ -1186,11 +1180,11 @@ export default async function DocsHowPage() {
           files the pipeline runs.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
-          The pipeline calls the LLM once per substance and topic. The harness, the software
-          that runs these calls, appends the block-selection contract to whichever prompt
-          it is running. The model is not named here because the choice changes over time. The LLM only selects
-          block ids and never emits source text. Changing the model can alter which
-          passages are kept, without changing excerpt wording.
+          The pipeline calls the LLM once per substance and topic. The harness loads that
+          category&apos;s prompt directly and sends it with the complete collected-source
+          working copy. The model is not named here because the choice changes over time.
+          Changing the model can alter which passages are kept, while the prompt and
+          post-extraction audit require the retained passages to preserve source wording.
         </p>
         <p className={`${DOC_PROSE_CLASS} mt-4`}>
           The eight share one skeleton: hard verbatim rules, an input format, and
@@ -1199,27 +1193,11 @@ export default async function DocsHowPage() {
         </p>
 
         <p className={`${DOC_PROSE_CLASS} mt-5`}>
-          Each prompt below
-          still carries an &quot;Output format&quot; section describing an excerpt file.
-          The contract replaces those sections at run time. A prompt defines what counts as
-          relevant for its topic. The harness specifies the required response:
-          a list of block ids and nothing else.
+          Each prompt below defines both what counts as relevant for its topic and the
+          excerpt document it must return. The output keeps source headings in input order,
+          copies qualifying text verbatim, records empty results explicitly, and adds no
+          commentary to source passages.
         </p>
-
-        <DisclosureCard
-          variant="subtle"
-          summary="The block-selection contract, appended after every prompt below"
-          className="mt-3"
-        >
-          <p className={PROMPT_META_CLASS}>
-            The harness appends this text to all eight prompts, replacing{" "}
-            <code>{"{{TOPIC}}"}</code> with the topic name. The LLM names blocks, and a script copies them
-            out.
-          </p>
-          <PromptBody label="The block-selection contract, appended after every prompt below">
-            {BLOCK_CONTRACT}
-          </PromptBody>
-        </DisclosureCard>
 
         {EXTRACTION_PROMPTS.map((prompt) => (
           <DisclosureCard
@@ -1229,7 +1207,7 @@ export default async function DocsHowPage() {
             className="mt-3"
           >
             <p className={PROMPT_META_CLASS}>
-              The block-selection contract above supersedes this prompt's "Output format" section.
+              This is the complete category prompt loaded by the extraction harness.
             </p>
             <PromptBody label={`Extraction prompt: ${prompt.label}`}>
               {prompt.body}

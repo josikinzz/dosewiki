@@ -8,8 +8,8 @@ import {
   EditorSection,
   EditorStatusPill,
   EditorToolbar,
-  SearchablePicker,
 } from "@/features/dev/components";
+import { SearchablePicker } from "@/features/dev/components/SearchablePicker";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 
 type AboutFounderSelectionSectionProps = {

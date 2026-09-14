@@ -40,7 +40,7 @@ export interface MoleculePickerGroup<Item> {
   items: Item[];
 }
 
-export const UNCATEGORIZED_PICKER_GROUP = "Uncategorized";
+const UNCATEGORIZED_PICKER_GROUP = "Uncategorized"
 
 /** Articles carry several classes; the first non-empty one drives the grouping. */
 function resolvePickerCategory(

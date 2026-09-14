@@ -10,6 +10,7 @@ import {
   resolveArtistCreditLink,
   type ArtistCreditLinks,
 } from "@/features/effects/vcode/artistCreditLinks";
+import { t } from "@/i18n/server";
 import type { PublicEffectArticle } from "@server/convex/publicData";
 
 import { PsychoactiveEffectLongSummary } from "./PsychoactiveEffectLongSummary";
@@ -44,7 +45,7 @@ export function PsychoactiveSummaryPage({
 
   return (
     <PublicContentShell width="standard" focusTarget>
-      <PageHeader title={definition.title} icon={definition.icon} />
+      <PageHeader title={t(definition.title)} icon={definition.icon} />
 
       <div className="mx-auto max-w-4xl space-y-10">
         <section className="flow-root">
@@ -70,7 +71,7 @@ export function PsychoactiveSummaryPage({
                 className={
                   paragraph.italic ? "theme-text-muted italic" : undefined
                 }
-                dangerouslySetInnerHTML={{ __html: paragraph.html }}
+                dangerouslySetInnerHTML={{ __html: t(paragraph.html) }}
               />
             ))}
           </div>
@@ -86,12 +87,12 @@ export function PsychoactiveSummaryPage({
               .replace(/[^a-z0-9]+/g, "-")
               .replace(/^-|-$/g, "")}
             icon={resolveEffectCategoryIcon(section.title) ?? section.icon ?? "lucide:layout-list"}
-            heading={section.title}
+            heading={t(section.title)}
             spacing="effect"
           >
             <p
               className="theme-accent-emphasis-scope theme-text-muted max-w-[72ch] text-[0.9375rem] leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: section.definitionHtml }}
+              dangerouslySetInnerHTML={{ __html: t(section.definitionHtml) }}
             />
 
             {section.effects.length > 0 ? (
@@ -112,14 +113,14 @@ export function PsychoactiveSummaryPage({
         <ArticleSection
           id="see-also"
           icon="lucide:book-open"
-          heading="See Also"
+          heading={t("See Also")}
           spacing="effect"
         >
           <ul className="theme-text-secondary list-disc space-y-2 pl-5 marker:text-dose-accent-muted">
             {definition.seeAlso.map((item) => (
               <li key={item.href}>
                 <SmartLink href={item.href} className={proseLinkClassName}>
-                  {item.label}
+                  {t(item.label)}
                 </SmartLink>
               </li>
             ))}

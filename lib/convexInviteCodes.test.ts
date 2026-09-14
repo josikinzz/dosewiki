@@ -8,7 +8,7 @@ type MembershipRow = {
   _id: string;
   email: string;
   username?: string;
-  role: "admin" | "editor" | "contributor" | "viewer";
+  role: "admin" | "editor" | "translator" | "contributor" | "viewer";
   name?: string;
   passwordHash?: string;
   bannedAt?: string;
@@ -21,7 +21,7 @@ type MembershipRow = {
 type InviteRow = {
   _id: string;
   codeHash: string;
-  role: "editor" | "contributor";
+  role: "editor" | "translator" | "contributor";
   createdBy: string;
   createdAt: string;
   expiresAt: string;

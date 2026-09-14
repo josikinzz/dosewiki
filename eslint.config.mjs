@@ -81,7 +81,7 @@ export default tseslint.config(
 
       // Vercel security guardrails
       'vercel-guardrails/no-hardcoded-secrets': 'error',
-      'vercel-guardrails/enforce-env-prefix': 'warn',
+      'vercel-guardrails/enforce-env-prefix': ['warn', { framework: 'next' }],
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
     },
   },

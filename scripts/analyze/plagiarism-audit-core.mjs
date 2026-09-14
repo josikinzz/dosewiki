@@ -1,4 +1,4 @@
-export const PRIORITY_SOURCE_IDS = new Set(["psychonautwiki", "erowid"]);
+const PRIORITY_SOURCE_IDS = new Set(["psychonautwiki", "erowid"]);
 
 export const DEFAULT_AUDIT_THRESHOLDS = {
   minComparableWords: 8,
@@ -76,7 +76,7 @@ export function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-export function normalizeToken(value) {
+function normalizeToken(value) {
   return String(value ?? "")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -84,7 +84,7 @@ export function normalizeToken(value) {
     .toLowerCase();
 }
 
-export function tokenizeWithOffsets(text) {
+function tokenizeWithOffsets(text) {
   const source = String(text ?? "");
   const tokens = [];
   let match;
@@ -170,7 +170,7 @@ export function extractOtherAllowedFields(article) {
   return fields;
 }
 
-export function buildSourceIndex(source) {
+function buildSourceIndex(source) {
   const tokens = tokenizeWithOffsets(source.text);
   const tokenHashes = tokens.map((token) => token.hash);
   const prefix = buildPrefix(tokenHashes);
@@ -319,7 +319,7 @@ export function auditArticle(article, sources, thresholds = DEFAULT_AUDIT_THRESH
   };
 }
 
-export function extractFieldsForScope(article, scope = "dose_table_tolerance") {
+function extractFieldsForScope(article, scope = "dose_table_tolerance") {
   if (scope === "other_sections") {
     return extractOtherAllowedFields(article);
   }

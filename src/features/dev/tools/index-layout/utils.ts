@@ -6,9 +6,8 @@ import type {
 } from "@/data/builders/manualIndexLoader";
 import { slugify } from "@/utils/slug";
 
-export const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
-export const areStringArraysEqual = (first: readonly string[], second: readonly string[]): boolean => {
+const areStringArraysEqual = (first: readonly string[], second: readonly string[]): boolean => {
   if (first === second) {
     return true;
   }
@@ -23,7 +22,7 @@ export const areStringArraysEqual = (first: readonly string[], second: readonly 
   return true;
 };
 
-export const areLinksEqual = (first?: ManualSectionLink, second?: ManualSectionLink): boolean => {
+const areLinksEqual = (first?: ManualSectionLink, second?: ManualSectionLink): boolean => {
   if (first === second) {
     return true;
   }
@@ -33,7 +32,7 @@ export const areLinksEqual = (first?: ManualSectionLink, second?: ManualSectionL
   return first.type === second.type && first.value === second.value;
 };
 
-export const areSectionsEqual = (
+const areSectionsEqual = (
   first: readonly ManualCategorySection[],
   second: readonly ManualCategorySection[],
 ): boolean => {
@@ -118,7 +117,6 @@ export const generateUniqueKey = (base: string, existing: Set<string>): string =
   return `${normalizedBase}-${suffix}`;
 };
 
-export const ensureString = (value: string): string => value.trim();
 
 /**
  * Compare two manual configurations (arrays of ManualCategoryDefinition).

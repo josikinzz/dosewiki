@@ -8,7 +8,7 @@
 
 import { useEditorRead } from "./useEditorRead";
 
-export interface CategoryLayoutSection {
+interface CategoryLayoutSection {
   key: string;
   label: string;
   drugs: string[]; // Just slugs

@@ -17,7 +17,7 @@ export const MAX_ATTEMPTS = 6;
 /** Client-side wait for one statement's result before the socket is treated as dead. */
 export const QUERY_TIMEOUT_MS = 120_000;
 /** Wait for a new socket and TLS handshake; a half-open path otherwise blocks `pool.connect()` forever. */
-export const CONNECT_TIMEOUT_MS = 30_000;
+const CONNECT_TIMEOUT_MS = 30_000
 
 /** Two-client pool (PlanetScale caps direct connections at 25) with the timeouts `Connection` relies on. */
 export function resilientPool(connectionString: string): Pool {
@@ -29,7 +29,7 @@ function isQueryable(client: PoolClient): boolean {
   return !("_queryable" in client && client._queryable === false);
 }
 
-export function isConnectionLoss(error: unknown): boolean {
+function isConnectionLoss(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
   return (

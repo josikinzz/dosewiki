@@ -558,14 +558,3 @@ export function serializeJsonLd(schema: JsonLdSchema): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
-/**
- * Build a complete JSON-LD script tag for injection into HTML.
- */
-export function buildJsonLdScript(
-  article: SubstanceArticle,
-  url?: string,
-  config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
-): string {
-  const schema = buildSubstanceSchema(article, url, config);
-  return `<script type="application/ld+json">${serializeJsonLd(schema)}</script>`;
-}

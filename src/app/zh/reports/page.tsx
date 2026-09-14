@@ -4,7 +4,7 @@
  * the localized report previews; the mirror carries `noindex` with a
  * canonical link back to the English index.
  */
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { REPORTS_INDEX_DEFAULT_VIEW, reportsIndexViewPath } from "@/utils/indexViewRoutes";

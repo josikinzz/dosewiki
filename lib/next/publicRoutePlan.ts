@@ -6,7 +6,7 @@ import { deriveMechanismRouteData } from "../../src/data/builders/mechanismRoute
 import {
   artistUrlKey,
   isWithheldFromArtistViews,
-} from "../../src/features/effects/gallery/galleryModel";
+} from "../../src/features/effects/gallery/galleryArtistIdentity";
 import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
 import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactive-summaries/summaryDefinitions";
 import {
@@ -34,6 +34,7 @@ export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "articles" }),
   getPublicRoutePath({ family: "reports" }),
   getPublicRoutePath({ family: "about" }),
+  getPublicRoutePath({ family: "glossary" }),
 ] as const;
 
 /**
@@ -41,14 +42,14 @@ export const STATIC_PUBLIC_PATHS = [
  * rather than silently losing to a static segment at request time. "artist" hosts
  * focused galleries; "effect" and "substance" remain permanent redirect paths.
  */
-export const RESERVED_REPLICATION_SLUGS = new Set([
+const RESERVED_REPLICATION_SLUGS = new Set([
   "audio",
   "tutorials",
   "more-info",
   "artist",
   "effect",
   "substance",
-]);
+])
 
 /** Static index routes under dynamic article/report namespaces. */
 export const RESERVED_EFFECT_SLUGS: Record<string, true> = {

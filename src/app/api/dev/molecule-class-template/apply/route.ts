@@ -14,7 +14,6 @@ import { publishPublicCache } from "@server/next/publishPublicCache";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { PUBLIC_CONVEX_CACHE_TAGS, publicMoleculeTag } from "@server/convex/publicData.cache";
 import { TEMPLATE_APPLY_MEMBER_LIMIT } from "@/features/dev/tools/molecule-editor/templateApplicationPayload";
 
 export const runtime = "nodejs";

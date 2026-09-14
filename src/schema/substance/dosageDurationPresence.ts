@@ -38,12 +38,12 @@ function someBounded(group: Partial<DoseRanges | DurationStages> | null | undefi
 }
 
 /** True when any dose tier on this route carries a number. */
-export function routeHasDoseValues(route: Partial<DosageRoute> | null | undefined): boolean {
+function routeHasDoseValues(route: Partial<DosageRoute> | null | undefined): boolean {
   return someBounded(route?.dose_ranges);
 }
 
 /** True when any duration stage on this route carries a number. */
-export function routeHasDurationValues(route: Partial<DurationRoute> | null | undefined): boolean {
+function routeHasDurationValues(route: Partial<DurationRoute> | null | undefined): boolean {
   return someBounded(route?.stages);
 }
 

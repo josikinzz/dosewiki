@@ -1,7 +1,7 @@
 import { digest } from "./executor-lib.mjs";
 
 export const JOSIE_PROFILE_ID = "kx73mtdhqbqj5hszsgfn8ecrzh853fvx";
-export const JOSIE_PROFILE_KEY = "JOSIE";
+const JOSIE_PROFILE_KEY = "JOSIE";
 export const JOSIE_PERSONAL_WEBSITE = Object.freeze({
   label: "personal website",
   url: "https://josiekins.xyz/",

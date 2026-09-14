@@ -15,11 +15,9 @@ export interface ParsedSourceRecord {
 
 export type SourceParserRegistry = Record<string, SourceParser>;
 
-export interface OutputStats {
-  totalSubstances: number;
-  sourcesProcessed: string[];
-  avgCoveragePerSubstance: number;
-}
+interface OutputStats { totalSubstances: number;
+sourcesProcessed: string[];
+avgCoveragePerSubstance: number; }
 
 export interface ParsedOutputShape extends ParsedSourcesOutput {
   substances: Record<string, ParsedSubstanceData>;

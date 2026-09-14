@@ -18,13 +18,21 @@ function targetsFor(table: Table, row: Row | null): PublicationTarget[] {
     return isPublicationTarget(target) ? [target] : [];
   };
   switch (table) {
-    case "substanceIndex": return keyed("article", resolveSubstanceSlug(row as SubstanceArticleRecord));
-    case "subjectiveEffects": return keyed("effect", row.slug);
+    case "substanceIndex": return [
+      ...keyed("article", resolveSubstanceSlug(row as SubstanceArticleRecord)),
+      { kind: "substance-lists" },
+      { kind: "chemical-lists" },
+      { kind: "mechanism-lists" },
+      { kind: "chemical-class-lists" },
+    ];
+    case "subjectiveEffects": return [...keyed("effect", row.slug), { kind: "effect-lists" }];
     case "effectIndexArticles": return row.status === "draft" ? [] : row.kind === "blog"
-      ? keyed("blog-post", row.slug) : [{ kind: "writing-articles" }];
+      ? keyed("blog-post", row.slug)
+      : [...keyed("library", row.slug), { kind: "writing-articles" }];
     case "effectIndexArchive": return row.kind === "post" ? keyed("blog-post", row.key) : [];
-    case "tripReports": return keyed("report", row.slug);
-    case "contributorProfiles": return [...keyed("contributor", row.key), { kind: "replication-collections" }, { kind: "report-lists" }];
+    case "tripReports": return [...keyed("report", row.slug), { kind: "report-lists" }];
+    case "replications": return [...keyed("replication", row.slug), { kind: "replication-collections" }, { kind: "featured-replications" }];
+    case "contributorProfiles": return [...keyed("contributor", row.key), { kind: "contributor-lists" }, { kind: "replication-collections" }, { kind: "report-lists" }];
     case "substanceGalleries": return [...keyed("article", row.substance_slug), { kind: "replication-collections" }];
     case "moleculeOverrides": return keyed("molecule", row.slug);
     case "reagentTests": return keyed("article", row.slug);
@@ -32,7 +40,13 @@ function targetsFor(table: Table, row: Row | null): PublicationTarget[] {
       ? row.articles.flatMap((article: { slug?: unknown }) => keyed("article", article.slug)) : [])];
     case "copyBlocks": return [{ kind: "copy" }];
     case "warningBannerPresets": return [{ kind: "banners" }];
-    case "siteConfig": return [{ kind: "about" }, { kind: "featured-replications" }, { kind: "banners" }];
+    case "siteConfig": return row.key === "about"
+      ? [{ kind: "about" }]
+      : row.key === "effect-index-featured-replications"
+        ? [{ kind: "featured-replications" }]
+        : row.key === "safety-banner-display"
+          ? [{ kind: "banners" }]
+          : [];
     case "categoryLayout": return [{ kind: "substance-lists" }];
     case "indexLayouts": return [{ kind: row.type === "chemical" ? "chemical-lists" : row.type === "mechanism" ? "mechanism-lists" : "substance-lists" }];
     default: return [{ kind: "replication-collections" }, { kind: "featured-replications" }];
@@ -81,19 +95,21 @@ export function withPublicationOutbox(ctx: MutationCtx) {
     ctx: { ...ctx, db },
     async commit() {
       if (failure) throw failure.error;
-      const targets = new Map<string, { target: PublicationTarget; revision?: string }>();
+      const targets = new Map<string, { target: PublicationTarget; revision?: string | null }>();
       for (const { table, id, before } of changes.values()) {
         const after = await ctx.db.get(id);
         const afterRevision = snapshot(table, after);
         if (snapshot(table, before) === afterRevision) continue;
         const afterTargets = targetsFor(table, after);
-        for (const target of [...targetsFor(table, before), ...afterTargets]) {
+        const beforeTargets = targetsFor(table, before);
+        for (const target of beforeTargets) {
           const key = JSON.stringify(target);
-          targets.set(key, { ...targets.get(key), target });
+          if (!afterTargets.some((candidate) => JSON.stringify(candidate) === key)) {
+            targets.set(key, { target, revision: null });
+          }
         }
-        if (table === "substanceIndex" && after) {
-          const target = afterTargets[0];
-          if (target && afterRevision) targets.set(JSON.stringify(target), { target, revision: afterRevision });
+        for (const target of afterTargets) {
+          targets.set(JSON.stringify(target), { target, revision: afterRevision });
         }
       }
       for (const [key, { target, revision: knownRevision }] of targets) {

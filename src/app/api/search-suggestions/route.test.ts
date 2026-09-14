@@ -48,13 +48,17 @@ describe("search suggestions route", () => {
     });
   });
 
-  it("allows larger result sets for the full search page", async () => {
+  it("allows larger localized result sets for the full search page", async () => {
     const { getPublicSearchSuggestions } = await import("@server/convex/publicLibrary");
     const { GET } = await import("./route");
 
-    await GET(new Request("https://dose.wiki/api/search-suggestions?q=dmt&limit=60"));
+    await GET(
+      new Request(
+        "https://dose.wiki/api/search-suggestions?q=dmt&limit=60&locale=zh-Hans",
+      ),
+    );
 
-    expect(getPublicSearchSuggestions).toHaveBeenCalledWith("dmt", 60);
+    expect(getPublicSearchSuggestions).toHaveBeenCalledWith("dmt", 60, "zh-Hans");
   });
 
   it("returns the limiter response before searching when limited", async () => {

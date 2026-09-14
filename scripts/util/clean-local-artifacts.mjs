@@ -117,8 +117,11 @@ export function printTargets(targets, { rootDir = process.cwd(), logger = consol
   }
 }
 
-export function cleanTargets(targets) {
+export function cleanTargets(targets, { rootDir = process.cwd() } = {}) {
   for (const target of targets) {
+    if (isProtectedLocalArtifactPath(formatPath(target.path, { rootDir }))) {
+      continue;
+    }
     rmSync(target.path, { force: true, recursive: true });
   }
 }
@@ -162,7 +165,7 @@ export function runHygiene({
     return;
   }
 
-  cleanTargets(targets);
+  cleanTargets(targets, { rootDir });
   cleanRetiredEmptyDirectories({ rootDir });
 
   logger.log("\nLocal artifact cleanup complete.");

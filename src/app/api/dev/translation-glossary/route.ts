@@ -1,14 +1,15 @@
 /**
  * GET /api/dev/translation-glossary?locale=zh-Hans: every glossary row for one
- * locale plus the locale picker (live mirrors and any locale with rows) and
- * the prompt digest the approved set produces. Admin only.
+ * locale plus the locale picker (live mirrors and any locale with rows), the
+ * prompt digest the approved set produces, and the locale-independent glosses.
+ * Translator and up.
  */
 import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
-import { glossaryLocales, readGlossaryRows } from "@server/translation/glossary";
+import { glossaryLocales, pendingRetranslation, readGlossaryRows } from "@server/translation/glossary";
 import { loadTranslationContext } from "@server/translation/liveTranslation";
 import { translationSegmentCounts } from "@server/translation/segmentStore";
 import { glossaryUnavailable, parseLocale, type GlossaryListResponse, type GlossaryLocaleOption } from "./glossaryRoutes";
@@ -16,7 +17,7 @@ import { glossaryUnavailable, parseLocale, type GlossaryListResponse, type Gloss
 export const runtime = "nodejs";
 
 export const GET = protectedRouteOperation({
-  auth: "admin",
+  auth: "translator",
   rateLimit: "editorPolledRead",
   unexpectedErrorLabel: "Failed to load the translation glossary via Next route:",
   unexpectedErrorMessage: "Unable to load the translation glossary right now.",
@@ -47,6 +48,8 @@ export const GET = protectedRouteOperation({
       segments,
       locales: Object.values(byLocale).sort((a, b) => a.locale.localeCompare(b.locale)),
       rows,
+      pending: pendingRetranslation(rows),
+      glosses: context.glosses,
     };
     return NextResponse.json(body);
   },

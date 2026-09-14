@@ -99,7 +99,7 @@ export function requireBatchProposalTargetUrl(context) {
   return context.targetUrl;
 }
 
-export function requireBatchTargetUrl(context) {
+function requireBatchTargetUrl(context) {
   return requireTargetUrl(context, "batch target Convex URL");
 }
 

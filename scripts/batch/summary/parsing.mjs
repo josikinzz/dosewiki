@@ -1,6 +1,6 @@
 import yaml from "yaml";
 
-export function repairCommonYamlIssues(yamlContent) {
+function repairCommonYamlIssues(yamlContent) {
   return yamlContent
     .split(/\r?\n/)
     .map((line) => {
@@ -13,7 +13,7 @@ export function repairCommonYamlIssues(yamlContent) {
     .join("\n");
 }
 
-export function extractSummaryYaml(response) {
+function extractSummaryYaml(response) {
   const withoutThinkBlocks = response.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
   const yamlMatch = withoutThinkBlocks.match(/```ya?ml\s*([\s\S]*?)```/i);
   if (yamlMatch) {
@@ -29,11 +29,11 @@ export function extractSummaryYaml(response) {
   return lines.slice(firstRelevantLine).join("\n").trim();
 }
 
-export function normalizeSummaryString(summary) {
+function normalizeSummaryString(summary) {
   return summary.replace(/\s+/g, " ").trim();
 }
 
-export function validateSummaryString(summary) {
+function validateSummaryString(summary) {
   const normalized = normalizeSummaryString(summary);
   const words = normalized.split(/\s+/).filter(Boolean);
 

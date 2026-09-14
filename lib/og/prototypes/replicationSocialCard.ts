@@ -9,7 +9,6 @@
  * 16:9 artwork; title and credit lead into a three-column provenance footer.
  * FORM: Art-catalog plate, selected for this tightly specified prototype.
  */
-import path from "node:path";
 
 import sharp from "sharp";
 
@@ -27,11 +26,11 @@ import {
 } from "../socialCardPrimitives";
 export const REPLICATION_SOCIAL_CARD_RENDERER_VERSION = "2026-08-25.2";
 
-export type ReplicationSocialCardRights = Readonly<{
+type ReplicationSocialCardRights = Readonly<{
   licenseName: string;
   licenseUrl?: string;
   rightsholder?: string;
-}>;
+}>
 
 export type ReplicationSocialCardInput = Readonly<{
   slug: string;
@@ -50,34 +49,7 @@ export type ReplicationSocialCardInput = Readonly<{
   rights?: ReplicationSocialCardRights;
 }>;
 
-export const REPLICATION_SOCIAL_CARD_EXAMPLE: ReplicationSocialCardInput =
-  Object.freeze({
-    slug: "after-images-chelsea-morgan",
-    recordId: "k5701jy96tprk843qzbamd9vm1847v7h",
-    title: "After images",
-    creator: "Chelsea Morgan",
-    effect: Object.freeze({
-      name: "Tracers",
-      slug: "tracers",
-    }),
-    mediaType: "image",
-    format: "jpg",
-    artworkPath: path.join(
-      process.cwd(),
-      "src/assets/replications-after-images-chelsea-morgan.webp",
-    ),
-    creatorAvatarPath: path.join(
-      process.cwd(),
-      "public/profile-avatars/chelseamorgan/avatar.webp",
-    ),
-    sourceUrl:
-      "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev/8696092281_e167055dd3_k.jpg",
-    rights: Object.freeze({
-      licenseName: "CC BY-SA 4.0",
-      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
-      rightsholder: "Chelsea Morgan",
-    }),
-  });
+
 
 const MARGIN = 56;
 const ARTWORK_X = MARGIN;

@@ -54,6 +54,7 @@ import { getPostgresConvexClient } from "../../lib/postgres/runtime/backend";
 import * as live from "../../lib/translation/liveTranslation";
 import * as store from "../../lib/translation/segmentStore";
 import { CORPORA } from "./corpora.mjs";
+import type { WorkUnit } from "./engine.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 import { extractSegments, buildWorkUnits, type Segment } from "./segment-manifest.mjs";
 import { isBlocking } from "./validate.mjs";
@@ -233,12 +234,12 @@ async function backfill() {
     ? live.TRANSLATION_RECORD_KINDS
     : [requireKind(values.kind)];
   const reads = getPublicDataReadAdapter();
-  const unitsByHash = new Map<string, ReturnType<typeof buildWorkUnits>[number]>();
+  const unitsByHash = new Map<string, WorkUnit>();
   let records = 0;
   for (const kind of kinds) {
     for (const record of await live.publicRecords(reads, kind)) {
       records += 1;
-      for (const unit of buildWorkUnits(live.segmentsOf(record, kind))) {
+      for (const unit of live.workUnitsOf(live.segmentsOf(record, kind), kind)) {
         const known = unitsByHash.get(unit.hash);
         // A hash seen once as safety text keeps that reminder everywhere.
         if (!known || (unit.contextClass === "safety" && known.contextClass !== "safety")) unitsByHash.set(unit.hash, unit);
@@ -297,13 +298,13 @@ async function retranslateStale() {
   // markup segments keep their gate. Segments no longer in any record are
   // translated as plain prose, which is harmless: they render nowhere.
   const reads = getPublicDataReadAdapter();
-  const segmentByHash = new Map<string, Pick<Segment, "contextClass" | "markup">>();
+  const segmentByHash = new Map<string, Pick<Segment, "contextClass" | "markup"> & { kind: live.TranslationRecordKind }>();
   for (const kind of live.TRANSLATION_RECORD_KINDS) {
     for (const record of await live.publicRecords(reads, kind)) {
       for (const segment of live.segmentsOf(record, kind)) {
         const known = segmentByHash.get(segment.hash);
         if (!known || (segment.contextClass === "safety" && known.contextClass !== "safety")) {
-          segmentByHash.set(segment.hash, { contextClass: segment.contextClass, markup: segment.markup });
+          segmentByHash.set(segment.hash, { contextClass: segment.contextClass, markup: segment.markup, kind });
         }
       }
     }
@@ -316,7 +317,7 @@ async function retranslateStale() {
       contextClass: known?.contextClass ?? "prose",
       hash: row.hash, words: row.source.trim().split(/\s+/).length, source: row.source,
     };
-  }));
+  })).map((unit) => ({ ...unit, contextKind: segmentByHash.get(unit.hash)?.kind ?? "any" }));
   // Each chunk is one translateUnits call with its own request pool; several
   // chunks in flight keep the model busy across a whole-corpus replay. A chunk
   // whose write fails (the pooler dropping a connection mid-statement) simply

@@ -2,7 +2,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { getDataBackend, getPostgresConvexClient } from "../postgres/runtime/backend";
 import type { PostgresConvexClient } from "../postgres/runtime/client";
 import { makeFunctionReference } from "convex/server";
-import type { AppRole } from "../../src/lib/auth/roles";
+import type { AppRole, ManagedRole } from "../../src/lib/auth/roles";
 import { getAuthMembershipTarget, getServerConvexAdminKey } from "../convex/serverWriteHealth";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 
@@ -54,7 +54,7 @@ export type RedeemInviteInput = {
   passwordHash: string;
 };
 
-export type RedeemedInvite = { email: string; role: "editor" | "contributor" };
+export type RedeemedInvite = { email: string; role: ManagedRole };
 
 const redeemInviteMutation = makeFunctionReference<
   "mutation",

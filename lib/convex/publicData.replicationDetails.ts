@@ -12,6 +12,7 @@ const getPublicReplicationsBySlugBatch = cache(publicDataCache(async (
   return await getPublicDataReadAdapter().getPublicReplicationsBySlugs(slugs);
 }, ["convex-public-replications-by-slug-batch-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  awaitRefresh: true,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 
@@ -20,9 +21,9 @@ export const getPublicReplicationsBySlugs = cache(async (
   slugs: string[],
 ): Promise<ReplicationWithUrl[]> => {
   const uniqueSlugs = [...new Set(slugs)];
-  const batches: Promise<ReplicationWithUrl[]>[] = [];
+  const replications: ReplicationWithUrl[] = [];
   for (let offset = 0; offset < uniqueSlugs.length; offset += 100) {
-    batches.push(getPublicReplicationsBySlugBatch(uniqueSlugs.slice(offset, offset + 100)));
+    replications.push(...await getPublicReplicationsBySlugBatch(uniqueSlugs.slice(offset, offset + 100)));
   }
-  return (await Promise.all(batches)).flat().filter(isPublishableReplication);
+  return replications.filter(isPublishableReplication);
 });

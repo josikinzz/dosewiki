@@ -18,7 +18,7 @@ export const SOURCE_DISPLAY_NAMES = {
   wikipedia: "Wikipedia",
 };
 
-export function slugifyArticleTitle(value) {
+function slugifyArticleTitle(value) {
   return slugify(String(value || ""));
 }
 
@@ -72,7 +72,7 @@ export function backfillSlug({ article }) {
   };
 }
 
-export function normalizeUrlForDeduplication(url) {
+function normalizeUrlForDeduplication(url) {
   if (!url) return "";
   return String(url)
     .toLowerCase()
@@ -86,13 +86,13 @@ export function extractSourceUrl(content) {
   return match ? match[1] : null;
 }
 
-export function parseSourcesArray(sourceContent) {
+function parseSourcesArray(sourceContent) {
   const sourcesMatch = String(sourceContent || "").match(/export const sources = (\[[\s\S]*?\]);/);
   if (!sourcesMatch) return null;
   return JSON.parse(sourcesMatch[1]);
 }
 
-export function extractSourceBodyPreview(sourceContent, sourceId, previewLength = 500) {
+function extractSourceBodyPreview(sourceContent, sourceId, previewLength = 500) {
   const contentStartRegex = new RegExp(`"${sourceId}":\\s*\``, "m");
   const startMatch = String(sourceContent || "").match(contentStartRegex);
   if (!startMatch) return null;

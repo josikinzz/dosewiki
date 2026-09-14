@@ -55,13 +55,3 @@ export function parseArgs() {
     },
   });
 }
-
-export function printHelp() {
-  console.log(`
-Batch Quote Extraction Script
-
-Usage:
-  export OPENROUTER_API_KEY="sk-or-..."
-  node scripts/batch/batch-extract-quotes.mjs --category=legality
-`);
-}

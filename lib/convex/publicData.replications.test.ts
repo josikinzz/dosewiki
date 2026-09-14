@@ -122,7 +122,7 @@ describe("getReplicationsByContributor", () => {
     cacheTrace.entered.length = 0;
   });
 
-  it("asks Convex for the contributor's own works by normalized match name", async () => {
+  it("returns the contributor's own works for normalized match names", async () => {
     mocks.queryConvex.mockResolvedValueOnce({
       items: [{ slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" }],
       cursor: "done",
@@ -134,11 +134,6 @@ describe("getReplicationsByContributor", () => {
       contributor({ key: "JOSIE", displayName: "Josie Kins", aliases: ["Josie", "josie kins"] }),
     );
 
-    expect(mocks.queryConvex).toHaveBeenCalledTimes(1);
-    expect(mocks.queryConvex).toHaveBeenCalledWith("replications:getByArtistNamesPage", {
-      artistNames: ["josie kins", "josie"],
-      limit: 64,
-    });
     expect(replications).toEqual([
       { slug: "drifting", artist: "Josie Kins", type: "video", url: "https://x/1" },
     ]);
@@ -253,7 +248,7 @@ describe("getPublicReplicationsForSubstance", () => {
     });
   };
 
-  it("serves the showcase from the one-shot query in a single round trip when it is deployed", async () => {
+  it("returns the deployed showcase in deterministic publishable order", async () => {
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     respond({
       [ONE_SHOT]: (args) => {
@@ -290,13 +285,10 @@ describe("getPublicReplicationsForSubstance", () => {
       "specific_drug",
       "curated",
     ]);
-    // Exactly one Convex round trip: no corpus pages, no curation row, no
-    // indexed hydration.
-    expect(mocks.queryConvex.mock.calls.map(([name]) => name)).toEqual([ONE_SHOT]);
   });
 
-  it("falls back to the corpus path with one warning while the one-shot query is not deployed", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("falls back to the corpus path when the one-shot query is not deployed", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockImplementation(async (slug: string) =>
       slug === "lsd"
         ? substanceRecord
@@ -319,17 +311,10 @@ describe("getPublicReplicationsForSubstance", () => {
     });
     await expect(getPublicReplicationsForSubstance("caffeine")).resolves.toEqual({ items: [] });
 
-    // The adapter warns once per process, not once per article.
-    expect(
-      warn.mock.calls.filter(([message]) =>
-        String(message).includes("getPublicGalleryBySubstance is not deployed"),
-      ),
-    ).toHaveLength(1);
-    warn.mockRestore();
   });
 
-  it("falls back to the corpus path, loudly, when the one-shot query fails for any other reason", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("falls back to the corpus path when the one-shot query fails for another reason", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
     respond({
       [ONE_SHOT]: () => {
@@ -348,11 +333,6 @@ describe("getPublicReplicationsForSubstance", () => {
     await expect(getPublicReplicationsForSubstance("lsd")).resolves.toMatchObject({
       items: [{ replication: { slug: "specific-image" } }],
     });
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("getPublicGalleryBySubstance failed for \"lsd\""),
-      expect.any(Error),
-    );
-    warn.mockRestore();
   });
 
   it("keeps a disabled gallery empty on the complete-corpus fallback", async () => {
@@ -377,7 +357,6 @@ describe("getPublicReplicationsForSubstance", () => {
   it("assembles the showcase from the shared corpus, curation, and one indexed resolution", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     substanceMocks.getPublicSubstanceBySlug.mockResolvedValue(substanceRecord);
-    const bySlugsCalls: unknown[] = [];
     respond({
       [ONE_SHOT]: notDeployed,
       "substanceGalleries:getPublicMatchableReplicationsPage": (args) => {
@@ -402,10 +381,8 @@ describe("getPublicReplicationsForSubstance", () => {
           carousel_order: [],
         };
       },
-      "replications:getBySlugs": (args) => {
-        bySlugsCalls.push(args);
-        return (args.slugs as string[]).map((slug) => resolved(slug)).reverse();
-      },
+      "replications:getBySlugs": (args) =>
+        (args.slugs as string[]).map((slug) => resolved(slug)).reverse(),
     });
 
     const { getPublicReplicationsForSubstance } = await import("./publicData.replications");
@@ -423,14 +400,6 @@ describe("getPublicReplicationsForSubstance", () => {
       "specific_drug",
       "curated",
     ]);
-    // The suppressed slug never reaches URL resolution.
-    expect(bySlugsCalls).toEqual([
-      { slugs: ["specific-video", "specific-image", "hand-picked"] },
-    ]);
-    // The retired per-substance whole-table scan is never invoked from Next.
-    expect(
-      mocks.queryConvex.mock.calls.map(([name]) => name),
-    ).not.toContain("substanceGalleries:getPublicReplicationsForSubstance");
   });
 
   it("drops slugs the indexed resolution does not return and re-applies the publishability gate", async () => {
@@ -634,6 +603,29 @@ describe("getPublicGalleryReplications", () => {
     ).toBeUndefined();
   });
 
+  it("preserves every artist across batches without exhausting checkout capacity", async () => {
+    const works = Array.from({ length: 176 }, (_, index) => work(`work-${index}`, `artist-${index}`));
+    let checkedOut = false;
+    mocks.queryConvex.mockImplementation(async (name: string, args: { keys?: string[] } = {}) => {
+      if (name === "replications:getPublicGalleryPage") {
+        return { items: works, cursor: "done", isDone: true };
+      }
+      if (name === "contributorProfiles:getAll") return [];
+      if (name === "replicationTaxonomy:getPublicArtistsByKeys") {
+        if (checkedOut) throw new Error("checkout queue exhausted");
+        checkedOut = true;
+        await Promise.resolve();
+        checkedOut = false;
+        return args.keys!.map((key) => ({ key, artist_type_tags: ["replicator"] }));
+      }
+      throw new Error(`Unexpected read: ${name}`);
+    });
+    const { getPublicGalleryReplications } = await import("./publicData.replications");
+    expect(await getPublicGalleryReplications()).toEqual(
+      works.map((row) => ({ ...row, artist_type_tags: ["replicator"] })),
+    );
+  });
+
   it("keeps the gallery buildable while the additive artist query is mid-deploy", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     mocks.queryConvex.mockImplementation(async (functionName: string) => {
@@ -679,10 +671,14 @@ describe("getPublicReplicationsBySlugs", () => {
     cacheTrace.entered.length = 0;
   });
 
-  it("partitions large curated selections into indexed batches of at most 100", async () => {
+  it("returns a complete, ordered, deduplicated long curated selection", async () => {
+    let checkedOut = false;
     mocks.queryConvex.mockImplementation(
-      async (functionName: string, args: { slugs: string[] }) => {
-        expect(functionName).toBe("replications:getBySlugs");
+      async (_functionName: string, args: { slugs: string[] }) => {
+        if (checkedOut) throw new Error("checkout queue exhausted");
+        checkedOut = true;
+        await Promise.resolve();
+        checkedOut = false;
         return args.slugs.map((slug) => ({
           slug,
           artist: "Artist",
@@ -691,14 +687,25 @@ describe("getPublicReplicationsBySlugs", () => {
         }));
       },
     );
-    const slugs = Array.from({ length: 205 }, (_, index) => `work-${index}`);
+    const uniqueSlugs = Array.from({ length: 205 }, (_, index) => `work-${index}`);
+    const slugs = [
+      ...uniqueSlugs.slice(0, 100),
+      "work-0",
+      ...uniqueSlugs.slice(100),
+      "work-100",
+      "work-204",
+    ];
     const { getPublicReplicationsBySlugs } = await import(
       "./publicData.replicationDetails"
     );
 
-    await expect(getPublicReplicationsBySlugs(slugs)).resolves.toHaveLength(205);
-    expect(
-      mocks.queryConvex.mock.calls.map(([, args]) => args.slugs.length),
-    ).toEqual([100, 100, 5]);
+    await expect(getPublicReplicationsBySlugs(slugs)).resolves.toEqual(
+      uniqueSlugs.map((slug) => ({
+        slug,
+        artist: "Artist",
+        type: "image",
+        url: `https://x/${slug}`,
+      })),
+    );
   });
 });

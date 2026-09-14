@@ -1,4 +1,4 @@
-/* eslint-disable vercel-guardrails/enforce-env-prefix -- server-side Convex credential test */
+ 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { compareAndSetEffectTaxonomyHandler } from "../../../convex/lib/replicationTaxonomyCas";

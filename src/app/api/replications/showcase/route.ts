@@ -5,7 +5,7 @@ import {
   getSubstanceShowcaseWorks,
 } from "@/app/_components/public-routes/showcaseCollections";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
+import { parseUiLocale } from "@/i18n/messages";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       );
     }
     const requestedLocale = searchParams.get("locale");
-    const locale = LIVE_LOCALE_CODES.find((code) => code === requestedLocale) ?? "en";
+    const locale = parseUiLocale(requestedLocale);
 
     const collection =
       substanceSlug !== null

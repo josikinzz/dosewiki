@@ -8,7 +8,7 @@
  * Button numbers are `GenericEditorToolbar`'s constants: column-major, so button
  * `b` sits in column `b / 17`, row `b % 17`.
  */
-export const OCL_BUTTONS_PER_COLUMN = 17;
+const OCL_BUTTONS_PER_COLUMN = 17;
 
 export type OclToolId = "select" | "bond" | "wedge" | "hash" | "atom" | "erase";
 

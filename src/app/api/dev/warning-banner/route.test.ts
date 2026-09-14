@@ -16,21 +16,16 @@ vi.mock("../../../../../convex/_generated/api", () => ({
   },
 }));
 
-const cacheMocks = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
+const cacheMocks = vi.hoisted(() => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }));
 
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof NextCache>()),
   revalidatePath: cacheMocks.revalidatePath,
+  revalidateTag: cacheMocks.revalidateTag,
 }));
 
-const publishMocks = vi.hoisted(() => ({
-  publishPublicCache: vi.fn(async () => [
-    { target: "local", status: "accepted", attempts: 1 },
-  ]),
-}));
-
-vi.mock("@server/next/publishPublicCache", () => ({
-  publishPublicCache: publishMocks.publishPublicCache,
+vi.mock("@server/convex/publicLibrary", () => ({
+  invalidatePublicDerivedDataCache: vi.fn(),
 }));
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
@@ -103,12 +98,13 @@ describe("warning banner preset route", () => {
 
     expect(saved.status).toBe(403);
     expect(removed.status).toBe(403);
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(convexMocks.query).not.toHaveBeenCalled();
     expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 
-  it("publishes the banner setting and every touched article, removals included", async () => {
+  it("invalidates current and removed article pages while reporting remote publication pending", async () => {
     convexMocks.mutation.mockResolvedValue({
       updated: true,
       key: "opioid",
@@ -120,18 +116,13 @@ describe("warning banner preset route", () => {
     const response = await POST(jsonRequest("POST", presetBody));
 
     expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [
-        { kind: "banners" },
-        { kind: "article", slug: "heroin" },
-        { kind: "article", slug: "removed-article" },
-      ],
-      source: "manual",
-    });
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
-    expect(await response.json()).toMatchObject({
-      publication: [{ target: "local", status: "accepted" }],
-    });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
+    for (const slug of ["heroin", "removed-article"]) {
+      expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(`/${slug}`);
+      expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(`/zh/${slug}`);
+    }
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalledWith("/", "layout");
+    expect(await response.json()).toMatchObject({ publication: { status: "pending" } });
   });
 
   it("expires the root layout for a preset that covers every substance", async () => {
@@ -148,14 +139,11 @@ describe("warning banner preset route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "banners" }],
-      source: "manual",
-    });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/", "layout");
   });
 
-  it("publishes the banner setting when a preset is deleted", async () => {
+  it("invalidates the banner cache and articles that lose a deleted preset", async () => {
     convexMocks.mutation.mockResolvedValue({
       removed: true,
       key: "opioid",
@@ -173,10 +161,21 @@ describe("warning banner preset route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "banners" }, { kind: "article", slug: "heroin" }],
-      source: "manual",
-    });
+    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("convex-public:banners", { expire: 0 });
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/heroin");
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/zh/heroin");
+    expect(await response.json()).toMatchObject({ publication: { status: "pending" } });
+  });
+
+  it("rejects missing revision guards without writing or invalidating caches", async () => {
+    const saved = await POST(jsonRequest("POST", { ...presetBody, baseHash: undefined }));
+    const removed = await DELETE(jsonRequest("DELETE", { key: "opioid" }));
+
+    expect(saved.status).toBe(400);
+    expect(removed.status).toBe(400);
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+    expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 
 });

@@ -15,7 +15,7 @@ import { useT } from "@/i18n/client";
 import { findMarker, useFieldMarkers } from "@/features/article/editing/ArticleEditContext";
 import { cn } from "@/lib/utils";
 
-export type CitationSupProps = Omit<
+type CitationSupProps = Omit<
   ComponentPropsWithoutRef<"sup">,
   "children"
 > & {

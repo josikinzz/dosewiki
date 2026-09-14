@@ -1,6 +1,6 @@
 # Operations and Direction
 
-Last verified: 2026-08-16
+Last verified: 2026-09-12
 
 This appendix holds the operational guidance, quality gates, known debt, and recommended direction that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
@@ -23,34 +23,47 @@ Use the current `next build` route summary when a point-in-time page count is ne
 
 ### Revalidation
 
-Most public content routes use:
+Route cache behavior is owned by the route modules and the Postgres publication
+outbox. Inspect the current route's `revalidate` export and its matching
+`lib/postgres/` publication transaction before changing freshness behavior.
+The historical endpoint name `/api/save-to-convex` is unchanged, but under
+`DATA_BACKEND=postgres` its successful writes and path invalidations are
+Postgres-backed.
 
-- `revalidate = 3600`
+Persistent public cache keys use an opaque digest for Postgres target identity,
+never a connection URL: Next includes those keys in revalidation errors.
+Gallery taxonomy joins drain batches and collect matching artists together,
+including during background refreshes, rather than issuing an indexed network
+read for every artist. The Postgres adapter pages collections and currently
+evaluates their filters in-process; do not describe this as one SQL statement.
+Pool and transaction bounds belong to `lib/postgres/transactionTimeouts.ts`.
+Do not hide checkout exhaustion or convert failed reads into empty content.
 
-The save-to-Convex route explicitly revalidates affected article/about paths after successful writes.
+Sequential cached page, media-detail, and taxonomy drains opt into `publicDataCache`'s
+`awaitRefresh` barrier. A stale Next cache hit otherwise starts a background read
+and immediately advances the cursor, flooding the four-connection pool.
+The barrier waits for the refresh already started by that invocation, preserving
+the 15-minute freshness policy, bounded cache entries, and Next's stale-on-error
+behavior. Other public leaves retain ordinary stale-while-revalidate behavior.
 
 ## Script Architecture
 
-The repository contains a large operational script surface under `scripts/`.
+Operational tools live under `scripts/`, grouped by their actual directory:
 
-Major categories:
-
+- `postgres/`: schema generation, guarded migration, import, rehearsal, rollback export, and environment isolation
 - `batch/`: AI generation and quote extraction
-- `migrate/`: one-time or staged data migrations
-- `convex/`: import/export/sync utilities
+- `migrate/`: bounded content transforms whose filenames may retain historical backend names
+- `convex/`: rollback-backend and compatibility utilities, not the normal production write path
 - `prepopulate/`: derive article content from parsed sources
 - `analyze/`: audits and coverage inspection
 - `replications/`: effect gallery asset ingestion and maintenance
 - `data/`: normalization and maintenance transforms
 - `parsers/`: raw source extraction
 
-Current script boundary:
-
-- many scripts still operate on `src/data/SubstanceIndex.json`
-- this is acceptable for migration/tooling use
-- this is not acceptable as the public runtime rendering source
-
-This split is one of the main sources of complexity in the repo.
+PlanetScale Postgres is the production runtime authority. Local JSON and
+generated artifacts remain inputs, exports, fixtures, or recovery material only
+where their owning script says so. A historical filename or endpoint containing
+`convex` does not change the backend selected by `DATA_BACKEND=postgres`.
 
 ## Testing and Quality Gates
 
@@ -81,7 +94,7 @@ Every test needs a stable placement and an explicit reason to exist. Reviewers s
 - Source-text scans are reserved for named architecture policies (forbidden production write APIs, archive and deprecated boundaries, route reachability, generated-data lineage, command-surface classification). They live behind `src/test/sourceScan.ts`, name the prohibited outcome in the test title, and report the offending file. Imports, helper names, class strings, directives, and formatting are not policies.
 - Static catalogs and generated data are checked with structural invariants (uniqueness, referential integrity, required fields), not verbatim snapshots of editorial content.
 - Tests that need external artifacts ship a small committed or temp-generated synthetic fixture that preserves the real digest and precondition logic. A test may not silently skip because a workstation path, campaign directory, or private artifact is absent.
-- Completed one-time workflows are archived under `scripts/deprecated/` as fail-closed wrappers together with their tests, not kept live.
+- Retire completed one-time workflows and their tests only after checking active consumers and verifying private recovery copies. Keep a fail-closed command boundary only while a concrete consumer still requires it.
 - UI tests query by role, accessible name, state, focus, visibility, and rendered output. A class assertion is allowed only when that class is a documented public style contract in `docs/ui-kit.md`.
 - Runners stay as they are: root Vitest for `src/**` and `lib/**`, `npm run test:workflow` for `scripts/**` and `tools/**`, `npm run openchemlib:test` for the vendored fork. No new runner or convention is introduced for a single test.
 
@@ -89,77 +102,47 @@ Every test needs a stable placement and an explicit reason to exist. Reviewers s
 
 The rationale and the file-level audit behind this policy are in [docs/audits/test-suite-rationalization-plan.html](../audits/test-suite-rationalization-plan.html).
 
-## Known Design Debt
+## Current Direction
 
-### 1. Runtime/doc drift
+PlanetScale Postgres is the public and editor runtime source of truth.
+`DATA_WRITES_FROZEN=1` is a hard no-write gate, not a deployment mode to work
+around. Production scripts must use the shared data-operations command surface:
+an explicit `TARGET_POSTGRES_URL`, `DATA_BACKEND=postgres`, `--allow-remote`,
+`POSTGRES_IMPORT_CONFIRM`, a dry-run plan, and the operation-specific write
+confirmation. Never forward arbitrary migration arguments or infer a production
+writer from application fallback variables.
 
-The repo has historically carried a mix of legacy and current guidance. Root docs must be kept synchronized with the actual Next/Convex runtime.
+Convex remains only as an observation and recovery backend during the current
+recovery window. Commands that genuinely target it must be labelled rollback
+or observation work and separately approved. Historical endpoint, token, and
+module names containing `Convex` stay unchanged when code depends on those exact
+names; prose must not treat those names as proof of runtime ownership.
 
-### 2. Legacy file-backed workflows
+Current maintenance priorities are:
 
-The architecture says the production database (PlanetScale Postgres since 2026-09-10) is the live source of truth, but many scripts and some editor save paths still use local file artifacts. This creates operational ambiguity.
-
-### 3. Mixed persistence models
-
-The existence of both:
-
-- Convex-backed live writes
-- GitHub-backed file writes
-
-means contributors must know which workflow they are using and why.
-
-### 4. Public contributor model still reflects legacy auth naming
-
-Contributor profile keys and some public routes still expose internal credential-era naming conventions. That should be treated as legacy debt.
-
-## Security and Operational Risks
-
-The main architecture-level risks identified during the repo audit are:
-
-- secrets and operational notes mixed into tracked documentation
-- incomplete drift between “Convex-first” policy and file-backed tooling reality
-- stale documentation/copy describing obsolete runtime behavior
-- public exposure of internal credential-style contributor keys
-
-These are not core framework flaws; they are process and repository hygiene risks.
-
-## Recommended Direction
-
-### Short-term
-
-- keep Convex as the only public runtime source
-- favor `save-to-convex` over file-backed editorial flows
-- keep docs synchronized with actual runtime behavior
-- continue using server-side Convex reads for public routes
-
-### Medium-term
-
-- reduce or isolate remaining GitHub-backed content-editing paths
-- further separate operational artifacts from application code
-- normalize contributor/public identity away from credential-derived keys
-
-### Long-term
-
-- make the persistence model unambiguous
-- reduce the number of workflows that require reasoning about both local JSON and Convex
-- retire or archive dead code and unused feature surfaces that are no longer part of the route tree
+- keep runtime and operator documentation aligned with the Postgres adapters
+- keep generated inputs, source provenance, rights evidence, and rollback
+  material under their owning retention contracts
+- keep operational outputs private or ignored unless a current runtime consumer
+  requires a committed input
+- retire dead compatibility surfaces only after their observation or recovery
+  window closes and an owner approves the removal
 
 ## File Map for Contributors
 
-Start here for common work:
+Start from the current tree rather than audit-era file counts:
 
-- Runtime shell: `src/app/`
-- Public server reads: `lib/convex/publicData.ts`
-- Derived library/search: `lib/convex/publicLibrary.ts`
+- Runtime routes and APIs: `src/app/`
+- Feature UI and editor workflows: `src/features/`
+- Postgres runtime, transactions, and schema: `lib/postgres/`
+- Compatibility-shaped public data adapters: `lib/convex/`
 - Static params and metadata: `lib/next/`
-- Auth config: `auth.ts`
-- Route protection: `middleware.ts`
-- Editor auth guard: `src/lib/auth/requireEditorSession.ts`
+- Auth config and policy: `auth.ts`, `lib/auth/`
+- Route protection: `src/middleware.ts`
+- Protected route wrapper: `src/lib/http/protectedRouteOperation.ts`
 - Article schema: `src/schema/substance.schema.ts`
-- Convex schema: `convex/schema.ts`
-- Convex mutations/queries: `convex/*.ts`
-- Editor surface: `src/features/dev/`
-- Scripts: `scripts/`
+- Retiring Convex recovery implementation: `convex/`
+- Operational tools: `scripts/`
 
 ## Maintenance Rules
 

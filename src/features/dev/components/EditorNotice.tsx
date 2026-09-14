@@ -3,7 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 
-export type EditorNoticeTone =
+type EditorNoticeTone =
   | "neutral"
   | "info"
   | "success"

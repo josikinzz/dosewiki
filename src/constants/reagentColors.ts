@@ -2,7 +2,7 @@
  * Color mapping for ProtestKit reagent test results.
  * Maps color IDs from the API to their corresponding hex values.
  */
-export const REAGENT_UI_COLORS: Record<number, string> = {
+const REAGENT_UI_COLORS: Record<number, string> = {
   0: "#ffffff", // BLANK
   1: "#bfbfbf", // black1 (light gray)
   2: "#666666", // black2 (gray)

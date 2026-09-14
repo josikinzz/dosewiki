@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../..");
 
-export const DEFAULT_FORMAL_CITATIONS_ARTIFACTS_DIR = join(
+const DEFAULT_FORMAL_CITATIONS_ARTIFACTS_DIR = join(
   PROJECT_ROOT,
   "notes-and-plans/exports/formal-citations",
 );
@@ -61,7 +61,7 @@ export function createFormalCitationArtifacts({
   };
 }
 
-export function ensureFormalCitationArtifactDirs(artifacts) {
+function ensureFormalCitationArtifactDirs(artifacts) {
   for (const dir of [
     artifacts?.rootDir,
     artifacts?.sectionsDir,
@@ -89,7 +89,7 @@ function createPendingSectionState(sectionKey) {
   };
 }
 
-export function createFormalCitationProgress({
+function createFormalCitationProgress({
   artifacts,
   slug,
   sections,

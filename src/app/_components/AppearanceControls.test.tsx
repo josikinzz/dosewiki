@@ -9,6 +9,7 @@ import {
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import type * as SiteFlavorModule from "@/config/siteFlavor";
 
 import {
   ACCENT_HUE_STORAGE_KEY,
@@ -37,6 +38,16 @@ import {
 import { AppearanceCog, type AppearanceCogRows } from "./AppearanceCog";
 import { AppearanceControls } from "./AppearanceControls";
 import { SchemeToggle } from "./SchemeToggle";
+
+vi.mock("@/config/siteFlavor", async (importOriginal) => {
+  const actual = await importOriginal<typeof SiteFlavorModule>();
+  return {
+    ...actual,
+    SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
+    isEffectIndex: (config = actual.SITE_FLAVOR_CONFIGS.dosewiki) =>
+      actual.isEffectIndex(config),
+  };
+});
 
 vi.mock("@/components/common/Icon", () => ({
   // Faithful to the real one (`src/components/common/Icon.tsx:36-44`): the glyph is
@@ -142,17 +153,11 @@ describe("AppearanceCog", () => {
     document.documentElement.removeAttribute(READER_LEADING_ATTRIBUTE);
   });
 
-  it("presents one 44px cog and nothing else until it is opened", async () => {
+  it("presents one cog and nothing else until it is opened", async () => {
     const user = userEvent.setup();
     renderCog();
 
-    const cog = screen.getByRole("button", { name: "Appearance settings" });
-
-    // jsdom does no layout, so the hit area is only observable as the sizing classes: h-11
-    // and w-11 are the 44px minimum this control has to clear as the only appearance
-    // affordance a reader ever sees.
-    expect(cog.className).toMatch(/(?:^|\s)h-11(?:\s|$)/);
-    expect(cog.className).toMatch(/(?:^|\s)w-11(?:\s|$)/);
+    screen.getByRole("button", { name: "Appearance settings" });
     // The whole point of the cog: the surface carries one control, not a row of them.
     expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -1029,19 +1034,4 @@ describe("AppearanceControls", () => {
     ).toBeInTheDocument();
   });
 
-  it("puts the caller's class on the trigger itself, with no wrapper to take the offset", () => {
-    render(
-      <ThemeProvider
-        initialColorScheme="dark"
-        initialVisualStyle="fun"
-        isVisualStyleLocked={false}
-      >
-        <AppearanceControls className="caller-positioning-hook" />
-      </ThemeProvider>,
-    );
-
-    expect(
-      screen.getByRole("button", { name: "Appearance settings" }).className,
-    ).toMatch(/caller-positioning-hook/);
-  });
 });

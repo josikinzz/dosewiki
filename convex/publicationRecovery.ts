@@ -8,7 +8,7 @@ export const claimDue = internalMutation({
     const now = Date.now();
     const rows = await ctx.db.query("publicCachePublications")
       .withIndex("by_due", (q) => q.eq("pending", true).lte("nextAttemptAt", now))
-      .take(24);
+      .take(18);
     for (const row of rows) {
       await ctx.db.patch(row._id, { nextAttemptAt: now + 120_000, attempts: row.attempts + 1 });
     }

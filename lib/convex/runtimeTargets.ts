@@ -1,14 +1,12 @@
-export type ConvexRuntimeCapability =
-  | "publicServerRead"
-  | "editorBrowserRead"
-  | "privilegedWrite"
-  | "authMembership";
+type ConvexRuntimeCapability = | "publicServerRead"
+| "editorBrowserRead"
+| "privilegedWrite"
+| "authMembership"
 
-export type ConvexRuntimeSourceEnvVar =
-  | "CONVEX_PUBLIC_READ_URL"
-  | "CONVEX_URL"
-  | "VITE_CONVEX_URL"
-  | "NEXT_PUBLIC_CONVEX_URL";
+type ConvexRuntimeSourceEnvVar = | "CONVEX_PUBLIC_READ_URL"
+| "CONVEX_URL"
+| "VITE_CONVEX_URL"
+| "NEXT_PUBLIC_CONVEX_URL"
 
 export type ConvexRuntimeTarget = {
   capability: ConvexRuntimeCapability;
@@ -142,23 +140,23 @@ export function getConvexDeploymentName(url: string | null | undefined): string 
   }
 }
 
-export type ConvexEditorTargetAlignmentStatus =
+type ConvexEditorTargetAlignmentStatus =
   /** Browser reads and privileged writes resolve to the same deployment. */
   | "aligned"
   /** They resolve to different deployments. Every write lands on the wrong data. */
   | "split"
   /**
-   * No privileged write target at all — the intended posture of the read-only
+   * No privileged write target at all: the intended posture of the read-only
    * publication deployment (Effect Index). Not a split.
    */
   | "no-write-target"
   /** No browser read target; the surface cannot load. Handled elsewhere. */
   | "no-read-target";
 
-export type ConvexEditorTargetSide = {
+type ConvexEditorTargetSide = {
   deploymentName: string | null;
   sourceEnvVar: ConvexRuntimeSourceEnvVar | null;
-};
+}
 
 export type ConvexEditorTargetAlignment = {
   status: ConvexEditorTargetAlignmentStatus;

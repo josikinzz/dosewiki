@@ -182,11 +182,11 @@ export const buildTextChangelog = (heading: string, original: string, updated: s
   };
 };
 
-export type DatasetChangelogSection = {
+type DatasetChangelogSection = {
   index: number;
   heading: string;
   markdown: string;
-};
+}
 
 export type DatasetChangelogResult = {
   markdown: string;

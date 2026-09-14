@@ -30,7 +30,12 @@ function dataset(overrides = {}) {
             },
           ],
         },
-        harm_potential: { addiction: { psychological: { level: "moderate", description: "Habit forming." } } },
+        harm_potential: {
+          addiction: { psychological: { level: "moderate", description: "Habit forming." } },
+          toxicity: {
+            organ_toxicity: [{ system: "Cardiovascular", findings: "May affect the heart." }],
+          },
+        },
         pharmacology: { binding_sites: [{ target: "5-HT2A", notes: "Partial agonist." }] },
         identification: { cas_number: "66142-81-2", smiles: "CCOc1cc(CCN)ccc1Br" },
         references: [{ title: "PiHKAL", url: "https://example.org" }],

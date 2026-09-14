@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { SmartLink } from "@/components/common/SmartLink";
+import { useT } from "@/i18n/client";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
@@ -38,9 +41,11 @@ function LineageRow({
   depth: number;
   tone: "ancestor" | "current" | "child" | "bioisostere";
 }) {
+  const t = useT();
+
   const content = (
     <>
-      <span>{item.label}</span>
+      <span>{t(item.label)}</span>
       <Count value={item.rolledTotal} />
     </>
   );
@@ -82,6 +87,8 @@ function LineageRow({
  * unrelated siblings happens by walking back up the ancestor chain.
  */
 function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
+  const t = useT();
+
   const ancestors = detail.lineage.slice(0, -1);
   const currentDepth = Math.max(detail.lineage.length - 1, 0);
   const current: ChemicalClassTreeSummary = detail.lineage[currentDepth] ?? {
@@ -91,7 +98,10 @@ function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
   };
 
   return (
-    <nav aria-label={`${detail.label} lineage`} className="space-y-1">
+    <nav
+      aria-label={t("{{className}} lineage", { className: t(detail.label) })}
+      className="space-y-1"
+    >
       {ancestors.map((item, index) => (
         <LineageRow key={item.key} item={item} depth={index} tone="ancestor" />
       ))}
@@ -110,15 +120,20 @@ function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
 }
 
 function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
+  const t = useT();
+
   return (
-    <section aria-label={`${detail.label} classification`} className="mx-auto mt-8 max-w-4xl sm:mt-10">
+    <section
+      aria-label={t("{{className}} classification", { className: t(detail.label) })}
+      className="mx-auto mt-8 max-w-4xl sm:mt-10"
+    >
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
         <div className="min-w-0 flex-1">
           <LineageStack detail={detail} />
 
           {detail.otherParents.length > 0 ? (
             <p className="theme-text-faint mt-4 text-sm leading-6">
-              Also classified under:{" "}
+              {t("Also classified under:")}{" "}
               {detail.otherParents.map((parent, index) => (
                 <span key={parent.key}>
                   {index > 0 ? ", " : null}
@@ -126,7 +141,7 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
                     href={`/chemical-classes/${parent.key}`}
                     className="theme-focus-ring rounded-sm underline-offset-4 transition-colors hover:opacity-85 hover:underline"
                   >
-                    {parent.label}
+                    {t(parent.label)}
                   </SmartLink>
                 </span>
               ))}
@@ -138,13 +153,15 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
           <figure className="shrink-0 self-center sm:self-start">
             <MoleculeImage
               src={detail.structureUrl}
-              alt={`Generic ${detail.label} structure with variable R-group positions`}
+              alt={t("Generic {{className}} structure with variable R-group positions", {
+                className: t(detail.label),
+              })}
               width={240}
               height={160}
               className="theme-molecule-image mx-auto h-32 w-auto max-w-[15rem] object-contain sm:h-36"
             />
             <figcaption className="theme-text-faint mt-2 text-center text-xs">
-              Generic structure
+              {t("Generic structure")}
             </figcaption>
           </figure>
         ) : null}
@@ -154,6 +171,8 @@ function LineageBlock({ detail }: { detail: ChemicalClassDetail }) {
 }
 
 export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps) {
+  const t = useT();
+
   const panels = detail.panels;
 
   return (
@@ -162,13 +181,13 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
         <Button variant="ghostPill" size="pill" asChild className="mb-6">
           <Link href="/chemical-classes">
             <Icon icon={icons.arrowLeft} size={16} />
-            Back to Class Tree
+            {t("Back to Class Tree")}
           </Link>
         </Button>
 
         <PageHeader
           className="sm:mb-8"
-          title={detail.label}
+          title={t(detail.label)}
           icon={icons.hexagon}
         />
       </div>
@@ -176,7 +195,7 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
       <LineageBlock detail={detail} />
 
       <CategoryIntro
-        content={detail.description ? { definition: detail.description } : undefined}
+        content={detail.description ? { definition: t(detail.description) } : undefined}
         activeTab={detail.key}
       />
 
@@ -184,13 +203,13 @@ export function ChemicalClassDetailPage({ detail }: ChemicalClassDetailPageProps
         {detail.total === 0 ? (
           <StateCard
             className="mx-auto w-full max-w-xl"
-            badge="No substances"
+            badge={t("No substances")}
             badgeVariant="secondary"
-            title="No published substances in this class yet"
+            title={t("No published substances in this class yet")}
             description={
               detail.children.length > 0
-                ? "Explore its subclasses above."
-                : "Check back as article coverage grows."
+                ? t("Explore its subclasses above.")
+                : t("Check back as article coverage grows.")
             }
             icon="lucide:hexagon"
             tone="neutral"

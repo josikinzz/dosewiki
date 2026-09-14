@@ -33,7 +33,7 @@ function declaration(property: string, value: string | undefined): string {
 }
 
 /** One `@font-face` rule. Pure, so the emitted CSS is assertable without a DOM. */
-export function buildFontFaceRule(face: FontFaceSpec): string {
+function buildFontFaceRule(face: FontFaceSpec): string {
   const source = face.src
     ? `url("${face.src}") format("woff2")`
     : face.local

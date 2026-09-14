@@ -15,7 +15,7 @@
  */
 export const MAILING_LIST_API_ORIGIN = "https://glad-minnow-656.convex.site";
 
-export const MAILING_LIST_SUBSCRIBE_URL = "/api/subscribe";
+const MAILING_LIST_SUBSCRIBE_URL = "/api/subscribe"
 
 /** The two lists this repository's publications write to. */
 export type MailingList = "dosewiki" | "effectindex";

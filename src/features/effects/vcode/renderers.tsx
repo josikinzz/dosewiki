@@ -24,7 +24,7 @@ import {
 } from "./artistCreditLinks";
 import { selectImageRoute } from "./imageRoutes";
 
-export type VCodeRendererContext = {
+type VCodeRendererContext = {
   citations: Array<{ url: string; text: string; from?: string }>;
   subarticles: Array<{ id: string; title: string }>;
   renderChildren: (children: (string | VCodeNode)[] | undefined) => ReactNode;
@@ -48,7 +48,7 @@ export type VCodeRendererContext = {
    * variant where one exists.
    */
   mediaVariantKey?: string;
-};
+}
 
 export type VCodeNodeRenderer = (
   node: VCodeNode,
@@ -124,7 +124,7 @@ function createHeading(
   );
 }
 
-export function renderMarkdownText(
+function renderMarkdownText(
   text: string,
   index: number,
   context?: VCodeRendererContext,

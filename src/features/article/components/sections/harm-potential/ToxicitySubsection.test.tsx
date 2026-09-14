@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { SubstanceArticle } from "@/schema";
 import { normalizeHarmPotential } from "./HarmPotentialUtils";
+import { UiLocaleProvider } from "@/i18n/client";
 import { ToxicitySubsection } from "./ToxicitySubsection";
 
 vi.mock("@/components/common/Icon", () => ({
@@ -36,5 +37,30 @@ describe("ToxicitySubsection organ cards", () => {
     // The previous fallback glyph was dropped upstream and rendered nothing, so
     // an unknown system card must still carry a resolvable icon name.
     expect(iconFor("Unknown System")).toBe("healthicons:body-outline");
+  });
+
+  it("keeps the canonical organ glyph when the localized record carries a translated label", () => {
+    const article = {
+      references: [],
+      harm_potential: {
+        toxicity: {
+          lethal_dosage: { ld50: [], notes: "" },
+          organ_toxicity: [{ system: "心血管", findings: "可能影响心脏。" }],
+        },
+      },
+    } as unknown as SubstanceArticle;
+    const harm = normalizeHarmPotential(article);
+    if (!harm) throw new Error("fixture produced no harm potential");
+
+    const { getByText } = render(
+      <UiLocaleProvider locale="zh-Hans">
+        <ToxicitySubsection toxicity={harm.toxicity} article={article} />
+      </UiLocaleProvider>,
+    );
+
+    expect(getByText("心血管").previousElementSibling).toHaveAttribute(
+      "data-icon",
+      "icon-park-outline:heart",
+    );
   });
 });

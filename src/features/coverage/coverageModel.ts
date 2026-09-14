@@ -39,7 +39,7 @@ export const COVERAGE_SECTION_IDS = [
   "legality",
 ] as const satisfies readonly SubstanceSectionId[];
 
-export type CoverageSectionId = (typeof COVERAGE_SECTION_IDS)[number];
+type CoverageSectionId = (typeof COVERAGE_SECTION_IDS)[number];
 
 /** Column header abbreviations. The full label stays available as a tooltip. */
 const COVERAGE_SECTION_SHORT_LABELS: Record<CoverageSectionId, string> = {
@@ -139,7 +139,7 @@ export function roaHollowCount(roa: CoverageRoaCounts): number {
  * is not always rendered). Deriving a verdict from `emptyCount` would quietly
  * drift from the banner.
  */
-export interface CoverageStubState {
+interface CoverageStubState {
   isStub: boolean;
   reasons: ArticleStubReason[];
 }
@@ -314,7 +314,7 @@ function tallyRoutes<T extends { route?: string | null }>(
   }
 }
 
-export function getRoaCounts(article: SubstanceArticle): CoverageRoaCounts {
+function getRoaCounts(article: SubstanceArticle): CoverageRoaCounts {
   const byRoute = new Map<string, RouteTally>();
   tallyRoutes(article.dosage?.routes, routeHasDosageContent, "dosage", byRoute);
   tallyRoutes(
@@ -398,7 +398,7 @@ export function buildCoverageRows(
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
-export interface CoverageColumnTotals {
+interface CoverageColumnTotals {
   filled: number;
   empty: number;
   cited: number;
@@ -406,14 +406,10 @@ export interface CoverageColumnTotals {
   unattempted: number;
 }
 
-export interface CoverageRoaTotals {
-  /** Routes across the corpus. */
+interface CoverageRoaTotals {
   total: number;
-  /** Routes that render nothing on either side. */
   blank: number;
-  /** Routes that render, but carry an empty table on one side. */
   partial: number;
-  /** Articles carrying at least one empty route table. */
   articlesWithHollow: number;
 }
 

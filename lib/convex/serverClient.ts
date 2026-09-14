@@ -5,7 +5,6 @@ import { makeFunctionReference } from "convex/server";
 import { getDataBackend, getPostgresConvexClient } from "../postgres/runtime/backend";
 import type { PostgresConvexClient } from "../postgres/runtime/client";
 import { getPublicServerReadTarget } from "./runtimeTargets";
-import { getServerConvexWriteCapabilityOrThrow } from "./serverWriteCapability";
 
 type QueryArgs = Record<string, unknown>;
 const QUERY_RETRY_DELAYS_MS = [250, 750, 1500] as const;
@@ -35,9 +34,7 @@ export function getServerConvexReadClient(): ServerReadClient {
   return cachedReadClient;
 }
 
-export function getServerConvexWriteClient() {
-  return getServerConvexWriteCapabilityOrThrow().client;
-}
+
 
 function isRetryableQueryError(error: unknown): boolean {
   if (!(error instanceof Error)) {

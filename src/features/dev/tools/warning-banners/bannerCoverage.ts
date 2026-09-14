@@ -4,12 +4,12 @@ import {
   type WarningBannerTone,
 } from "@/data/substanceWarningBanners";
 
-export type ToneCoverage = {
+type ToneCoverage = {
   /** Substances a live preset of this tone names on its list. */
   listed: ReadonlySet<string>;
   /** Live presets of this tone that reach every substance article. */
   sitewide: number;
-};
+}
 
 /**
  * The rollout readout, split the way an editor asks about it: which tone

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
 export type DevNoticeStatus = "pending" | "success" | "error";
-export type DevNoticeSeverity = "info" | "success" | "warning" | "danger";
+type DevNoticeSeverity = "info" | "success" | "warning" | "danger"
 
 export type DevNoticeChannel = string;
 export type DevNoticeOperationId = string | number;
@@ -63,7 +63,7 @@ export type DevNoticeEvent =
 
 export type DevNoticeState = Record<DevNoticeChannel, DevNotice | null>;
 
-export const DEFAULT_DEV_NOTICE_CHANNEL = "default";
+const DEFAULT_DEV_NOTICE_CHANNEL = "default"
 
 const getSeverity = (status: DevNoticeStatus, severity?: DevNoticeSeverity): DevNoticeSeverity => {
   if (severity) {
@@ -85,7 +85,7 @@ const getSticky = (status: DevNoticeStatus, sticky?: boolean, autoClearMs?: numb
   return status === "error" && autoClearMs == null;
 };
 
-export const createDevNotice = (input: DevNoticePublishInput): DevNotice => {
+const createDevNotice = (input: DevNoticePublishInput): DevNotice => {
   const channel = input.channel ?? DEFAULT_DEV_NOTICE_CHANNEL;
   const autoClearMs = input.autoClearMs ?? null;
 
@@ -102,7 +102,7 @@ export const createDevNotice = (input: DevNoticePublishInput): DevNotice => {
     actionHref: input.actionHref,
     actionLabel: input.actionLabel,
   };
-};
+}
 
 const matchesClearTarget = (
   notice: DevNotice | null | undefined,
@@ -221,80 +221,78 @@ export const getDevNoticeRenderProps = (
   };
 };
 
-export function useDevNoticeChannels(initialState: DevNoticeState = {}) {
-  const [notices, dispatch] = useReducer(devNoticeReducer, initialState);
-  const timeoutRefs = useRef<Record<DevNoticeChannel, number | null>>({});
-  const timeoutKeys = useRef<Record<DevNoticeChannel, string | null>>({});
+function useDevNoticeChannels(initialState: DevNoticeState = {}) { const [notices, dispatch] = useReducer(devNoticeReducer, initialState);
+const timeoutRefs = useRef<Record<DevNoticeChannel, number | null>>({});
+const timeoutKeys = useRef<Record<DevNoticeChannel, string | null>>({});
 
-  const clearTimer = useCallback((channel: DevNoticeChannel) => {
-    const timeoutId = timeoutRefs.current[channel];
-    if (timeoutId !== null && timeoutId !== undefined && typeof window !== "undefined") {
-      window.clearTimeout(timeoutId);
-    }
-    timeoutRefs.current[channel] = null;
-    timeoutKeys.current[channel] = null;
-  }, []);
+const clearTimer = useCallback((channel: DevNoticeChannel) => {
+  const timeoutId = timeoutRefs.current[channel];
+  if (timeoutId !== null && timeoutId !== undefined && typeof window !== "undefined") {
+    window.clearTimeout(timeoutId);
+  }
+  timeoutRefs.current[channel] = null;
+  timeoutKeys.current[channel] = null;
+}, []);
 
-  useEffect(() => {
-    Object.entries(notices).forEach(([channel, notice]) => {
-      if (!notice) {
-        clearTimer(channel);
-        return;
-      }
-      const timerKey = `${notice.operationId ?? ""}:${notice.status}:${notice.message}:${notice.autoClearMs ?? ""}`;
-      if (timeoutKeys.current[notice.channel] === timerKey) {
-        return;
-      }
-      clearTimer(notice.channel);
-      if (notice.autoClearMs != null && notice.autoClearMs > 0 && typeof window !== "undefined") {
-        timeoutKeys.current[notice.channel] = timerKey;
-        timeoutRefs.current[notice.channel] = window.setTimeout(() => {
-          dispatch({
-            type: "autoClear",
-            channel: notice.channel,
-            operationId: notice.operationId,
-          });
-          timeoutRefs.current[notice.channel] = null;
-          timeoutKeys.current[notice.channel] = null;
-        }, notice.autoClearMs);
-      }
-    });
-  }, [clearTimer, notices]);
-
-  useEffect(
-    () => () => {
-      Object.keys(timeoutRefs.current).forEach(clearTimer);
-    },
-    [clearTimer],
-  );
-
-  const publish = useCallback((notice: DevNoticePublishInput) => {
-    dispatch({ type: "publish", notice });
-  }, []);
-
-  const complete = useCallback((event: Extract<DevNoticeEvent, { type: "complete" }>) => {
-    dispatch(event);
-  }, []);
-
-  const clear = useCallback((channel?: DevNoticeChannel, operationId?: DevNoticeOperationId) => {
-    if (channel) {
+useEffect(() => {
+  Object.entries(notices).forEach(([channel, notice]) => {
+    if (!notice) {
       clearTimer(channel);
-    } else {
-      Object.keys(timeoutRefs.current).forEach(clearTimer);
+      return;
     }
-    dispatch({ type: "clear", channel, operationId });
-  }, [clearTimer]);
+    const timerKey = `${notice.operationId ?? ""}:${notice.status}:${notice.message}:${notice.autoClearMs ?? ""}`;
+    if (timeoutKeys.current[notice.channel] === timerKey) {
+      return;
+    }
+    clearTimer(notice.channel);
+    if (notice.autoClearMs != null && notice.autoClearMs > 0 && typeof window !== "undefined") {
+      timeoutKeys.current[notice.channel] = timerKey;
+      timeoutRefs.current[notice.channel] = window.setTimeout(() => {
+        dispatch({
+          type: "autoClear",
+          channel: notice.channel,
+          operationId: notice.operationId,
+        });
+        timeoutRefs.current[notice.channel] = null;
+        timeoutKeys.current[notice.channel] = null;
+      }, notice.autoClearMs);
+    }
+  });
+}, [clearTimer, notices]);
 
-  return useMemo(
-    () => ({
-      notices,
-      publish,
-      complete,
-      clear,
-    }),
-    [clear, complete, notices, publish],
-  );
-}
+useEffect(
+  () => () => {
+    Object.keys(timeoutRefs.current).forEach(clearTimer);
+  },
+  [clearTimer],
+);
+
+const publish = useCallback((notice: DevNoticePublishInput) => {
+  dispatch({ type: "publish", notice });
+}, []);
+
+const complete = useCallback((event: Extract<DevNoticeEvent, { type: "complete" }>) => {
+  dispatch(event);
+}, []);
+
+const clear = useCallback((channel?: DevNoticeChannel, operationId?: DevNoticeOperationId) => {
+  if (channel) {
+    clearTimer(channel);
+  } else {
+    Object.keys(timeoutRefs.current).forEach(clearTimer);
+  }
+  dispatch({ type: "clear", channel, operationId });
+}, [clearTimer]);
+
+return useMemo(
+  () => ({
+    notices,
+    publish,
+    complete,
+    clear,
+  }),
+  [clear, complete, notices, publish],
+); }
 
 export function useDevNoticeChannel(channel: DevNoticeChannel = DEFAULT_DEV_NOTICE_CHANNEL) {
   const { notices, publish, complete, clear } = useDevNoticeChannels({ [channel]: null });

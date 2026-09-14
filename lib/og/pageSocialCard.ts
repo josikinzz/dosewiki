@@ -8,7 +8,11 @@ import {
   PAGE_SOCIAL_CARD_SIZE,
   type PageSocialCardKey,
 } from "../../src/data/mappings/pageSocialCardUrl";
-import type { GalleryCounts } from "../../src/features/effects/gallery/galleryModel";
+import type { GalleryCounts } from "../../src/features/effects/gallery/galleryTypes";
+import {
+  renderTileRows,
+  type TileSpec,
+} from "./pageSocialCardTiles";
 import {
   DOSEWIKI_LOGO_DATA_URI,
   SOCIAL_CARD_CJK_FONT_FAMILY,
@@ -22,12 +26,6 @@ import {
 } from "./socialCardPrimitives";
 
 export const PAGE_SOCIAL_CARD_RENDER_VERSION = "8";
-
-type TileSpec = {
-  labelLines: readonly string[];
-  iconName: string;
-  selected?: boolean;
-};
 
 const SUBSTANCE_TILES: readonly TileSpec[] = [
   { labelLines: ["All"], iconName: "streamline-ultimate:science-molecule-strucutre-bold", selected: true },
@@ -76,77 +74,6 @@ const ABOUT_TILES: readonly TileSpec[] = [
   { labelLines: ["Founders &", "Contributors"], iconName: "lucide:users" },
   { labelLines: ["Contact &", "Feedback"], iconName: "lucide:mail" },
 ];
-
-function renderTile(
-  spec: TileSpec,
-  x: number,
-  y: number,
-  size: number,
-  labelSize: number,
-): string {
-  // Match an app icon: a square art surface with its caption outside.
-  const iconSize = Math.round(
-    size * (spec.labelLines.length > 1 ? 0.52 : 0.58),
-  );
-  const iconX = x + (size - iconSize) / 2;
-  const iconY = y + (size - iconSize) / 2;
-  const labelStartY = y + size + labelSize + 12;
-  const stroke = spec.selected
-    ? SOCIAL_CARD_COLORS.borderSelected
-    : SOCIAL_CARD_COLORS.controlBorder;
-  const surface = spec.selected
-    ? `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-selected-base)" stroke="${stroke}" stroke-width="2"/>
-       <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-selected-highlight)"/>`
-    : `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-control-base)" stroke="${stroke}" stroke-width="2"/>
-       <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="28" fill="url(#page-control-highlight)"/>`;
-
-  return `<g>
-    ${surface}
-    ${renderSocialCardIcon(
-      spec.iconName,
-      iconX,
-      iconY,
-      iconSize,
-      spec.selected ? SOCIAL_CARD_COLORS.accent : SOCIAL_CARD_COLORS.accentMuted,
-    )}
-    ${spec.labelLines
-      .map(
-        (line, index) =>
-          `<text x="${x + size / 2}" y="${labelStartY + index * labelSize * 1.08}" text-anchor="middle" font-family="Blinker" font-size="${labelSize}" font-weight="600" fill="${spec.selected ? SOCIAL_CARD_COLORS.text : SOCIAL_CARD_COLORS.tileLabelMuted}">${escapeSocialCardXml(line)}</text>`,
-      )
-      .join("\n")}
-  </g>`;
-}
-
-function renderTileRows(
-  rows: readonly (readonly TileSpec[])[],
-  options: {
-    top: number;
-    tileWidth: number;
-    tileHeight: number;
-    columnGap: number;
-    rowGap: number;
-    labelSize: number;
-  },
-): string {
-  return rows
-    .flatMap((row, rowIndex) => {
-      const rowWidth =
-        row.length * options.tileWidth + (row.length - 1) * options.columnGap;
-      const left = (PAGE_SOCIAL_CARD_SIZE - rowWidth) / 2;
-      return row.map((tile, columnIndex) =>
-        renderTile(
-          tile,
-          left + columnIndex * (options.tileWidth + options.columnGap),
-          options.top + rowIndex * (options.tileHeight + options.rowGap),
-          options.tileWidth,
-          options.labelSize,
-        ),
-      );
-    })
-    .join("\n");
-}
-
 
 function renderIconTitleRow(
   title: string,
@@ -495,6 +422,35 @@ async function renderChinaCard(): Promise<Buffer> {
   );
 }
 
+async function renderLanguagesCard(): Promise<Buffer> {
+  const languages = [
+    ["cn", "Chinese"],
+    ["nl", "Dutch"],
+    ["pl", "Polish"],
+    ["cz", "Czech"],
+    ["fr", "French"],
+    ["de", "German"],
+  ] as const;
+  const flags = await Promise.all(languages.map(async ([code, label], index) => {
+    const svg = await readFile(path.join(process.cwd(), `public/flags/${code}.svg`));
+    const x = 330 + (index % 3) * 270;
+    const y = 430 + Math.floor(index / 3) * 220;
+    return `<image href="data:image/svg+xml;base64,${svg.toString("base64")}" x="${x - 62}" y="${y - 62}" width="124" height="124"/>
+      <text x="${x}" y="${y + 108}" text-anchor="middle" font-family="Blinker" font-size="34" fill="${SOCIAL_CARD_COLORS.text}">${label}</text>`;
+  }));
+  const placeholders = [465, 600, 735].map((x) =>
+    `<circle cx="${x}" cy="904" r="40" fill="none" stroke="${SOCIAL_CARD_COLORS.textFaint}" stroke-width="3" stroke-dasharray="8 9"/>`,
+  ).join("");
+
+  return renderSocialCardSvgPng(cardSvg(`
+    <text x="600" y="265" text-anchor="middle" font-family="Blinker" font-size="104" font-weight="600" letter-spacing="-1.5" fill="${SOCIAL_CARD_COLORS.accentStrong}">Languages</text>
+    ${flags.join("")}
+    ${placeholders}
+    <text x="600" y="1010" text-anchor="middle" font-family="Blinker" font-size="32" fill="${SOCIAL_CARD_COLORS.textMuted}">More languages to come</text>
+    <text x="600" y="1110" text-anchor="middle" font-family="Blinker" font-size="30" fill="${SOCIAL_CARD_COLORS.textFaint}">dose.wiki/languages/</text>
+  `));
+}
+
 export async function renderPageSocialCardPng(
   key: PageSocialCardKey,
   replicationCounts?: GalleryCounts,
@@ -517,5 +473,7 @@ export async function renderPageSocialCardPng(
       return renderAboutCard();
     case "china":
       return await renderChinaCard();
+    case "languages":
+      return await renderLanguagesCard();
   }
 }

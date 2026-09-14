@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { makeFunctionReference } from "convex/server";
 
 import {
-  buildConvexTripReportImportPayload,
   createTripReportSubmission,
   validateTripReportSubmission,
   type ConvexTripReportImportPayload,
@@ -284,11 +283,6 @@ export class ConvexTripReportSubmissionStore implements TripReportSubmissionStor
   }
 }
 
-export function buildLocalTripReportPromotionPayload(
-  row: TripReportSubmissionRow,
-): ConvexTripReportImportPayload {
-  return buildConvexTripReportImportPayload(row);
-}
 
 function clampLimit(limit: number | undefined): number {
   return Math.max(1, Math.min(limit ?? 100, 250));

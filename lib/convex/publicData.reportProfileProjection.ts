@@ -85,32 +85,6 @@ const resolveAuthorAvatarUrl = (
   matchedProfile: NormalizedUserProfile | null,
 ) => reportAvatarUrl ?? matchedProfile?.avatarUrl ?? null;
 
-const trimReportExcerpt = (value: string | null | undefined, maxLength = 170) => {
-  const normalized = (value ?? "").replace(/\s+/g, " ").trim();
-
-  if (normalized.length <= maxLength) {
-    return normalized;
-  }
-
-  return `${normalized.slice(0, maxLength).trimEnd()}…`;
-};
-
-const getReportNarrativeText = (report: TripReportRecord): string => {
-  const timelineText = [
-    ...(report.onset ?? []),
-    ...(report.peak ?? []),
-    ...(report.offset ?? []),
-  ].map((entry) => entry.description);
-
-  return [
-    report.introduction,
-    ...timelineText,
-    report.conclusion,
-  ]
-    .map((value) => value?.trim())
-    .filter((value): value is string => Boolean(value))
-    .join(" ");
-};
 
 const compareFeaturedTitle = (
   left: { featured?: boolean; title: string },
@@ -126,13 +100,13 @@ const compareFeaturedTitle = (
   return left.title.localeCompare(right.title);
 };
 
-export const sortPublicReportPreviews = (
+const sortPublicReportPreviews = (
   reports: readonly PublicReportPreview[],
-): PublicReportPreview[] => [...reports].sort(compareFeaturedTitle);
+): PublicReportPreview[] => [...reports].sort(compareFeaturedTitle)
 
-export const sortTripReportDetails = <T extends TripReportRecord | TripReportDetailRecord>(
+const sortTripReportDetails = <T extends TripReportRecord | TripReportDetailRecord>(
   reports: readonly T[],
-): T[] => [...reports].sort(compareFeaturedTitle);
+): T[] => [...reports].sort(compareFeaturedTitle)
 
 export const projectPublicReportPreview = (
   report: TripReportRecord,
@@ -142,7 +116,6 @@ export const projectPublicReportPreview = (
   const matchedProfile = resolveAttributedProfile(report, profiles);
 
   return toPublicReportPreview(report, {
-    introduction: trimReportExcerpt(getReportNarrativeText(report)),
     authorAvatarUrl: resolveAuthorAvatarUrl(report.subject.avatar_url, matchedProfile),
     authorProfileKey: matchedProfile?.key ?? options.fallbackAuthorProfileKey,
   });
@@ -157,14 +130,16 @@ export const projectPublicReportPreviews = (
   return options.sort === false ? projected : sortPublicReportPreviews(projected);
 };
 
-export const projectPublicReportDetail = <T extends TripReportRecord | TripReportDetailRecord>(
-  report: T,
+export const projectPublicReportDetail = (
+  report: TripReportDetailRecord,
   profiles: readonly NormalizedUserProfile[],
-): T => {
+): TripReportDetailRecord => {
   const matchedProfile = resolveAttributedProfile(report, profiles);
-  const publicReport = { ...report, attribution_locked: report.attribution_locked || !!report.attribution_review };
-  delete (publicReport as T & { owner_email?: string }).owner_email;
-  delete publicReport.attribution_review;
+  const { attribution_review, ...publicFields } = report;
+  const publicReport: TripReportDetailRecord = {
+    ...publicFields,
+    attribution_locked: report.attribution_locked || !!attribution_review,
+  };
 
   if (!matchedProfile) {
     return publicReport;
@@ -180,11 +155,11 @@ export const projectPublicReportDetail = <T extends TripReportRecord | TripRepor
   };
 };
 
-export const projectPublicReportDetails = <T extends TripReportRecord | TripReportDetailRecord>(
-  reports: readonly T[],
+export const projectPublicReportDetails = (
+  reports: readonly TripReportDetailRecord[],
   profiles: readonly NormalizedUserProfile[],
   options: { sort?: boolean } = {},
-): T[] => {
+): TripReportDetailRecord[] => {
   const projected = reports.map((report) => projectPublicReportDetail(report, profiles));
   return options.sort === false ? projected : sortTripReportDetails(projected);
 };

@@ -54,7 +54,7 @@ const ID_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
  * tag and resolve through the id map loaded from `documentIds`.
  */
 const TABLE_TAGS = new Map<string, TableName>();
-export function tableTag(table: TableName): string {
+function tableTag(table: TableName): string {
   return createHash("sha1").update(table).digest("hex").replace(/[^a-z0-9]/g, "").slice(0, 4);
 }
 for (const table of tableNames) {
@@ -320,7 +320,7 @@ function boundToSql(table: TableName, bound: Bound, out: Fetch): void {
 // ---------------------------------------------------------------------------
 
 type Order = "asc" | "desc";
-export type PaginationResult = { page: Doc[]; isDone: boolean; continueCursor: string };
+type PaginationResult = { page: Doc[]; isDone: boolean; continueCursor: string };
 
 class Query implements AsyncIterable<Doc> {
   private orderDirection: Order = "asc";

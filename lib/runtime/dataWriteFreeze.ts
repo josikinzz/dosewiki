@@ -21,7 +21,7 @@
  * refusal by code instead of by message text. Reads are never gated here.
  */
 
-export const DATA_WRITES_FROZEN_ENV_VAR = "DATA_WRITES_FROZEN";
+const DATA_WRITES_FROZEN_ENV_VAR = "DATA_WRITES_FROZEN"
 
 /** Machine-readable refusal code; asserted by the release rehearsal and the runbook. */
 export const DATA_WRITES_FROZEN_CODE = "DATA_WRITES_FROZEN";

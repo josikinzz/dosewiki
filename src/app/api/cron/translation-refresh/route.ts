@@ -85,7 +85,10 @@ async function refreshDueArticles(apiKey: string): Promise<TranslationRefreshRun
         }
         const outcome = await refreshRecordTranslations({ ...record, slug }, await contextFor(job.locale), kind, apiKey);
         if (outcome.stored > 0) {
-          await publishPublicCache({ targets: [{ kind, slug }], source: "manual" });
+          const targets = kind === "profile"
+            ? [{ kind: "contributor" as const, slug }, { kind: "about" as const }]
+            : [{ kind, slug }];
+          await publishPublicCache({ targets, source: "manual" });
         }
         await completeTranslationJob(job);
         run.completed += 1;

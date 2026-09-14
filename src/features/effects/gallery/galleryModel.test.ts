@@ -5,29 +5,35 @@ import type {
   ReplicationDateKind,
 } from '@/types/replications';
 import {
-  ARTIST_VIEW_WITHHELD_EFFECT_SLUGS,
-  artistIdentity,
-  artistUrlKey,
   countGallery,
-  galleryGroupUrlKey,
   groupByArtist,
   groupByEffect,
   groupByYear,
+  splitRailsAndPool,
+  UNDATED_YEAR_LABEL,
+} from './galleryModel';
+import {
+  ARTIST_VIEW_WITHHELD_EFFECT_SLUGS,
+  artistIdentity,
+  artistUrlKey,
+  galleryGroupUrlKey,
   isWithheldFromArtistViews,
+  UNATTRIBUTED_KEY,
+  UNKNOWN_ARTIST_URL_KEY,
+} from './galleryArtistIdentity';
+import {
   matchesQuery,
   matchesTaxonomyFilters,
   matchesYear,
   matchesType,
-  splitRailsAndPool,
+} from './galleryFilters';
+import {
   sortWithinGroup,
   sortWorksByDate,
   workDateMs,
-  UNATTRIBUTED_KEY,
-  UNATTRIBUTED_LABEL,
-  UNDATED_YEAR_LABEL,
-  UNKNOWN_ARTIST_URL_KEY,
-  type GalleryTypeFilter,
-} from './galleryModel';
+} from './galleryOrdering';
+import type { GalleryTypeFilter } from './galleryTypes';
+import { UNATTRIBUTED_LABEL } from '@/features/replications/replicationVocabulary';
 
 let seq = 0;
 function dateInfo(kind: ReplicationDateKind, value: string | null): ReplicationDateInfo {

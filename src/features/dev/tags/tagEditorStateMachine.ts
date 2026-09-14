@@ -16,11 +16,10 @@ import {
 import type { SubstanceArticle } from "@/schema";
 import type { Notice, NoticeSource, SelectedTag, TagUndo } from "./types";
 
-export type TagEditorEffect =
-  | { kind: "tagMutation"; id: number; mutation: TagMutation }
-  | { kind: "undoMutation"; id: number; undo: TagUndo }
-  | { kind: "copyDiff"; id: number }
-  | { kind: "downloadDiff"; id: number };
+type TagEditorEffect = | { kind: "tagMutation"; id: number; mutation: TagMutation }
+| { kind: "undoMutation"; id: number; undo: TagUndo }
+| { kind: "copyDiff"; id: number }
+| { kind: "downloadDiff"; id: number }
 
 type TagEditorEffectRequest =
   | { kind: "tagMutation"; mutation: TagMutation }
@@ -75,14 +74,14 @@ export type TagEditorEvent =
   | { type: "undoFailed"; effectId: number; message: string }
   | { type: "articlesChanged"; registry: TagRegistry };
 
-export const getDefaultTargetField = (source: TagField): TagField => {
+const getDefaultTargetField = (source: TagField): TagField => {
   for (const candidate of TAG_FIELDS) {
     if (candidate !== source) {
       return candidate;
     }
   }
   return source;
-};
+}
 
 export const createTagEditorState = (articles: SubstanceArticle[]): TagEditorState => {
   const registry = buildTagRegistry(articles);
@@ -249,7 +248,7 @@ const submitMutation = (
 export const articleCount = (count: number): string => `${count} article${count === 1 ? "" : "s"}`;
 
 /** The verb the notice and the Undo record share, e.g. "Rename". */
-export const mutationActionName = (mutation: TagMutation): string => {
+const mutationActionName = (mutation: TagMutation): string => {
   switch (mutation.type) {
     case "rename":
       return "Rename";
@@ -258,10 +257,10 @@ export const mutationActionName = (mutation: TagMutation): string => {
     case "delete":
       return "Delete";
   }
-};
+}
 
 /** Names exactly what changed, so the notice is a record and not a toast. */
-export const describeMutation = (mutation: TagMutation, affectedCount: number): string => {
+const describeMutation = (mutation: TagMutation, affectedCount: number): string => {
   const count = articleCount(affectedCount);
   switch (mutation.type) {
     case "rename":
@@ -276,7 +275,7 @@ export const describeMutation = (mutation: TagMutation, affectedCount: number): 
     case "delete":
       return `Deleted "${mutation.tag}" from ${count}.`;
   }
-};
+}
 
 export const tagEditorReducer = (
   state: TagEditorState,

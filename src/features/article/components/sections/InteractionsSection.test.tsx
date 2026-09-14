@@ -42,6 +42,27 @@ describe("interaction section characterization", () => {
     ).toHaveAttribute("aria-controls", "interaction-maois-dangerous");
   });
 
+  it("keeps translated full-width rationale delimiters behind the interaction pill", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "Translated Interactions",
+      interactions: {
+        dangerous: ["酒精（该组合会增强中枢神经系统抑制。）"],
+        unsafe: [],
+        caution: [],
+      },
+    };
+
+    render(<InteractionsSection article={article} />);
+
+    expect(screen.getByText("酒精")).toBeInTheDocument();
+    expect(screen.queryByText(/该组合会增强/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {
+      name: "Expand 酒精 interaction rationale",
+    }));
+    expect(screen.getByText("该组合会增强中枢神经系统抑制。")).toBeInTheDocument();
+  });
+
   it("links only interaction substances with canonical public articles", () => {
     const article = {
       ...createEmptyArticle(),

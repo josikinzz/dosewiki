@@ -11,6 +11,11 @@ import {
 
 const { publicData, publicLibrary } = getRouteLoaderMocks();
 
+const localizedRecords = vi.hoisted(() => ({
+  getLocalizedPublicEffectArticles: vi.fn(),
+}));
+vi.mock("@server/translation/localizedRecords", () => localizedRecords);
+
 describe("taxonomy route loaders", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -116,6 +121,34 @@ describe("taxonomy route loaders", () => {
       family: "category",
       params: { categoryKey: "psychedelic" },
     });
+  });
+
+  it("loads localized effect summaries for a locale category route", async () => {
+    publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce({
+      definition: { name: "Psychedelics" },
+      total: 12,
+    });
+    localizedRecords.getLocalizedPublicEffectArticles.mockResolvedValueOnce([
+      { slug: "euphoria", name: "欣快", summary: "强烈的幸福感。" },
+    ]);
+
+    const result = await loadCategoryRoute("psychedelic", {
+      code: "zh-Hans",
+      pathPrefix: "/zh",
+      htmlLang: "zh-Hans",
+    });
+
+    expect(result.kind).toBe("ok");
+    if (result.kind !== "ok") {
+      throw new Error("expected ok result");
+    }
+    expect(result.effects).toEqual([
+      { slug: "euphoria", name: "欣快", summary: "强烈的幸福感。" },
+    ]);
+    expect(localizedRecords.getLocalizedPublicEffectArticles).toHaveBeenCalledWith(
+      "zh-Hans",
+    );
+    expect(publicData.getPublicEffectArticles).not.toHaveBeenCalled();
   });
 
   it("redirects known category aliases without loading effects", async () => {

@@ -2,11 +2,8 @@
 
 import { Icon } from "@/components/common/Icon";
 import { useT } from "@/i18n/client";
-import { msg } from "@/i18n/messages";
 import { cn } from "@/lib/utils";
-
-/** Translate at render with `t(APPROVED_REPLICATOR_LABEL)`. */
-export const APPROVED_REPLICATOR_LABEL = msg("Approved replicator");
+import { APPROVED_REPLICATOR_LABEL } from "../replicationVocabulary";
 
 /**
  * The mark beside an approved replicator's name on the /replications index: a

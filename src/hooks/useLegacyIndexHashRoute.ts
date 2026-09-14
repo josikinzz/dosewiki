@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { dismissPrePaintRouteStateCover } from "@/components/common/PrePaintRouteStateCover";
-import { replaceCurrentIndexViewPath } from "@/utils/indexViewRoutes";
+import { replaceCurrentIndexViewPath } from "@/utils/navigation";
 
 export type LegacyIndexHashResolution<T extends string> =
   | { view: T; pathname: string }

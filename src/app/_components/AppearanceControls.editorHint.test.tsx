@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type * as SiteFlavorModule from "@/config/siteFlavor";
 
 import { ThemeProvider } from "@/context/ThemeContext";
 import {
@@ -17,6 +18,16 @@ import {
 } from "@/lib/auth/editorHint";
 import type { AppRole } from "@/lib/auth/roles";
 import { AppearanceControls } from "./AppearanceControls";
+
+vi.mock("@/config/siteFlavor", async (importOriginal) => {
+  const actual = await importOriginal<typeof SiteFlavorModule>();
+  return {
+    ...actual,
+    SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
+    isEffectIndex: (config = actual.SITE_FLAVOR_CONFIGS.dosewiki) =>
+      actual.isEffectIndex(config),
+  };
+});
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-testid="icon">{icon}</span>,

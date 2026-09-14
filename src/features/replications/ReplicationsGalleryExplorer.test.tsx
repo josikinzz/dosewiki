@@ -22,7 +22,7 @@ import type {
   GalleryReplication,
   PublicGalleryReplicationPreview,
 } from "@/types/replications";
-import type { GalleryGroup } from "@/features/effects/gallery/galleryModel";
+import type { GalleryGroup } from "@/features/effects/gallery/galleryTypes";
 import {
   ReplicationsGalleryExplorer,
   type ReplicationsGalleryExplorerProps,
@@ -405,7 +405,8 @@ describe("URL → rendered state", () => {
     await userEvent.click(
       screen.getByRole("button", { name: "Clear filters" }),
     );
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
+    expect(window.location.pathname + window.location.search).toBe("/replications");
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("reproduces a pasted ?view=effect&type=video&sort=oldest state exactly", () => {
@@ -464,7 +465,10 @@ describe("active filter chips", () => {
       }),
     );
 
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?effect=drifting");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?effect=drifting",
+    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("renders no chip row while every filter sits at its default", () => {
@@ -476,19 +480,7 @@ describe("active filter chips", () => {
   });
 });
 
-describe("un-carded gallery chrome", () => {
-  it("renders the section without card chrome, keeping only width and rhythm", () => {
-    renderExplorer("");
-
-    const section = screen.getByRole("region", {
-      name: "Replications gallery",
-    });
-    expect(section.className).toContain("max-w-7xl");
-    // The frosted control bar is now the only elevated element; the section
-    // itself must not read as a card.
-    expect(section.className).not.toMatch(/rounded|border|shadow|bg-/);
-  });
-
+describe("gallery result status", () => {
   it("states a result count only while something narrows the grid", () => {
     const { unmount } = renderExplorer("");
 
@@ -502,7 +494,6 @@ describe("un-carded gallery chrome", () => {
     expect(screen.getByRole("status")).toHaveTextContent("1 of 4 works");
   });
 });
-
 describe("hybrid browse layout", () => {
   it("gives every artist their own rail with no pooled masonry", () => {
     renderExplorer("");
@@ -868,7 +859,10 @@ describe("state → URL", () => {
 
     await chooseFromMenu("Browse by: By artist", "By effect");
 
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?view=effect",
+    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("pushes the media-type filter into the query string", async () => {
@@ -876,7 +870,10 @@ describe("state → URL", () => {
 
     chooseMediaSync("Videos");
 
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect&type=video");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?view=effect&type=video",
+    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("debounces typed search into router.replace, preserving other params", () => {
@@ -896,9 +893,12 @@ describe("state → URL", () => {
       vi.advanceTimersByTime(300);
     });
 
-    // One write for three keystrokes, carrying the final text.
+    // One replacement for three keystrokes, carrying the final text.
     expect(historySpies.replace).toHaveBeenCalledTimes(1);
-    expect(historySpies.replace).toHaveBeenCalledWith(null, "", "/replications?q=drift&type=video");
+    expect(historySpies.push).not.toHaveBeenCalled();
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?q=drift&type=video",
+    );
   });
 
   it("shows a pending spinner only while a query write is in the debounce window", () => {
@@ -1040,7 +1040,10 @@ describe("responsive gallery controls", () => {
     const user = userEvent.setup();
     renderExplorer("");
     await chooseFromMenu("Browse by: By artist", "By effect");
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?view=effect",
+    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
     await user.click(screen.getByRole("button", { name: /Filters/ }));
     expect(
       within(screen.getByRole("dialog")).queryByRole("menuitemradio", {
@@ -1109,7 +1112,10 @@ describe("responsive gallery controls", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("menuitemradio", { name: "Oldest" }));
 
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect&sort=oldest");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?view=effect&sort=oldest",
+    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("offers the artist axis no curated order", async () => {
@@ -1120,7 +1126,10 @@ describe("responsive gallery controls", () => {
 
     expect(screen.queryByRole("menuitemradio", { name: "Curated" })).toBeNull();
     await user.click(screen.getByRole("menuitemradio", { name: "Oldest" }));
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?sort=oldest");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?sort=oldest",
+    );
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -1440,7 +1449,11 @@ describe("complete corpus loading", () => {
       await vi.advanceTimersByTimeAsync(QUERY_WRITE_DELAY_MS_FOR_TEST);
     });
 
-    expect(historySpies.replace).toHaveBeenCalledWith(null, "", "/replications?q=deferred");
+    expect(historySpies.replace).toHaveBeenCalledTimes(1);
+    expect(historySpies.push).not.toHaveBeenCalled();
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?q=deferred",
+    );
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -1493,7 +1506,8 @@ describe("complete corpus loading", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
+    expect(window.location.pathname + window.location.search).toBe("/replications");
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("applies a deferred artist's avatar, profile link, and newest-first order", async () => {
@@ -1660,7 +1674,8 @@ describe("complete corpus loading", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications");
+    expect(window.location.pathname + window.location.search).toBe("/replications");
+    expect(historySpies.push).toHaveBeenCalledTimes(1);
   });
 
   it("runs only the newest pending action after a shared corpus fetch is retried", async () => {
@@ -1692,8 +1707,9 @@ describe("complete corpus loading", () => {
     });
 
     expect(historySpies.push).toHaveBeenCalledTimes(1);
-    expect(historySpies.push).toHaveBeenCalledWith(null, "", "/replications?view=effect");
-    expect(historySpies.push).not.toHaveBeenCalledWith(null, "", "/replications?type=video");
+    expect(window.location.pathname + window.location.search).toBe(
+      "/replications?view=effect",
+    );
   });
 
   it("cancels a pending action when navigation supplies newer browse state", async () => {

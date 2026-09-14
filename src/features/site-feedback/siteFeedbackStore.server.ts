@@ -202,10 +202,6 @@ export async function getSiteFeedbackStore(): Promise<ConvexSiteFeedbackStore> {
   return store;
 }
 
-export function resetSiteFeedbackStoreForTests() {
-  store = null;
-  storeCacheKey = null;
-}
 
 export function getSiteFeedbackIpHashSecret(): string | undefined {
   return (

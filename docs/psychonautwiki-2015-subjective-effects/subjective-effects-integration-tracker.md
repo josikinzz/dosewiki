@@ -1,6 +1,8 @@
 # Subjective Effects Import Tracker
 
 Last updated: 2026-06-18T09:19:45Z
+This is the lossless execution record for the completed 2026-06-18 import. The rules and output contract below describe that historical run; the final state and per-article rows are evidence, not current database-write instructions.
+
 
 ## Tracker Rules
 

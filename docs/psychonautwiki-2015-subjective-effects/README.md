@@ -9,14 +9,16 @@ Scope: local staging only. Source fetches use `web.archive.org` mementos of Psyc
 - [x] Collected eligible archived subjective effects sections through August 31, 2016 only.
 - [x] Verified every collected markdown file has a `## Subjective effects` section and no capture timestamp after `20160831235959`.
 
-## Run todo
+## Recovery run state
+
+The checklist below records the recovery run's state before the completed import documented in [the integration tracker](subjective-effects-integration-tracker.md#final-import-state). It is provenance, not a current instruction to write article data.
 
 - [x] Query live dose.wiki Convex/public data for missing subjective effects (479 missing).
 - [x] Collect archived 2015 subjective effects sections found so far (34).
 - [x] Finish probing missing dose.wiki substances (0 pending).
-- [ ] Review collected files and adapt into dose.wiki schema in a separate write task.
+- [ ] At that point, review collected files and adapt them into the dose.wiki schema in a separate write task.
 
-## Collected article todo
+## Collected article queue at recovery time
 
 - [ ] [2C-B-FLY](articles/2c-b-fly.md) - 20160805080503 UTC
 - [ ] [3-MeO-PCP](articles/3-meo-pcp.md) - 20160803222947 UTC

@@ -331,4 +331,4 @@ export function repairMarkdownShortcodeBody(body) {
   return { body: output, blobs: blobs.length, panels: panelCount };
 }
 
-export const __testables = { findBlobs, splitSections };
+

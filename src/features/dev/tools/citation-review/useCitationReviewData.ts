@@ -11,7 +11,7 @@ import {
 } from "./citationReviewModels";
 
 /** How long the Undo stays offered after a decision lands. */
-export const CITATION_UNDO_WINDOW_MS = 8000;
+const CITATION_UNDO_WINDOW_MS = 8000
 
 class QueueLoadError extends Error {
   readonly failure: CitationReviewQueueLoadFailure;

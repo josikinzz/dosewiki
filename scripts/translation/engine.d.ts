@@ -1,4 +1,4 @@
-import type { TranslationLocale } from "./locales";
+import type { PromptContextKind, TranslationLocale } from "./locales";
 
 export const DEFAULT_MODEL: string;
 export const APP_TITLE: string;
@@ -13,6 +13,8 @@ export type WorkUnit = {
   markup: boolean;
   words: number;
   occurrences: number;
+  /** The surface the text comes from, so the prompt can scope glossary kinds; absent means "any". */
+  contextKind?: PromptContextKind;
 };
 
 export type BatchUsage = { prompt: number; completion: number };
@@ -32,6 +34,10 @@ export function translateBatchWithRetries(input: {
   locale: TranslationLocale;
   /** The approved `term -> target` map, loaded by the caller from Postgres. */
   glossary: Readonly<Record<string, string>>;
+  /** The locale-independent `term -> gloss` map, loaded by the caller from Postgres; printed beside each injected term. */
+  glosses: Readonly<Record<string, string>>;
+  /** `term -> kind` for the approved rows, so the prompt can confine surface-specific kinds to their surface. */
+  kinds: Readonly<Record<string, string>>;
   model: string;
   apiKey: string;
   onUsage?: (usage: BatchUsage, attempt: number) => void;

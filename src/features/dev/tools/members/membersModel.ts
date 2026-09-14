@@ -2,7 +2,7 @@
  * Pure helpers and the HTTP client for the Members tab (`/api/dev/members`).
  */
 
-import type { AppRole } from "@/lib/auth/roles";
+import type { AppRole, ManagedRole } from "@/lib/auth/roles";
 
 export type MemberRow = {
   email: string;
@@ -22,8 +22,6 @@ export type MemberRoster = {
   members: MemberRow[];
 };
 
-export type ManagedRole = "editor" | "contributor";
-
 /**
  * Why a row shows no actions. `admin` rows are seeded and rotated from a
  * workstation; the actor's own row is off limits so an admin cannot lock
@@ -38,7 +36,7 @@ export function memberRowLock(row: MemberRow, self: string): MemberRowLock {
   return row.email === self.trim().toLowerCase() ? "self" : null;
 }
 
-const ROLE_RANK: Record<AppRole, number> = { admin: 0, editor: 1, contributor: 2, viewer: 3 };
+const ROLE_RANK: Record<AppRole, number> = { admin: 0, editor: 1, translator: 2, contributor: 3, viewer: 4 };
 
 /** Admins first, then by role, then by username (email when a row has none). */
 export function sortRoster(rows: readonly MemberRow[]): MemberRow[] {

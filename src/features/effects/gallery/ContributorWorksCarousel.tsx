@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/client";
 import type { GalleryReplication } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
-import { artistUrlKey, isWithheldFromArtistViews } from "./galleryModel";
+import { artistUrlKey, isWithheldFromArtistViews } from "./galleryArtistIdentity";
 import {
   buildGalleryFocusUrl,
   buildReplicationViewerUrl,

@@ -83,7 +83,7 @@ export const SUBSTANCE_INDEX_TAB_ORDER: readonly string[] = [
 export type SubstanceIndexTabGroup = { key: string; name: string; icon: IconName };
 
 /** Umbrella tab ids carry a `super:` prefix; no category key ever does. */
-export const SUBSTANCE_INDEX_SUPER_TAB_PREFIX = "super:";
+const SUBSTANCE_INDEX_SUPER_TAB_PREFIX = "super:"
 
 /** Umbrella tabs with at least one category behind them. */
 export function resolveSubstanceIndexSuperTabs(

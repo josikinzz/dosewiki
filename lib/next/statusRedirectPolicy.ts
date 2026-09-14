@@ -12,10 +12,8 @@ export {
   routeLoadingLabels,
   type LoadingRouteFamily,
   type RouteLoadingDensity,
-  type RouteLoadingLandmark,
   type RouteLoadingSection,
   type RouteLoadingViewModel,
-  type SkeletonBlock,
 } from "./routeLoadingPolicy";
 
 export type LegacyRedirectRoute = "home" | "data" | "interactions" | "legacy-effect" | "legacy-chemical";

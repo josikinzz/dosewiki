@@ -5,7 +5,7 @@
  * and effect names render through the frozen-glossary catalog with English
  * fallbacks.
  */
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { EFFECT_INDEX_DEFAULT_VIEW, effectIndexViewPath } from "@/utils/indexViewRoutes";

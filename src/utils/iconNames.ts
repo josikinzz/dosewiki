@@ -160,4 +160,4 @@ export const icons = {
   shell: "lucide:shell",
 } as const satisfies Record<string, IconName>;
 
-export type IconKey = keyof typeof icons;
+

@@ -18,20 +18,18 @@ import {
 } from "./convex-function-inventory.mjs";
 
 /** Where the app calls Convex from. `src/app/api/**` and `lib/convex/**` included. */
-export const APP_SOURCE_DIRS = ["src", "lib"];
+const APP_SOURCE_DIRS = ["src", "lib"]
 
-export function collectAppCallsitesFromRepo({ repoRoot, knownModules, dirs = APP_SOURCE_DIRS }) {
-  const files = [];
-  for (const dir of dirs) {
-    for (const absolutePath of walkSourceFiles(path.resolve(repoRoot, dir))) {
-      files.push({
-        filePath: path.relative(repoRoot, absolutePath),
-        source: readFileSync(absolutePath, "utf8"),
-      });
-    }
+function collectAppCallsitesFromRepo({ repoRoot, knownModules, dirs = APP_SOURCE_DIRS }) { const files = [];
+for (const dir of dirs) {
+  for (const absolutePath of walkSourceFiles(path.resolve(repoRoot, dir))) {
+    files.push({
+      filePath: path.relative(repoRoot, absolutePath),
+      source: readFileSync(absolutePath, "utf8"),
+    });
   }
-  return collectAppCallsites({ files, knownModules });
 }
+return collectAppCallsites({ files, knownModules }); }
 
 /**
  * The half of the check that needs no deployment and therefore no credential:

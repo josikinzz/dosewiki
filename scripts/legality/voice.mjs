@@ -50,9 +50,9 @@ const ADVISORY_ALTERNATIVES = [
 ];
 
 /** Blocks drafts and repair proposals. */
-export const VOICE_PATTERN = new RegExp(ALTERNATIVES.join("|"), "i");
+const VOICE_PATTERN = new RegExp(ALTERNATIVES.join("|"), "i");
 /** Broad audit pattern: blocking phrases plus advisory ones. */
-export const VOICE_AUDIT_PATTERN = new RegExp([...ALTERNATIVES, ...ADVISORY_ALTERNATIVES].join("|"), "i");
+const VOICE_AUDIT_PATTERN = new RegExp([...ALTERNATIVES, ...ADVISORY_ALTERNATIVES].join("|"), "i");
 
 /** `status` is a short display label; only machine tokens count against it. */
 const STATUS_PATTERN = /\b[a-z]+_[a-z]+(_[a-z]+)*\b/i;

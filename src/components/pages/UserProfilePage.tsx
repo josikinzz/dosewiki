@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { t } from "@/i18n/server";
 import {
   ContributorAvatar,
   IconPillLink,
@@ -83,7 +84,7 @@ export function UserProfilePage({
   // Legacy Effect Index contributor title. It shares the muted handle line
   // rather than getting its own badge, so an absent role leaves the header
   // byte-for-byte as it was before roles existed.
-  const role = profile.role?.trim() ?? "";
+  const role = t(profile.role?.trim() ?? "");
 
   return (
     <PublicContentShell focusTarget className="pb-24 pt-10 md:pt-14">
@@ -126,10 +127,10 @@ export function UserProfilePage({
                   utility layer, so it is undone per-span — children only
                   inherit it, and their own declarations always win. */}
               <span className="text-[0.8125rem] font-semibold normal-case tracking-normal">
-                Archival profile
+                {t("Archival profile")}
               </span>
               <span className="theme-text-secondary text-[0.8125rem] font-normal normal-case tracking-normal">
-                — maintained by staff, not created by this person.
+                {t("maintained by staff, not created by this person.")}
               </span>
             </PublicPill>
           ) : null}
@@ -140,7 +141,7 @@ export function UserProfilePage({
               icon="lucide:badge-check"
               data-testid="verified-replicator-badge"
             >
-              Verified replicator
+              {t("Verified replicator")}
             </PublicPill>
           ) : null}
 
@@ -168,7 +169,7 @@ export function UserProfilePage({
         <div className="mt-12 space-y-10 sm:mt-14 sm:space-y-12">
           {hasBio ? (
             <section className="space-y-5">
-              <PublicSectionHeading icon="lucide:user" title="About" />
+              <PublicSectionHeading icon="lucide:user" title={t("About")} />
 
               <div className="relative max-w-[72ch] px-1 sm:px-4 sm:py-1">
                 {bioContent}
@@ -183,7 +184,7 @@ export function UserProfilePage({
               bubble, minus the collapse (a staff note is short by design). */}
           {editorNote ? (
             <section className="space-y-5" data-testid="editor-note">
-              <PublicSectionHeading icon="lucide:message-circle" title="Editor's note" />
+              <PublicSectionHeading icon="lucide:message-circle" title={t("Editor's note")} />
 
               <div className="max-w-[72ch] px-1 sm:px-4">
                 <div className="theme-profile-markdown-quote relative rounded-2xl px-5 py-4 italic sm:px-6">
@@ -261,8 +262,8 @@ export function UserProfilePage({
           <StateCard
             tone="neutral"
             icon={icons.fileSignature}
-            title="No public contributions yet"
-            description={`${profile.displayName} doesn't have a bio or published work on the wiki yet. Check back once they've added a profile or contributed an article or trip report.`}
+            title={t("No public contributions yet")}
+            description={t("{{name}} doesn't have a bio or published work on the wiki yet. Check back once they've added a profile or contributed an article or trip report.", { name: profile.displayName })}
           />
         </div>
       )}

@@ -15,15 +15,11 @@
 import { readFileSync, existsSync } from "fs";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
-import {
-  assertDataOpsWriteAllowed,
-  batchAndApplyMutations,
-  createDataOpsRunContext,
-  printDataOpsRunContext,
-  requireTargetUrl,
-  writeAuditLog,
-  updateAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+batchAndApplyMutations,
+createDataOpsRunContext,
+printDataOpsRunContext,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { writeAuditLog, updateAuditLog } from "../lib/data-ops-audit.mjs"
 
 // Configuration
 const DEFAULT_REPORTS_PATH = "./reports.json";

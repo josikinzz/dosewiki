@@ -8,7 +8,6 @@
 import {
   createContext,
   useContext,
-  useMemo,
   type ReactNode,
 } from "react";
 import type { SubstanceArticle } from "../schema";
@@ -128,46 +127,4 @@ export function useLibrary(): EditorLibraryData {
   return context;
 }
 
-/**
- * Hook to access just the articles array.
- */
-export function useArticles(): SubstanceArticle[] {
-  const library = useLibrary();
-  return library.articles;
-}
 
-/**
- * Hook to access substance records.
- */
-export function useSubstanceRecords(): SubstanceRecord[] {
-  const library = useLibrary();
-  return library.substanceRecords;
-}
-
-/**
- * Hook to access the substance-by-slug map.
- */
-export function useSubstanceBySlug(): Map<string, SubstanceRecord> {
-  const library = useLibrary();
-  return library.substanceBySlug;
-}
-
-/**
- * Hook to get a specific substance by slug.
- */
-export function useSubstance(slug: string | undefined): SubstanceRecord | null {
-  const substanceBySlug = useSubstanceBySlug();
-  return useMemo(() => {
-    if (!slug) return null;
-    return substanceBySlug.get(slug) ?? null;
-  }, [substanceBySlug, slug]);
-}
-
-/**
- * Hook to check if library data is available.
- * Returns true if inside SubstanceIndexProvider with data.
- */
-export function useLibraryReady(): boolean {
-  const context = useContext(SubstanceIndexContext);
-  return context !== null;
-}

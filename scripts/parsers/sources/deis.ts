@@ -15,7 +15,7 @@ import {
 } from "../base";
 import { getParseableSourceDescriptor } from "../source-identity";
 
-export class DEISParser implements SourceParser {
+class DEISParser implements SourceParser {
   source = getParseableSourceDescriptor("disregardeverythingisay");
   sourceId = this.source.id;
 

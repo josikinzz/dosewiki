@@ -250,30 +250,28 @@ function finalizeReferenceCanonicalization(state) {
   state.evidence = applyReferenceRemapToEvidenceRows(state.evidence, remap);
 }
 
-export function firstSourceSnippet(articleSources, sectionKey) {
-  const config = getFormalCitationSectionConfig(sectionKey);
-  const contents = articleSources?.contents ?? {};
-  const sources = articleSources?.sources ?? [];
-  const needles = config.sourceNeedles.map((needle) => needle.toLowerCase());
-  for (const source of sources) {
-    const content = contents[source.id];
-    if (typeof content !== "string" || !content.trim()) continue;
-    const lower = content.toLowerCase();
-    const index = needles.reduce((best, needle) => {
-      const found = lower.indexOf(needle);
-      if (found === -1) return best;
-      if (best === -1) return found;
-      return Math.min(best, found);
-    }, -1);
-    const start = index >= 0 ? Math.max(0, index - 120) : 0;
-    return {
-      sourceName: source.displayName || source.id,
-      sourceId: source.id,
-      snippet: content.slice(start, start + 420).replace(/\s+/g, " ").trim(),
-    };
-  }
-  return null;
+function firstSourceSnippet(articleSources, sectionKey) { const config = getFormalCitationSectionConfig(sectionKey);
+const contents = articleSources?.contents ?? {};
+const sources = articleSources?.sources ?? [];
+const needles = config.sourceNeedles.map((needle) => needle.toLowerCase());
+for (const source of sources) {
+  const content = contents[source.id];
+  if (typeof content !== "string" || !content.trim()) continue;
+  const lower = content.toLowerCase();
+  const index = needles.reduce((best, needle) => {
+    const found = lower.indexOf(needle);
+    if (found === -1) return best;
+    if (best === -1) return found;
+    return Math.min(best, found);
+  }, -1);
+  const start = index >= 0 ? Math.max(0, index - 120) : 0;
+  return {
+    sourceName: source.displayName || source.id,
+    sourceId: source.id,
+    snippet: content.slice(start, start + 420).replace(/\s+/g, " ").trim(),
+  };
 }
+return null; }
 
 function referenceForSource(references, sourceName) {
   const normalizedSourceName = String(sourceName ?? "").trim().toLowerCase();

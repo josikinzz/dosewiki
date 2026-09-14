@@ -27,7 +27,7 @@
  */
 import { slugify } from "../../utils/slug";
 
-export type ManualSectionLinkType = "chemicalClass" | "psychoactiveClass" | "mechanism";
+type ManualSectionLinkType = "chemicalClass" | "psychoactiveClass" | "mechanism";
 
 export interface ManualSectionLink {
   type: ManualSectionLinkType;
@@ -42,7 +42,7 @@ export interface ManualCategorySection {
   drugs: string[];
 }
 
-export type ColumnAssignments = Record<string, number>;
+type ColumnAssignments = Record<string, number>;
 
 export interface ManualCategoryDefinition {
   key: string;
@@ -56,23 +56,6 @@ export interface ManualCategoryDefinition {
   sections: ManualCategorySection[];
 }
 
-/** Get the column assignment for a specific column count with fallback logic */
-export const getColumnForCount = (
-  category: ManualCategoryDefinition,
-  columnCount: number,
-  categoryIndex: number,
-): number => {
-  // Check new columns object first
-  if (category.columns && category.columns[String(columnCount)] !== undefined) {
-    return category.columns[String(columnCount)];
-  }
-  // Fall back to legacy column property
-  if (category.column !== undefined) {
-    return category.column % columnCount;
-  }
-  // Default to round-robin based on category index
-  return categoryIndex % columnCount;
-};
 
 export interface ManualIndexConfig {
   version: number;
@@ -280,10 +263,4 @@ export const parseManualConfig = (value: unknown): NormalizedManualIndexConfig =
   };
 };
 
-export const getManualCategoryByKey = (
-  config: NormalizedManualIndexConfig,
-  key: string,
-): NormalizedManualCategoryDefinition | undefined => {
-  return config.categoryMap.get(slugify(key));
-};
 

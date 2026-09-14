@@ -1,39 +1,9 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const workflowRoots = [
-  path.join(repoRoot, "scripts"),
-  path.join(repoRoot, "tools", "local-public-fixture"),
-  path.join(repoRoot, "tools", "pi-citation-workflow"),
-  path.join(repoRoot, "tools", "section-generation"),
-];
-
-function walkTestFiles(dir, files = []) {
-  for (const entry of readdirSync(dir)) {
-    if (entry === "node_modules") continue;
-    const fullPath = path.join(dir, entry);
-    const relativePath = path.relative(repoRoot, fullPath);
-
-    if (relativePath.startsWith("scripts/deprecated")) {
-      continue;
-    }
-
-    const stats = statSync(fullPath);
-    if (stats.isDirectory()) {
-      walkTestFiles(fullPath, files);
-      continue;
-    }
-
-    if (/\.(?:test|spec)\.(?:mjs|js|ts|tsx)$/.test(entry)) {
-      files.push(relativePath);
-    }
-  }
-
-  return files.sort();
-}
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -54,12 +24,7 @@ function run(command, args) {
   }
 }
 
-const testFiles = workflowRoots.flatMap((root) => walkTestFiles(root));
-const nodeTests = testFiles.filter((file) => {
-  const content = readFileSync(path.join(repoRoot, file), "utf8");
-  return content.includes("node:test");
-});
-const vitestTests = testFiles.filter((file) => !nodeTests.includes(file));
+const { testFiles, nodeTests, vitestTests } = discoverWorkflowTests(repoRoot);
 
 if (nodeTests.length > 0) {
   console.log(`\nRunning node workflow tests (${nodeTests.length})`);

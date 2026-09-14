@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { SUBSTANCE_SECTION_IDS } from "./sectionCatalog";
 
-export const reviewFlagSeveritySchema = z.enum(["major", "minor", "note"]);
+const reviewFlagSeveritySchema = z.enum(["major", "minor", "note"])
 
 /** Preferred reusable labels; Review Flag labels remain open to 1–3 word values. */
 export const CANONICAL_REVIEW_FLAG_LABELS = [
@@ -16,7 +16,7 @@ export const CANONICAL_REVIEW_FLAG_LABELS = [
   "consider hiding",
 ] as const;
 
-export const reviewFlagSchema = z.object({
+const reviewFlagSchema = z.object({
   label: z.string().refine(
     (label) => {
       const words = label.trim().split(/\s+/).filter(Boolean);
@@ -31,7 +31,7 @@ export const reviewFlagSchema = z.object({
   run_id: z.string().optional(),
   created_at: z.string().datetime(),
   created_by: z.string().optional(),
-});
+})
 
 /** Manual editorial review states used in Dev Tools */
 export const editorialReviewStatusSchema = z.enum([
@@ -57,7 +57,7 @@ export const editorialReviewSchema = z.object({
   flags: z.array(reviewFlagSchema).optional(),
 });
 
-export type EditorialReviewStatus = z.infer<typeof editorialReviewStatusSchema>;
+
 export type EditorialReview = z.infer<typeof editorialReviewSchema>;
 export type ReviewFlag = z.infer<typeof reviewFlagSchema>;
 export type ReviewFlagSeverity = z.infer<typeof reviewFlagSeveritySchema>;

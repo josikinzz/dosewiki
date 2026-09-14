@@ -11,14 +11,16 @@ import { ContentCard, Surface } from "@/components/ui/surface";
 import { DocsInline } from "../_components/DocsProse";
 import subjectiveEffectsProvenance from "@/data/generated/subjectiveEffectsProvenance.json";
 
+import { t } from "@/i18n/server";
+
 export async function generateMetadata() {
   const copy = await getCopy();
 
   return buildPublicPageMetadata({
-    title: "Licensing and reuse",
+    title: t("Licensing and reuse"),
     description:
       copy.text("seo-docs-license-description") ||
-      "Reuse terms for dose.wiki content, dataset, molecule SVG pack, replication media, source code, trip reports, interaction ratings, and reagent-test data.",
+      t("Reuse terms for dose.wiki content, dataset, molecule SVG pack, replication media, source code, trip reports, interaction ratings, and reagent-test data."),
     pathname: "/docs/license",
   });
 }
@@ -845,7 +847,10 @@ Rights remain with the creator or rightsholder unless the item states another li
           </DisclosureCard>
 
           <DisclosureCard summary={copy.text("docs-license-s8-mit-summary")} className="mt-3">
-            <pre className={PRE_CLASS}>{`MIT License
+            <p className={`${CARD_LABEL_CLASS} mb-3`}>
+              {t("Original canonical legal text (English)")}
+            </p>
+            <pre lang="en" className={PRE_CLASS}>{`MIT License
 
 Copyright (c) 2026 Josie Kins / dose.wiki
 

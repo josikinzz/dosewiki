@@ -60,7 +60,7 @@ const formatAlias = (record: SubstanceRecord): string | undefined => {
   return undefined;
 };
 
-export const createDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
+const createDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
   name: record.name,
   slug: record.slug,
   alias: formatAlias(record),

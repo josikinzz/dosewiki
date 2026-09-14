@@ -9,7 +9,7 @@ import { useCallback, useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { SubstanceArticle, EffectSubcategory } from "@/schema";
 
-export type SubcategoryWithKey = EffectSubcategory & { key: string };
+type SubcategoryWithKey = EffectSubcategory & { key: string }
 
 type SensoryCategory =
   | "visual"
@@ -119,15 +119,9 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
  * Hook for managing a Record<string, EffectSubcategory> field as an array.
  * Provides append, remove, and update operations while keeping the form data in Record format.
  */
-export function useRecordFieldArray(
-  fieldPath: `subjective_effects.${"cognitive" | "physical" | "progressive_stages"}`,
-) {
-  return useSubcategoryRecordField(fieldPath);
-}
+export function useRecordFieldArray(fieldPath: `subjective_effects.${"cognitive" | "physical" | "progressive_stages"}`,) { return useSubcategoryRecordField(fieldPath); }
 
 /** Hook for managing subcategories within a sensory category. */
-export function useSensorySubcategories(sense: SensoryCategory) {
-  return useSubcategoryRecordField(
-    `subjective_effects.sensory.${sense}.subcategories`,
-  );
-}
+export function useSensorySubcategories(sense: SensoryCategory) { return useSubcategoryRecordField(
+  `subjective_effects.sensory.${sense}.subcategories`,
+); }

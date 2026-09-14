@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { MediaRail } from "./MediaRail";
-import type { GalleryGroup } from "./galleryModel";
+import type { GalleryGroup } from "./galleryTypes";
 import type { GalleryReplication } from "@/types/replications";
 
 vi.mock("@/components/common/AppImage", () => ({

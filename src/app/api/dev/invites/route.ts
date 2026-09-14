@@ -14,7 +14,8 @@ import { api } from "../../../../../convex/_generated/api";
 import { generateInviteCode, hashInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import type { InviteCodeRole, MintInviteInput } from "@/features/dev/tools/members/inviteCodeRequests";
+import { isManagedRole } from "@/lib/auth/roles";
+import type { MintInviteInput } from "@/features/dev/tools/members/inviteCodeRequests";
 
 export const runtime = "nodejs";
 
@@ -41,10 +42,10 @@ function parsePositiveInteger(raw: unknown, fallback: number, label: string): nu
 }
 
 function parseMintBody(raw: MintBody): MintInviteInput {
-  if (raw?.role !== "editor" && raw?.role !== "contributor") {
-    throw new JsonBodyError(400, "Role must be editor or contributor.");
+  if (!isManagedRole(raw?.role)) {
+    throw new JsonBodyError(400, "Role must be editor, translator, or contributor.");
   }
-  const role: InviteCodeRole = raw.role;
+  const role = raw.role;
 
   const note = typeof raw.note === "string" ? raw.note.trim() : "";
   if (note.length > MAX_NOTE_LENGTH) {

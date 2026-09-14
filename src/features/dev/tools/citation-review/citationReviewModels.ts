@@ -10,13 +10,13 @@ export type CitationEvidenceStatus =
   | "approved"
   | "rejected";
 
-export const CITATION_EVIDENCE_STATUSES: readonly CitationEvidenceStatus[] = [
+const CITATION_EVIDENCE_STATUSES: readonly CitationEvidenceStatus[] = [
   "supported",
   "needs_source",
   "needs_review",
   "approved",
   "rejected",
-];
+]
 
 export function isCitationEvidenceStatus(value: string): value is CitationEvidenceStatus {
   return (CITATION_EVIDENCE_STATUSES as readonly string[]).includes(value);
@@ -138,7 +138,7 @@ export function groupPriorRowsForRestore(
   return [...groups.values()];
 }
 
-export type CitationEvidenceSupport = {
+type CitationEvidenceSupport = {
   sourceId: string;
   sourceName: string;
   referenceId: string;
@@ -152,14 +152,14 @@ export type CitationEvidenceSupport = {
     startOffset: number | null;
     endOffset: number | null;
   };
-};
+}
 
-export type CitationEvidenceDiagnostic = {
+type CitationEvidenceDiagnostic = {
   code: string;
   message: string;
   severity: "error" | "warning";
   claimKey?: string | null;
-};
+}
 
 export type CitationEvidenceRow = {
   _id?: string;
@@ -219,12 +219,12 @@ export type CitationReviewApproveCommand = {
   disabled: boolean;
 };
 
-export type CitationReviewRowCommand = {
+type CitationReviewRowCommand = {
   canApprove: boolean;
   isPending: boolean;
   approveDisabled: boolean;
   rejectDisabled: boolean;
-};
+}
 
 export type CitationReviewCommands = {
   bulkApprove: CitationReviewApproveCommand;
@@ -244,13 +244,13 @@ export type CitationReviewChecklistTone = CitationReviewChecklistItem["tone"];
 
 export type CitationReviewDiagnosticSeverity = CitationEvidenceDiagnostic["severity"];
 
-export const CITATION_STATUS_TONE: Record<CitationEvidenceStatus, EditorStatusPillTone> = {
+const CITATION_STATUS_TONE: Record<CitationEvidenceStatus, EditorStatusPillTone> = {
   supported: "success",
   needs_source: "danger",
   needs_review: "caution",
   approved: "success",
   rejected: "danger",
-};
+}
 
 export const CITATION_STATUS_LABEL: Record<CitationEvidenceStatus, string> = {
   supported: "Ready to approve",
@@ -260,29 +260,29 @@ export const CITATION_STATUS_LABEL: Record<CitationEvidenceStatus, string> = {
   rejected: "Rejected",
 };
 
-export const CITATION_SEVERITY_TONE: Record<CitationEvidenceSeverity, EditorStatusPillTone> = {
+const CITATION_SEVERITY_TONE: Record<CitationEvidenceSeverity, EditorStatusPillTone> = {
   blocking: "danger",
   non_blocking: "neutral",
-};
+}
 
 export const CITATION_SEVERITY_LABEL: Record<CitationEvidenceSeverity, string> = {
   blocking: "Blocking",
   non_blocking: "Non-blocking",
 };
 
-export const CITATION_CHECKLIST_TONE: Record<CitationReviewChecklistTone, EditorStatusPillTone> = {
+const CITATION_CHECKLIST_TONE: Record<CitationReviewChecklistTone, EditorStatusPillTone> = {
   complete: "success",
   pending: "caution",
   attention: "danger",
-};
+}
 
-export const CITATION_DIAGNOSTIC_TONE: Record<
+const CITATION_DIAGNOSTIC_TONE: Record<
   CitationReviewDiagnosticSeverity,
   EditorStatusPillTone
 > = {
   error: "danger",
   warning: "caution",
-};
+}
 
 /**
  * Resolve the {@link EditorStatusPillTone} for any citation-review surface

@@ -21,7 +21,7 @@ function markerCount(value) {
   return (JSON.stringify(value ?? null).match(MARKER_PATTERN) ?? []).length;
 }
 
-export function actionablePlanRows(plan) {
+function actionablePlanRows(plan) {
   return (plan.substances ?? []).flatMap((substance) => (
     (substance.sections ?? [])
       .filter((candidate) => candidate.status !== "deferred_sparse")
@@ -61,7 +61,7 @@ function finalizedArtifacts(workbench, row) {
   return { draft, manifest, finalizedDraftSha256 };
 }
 
-export function deriveCurrentRows({ plan, tracker, workbench }) {
+function deriveCurrentRows({ plan, tracker, workbench }) {
   const errors = [];
   const trackerByKey = new Map();
   for (const row of tracker.items ?? []) {

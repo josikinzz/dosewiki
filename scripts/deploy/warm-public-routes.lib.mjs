@@ -25,7 +25,7 @@ export const NON_SUBSTANCE_ROOT_SEGMENTS = new Set([
   "reports",
   "search",
   "substances",
-]);
+])
 
 const LOC_PATTERN = /<loc>\s*([^<]+?)\s*<\/loc>/gi;
 

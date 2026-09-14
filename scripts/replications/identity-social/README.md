@@ -1,171 +1,89 @@
 # Replication identity and social projection
 
-This directory converts the reviewed 2026-08-31 campaign artifacts into one deterministic, local-only projection. It does not import Convex code, make network calls, or expose a write mode.
+This directory turns the reviewed identity, rights, avatar, attribution, and
+social-card inputs into one deterministic projection. The inputs and immutable
+delivery receipts are current workflow dependencies. Completed campaign
+chronology and execution diaries stay in the private campaign archive.
+
+## 1. Build the projection
+
+Projection building is local-only and has no network or write mode:
 
 ```sh
 node scripts/replications/identity-social/build-projection.mjs --check
-node scripts/replications/identity-social/build-projection.mjs --dry-run --out /tmp/identity-social-projection.json
-node scripts/replications/identity-social/build-projection.mjs --check --projection /tmp/identity-social-projection.json
+node scripts/replications/identity-social/build-projection.mjs \
+  --dry-run --out /tmp/identity-social-projection.json
+node scripts/replications/identity-social/build-projection.mjs \
+  --check --projection /tmp/identity-social-projection.json
 ```
 
-Every operation has an immutable content-derived ID and a canonical JSON SHA-256 expected-before value. Any future production executor must re-query the exact production row, reproduce that hash, and abort on mismatch. The projection explicitly preserves poster and source-post history, limits creator reassignment to the 20 evidence-approved cases, records the other 195 research outcomes as no-change decisions, and leaves owner-review alias candidates blocked.
+Complete this step when every operation has a content-derived ID and canonical
+expected-before SHA-256, all source and poster history is preserved, every
+creator or profile change is evidence-approved, and unresolved alias or rights
+decisions remain explicit no-writes.
 
-Avatar projection uses `avatar-candidate-second-review.json` as its sole decision authority. It emits exactly seven approved profiles; rejected FishCenterNicole and Nervewing remain only in the source review ledger. Loka, Phosform, and Symmetric Vision are included through their independently approved derivatives rather than through a parallel staging path. Replacement proposals include the current avatar SHA-256 in their expected-before snapshot so later execution must preserve history and abort if that avatar has drifted.
+## 2. Publish approved immutable objects
 
-## Approved avatar object publication
-
-`publish-avatars.mjs` publishes only those seven approved WebP derivatives. It is
-local-only by default and is deliberately separate from the later Convex metadata
-projection:
+`publish-avatars.mjs` is local-only by default. Its R2 preflight may append
+observations to the resumable ledger but performs no object or metadata write.
 
 ```sh
-# Local hashes and deterministic plan only: no network and no writes.
 node scripts/replications/identity-social/publish-avatars.mjs
-
-# Read-only full-byte R2/CDN preflight. This may append observations to the
-# resumable JSONL ledger, but performs no object, manifest, metadata, or Convex write.
 node scripts/replications/identity-social/publish-avatars.mjs --preflight-r2
 ```
 
-The plan prints both `projectionSha256` and `planDigest`. An eventual write must
-repeat those exact values and the intended storage identities; placeholders below
-must be replaced with the values printed by the immediately preceding dry run:
+An approved write requires the exact immediately preceding projection and plan
+digests, explicit R2 target and bucket, and canary completion before full mode.
+Objects use `media/sha256/<prefix>/<sha>.webp`. Existing objects must match the
+reviewed hash and byte length. Rollback restores metadata references and never
+deletes content-addressed objects.
 
-```sh
-# Canary: an explicit approved profile is mandatory.
-node scripts/replications/identity-social/publish-avatars.mjs \
-  --write --phase=canary --canary-profile=JOSIE \
-  --confirm-operation=publish-approved-avatars \
-  --confirm-projection='<projectionSha256>' --confirm-plan='<planDigest>' \
-  --confirm-target='replications-r2:replications' --confirm-bucket=replications
+## 3. Build delivery receipts
 
-# Full run: refused until the same append-only ledger proves that exact plan's canary.
-node scripts/replications/identity-social/publish-avatars.mjs \
-  --write --phase=full --resume \
-  --confirm-operation=publish-approved-avatars \
-  --confirm-projection='<projectionSha256>' --confirm-plan='<planDigest>' \
-  --confirm-target='replications-r2:replications' --confirm-bucket=replications
-```
-
-Objects use `media/sha256/<prefix>/<sha>.webp`. Existing objects are streamed in
-full through `rclone cat` and must match both reviewed SHA-256 and byte length;
-any mismatch is an immutable collision and stops the run. Every accepted object
-is then fetched from the public CDN and yields the server-compatible receipt
-fields `url`, `content_sha256`, `byte_size`, `http_status`, `verified_at`,
-`verifier`, and `receipt_digest`. The receipt digest covers a canonical form of
-all preceding receipt fields.
-
-The ledger is append-only and permits exact-plan resumption. Content-addressed
-objects are immutable and are never deleted by this workflow. Rollback means
-reverting the later metadata/manifest reference using its separately recorded
-prior state; it never means deleting an uploaded object.
-
-Alias decisions require both the independent mapping review and `full-production-collision-audit.json`. The authoritative 2,119-profile audit supersedes the earlier 152-profile assumption: WHERESSUEDE and WOOODFIELD already exist as separate profile rows, so both are blocked merge-required collisions rather than alias additions. A future merge must be lossless, typed, separately approved, and guarded by full profile-set CAS digest `aea1bbeac1ce5a10e7e3a0981af17b40909c13ecf04fcf49299bbb32f66c2d8d`. Existing StingrayZ remains a no-write preservation decision; Xanny and Sunterry remain blocked.
-
-Final chronology review retains only six creator changes with finite, strictly ordered epoch-millisecond timestamps and verified source digests. The other fourteen candidates are explicit no-write poster-preservation journal entries; no calendar-date or year-level evidence is converted into invented timestamp precision.
-
-Final profile binding covers all 48 formerly null-profile verification operations: 21 collision-checked profile creates, five exact existing-profile binds, and 22 explicit unresolved no-write operations. Every create/bind carries the full 2,119-profile CAS expectation, a content-bound operation ID, rollback requirements, and its verification dependency. Joint-credit and pseudonymous/handle profiles retain the independent audit's scope flags. Delivery receipts are intentionally absent until a final receipt artifact exists.
-
-## Guarded Convex executor
-
-`executor.mjs` is the only projection-to-Convex bridge. It defaults to a local
-dry run and records every non-actionable projection operation as an explicit
-no-write. Avatar and social-asset operations remain no-writes until an external
-delivery-receipt JSON maps their operation ID (or media SHA-256) to a verified
-CDN receipt.
-
-Build the executor-compatible receipt document only after both immutable R2
-publishers have completed:
+Run this only after the immutable R2 publishers and their full-byte verification
+ledgers are complete:
 
 ```sh
 node scripts/replications/identity-social/build-delivery-receipts.mjs \
-  --output=/absolute/path/to/identity-social-delivery-receipts.json
+  --output=/absolute/private/path/identity-social-delivery-receipts.json
 node scripts/replications/identity-social/build-delivery-receipts.mjs \
-  --output=/absolute/path/to/identity-social-delivery-receipts.json --check
+  --output=/absolute/private/path/identity-social-delivery-receipts.json --check
 ```
 
-This makes no production writes. It requires the completed seven-object avatar
-ledger, the completed 9,171-object social-card publication ledger, and
-`social-card-object-delivery-verification.jsonl`. The object-verification ledger
-must contain exactly 9,171 unique `object-verified` key/hash/size records plus a
-single exhaustive completion marker matching the plan, object count, and total
-bytes. Those independently recorded full-byte results are reused; receipt
-generation does not fetch the social objects again. It binds them to all 9,179
-projection operations and fetches only the seven avatar objects. Avatar fetches
-retry transient HTTP 5xx responses at most twice before failing closed.
+Complete this step when the sidecar binds every actionable projection operation
+to one verified object and its `receiptSidecarSha256`, with no missing,
+duplicate, ambiguous, hash-mismatched, or byte-total-mismatched receipt.
 
-The default avatar ledger is the current-base
-`avatar-production-publish-ledger-0f70de.jsonl`: it was produced in verify-only
-mode against the seven already-published immutable keys, so generating current
-receipts never reuploads those avatars. Its `remote-verified` rows become
-`verified-reuse` receipts while retaining the original ledger status as
-provenance. A ledger bound to any other base projection is rejected.
+## 4. Dry-run and execute metadata
 
-The schema-v2 sidecar binds each receipt to the immutable base projection while
-keeping all receipt bytes outside that projection, so receipt generation cannot
-change its digest or operation IDs. The sidecar carries its own canonical
-`receiptSidecarSha256`; pass both the file and exact digest to the executor:
+`executor.mjs` is the only projection-to-backend bridge. The historical command,
+function-reference, and `replicationMaintenance` intent-token names remain exact
+compatibility contracts. Production selects Postgres:
 
 ```sh
+export DATA_BACKEND=postgres
+export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
+export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+npm run postgres:check-env-isolation
 npm run replications:identity-social:execute -- \
-  --projection-digest=0f70de407c24ef2d7e4c3b99fa6a4b770a479ca79e4166523c1050abc30794ee \
-  --delivery-receipts=/absolute/path/to/identity-social-delivery-receipts.json \
-  --receipt-sidecar-digest=<exact-receiptSidecarSha256>
+  --projection-digest=<exact-current-projection-sha256> \
+  --delivery-receipts=/absolute/private/path/identity-social-delivery-receipts.json \
+  --receipt-sidecar-digest=<exact-receiptSidecarSha256> \
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
 
-It preserves `verified-reuse` versus `uploaded-verified` and fails
-closed on duplicate or missing verification rows, byte-total mismatches,
-collisions, plan drift, or ambiguous entity/key bindings. Evidence timestamps
-make unchanged-input reruns deterministic.
+Inspect that no-write plan first. A separately approved write adds `--write`,
+`--confirm-write=apply-identity-social-projection`, the registered
+`--actor-email`, and `--phase=canary`. Full mode remains refused until the
+append-only ledger proves a readback-verified canary for each mutation class.
+CAS drift, wrong target, operation collision, absent receipt, write error, or
+readback mismatch stops the run.
 
-```sh
-npm run replications:identity-social:execute -- \
-  --projection-digest=<exact-current-projection-sha256>
-```
+## 5. Completion proof
 
-Write mode additionally requires `--write`,
-`--confirm-write=apply-identity-social-projection`,
-`--expected-deployment=glad-minnow-656`, the exact `--projection-digest`, a
-registered `--actor-email`, the explicit `TARGET_CONVEX_URL`, and the
-`replicationMaintenance` credential. Write mode also requires
-`--phase=canary` first; `--phase=full` is refused until the ledger proves one
-readback-verified canary for every actionable mutation class. Before each batch, the executor calls
-`previewCanonicalBefore` for every item and compares both the canonical value
-and digest. Homogeneous batches contain no more than 50 records or 512,000
-canonical JSON bytes.
-
-The local append-only JSONL ledger resumes only batches whose server operation
-and item-count readback succeeded. A reverse-order rollback manifest is emitted;
-`--rollback` invokes the server's CAS-protected rollback mutation. Any wrong
-target, operation collision, identity ambiguity, absent receipt, CAS drift,
-write error, or readback discrepancy stops the run. Dry-run output identifies
-one deterministic canary per actionable mutation class; those canaries must be
-run and verified before the remaining batches.
-
-## Read-only production completion proof
-
-After rollout, generate one content-digested completion report by querying every
-active, readback-verified operation receipt. The server query is authenticated
-and bounded to the operation journal (at most 50 items); it uses indexed target
-lookups and never scans a production table. It compares every current target,
-profile projection, and profile-binding verification with the exact stored
-post-operation value. The client independently recomputes each operation payload
-digest from the immutable projection, checks ledger readbacks, and proves logical
-coverage including shared-profile verification contributions.
-
-```sh
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-npm run replications:identity-social:validate-production -- \
-  --actor-email=contact@dose.wiki \
-  --output='/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Identity and Social Pass 2026-08-31/identity-social-production-completion-report.json'
-```
-
-This command has no mutation reference and records `mutationsInvoked: 0`. It
-fails unless the report proves 21 creates, five binds, 22 unresolved binding
-journals, six attribution changes plus 209 preservation journals, five safe
-alias decisions, seven avatars, 2,127 verification decisions (48 embedded), and
-9,172 logical social assets backed by 9,171 unique objects. A still-unresolved
-legacy canonical profile-batch item may be disclosed only by its exact reviewed
-item ID using repeatable `--allow-legacy-profile-item=<item-id>`; all other
-missing items remain actionable and fail the report. The report schema is
-`identity-social-production-completion-report.schema.json`.
+The read-only completion command uses the same explicit Postgres target,
+deployment fingerprint, `--allow-remote`, actor, projection, receipts, and
+private output destination. Completion requires every expected journal receipt
+and current target value to match the immutable projection. Preserve the final
+projection, source and rights evidence, receipt sidecar, append-only ledger,
+readback proof, and reverse-order rollback manifest privately.

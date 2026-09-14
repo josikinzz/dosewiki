@@ -6,7 +6,6 @@ export {
   useArticleEdit,
   type ArticleEditContextValue,
   type EditableFieldValue,
-  type EditableRangeValue,
   type EditableValueInput,
 } from "./ArticleEditContext";
 export { EditableValue } from "./EditableValue";

@@ -38,7 +38,7 @@ export const REAGENT_RESULT_PALETTE = {
 export const REAGENT_RESULT_NEUTRAL_COLOR = "#4a4a4a";
 export const REAGENT_RESULT_FALLBACK_COLOR = REAGENT_RESULT_PALETTE.gray;
 
-export type ReagentResultColorName = keyof typeof REAGENT_RESULT_PALETTE;
+type ReagentResultColorName = keyof typeof REAGENT_RESULT_PALETTE
 
 const REAGENT_NO_REACTION_TERMS = ["no reaction", "no change"] as const;
 

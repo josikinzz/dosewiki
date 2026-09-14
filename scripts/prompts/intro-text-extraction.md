@@ -2,15 +2,12 @@
 
 Extract introductory content from the supplied collected-source file for one psychoactive substance. Use only the supplied source documents. Extraction preserves source text verbatim; it is not summarisation or article writing.
 
-## 1. Identify sources and output mode
+## 1. Identify sources
 
-In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the input begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Sources vary in length and quality.
+The input begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Sources vary in length and quality.
 
 Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
-
-Continue when every source boundary and the active output mode are identified.
 
 ## 2. Decide which complete units qualify
 
@@ -42,13 +39,13 @@ Continue when every candidate has an inclusion or exclusion decision and all lik
 - Select complete paragraphs, list items, table rows, or sections including their heading. A paragraph stays whole; never trim it to a qualifying sentence.
 - Preserve every character: spelling, capitalisation, punctuation, markdown, inline links, footnote markers and within-line whitespace. Copy numbers, units and chemical names without conversion, rounding or reformatting.
 - Keep claims within their original source. Do not supply definitions, classes, dates or comparisons from memory, a related substance, or another source block.
-- In excerpt mode, each content line is copied from that source or is blank. The only authored text is the document metadata, source headings, separators and empty-source markers specified in step 4. Add no labels, quotation marks, formatting or commentary to passages.
+- Each content line is copied from that source or is blank. The only authored text is the document metadata, source headings, separators and empty-source markers specified in step 4. Add no labels, quotation marks, formatting or commentary to passages.
 
-Continue when all selected units retain their original wording and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
+Continue when all selected units retain their original wording and provenance. Each passage must match its source character for character; the downstream substring check rejects any drift.
 
-## 4. Emit the active output format
+## 4. Emit the excerpt document
 
-When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
+Output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - Intro Text Quotes
@@ -79,7 +76,7 @@ Before responding, confirm:
 - Every source has been examined and is represented once, in order, including empty results.
 - Every selected unit passes the main-subject decision, with the definitional uncertainty rule applied.
 - Every selected unit is complete and source-faithful, and every qualifying candidate is included.
-- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- The response follows the excerpt-document format exactly.
 - The following downstream needs have been checked wherever the source supplies introductory evidence. They guide coverage, not output organisation or invention.
 
 The downstream generator fills `summary`, a 50–80 word opening paragraph, from these excerpts:

@@ -29,9 +29,9 @@ import {
  * already-cached client could not read; it is part of the cache key, so a bump
  * retires every stored copy.
  */
-export const SEARCH_MANIFEST_SHAPE = 1;
+const SEARCH_MANIFEST_SHAPE = 2;
 
-export interface SearchManifestEntry {
+interface SearchManifestEntry {
   id: string;
   type: SearchEntryType;
   label: string;
@@ -48,6 +48,8 @@ export interface SearchManifestEntry {
 }
 
 export interface SearchManifest {
+  /** Locale whose approved display labels and aliases this payload carries. */
+  locale: string;
   /** The source index's `inputHash`. Changes whenever the content behind it changes. */
   version: string;
   shape: number;
@@ -84,10 +86,11 @@ const trimPreview = (value: string | undefined): string | undefined => {
  * well under a millisecond for ~1000 entries and would otherwise near-double the
  * payload.
  */
-export function createSearchManifest(index: SearchIndex): SearchManifest {
+export function createSearchManifest(index: SearchIndex, locale = "en"): SearchManifest {
   return {
     version: index.metadata.inputHash,
     shape: SEARCH_MANIFEST_SHAPE,
+    locale,
     entries: index.indexedEntries.map((entry) => {
       const manifestEntry: SearchManifestEntry = {
         id: entry.id,
@@ -125,6 +128,7 @@ type ManifestMatchable = MatchableEntry & { suggestion: SearchSuggestion };
 
 export interface SearchManifestIndex {
   version: string;
+  locale: string;
   size: number;
   query: (query: string, options?: { limit?: number }) => SearchSuggestion[];
 }
@@ -174,6 +178,7 @@ export function buildSearchManifestIndex(manifest: SearchManifest): SearchManife
   });
 
   return {
+    locale: manifest.locale,
     version: manifest.version,
     size: entries.length,
     query: (query, options = {}) =>

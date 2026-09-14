@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import sharp from "sharp";
 
 import {
@@ -23,16 +21,16 @@ export const USER_PROFILE_SOCIAL_CARD_RENDERER_VERSION = "2026-08-25.1";
  * Blinker, orchid accents, upper-left lighting, and the compact brand lockup.
  */
 
-export type UserProfileSocialCardMedia = {
+type UserProfileSocialCardMedia = {
   filePath: string;
-};
+}
 
-export type UserProfileSocialCardReplication = {
+type UserProfileSocialCardReplication = {
   slug: string;
   title: string;
   creatorLabel: string;
   media: UserProfileSocialCardMedia;
-};
+}
 
 export type UserProfileSocialCardInput = {
   displayName: string;
@@ -42,27 +40,6 @@ export type UserProfileSocialCardInput = {
   featuredReplication?: UserProfileSocialCardReplication;
 };
 
-export const USER_PROFILE_SOCIAL_CARD_EXAMPLE: UserProfileSocialCardInput = {
-  displayName: "Rho",
-  bioExcerpt:
-    "I am fascinated by the intersection of complex systems, philosophy, and art and I am working to communicate these concepts and phenomena through multimedia installations.",
-  roles: ["Replication Artist"],
-  avatar: {
-    filePath: path.join(
-      process.cwd(),
-      "public/profile-avatars/rho/avatar.png",
-    ),
-  },
-  featuredReplication: {
-    slug: "hyperspace-pluralist-visuals",
-    title: "hyperspace",
-    creatorLabel: "pluralist visuals",
-    media: {
-      filePath:
-        "/tmp/dosewiki-social-prototypes/rho-hyperspace-thumbnail.webp",
-    },
-  },
-};
 
 const PORTRAIT_LAYOUT = Object.freeze({
   brandLogoLeft: 54,

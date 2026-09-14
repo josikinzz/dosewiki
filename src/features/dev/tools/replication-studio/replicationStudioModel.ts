@@ -75,7 +75,7 @@ export const NO_EFFECT_KEY = "__none__";
 
 const TITLE_CASE = (value: string) => (value ? value[0].toUpperCase() + value.slice(1) : value);
 
-export function rowMatchesQuery(row: StudioRow, query: string): boolean {
+function rowMatchesQuery(row: StudioRow, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) {
     return true;

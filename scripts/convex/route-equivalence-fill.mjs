@@ -1,8 +1,8 @@
 import { normalizeRouteName } from "../../lib/article/normalization.mjs";
 
-export const EQUIVALENT_ROUTES = Object.freeze(["Insufflated", "Rectal"]);
-export const DEFAULT_SECTIONS = Object.freeze(["dosage", "duration"]);
-export const DEFAULT_DIRECTION = "both";
+
+const DEFAULT_SECTIONS = Object.freeze(["dosage", "duration"])
+const DEFAULT_DIRECTION = "both"
 const VALID_REFERENCE_TEMPLATES = new Set([
   "cite_journal",
   "cite_book",
@@ -212,21 +212,17 @@ function durationStageHasValue(stage) {
   return Boolean(stage && typeof stage === "object" && (isFiniteNumber(stage.min) || isFiniteNumber(stage.max)));
 }
 
-export function dosageRouteHasValues(route) {
-  return Boolean(
-    route?.dose_ranges &&
-      typeof route.dose_ranges === "object" &&
-      Object.values(route.dose_ranges).some(doseRangeHasValue),
-  );
-}
+function dosageRouteHasValues(route) { return Boolean(
+  route?.dose_ranges &&
+    typeof route.dose_ranges === "object" &&
+    Object.values(route.dose_ranges).some(doseRangeHasValue),
+); }
 
-export function durationRouteHasValues(route) {
-  return Boolean(
-    route?.stages &&
-      typeof route.stages === "object" &&
-      Object.values(route.stages).some(durationStageHasValue),
-  );
-}
+function durationRouteHasValues(route) { return Boolean(
+  route?.stages &&
+    typeof route.stages === "object" &&
+    Object.values(route.stages).some(durationStageHasValue),
+); }
 
 function routeHasValues(section, route) {
   return section === "dosage" ? dosageRouteHasValues(route) : durationRouteHasValues(route);

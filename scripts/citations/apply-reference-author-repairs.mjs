@@ -7,13 +7,9 @@ import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../convex/_generated/api.js";
 import { normalizeDoi, normalizePmid } from "../../lib/citations/referenceIdentity.mjs";
-import {
-  backupBeforeWrite,
-  getFlagValue,
-  hasFlag,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { backupBeforeWrite,
+getFlagValue,
+hasFlag,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 import {
   assertProductionWriteAllowed,
   createProductionWriteCommand,

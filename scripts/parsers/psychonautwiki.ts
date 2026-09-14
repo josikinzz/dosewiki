@@ -15,7 +15,7 @@ function pushExtractedSection(result: ParserResult, section: string) {
   }
 }
 
-export class PsychonautWikiParser implements SourceParser {
+class PsychonautWikiParser implements SourceParser {
   source = getParseableSourceDescriptor("psychonautwiki");
   sourceId = this.source.id;
 

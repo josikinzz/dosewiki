@@ -1,6 +1,6 @@
 import type { SourceParser } from "./types";
 
-export type ParserSourceCapability = "parseable" | "unsupported" | "synthetic";
+type ParserSourceCapability = "parseable" | "unsupported" | "synthetic"
 
 export interface SourceIdentityDescriptor {
   id: string;
@@ -17,7 +17,7 @@ export interface ParserSourceResolution {
 
 export const TRIPSIT_COMBOS_SOURCE_ID = "tripsit-combos";
 
-export const SOURCE_IDENTITIES = {
+const SOURCE_IDENTITIES = {
   "tripsit-factsheets": {
     id: "tripsit-factsheets",
     displayName: "TripSit Factsheets",
@@ -114,7 +114,7 @@ export const SOURCE_IDENTITIES = {
     capability: "synthetic",
     aliases: [TRIPSIT_COMBOS_SOURCE_ID, "tripsit-combination-guide"],
   },
-} as const satisfies Record<string, SourceIdentityDescriptor>;
+} as const satisfies Record<string, SourceIdentityDescriptor>
 
 export type CanonicalSourceId = keyof typeof SOURCE_IDENTITIES;
 export type ParseableSourceId = {

@@ -10,18 +10,17 @@ export const IDENTIFIER_FIELD_TO_ARTICLE_PATH = {
   inchiKey: "inchi_key",
 };
 
-export const PROVENANCE_RANK = {
+const PROVENANCE_RANK = {
   unresolved: 0,
   parsed: 1,
   opsin: 2,
   verified: 3,
   editor: 4,
-};
+}
 
 export const OPSIN_MAP_RELATIVE_PATH = "src/data/mappings/iupacSmilesMap.json";
-export const OPSIN_MAP_COMMENT_KEY = "//";
-export const OPSIN_MAP_COMMENT_VALUE =
-  "Mapping of IUPAC names to SMILES strings resolved via OPSIN (https://www.ebi.ac.uk/opsin/). Null values indicate no SMILES was returned; mixture entries expose a components object keyed by compound name.";
+const OPSIN_MAP_COMMENT_KEY = "//"
+const OPSIN_MAP_COMMENT_VALUE = "Mapping of IUPAC names to SMILES strings resolved via OPSIN (https://www.ebi.ac.uk/opsin/). Null values indicate no SMILES was returned; mixture entries expose a components object keyed by compound name."
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -133,40 +132,38 @@ export function normalizeParsedChemistryIdentifiers(chemistry, options = {}) {
   return { fields, sources, states, presentFields };
 }
 
-export function normalizeOpsinMapEntry(iupac, rawSmiles) {
-  const normalizedIupac = normalizeString(iupac);
-  const smilesState = classifySmilesValue(rawSmiles);
-  const fields = {};
+function normalizeOpsinMapEntry(iupac, rawSmiles) { const normalizedIupac = normalizeString(iupac);
+const smilesState = classifySmilesValue(rawSmiles);
+const fields = {};
 
-  if (normalizedIupac) {
-    fields.iupac = {
-      value: normalizedIupac,
-      provenance: "opsin",
-      sources: ["opsin-map"],
-      state: "resolved",
-    };
-  }
-
-  if (smilesState.state === "resolved" || smilesState.state === "mixture") {
-    fields.smiles = {
-      value: smilesState.value,
-      provenance: "opsin",
-      sources: ["opsin-map"],
-      state: smilesState.state,
-      ...(smilesState.components ? { components: smilesState.components } : {}),
-    };
-  }
-
-  return {
-    fields,
+if (normalizedIupac) {
+  fields.iupac = {
+    value: normalizedIupac,
+    provenance: "opsin",
     sources: ["opsin-map"],
-    states: {
-      iupac: normalizedIupac ? "resolved" : "unresolved",
-      smiles: smilesState.state,
-    },
-    presentFields: new Set(["iupac", "smiles"]),
+    state: "resolved",
   };
 }
+
+if (smilesState.state === "resolved" || smilesState.state === "mixture") {
+  fields.smiles = {
+    value: smilesState.value,
+    provenance: "opsin",
+    sources: ["opsin-map"],
+    state: smilesState.state,
+    ...(smilesState.components ? { components: smilesState.components } : {}),
+  };
+}
+
+return {
+  fields,
+  sources: ["opsin-map"],
+  states: {
+    iupac: normalizedIupac ? "resolved" : "unresolved",
+    smiles: smilesState.state,
+  },
+  presentFields: new Set(["iupac", "smiles"]),
+}; }
 
 export function mergeIdentifiersIntoIdentification(targetIdentification = {}, identifiers) {
   const nextIdentification = { ...targetIdentification };

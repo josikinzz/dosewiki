@@ -10,7 +10,7 @@ The first `/legality-pi` campaign cited or corrected about 3,900 public country 
 | --- | --- |
 | Verdict on the entry | "Supported and corrected in precision.", "The legacy Illegal status is corrected to canonical prohibited.", "Status normalized to prohibited" |
 | Source narration | "The fetched MHLW notice expressly names", "The current Swiss schedule supports the controlled Verzeichnis-e listing", "The primary sources were checked" |
-| Prior entry, packet, tracker | "The live production row was reopened from https://glad-minnow-656.convex.cloud for slug ...", "The packet's 'Not controlled' label is superseded", "the existing New Zealand entry said" |
+| Prior entry, packet, tracker | "The live production row was reopened from PlanetScale Postgres for slug ...", "The packet's 'Not controlled' label is superseded", "the existing New Zealand entry said" |
 | Research scope disclaimers | "No claim is made about penalties", "the claim is limited to the express listing", "this dossier does not assert medical availability" |
 | Editorial to-dos | "should be checked for a broader present-day conclusion", "this entry should be independently refuted before use" |
 | Machine tokens | `restricted_other` as a `status`, "Canonical status: analog_covered." in notes |

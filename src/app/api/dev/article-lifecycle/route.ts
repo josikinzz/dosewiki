@@ -7,6 +7,7 @@ import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { sanitizeArticleForConvexMutation } from "../../save-to-convex/saveToConvexUtils";
 import { revalidateSavedPaths } from "../../save-to-convex/revalidateSavedPaths";
+import { projectPublicArticle } from "@/data/projections/substanceReadProjections";
 
 export const runtime = "nodejs";
 const slugPattern = /^[a-z0-9][a-z0-9-]*$/;
@@ -47,7 +48,15 @@ export const POST = protectedRouteOperation<Body, Parsed>({
     const result = await convexWrite!.client.mutation(api.articleLifecycle.write, {
       ...body, apiKey: convexWrite!.getAdminIntentToken?.("editorArticleWrite") ?? convexWrite!.adminKey, actorEmail,
     });
-    if (body.action === "publish" || body.action === "restore") await revalidateSavedPaths([`/${body.slug}`], "manual");
+    if ((body.action === "publish" || body.action === "restore") && result.article) {
+      const savedRevision = projectPublicArticle(result.article).publicRevision;
+      const publication = await revalidateSavedPaths(
+        [`/${body.slug}`],
+        body.action === "publish" ? "article-publish" : "article-restore",
+        [{ slug: body.slug, revision: savedRevision }],
+      );
+      return NextResponse.json({ ok: true, ...result, publication });
+    }
     return NextResponse.json({ ok: true, ...result });
   },
 });

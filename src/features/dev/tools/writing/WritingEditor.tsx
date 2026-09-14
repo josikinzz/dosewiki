@@ -21,8 +21,8 @@ import {
   EditorSegmentedControl,
   EditorStatusPill,
   EditorToolbar,
-  SearchableMultiPicker,
 } from "@/features/dev/components";
+import { SearchableMultiPicker } from "@/features/dev/components/SearchablePicker";
 
 import type { WritingDraft } from "./writingEditorModel";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";

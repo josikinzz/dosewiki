@@ -12,6 +12,7 @@ import * as studio from "./lib/replicationStudio";
 import * as taxonomyCas from "./lib/replicationTaxonomyCas";
 import * as validators from "./lib/replicationValidators";
 import * as writes from "./lib/replicationWrites";
+import { deleteAuditedRowHandler } from "./lib/replicationAuditedDeletion";
 
 export {
   memoizedStorageUrls,
@@ -121,7 +122,7 @@ export const deleteBySlug = mutation({
 
 export const deleteAuditedRow = mutation({
   args: validators.deleteAuditedRowArgs.fields,
-  handler: writes.deleteAuditedRowHandler,
+  handler: deleteAuditedRowHandler,
 });
 
 export const updateEffectSlug = mutation({

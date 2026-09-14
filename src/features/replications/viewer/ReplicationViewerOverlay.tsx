@@ -27,6 +27,7 @@ import {
 } from "@/features/replications/galleryUrlState";
 import { cn } from "@/lib/utils";
 import { msg, useT } from "@/i18n/client";
+import { ARTIST_LABEL, ARTISTS_LABEL } from "../replicationVocabulary";
 import { formatArchiveDate } from "@/utils/archiveDate";
 import { publicHref } from "@/utils/publicHref";
 import {
@@ -100,8 +101,8 @@ const ENTRY_MOTION_ALL_CLASSES = Object.values(ENTRY_MOTION_CLASS).flatMap(
  */
 const GROUP_UNIT_COPY = {
   artist: {
-    label: msg("Artist"),
-    plural: msg("Artists"),
+    label: ARTIST_LABEL,
+    plural: ARTISTS_LABEL,
     counter: msg("Artist {{position}}/{{total}}"),
     previous: msg("Previous artist: {{label}}"),
     first: msg("First artist"),

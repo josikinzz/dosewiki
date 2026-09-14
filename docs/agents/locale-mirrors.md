@@ -41,20 +41,29 @@ its coverage audit runs clean, the only one.
   receptors, statutes, and brands stay in Latin script by prompt rule 2, so
   short Latin lines on a mirror page are expected.
 
+## Deferred GT inputs
+
+The `gt` and `gt-next` package dependencies plus tracked `gt.config.json` are
+intentionally deferred. The current locale mirrors do not import them or use GT
+at runtime. Keep them until their intended integration or retirement and
+source/provenance requirements are resolved. Their presence does not mean GT
+serves production.
+
 ## Shape
 
 | Piece | Where |
 | --- | --- |
 | Host to locale, route prefix, localized paths | `lib/next/localeHostPolicy.ts` (`zh.dose.wiki` to `zh-Hans`, `/zh`) |
-| Request routing | `src/middleware.ts`: mirror-host paths in the public corpus rewrite to `/zh/...`; paths outside it rewrite to `/zh/unroutable/missing` with a 404 status; `/zh/...` on any other host is a real 404. The root `not-found.tsx` must never read request APIs (that turned every static mirror route dynamic and crashed it) |
-| Pages | `src/app/zh/**`: homepage, `/substances`, `/[slug]`, `/effects(/[slug])`, `/reports(/[slug])`, `/articles(/[slug])`, `/replications` (+ tabs, `/[slug]`, `/viewer/[slug]`, `/artist/[key]`), `/about`. Same loaders and components as the English routes with a `LiveLocale`; `noindex`, English canonical, `lang="zh-Hans"` |
-| Record kinds | `lib/translation/liveTranslation.ts` `TranslationRecordKind`: `article` (substances), `effect`, `report`, `library` (long-form archive), `replication` (gallery titles). Job slugs carry the kind as a prefix except substances |
-| Corpora | `scripts/translation/corpora.mjs` per kind: which keys translate and which are the record (numbers, names, urls, ids). Reports translate the narrative plus the free-text `dose`, `roa`, and `time` lines authors write |
-| Reads | `lib/translation/localizedRecords.ts` (cached `getLocalizedPublic*`), consumed by `lib/next/routeLoaders.*`; the substance page's related-report rail localizes in `src/app/_components/public-routes/SubstanceTripReportsSection.tsx`. Effect names printed beside replications (showcase chips and captions, the permalink's "Represents" line, the `/api/replications/showcase?locale=` long tail) go through `getLocalizedEffectNames`, which reads the effect record's own `name` segment so the chip always matches the effect heading |
+| Request routing | `src/middleware.ts`: mirror-host paths in the public corpus rewrite to `/zh/...` (the query string survives, so `/search?q=` keeps its query); paths outside it rewrite to `/zh/unroutable/missing` with a 404 status; `/zh/...` on any other host is a real 404. The root `not-found.tsx` must never read request APIs (that turned every static mirror route dynamic and crashed it) |
+| Pages | `src/app/zh/**`: homepage, `/substances`, `/substances/group/[groupSlug]` (the psychoactive class views), `/category/[categoryKey]`, `/[slug]`, `/effects(/[slug])`, `/effects/group/[groupSlug]` (the five index tabs), `/effects/category/[categorySlug]`, `/reports(/[slug])`, `/articles(/[slug])`, `/chemical-classes(/[classKey])`, `/contributors/[profileKey]`, `/changes`, `/replications` (+ tabs, `/[slug]`, `/viewer/[slug]`, `/artist/[key]`), `/psychoactive/[...summaryPath]` (the class summaries, with the localized effect records spliced into each summary), `/search` (query string preserved), `/about`, `/glossary`, and localized not-found chrome |
+| Record kinds | `lib/translation/liveTranslation.ts` `TranslationRecordKind`: `article` (substances), `effect`, `report`, `library` (long-form archive), `replication` (gallery titles), `profile` (contributor bios). Job slugs carry the kind as a prefix except substances |
+| Corpora | `scripts/translation/corpora.mjs` per kind, plus the bio-only profile projection in `lib/translation/liveTranslation.ts`: which keys translate and which are the record (numbers, names, URLs, IDs). Reports translate the narrative plus the free-text `dose`, `roa`, and `time` lines authors write |
+| Reads | `lib/translation/localizedRecords.ts` (cached `getLocalizedPublic*`), consumed by `lib/next/routeLoaders.*`; contributor localization projects each profile to `{slug, bio}` so names, roles, links, and identity fields stay canonical. The substance page's related-report rail localizes in `src/app/_components/public-routes/SubstanceTripReportsSection.tsx`. Effect names printed beside replications (showcase chips and captions, the permalink's "Represents" line, the `/api/replications/showcase?locale=` long tail) go through `getLocalizedEffectNames`, which reads the effect record's own `name` segment so the chip always matches the localized article. |
 | Store | Postgres `translationSegments`, `translationJobs` (outbox per record, lease, 5 attempts), `translationRejections` (units the model failed, with defect codes), `translationGlossary` (reviewed terms per locale, edited in `/dev/glossary` through `src/app/api/dev/translation-glossary/*`) in `lib/postgres/schema.runtime.ts`; migrations `0006`, `0007`, `0008` |
-| Triggers | `src/app/api/save-to-convex/revalidateSavedPaths.ts` (substance, effect, report, library, replication targets), `src/app/api/dev/writing-article/route.ts`, `src/app/api/dev/replications/publishReplicationRecord.ts` |
+| Triggers | `src/app/api/save-to-convex/revalidateSavedPaths.ts` (substance, effect, report, library, replication targets), `src/app/api/dev/writing-article/route.ts`, `src/app/api/dev/replications/publishReplicationRecord.ts`, and contributor profile publication through `src/app/api/dev/contributor-profile/contributorRevalidation.ts` |
 | Worker | `GET /api/cron/translation-refresh` on `dosewiki-admin` every five minutes behind `CRON_SECRET`: claims due jobs, translates the hashes the store lacks, records rejections, expires the record's public and mirror caches |
 | UI chrome | `src/i18n/` (`t`, `msg`, `useT`) resolving `src/i18n/messages/zh-Hans.json`, built by `scripts/translation/ui-catalog.ts` from every `t()`/`msg()` literal plus copy blocks, About sections, index labels, changelog field labels, and the glossary. Missing key renders English |
+| Global chrome | `src/i18n/client.tsx` derives the locale from the matched `/zh` route tree during SSR and from `zh.dose.wiki` in the browser. The host fallback keeps the sticky header and footer Chinese even if a client transition temporarily exposes an English route tree before middleware rewrites the next document request |
 | Page titles | `lib/next/publicSite.ts` `composePageTitle` translates the page name through the request locale (`src/i18n/requestLocale.ts`) |
 
 A segment that fails a blocking check (`scripts/translation/validate.mjs`:
@@ -66,17 +75,16 @@ or backfill retries it. The number gate accepts Chinese numerals to 99, 百 for
 
 ## Finding what is still English
 
-Two lenses in `scripts/translation/mirror-coverage.ts`; both write a JSON
-report under `runs/translation/` and exit 1 when anything is missing.
+Two read-only lenses in `scripts/translation/mirror-coverage.ts` write JSON
+reports and exit 1 when coverage is missing. Neither lens authorizes a write.
 
 ```bash
-set -a && . ./.env.local && set +a
-# Store lens: every public record of every kind, segments the store lacks, why.
-DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/mirror-coverage.ts store
-DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/mirror-coverage.ts store --kind=report --verbose
-# Render lens: fetch mirror pages, flag visible lines with no Han character.
-bun scripts/translation/mirror-coverage.ts render --paths=/,/substances,/reports,/replications,/2c-b --verbose
-bun scripts/translation/mirror-coverage.ts render --base=http://localhost:3100 --paths=/reports   # against a local next start
+# Store lens. Use an explicit isolated or separately authorized read target.
+DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/mirror-coverage.ts store --target "$TARGET_POSTGRES_URL"
+DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/mirror-coverage.ts store --target "$TARGET_POSTGRES_URL" --kind report --verbose
+# Render lens against the mirror host.
+bun scripts/translation/mirror-coverage.ts render --paths /,/substances,/reports,/replications,/2c-b --verbose
+bun scripts/translation/mirror-coverage.ts render --base http://localhost:3100 --paths /reports
 ```
 
 The store lens finds segments that were never translated or were rejected
@@ -100,20 +108,20 @@ one route and leaves the next one English.
 
 ## Operator script
 
-`scripts/translation/live-mirror.ts` under the Postgres write ceremony in
-[convex-credentials.md](convex-credentials.md):
+`scripts/translation/live-mirror.ts` uses the deployed flat
+`translationSegments` hash overlay and the Postgres write ceremony in
+[convex-credentials.md](convex-credentials.md). Read-only inspection still
+requires an explicit target:
 
 ```bash
-set -a && . ./.env.local && set +a
-export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts status --allow-remote
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts backfill --allow-remote --write            # every missing unit of every kind, in bulk
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts backfill --kind=replication --allow-remote --write
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts enqueue --kind=report --all --allow-remote --write
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts run --limit=20 --allow-remote --write     # work the queue like the cron
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts stale --allow-remote --write              # after a system prompt change: every row on an old digest
-bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts stale --term=Entactogen --allow-remote --write   # after a glossary edit: only rows mentioning the term (repeatable)
+DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/live-mirror.ts status --target "$TARGET_POSTGRES_URL"
 ```
+
+Add `--allow-remote` only for a separately authorized non-local target.
+Write-capable commands (`import`, `backfill`, `enqueue`, `run`, and `stale`)
+require the complete intent-scoped credential, explicit target, role, freeze,
+review, confirmation phrase, and `--write` ceremony documented in the
+credentials runbook. `--write` alone is not authorization.
 
 `stale --term` prints the rows it selects (`Matched rows  29 mentioning
 "Entactogen"` on 2026-09-12), marks them stale, restamps every other row on an
@@ -122,6 +130,11 @@ receives a byte-identical prompt, so the restamp is exact), and replays the
 marked rows. The `/dev/glossary` tab's "Retranslate affected segments" does
 the same marking and then enqueues the records that mention the term for the
 cron, which retranslates missing and stale hashes alike.
+
+The semantic source-unit, concept-registry, artifact-generation, checkpoint,
+and semantic-store migration/import commands are deferred. Production has no
+compatible semantic schema or reviewed-data importer, so these are not
+operator commands in this release.
 
 Glossary drafting and export (reads through Postgres; drafting also needs
 `OPENROUTER_API_KEY`):
@@ -163,12 +176,16 @@ After a UI string change: `DATA_BACKEND=postgres bun --preload
   does not survive a deploy: `src/app/zh/[slug]` the high and normal priority
   substances (`getStaticSubstanceParams`, about 266), `src/app/zh/reports/[slug]`
   every published report (`getStaticReportParams`, about 166), and the index
-  pages (`/zh`, `/zh/substances`, `/zh/effects`, `/zh/reports`, `/zh/articles`,
-  the `/zh/replications` tabs, `/zh/about`) as static routes. Effects, library
-  articles, replication permalinks, viewer deep links, and artist pages return
-  `[]` like their English routes and render on first request. A mirror page
-  reads its locale from the route's `LOCALE` constant, never from the request,
-  so a prerendered path never reaches `headers()`.
+  pages (`/zh`, `/zh/substances` and its `/zh/substances/group/*` class views,
+  `/zh/effects` and its five `/zh/effects/group/*` tabs, `/zh/reports`,
+  `/zh/articles`, `/zh/chemical-classes`, the `/zh/replications` tabs,
+  `/zh/about`, `/zh/glossary`) as static routes. Effects, library articles,
+  substance and effect category details, chemical class details, contributor
+  profiles, psychoactive summaries, replication permalinks, viewer deep links,
+  and artist pages return `[]` like their English routes and render on first
+  request; `/zh/search` is dynamic like `/search`. A mirror page reads its
+  `LOCALE` constant, never from the request, so a prerendered path never reaches
+  `headers()`.
 - After a deploy, warm the long tail: `npm run mirror:warm -- --skip=/replications/`
   walks the English sitemap and requests every non-gallery path (about 900) on
   `zh.dose.wiki` with no database access, printing status counts, edge cache

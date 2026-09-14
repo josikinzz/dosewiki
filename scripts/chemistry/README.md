@@ -1,28 +1,32 @@
 # Molecule depiction data
 
-The canonical molecule set lives in Convex `moleculeOverrides`: one MOL block and one
-brand-coloured SVG per row. It is the **only** source of molecule drawings — substance
-rows are keyed by slug, and chemical-class Markush skeletons are keyed `class:<class-key>`.
-`/dev` → Molecules, public substance pages, chemical-class detail and comparison views, and
-the download pack all read that same row set. There is no static molecule art: the retired
-substance SVGs and the retired static class-skeleton pipeline are both gone.
+The canonical molecule set lives in the active data backend's
+`moleculeOverrides` table: one MOL block and one brand-coloured SVG per row.
+Production selects PlanetScale Postgres with `DATA_BACKEND=postgres`.
+Convex-shaped table, function, script, and intent-token names remain exact
+compatibility contracts and do not identify the active backend.
 
-The baseline Convex set is generated from each live `substanceIndex.identification.smiles` with
-the editor's exact OpenChemLib path (`smilesToMolblock.ts`: `fromSmiles` +
-`inventCoordinates`) and exact OpenChemLib brand renderer (`renderMoleculeSvg.ts` — the same
-engine that draws the editing canvas). `npm run molecules:rerender-convex` regenerates every
-stored SVG from its stored MOL block on that renderer (dry-run by default; live writes require
-`--write --confirm-molecule-rerender` plus the data-ops production-write flags).
+`/dev` → Molecules, public substance pages, chemical-class detail and comparison
+views, and the download pack all read that same row set. There is no static
+molecule art: the retired substance SVGs and class-skeleton pipeline are gone.
+The baseline set is generated from each live
+`substanceIndex.identification.smiles` with the editor's exact OpenChemLib path
+and renderer. `npm run molecules:rerender-convex` keeps its historical command
+name; it regenerates stored SVGs on the selected backend and defaults to dry run.
+Writes retain `--write --confirm-molecule-rerender` plus the shared data-ops
+production-write flags.
 
 ## SMILES sources (priority order)
 
-Used by `molecules:smiles-coverage` and the Convex seeder:
+Used by `molecules:smiles-coverage` and the historically named seeder:
 
-1. `identification.smiles` inline in `src/data/SubstanceIndex.json` (incl. multi-component
-   `{components:{...}}` preparations — the principal/first component is drawn).
-2. `src/data/mappings/generatedSmiles.json` — gap-fill SMILES found via PubChem/Wikipedia for
-   substances missing inline data. For plants/preparations/brands, `represents` names the active
-   molecule drawn (e.g. Salvia → Salvinorin A, Datura → Scopolamine, Marinol → dronabinol/THC).
+1. `identification.smiles` inline in `src/data/SubstanceIndex.json` (including
+   multi-component `{components:{...}}` preparations; the principal or first
+   component is drawn).
+2. `src/data/mappings/generatedSmiles.json`, gap-fill SMILES found via
+   PubChem/Wikipedia for substances missing inline data.
+   For plants, preparations, and brands, `represents` names the active molecule
+   drawn (for example, Salvia uses Salvinorin A).
    Rebuild it from reviewed gap-fill batches with `npm run molecules:merge-smiles`.
 3. `titleIupacSmiles.json` / `iupacSmilesMap.json` (legacy maps).
 
@@ -64,30 +68,35 @@ stored name as `expected`; the mutation patches only
 `identification.iupac_name` and refuses a concurrent change. Chemical
 identifiers remain excluded from the review portal's generic inline editor.
 
-## Seed the canonical Convex set
+## Seed the canonical molecule set
 
-Dry-run is the default. It reads the configured Convex target, never overwrites an existing row,
-and writes a JSON summary plus up to five `.mol`/`.svg` samples under `tmp/molecule-seed/`:
+Dry-run is the default. It reads the explicitly selected backend, never
+overwrites an existing row, and writes a JSON summary plus up to five
+`.mol`/`.svg` samples under `tmp/molecule-seed/`:
 
 ```bash
 npm run molecules:seed-convex -- --dry-run --limit 5
 ```
 
-The deliberate production command is:
+The deliberate production sequence is:
 
 ```bash
-npm run convex:doctor
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run molecules:seed-convex -- --write --confirm-molecule-seed \
+export DATA_BACKEND=postgres
+export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
+export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+npm run postgres:check-env-isolation
+npm run molecules:seed-convex -- --dry-run --limit 5 --allow-remote
+npm run molecules:seed-convex -- --write --confirm-molecule-seed \
   --confirm-write=seed-canonical-molecule-depictions \
-  --expected-deployment=glad-minnow-656
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
 
-Use `--limit N` for a bounded live batch and `--report PATH` to relocate the local report. Writes
-use the existing `editorArticleWrite` admin intent and the guarded
-`moleculeOverrides.seedMissing` mutation. The mutation checks `by_slug` again transactionally, so
-it cannot replace a row created after the initial read. Seeded rows carry `source: "seeded"` and
-`updatedBy: "seed-convex-molecules"`; the first editor save changes `source` to `"editor"`.
+The command name and `editorArticleWrite` intent-token name are unchanged.
+`createDataClient()` selects Postgres from `DATA_BACKEND` and refuses a remote
+target without `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM`. Use `--limit N`
+for a bounded batch and `--report PATH` to relocate the local report. The
+transaction checks `by_slug` again, so it cannot replace a row created after
+the initial read.
 
 ## Seed the class structures
 
@@ -106,46 +115,51 @@ under `tmp/molecule-class-seed/`:
 npm run molecules:seed-classes-convex
 ```
 
-The deliberate production command is:
+The deliberate production sequence is:
 
 ```bash
-npm run convex:doctor
-TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud \
-  npm run molecules:seed-classes-convex -- --apply --confirm-class-seed \
+export DATA_BACKEND=postgres
+export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
+export POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud
+npm run postgres:check-env-isolation
+npm run molecules:seed-classes-convex -- --dry-run --allow-remote
+npm run molecules:seed-classes-convex -- --apply --confirm-class-seed \
   --confirm-write=seed-class-molecule-depictions \
-  --expected-deployment=glad-minnow-656
+  --expected-deployment=aws-us-east-1-2.pg.psdb.cloud/postgres --allow-remote
 ```
 
-Existing `class:` rows are never overwritten unless `--force` is passed (forced rows are
-backed up locally first). Use `--key KEY[,KEY]` to seed specific classes, `--limit N` for
-a bounded batch, and `--report PATH` to relocate the report (default
-`tmp/molecule-class-seed/report.json`).
+Existing `class:` rows are never overwritten unless `--force` is passed; forced
+rows are backed up locally first. Use `--key KEY[,KEY]`, `--limit N`, and
+`--report PATH` to bound and record the plan.
 
-## Build the download pack (from Convex)
+## Build the download pack
 
-The public download pack is built straight from the canonical Convex depiction set — no
-Python env and no static SVGs:
+The public download pack is built from the selected backend's canonical
+depiction set, with no Python environment and no static SVG source:
 
 ```bash
-npm run molecules:pack           # Convex -> public/dosewiki-molecules.{json,zip}
-npm run molecules:pack -- --check  # exit 1 if the committed manifest drifted (no writes)
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" \
+  POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+  npm run molecules:pack -- --allow-remote
+DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" \
+  POSTGRES_IMPORT_CONFIRM=aws-us-east-1-2.pg.psdb.cloud \
+  npm run molecules:pack -- --check --allow-remote
 ```
 
-`scripts/data/buildMoleculePack.ts` reads every `moleculeOverrides` row over the public
-queries, ships the stored brand SVG verbatim under `molecules/` (class rows under
-`molecules/classes/`), re-renders each substance MOL block in the standard textbook palette
-(`OCL_COLOR_TO_STANDARD`) under `molecules-standard/`, and writes the
-`dosewiki-molecules.json` manifest into both the ZIP and `public/`. Any render failure
-fails the run — a partial pack is never shipped. The Convex URL comes from
-`--convex-url=` / `SOURCE_CONVEX_URL` / `CONVEX_PUBLIC_READ_URL` /
-`VITE_CONVEX_URL` / `NEXT_PUBLIC_CONVEX_URL`, defaulting to production; the npm script
-disables bun's implicit `.env.local` loading so a no-env run always packs production.
-Staged files get a fixed mtime, so the ZIP is byte-identical until the depiction
-set changes. Saving a Convex row does not rewrite the committed pack. Run
-`npm run molecules:pack` to update both public files locally; the nightly
-`.github/workflows/molecule-pack-nightly.yml` workflow runs the same command and
-commits changes. The updated downloads become public when that commit is
-deployed.
+`scripts/data/buildMoleculePack.ts` reads every `moleculeOverrides` row through
+the compatibility-shaped public queries, ships the stored brand SVG verbatim
+under `molecules/` (class rows under `molecules/classes/`), re-renders each
+substance MOL block in the standard textbook palette under
+`molecules-standard/`, and writes the manifest into both the ZIP and `public/`.
+Any render failure fails the run; a partial pack is never shipped.
+
+The nightly workflow must select `DATA_BACKEND=postgres`, set
+`DATA_WRITES_FROZEN=1`, receive `POSTGRES_POOLED_URL` from the read-only
+`POSTGRES_POOLED_READONLY_URL` secret, and receive the media base from the
+`REPLICATION_MEDIA_BASE_URL` repository variable. Those CI values require owner
+provisioning, so this runbook does not claim the nightly path is active. Staged
+files use a fixed mtime, making the ZIP byte-identical until the depiction set
+changes. Updating generated downloads locally does not deploy them.
 
 ## Colorways
 
@@ -195,21 +209,23 @@ rings) for stereochemically complex molecules. Fix one by hand in the **`/dev` �
 
 ## Hand-fixing a class structure
 
-Chemical-class Markush structures use the same `/dev` → Molecules editor in **Classes**
-mode. The editor loads the class's Convex MOL block when a `class:<class-key>` row exists;
-a class with no row yet starts from an auto-layout of its `chemicalIndexManual.json`
-SMILES. Saving writes the override row through `/api/dev/molecule-override` and the class
-detail page serves that stored SVG — the Convex row is the whole story, exactly as for
-substances.
+Chemical-class Markush structures use the same `/dev` Molecules editor in
+**Classes** mode. The editor loads the class's stored MOL block when a
+`class:<class-key>` row exists; a class with no row starts from an auto-layout
+of its `chemicalIndexManual.json` SMILES.
+Saving writes the override row through the unchanged
+`/api/dev/molecule-override` endpoint, and the class detail page serves that
+stored SVG from the active backend.
 
 ## Files
 
-- `validate_smiles.py` — stdin JSON array of SMILES → JSON array of booleans (parseable?);
+- `validate_smiles.py`: stdin JSON array of SMILES to JSON array of booleans;
   needs the RDKit venv (`npm run molecules:setup-venv`).
-- `seed-convex-molecules.ts` / `rerender-convex-molecules.ts` — seed and re-render the
-  canonical substance set.
-- `seed-class-molecules.ts` — seed/refresh the `class:<class-key>` rows from
+- `seed-convex-molecules.ts` / `rerender-convex-molecules.ts`: historically
+  named compatibility commands that seed and re-render the selected backend.
+- `seed-class-molecules.ts`: seed or refresh `class:<class-key>` rows from
   `chemicalIndexManual.json`.
-- `../data/resolveSmilesCoverage.mjs` — resolve a SMILES per substance.
-- `../data/mergeGeneratedSmiles.mjs` — merge gap-fill batches → `generatedSmiles.json`.
-- `../data/buildMoleculePack.ts` — build the download manifest + ZIP from Convex.
+- `../data/resolveSmilesCoverage.mjs`: resolve a SMILES per substance.
+- `../data/mergeGeneratedSmiles.mjs`: merge gap-fill batches into
+  `generatedSmiles.json`.
+- `../data/buildMoleculePack.ts` - build the download manifest and ZIP from the selected data backend.

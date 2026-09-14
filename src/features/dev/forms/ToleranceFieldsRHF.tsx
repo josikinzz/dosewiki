@@ -7,7 +7,7 @@ import { ControlledTagMultiSelect, TextListInput } from "./rhf";
 import type { SubstanceArticle } from "@/schema";
 import { toleranceLabels } from "./contentFieldsShared";
 
-export type ToleranceFieldsRHFProps = {
+type ToleranceFieldsRHFProps = {
   idPrefix: string;
   embedded?: boolean;
 };

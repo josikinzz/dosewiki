@@ -4,14 +4,9 @@ import {
   getSectionLoadingModel,
   type RouteLoadingViewModel,
 } from "@server/next/routeLoadingPolicy";
-import {
-  PublicSkeletonSurface,
-  SkeletonPulse,
-  SkeletonSection,
-} from "@/components/layout/PublicFeedbackPrimitives";
+import { PublicSkeletonSurface } from "@/components/layout/PublicFeedbackPrimitives";
 
-export { getRouteLoadingModel, getSectionLoadingModel };
-export { PublicSkeletonSurface, SkeletonPulse, SkeletonSection };
+export { getSectionLoadingModel };
 
 export function RouteLoadingSkeleton({ model }: { model: RouteLoadingViewModel }) {
   return <PublicSkeletonSurface model={model} />;

@@ -5,7 +5,7 @@ import {
   getPublicGalleryReplications,
 } from "@server/convex/publicData";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
+import { parseUiLocale } from "@/i18n/messages";
 import { getLocalizedPublicGalleryReplications } from "@server/translation/localizedRecords";
 
 export const runtime = "nodejs";
@@ -49,8 +49,8 @@ export async function GET(request: Request) {
     return rateLimited;
   }
 
-  const locale = new URL(request.url).searchParams.get("locale");
-  const mirror = LIVE_LOCALE_CODES.find((code) => code === locale) ?? null;
+  const requestedLocale = new URL(request.url).searchParams.get("locale");
+  const mirror = parseUiLocale(requestedLocale) === "zh-Hans" ? "zh-Hans" : null;
 
   try {
     const [replications, contributorDirectory] = await Promise.all([

@@ -14,6 +14,6 @@ export function proposalComparableDocument(kind: ProposalBaseline["kind"], value
     aboutSubtitle: row.aboutSubtitle ?? "",
     founderProfileKeys: row.founderProfileKeys ?? [],
   };
-  const { _id, _creationTime, updatedAt, updatedBy, ...document } = row;
+  const { _id, _creationTime, updatedAt: _updatedAt, updatedBy: _updatedBy, ...document } = row;
   return document;
 }

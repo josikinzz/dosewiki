@@ -1,23 +1,21 @@
 import { DOSE_LEVEL_MAP } from "./config.mjs";
 import { cleanBioavailability, getSourcePriority, normalizeRoute, normalizeUnit } from "./normalize.mjs";
 
-export function isWeightUnit(unit) {
-  if (!unit) return true;
-  const normalized = unit.toLowerCase();
-  return [
-    "mg",
-    "g",
-    "grams",
-    "gram",
-    "µg",
-    "ug",
-    "mcg",
-    "micrograms",
-    "microgram",
-    "milligrams",
-    "milligram",
-  ].includes(normalized);
-}
+function isWeightUnit(unit) { if (!unit) return true;
+const normalized = unit.toLowerCase();
+return [
+  "mg",
+  "g",
+  "grams",
+  "gram",
+  "µg",
+  "ug",
+  "mcg",
+  "micrograms",
+  "microgram",
+  "milligrams",
+  "milligram",
+].includes(normalized); }
 
 export function getComparableUpperBound(ranges) {
   if (!ranges) return { value: Infinity, isWeight: true };
@@ -58,12 +56,10 @@ export function getComparableUpperBound(ranges) {
   return { value, isWeight: true };
 }
 
-export function countFilledDoseTiers(ranges) {
-  if (!ranges) return 0;
-  return ["threshold", "light", "common", "strong", "heavy"]
-    .filter((tier) => ranges[tier]?.min != null || ranges[tier]?.max != null)
-    .length;
-}
+function countFilledDoseTiers(ranges) { if (!ranges) return 0;
+return ["threshold", "light", "common", "strong", "heavy"]
+  .filter((tier) => ranges[tier]?.min != null || ranges[tier]?.max != null)
+  .length; }
 
 export function selectSafestDoseSource(entriesForRoute) {
   if (!entriesForRoute?.length) return null;
@@ -85,14 +81,12 @@ export function selectSafestDoseSource(entriesForRoute) {
   })[0];
 }
 
-export function transformDoseRange(range) {
-  if (!range) return { min: null, max: null, unit: "mg" };
-  return {
-    min: range.min ?? null,
-    max: range.max ?? null,
-    unit: normalizeUnit(range.unit),
-  };
-}
+function transformDoseRange(range) { if (!range) return { min: null, max: null, unit: "mg" };
+return {
+  min: range.min ?? null,
+  max: range.max ?? null,
+  unit: normalizeUnit(range.unit),
+}; }
 
 export function transformDoseRanges(ranges) {
   const result = {
@@ -136,10 +130,8 @@ export function transformDoseRanges(ranges) {
   return result;
 }
 
-export function tierHasData(tier) {
-  if (!tier) return false;
-  return tier.min != null || tier.max != null;
-}
+function tierHasData(tier) { if (!tier) return false;
+return tier.min != null || tier.max != null; }
 
 export function mergeDoseTiers(entriesForRoute) {
   if (!entriesForRoute?.length) return null;

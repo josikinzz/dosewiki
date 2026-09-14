@@ -31,7 +31,6 @@ import {
  * rather than a blank space.
  */
 
-export const COPY_CACHE_TAG = PUBLIC_CONVEX_CACHE_TAGS.copy;
 
 export type CopyBlockRecord = {
   key: string;
@@ -46,7 +45,7 @@ export type CopyBlockRecord = {
 };
 
 /** A resolved block plus where it came from, for the Copy Studio's diff well. */
-export type ResolvedCopyBlock = CopyBlockRecord & {
+type ResolvedCopyBlock = CopyBlockRecord & {
   source: "convex" | "default";
 };
 
@@ -221,12 +220,3 @@ export function flavoredCopyText(copy: CopyResolver, key: string, fallback: stri
   return copy.get(flavoredCopyKey(key))?.body ?? fallback;
 }
 
-/** Flavor-aware `list` read, with the same no-cross-flavor-fallback rule. */
-export function flavoredCopyItems(
-  copy: CopyResolver,
-  key: string,
-  fallback: readonly string[],
-): string[] {
-  const resolved = copy.get(flavoredCopyKey(key));
-  return resolved?.items ?? [...fallback];
-}

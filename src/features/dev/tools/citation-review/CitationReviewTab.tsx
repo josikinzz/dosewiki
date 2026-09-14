@@ -22,10 +22,10 @@ import {
   type CitationReviewQueueLoadFailure,
 } from "./citationReviewModels";
 import { CitationQueueHeader, CitationQueuePanel } from "./CitationQueuePanel";
+import { CitationEvidenceSection } from "./CitationEvidencePanels";
 import {
   CitationBulkApprovePanel,
   CitationChecklistPanel,
-  CitationEvidenceSection,
   CitationSelectedSummary,
   type CitationEvidenceDecisionHandlers,
 } from "./CitationReviewPanels";

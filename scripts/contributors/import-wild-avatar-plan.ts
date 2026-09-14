@@ -10,7 +10,7 @@ import {
 import type { StoredContributorProfile } from "./generate-avatar-import-policy";
 import { avatarUrlForKey } from "./generate-avatar-files";
 
-export type Confidence = "high" | "medium" | "low" | "none";
+type Confidence = "high" | "medium" | "low" | "none";
 
 export interface Finding {
   artist: string;
@@ -91,7 +91,7 @@ export const MIN_SOURCE_SHORT_SIDE = 96;
  * this level: they are resolved by consolidating the two spellings into one
  * identity rather than by minting a second row.
  */
-export function newProfileKeyFor(displayName: string): string {
+function newProfileKeyFor(displayName: string): string {
   const key = normalizeProfileKey(displayName.replace(/[^A-Za-z0-9]/g, ""));
   if (!key) {
     throw new Error(
@@ -142,7 +142,7 @@ function editDistanceAtMostOne(left: string, right: string): boolean {
  * differ by one letter would be merged by this, so anything it catches is
  * printed in the run's consolidation report rather than applied silently.
  */
-export function nearDuplicateOf(
+function nearDuplicateOf(
   key: string,
   others: readonly string[],
 ): string | null {
@@ -158,7 +158,7 @@ export function nearDuplicateOf(
   return null;
 }
 
-export function isInstallable(finding: Finding): boolean {
+function isInstallable(finding: Finding): boolean {
   return (
     INSTALLABLE_CONFIDENCE[finding.confidence] === true &&
     typeof finding.imageUrl === "string" &&

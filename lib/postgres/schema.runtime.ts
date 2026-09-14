@@ -95,7 +95,7 @@ export const translationGlossary = pgTable(
     locale: text("locale").notNull(),
     term: text("term").notNull(),
     target: text("target").notNull(),
-    /** Where the term came from: effect-name, effect-category, chemical-class, psychoactive-class, frequency, enum:<group>, register. */
+    /** Where the term came from: effect-name, effect-category, chemical-class, psychoactive-class, frequency, enum:<group>, register, and the site vocabularies the drafter enumerates (replication, site-name, index-name, effect-subcategory, section-heading, route, reagent-name, chemical-class-alias). */
     kind: text("kind").notNull(),
     /** draft | approved */
     status: text("status").notNull(),
@@ -103,7 +103,30 @@ export const translationGlossary = pgTable(
     source: text("source").notNull(),
     reviewed_at: bigint("reviewed_at", { mode: "number" }),
     reviewed_by: text("reviewed_by"),
+    /**
+     * When this rendering was last pushed to stored segments: by a scoped
+     * retranslate naming the term, or by the locale's main translation. An
+     * approved row reviewed after this stamp is waiting for a retranslate, and
+     * that set is what the Glossary tab offers to send, so the queue survives
+     * a reload, a locale switch, and another reviewer's machine.
+     */
+    retranslated_at: bigint("retranslated_at", { mode: "number" }),
     updated_at: bigint("updated_at", { mode: "number" }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.locale, t.term] }), index("translationGlossary_by_status").on(t.locale, t.status)],
 );
+
+/**
+ * One English definition per glossary term, shared by every locale: what the
+ * term is, where it appears on the site, and the contrast that matters when
+ * rendering it. Injected beside the approved rendering in every translation
+ * prompt that mentions the term, shown under the term in the Glossary tab and
+ * on the public /glossary page. Owned by lib/translation/glossaryGloss.ts.
+ */
+export const translationGlossaryTerms = pgTable("translationGlossaryTerms", {
+  term: text("term").primaryKey(),
+  kind: text("kind").notNull(),
+  gloss: text("gloss").notNull(),
+  updated_at: bigint("updated_at", { mode: "number" }).notNull(),
+  updated_by: text("updated_by"),
+});

@@ -22,7 +22,7 @@ export const ABOUT_PREVIEW_LINE_LIMIT = 96;
  * complete even if it alone exceeds the budget, so the preview is guaranteed
  * to contain at least one whole record.
  */
-export const ABOUT_PREVIEW_TOTAL_BYTE_BUDGET = 64 * 1024;
+const ABOUT_PREVIEW_TOTAL_BYTE_BUDGET = 64 * 1024;
 
 /** Canonical field order, mirrored from substance.schema.ts. */
 const ARTICLE_FIELD_ORDER = [

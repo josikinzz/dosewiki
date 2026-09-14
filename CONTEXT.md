@@ -307,12 +307,12 @@ _Avoid_: left-aligned wrap, orphan icon row
 ## Public Host Language
 
 **Public Hosts**:
-`dose.wiki` and `www.dose.wiki`, the launched public domains. They are attached to the same Vercel project as the Editor Hosts and serve the same build; `middleware.ts` keeps authenticated editorial surfaces on `dev.dose.wiki`.
-_Avoid_: Construction Hosts, gated project, preview site
+`dose.wiki` and `www.dose.wiki`, the launched public domains served by the separate `dosewiki-public` artifact. They redirect authenticated editorial paths to the Editor Hosts and never receive editor artifacts or write credentials.
+_Avoid_: Construction Hosts, gated project, editor build
 
 **Editor Hosts**:
-`dev.dose.wiki` and `dosewiki-admin.vercel.app`, which mirror the application for authenticated work and remain closed to crawlers. `dev.dose.wiki` is canonical; a Public Host redirects `/dev`, `/review`, and sign-in links there.
-_Avoid_: staging site, public mirror, crawlable admin deployment
+`dev.dose.wiki` and `dosewiki-admin.vercel.app`, served by the separate `dosewiki-admin` editor artifact for authenticated work and closed to crawlers. `dev.dose.wiki` is canonical; a Public Host redirects `/dev`, `/review`, and sign-in links there.
+_Avoid_: same public build, staging site, crawlable admin deployment
 
 **Holding Page**:
 The blocked homepage implemented at `/under-construction`, retained for explicit deployment-wide construction mode and local inspection. It is no longer the public root.

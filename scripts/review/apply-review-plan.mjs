@@ -23,16 +23,12 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../convex/_generated/api.js";
-import {
-  assertDataOpsWriteAllowed,
-  backupBeforeWrite,
-  batchAndApplyMutations,
-  createDataOpsRunContext,
-  requireAdminIntentToken,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+backupBeforeWrite,
+batchAndApplyMutations,
+createDataOpsRunContext,
+requireAdminIntentToken,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
 const OPERATION = "apply-review-plan";
 const INTENT = "editorArticleWrite";

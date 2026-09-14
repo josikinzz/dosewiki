@@ -1,14 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   resetSearchSuggestionsCacheForTests,
   useGlobalSearchSuggestions,
 } from "./useGlobalSearchSuggestions";
 import { loadSearchManifestIndex, resetSearchManifestForTests } from "@/hooks/useSearchManifest";
+import type { SearchManifest } from "@/data/builders/searchManifest";
+import { UiLocaleProvider, type UiLocale } from "@/i18n/client";
 
-const MANIFEST = {
+const MANIFEST: SearchManifest = {
+  locale: "en",
   version: "test",
-  shape: 1,
+  shape: 2,
   entries: [
     { id: "substance:mdma", type: "substance", label: "MDMA", slug: "mdma", aliases: ["Molly"] },
     { id: "substance:mdai", type: "substance", label: "MDAI", slug: "mdai" },
@@ -28,19 +31,22 @@ const SERVER_RESULTS = [
   KEYWORD_ONLY_RESULT,
 ];
 
-/** Longer than the hook's 400ms refine delay. */
-const PAST_REFINE_DELAY_MS = 700;
-
+const LOCALIZED_MANIFEST: SearchManifest = {
+  ...MANIFEST,
+  locale: "zh-Hans",
+  entries: [
+    { ...MANIFEST.entries[0], label: "Localized MDMA", aliases: ["MDMA"] },
+    MANIFEST.entries[1],
+  ],
+};
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { "content-type": "application/json" },
   });
 
-let suggestionsResponder: () => Promise<Response>;
+let suggestionsResponder: (url: string) => Promise<Response>;
 let suggestionRequests: string[];
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const ids = (matches: ReadonlyArray<{ id: string }>) => matches.map((match) => match.id);
 
@@ -55,11 +61,12 @@ beforeEach(() => {
     vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/api/search-manifest")) {
-        return jsonResponse(MANIFEST);
+        const locale = new URL(url, "https://dose.wiki").searchParams.get("locale");
+        return jsonResponse(locale === "zh-Hans" ? LOCALIZED_MANIFEST : MANIFEST);
       }
       if (url.includes("/api/search-suggestions")) {
         suggestionRequests.push(url);
-        return suggestionsResponder();
+        return suggestionsResponder(url);
       }
       throw new Error(`unexpected fetch: ${url}`);
     }),
@@ -88,27 +95,32 @@ describe("useGlobalSearchSuggestions", () => {
 
   it("replaces local results with the server's once they arrive", async () => {
     await loadSearchManifestIndex();
-    const { result } = renderSuggestions("mdma");
+    const { result } = renderSuggestions("md");
 
-    await waitFor(() => expect(ids(result.current.suggestions)).toEqual(["substance:mdma"]));
+    await waitFor(() => expect(ids(result.current.suggestions)).toEqual(["substance:mdai", "substance:mdma"]));
 
     await waitFor(
-      () => expect(ids(result.current.suggestions)).toContain("effect:euphoria"),
+      () => expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS)),
       { timeout: 2000 },
     );
     expect(suggestionRequests).toHaveLength(1);
   });
 
   it("keeps local results on screen when the suggestion request is rate limited", async () => {
-    suggestionsResponder = async () => jsonResponse({ error: "Too many requests." }, 429);
+    let resolveRefinement!: (response: Response) => void;
+    suggestionsResponder = () => new Promise<Response>((resolve) => {
+      resolveRefinement = resolve;
+    });
     await loadSearchManifestIndex();
 
     const { result } = renderSuggestions("mdma");
 
     await waitFor(() => expect(ids(result.current.suggestions)).toEqual(["substance:mdma"]));
 
-    await sleep(PAST_REFINE_DELAY_MS);
-    await waitFor(() => expect(suggestionRequests).toHaveLength(1));
+    await waitFor(() => expect(suggestionRequests).toHaveLength(1), { timeout: 2000 });
+    await act(async () => {
+      resolveRefinement(jsonResponse({ error: "Too many requests." }, 429));
+    });
 
     // The old hook blanked the list on any failed request, so a 429 mid-typing
     // read to the user as "no matches found".
@@ -137,6 +149,40 @@ describe("useGlobalSearchSuggestions", () => {
       () => expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS)),
       { timeout: 2000 },
     );
+  });
+
+  it("does not reuse cached English suggestions for the same query in another locale", async () => {
+    const localizedServerResults = [
+      { ...SERVER_RESULTS[0], label: "Localized server MDMA" },
+    ];
+    suggestionsResponder = async (url) => jsonResponse({
+      results: new URL(url, "https://dose.wiki").searchParams.get("locale") === "zh-Hans"
+        ? localizedServerResults
+        : SERVER_RESULTS,
+    });
+    await Promise.all([loadSearchManifestIndex("en"), loadSearchManifestIndex("zh-Hans")]);
+    let locale: UiLocale = "en";
+    const { result, rerender } = renderHook(
+      () => useGlobalSearchSuggestions({ isActiveSearch: true, query: "mdma" }),
+      { wrapper: ({ children }) => <UiLocaleProvider locale={locale}>{children}</UiLocaleProvider> },
+    );
+    await waitFor(
+      () => expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS)),
+      { timeout: 2000 },
+    );
+
+    locale = "zh-Hans";
+    rerender();
+    expect(result.current.suggestions.map((match) => match.label)).toEqual(["Localized MDMA"]);
+    await waitFor(
+      () => expect(result.current.suggestions.map((match) => match.label)).toEqual(["Localized server MDMA"]),
+      { timeout: 2000 },
+    );
+
+    locale = "en";
+    rerender();
+    expect(ids(result.current.suggestions)).toEqual(ids(SERVER_RESULTS));
+    expect(suggestionRequests).toHaveLength(2);
   });
 
   it("returns nothing when search is not active", () => {

@@ -24,7 +24,7 @@ export const citationSchema = z.object({
   url: z.string(),
 });
 
-export const referenceSourceTypeSchema = z.enum([
+const referenceSourceTypeSchema = z.enum([
   "primary_literature",
   "review_literature",
   "book",
@@ -37,19 +37,19 @@ export const referenceSourceTypeSchema = z.enum([
   "news_media",
   "vendor_or_commercial",
   "unknown",
-]);
+])
 
-export const referenceQualityTierSchema = z.enum(["high", "medium", "low", "fallback"]);
-export const referenceAccessSchema = z.enum(["open", "abstract_only", "paywalled", "unreachable", "unknown"]);
-export const referenceSupportStatusSchema = z.enum(["inspected", "discovery_only", "needs_review", "unknown"]);
-export const referenceMetadataProvenanceEntrySchema = z.object({
+const referenceQualityTierSchema = z.enum(["high", "medium", "low", "fallback"])
+const referenceAccessSchema = z.enum(["open", "abstract_only", "paywalled", "unreachable", "unknown"])
+const referenceSupportStatusSchema = z.enum(["inspected", "discovery_only", "needs_review", "unknown"])
+const referenceMetadataProvenanceEntrySchema = z.object({
   kind: z.enum(["inspected", "fetched", "cached", "imported"]),
   source: z.string().min(1).max(128),
   provider: z.string().min(1).max(128).optional(),
   retrievedAt: z.string().min(1).max(64).optional(),
   artifactDigest: z.string().min(1).max(128).optional(),
   fields: z.array(z.string().min(1).max(64)).max(64).optional(),
-});
+})
 
 /** Structured Wikipedia-style reference entry used by claim-level citations. */
 export const referenceSchema = z.object({
@@ -90,7 +90,7 @@ export const referenceSchema = z.object({
 });
 
 /** Country legality entry — canonical statuses live in the Zod-free `legalStatuses.ts`. */
-export { CANONICAL_LEGAL_STATUSES, type CanonicalLegalStatus } from "./legalStatuses";
+export { CANONICAL_LEGAL_STATUSES } from "./legalStatuses";
 
 export const countryLegalitySchema = z.object({
   status: z.string(),
@@ -105,9 +105,9 @@ export type DoseRange = z.infer<typeof doseRangeSchema>;
 export type DurationStage = z.infer<typeof durationStageSchema>;
 export type Citation = z.infer<typeof citationSchema>;
 export type Reference = z.infer<typeof referenceSchema>;
-export type ReferenceSourceType = z.infer<typeof referenceSourceTypeSchema>;
-export type ReferenceQualityTier = z.infer<typeof referenceQualityTierSchema>;
-export type ReferenceAccess = z.infer<typeof referenceAccessSchema>;
-export type ReferenceSupportStatus = z.infer<typeof referenceSupportStatusSchema>;
+
+
+
+
 export type ReferenceMetadataProvenanceEntry = z.infer<typeof referenceMetadataProvenanceEntrySchema>;
 export type CountryLegality = z.infer<typeof countryLegalitySchema>;

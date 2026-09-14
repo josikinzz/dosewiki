@@ -23,9 +23,9 @@ export type DevToolGroup = "content" | "intake" | "site";
  *   it for changelog attribution on save; the people and writing tools need it
  *   for their pickers.
  */
-export type DevTabDataNeed = "library" | "library-deferred" | "changelog" | "contributors";
+type DevTabDataNeed = "library" | "library-deferred" | "changelog" | "contributors"
 
-export type DevTabDestination = { kind: "shell" } | { kind: "external"; href: string };
+type DevTabDestination = { kind: "shell" } | { kind: "external"; href: string }
 
 type DevTabDescriptorOf<Id extends string> = {
   id: Id;
@@ -235,8 +235,10 @@ const REGISTRY = [
     label: "Glossary",
     group: "site",
     aliases: ["translation-glossary"],
-    // The locale mirrors' term list: approving a rendering changes every prompt, so the floor is admin.
-    role: "admin",
+    // The locale mirrors' term list. Approving a rendering changes every prompt
+    // but spends nothing, so translators own it; the paid actions (drafting,
+    // retranslating, the main run) stay admin inside the tab and their routes.
+    role: "translator",
     data: NO_DATA,
     saveFamily: "immediate",
     destination: SHELL,

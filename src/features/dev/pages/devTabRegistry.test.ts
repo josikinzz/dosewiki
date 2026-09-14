@@ -49,7 +49,7 @@ describe("devTabRegistry", () => {
   it("assigns every descriptor a role floor", () => {
     const byRole = (role: string) => DEV_TAB_REGISTRY.filter((tab) => tab.role === role).map((tab) => tab.id);
     for (const tab of DEV_TAB_REGISTRY) {
-      expect(["admin", "editor", "contributor"]).toContain(tab.role);
+      expect(["admin", "editor", "translator", "contributor"]).toContain(tab.role);
     }
     expect(byRole("admin")).toEqual([
       "citation-review",
@@ -59,7 +59,6 @@ describe("devTabRegistry", () => {
       "banners",
       "replications",
       "members",
-      "glossary",
     ]);
     expect(byRole("editor")).toEqual([
       "articles",
@@ -71,6 +70,7 @@ describe("devTabRegistry", () => {
       "index-layout",
       "change-log",
     ]);
+    expect(byRole("translator")).toEqual(["glossary"]);
     expect(byRole("contributor")).toEqual(["contributors", "playlists", "my-reports"]);
   });
 

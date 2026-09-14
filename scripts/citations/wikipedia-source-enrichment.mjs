@@ -332,51 +332,49 @@ export function resolveWikipediaPageTitleFromUrl(url) {
   }
 }
 
-export function extractWikiSections(source) {
-  const text = String(source ?? "");
-  const headingPattern = /^(={2,6})\s*(.*?)\s*\1\s*$/gm;
-  const headings = Array.from(text.matchAll(headingPattern));
-  if (headings.length === 0) {
-    return [{
-      heading: "Lead",
-      normalizedHeading: "lead",
-      level: 1,
-      content: text,
-      startIndex: 0,
-      endIndex: text.length,
-    }];
-  }
-
-  const sections = [];
-  if (headings[0].index > 0) {
-    sections.push({
-      heading: "Lead",
-      normalizedHeading: "lead",
-      level: 1,
-      content: text.slice(0, headings[0].index).trim(),
-      startIndex: 0,
-      endIndex: headings[0].index,
-    });
-  }
-
-  for (let index = 0; index < headings.length; index += 1) {
-    const heading = headings[index];
-    const next = headings[index + 1];
-    const headingText = cleanWikiMarkup(heading[2]);
-    const contentStart = heading.index + heading[0].length;
-    const contentEnd = next?.index ?? text.length;
-    sections.push({
-      heading: headingText,
-      normalizedHeading: normalizeHeading(headingText),
-      level: heading[1].length,
-      content: text.slice(contentStart, contentEnd).trim(),
-      startIndex: heading.index,
-      endIndex: contentEnd,
-    });
-  }
-
-  return sections.filter((section) => section.content.trim());
+function extractWikiSections(source) { const text = String(source ?? "");
+const headingPattern = /^(={2,6})\s*(.*?)\s*\1\s*$/gm;
+const headings = Array.from(text.matchAll(headingPattern));
+if (headings.length === 0) {
+  return [{
+    heading: "Lead",
+    normalizedHeading: "lead",
+    level: 1,
+    content: text,
+    startIndex: 0,
+    endIndex: text.length,
+  }];
 }
+
+const sections = [];
+if (headings[0].index > 0) {
+  sections.push({
+    heading: "Lead",
+    normalizedHeading: "lead",
+    level: 1,
+    content: text.slice(0, headings[0].index).trim(),
+    startIndex: 0,
+    endIndex: headings[0].index,
+  });
+}
+
+for (let index = 0; index < headings.length; index += 1) {
+  const heading = headings[index];
+  const next = headings[index + 1];
+  const headingText = cleanWikiMarkup(heading[2]);
+  const contentStart = heading.index + heading[0].length;
+  const contentEnd = next?.index ?? text.length;
+  sections.push({
+    heading: headingText,
+    normalizedHeading: normalizeHeading(headingText),
+    level: heading[1].length,
+    content: text.slice(contentStart, contentEnd).trim(),
+    startIndex: heading.index,
+    endIndex: contentEnd,
+  });
+}
+
+return sections.filter((section) => section.content.trim()); }
 
 function sectionMatchesNeedles(section, needles) {
   const haystack = `${section.normalizedHeading} ${String(section.content ?? "").toLowerCase()}`;

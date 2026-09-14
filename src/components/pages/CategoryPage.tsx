@@ -36,6 +36,7 @@ import {
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 import { icons } from "@/utils/iconNames";
+import { t } from "@/i18n/server";
 
 interface CategoryPageProps {
   detail: CategoryDetail;
@@ -47,6 +48,13 @@ interface CategoryPageProps {
 const INITIAL_DRUG_CLASS_SECTION_LIMIT = 4;
 const BODY_COPY_CLASS = "theme-text-muted type-supporting-copy type-reading-measure";
 const ASIDE_COPY_CLASS = "theme-text-faint type-detail-copy type-reading-measure italic";
+
+function localizeParagraphHtml(value: string): string {
+  return value.replace(
+    /<p>(.*?)<\/p>/gs,
+    (_match, paragraph: string) => `<p>${t(paragraph)}</p>`,
+  );
+}
 
 /**
  * Single effect with its long summary rendered inline.
@@ -121,10 +129,10 @@ function EffectSection({
     <ArticleSection
       id={categorySectionAnchorId(section)}
       icon={section.icon}
-      heading={section.title}
+      heading={t(section.title)}
       spacing="effect"
     >
-      <p className={BODY_COPY_CLASS}>{section.description}</p>
+      <p className={BODY_COPY_CLASS}>{t(section.description)}</p>
       <div className="space-y-8">
         {effects.map((effect) => (
           <EffectLongSummary
@@ -155,10 +163,10 @@ function EffectSectionPanel({
       className={`${INDEX_PANEL_MASONRY_ITEM_CLASS_NAME} scroll-mt-24`}
     >
       <IndexCard
-        title={section.title}
+        title={t(section.title)}
         icon={section.icon}
         count={effects.length}
-        description={section.description}
+        description={t(section.description)}
       >
         <div className="pt-1">
           <IndexCardList>
@@ -203,17 +211,18 @@ function DrugClassArticleSection({
       >
         <PublicSectionHeading
           icon={icons.subjectiveEffectIndex}
-          title={content.title}
+          title={t(content.title)}
           titleElement="h2"
         />
         <div
           className="theme-text-secondary prose prose-invert prose-fuchsia prose-a:font-normal type-lead type-reading-measure"
-          dangerouslySetInnerHTML={{ __html: content.introHtml }}
+          dangerouslySetInnerHTML={{ __html: localizeParagraphHtml(content.introHtml) }}
         />
-        <p className={ASIDE_COPY_CLASS}>{content.applicableSubstances}</p>
+        <p className={ASIDE_COPY_CLASS}>{t(content.applicableSubstances)}</p>
         <p className={ASIDE_COPY_CLASS}>
-          The article begins with simpler effects and works up toward more
-          complex experiences. Each effect links to its full article.
+          {t(
+            "The article begins with simpler effects and works up toward more complex experiences. Each effect links to its full article.",
+          )}
         </p>
       </section>
 
@@ -230,11 +239,12 @@ function DrugClassArticleSection({
         <section className="space-y-6 pt-6">
           <PublicSectionHeading
             icon={icons.subjectiveEffectIndex}
-            title="Further Effects"
+            title={t("Further Effects")}
           />
           <p className={BODY_COPY_CLASS}>
-            The remaining effect categories are summarized below. Open any
-            effect for its full article, replications, and analysis.
+            {t(
+              "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
+            )}
           </p>
           <IndexPanelMasonry>
             {linkPreviewSections.map(({ section, effects: sectionEffects }) => (
@@ -264,7 +274,13 @@ export function CategoryPage({
     hasOverview: Boolean(drugClassContent),
     substanceCount: detail.total,
     substanceIcon: detail.definition.icon,
-  });
+  }).map((item) => ({
+    ...item,
+    label:
+      item.id === CATEGORY_SUBSTANCES_ANCHOR_ID
+        ? `${t("Substances")} (${detail.total})`
+        : t(item.label),
+  }));
   // A lone "Substances" entry is navigation without a destination, so plain
   // categories keep the single-column layout instead of gaining an empty rail.
   const hasTableOfContents = tocItems.length > 1;
@@ -302,7 +318,7 @@ export function CategoryPage({
         {hasTableOfContents && <PublicTocStrip items={tocItems} />}
 
         <PageHeader
-          title={detail.definition.name}
+          title={t(detail.definition.name)}
           icon={detail.definition.icon}
           align={hasTableOfContents ? "left" : "center"}
         />
@@ -324,7 +340,7 @@ export function CategoryPage({
           {drugClassContent && (
             <PublicSectionHeading
               icon={detail.definition.icon}
-              title={`${detail.definition.name} Substances`}
+              title={`${t(detail.definition.name)} ${t("Substances")}`}
             />
           )}
           {substanceGroups.length > 0 ? (
@@ -335,7 +351,7 @@ export function CategoryPage({
             />
           ) : (
             <p className={BODY_COPY_CLASS}>
-              No compounds are currently mapped to this category.
+              {t("No compounds are currently mapped to this category.")}
             </p>
           )}
         </section>

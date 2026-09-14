@@ -30,20 +30,21 @@ export type AuthenticatedUser = {
   name: string;
 };
 
-export type AuthorizedRole = "admin" | "editor" | "contributor" | "viewer";
+export type AuthorizedRole = "admin" | "editor" | "translator" | "contributor" | "viewer";
 
 /**
  * Role floors, lowest to highest. `requireRole` admits an actor whose role
  * sits at or above the floor. `viewer` is a legacy stored value only: it is
  * never a floor and never passes one.
  */
-export type RoleFloor = "admin" | "editor" | "contributor";
+export type RoleFloor = "admin" | "editor" | "translator" | "contributor";
 
 const ROLE_RANK: Record<AuthorizedRole, number> = {
   viewer: 0,
   contributor: 1,
-  editor: 2,
-  admin: 3,
+  translator: 2,
+  editor: 3,
+  admin: 4,
 };
 
 export function roleMeetsFloor(role: AuthorizedRole, floor: RoleFloor): boolean {

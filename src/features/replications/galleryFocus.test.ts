@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { GalleryReplication } from "@/types/replications";
-import {
-  UNATTRIBUTED_KEY,
-  UNATTRIBUTED_LABEL,
-} from "@/features/effects/gallery/galleryModel";
+import { UNATTRIBUTED_KEY } from "@/features/effects/gallery/galleryArtistIdentity";
+import { UNATTRIBUTED_LABEL } from "@/features/replications/replicationVocabulary";
 import {
   artistPageHrefForWork,
   canonicalArtistPageRedirectKey,

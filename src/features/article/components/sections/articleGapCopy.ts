@@ -19,7 +19,7 @@ import type { SubstanceSectionId } from "@/schema/substance/sectionManifest";
  * `pointer` — it does not, so the neighbours are navigation only, plus a caution.
  * `none`    — nothing worth pointing at; the absence is the whole statement.
  */
-export type NeighbourStyle = "hedge" | "pointer" | "none";
+type NeighbourStyle = "hedge" | "pointer" | "none"
 
 export interface ArticleGapPolicy {
   /**

@@ -2,6 +2,12 @@
 node_modules/
 .next/
 .next-editor/
+.next-effectindex/
+.next-houseclean-dosewiki/
+.next-houseclean-effectindex/
+.next-houseclean-editor/
+.next-semantic-verification/
+.next-semantic-verified/
 dist/
 # The repository-owned OpenChemLib package resolves from committed browser
 # artifacts during Vercel's no-Java/GWT install and build.
@@ -38,6 +44,9 @@ src/data/.lineage/
 .test-evidence/
 .unslop/
 .agents/
+.pi/task-graph.json
+.impeccable/critique/
+**/settings.local.json
 **/.lakebed/
 
 # Environment and logs

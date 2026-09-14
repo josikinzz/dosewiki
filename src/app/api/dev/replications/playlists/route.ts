@@ -24,6 +24,7 @@ import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { roleMeetsFloor } from "@/lib/auth/roles";
 import { isValidReplicationSlug } from "@/features/dev/tools/replication-studio/replicationStudioModel";
 
 export const runtime = "nodejs";
@@ -118,10 +119,9 @@ export const GET = protectedRouteOperation({
 
     const apiKey =
       convexWrite.getAdminIntentToken?.("replicationMaintenance") ?? convexWrite.adminKey;
-    const playlists =
-      auth.role === "contributor"
-        ? await convexWrite.client.query(api.replicationPlaylists.listOwned, { apiKey, actorEmail })
-        : await convexWrite.client.query(api.replicationPlaylists.list, { apiKey, actorEmail });
+    const playlists = roleMeetsFloor(auth.role, "editor")
+      ? await convexWrite.client.query(api.replicationPlaylists.list, { apiKey, actorEmail })
+      : await convexWrite.client.query(api.replicationPlaylists.listOwned, { apiKey, actorEmail });
 
     return NextResponse.json({ ok: true, playlists });
   },

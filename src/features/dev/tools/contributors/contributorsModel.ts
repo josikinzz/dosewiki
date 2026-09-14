@@ -217,7 +217,7 @@ export function ordersEqual(left: readonly string[], right: readonly string[]): 
 }
 
 /** Newest first, with undated rows last rather than sorted as the epoch. */
-export function sortByDateDescending<Item>(
+function sortByDateDescending<Item>(
   items: readonly Item[],
   getDate: (item: Item) => string | null,
 ): Item[] {

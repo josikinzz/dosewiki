@@ -1,31 +1,36 @@
 # Archive Retention Policy
 
-Last reviewed: 2026-05-28
+Last reviewed: 2026-09-12
 
-Archived plans, audits, generated records, and retired guides are historical context, not current contributor instructions. Current architecture and workflow authority lives in `README.md`, `ARCHITECTURE.md`, `AGENTS.md`, `CLAUDE.md`, `docs/architecture/`, and `scripts/README.md`.
+Current source inputs, active specifications, licenses, provenance, rights
+evidence, and recovery material stay at the paths their consumers name.
+Completed audits, migration diaries, generated run records, and retired guides
+are private history, not current contributor instructions. Private retention is
+verified outside the repository before tracked historical prose is removed.
+There is no committed archive substitute and no public audit diary.
 
 ## Retention Labels
 
 | Label | Meaning | Default action |
 | --- | --- | --- |
-| `current-authority` | Active instructions for contributors or automation. | Keep discoverable and test for drift. |
-| `durable-record` | Historical decision, audit, migration, or completed task record. | Keep with a banner or index entry; do not treat as active guidance. |
-| `retired-runtime` | Instructions for the old Vite/static/local-JSON app. | Keep only with a top-of-file tombstone or move under an archive. |
-| `generated-record` | Export, report, queue, or run metadata retained for provenance. | Keep only when covered by artifact lineage or generated export retention metadata. |
-| `delete-candidate` | Duplicate, superseded, or ownerless material with no durable value. | Delete after owner review, unless another active task owns cleanup. |
+| `current-authority` | Active instructions, source inputs, licenses, provenance, rights evidence, or recovery inputs consumed by current code or operations. | Keep at the consumer-owned path and test pointers for drift. |
+| `durable-private-history` | Completed audit, migration, incident, or campaign record retained for accountability. | Verify private retention, then remove obsolete public operational prose and its producer destination. |
+| `retired-runtime` | Instructions for a backend or application path that is available only for observation or recovery. | Keep only while the named recovery window is open and label every command with its restricted purpose. |
+| `generated-record` | Export, report, queue, or run metadata. | Commit only when a current consumer and artifact-lineage policy require it; otherwise keep it private or ignored. |
+| `delete-candidate` | Duplicate, superseded, or ownerless material with no current input, provenance, rights, or recovery value. | Delete only after pointer migration, verified private retention where required, and owner review. |
 
 ## Search Hygiene
 
-- Archive indexes should summarize retained material instead of making every completed task look like active work.
-- Retired-runtime files must say they are not current app guidance in the first screen of the file.
-- Completed audit task directories should keep durable task records, but current work should point to task trackers or indexes, not scattered completed instructions.
-- Do not delete broad generated-export or fixture trees until the generated artifact policy has classified them.
+- Active indexes point to maintained authorities, not completed task directories.
+- Current source, provenance, rights, license, and recovery inputs are not histories merely because they are old.
+- Private histories stay outside the committed tree; do not create a public archive copy as a substitute.
+- Retiring-backend instructions name their observation or recovery window and require separate approval.
+- Generated trees are removed only after their consumer and artifact-lineage policies classify them.
 
-## Current Classifications
+## Classification rule
 
-| Path | Label | Notes |
-| --- | --- | --- |
-| `docs/archive/improvement-tasks/` | `durable-record` | Historical improvement task records. Use as background only. |
-| `docs/audits/thermo-nuclear-2026-05-28/` | `durable-record` while implementation is in progress | Current Phase 3 work may still reference open tasks; completed tasks should remain indexed by `TASK-TRACKER.md`. |
-| `notes-and-plans/guides/dosewiki-site-readme.md` | `retired-runtime` | Old Vite/static guide retained with a tombstone. |
-| `notes-and-plans/exports/` | `generated-record` | Governed by `scripts/lib/local-artifact-hygiene-policy.mjs` and `src/data/artifactLineageManifest.json`. |
+Classify a path from direct consumer evidence. Imports, package commands,
+workflow inputs, route loaders, generators, and recovery manifests establish a
+current input. A completed report that merely describes those inputs is private
+history. When migrating a pointer, update the producer destination as well so
+obsolete operational prose does not regrow.

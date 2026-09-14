@@ -1,12 +1,23 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import type * as SiteFlavorModule from "@/config/siteFlavor";
 import { AppearanceTestProvider } from "@/test/AppearanceTestProvider";
 import { ACCENT_HUE_PROPERTY, SURFACE_HUE_PROPERTY } from "@/theme/appearanceChroma";
 import { ThemeLabLazy as ThemeLab } from "./ThemeLabLazy";
 import { THEME_LAB_OVERRIDE_STYLE_ID } from "./themeLabStorage";
 import { setThemeLabOpen } from "./themeLabStore";
 import { clearThemeBaselineCache } from "./presetBaselines";
+vi.mock("@/config/siteFlavor", async (importOriginal) => {
+  const actual = await importOriginal<typeof SiteFlavorModule>();
+  return {
+    ...actual,
+    SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
+    isEffectIndex: (config = actual.SITE_FLAVOR_CONFIGS.dosewiki) =>
+      actual.isEffectIndex(config),
+  };
+});
+
 
 /**
  * The drawer, through the suite's usual seam: open it through the global store, drive it

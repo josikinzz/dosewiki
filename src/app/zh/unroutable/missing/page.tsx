@@ -11,7 +11,7 @@
 import { getCopy } from "@server/next/copyBlocks";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { getStatusRecoveryLink } from "@server/next/statusRedirectPolicy";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { NotFoundBody } from "../../../_components/NotFoundBody";
 

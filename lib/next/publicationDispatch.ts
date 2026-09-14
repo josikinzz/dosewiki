@@ -36,16 +36,29 @@ const DISPATCH_TIMEOUT_MS = 2_500;
 /** One retry absorbs a cold lambda or a dropped connection, nothing more. */
 const DISPATCH_ATTEMPTS = 2;
 
-export type PublicationReceiptStatus =
-  | "accepted"
-  | "rejected"
-  | "unreachable"
-  | "unconfigured";
+type PublicationReceiptStatus = | "accepted"
+| "pending"
+| "rejected"
+| "unreachable"
+| "unconfigured"
 
 export type SavedArticleRevision = { slug: string; revision: string | null };
-export type ServedArticleRevision = SavedArticleRevision & {
+type ServedArticleRevision = SavedArticleRevision & {
   status: "verified" | "mismatch" | "unreachable";
   observedRevision?: string;
+}
+
+export type PublicationRevisionEvidence = {
+  publicationKey: string;
+  generation: number;
+  savedRevision: string;
+  /** Enqueue is not generation completion. Workers fill this later. */
+  generatedRevision: string | null;
+  /** Public HTML verification fills this independently of generation. */
+  renderedRevision: string | null;
+  translationStatus: "pending" | "enqueued" | "generated";
+  translationJobs: readonly string[];
+  catalogIntents: readonly unknown[];
 };
 
 export type PublicationReceipt = {
@@ -60,6 +73,7 @@ export type PublicationReceipt = {
   /** Acceptance alone is never evidence that a public page serves this revision. */
   servedRevisions?: ServedArticleRevision[];
   verification?: "not-requested" | "pending" | "verified" | "incomplete";
+  translationIntent?: PublicationRevisionEvidence;
 };
 
 /**
@@ -98,19 +112,15 @@ export function getPublicationTargets(
   return targets;
 }
 
-export function buildPublicationSignal(
-  targets: readonly PublicationTarget[],
-  source: PublicationSource,
-  now: number = Date.now(),
-): PublicationSignal {
-  return {
-    version: PUBLICATION_SIGNAL_VERSION,
-    source,
-    issuedAt: now,
-    dispatchId: `${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
-    targets: [...targets],
-  };
-}
+function buildPublicationSignal(targets: readonly PublicationTarget[],
+source: PublicationSource,
+now: number = Date.now(),): PublicationSignal { return {
+  version: PUBLICATION_SIGNAL_VERSION,
+  source,
+  issuedAt: now,
+  dispatchId: `${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+  targets: [...targets],
+}; }
 
 async function deliver(
   origin: string,

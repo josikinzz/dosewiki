@@ -16,7 +16,7 @@ import copyBlockDefaultsSource from "./copyBlocks.json";
  * in the browser.
  */
 
-export const COPY_BLOCK_KINDS = ["markdown", "plain", "list"] as const;
+const COPY_BLOCK_KINDS = ["markdown", "plain", "list"] as const
 
 export type CopyBlockKind = (typeof COPY_BLOCK_KINDS)[number];
 
@@ -95,12 +95,4 @@ export function getCopyBlockDefault(key: string): CopyBlockDefinition | null {
 }
 
 /** Rail groupings in the order the Copy Studio should present them. */
-export function listCopyBlockGroups(): string[] {
-  const groups: string[] = [];
-  COPY_BLOCK_DEFAULTS.forEach((definition) => {
-    if (!groups.includes(definition.group)) {
-      groups.push(definition.group);
-    }
-  });
-  return groups;
-}
+

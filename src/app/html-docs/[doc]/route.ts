@@ -2,12 +2,11 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { isEffectIndex } from "@/config/siteFlavor";
+import { requireRoleSession } from "@/lib/auth/requireEditorSession";
 
 /**
- * Unlisted raw-HTML doc host: serves self-contained files from `html-docs/` at the repo
- * root with no app shell. The public-document CSP still applies (middleware), so files
- * must inline everything — external font/script CDNs are blocked. Effect Index 404s on
- * flavor.
+ * Authenticated raw-HTML host for historical editor documents stored in `html-docs/`.
+ * Public builds and the Effect Index flavor do not expose this surface.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +22,9 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ doc: string }> },
 ) {
-  if (isEffectIndex()) return notFound();
+  if (isEffectIndex() || process.env.NEXT_PUBLIC_EDITOR_BUILD !== "true") return notFound();
+  const auth = await requireRoleSession("editor");
+  if (auth.ok === false) return auth.response;
   const { doc } = await params;
   if (!DOC_NAME_RE.test(doc)) return notFound();
   const fileName = doc.endsWith(".html") ? doc : `${doc}.html`;

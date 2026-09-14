@@ -29,16 +29,12 @@ import {
 import { planBindingSiteMigration } from "../../lib/article/normalization.mjs";
 import { substanceArticleSchema } from "../../src/schema/substance.schema.ts";
 import { stripConvexMetadata } from "../batch/summary/articles.mjs";
-import {
-  assertDataOpsWriteAllowed,
-  createDataOpsRunContext,
-  getFlagValue,
-  printDataOpsRunContext,
-  requireAdminIntentToken,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+createDataOpsRunContext,
+getFlagValue,
+printDataOpsRunContext,
+requireAdminIntentToken,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
 const INTENT = "editorArticleWrite";
 const SENSES = ["visual", "auditory", "tactile", "olfactory", "gustatory", "multisensory"];

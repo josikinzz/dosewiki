@@ -10,6 +10,7 @@ import {
   isPublishableReplication,
   type GalleryReplication,
   type PublicGalleryReplicationPreview,
+  type PublicReplicationArtistTaxonomy,
   type ReplicationWithUrl,
 } from "../../src/types/replications";
 import { getPublicReplicationBySlug, getPublicReplications } from "./publicData.effects";
@@ -58,6 +59,7 @@ const getPublicReplicationArtistTaxonomyBatch = cache(publicDataCache(async (
   "convex-public-replication-artist-taxonomy-batch-v1",
 ], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  awaitRefresh: true,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 
@@ -119,6 +121,7 @@ const getPublicMatchableReplicationCorpusPage = cache(publicDataCache(async (
   return await getPublicDataReadAdapter().getPublicMatchableReplicationPage(cursor);
 }, ["convex-public-matchable-replication-corpus-page-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  awaitRefresh: true,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 
@@ -431,14 +434,13 @@ export const getPublicGalleryReplications = cache(async (): Promise<PublicGaller
 
   const visible = dropGalleryExcludedArtistWorks(replications, profiles);
   const artistKeys = [...new Set(visible.map((row) => row.artist.trim().toLowerCase()).filter(Boolean))];
-  const artistTaxonomy = (
-    await Promise.all(
-      batches(artistKeys, PUBLIC_ARTIST_TAXONOMY_BATCH_SIZE).map((keys) =>
-        getPublicReplicationArtistTaxonomyBatch(keys),
-      ),
-    )
-  ).flat();
-  const artistByKey = new Map(artistTaxonomy.map((row) => [row.key, row]));
+  const artistByKey = new Map<string, PublicReplicationArtistTaxonomy>();
+  // Drain batches without filling the shared database pool's checkout queue.
+  for (const keys of batches(artistKeys, PUBLIC_ARTIST_TAXONOMY_BATCH_SIZE)) {
+    for (const artist of await getPublicReplicationArtistTaxonomyBatch(keys)) {
+      artistByKey.set(artist.key, artist);
+    }
+  }
 
   return visible.map((replication) => {
     const artist = artistByKey.get(replication.artist.trim().toLowerCase());

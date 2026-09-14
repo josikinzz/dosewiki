@@ -24,14 +24,9 @@ import {
 } from "./articleGapCopy";
 import { getEmptyArticleSectionKeys } from "./articleGapPresence";
 
-export const GAP_ICON = "qlementine-icons:empty-slot-16";
-export const STUB_ICON = "ph:egg-crack-light";
+const GAP_ICON = "qlementine-icons:empty-slot-16"
+const STUB_ICON = "ph:egg-crack-light"
 
-/**
- * The stub rule lives in the schema layer so the article banner, the coverage
- * audit, and any tooling read the same verdict.
- */
-export { STUB_THRESHOLD } from "@/schema/substance/articleStubPolicy";
 
 function NeighbourChips({ neighbours }: { neighbours: SectionGapNeighbour[] }) {
   if (neighbours.length === 0) return null;

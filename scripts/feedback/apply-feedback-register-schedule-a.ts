@@ -22,16 +22,12 @@
 import { createDataClient, type DataClient } from "../lib/data-client.ts";
 import { isDeepStrictEqual } from "node:util";
 import { api } from "../../convex/_generated/api.js";
-import {
-  createDataOpsRunContext,
-  assertDataOpsWriteAllowed,
-  printDataOpsRunContext,
-  hasFlag,
-  requireAdminIntentToken,
-  resolveAdminIntentToken,
-  writeAuditLog,
-  updateAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { createDataOpsRunContext,
+assertDataOpsWriteAllowed,
+printDataOpsRunContext,
+hasFlag,
+requireAdminIntentToken,
+resolveAdminIntentToken,  } from "../lib/data-ops-run-context.mjs"; import { writeAuditLog, updateAuditLog } from "../lib/data-ops-audit.mjs"
 
 const OPERATION = "apply-feedback-register-schedule-a";
 const CONFIRMATION_FLAG = "--confirm-feedback-register";

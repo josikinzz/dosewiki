@@ -1,3 +1,5 @@
+import { getTripReportExcerpt } from "../../src/types/tripReport";
+
 import type { Doc } from "../_generated/dataModel";
 
 /** Published reading data only; never expose ownership or moderation actors. */
@@ -25,6 +27,20 @@ export function publicTripReport(report: Doc<"tripReports">) {
     published_at: new Date(report._creationTime).toISOString(),
     // Readers need to distinguish an explicitly unattributed byline from a
     // legacy byline; neither the moderation decision nor its actor is public.
+    attribution_locked: !!report.attribution_review,
+  };
+}
+
+/** Compact list projection; narrative and timeline bodies never cross the read edge. */
+export function publicTripReportPreview(report: Doc<"tripReports">) {
+  return {
+    slug: report.slug,
+    title: report.title,
+    featured: report.featured,
+    subject: report.subject,
+    substances: report.substances,
+    excerpt: getTripReportExcerpt(report),
+    published_at: new Date(report._creationTime).toISOString(),
     attribution_locked: !!report.attribution_review,
   };
 }

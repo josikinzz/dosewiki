@@ -84,7 +84,7 @@ export const PageHeader = memo(function PageHeader({
   const iconClassName =
     "theme-accent-heading mr-[0.2em] inline-block h-[0.72em] w-[0.72em] align-[0.02em] sm:absolute sm:right-full sm:top-1/2 sm:mr-[0.15em] sm:block sm:h-[1em] sm:w-[1em] sm:-translate-y-1/2";
   const titleClasses = cn(
-    "type-page-title theme-accent-heading block w-full max-w-[22ch] text-balance wrap-normal! max-sm:text-4xl! sm:text-5xl md:text-6xl",
+    "type-page-title theme-accent-heading block w-full max-w-[22ch] text-balance wrap-normal! max-sm:text-4xl sm:text-5xl md:text-6xl",
     icon ? (isLeft ? "sm:pl-[1.15em]" : "sm:px-[1.15em]") : undefined,
     isLeft ? undefined : "mx-auto",
     titleClassName,

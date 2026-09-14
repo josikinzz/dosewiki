@@ -60,7 +60,7 @@ const EXCLUDED_FIELD_REGISTRY_PATHS = new Set([
  * Compatibility defaults are intentional additions for generated article
  * helpers that are not fully represented by direct Zod default extraction.
  */
-export function applyArticleCompatibilityDefaults(
+function applyArticleCompatibilityDefaults(
   defaults: Record<string, unknown>,
 ): Record<string, unknown> {
   const pharmacology = (defaults.pharmacology ??= {}) as Record<string, unknown>;
@@ -107,14 +107,14 @@ export function generateArticleDefaults(schema: ZodType): Record<string, unknown
 /**
  * Get the Zod type name from a schema.
  */
-export function getZodTypeName(schema: ZodType): string {
+function getZodTypeName(schema: ZodType): string {
   return (schema as { type?: string }).type ?? "unknown";
 }
 
 /**
  * Unwrap nullable/optional/default types to get the inner type.
  */
-export function unwrapType(schema: ZodType): ZodType {
+function unwrapType(schema: ZodType): ZodType {
   const typeName = getZodTypeName(schema);
   const def = (schema as { def?: { innerType?: ZodType } }).def;
 
@@ -136,14 +136,14 @@ export function unwrapType(schema: ZodType): ZodType {
 /**
  * Check if a schema represents a nullable type.
  */
-export function isNullable(schema: ZodType): boolean {
+function isNullable(schema: ZodType): boolean {
   return getZodTypeName(schema) === "nullable";
 }
 
 /**
  * Get the element type for array schemas.
  */
-export function getArrayElement(schema: ZodType): ZodType | undefined {
+function getArrayElement(schema: ZodType): ZodType | undefined {
   const def = (schema as { def?: { element?: ZodType } }).def;
   return def?.element;
 }
@@ -160,7 +160,7 @@ function getUnionObjectOption(schema: ZodType): ZodType | undefined {
 /**
  * Get the shape of an object schema.
  */
-export function getObjectShape(
+function getObjectShape(
   schema: ZodType,
 ): Record<string, ZodType> | undefined {
   return (schema as { shape?: Record<string, ZodType> }).shape;
@@ -222,12 +222,12 @@ export function generateDefault(schema: ZodType): unknown {
   }
 }
 
-export function isDoseRangeField(path: string): boolean {
+function isDoseRangeField(path: string): boolean {
   const doseRangePattern = /dose_ranges\.(threshold|light|moderate|strong|heavy)$/;
   return doseRangePattern.test(path);
 }
 
-export function isDurationStageField(path: string): boolean {
+function isDurationStageField(path: string): boolean {
   const stagePattern =
     /stages\.(onset|come_up|peak|offset|after_effects|total_duration)$/;
   return stagePattern.test(path);

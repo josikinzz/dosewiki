@@ -2,6 +2,7 @@ import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
+import type { AppRole } from "@/lib/auth/roles";
 
 import { GET, POST } from "./route";
 import { DELETE, GET as GET_BY_KEY } from "./[key]/route";
@@ -49,7 +50,7 @@ vi.mock("@server/convex/serverWriteCapability", () => ({
   }),
 }));
 
-function signIn(role: "contributor" | "editor" | "admin" | null, email = "ada@example.com") {
+function signIn(role: AppRole | null, email = "ada@example.com") {
   sessionMocks.requireRoleSession.mockImplementation(roleSessionFor(role, { email, name: "Someone" }));
 }
 

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import type { PublicationTarget } from "@server/next/publicationWire";
-import { publishPublicCache } from "@server/next/publishPublicCache";
+import { applyPublicCacheLocally } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -45,7 +45,7 @@ function parseGuard(raw: Record<string, unknown>): WarningGuard {
   return { baseHash: raw.baseHash, changeId: raw.changeId, scope: raw.scope, ...(raw.slug ? { slug: raw.slug as string } : {}) };
 }
 
-async function publish(result: { allSubstances: boolean; affectedSlugs: string[] }) {
+function publish(result: { allSubstances: boolean; affectedSlugs: string[] }) {
   const targets: PublicationTarget[] = [{ kind: "banners" }];
   if (!result.allSubstances) {
     // `affectedSlugs` carries the slugs this change removed from the preset as
@@ -53,13 +53,13 @@ async function publish(result: { allSubstances: boolean; affectedSlugs: string[]
     // refreshed too.
     for (const slug of result.affectedSlugs) targets.push({ kind: "article", slug });
   }
-  const receipts = await publishPublicCache({ targets, source: "manual" });
+  applyPublicCacheLocally({ targets, source: "manual" });
   // A preset that covers every substance has no per-article identity to name,
   // and no content identity expires the root layout, so that one stays a
   // direct call. It only reaches this deployment; the public deployments pick
   // the change up through the delivered `banners` identity.
   if (result.allSubstances) revalidatePath("/", "layout");
-  return receipts;
+  return { status: "pending" as const };
 }
 
 const privateHeaders = { "Cache-Control": "private, no-store" };

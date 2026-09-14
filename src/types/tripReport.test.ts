@@ -35,8 +35,14 @@ const detailReport: TripReportDetailRecord = {
 describe("trip report contract adapters", () => {
   it("projects stored reports into public previews with resolved author metadata", () => {
     expect(
-      toPublicReportPreview(detailReport, {
-        introduction: "",
+      toPublicReportPreview({
+        slug: detailReport.slug,
+        title: detailReport.title,
+        featured: detailReport.featured,
+        subject: detailReport.subject,
+        substances: detailReport.substances,
+        excerpt: "",
+      }, {
         authorAvatarUrl: "https://example.com/resolved-avatar.png",
         authorProfileKey: "RESOLVED",
       }),

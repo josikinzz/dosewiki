@@ -40,10 +40,8 @@ export interface HomeEffectInput {
   tags: readonly string[];
 }
 
-export interface HomeFeaturedEffect {
-  name: string;
-  slug: string;
-}
+interface HomeFeaturedEffect { name: string;
+slug: string; }
 
 export interface HomeFeaturedEffectGroup {
   id: string;
@@ -57,11 +55,11 @@ export interface HomeFeaturedEffectGroup {
  * the effect record — the same `visual` / `cognitive` / `miscellaneous` tags the legacy
  * import carried across.
  */
-export const FEATURED_EFFECT_GROUP_DEFINITIONS = [
+const FEATURED_EFFECT_GROUP_DEFINITIONS = [
   { id: "visual", label: "Visual Effects", tag: "visual" },
   { id: "cognitive", label: "Cognitive Effects", tag: "cognitive" },
   { id: "miscellaneous", label: "Miscellaneous Effects", tag: "miscellaneous" },
-] as const;
+] as const
 
 export function selectFeaturedEffectGroups(
   effects: readonly HomeEffectInput[],
@@ -258,7 +256,7 @@ export function summarizeReportSubstances(
   };
 }
 
-export const FEATURED_REPORT_COUNT = 8;
+const FEATURED_REPORT_COUNT = 8
 
 export function selectFeaturedReports(
   reports: readonly HomeReportInput[],

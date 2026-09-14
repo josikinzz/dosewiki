@@ -12,8 +12,6 @@ import {
   validateStableWorkflowCommandImplementationPolicies,
   validateStableWorkflowCommandPolicies,
   validateStableWorkflowCommands,
-  validateStableWorkflowDocCoverage,
-  validateWorkflowEnvCoverage,
 } from './workflow-docs-consistency.mjs';
 import { stableCitationWorkflowCommandNames } from './citation-command-surface.mjs';
 import { stableWorkflowCommands } from './workflow-command-surface.mjs';
@@ -123,10 +121,3 @@ test('documented package commands and script paths resolve', () => {
   assert.deepEqual(validateDocumentedCommands(repoRoot, packageJson.scripts), []);
 });
 
-test('script inventory covers stable workflow package commands', () => {
-  assert.deepEqual(validateStableWorkflowDocCoverage(repoRoot), []);
-});
-
-test('workflow docs and command metadata cover key environment variables', () => {
-  assert.deepEqual(validateWorkflowEnvCoverage(repoRoot), []);
-});

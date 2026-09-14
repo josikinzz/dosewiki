@@ -365,6 +365,25 @@ describe("article chemistry presentation sections", () => {
     expect(container.querySelector(".theme-article-hero-priority")).not.toBeInTheDocument();
   });
 
+  it("renders citation-needed markers inside a translated summary without whitespace", () => {
+    const article = createEmptyArticle();
+    article.title = "Dextromethorphan";
+    article.summary = "右美沙芬（DXM）是一种解离剂。[citation-needed][citation-needed] 后续说明。";
+    const chemistryPresentation = buildArticleChemistryPresentation(article);
+
+    const { container } = renderWithAppearance(
+      <HeroSection
+        article={article}
+        chemistryPresentation={chemistryPresentation}
+        moleculeAsset={null}
+        showPreviewBadge={false}
+      />,
+    );
+
+    expect(container.textContent).not.toContain("[citation-needed]");
+    expect(container.querySelectorAll(".theme-citation-needed-marker")).toHaveLength(1);
+  });
+
   it("uses the canonical article slug for snapshot reads", () => {
     const article = createEmptyArticle();
     article.title = "Lookup Name";

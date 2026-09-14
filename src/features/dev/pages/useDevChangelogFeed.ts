@@ -129,7 +129,4 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   };
 }
 
-export const devChangelogFeedTestAdapters = {
-  mergeStaticAndConvexChangelogEntries,
-  normalizeConvexChangelogEntries,
-};
+

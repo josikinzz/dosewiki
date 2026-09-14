@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { getFunctionName } from "convex/server";
-import { api } from "../../../convex/_generated/api.js";
 import { digest } from "./executor-lib.mjs";
 import {
   JOSIE_PERSONAL_WEBSITE,

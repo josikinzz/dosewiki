@@ -11,7 +11,6 @@ import {
   renderCitationTokenText,
 } from "./referenceModel";
 import {
-  deterministicReferenceId as sharedDeterministicReferenceId,
   MAX_REFERENCE_METADATA_PROVENANCE,
   mergeReferenceMetadata,
   normalizeReferenceMetadataProvenance,
@@ -118,14 +117,13 @@ describe("reference model", () => {
     expect(deterministicReferenceId({ url: "https://erowid.org/chemicals/2cb/", siteName: "Erowid", title: "2C-B" })).toMatch(/^url-erowid-/);
   });
 
-  it("uses the shared stable-id contract for runtime numbering helpers", () => {
-    const reference = {
-      url: "https://pubmed.ncbi.nlm.nih.gov/12345/",
-      siteName: "PubMed",
-      title: "Paper",
-    };
+  it("keeps separately cited sections of the same statute distinct", () => {
+    const ids = [4, 5, 8].map((section) => deterministicReferenceId({
+      title: "Psychoactive Substances Act 2016",
+      url: `https://www.legislation.gov.uk/ukpga/2016/2/section/${section}`,
+    }));
 
-    expect(deterministicReferenceId(reference)).toBe(sharedDeterministicReferenceId(reference));
+    expect(new Set(ids).size).toBe(3);
   });
 
   it("deduplicates references by normalized title when stronger identifiers are unavailable", () => {

@@ -17,7 +17,7 @@ import iconData from "./iconData.generated.json";
  * enough on one page to pay for the extra sprite entry; one-off section icons
  * stay on the regular inline path.
  */
-export const SPRITE_ICON_IDS: Readonly<Record<string, string>> = {
+const SPRITE_ICON_IDS: Readonly<Record<string, string>> = {
   "lucide:ellipsis": "dw-icon-ellipsis",
   "lucide:chevron-down": "dw-icon-chevron-down",
   "lucide:arrow-up": "dw-icon-arrow-up",
@@ -78,7 +78,7 @@ export function useIconSpriteAvailable(): boolean {
  * Zero-sized and absolutely positioned rather than `display: none` so every
  * browser resolves `<use>` references into it.
  */
-export function IconSpriteDefinitions() {
+function IconSpriteDefinitions() {
   if (SPRITE_SYMBOLS.length === 0) return null;
   return (
     <svg

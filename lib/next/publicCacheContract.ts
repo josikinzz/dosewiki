@@ -55,7 +55,7 @@ const REPLICATION_SHOWCASE_PATH = "/api/replications/showcase";
  * it locally and each public deployment applies it again to the identities it
  * receives, so both ends expire the same things without transmitting tags.
  */
-export function resolvePublicationEffect(target: PublicationTarget): PublicationEffect {
+function resolvePublicationEffect(target: PublicationTarget): PublicationEffect {
   switch (target.kind) {
     case "article":
       return {

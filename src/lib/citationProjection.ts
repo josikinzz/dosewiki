@@ -6,16 +6,16 @@ import { normalizeDoi } from "../../lib/citations/referenceIdentity.mjs";
 import { slugify } from "@/utils/slug";
 import { msg } from "@/i18n/messages";
 
-export const CITATION_COLLAPSED_LIMIT = 3;
+const CITATION_COLLAPSED_LIMIT = 3;
 
-export type CitationRole =
+type CitationRole =
   | "primary-source"
   | "further-reading"
   | "reference"
   | "external-link"
   | "internal-link";
 
-export type RawSubstanceCitation = {
+type RawSubstanceCitation = {
   name?: string | null;
   url?: string | null;
 };
@@ -26,12 +26,12 @@ export type RawEffectCitation = {
   from?: string | null;
 };
 
-export type RawExternalLink = {
+type RawExternalLink = {
   title?: string | null;
   url?: string | null;
 };
 
-export type RawSeeAlsoLink = {
+type RawSeeAlsoLink = {
   title?: string | null;
   location?: string | null;
 };

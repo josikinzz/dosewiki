@@ -89,6 +89,32 @@ test("staged scan reads the index rather than an unstaged clean replacement", as
   }
 });
 
+test("repository-specific Convex and R2 credential shapes are detected and redacted", async () => {
+  const root = await createRepo();
+  const convexSecret = ["prod", "glad-minnow-656"].join(":") + "|" + "D".repeat(40);
+  const r2Secret = ["E".repeat(20), "F".repeat(20)].join("");
+
+  try {
+    await writeFile(
+      path.join(root, "provider.env"),
+      `CONVEX_DEPLOY_KEY=${convexSecret}\nCLOUDFLARE_R2_SECRET_ACCESS_KEY="${r2Secret}"\n`,
+    );
+    git(root, "add", "provider.env");
+
+    const result = runScanner(root);
+
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /CONVEX_DEPLOY_KEY\s+provider\.env/);
+    assert.match(result.stdout, /CLOUDFLARE_R2_SECRET_ACCESS_KEY\s+provider\.env/);
+    for (const secret of [convexSecret, r2Secret]) {
+      assert.doesNotMatch(result.stdout, new RegExp(secret));
+      assert.doesNotMatch(result.stderr, new RegExp(secret));
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("documentation labels and user-facing password guidance are not credentials", async () => {
   const root = await createRepo();
 
@@ -106,7 +132,15 @@ test("documentation labels and user-facing password guidance are not credentials
       path.join(root, "example.env"),
       "WORKOS_COOKIE_PASSWORD=your-secure-random-cookie-password\n",
     );
-    git(root, "add", "security-notes.md", "messages.ts", "example.env");
+    await writeFile(
+      path.join(root, "provider-examples.env"),
+      [
+        "CONVEX_DEPLOY_KEY=prod:your-deployment|your-convex-deploy-key-placeholder",
+        "CLOUDFLARE_R2_SECRET_ACCESS_KEY=your-r2-secret-access-key-placeholder",
+        "",
+      ].join("\n"),
+    );
+    git(root, "add", "security-notes.md", "messages.ts", "example.env", "provider-examples.env");
 
     const result = runScanner(root);
 

@@ -1,7 +1,5 @@
 import { type PropsWithChildren, type ReactNode } from "react";
 import { get, useFormContext, useFormState, type FieldPath } from "react-hook-form";
-import { Badge } from "@/components/ui/badge";
-import { Surface } from "@/components/ui/surface";
 import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
 import type { SubstanceArticle } from "@/schema";
 
@@ -17,29 +15,6 @@ type CharacterCountProps = {
   value: string;
 };
 
-type ListPreviewProps = {
-  items: string[];
-  emptyLabel: string;
-};
-
-/**
- * Gradient hairline divider line for form sections.
- * @deprecated Use FormSectionCard instead for section separation
- */
-export const FormSectionDivider = () => (
-  <div className="relative my-14 h-px w-full">
-    <div className="absolute inset-0 h-px bg-[image:var(--theme-horizontal-divider-image)]" />
-  </div>
-);
-
-/**
- * Card wrapper for form sections. Provides consistent styling for each major section.
- */
-export const FormSectionCard = ({ children }: PropsWithChildren) => (
-  <Surface variant="public" padding="lg" radius="xl">
-    {children}
-  </Surface>
-);
 
 /**
  * Collapsible free-floating wrapper for top-level form sections (accent
@@ -155,23 +130,6 @@ export const CharacterCount = ({ value }: CharacterCountProps) => (
   <p className="theme-text-faint text-[11px] text-right">{(value ?? "").length} characters</p>
 );
 
-export const ListPreview = ({ items, emptyLabel }: ListPreviewProps) => {
-  if (!items || items.length === 0) {
-    return <p className={helperTextClass}>{emptyLabel}</p>;
-  }
 
-  return (
-    <div className="flex flex-wrap gap-2 pt-2">
-      {items.map((item, index) => (
-        <Badge
-          key={`${item}-${index}`}
-          variant="secondary"
-        >
-          {item}
-        </Badge>
-      ))}
-    </div>
-  );
-};
 
 export { helperTextClass };

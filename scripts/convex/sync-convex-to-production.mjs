@@ -41,17 +41,13 @@ import { getAllSubstanceDocuments } from "../lib/convex-pagination.mjs";
 import { normalizeQuoteSectionId } from "../../lib/quoteSections.mjs";
 import { sanitizeObjectKeys } from "../batch/summary/articles.mjs";
 import { ARTICLE_SOURCE_DOCUMENT_MAX_BYTES } from "../article-source-documents/contract.mjs";
-import {
-  assertDataOpsWriteAllowed,
-  backupBeforeWrite,
-  batchAndApplyMutations,
-  createDataOpsRunContext,
-  printDataOpsRunContext,
-  requireSourceUrl,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+backupBeforeWrite,
+batchAndApplyMutations,
+createDataOpsRunContext,
+printDataOpsRunContext,
+requireSourceUrl,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 import { resolveProductionSyncCredentials } from "./production-sync-credentials.mjs";
 
 const runContext = createDataOpsRunContext({

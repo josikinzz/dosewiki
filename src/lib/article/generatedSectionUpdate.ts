@@ -38,13 +38,13 @@ export type GeneratedSectionSource =
   | { kind: "normalized"; data: unknown }
   | { kind: "parsed_source"; data: unknown };
 
-export type ArticlePatch = Partial<SubstanceArticle>;
+type ArticlePatch = Partial<SubstanceArticle>
 
-export type GeneratedSectionDiagnostic = {
+type GeneratedSectionDiagnostic = {
   level: "info" | "warning" | "error";
   code: string;
   message: string;
-};
+}
 
 export type GeneratedSectionUpdateResult = {
   patch: ArticlePatch;

@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 
-export const currentGuidanceDocs = [
+const currentGuidanceDocs = [
   "README.md",
   "ARCHITECTURE.md",
   "AGENTS.md",
@@ -14,7 +14,7 @@ export const currentGuidanceDocs = [
   "notes-and-plans/guides/font-swap-howto.md",
 ];
 
-export const retiredRuntimeGuidanceFiles = [
+const retiredRuntimeGuidanceFiles = [
   "notes-and-plans/guides/dosewiki-site-readme.md",
 ];
 
@@ -81,7 +81,7 @@ function collectPatternFailures({ content, docPath, patterns }) {
   return failures;
 }
 
-export function packageMajorVersion(packageJson, dependencyName) {
+function packageMajorVersion(packageJson, dependencyName) {
   const rawVersion = packageJson.dependencies?.[dependencyName] ?? packageJson.devDependencies?.[dependencyName];
   const major = rawVersion?.match(/\d+/)?.[0];
   return major ? Number(major) : null;

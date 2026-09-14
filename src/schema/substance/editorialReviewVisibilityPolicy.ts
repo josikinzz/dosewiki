@@ -1,6 +1,6 @@
 import type { EditorialReview } from "./editorial";
 
-export const EDITORIAL_REVIEW_FIELD = "editorial_review" as const;
+const EDITORIAL_REVIEW_FIELD = "editorial_review" as const;
 
 export type EditorialReviewPolicyMode =
   | "public_read"
@@ -12,7 +12,7 @@ export type EditorialReviewPolicyMode =
   | "export"
   | "import";
 
-export type ArticleWithEditorialReview = object & {
+type ArticleWithEditorialReview = object & {
   editorial_review?: unknown;
 };
 
@@ -86,20 +86,6 @@ export function projectPublicArticle<T extends object>(
   return publicArticle as PublicArticleProjection<T>;
 }
 
-export function projectArticlesForMode<T extends ArticleWithEditorialReview>(
-  articles: T[],
-  mode: EditorialReviewPolicyMode,
-): Array<T | PublicArticleProjection<T>> {
-  if (mode === "public_read" || mode === "generated_output") {
-    return articles.map(projectPublicArticle);
-  }
-
-  if (mode === "editor_read") {
-    return articles.map(projectEditorArticle);
-  }
-
-  return articles;
-}
 
 export function assertEditorialReviewMutationAllowed(
   mode: EditorialReviewPolicyMode,

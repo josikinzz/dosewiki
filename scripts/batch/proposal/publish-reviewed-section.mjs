@@ -24,8 +24,8 @@ import {
   getFlagValue,
   printDataOpsRunContext,
   requireTargetUrl,
-  writeAuditLog,
 } from "../../lib/data-ops-run-context.mjs";
+import { writeAuditLog } from "../../lib/data-ops-audit.mjs";
 import { createReviewedSectionPublisher } from "./publication-client.mjs";
 import { verifyManifest } from "./core.mjs";
 

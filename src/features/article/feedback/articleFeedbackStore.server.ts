@@ -202,10 +202,6 @@ export async function getArticleFeedbackStore(): Promise<ConvexArticleFeedbackSt
   return store;
 }
 
-export function resetArticleFeedbackStoreForTests() {
-  store = null;
-  storeCacheKey = null;
-}
 
 export function getArticleFeedbackIpHashSecret(): string | undefined {
   return (

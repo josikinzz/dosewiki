@@ -13,6 +13,7 @@ import { randomBytes } from "node:crypto";
 import { Pool, type PoolClient } from "pg";
 import { documentToRow, encodeField, losslessSelectList, rowToDocument, type ConvexDocument } from "./convexDocumentCodec";
 import { tableColumns, type TableName } from "./schema.generated";
+import { setTransactionTimeouts } from "./transactionTimeouts";
 
 export type SqlClient = Pick<PoolClient, "query">;
 
@@ -117,6 +118,7 @@ export async function withTransaction<T>(pool: Pool, fn: (client: PoolClient) =>
   try {
     await client.query("BEGIN");
     try {
+      await setTransactionTimeouts(client);
       const result = await fn(client);
       await client.query("COMMIT");
       return result;

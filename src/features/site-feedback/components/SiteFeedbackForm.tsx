@@ -36,7 +36,7 @@ import { TurnstileWidget } from "./TurnstileWidget";
  * verification in lockstep (it only verifies when TURNSTILE_SECRET_KEY is set).
  */
 // `import.meta.env` is a Vite concept and does not exist here.
-// eslint-disable-next-line vercel-guardrails/enforce-env-prefix
+ 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 type SubmissionState =

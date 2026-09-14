@@ -19,7 +19,7 @@ import {
 } from "../base";
 import { getParseableSourceDescriptor } from "../source-identity";
 
-export class DrugClassroomParser implements SourceParser {
+class DrugClassroomParser implements SourceParser {
   source = getParseableSourceDescriptor("thedrugclassroom");
   sourceId = this.source.id;
 

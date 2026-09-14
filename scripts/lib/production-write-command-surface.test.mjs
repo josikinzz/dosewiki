@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { extname, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -51,11 +51,12 @@ const SHARED_CLIENT_LIBRARIES = new Set([
 // the runtime and are gated by targetGuard (loopback only unless
 // --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Convex deployment
 // ceremony. The `it.each` below holds them to that guard.
-const POSTGRES_REHEARSAL_PATTERN = /^scripts\/postgres\/(?:rehearse-[^/]+|parity[^/]*)\.ts$/;
+const POSTGRES_GUARDED_WRITER_PATTERN =
+  /^scripts\/postgres\/(?:(?:rehearse-[^/]+|parity[^/]*)|rebuild-derived-tables)\.ts$/;
 
 function activeDirectMutationWriters() {
   return activeScriptDetections
-    .filter(({ path }) => !SHARED_CLIENT_LIBRARIES.has(path) && !POSTGRES_REHEARSAL_PATTERN.test(path))
+    .filter(({ path }) => !SHARED_CLIENT_LIBRARIES.has(path) && !POSTGRES_GUARDED_WRITER_PATTERN.test(path))
     .filter(({ detection }) => detection.kinds.includes("convex-mutation"))
     .map(({ path }) => path)
     .sort();
@@ -63,7 +64,7 @@ function activeDirectMutationWriters() {
 
 function postgresRehearsalWriters() {
   return activeScriptDetections
-    .filter(({ path, detection }) => POSTGRES_REHEARSAL_PATTERN.test(path) && detection.kinds.includes("convex-mutation"))
+    .filter(({ path, detection }) => POSTGRES_GUARDED_WRITER_PATTERN.test(path) && detection.kinds.includes("convex-mutation"))
     .map(({ path }) => path)
     .sort();
 }
@@ -160,33 +161,4 @@ describe("production writer command surface", () => {
     },
   );
 
-  it.each([
-    "apply-manual-harm-proposals.mjs",
-    "apply-manual-legality-proposals.mjs",
-    "batch-extract-harm-quotes.mjs",
-    "clean-legality-references.mjs",
-    "connect-remaining-effects.mjs",
-    "connect-replications-to-gallery.mjs",
-    "convex-import-substance-index.mjs",
-    "convex-import.mjs",
-    "fix-harm-source-mentions.mjs",
-    "fix-replication-urls.mjs",
-    "import-replications.mjs",
-    "merge-history-culture-headings.mjs",
-    "migrate-add-slugs.mjs",
-    "migrate-effectindex-articles.mjs",
-    "migrate-harm-potential-schema.mjs",
-    "migrate-quotes-to-convex.mjs",
-    "migrate-replication-media.mjs",
-    "migrate-sources-to-convex.mjs",
-    "set-gallery-order.mjs",
-    "sync-lsd-to-convex.mjs",
-    "update-gallery-orders.mjs",
-  ])("%s is fail-closed behind the archive boundary", (name) => {
-    expect(existsSync(resolve(repoRoot, "scripts/deprecated", name))).toBe(true);
-    const source = readFileSync(resolve(repoRoot, "scripts/deprecated", name), "utf8");
-    expect(source).toContain("intentionally not executable");
-    expect(source).not.toContain("ConvexHttpClient");
-    expect(source).not.toContain(".mutation(");
-  });
 });

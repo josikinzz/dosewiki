@@ -9,42 +9,32 @@ import {
 } from './orders.mjs';
 import { orderObject, reorderOrderedRecord } from './core.mjs';
 
-export function reorderEffectEntry(entry, options) {
-  if (!entry) return entry;
-  return orderObject(entry, EFFECT_ENTRY_ORDER, { ...options, context: 'effect_entry' });
-}
+function reorderEffectEntry(entry, options) { if (!entry) return entry;
+return orderObject(entry, EFFECT_ENTRY_ORDER, { ...options, context: 'effect_entry' }); }
 
-export function reorderEffectSubcategory(subcategory, options) {
-  if (!subcategory) return subcategory;
-  const result = { ...subcategory };
-  if (Array.isArray(result.effects)) {
-    result.effects = result.effects.map((entry) => reorderEffectEntry(entry, options));
-  }
-  return orderObject(result, EFFECT_SUBCATEGORY_ORDER, { ...options, context: 'effect_subcategory' });
+function reorderEffectSubcategory(subcategory, options) { if (!subcategory) return subcategory;
+const result = { ...subcategory };
+if (Array.isArray(result.effects)) {
+  result.effects = result.effects.map((entry) => reorderEffectEntry(entry, options));
 }
+return orderObject(result, EFFECT_SUBCATEGORY_ORDER, { ...options, context: 'effect_subcategory' }); }
 
-export function reorderEffectCategory(category, options) {
-  if (!category || typeof category !== 'object' || Array.isArray(category)) return category;
-  const result = {};
-  for (const key of Object.keys(category)) {
-    result[key] = reorderEffectSubcategory(category[key], options);
-  }
-  return result;
+function reorderEffectCategory(category, options) { if (!category || typeof category !== 'object' || Array.isArray(category)) return category;
+const result = {};
+for (const key of Object.keys(category)) {
+  result[key] = reorderEffectSubcategory(category[key], options);
 }
+return result; }
 
-export function reorderSenseCategory(senseCategory, options) {
-  if (!senseCategory || Array.isArray(senseCategory)) return senseCategory;
-  const result = { ...senseCategory };
-  if (result.subcategories) {
-    result.subcategories = reorderEffectCategory(result.subcategories, options);
-  }
-  return orderObject(result, SENSE_CATEGORY_ORDER, { ...options, context: 'sense_category' });
+function reorderSenseCategory(senseCategory, options) { if (!senseCategory || Array.isArray(senseCategory)) return senseCategory;
+const result = { ...senseCategory };
+if (result.subcategories) {
+  result.subcategories = reorderEffectCategory(result.subcategories, options);
 }
+return orderObject(result, SENSE_CATEGORY_ORDER, { ...options, context: 'sense_category' }); }
 
-export function reorderSensoryEffects(sensory, options) {
-  if (sensory === null || sensory === undefined || Array.isArray(sensory)) return sensory;
-  return reorderOrderedRecord(sensory, SENSORY_EFFECTS_ORDER, (entry) => reorderSenseCategory(entry, options));
-}
+function reorderSensoryEffects(sensory, options) { if (sensory === null || sensory === undefined || Array.isArray(sensory)) return sensory;
+return reorderOrderedRecord(sensory, SENSORY_EFFECTS_ORDER, (entry) => reorderSenseCategory(entry, options)); }
 
 export function reorderSubjectiveEffects(effects, options) {
   if (!effects) return effects;

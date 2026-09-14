@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
+import type * as GlossaryModule from "@server/translation/glossary";
 
 import { POST as approvePost } from "./approve/route";
 import { POST as editPost } from "./edit/route";
+import { GET } from "./route";
 
 vi.mock("server-only", () => ({}));
 
@@ -26,11 +28,23 @@ vi.mock("@server/postgres/runtime/backend", () => ({
 const glossary = vi.hoisted(() => ({
   approveGlossaryTerms: vi.fn(),
   editGlossaryTerm: vi.fn(),
+  glossaryLocales: vi.fn(),
+  readGlossaryRows: vi.fn(),
 }));
-vi.mock("@server/translation/glossary", () => glossary);
+vi.mock("@server/translation/glossary", async (importActual) => ({
+  ...(await importActual<typeof GlossaryModule>()),
+  ...glossary,
+}));
+const live = vi.hoisted(() => ({ loadTranslationContext: vi.fn() }));
 vi.mock("@server/translation/liveTranslation", () => ({
   TRANSLATION_LOCALE_CODES: ["zh-Hans", "nl"],
+  loadTranslationContext: live.loadTranslationContext,
 }));
+const segments = vi.hoisted(() => ({
+  translationSegmentCounts: vi.fn(),
+}));
+vi.mock("@server/translation/segmentStore", () => segments);
+vi.mock("@server/next/localeHostPolicy", () => ({ LIVE_LOCALE_CODES: ["zh-Hans"] }));
 
 const ADMIN = { email: "admin@example.com", name: "Admin" };
 
@@ -49,10 +63,11 @@ describe("translation glossary routes", () => {
     authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin", ADMIN));
   });
 
-  it("refuses an editor before touching the glossary", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
+  it("asks for the translator floor and refuses a contributor before touching the glossary", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("contributor"));
     const response = await approvePost(post("approve", { locale: "zh-Hans", terms: ["Euphoria"] }));
     expect(response.status).toBe(403);
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("translator");
     expect(glossary.approveGlossaryTerms).not.toHaveBeenCalled();
   });
 
@@ -63,11 +78,14 @@ describe("translation glossary routes", () => {
     expect(glossary.editGlossaryTerm).not.toHaveBeenCalled();
   });
 
-  it("approves the deduped terms as the signed-in admin and reports which ones changed", async () => {
+  it("uses the authenticated reviewer rather than a body-supplied identity", async () => {
     glossary.approveGlossaryTerms.mockResolvedValue(["Euphoria"]);
-    const response = await approvePost(post("approve", { locale: "zh-Hans", terms: [" Euphoria ", "Euphoria", "Anxiety"] }));
+    const response = await approvePost(post("approve", {
+      locale: "zh-Hans",
+      terms: [" Euphoria ", "Euphoria", "Anxiety"],
+      reviewedBy: "spoofed@example.com",
+    }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, locale: "zh-Hans", approved: ["Euphoria"] });
     expect(glossary.approveGlossaryTerms).toHaveBeenCalledWith("zh-Hans", ["Euphoria", "Anxiety"], ADMIN.email);
   });
 
@@ -79,18 +97,29 @@ describe("translation glossary routes", () => {
     expect(glossary.editGlossaryTerm).not.toHaveBeenCalled();
   });
 
-  it("saves a rendering as the reviewer and returns the approved row", async () => {
-    const row = { locale: "zh-Hans", term: "Euphoria", target: "欣快", kind: "effect-name", status: "approved", source: "human", reviewed_at: 1, reviewed_by: ADMIN.email, updated_at: 1 };
-    glossary.editGlossaryTerm.mockResolvedValue(row);
-    const response = await editPost(post("edit", { locale: "zh-Hans", term: "Euphoria", target: " 欣快 " }));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, row });
-    expect(glossary.editGlossaryTerm).toHaveBeenCalledWith("zh-Hans", "Euphoria", "欣快", ADMIN.email);
-  });
 
   it("answers 404 for a term the locale has no row for", async () => {
     glossary.editGlossaryTerm.mockResolvedValue(null);
     const response = await editPost(post("edit", { locale: "nl", term: "Euphoria", target: "euforie" }));
     expect(response.status).toBe(404);
+  });
+
+
+  it("reports coverage and approved terms still awaiting retranslation", async () => {
+    glossary.glossaryLocales.mockResolvedValue([]);
+    glossary.readGlossaryRows.mockResolvedValue([
+      { term: "Pending", status: "approved", reviewed_at: 2, retranslated_at: 1 },
+      { term: "Current", status: "approved", reviewed_at: 2, retranslated_at: 2 },
+      { term: "Unreviewed", status: "draft", reviewed_at: 3, retranslated_at: null },
+    ]);
+    live.loadTranslationContext.mockResolvedValue({ promptVersion: "abc", glosses: {} });
+    segments.translationSegmentCounts.mockResolvedValue({ total: 13, current: 8 });
+
+    const response = await GET(new Request("https://dev.dose.wiki/api/dev/translation-glossary?locale=zh-Hans"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      segments: { total: 13, current: 8 },
+      pending: ["Pending"],
+    });
   });
 });

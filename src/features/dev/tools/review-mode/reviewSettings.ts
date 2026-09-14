@@ -2,7 +2,7 @@ import type { ReviewQueueOrder } from "./reviewQueue";
 import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
 
 /** Milestone counts worth a moment of celebration during the 274-article pass. */
-export const REVIEW_MILESTONES = [50, 100, 150, 200, 250] as const;
+const REVIEW_MILESTONES = [50, 100, 150, 200, 250] as const
 
 /** The milestone crossed by moving from `previous` to `next` reviewed, if any. */
 export function crossedMilestone(previous: number, next: number): number | null {

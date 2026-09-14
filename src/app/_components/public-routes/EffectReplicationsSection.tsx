@@ -57,9 +57,9 @@ export async function EffectReplicationsSection({
                 )}
                 className={proseLinkClassName}
               >
-                {works.length === 1
-                  ? t("Browse all {{count}} replication", { count: works.length })
-                  : t("Browse all {{count}} replications", { count: works.length })}
+                {t("Browse all {count, plural, =0 {# replications} one {# replication} other {# replications}}", {
+                  count: works.length,
+                })}
               </Link>
             </p>
           </>

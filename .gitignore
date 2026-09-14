@@ -12,6 +12,11 @@ public/share/
 .next/
 .next-editor/
 .next-effectindex/
+.next-houseclean-dosewiki/
+.next-houseclean-effectindex/
+.next-houseclean-editor/
+.next-semantic-verification/
+.next-semantic-verified/
 .generated/
 # Anchored: unanchored `coverage/` matches a directory of that name at any
 # depth, which silently swallowed `src/features/coverage/` — untracked by Git
@@ -54,17 +59,11 @@ package-lock.json
 
 # Environment files (NEVER commit secrets)
 .env
-.env.local
-.env.development
-.env.development.local
-.env.test
-.env.test.local
-.env.production
-.env.production.local
-.env*.local
+.env.*
+!.env.example
+!.env.*.example
 # Timestamped copies made while rotating a credential; same secrets, different name
 .env*.bak-*
-!.env.example
 
 # Editor directories
 .idea/
@@ -128,6 +127,13 @@ __pycache__/
 
 # Transient scheduler lock; local run state, not shared configuration.
 /.claude/scheduled_tasks.lock
+
+# Local agent settings, completed task state, and private critique output
+**/settings.local.json
+!**/settings.local.example.json
+/.pi/task-graph.json
+/.impeccable/critique/*
+!/.impeccable/critique/*.example.*
 
 # Generated GT translation bundles (npx gt translate output)
 public/_gt/

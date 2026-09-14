@@ -61,8 +61,11 @@ switch (command) {
   case "stop":
     run("pg_ctl", ["stop", "-D", DATA_DIR, "-m", "fast"], { allowFailure: true });
     break;
-  case "status":
-    process.exit(run("pg_ctl", ["status", "-D", DATA_DIR], { allowFailure: true }));
+  case "status": {
+    const status = run("pg_ctl", ["status", "-D", DATA_DIR], { allowFailure: true });
+    process.exitCode = status;
+    break;
+  }
   case "url":
     console.log(URL);
     break;

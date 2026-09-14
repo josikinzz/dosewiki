@@ -112,5 +112,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   nextEnv.loadEnvConfig(process.cwd(), false);
   const surface = process.env.DOSEWIKI_BUILD_SURFACE ?? "public";
   if (surface !== "public" && surface !== "editor") throw new Error("Choose a public or editor build surface.");
-  verifyCompletedArtifact(path.resolve(surface === "editor" ? ".next-editor" : ".next"), surface);
+  const directory = process.env.DOSEWIKI_BUILD_DIR ?? (surface === "editor" ? ".next-editor" : ".next");
+  verifyCompletedArtifact(path.resolve(directory), surface);
 }

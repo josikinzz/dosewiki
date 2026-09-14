@@ -2,14 +2,18 @@ import type { Metadata } from "next";
 
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import {
-  ARTIST_RAIL_PAGE,
   countGallery,
   groupByArtist,
-  isDisplayable,
-  isWithheldFromArtistViews,
-  RAIL_PREVIEW_LIMIT,
   selectContributorDirectoryForWorks,
 } from "@/features/effects/gallery/galleryModel";
+import {
+  isDisplayable,
+  isWithheldFromArtistViews,
+} from "@/features/effects/gallery/galleryArtistIdentity";
+import {
+  ARTIST_RAIL_PAGE,
+  RAIL_PREVIEW_LIMIT,
+} from "@/features/effects/gallery/galleryTypes";
 import { ReplicationsGalleryExplorer } from "@/features/replications/ReplicationsGalleryExplorer";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import {

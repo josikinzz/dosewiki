@@ -570,9 +570,9 @@ export const HeroSection = memo(function HeroSection({
         </div>
       )}
 
-      {/* Summary. The paragraph splits its own first word off to bold it, so the
-          editable unit is the whole paragraph: wrapping either half would write
-          a fragment back over the entire `summary` field. */}
+      {/* Keep the summary in one citation pass. Splitting translated prose on
+          whitespace can swallow an entire Chinese sentence and breaks marker
+          suppression across the split. */}
       {hasSummary && (
         <EditableValue as="div" label="Summary" path="summary" value={summary}>
           <p
@@ -580,8 +580,7 @@ export const HeroSection = memo(function HeroSection({
               moleculeUrl ? " theme-article-hero-summary--has-molecule" : ""
             }`}
           >
-            <strong className="theme-accent-heading font-semibold">{summary!.split(/\s/)[0]}</strong>{" "}
-            <CitedText text={summary!.slice(summary!.split(/\s/)[0].length).trimStart()} article={article} />
+            <CitedText text={summary!} article={article} />
           </p>
         </EditableValue>
       )}

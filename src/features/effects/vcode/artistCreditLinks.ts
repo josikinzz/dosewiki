@@ -1,4 +1,4 @@
-import { isDisplayable } from "@/features/effects/gallery/galleryModel";
+import { isDisplayable } from "@/features/effects/gallery/galleryArtistIdentity";
 import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 

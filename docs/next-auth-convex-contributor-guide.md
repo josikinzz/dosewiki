@@ -1,15 +1,17 @@
-# Next + Auth.js + Convex Contributor Guide
+# Next + Auth.js contributor guide
 
-This project now has one primary application path: `Next.js` App Router in `src/app/`.
+This project has one primary application path: the Next.js App Router in
+`src/app/`. PlanetScale Postgres is the production data authority. Convex-shaped
+function names and adapters remain for compatibility and recovery, but do not
+select the active backend.
 
 ## Core Rules
 
 - Public pages render through Next route segments in `src/app/`.
 - Auth.js owns browser identity and session handling.
-- `lib/auth/runtimePolicy.ts` owns active auth mode, provider readiness, Auth.js secret resolution, and editor credentials availability.
-- Convex remains the live data source and business layer.
-- Convex `memberships` is the source of truth for roles: `admin`, `editor`, `contributor`. A banned account carries `bannedAt` and resolves to `viewer`, which passes no floor.
-- Local JSON files are backup or export artifacts, not the authoritative runtime source.
+- `lib/auth/runtimePolicy.ts` owns active auth mode, provider readiness, Auth.js secret resolution, and editor credential availability.
+- The Postgres `memberships` table is the source of truth for roles: `admin`, `editor`, and `contributor`. A banned account resolves to `viewer`, which passes no floor.
+- Local JSON files are inputs, exports, or recovery artifacts only when their owning consumer says so.
 
 ## Main Entry Points
 
@@ -18,7 +20,7 @@ This project now has one primary application path: `Next.js` App Router in `src/
 - Middleware: `middleware.ts`
 - Protected API handlers: `src/app/api/`
 - Shared server GitHub write helpers: `lib/server/github/`
-- Public Convex server reads: `lib/convex/serverClient.ts`, `lib/convex/publicData.ts`
+- Public data adapters: `lib/convex/publicData.ts`; active backend selection: `lib/postgres/runtime/backend.ts`
 
 ## Public Route Work
 
@@ -28,9 +30,10 @@ This project now has one primary application path: `Next.js` App Router in `src/
 
 ## Editor/Auth Work
 
-Sign-in is username + password against the Convex `memberships` table; there
-is no OAuth provider and no env-var password. The details, including seeding,
-invites, resets, and the hashing scheme, live in
+Sign-in is username plus password against the active backend's `memberships`
+table; there is no OAuth provider and no env-var password. The exact endpoint
+and intent-token names remain compatibility contracts. Account operations and
+the production ceremony live in
 [agents/convex-credentials.md](agents/convex-credentials.md#sign-in-accounts).
 
 - Accounts exist only through two paths. The first admins are seeded from a
@@ -49,10 +52,9 @@ invites, resets, and the hashing scheme, live in
 - Guard every protected route with `protectedRouteOperation({ auth: <floor> })`
   (`src/lib/http/protectedRouteOperation.ts`), which calls
   `requireRoleSession(floor)`. `contributor` is the lowest floor; routes at that
-  floor then check ownership in Convex. Do not add a floor below it.
-- Every route write names the session's `actorEmail`; Convex's `requireRole`
-  resolves the role from the membership row, so a misconfigured route cannot
-  escalate.
+  floor then check ownership in the active data backend. Do not add a floor below it.
+- Every route write names the session's `actorEmail`; the backend role check
+  resolves the current membership row, so a misconfigured route cannot escalate.
 - Do not reintroduce password-only browser auth, OAuth providers, or Vercel
   `api/*.js` entrypoints.
 - For Vercel previews or production, set `AUTH_SECRET` or Auth.js-backed routes
@@ -61,10 +63,12 @@ invites, resets, and the hashing scheme, live in
 
 ## Data Work
 
-- Treat `glad-minnow-656` as the sole Convex source of truth. Point every active
-  read and write URL at it; do not mirror production into another deployment.
-- Reuse existing schema helpers before introducing new cross-boundary validators.
-- Keep Zod at real runtime boundaries rather than duplicating schemas unnecessarily.
+- Set `DATA_BACKEND=postgres` for production operations and bind
+  `TARGET_POSTGRES_URL` explicitly under the shared write ceremony.
+- Preserve exact legacy function, endpoint, and intent-token names where the
+  compatibility layer consumes them.
+- Reuse existing schema helpers before introducing cross-boundary validators.
+- Keep Zod at real runtime boundaries rather than duplicating schemas.
 
 ## Commands
 

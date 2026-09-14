@@ -150,11 +150,12 @@ describe("POST /api/dev/invites", () => {
     expect(JSON.stringify(payload)).not.toContain(args.codeHash);
   });
 
-  it("applies the defaults of 7 days and one use", async () => {
+  it("applies the defaults of 7 days and one use, and mints translator invites", async () => {
 
-    await POST(mintRequest({ role: "editor" }));
+    await POST(mintRequest({ role: "translator" }));
 
     expect(convexMocks.mutation.mock.calls[0][1]).toMatchObject({
+      role: "translator",
       expiresInDays: 7,
       maxUses: 1,
       note: undefined,

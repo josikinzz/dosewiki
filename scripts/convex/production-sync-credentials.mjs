@@ -1,6 +1,6 @@
 import { requireAdminIntentToken } from "../lib/data-ops-run-context.mjs";
 
-export const PRODUCTION_SYNC_AUTH_INTENT_BY_TABLE = Object.freeze({
+const PRODUCTION_SYNC_AUTH_INTENT_BY_TABLE = Object.freeze({
   substanceIndex: "editorArticleWrite",
   categoryLayout: "legacyAdmin",
   siteConfig: "editorArticleWrite",
@@ -8,7 +8,7 @@ export const PRODUCTION_SYNC_AUTH_INTENT_BY_TABLE = Object.freeze({
   effectIndexArticles: "legacyAdmin",
   prompts: "promptMigrationWrite",
   quotes: "quoteMigrationWrite",
-});
+})
 
 export function resolveProductionSyncCredentials({
   selectedTables = null,

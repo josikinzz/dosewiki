@@ -13,7 +13,7 @@ import path from "node:path";
 
 import { DEFAULT_PROJECTION_PATH, validateInputs } from "../upload-replication-index-profile-avatars";
 
-export const FIXTURE_ROOT = path.join(import.meta.dirname, "avatar-campaign");
+const FIXTURE_ROOT = path.join(import.meta.dirname, "avatar-campaign");
 export const FIXTURE_PLAN_PATH = path.join(FIXTURE_ROOT, "Data/replication-index/convex-storage-upload-plan.json");
 export const FIXTURE_RECEIPT_PATH = path.join(FIXTURE_ROOT, "Data/replication-index/convex-backend-deployment.json");
 export const FIXTURE_PLAN_PAYLOAD_SHA256 = "bc534643f4c32198da2b64e00fb96ee9fca065a6f83601ea1e47a3eead690a61";

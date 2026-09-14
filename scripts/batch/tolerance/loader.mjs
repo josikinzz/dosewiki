@@ -15,7 +15,7 @@ export function initConvexClient(convexUrl) {
   return convexClient;
 }
 
-export function getConvexClient() {
+function getConvexClient() {
   if (!convexClient) {
     throw new Error("Convex client has not been initialized");
   }

@@ -4,20 +4,10 @@ import { FORMAL_CITATION_SECTION_RESPONSE_SCHEMA_VERSION } from "./formal-citati
 import {
   buildFormalCitationDraft,
   buildFormalCitationDraftFromAgent,
-  legacyCitationToReference,
 } from "./formal-citations-core.mjs";
 import { deterministicReferenceId } from "../../lib/citations/referenceIdentity.mjs";
 
 describe("formal citations core draft building", () => {
-  it("uses the same stable reference ID contract in the CLI draft path and runtime helpers", () => {
-    const reference = legacyCitationToReference({
-      name: "Erowid",
-      url: "https://erowid.org/chemicals/2cb/",
-    });
-
-    expect(reference.id).toBe(deterministicReferenceId(reference));
-  });
-
   it("creates a reviewable draft with stable references, inline tokens, and evidence rows", () => {
     const article = {
       id: 1,

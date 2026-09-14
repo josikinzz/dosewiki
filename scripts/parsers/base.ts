@@ -5,15 +5,13 @@
 
 import type { ParserResult, NarrativeContent } from "./types";
 
-export { normalizeDoseUnit, parseDoseRange, parseDoseRangeWithUnit, normalizeRoute } from "./base/dose";
-export { normalizeDurationUnit, parseDurationRange } from "./base/duration";
+export { parseDoseRange, normalizeRoute } from "./base/dose";
+export { parseDurationRange } from "./base/duration";
 export {
-  extractSections,
   extractSection,
   extractSubsections,
   extractBulletList,
   extractLabeledBullets,
-  parseMarkdownTable,
   parseLabelValueTable,
   stripMarkdownLinks,
   cleanMarkdown,

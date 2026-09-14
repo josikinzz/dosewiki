@@ -58,7 +58,7 @@ const publicSubstanceLibraryDurationSchema = z.object({
   })),
 });
 
-export const publicSubstanceLibraryInputSchema = z.object({
+const publicSubstanceLibraryInputSchema = z.object({
   id: substanceArticleSchema.shape.id,
   title: substanceArticleSchema.shape.title,
   slug: z.string().min(1),
@@ -81,7 +81,7 @@ export const publicSubstanceLibraryInputSchema = z.object({
   source_citations: substanceArticleSchema.shape.source_citations,
   citations: substanceArticleSchema.shape.citations,
   expert_reviewed: z.boolean(),
-});
+})
 
 export type PublicSubstanceLibraryInputRecord = z.infer<
   typeof publicSubstanceLibraryInputSchema

@@ -23,7 +23,7 @@ import {
 import { useDevMode } from "../../context/DevModeContext";
 import { UNPLACED_SLOT, buildBoard, listDestinations, type BoardItem } from "./boardModel";
 import { IndexLayoutBoard, type LayoutPanel } from "./IndexLayoutBoard";
-import type { BoardActions } from "./IndexLayoutCard";
+import type { BoardActions } from "./IndexLayoutCardMenus";
 import { createLayoutDataHelpers } from "./layoutDataUtils";
 import {
   addCategory,

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 /** The appearance axis a segmented picker owns. Mirrored to the DOM for tests and skins. */
 type AppearanceAxis = "color-scheme" | "visual-style" | "font";
 
-export type AppearanceToggleOption<Value extends string> = {
+type AppearanceToggleOption<Value extends string> = {
   value: Value;
   label: string;
   icon?: ReactNode;

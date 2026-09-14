@@ -63,14 +63,14 @@ function summariesForClass(guideClass: GuideClass): readonly ClassSummaryLink[] 
 
 export const PSYCHEDELIC_INTENSITY_SCALE: ArticleGuideLink = {
   slug: "psychedelic-intensity-scale",
-  title: "Psychedelic Intensity Scale",
-  description: "Seven levels from threshold to ego death",
+  title: msg("Psychedelic Intensity Scale"),
+  description: msg("Seven levels from threshold to ego death"),
 };
 
 export const DISSOCIATIVE_INTENSITY_SCALE: ArticleGuideLink = {
   slug: "dissociative-intensity-scale",
-  title: "Dissociative Intensity Scale",
-  description: "Six levels of disconnection, including holes and voids",
+  title: msg("Dissociative Intensity Scale"),
+  description: msg("Six levels of disconnection, including holes and voids"),
 };
 
 export const ARTICLE_GUIDES_BY_CLASS: Record<GuideClass, ClassGuides> = {
@@ -80,8 +80,8 @@ export const ARTICLE_GUIDES_BY_CLASS: Record<GuideClass, ClassGuides> = {
     guides: [
       {
         slug: "dmt",
-        title: "DMT",
-        description: "Stages of the experience and a six-level intensity model",
+        title: msg("DMT"),
+        description: msg("Stages of the experience and a six-level intensity model"),
         substanceSlugs: ["dmt"],
       },
     ],
@@ -93,8 +93,8 @@ export const ARTICLE_GUIDES_BY_CLASS: Record<GuideClass, ClassGuides> = {
     guides: [
       {
         slug: "dxm",
-        title: "DXM",
-        description: "Plateaus, dosing tiers, and the dissociative experience end to end",
+        title: msg("DXM"),
+        description: msg("Plateaus, dosing tiers, and the dissociative experience end to end"),
         // DoseWiki files the substance under its full name; /substances/dxm is
         // a redirect to the article itself.
         substanceSlugs: ["dextromethorphan"],

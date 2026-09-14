@@ -6,7 +6,7 @@ import type { EditableFieldValue } from "../../../../convex/lib/articleFieldWrit
 import type { Reference } from "@/schema";
 import type { CitationMarkerSpan } from "@/lib/citations/citationTokens";
 
-export type { EditableFieldValue, EditableRangeValue } from "../../../../convex/lib/articleFieldWrites";
+export type { EditableFieldValue } from "../../../../convex/lib/articleFieldWrites";
 
 /**
  * What a call site may hand an editable field.

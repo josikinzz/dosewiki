@@ -6,7 +6,7 @@
  * `t`, falling back to English wherever the catalog lacks the key.
  */
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale, t } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { buildHomeQuickLinks } from "../_components/homeQuickLinks";

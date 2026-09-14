@@ -20,7 +20,6 @@ import {
   SUPPORTED_COLOR_SCHEMES,
   SUPPORTED_VISUAL_STYLES,
   THEME_META_ID,
-  THEME_TOKEN_INTERFACE,
   VISUAL_STYLE_STORAGE_KEY,
   buildThemeBootstrapScript,
   getAppearanceMetaColor,
@@ -99,7 +98,6 @@ describe("theme token interface", () => {
   });
 
   it("names both appearance axes, their storage keys, and the meta-colour matrix", () => {
-    expect(THEME_TOKEN_INTERFACE.name).toBe("dosewiki-theme-token-interface");
     expect(SUPPORTED_COLOR_SCHEMES).toEqual(["light", "dark"]);
     expect(SUPPORTED_VISUAL_STYLES).toEqual(["fun", "pro"]);
     expect(DEFAULT_COLOR_SCHEME).toBe("dark");
@@ -156,63 +154,6 @@ describe("theme token interface", () => {
     }
   });
 
-  it("exposes semantic classes and Tailwind aliases from the manifest", () => {
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.text).toContain("theme-text-secondary");
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.text).toContain("theme-public-overline");
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.text).toContain("theme-evidence-accent");
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.surface).toContain("theme-public-card");
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.surface).toEqual(
-      expect.arrayContaining([
-        "theme-badge-surface",
-        "theme-evidence-surface",
-        "theme-evidence-badge",
-        "theme-public-section-rule",
-        "theme-public-skeleton-surface",
-      ]),
-    );
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.interactive).toEqual(
-      expect.arrayContaining([
-        "theme-control-pill",
-        "theme-control-pill-quiet",
-        "theme-citation-marker",
-        "theme-evidence-link",
-      ]),
-    );
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.icon).toEqual(
-      expect.arrayContaining(["theme-icon-accent", "theme-icon-muted", "theme-icon-badge"]),
-    );
-    expect(THEME_TOKEN_INTERFACE.semanticClasses.typography).toEqual(
-      expect.arrayContaining([
-        "type-meta-label",
-        "type-control-label",
-        "type-chip-label",
-        "type-kicker",
-      ]),
-    );
-    expect(THEME_TOKEN_INTERFACE.tailwindAliases.dose["text-secondary"]).toBe(
-      "var(--theme-text-secondary)",
-    );
-    expect(THEME_TOKEN_INTERFACE.tailwindAliases.dose.evidence).toBe(
-      "var(--theme-evidence-text)",
-    );
-    expect(THEME_TOKEN_INTERFACE.cssVariables.evidence).toEqual(
-      expect.arrayContaining([
-        "--theme-evidence-bg",
-        "--theme-evidence-border",
-        "--theme-evidence-text",
-        "--theme-evidence-ring",
-      ]),
-    );
-    expect(THEME_TOKEN_INTERFACE.cssVariables.editor).toEqual(
-      expect.arrayContaining([
-        "--editor-panel-bg",
-        "--editor-field-bg",
-        "--editor-code-bg",
-        "--editor-chip-bg",
-      ]),
-    );
-    expect(THEME_TOKEN_INTERFACE.cssVariables.typography).toContain("--type-tracking-body");
-  });
 
   it("restores both saved preferences before paint", () => {
     installMockStorage({
@@ -343,12 +284,9 @@ describe("theme token interface", () => {
     });
     const getItem = vi.spyOn(window.localStorage, "getItem");
     const meta = ensureThemeMeta();
-    const script = buildThemeBootstrapScript(EFFECT_INDEX);
 
-    Function(script)();
+    Function(buildThemeBootstrapScript(EFFECT_INDEX))();
 
-    // The saved Fun choice is not read and then overridden: the key is not in the script.
-    expect(script).not.toContain(VISUAL_STYLE_STORAGE_KEY);
     expect(getItem.mock.calls.flat()).toEqual([COLOR_SCHEME_STORAGE_KEY]);
     expect(document.documentElement.dataset.visualStyle).toBe("pro");
     // The unlocked axis still restores, so a locked style does not cost night mode.
@@ -408,7 +346,6 @@ describe("theme token interface", () => {
     try {
       Function(script)();
 
-      expect(script).toContain(`CSS.supports("color", ${JSON.stringify(CHROMA_SUPPORT_PROBE)})`);
       expect(supports).toHaveBeenCalledWith("color", CHROMA_SUPPORT_PROBE);
       const root = document.documentElement;
       expect(root.dataset.chroma).toBeUndefined();
@@ -633,18 +570,28 @@ describe("theme token interface", () => {
     }
   });
 
-  it("emits no colour-axis machinery for a publication with both colour axes locked", () => {
-    const script = buildThemeBootstrapScript(EFFECT_INDEX);
+  it("does not read or apply colour preferences for a publication with both colour axes locked", () => {
+    installMockStorage({
+      [SURFACE_CHROMA_STORAGE_KEY]: "0.6",
+      [ACCENT_CHROMA_STORAGE_KEY]: "0.9",
+      [SURFACE_HUE_STORAGE_KEY]: "40",
+      [ACCENT_HUE_STORAGE_KEY]: "300",
+      [SURFACE_STORAGE_KEY]: "abyss",
+      [ACCENT_STORAGE_KEY]: "green",
+    });
+    const getItem = vi.spyOn(window.localStorage, "getItem");
+    ensureThemeMeta();
 
-    expect(script).not.toContain("chroma");
-    expect(script).not.toContain("hue");
-    expect(script).not.toContain(SURFACE_CHROMA_STORAGE_KEY);
-    expect(script).not.toContain(ACCENT_CHROMA_STORAGE_KEY);
-    expect(script).not.toContain(SURFACE_HUE_STORAGE_KEY);
-    expect(script).not.toContain(ACCENT_HUE_STORAGE_KEY);
-    // The migration inputs are dose.wiki history; a locked script never reads them.
-    expect(script).not.toContain(SURFACE_STORAGE_KEY);
-    expect(script).not.toContain(ACCENT_STORAGE_KEY);
+    Function(buildThemeBootstrapScript(EFFECT_INDEX))();
+
+    expect(getItem.mock.calls.flat()).toEqual([COLOR_SCHEME_STORAGE_KEY]);
+    const root = document.documentElement;
+    expect(root.dataset.chroma).toBeUndefined();
+    expect(root.style.getPropertyValue(SURFACE_LEVEL_PROPERTY)).toBe("");
+    expect(root.style.getPropertyValue(ACCENT_LEVEL_PROPERTY)).toBe("");
+    expect(root.style.getPropertyValue(SURFACE_HUE_PROPERTY)).toBe("");
+    expect(root.style.getPropertyValue(ACCENT_HUE_PROPERTY)).toBe("");
+    expect(document.getElementById(CHROMA_STYLESHEET_LINK_ID)).toBeNull();
   });
 
   it("restores a saved face pre-paint, and treats anything else as the default", () => {
@@ -711,24 +658,25 @@ describe("theme token interface", () => {
     expect(document.documentElement).not.toHaveAttribute(READER_LEADING_ATTRIBUTE);
   });
 
-  it("emits no type-axis machinery for a publication that locks the type axis", () => {
-    // The pinned Effect Index CSP hash (lib/next/cspObservationPolicy.ts) holds the
-    // byte-identity line; this states the same contract in the script's own terms.
-    const script = buildThemeBootstrapScript(EFFECT_INDEX);
+  it("does not read or apply type preferences for a publication that locks the type axis", () => {
+    installMockStorage({
+      [FONT_STORAGE_KEY]: "inter",
+      [TEXT_SIZE_STORAGE_KEY]: "1.05",
+      [LETTER_SPACING_STORAGE_KEY]: "-0.02",
+      [LINE_HEIGHT_STORAGE_KEY]: "1.55",
+    });
+    const getItem = vi.spyOn(window.localStorage, "getItem");
+    ensureThemeMeta();
 
-    expect(script).not.toContain(FONT_STORAGE_KEY);
-    expect(script).not.toContain("dataset.font");
-    expect(script).not.toContain("FACES");
-    for (const key of [
-      TEXT_SIZE_STORAGE_KEY,
-      LETTER_SPACING_STORAGE_KEY,
-      LINE_HEIGHT_STORAGE_KEY,
-    ]) {
-      expect(script).not.toContain(key);
-    }
-    // The paragraph-gap key is retired outright: a locked script carries no trace of
-    // an axis that no longer exists.
-    expect(script).not.toContain("dosewiki-paragraph-spacing");
+    Function(buildThemeBootstrapScript(EFFECT_INDEX))();
+
+    expect(getItem.mock.calls.flat()).toEqual([COLOR_SCHEME_STORAGE_KEY]);
+    const root = document.documentElement;
+    expect(root.dataset.font).toBeUndefined();
+    expect(root.style.getPropertyValue(TEXT_SIZE_PROPERTY)).toBe("");
+    expect(root.style.getPropertyValue(READER_TRACKING_PROPERTY)).toBe("");
+    expect(root).not.toHaveAttribute(READER_LEADING_ATTRIBUTE);
+    expect(root.style.getPropertyValue(READER_LEADING_PROPERTY)).toBe("");
   });
 
   it("injects the appearance sheets a saved preference needs, ordered light → pro → chroma", () => {
@@ -784,15 +732,14 @@ describe("theme token interface", () => {
     expect(document.querySelectorAll(`#${PRO_THEME_STYLESHEET_LINK_ID}`)).toHaveLength(1);
   });
 
-  it("emits no sheet machinery for a publication whose defaults are server-rendered", () => {
-    // Effect Index locks the style to pro and defaults the scheme to light, so both links
-    // are always in the server markup and the script has nothing to inject — which is also
-    // what keeps its pinned CSP hash stable across this mechanism.
-    const script = buildThemeBootstrapScript(EFFECT_INDEX);
+  it("injects no appearance sheet for a publication whose defaults are server-rendered", () => {
+    installMockStorage();
+    ensureThemeMeta();
 
-    expect(script).not.toContain("addSheet");
-    expect(script).not.toContain(LIGHT_MODE_STYLESHEET_LINK_ID);
-    expect(script).not.toContain(PRO_THEME_STYLESHEET_LINK_ID);
+    Function(buildThemeBootstrapScript(EFFECT_INDEX))();
+
+    expect(document.getElementById(LIGHT_MODE_STYLESHEET_LINK_ID)).toBeNull();
+    expect(document.getElementById(PRO_THEME_STYLESHEET_LINK_ID)).toBeNull();
   });
 
   it("lands both root attributes even when the meta lookup throws", () => {

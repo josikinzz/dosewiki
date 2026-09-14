@@ -27,15 +27,15 @@ import type { ThemeDefaults } from "./presetBaselines";
  * through the same legacy mapping every stored key does.
  */
 
-export type ThemeExportPayload = {
+type ThemeExportPayload = {
   /** Format stamp — same number the stored envelope carries. */
   themeLab: number;
   /** The look these values were measured against, as `lookKey` writes it. */
   look: string;
   overrides: PaletteOverrides;
-};
+}
 
-export function buildThemeExport(look: LabLook, effective: PaletteOverrides): ThemeExportPayload {
+function buildThemeExport(look: LabLook, effective: PaletteOverrides): ThemeExportPayload {
   return { themeLab: THEME_EXPORT_FORMAT, look: lookKey(look), overrides: effective };
 }
 

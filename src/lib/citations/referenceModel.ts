@@ -10,13 +10,12 @@ import {
   normalizeDoi,
   normalizeIsbn,
   normalizePmid,
-  referenceDedupeKey as sharedReferenceDedupeKey,
 } from "../../../lib/citations/referenceIdentity.mjs";
 import {
   collectCitationIdsFromPublicRenderOrder as collectPlacementRenderOrderCitationIds,
 } from "../../../lib/citations/citationPlacement.mjs";
 
-export type NumberedReference = Reference & {
+type NumberedReference = Reference & {
   number: number;
   anchorId: string;
   apaTextResolved: string;
@@ -79,9 +78,6 @@ export function deterministicReferenceId(input: Pick<Reference, "doi" | "pmid" |
   return deterministicSharedReferenceId(input);
 }
 
-export function referenceDedupeKey(reference: Reference): string {
-  return sharedReferenceDedupeKey(reference);
-}
 
 export function dedupeReferences(references: Reference[]): Reference[] {
   return dedupeSharedReferences(references);

@@ -14,7 +14,6 @@ import type {
 
 export type {
   PublicContributorIdentity,
-  PublicIdentityParty,
   PublicReplicationIdentityAttribution,
 } from "./publicData.shared";
 

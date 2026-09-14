@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SmartLink } from "@/components/common/SmartLink";
+import { useT } from "@/i18n/client";
 
 import { MoleculeImage } from "@/components/pages/MoleculeImage";
 import { Icon } from "@/components/common/Icon";
@@ -36,6 +37,8 @@ function StructureRow({
   slug: string;
   structureUrl?: string;
 }) {
+  const t = useT();
+
   return (
     <li>
       <SmartLink
@@ -49,7 +52,7 @@ function StructureRow({
           {structureUrl ? (
             <MoleculeImage
               src={structureUrl}
-              alt={`${name} molecule structure`}
+              alt={t("{{substance}} molecule structure", { substance: name })}
               width={220}
               height={100}
               className="theme-molecule-image max-h-[4.5rem] w-auto max-w-full object-contain"
@@ -68,16 +71,22 @@ function StructurePanel({
   panel: DosageCategoryGroup;
   structureBySlug: Map<string, string>;
 }) {
+  const t = useT();
+  const panelName = t(panel.name);
+
   const [expanded, setExpanded] = useState(false);
   const collapsible = panel.drugs.length > ROW_CAP + CAP_SLACK;
   const visibleDrugs = collapsible && !expanded ? panel.drugs.slice(0, ROW_CAP) : panel.drugs;
 
   return (
-    <section aria-label={`${panel.name} substances`} className="min-w-0">
+    <section
+      aria-label={t("{{category}} substances", { category: panelName })}
+      className="min-w-0"
+    >
       <header className="flex items-center gap-2.5 px-3">
         <Icon icon={panel.icon} size={18} className="theme-text-secondary shrink-0" />
         <h3 className="theme-text-primary font-[family-name:var(--font-family-display)] text-base font-semibold tracking-[0.01em]">
-          {panel.name}
+          {panelName}
           <span className="theme-text-faint ml-2 font-sans text-sm font-normal">
             · {panel.total}
           </span>
@@ -102,7 +111,7 @@ function StructurePanel({
           className="theme-text-faint mt-1 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition-colors duration-200 hover:text-dose-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent-strong"
         >
           <Icon icon={expanded ? icons.chevronUp : icons.chevronDown} size={14} />
-          {expanded ? "Show fewer" : `Show all ${panel.total}`}
+          {expanded ? t("Show fewer") : t("Show all {{count}}", { count: panel.total })}
         </button>
       ) : null}
     </section>

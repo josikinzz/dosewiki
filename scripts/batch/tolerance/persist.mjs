@@ -19,7 +19,7 @@ export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
 }
 
-export async function resolveToleranceSourceMaterial(article) {
+async function resolveToleranceSourceMaterial(article) {
   const slug = titleToSlug(article.title);
   return resolveQuoteSourceMaterial({
     slug,
@@ -30,7 +30,7 @@ export async function resolveToleranceSourceMaterial(article) {
   });
 }
 
-export async function processArticle(apiKey, article, systemPrompt, verbose) {
+async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = titleToSlug(article.title);
   const sourceMaterial = await resolveToleranceSourceMaterial(article);
   if (sourceMaterial.status !== "ready") {
@@ -66,7 +66,7 @@ export async function processArticle(apiKey, article, systemPrompt, verbose) {
   };
 }
 
-export function applyToleranceUpdate(article, update) {
+function applyToleranceUpdate(article, update) {
   article.tolerance = update.tolerance;
   assertNoPublicProseArtifactLanguage(article, {
     sections: ["tolerance"],
@@ -79,7 +79,7 @@ export function applyToleranceUpdate(article, update) {
   return article;
 }
 
-export function createTolerancePersistence({ adminKey, convexClient, sourceArticlesBySlug, targetArticlesBySlug }) {
+function createTolerancePersistence({ adminKey, convexClient, sourceArticlesBySlug, targetArticlesBySlug }) {
   return createArticlePersistence({
     adminKey,
     convexClient,

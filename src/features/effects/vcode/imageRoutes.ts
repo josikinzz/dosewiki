@@ -23,7 +23,7 @@ const ROUTE_PATTERN =
   /^\s*([a-z][a-z0-9-]*):(https?:\/\/[^\s:]+(?::\d+)?[^\s]*?):([^:]*):([^:]*):(.*)$/i;
 
 /** Every drug-class variant an `imageRoutes` attribute carries. */
-export function parseImageRoutes(
+function parseImageRoutes(
   value: string | undefined,
 ): Record<string, ImageRouteVariant> {
   if (!value) return {};

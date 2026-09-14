@@ -17,7 +17,7 @@ export type DevModePageProps = {
   onTabChange: (tab: DevModeTab) => void;
 };
 
-export type DevModePageChromeSessionStatus =
+type DevModePageChromeSessionStatus =
   | "loading"
   | "authenticated"
   | "unauthenticated";

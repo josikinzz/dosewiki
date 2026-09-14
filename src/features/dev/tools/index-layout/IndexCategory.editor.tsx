@@ -10,7 +10,7 @@ import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualE
 import { EditorNotice, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { buildTextChangelog } from "@/utils/data/changelog";
-import type { BoardActions } from "./IndexLayoutCard";
+import type { BoardActions } from "./IndexLayoutCardMenus";
 import { IndexLayoutBoard } from "./IndexLayoutBoard";
 import { buildBoard, listDestinations, type BoardRecord } from "./boardModel";
 import * as ops from "./layoutOps";

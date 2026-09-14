@@ -14,44 +14,43 @@ import {
 
 export type RuntimeEnv = Partial<Record<string, string | undefined>>;
 
-export type RuntimeDeploymentProfile = "local" | "preview" | "production";
+type RuntimeDeploymentProfile = "local" | "preview" | "production"
 
-export type RuntimeEnvContractStatus = "ok" | "warning" | "error";
+type RuntimeEnvContractStatus = "ok" | "warning" | "error"
 
-export type RuntimeEnvContractIssue = {
+type RuntimeEnvContractIssue = {
   capability: RuntimeEnvCapability;
   envVars: string[];
   severity: "warning" | "error";
   message: string;
-};
+}
 
-export type RuntimeEnvCapability =
-  | "publicBrowserConfig"
-  | "serverReadConfig"
-  | "serverWriteConfig"
-  | "authConfig"
-  | "diagnosticsConfig"
-  | "publicationConfig";
+type RuntimeEnvCapability = | "publicBrowserConfig"
+| "serverReadConfig"
+| "serverWriteConfig"
+| "authConfig"
+| "diagnosticsConfig"
+| "publicationConfig"
 
 export type PublicBrowserRuntimeConfig = {
   convexUrl: string;
   sourceEnvVar: "NEXT_PUBLIC_CONVEX_URL" | "VITE_CONVEX_URL" | null;
 };
 
-export type ServerReadRuntimeConfig = {
+type ServerReadRuntimeConfig = {
   convexUrl: string | null;
   sourceEnvVar: ConvexRuntimeTargetMatrix["publicServerRead"]["sourceEnvVar"];
-};
+}
 
-export type ServerWriteRuntimeConfig = {
+type ServerWriteRuntimeConfig = {
   convexUrl: string | null;
   convexUrlSourceEnvVar: ConvexRuntimeTargetMatrix["privilegedWrite"]["sourceEnvVar"];
   adminKeyConfigured: boolean;
-};
+}
 
-export type AuthRuntimeConfig = {
+type AuthRuntimeConfig = {
   policy: AuthRuntimePolicy;
-};
+}
 
 export type DiagnosticsRuntimeConfig = {
   testEnvRouteEnabledInProduction: boolean;

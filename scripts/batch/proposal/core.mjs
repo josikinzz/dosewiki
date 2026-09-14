@@ -9,7 +9,6 @@ import { dirname, relative, resolve } from "node:path";
 
 import {
   canonicalHash,
-  canonicalSerialize,
   computeReviewedArtifactDigest,
   computeSectionCasHash,
   hashPresenceAwareField,
@@ -20,11 +19,8 @@ import {
 
 export {
   canonicalHash,
-  canonicalSerialize,
   computeReviewedArtifactDigest,
   computeSectionCasHash,
-  hashPresenceAwareField,
-  presenceAwareValue,
   REVIEWED_ARTIFACT_DIGEST_VERSION,
   sha256Text,
 };
@@ -244,15 +240,13 @@ function preserveCitationMarkers(targetValue, generatedValue, path) {
   return stripCitationMarkers(generatedValue);
 }
 
-export function replaceTopLevelSection(targetArticle, sectionKey, generatedValue) {
-  const candidate = structuredClone(targetArticle);
-  candidate[sectionKey] = preserveCitationMarkers(
-    targetArticle[sectionKey],
-    generatedValue,
-    `/${escapeJsonPointerSegment(sectionKey)}`,
-  );
-  return candidate;
-}
+function replaceTopLevelSection(targetArticle, sectionKey, generatedValue) { const candidate = structuredClone(targetArticle);
+candidate[sectionKey] = preserveCitationMarkers(
+  targetArticle[sectionKey],
+  generatedValue,
+  `/${escapeJsonPointerSegment(sectionKey)}`,
+);
+return candidate; }
 
 export function buildSectionProposal({
   slug,
@@ -419,26 +413,24 @@ export function writeProposalArtifacts({ outputDir, manifestPath, proposal, rawR
   return { proposal: linkedProposal, rawResponsePath, proposalJsonPath, proposalMarkdownPath };
 }
 
-export function renderProposalMarkdown(proposal) {
-  const changed = proposal.observedChangedTopLevelFields.length > 0
-    ? proposal.observedChangedTopLevelFields.map((field) => `\`${field}\``).join(", ")
-    : "None";
-  const reasons = proposal.guard.rejectionReasons.length > 0
-    ? proposal.guard.rejectionReasons.map((reason) => `- ${reason}`).join("\n")
-    : "- None";
+function renderProposalMarkdown(proposal) { const changed = proposal.observedChangedTopLevelFields.length > 0
+  ? proposal.observedChangedTopLevelFields.map((field) => `\`${field}\``).join(", ")
+  : "None";
+const reasons = proposal.guard.rejectionReasons.length > 0
+  ? proposal.guard.rejectionReasons.map((reason) => `- ${reason}`).join("\n")
+  : "- None";
 
-  return `# Section regeneration proposal\n\n` +
-    `- **Status:** ${proposal.status}\n` +
-    `- **Section:** \`${proposal.section}\`\n` +
-    `- **Manifest digest:** \`${proposal.manifestDigest}\`\n` +
-    `- **Reviewed artifact digest:** \`${proposal.artifactDigest}\`\n` +
-    `- **Target deployment:** \`${proposal.targetDeploymentFingerprint}\`\n` +
-    `- **Before section hash:** \`${proposal.sectionHashBefore}\`\n` +
-    `- **After section hash:** \`${proposal.sectionHashAfter}\`\n` +
-    `- **Changed top-level fields:** ${changed}\n` +
-    `- **Cross-section guard:** ${proposal.guard.accepted ? "passed" : "rejected"}\n\n` +
-    `## Rejection reasons\n\n${reasons}\n\n` +
-    `## Before\n\n\`\`\`json\n${JSON.stringify(proposal.before, null, 2)}\n\`\`\`\n\n` +
-    `## Proposed\n\n\`\`\`json\n${JSON.stringify(proposal.after, null, 2)}\n\`\`\`\n\n` +
-    `## Exact field-level diff\n\n\`\`\`json\n${JSON.stringify(proposal.differences, null, 2)}\n\`\`\`\n`;
-}
+return `# Section regeneration proposal\n\n` +
+  `- **Status:** ${proposal.status}\n` +
+  `- **Section:** \`${proposal.section}\`\n` +
+  `- **Manifest digest:** \`${proposal.manifestDigest}\`\n` +
+  `- **Reviewed artifact digest:** \`${proposal.artifactDigest}\`\n` +
+  `- **Target deployment:** \`${proposal.targetDeploymentFingerprint}\`\n` +
+  `- **Before section hash:** \`${proposal.sectionHashBefore}\`\n` +
+  `- **After section hash:** \`${proposal.sectionHashAfter}\`\n` +
+  `- **Changed top-level fields:** ${changed}\n` +
+  `- **Cross-section guard:** ${proposal.guard.accepted ? "passed" : "rejected"}\n\n` +
+  `## Rejection reasons\n\n${reasons}\n\n` +
+  `## Before\n\n\`\`\`json\n${JSON.stringify(proposal.before, null, 2)}\n\`\`\`\n\n` +
+  `## Proposed\n\n\`\`\`json\n${JSON.stringify(proposal.after, null, 2)}\n\`\`\`\n\n` +
+  `## Exact field-level diff\n\n\`\`\`json\n${JSON.stringify(proposal.differences, null, 2)}\n\`\`\`\n`; }

@@ -21,13 +21,11 @@ export function getPromptDescriptorByKey(key) {
   return promptRegistry.find((descriptor) => descriptor.convexKey === key);
 }
 
-export function getSectionPromptDescriptor(sectionKey) {
-  const descriptor = sectionPromptDescriptors.find((entry) => entry.sectionKey === sectionKey);
-  if (!descriptor) {
-    throw new Error(`Unknown section prompt key: ${sectionKey}`);
-  }
-  return descriptor;
+function getSectionPromptDescriptor(sectionKey) { const descriptor = sectionPromptDescriptors.find((entry) => entry.sectionKey === sectionKey);
+if (!descriptor) {
+  throw new Error(`Unknown section prompt key: ${sectionKey}`);
 }
+return descriptor; }
 
 export function sectionKeyToPromptKey(sectionKey) {
   return getSectionPromptDescriptor(sectionKey).convexKey;
@@ -41,15 +39,13 @@ export function getFormalCitationAgentPromptDescriptor() {
   return descriptor;
 }
 
-export function getFormalCitationSectionPromptDescriptor(sectionKey) {
-  const descriptor = formalCitationPromptDescriptors.find(
-    (entry) => entry.citationSectionKey === sectionKey,
-  );
-  if (!descriptor) {
-    throw new Error(`Unknown formal citation section prompt key: ${sectionKey}`);
-  }
-  return descriptor;
+function getFormalCitationSectionPromptDescriptor(sectionKey) { const descriptor = formalCitationPromptDescriptors.find(
+  (entry) => entry.citationSectionKey === sectionKey,
+);
+if (!descriptor) {
+  throw new Error(`Unknown formal citation section prompt key: ${sectionKey}`);
 }
+return descriptor; }
 
 export function formalCitationSectionKeyToPromptKey(sectionKey) {
   return getFormalCitationSectionPromptDescriptor(sectionKey).convexKey;

@@ -32,7 +32,7 @@ export interface TimelineEntry {
  */
 export type TripReportLicense = "author-retained" | "public-domain";
 
-export const DEFAULT_TRIP_REPORT_LICENSE: TripReportLicense = "author-retained";
+const DEFAULT_TRIP_REPORT_LICENSE: TripReportLicense = "author-retained";
 
 /** Resolve a stored license string to a known value, defaulting to author-retained. */
 export function resolveTripReportLicense(license?: string | null): TripReportLicense {
@@ -45,7 +45,7 @@ export function resolveTripReportLicense(license?: string | null): TripReportLic
  * marks the legacy imported corpus, whose bylines were written by editors and
  * therefore still resolve to a contributor by name on the public read path.
  */
-export interface TripReportAttributionReview {
+interface TripReportAttributionReview {
   reviewed_by: string;
   reviewed_at: string;
   decision: "assigned" | "declined";
@@ -70,8 +70,7 @@ export interface TripReport {
   attribution_locked?: boolean;
 }
 
-export type StoredTripReport = TripReport;
-export type TripReportImportInput = StoredTripReport;
+type StoredTripReport = TripReport;
 export type TripReportDetailRecord = StoredTripReport;
 
 export type TripReportPreviewRecord = Pick<
@@ -81,16 +80,10 @@ export type TripReportPreviewRecord = Pick<
   | "featured"
   | "subject"
   | "substances"
-  | "introduction"
-  | "onset"
-  | "peak"
-  | "offset"
-  | "conclusion"
-  // Carried into previews because it decides whether the byline may resolve to
-  // a contributor at all; see `lib/convex/publicData.reportProfileProjection`.
-  | "attribution_review"
   | "attribution_locked"
 > & {
+  /** The canonical 170-character narrative excerpt computed at the read edge. */
+  excerpt: string;
   /**
    * When the report joined the archive, derived at the read edge from the
    * row's creation time rather than stored on it. Optional because a read
@@ -139,10 +132,40 @@ export interface ReportCardModel {
   publishedAt?: string;
 }
 
+type TripReportExcerptInput = Pick<
+  TripReport,
+  "introduction" | "onset" | "peak" | "offset" | "conclusion"
+>;
+
+/** Shared excerpt algorithm for both Convex preview projection and consumers. */
+export const getTripReportExcerpt = (
+  report: TripReportExcerptInput,
+  maxLength = 170,
+): string => {
+  const timelineText = [
+    ...(report.onset ?? []),
+    ...(report.peak ?? []),
+    ...(report.offset ?? []),
+  ].map((entry) => entry.description);
+  const normalized = [
+    report.introduction,
+    ...timelineText,
+    report.conclusion,
+  ]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return normalized.length <= maxLength
+    ? normalized
+    : `${normalized.slice(0, maxLength).trimEnd()}…`;
+};
+
 export const toPublicReportPreview = (
   report: TripReportPreviewRecord,
   options: {
-    introduction: string;
     authorAvatarUrl?: string | null;
     authorProfileKey?: string;
   },
@@ -153,7 +176,7 @@ export const toPublicReportPreview = (
   featured: report.featured === true,
   substanceNames: report.substances.map((substance) => substance.name),
   substances: report.substances.map((substance) => ({ ...substance })),
-  introduction: options.introduction,
+  introduction: report.excerpt,
   tripDate: report.subject.trip_date,
   age: report.subject.age,
   gender: report.subject.gender,

@@ -152,8 +152,10 @@ test("reconciliation reports an unparsable source as a source defect", () => {
   assert.match(verdict.details.unparsableSource, /nesting too deep/);
 });
 
+const markupLocale = (await import("./locales.mjs")).resolveLocale("zh-Hans");
+
 test("a Markdown link label is prose, and its target is not", () => {
-  const locale = { code: "zh-Hans", scriptGate: "simplified", lengthBand: [0.12, 1.2], glossary: {} };
+  const locale = markupLocale;
 
   const translatedLabel = validateSegment({
     source: "Licensed [CC0](/docs/license) for reuse.",
@@ -171,7 +173,7 @@ test("a Markdown link label is prose, and its target is not", () => {
 });
 
 test("the VCode markup gate only runs on markup segments", () => {
-  const locale = { code: "zh-Hans", scriptGate: "simplified", lengthBand: [0.12, 1.2], glossary: {} };
+  const locale = markupLocale;
   const input = { source: "An [b]emphasis[/b] here.", target: "此处有强调。" };
 
   assert.equal(validateSegment({ ...input, locale }).defects.includes("MARKUP_LOSS"), false);
@@ -179,7 +181,7 @@ test("the VCode markup gate only runs on markup segments", () => {
 });
 
 test("a VCode frequency label is not read as a Markdown link", () => {
-  const locale = { code: "zh-Hans", scriptGate: "simplified", lengthBand: [0.12, 1.2], glossary: {} };
+  const locale = markupLocale;
 
   const verdict = validateSegment({
     source: '[b][int-link to="/effectsdizziness"]Dizziness[/int-link][/b] [sup](frequent)[/sup]',

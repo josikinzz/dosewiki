@@ -21,7 +21,7 @@ import type { DevSaveCommandResult, DevSaveCredentials } from "../pages/devSaveC
 // Changelog Source Types (the 2 derivation sources)
 // -----------------------------------------------------------------------------
 
-export type MarkdownChange = {
+type MarkdownChange = {
   markdown: string;
   hasChanges: boolean;
 };
@@ -39,9 +39,9 @@ export type ChangelogSources = {
 // Notice Types
 // -----------------------------------------------------------------------------
 
-export type SaveNoticeType = "pending" | "success" | "error";
+type SaveNoticeType = "pending" | "success" | "error";
 
-export type SaveNotice = {
+type SaveNotice = {
   type: SaveNoticeType;
   message: string;
   actionHref?: string;
@@ -52,16 +52,16 @@ export type SaveNotice = {
 // Save Operation Types
 // -----------------------------------------------------------------------------
 
-export type SavePhase =
+type SavePhase =
   | "idle"
   | "validating"
   | "verifying-credentials"
   | "executing";
 
-export type SaveOperationState = {
+type SaveOperationState = {
   phase: SavePhase;
   error: string | null;
-};
+}
 
 // -----------------------------------------------------------------------------
 // Orchestrator State

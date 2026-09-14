@@ -11,7 +11,7 @@ import {
 } from "../summary/source-material.mjs";
 import { sha256Text } from "./core.mjs";
 
-export const SUMMARY_ADAPTER_VERSION = "summary-proposal-adapter-v1";
+const SUMMARY_ADAPTER_VERSION = "summary-proposal-adapter-v1"
 
 function sourceArticleContext(article) {
   return {

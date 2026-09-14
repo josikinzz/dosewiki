@@ -250,7 +250,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "members" ? (
           <MembersTab />
         ) : controller.activeTab === "glossary" ? (
-          <GlossaryTab />
+          <GlossaryTab viewerRole={controller.role} />
         ) : controller.activeTab === "my-reports" ? (
           <MyReportsTab canApprove={controller.canApprove} />
         ) : controller.activeTab === "articles" ? (

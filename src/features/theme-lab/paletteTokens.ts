@@ -25,7 +25,7 @@ import { HUE_ESSENTIALS, HUE_GROUP } from "./paletteTokensHues";
 import { PRO_ACCENT_GROUP } from "./paletteTokensProAccent";
 import { RADIUS_ESSENTIALS, RADIUS_GROUP } from "./paletteTokensRadius";
 
-export type TokenKind = "color" | "channels" | "raw" | "length" | "font" | "angle";
+type TokenKind = "color" | "channels" | "raw" | "length" | "font" | "angle"
 
 export interface PaletteToken {
   /** CSS custom property name, including the leading `--`. */
@@ -791,7 +791,7 @@ export function getEssential(id: string): EssentialItem | undefined {
  * menu fills. RE-AUDIT this list if the theme CSS changes (no dark-only tokens
  * exist today). The lab tags/dims these when the off-theme is being edited.
  */
-export const LIGHT_ONLY_TOKENS: ReadonlySet<string> = new Set([
+const LIGHT_ONLY_TOKENS: ReadonlySet<string> = new Set([
   "--theme-chrome-surface",
   "--theme-chrome-surface-strong",
   "--theme-chrome-border",

@@ -251,9 +251,7 @@ export function extractJsonObject(text) {
   throw new Error("Model response did not contain parseable JSON");
 }
 
-export async function loadSectionQuoteDocument(sourceClient, { slug, sectionKey }) {
-  return loadFormalCitationQuoteDocument(sourceClient, { slug, sectionKey });
-}
+async function loadSectionQuoteDocument(sourceClient, { slug, sectionKey }) { return loadFormalCitationQuoteDocument(sourceClient, { slug, sectionKey }); }
 
 export async function runFormalCitationSectionAgent({
   apiKey,

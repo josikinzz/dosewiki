@@ -25,18 +25,18 @@ export const REQUIRED_DEPLOYMENT_ENV = ["REPLICATION_MEDIA_BASE_URL"] as const;
  * is what a read-only deployment wants; `lib/convex/serverWriteCapability.ts`
  * already reports the resulting configuration failure to writers.
  */
-export const WRITE_DEPLOYMENT_ENV = [
+const WRITE_DEPLOYMENT_ENV = [
   "CONVEX_ADMIN_KEY",
   "GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT",
-] as const;
+] as const
 
 /** Variables that gate one feature each; absence disables it rather than corrupting reads. */
-export const OPTIONAL_DEPLOYMENT_ENV = [
+const OPTIONAL_DEPLOYMENT_ENV = [
   "IDENTITY_SOCIAL_TRUSTED_DELIVERY_EXECUTOR",
   "MAILING_LIST_IP_HASH_SECRET",
   "PUBLIC_CACHE_PUBLISH_SECRET",
   "PUBLIC_CACHE_PUBLISH_TARGETS",
-] as const;
+] as const
 
 /** Every scoped admin intent token name, derived from the intent registry. */
 export function adminIntentEnvVars(): string[] {
@@ -48,12 +48,12 @@ export function adminIntentEnvVars(): string[] {
   return [...names].sort();
 }
 
-export type DeploymentEnvReport = {
+type DeploymentEnvReport = {
   missingRequired: string[];
   missingWrite: string[];
   missingOptional: string[];
   missingIntentTokens: string[];
-};
+}
 
 export function inspectDeploymentEnv(env: Record<string, string | undefined> = process.env): DeploymentEnvReport {
   const absent = (name: string) => !env[name] || env[name]!.trim().length === 0;

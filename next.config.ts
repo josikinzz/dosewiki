@@ -89,12 +89,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   distDir: buildDirectory,
   productionBrowserSourceMaps: false,
-  // The unlisted /html-docs/[doc] route reads repo-root html-docs/ at request time;
-  // without this the files never reach the deployed serverless bundle. The
-  // translation cron likewise reads the frozen glossary and Traditional charset
-  // beside scripts/translation at request time.
+  // The editor-only /html-docs/[doc] route reads repo-root html-docs/ at
+  // request time. The translation cron likewise reads the frozen glossary and
+  // Traditional charset beside scripts/translation at request time.
   outputFileTracingIncludes: {
-    "/html-docs/[doc]": ["./html-docs/**/*"],
+    ...(editorBuild ? { "/html-docs/[doc]": ["./html-docs/**/*"] } : {}),
     "/api/cron/translation-refresh": ["./scripts/translation/**/*.json"],
   },
   experimental: {
@@ -106,6 +105,9 @@ const nextConfig: NextConfig = {
     // herd against Convex; four long-lived workers finish the bounded static
     // build more reliably and amortise the corpus read across many pages.
     cpus: 4,
+    // Each page fans out server reads against a four-connection pool.
+    // One page per worker bounds producer pressure without extending deadlines.
+    staticGenerationMaxConcurrency: 1,
     optimizePackageImports: [
       "@dnd-kit/core",
       "@dnd-kit/sortable",

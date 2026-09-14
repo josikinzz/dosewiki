@@ -1,11 +1,11 @@
 export const LOCAL_ARTIFACT_HYGIENE_POLICIES = [
   {
     path: ".next",
-    classification: "generated-output",
-    cleanupBehavior: "delete-recursively-when-present",
-    protectionRule: "approved-direct-target",
-    reason: "generated output",
-    rationale: "Next.js build and development output.",
+    classification: "generated-output-boundary",
+    cleanupBehavior: "manual-review-only",
+    protectionRule: "protected-directory-subtree",
+    reason: "generated output boundary",
+    rationale: "Next.js output may contain reusable cache data and is never removed by hygiene:clean.",
   },
   {
     path: ".generated",
@@ -57,11 +57,11 @@ export const LOCAL_ARTIFACT_HYGIENE_POLICIES = [
   },
   {
     path: "tmp",
-    classification: "generated-output",
-    cleanupBehavior: "delete-recursively-when-present",
-    protectionRule: "approved-direct-target",
-    reason: "generated output",
-    rationale: "Temporary local working output.",
+    classification: "local-working-boundary",
+    cleanupBehavior: "manual-review-only",
+    protectionRule: "protected-directory-subtree",
+    reason: "local working boundary",
+    rationale: "Temporary work may include unrelated recovery assets and is never removed by hygiene:clean.",
   },
   {
     path: ".codex-dev.log",
@@ -105,7 +105,7 @@ export const LOCAL_ARTIFACT_HYGIENE_POLICIES = [
   },
 ];
 
-export const GENERATED_EXPORT_RETENTION_POLICIES = [
+const GENERATED_EXPORT_RETENTION_POLICIES = [
   {
     path: "notes-and-plans/exports/assets/*",
     role: "fixture",
@@ -170,15 +170,17 @@ export const GENERATED_EXPORT_RETENTION_POLICIES = [
     freshnessRule: "Regenerate from scripts/replications/scan-replications.mjs before a new import pass.",
     reviewDate: "2026-05-28",
   },
-];
+]
 
-export const PROTECTED_LOCAL_ARTIFACT_PATHS = [
+const PROTECTED_LOCAL_ARTIFACT_PATHS = [
+  ".next",
+  "tmp",
   ".git",
   ".claude",
   ".vercel",
   ".vscode",
   "node_modules",
-];
+]
 
 const DIRECT_POLICIES = LOCAL_ARTIFACT_HYGIENE_POLICIES.filter(
   (policy) => !policy.path.includes("*"),
@@ -257,12 +259,10 @@ function patternToRegex(pathPattern) {
   return new RegExp(`^${escaped}$`);
 }
 
-export function findGeneratedExportRetentionPolicy(pathname) {
-  const normalizedPath = normalizePath(pathname);
-  return GENERATED_EXPORT_RETENTION_POLICIES.find((policy) => (
-    patternToRegex(policy.path).test(normalizedPath)
-  )) ?? null;
-}
+function findGeneratedExportRetentionPolicy(pathname) { const normalizedPath = normalizePath(pathname);
+return GENERATED_EXPORT_RETENTION_POLICIES.find((policy) => (
+  patternToRegex(policy.path).test(normalizedPath)
+)) ?? null; }
 
 export function evaluateGeneratedExportRetention(paths) {
   const generatedExportPaths = paths

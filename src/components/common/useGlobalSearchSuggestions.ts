@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SearchSuggestion } from "../../data/builders/search";
+import { useUiLocale } from "../../i18n/client";
 import { useSearchManifestIndex } from "../../hooks/useSearchManifest";
 
 const MAX_SUGGESTIONS = 8;
@@ -18,8 +19,8 @@ const SERVER_REFINE_DELAY_MS = 400;
 const searchSuggestionsCache = new Map<string, SearchSuggestion[]>();
 const searchSuggestionsInflight = new Map<string, Promise<SearchSuggestion[]>>();
 
-const buildCacheKey = (trimmed: string, limit: number) =>
-  `${trimmed.toLowerCase()}::${limit}`;
+const buildCacheKey = (trimmed: string, limit: number, locale: string) =>
+  `${locale}::${trimmed.toLowerCase()}::${limit}`;
 
 /** Test seam: forget every cached and in-flight suggestion response. */
 export function resetSearchSuggestionsCacheForTests() {
@@ -33,9 +34,15 @@ export function resetSearchSuggestionsCacheForTests() {
  * are a good enough stand-in to render immediately instead of flashing an empty
  * or loading state while the request for the longer query is in flight.
  */
-const findPrefixSuggestions = (trimmed: string, limit: number): SearchSuggestion[] | undefined => {
+const findPrefixSuggestions = (
+  trimmed: string,
+  limit: number,
+  locale: string,
+): SearchSuggestion[] | undefined => {
   for (let length = trimmed.length - 1; length > 0; length -= 1) {
-    const cached = searchSuggestionsCache.get(buildCacheKey(trimmed.slice(0, length), limit));
+    const cached = searchSuggestionsCache.get(
+      buildCacheKey(trimmed.slice(0, length), limit, locale),
+    );
     if (cached) {
       return cached;
     }
@@ -62,12 +69,13 @@ export function useGlobalSearchSuggestions({
   query,
   limit = MAX_SUGGESTIONS,
 }: UseGlobalSearchSuggestionsArgs) {
+  const locale = useUiLocale();
   const trimmed = query.trim();
   const resolvedLimit = Math.min(Math.max(limit, 1), 80);
   const isSearching = isActiveSearch && trimmed.length > 0;
-  const cacheKey = buildCacheKey(trimmed, resolvedLimit);
+  const cacheKey = buildCacheKey(trimmed, resolvedLimit, locale);
 
-  const manifestIndex = useSearchManifestIndex(isActiveSearch);
+  const manifestIndex = useSearchManifestIndex(isActiveSearch, locale);
   const [serverResults, setServerResults] = useState<{
     key: string;
     results: SearchSuggestion[];
@@ -110,7 +118,7 @@ export function useGlobalSearchSuggestions({
 
         if (!request) {
           request = fetch(
-            `/api/search-suggestions?q=${encodeURIComponent(trimmed)}&limit=${resolvedLimit}`,
+            `/api/search-suggestions?q=${encodeURIComponent(trimmed)}&limit=${resolvedLimit}&locale=${encodeURIComponent(locale)}`,
           )
             .then(async (response) => {
               if (!response.ok) {
@@ -158,7 +166,7 @@ export function useGlobalSearchSuggestions({
     // query and limit already listed, and re-running when the manifest
     // finishes loading would fire a second request for a query the first one
     // already covers.
-  }, [cacheKey, isSearching, resolvedLimit, trimmed]);
+  }, [cacheKey, isSearching, locale, resolvedLimit, trimmed]);
 
   const clearSuggestions = useCallback(() => {
     setIsCleared(true);
@@ -171,12 +179,13 @@ export function useGlobalSearchSuggestions({
     if (serverResults?.key === cacheKey) {
       return serverResults.results;
     }
-    return localResults ?? findPrefixSuggestions(trimmed, resolvedLimit) ?? [];
+    return localResults ?? findPrefixSuggestions(trimmed, resolvedLimit, locale) ?? [];
   }, [
     cacheKey,
     isCleared,
     isSearching,
     localResults,
+    locale,
     resolvedLimit,
     serverResults,
     trimmed,

@@ -15,7 +15,6 @@ import { createHash } from "node:crypto";
 
 import { CITABLE_ARTICLE_SECTIONS } from "./citation-marker-workflow.mjs";
 import {
-  CITE_MARKER_PATTERN,
   collectCitationMarkersFromText,
 } from "./citation-only-validator.mjs";
 
@@ -26,13 +25,12 @@ export const CITATION_NEEDED_TOKEN = "[citation-needed]";
 export const CITABLE_SECTIONS = Object.freeze(
   CITABLE_ARTICLE_SECTIONS.filter((section) => section !== "legality"),
 );
-export { CITE_MARKER_PATTERN };
 
 function isObjectRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export function stableJson(value) {
+function stableJson(value) {
   if (Array.isArray(value)) {
     return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
   }
@@ -44,7 +42,7 @@ export function stableJson(value) {
   return JSON.stringify(value) ?? "null";
 }
 
-export function sha256Hex(input) {
+function sha256Hex(input) {
   return createHash("sha256").update(input).digest("hex");
 }
 
@@ -62,9 +60,7 @@ export function buildPairId({ slug, section, markerId, claimText }) {
   return `${slug}:${section}:${markerId}:${claimHash(claimText)}`;
 }
 
-export function sectionFieldValue(article, section) {
-  return article?.[section] ?? null;
-}
+function sectionFieldValue(article, section) { return article?.[section] ?? null; }
 
 /**
  * Every prose string in a citable section, with its dotted field path
@@ -208,7 +204,7 @@ export function extractClaimPairs(text) {
  * (.agents/skills/citation-pi/reference/safety-claims.md): case-insensitive
  * stems; any harm_potential claim is sensitive by default.
  */
-export const SAFETY_SENSITIVE_PATTERNS = Object.freeze([
+const SAFETY_SENSITIVE_PATTERNS = Object.freeze([
   /overdose/i,
   /death/i,
   /lethal/i,
@@ -229,7 +225,7 @@ export const SAFETY_SENSITIVE_PATTERNS = Object.freeze([
   /pregnan/i,
   /neonat/i,
   /breastfeed/i,
-]);
+])
 
 export function classifySafetySensitive({ section, claimText }) {
   if (section === "harm_potential") return true;
@@ -237,15 +233,13 @@ export function classifySafetySensitive({ section, claimText }) {
   return SAFETY_SENSITIVE_PATTERNS.some((pattern) => pattern.test(text));
 }
 
-export function buildReferenceIndex(references) {
-  const index = new Map();
-  for (const reference of references ?? []) {
-    if (reference && typeof reference.id === "string" && !index.has(reference.id)) {
-      index.set(reference.id, reference);
-    }
+function buildReferenceIndex(references) { const index = new Map();
+for (const reference of references ?? []) {
+  if (reference && typeof reference.id === "string" && !index.has(reference.id)) {
+    index.set(reference.id, reference);
   }
-  return index;
 }
+return index; }
 
 /**
  * One audit row per claim–citation pair across the article's citable sections.

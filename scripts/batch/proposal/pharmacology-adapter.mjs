@@ -4,7 +4,7 @@ import { createOpenRouterCaller } from "../pharmacology/openrouter.mjs";
 import { buildUserMessage, parseGeneratedYaml } from "../pharmacology/parser.mjs";
 import { sha256Text } from "./core.mjs";
 
-export const PHARMACOLOGY_ADAPTER_VERSION = "pharmacology-proposal-adapter-v1";
+const PHARMACOLOGY_ADAPTER_VERSION = "pharmacology-proposal-adapter-v1"
 
 function sourceArticleContext(article) {
   return {

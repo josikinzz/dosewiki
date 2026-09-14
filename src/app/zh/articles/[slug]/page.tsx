@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadArticleRoute } from "@server/next/routeLoaders.publications";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 
@@ -54,7 +54,7 @@ export default async function LocalizedArticlePage({ params }: LocalizedArticleP
   return (
     <UiLocaleProvider locale={LOCALE.code}>
       <div lang={LOCALE.htmlLang}>
-        <EffectIndexArticlePage {...result.pageProps} />
+        <EffectIndexArticlePage {...result.pageProps} locale={LOCALE.code} />
       </div>
     </UiLocaleProvider>
   );

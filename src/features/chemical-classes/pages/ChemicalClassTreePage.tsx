@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { SmartLink } from "@/components/common/SmartLink";
 import { useRouter } from "next/navigation";
+import { useT } from "@/i18n/client";
 
 import { Icon } from "@/components/common/Icon";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -31,6 +32,8 @@ function TreeLink({
   isRoot?: boolean;
   crossReference?: boolean;
 }) {
+  const t = useT();
+
   return (
     <div className="flex min-h-8 items-center">
       <SmartLink
@@ -41,7 +44,7 @@ function TreeLink({
           crossReference ? "theme-text-faint" : "theme-accent-heading",
         )}
       >
-        <span>{node.label}</span>
+        <span>{t(node.label)}</span>
         {countSuffix(node.rolledTotal)}
         {crossReference ? (
           <Icon icon={icons.arrowRight} className="theme-text-faint ml-1.5 h-3.5 w-3.5" />
@@ -92,6 +95,8 @@ function TreeNode({
 
 export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
   const router = useRouter();
+  const t = useT();
+
 
   useEffect(() => {
     const key = window.location.hash.slice(1);
@@ -117,26 +122,26 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <PageHeader
           className="sm:mb-8"
-          title="Chemical Class Index"
+          title={t("Chemical Class Index")}
           icon={CHEMICAL_CLASS_INDEX_ICON}
         />
       </div>
 
       {payload.roots.length === 0 ? (
         <StateCard
-          badge="No classes"
+          badge={t("No classes")}
           badgeVariant="secondary"
-          title="No chemical classes found"
-          description="No curated chemical classes have been published yet."
+          title={t("No chemical classes found")}
+          description={t("No curated chemical classes have been published yet.")}
           icon="lucide:hexagon"
           tone="neutral"
         />
       ) : (
-        <nav aria-label="Chemical class tree" className="mx-auto mt-8 max-w-2xl sm:mt-10">
+        <nav aria-label={t("Chemical class tree")} className="mx-auto mt-8 max-w-2xl sm:mt-10">
           <p className="theme-text-secondary mb-8 text-sm leading-6 sm:mb-10">
-            Every class organized by structural lineage, from broad scaffolds down to specific
-            families. A dimmed entry with an arrow belongs to more than one branch, and its full
-            subtree lives under its primary parent.
+            {t(
+              "Every class organized by structural lineage, from broad scaffolds down to specific families. A dimmed entry with an arrow belongs to more than one branch, and its full subtree lives under its primary parent.",
+            )}
           </p>
 
           <div className="space-y-10">

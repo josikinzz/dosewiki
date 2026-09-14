@@ -10,7 +10,7 @@ import { focusRingClassName } from "@/components/ui/surface";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { artistLinkPresentation, formatArtistWorksLine } from "./artistPageModel";
-import { APPROVED_REPLICATOR_LABEL } from "../components/ApprovedReplicatorStar";
+import { APPROVED_REPLICATOR_LABEL, VERIFIED_REPLICATOR_LABEL } from "../replicationVocabulary";
 
 export interface ArtistIdentityHeaderProps {
   name: string;
@@ -121,7 +121,7 @@ export function ArtistIdentityHeader({
                   icon="lucide:badge-check"
                   data-testid="verified-replicator-badge"
                 >
-                  {t("Verified replicator")}
+                  {t(VERIFIED_REPLICATOR_LABEL)}
                 </PublicPill>
               ) : null}
             </div>

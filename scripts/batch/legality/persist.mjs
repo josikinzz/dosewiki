@@ -20,16 +20,14 @@ export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
 }
 
-export async function resolveLegalitySourceMaterial(article) {
-  const slug = getArticleSlug(article);
-  return resolveQuoteSourceMaterial({
-    slug,
-    loadQuotes: loadLegalityQuotes,
-    buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-    missingReason: "No legality quotes in Convex",
-    emptyReason: "No legality quotes in Convex",
-  });
-}
+function resolveLegalitySourceMaterial(article) { const slug = getArticleSlug(article);
+return resolveQuoteSourceMaterial({
+  slug,
+  loadQuotes: loadLegalityQuotes,
+  buildUserMessage: (quotes) => buildUserMessage(article, quotes),
+  missingReason: "No legality quotes in Convex",
+  emptyReason: "No legality quotes in Convex",
+}); }
 
 export async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = getArticleSlug(article);

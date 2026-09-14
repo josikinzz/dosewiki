@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
+import { markRetranslated } from "@server/translation/glossary";
 import { loadTranslationContext, recordsMentioning, translationJobSlug, type TranslationRecordKind } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs, readTranslationsMentioning, scopeStaleTranslations } from "@server/translation/segmentStore";
 import { GLOSSARY_BODY_MAX_BYTES, glossaryUnavailable, parseLocale, parseTerms } from "../glossaryRoutes";
@@ -52,6 +53,7 @@ export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>(
     const scoped = await scopeStaleTranslations(body.locale, mentioning.map((row) => row.hash), context.promptVersion);
     const records = await recordsMentioning(getPublicDataReadAdapter(), body.terms);
     await enqueueTranslationJobs([body.locale], records.map((record) => translationJobSlug(record.kind, record.slug)));
+    await markRetranslated(body.locale, body.terms);
 
     const jobs: RetranslateResponse["jobs"] = {};
     for (const record of records) jobs[record.kind] = (jobs[record.kind] ?? 0) + 1;

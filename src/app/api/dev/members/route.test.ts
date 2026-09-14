@@ -102,17 +102,19 @@ describe("members routes", () => {
     });
   });
 
-  it("changes a role as the signed-in admin and refuses any role but editor or contributor", async () => {
+  it("changes a role as the signed-in admin and refuses any role it cannot hand out", async () => {
     mocks.mutation.mockResolvedValue(null);
 
-    const response = await rolePost(post("role", { email: " Ada@Example.com ", role: "contributor" }));
-    expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith("memberships.setRole", {
-      apiKey: "admin-key",
-      actorEmail: "admin@example.com",
-      email: "ada@example.com",
-      role: "contributor",
-    });
+    for (const role of ["contributor", "translator", "editor"]) {
+      const response = await rolePost(post("role", { email: " Ada@Example.com ", role }));
+      expect(response.status, role).toBe(200);
+      expect(mocks.mutation).toHaveBeenLastCalledWith("memberships.setRole", {
+        apiKey: "admin-key",
+        actorEmail: "admin@example.com",
+        email: "ada@example.com",
+        role,
+      });
+    }
 
     mocks.mutation.mockClear();
     for (const role of ["admin", "viewer", "", undefined]) {

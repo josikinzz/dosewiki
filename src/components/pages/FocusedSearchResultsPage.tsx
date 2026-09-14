@@ -1,3 +1,5 @@
+"use client";
+
 import { SmartLink } from "@/components/common/SmartLink";
 import { HighlightedText } from "@/components/common/HighlightedText";
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -5,6 +7,7 @@ import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SearchingIndicator } from "@/components/common/SearchingIndicator";
 import { Surface } from "@/components/ui/surface";
 import type { SearchEntryType, SearchSuggestion } from "@/data/builders/search";
+import { useT } from "@/i18n/client";
 import { publicHref } from "@/utils/publicHref";
 import { icons } from "@/utils/iconNames";
 
@@ -81,6 +84,7 @@ export function FocusedSearchResultsPage({
   results,
   isLoading = false,
 }: FocusedSearchResultsPageProps) {
+  const t = useT();
   const trimmed = query.trim();
   const resultGroups = groupSearchResults(results);
   const bestMatchId = results[0]?.id ?? null;
@@ -110,8 +114,10 @@ export function FocusedSearchResultsPage({
           >
             <SearchEmptyState
               icon="lucide:search-x"
-              title="No matches found"
-              description="Try another spelling, search for a broader class, or jump into the public indexes instead."
+              title={t("No matches found")}
+              description={t(
+                "Try another spelling, search for a broader class, or jump into the public indexes instead.",
+              )}
               headingLevel="h1"
               className="px-6 py-10"
             />
@@ -163,8 +169,8 @@ export function FocusedSearchResultsPage({
                           {isBestMatch ? (
                             <span
                               className="theme-search-best-match theme-control-pill hidden h-7 w-7 shrink-0 items-center justify-center rounded-full sm:inline-flex"
-                              aria-label="Best match"
-                              title="Best match"
+                              aria-label={t("Best match")}
+                              title={t("Best match")}
                             >
                               <Icon icon="lucide:star" size={14} />
                             </span>

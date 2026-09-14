@@ -30,8 +30,8 @@ import type { ColorScheme, VisualStyle } from "@/theme";
  * source order alone (its own comments name the line numbers). The anchor
  * lists below reproduce that order no matter which sheet arrives first.
  */
-export const LIGHT_MODE_STYLESHEET_ROUTE = "/theme-light-mode.css";
-export const PRO_THEME_STYLESHEET_ROUTE = "/pro-theme.css";
+const LIGHT_MODE_STYLESHEET_ROUTE = "/theme-light-mode.css"
+const PRO_THEME_STYLESHEET_ROUTE = "/pro-theme.css"
 
 export const LIGHT_MODE_STYLESHEET_HREF = `${LIGHT_MODE_STYLESHEET_ROUTE}?v=${sheetsManifest.versions.lightMode}`;
 export const PRO_THEME_STYLESHEET_HREF = `${PRO_THEME_STYLESHEET_ROUTE}?v=${sheetsManifest.versions.proTheme}`;

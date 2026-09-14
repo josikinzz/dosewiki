@@ -5,7 +5,7 @@ export const SUBSTANCE_PRIORITY_VALUES = [
   "low",
   "hide_for_now",
 ] as const;
-export const DIRECT_URL_ONLY_PRIORITY_VALUES = ["low", "hide_for_now"] as const;
+const DIRECT_URL_ONLY_PRIORITY_VALUES = ["low", "hide_for_now"] as const
 
 export type SubstancePriority = (typeof SUBSTANCE_PRIORITY_VALUES)[number];
 export type SubstanceVisibility = "public" | "hidden" | "low_priority";

@@ -74,7 +74,7 @@ export type EditorStatusPillTone =
   | "warning"
   | "danger";
 
-export type StatusBadgeTone =
+type StatusBadgeTone =
   | "red"
   | "rose"
   | "yellow"

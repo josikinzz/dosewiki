@@ -25,10 +25,10 @@
  * the entry above them — are inferred here.
  */
 
-export const PARAGRAPH_SEPARATOR = "\n\n";
+const PARAGRAPH_SEPARATOR = "\n\n"
 
 /** The separator a timestamp head uses before its narrative. */
-export const TIME_SEPARATOR = ": ";
+const TIME_SEPARATOR = ": "
 
 /**
  * A timestamp label as authors write them. Both corpus conventions are covered:

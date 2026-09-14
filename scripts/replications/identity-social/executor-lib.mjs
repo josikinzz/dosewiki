@@ -2,19 +2,19 @@ import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, readFileSync } from "node:fs";
 
 export const PRODUCTION_DEPLOYMENT = "glad-minnow-656";
-export const MAX_BATCH_COUNT = 50;
-export const MAX_BATCH_BYTES = 512_000;
+const MAX_BATCH_COUNT = 50;
+const MAX_BATCH_BYTES = 512_000;
 export const PINNED_PROFILE_COUNT = 2_119;
 export const PINNED_PROFILE_SNAPSHOT_DIGEST = "aea1bbeac1ce5a10e7e3a0981af17b40909c13ecf04fcf49299bbb32f66c2d8d";
 
-export function canonical(value) {
+function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") return Object.fromEntries(Object.entries(value)
     .filter(([, item]) => item !== undefined).sort(([a], [b]) => a.localeCompare(b))
     .map(([key, item]) => [key, canonical(item)]));
   return value;
 }
-export function canonicalJson(value) { return JSON.stringify(canonical(value)); }
+function canonicalJson(value) { return JSON.stringify(canonical(value)); }
 export function digest(value) { return createHash("sha256").update(canonicalJson(value)).digest("hex"); }
 const evidenceDigest = (value) => digest(value);
 const profileKey = (value) => String(value ?? "").trim().toUpperCase();
@@ -114,7 +114,7 @@ function verifiedDelivery(raw, mediaDigest) {
   return { receipt: { ...core, receipt_digest: computed }, r2Key };
 }
 
-export function classifyProjectionOperation(operation, context) {
+function classifyProjectionOperation(operation, context) {
   if (operation.kind === "profile-binding") return { disposition: operation.action === "preserve-unresolved-profile-binding-no-write" ? "journal-only" : "actionable" };
   if (operation.kind === "profile-alias" && operation.action !== "add-alias-preserve-source-history") return { disposition: "journal-only", reason: operation.action };
   if (["replicator-verification", "profile-alias", "profile-avatar"].includes(operation.kind) && !context.profiles.has(profileKey(operation.target.profileKey))) return { disposition: "no-write", reason: "immutable-profile-id-unresolved" };

@@ -10,12 +10,13 @@ import {
 } from "@/data/schema/transformers";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, DurationRoute, DoseRange, DurationStage, SubstanceArticle } from "@/schema";
-import { msg, useT } from "@/i18n/client";
+import { useT } from "@/i18n/client";
 import type { Translate } from "@/i18n/messages";
 import { EditableValue, useArticleEdit } from "../../editing";
 import { CitationMarker, CitedText } from "../CitedText";
 import { DOSE_TIERS, DURATION_STAGES } from "./dosageDurationLabels";
 import { formatDurationText, normalizeDurationStageForDisplay } from "./durationUnits";
+import { ROUTE_LABELS } from "./routeLabels";
 
 export function formatDose(range: DoseRange | null, isThreshold = false): string {
   if (!range || (range.min === null && range.max === null)) return "N/A";
@@ -56,24 +57,6 @@ export function formatDuration(t: Translate, stage: DurationStage | null): strin
 function capitalizeRoute(route: string): string {
   return route.charAt(0).toUpperCase() + route.slice(1);
 }
-
-const ROUTE_LABELS: Record<string, string> = {
-  iv: msg("IV"),
-  intravenous: msg("Intravenous"),
-  im: msg("IM"),
-  intramuscular: msg("Intramuscular"),
-  "i.m.": msg("IM"),
-  "iv/im": msg("IV/IM"),
-};
-
-/**
- * The routes the corpus uses, listed so the catalog builder carries them; any
- * other spelling still renders capitalized and translates if the catalog knows it.
- */
-export const KNOWN_ROUTE_LABELS = [
-  msg("Oral"), msg("Sublingual"), msg("Buccal"), msg("Insufflated"), msg("Smoked"), msg("Vaporized"),
-  msg("Rectal"), msg("Transdermal"), msg("Subcutaneous"), msg("Inhaled"), msg("Intranasal"), msg("Injected"),
-];
 
 export function formatRouteLabel(t: Translate, route: string): string {
   return t(ROUTE_LABELS[route.toLowerCase()] ?? capitalizeRoute(route));

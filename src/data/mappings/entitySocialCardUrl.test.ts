@@ -1,11 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-afterEach(() => {
-  vi.doUnmock("../entitySocialCardManifest.generated.json");
-  vi.resetModules();
-});
-
-const manifest = {
+const manifest = vi.hoisted(() => ({
   version: 1,
   sourceDeployment: "glad-minnow-656",
   rendererVersions: {
@@ -25,11 +20,12 @@ const manifest = {
     reports: {},
     contributors: {},
   },
-};
+}));
+
+vi.mock("../entitySocialCardManifest.generated.json", () => ({ default: manifest }));
 
 describe("entitySocialCardUrl", () => {
   it("returns a normalized immutable JPEG card for dose.wiki", async () => {
-    vi.doMock("../entitySocialCardManifest.generated.json", () => ({ default: manifest }));
     const {
       entitySocialCardImage,
       entitySocialCardUrl,
@@ -58,7 +54,6 @@ describe("entitySocialCardUrl", () => {
   });
 
   it("makes the same immutable entity card available to Effect Index", async () => {
-    vi.doMock("../entitySocialCardManifest.generated.json", () => ({ default: manifest }));
     const { entitySocialCardImage, entitySocialCardUrl } = await import(
       "./entitySocialCardUrl"
     );
@@ -75,7 +70,6 @@ describe("entitySocialCardUrl", () => {
   });
 
   it("keeps host-specific canonicals while sharing an immutable entity image", async () => {
-    vi.doMock("../entitySocialCardManifest.generated.json", () => ({ default: manifest }));
     const [{ entitySocialCardImage }, { buildPublicPageMetadata, getPublicSite }, { SITE_FLAVOR_CONFIGS }] =
       await Promise.all([
         import("./entitySocialCardUrl"),
@@ -133,7 +127,6 @@ describe("entitySocialCardUrl", () => {
   });
 
   it("falls back to each publication card only when the entity has no card", async () => {
-    vi.doMock("../entitySocialCardManifest.generated.json", () => ({ default: manifest }));
     const [{ entitySocialCardImage }, { buildPublicPageMetadata, getPublicSite }, { SITE_FLAVOR_CONFIGS }] =
       await Promise.all([
         import("./entitySocialCardUrl"),

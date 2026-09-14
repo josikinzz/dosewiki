@@ -9,9 +9,7 @@ import type {
 } from "@/types/reagent";
 
 export type {
-  NormalizedReagentColor,
   NormalizedReagentData,
-  NormalizedReagentResult,
   ReagentDisplayEntry,
 } from "@/types/reagent";
 
@@ -45,6 +43,9 @@ const REAGENT_ORDER = [
   "scott",
 ];
 
+/** The reagent names as the testing table heads them, in display order, for the glossary drafter. */
+export const REAGENT_LABELS: readonly string[] = REAGENT_ORDER.map(capitalizeReagent);
+
 export interface ReagentLookupInput {
   title?: string | null;
   commonName?: string | null;
@@ -71,32 +72,9 @@ export function buildReagentLookupCandidates(input: ReagentLookupInput): string[
   return [...new Set(rawCandidates.filter(Boolean).map((name) => normalizeReagentLookupName(String(name))).filter(Boolean))];
 }
 
-export function getReagentCacheKey(substanceName: string, aliases: readonly string[]): string {
-  return [substanceName.trim().toLowerCase(), ...aliases.map((alias) => alias.trim().toLowerCase())]
-    .filter(Boolean)
-    .join("|");
-}
 
-export function getProtestKitProxyUrl(candidate: string): string {
-  return `/api/reagent-proxy?substance=${encodeURIComponent(candidate)}`;
-}
 
-export function getProtestKitProxyBatchUrl(candidates: readonly string[]): string {
-  const [substance, ...aliases] = candidates;
-  if (!substance) {
-    return "";
-  }
 
-  const searchParams = new URLSearchParams({ substance });
-  for (const alias of aliases) {
-    searchParams.append("alias", alias);
-  }
-  return `/api/reagent-proxy?${searchParams.toString()}`;
-}
-
-export function getProtestKitApiUrl(candidate: string): string {
-  return `https://protestkit.eu/api/v1/${encodeURIComponent(candidate)}`;
-}
 
 export function validateProtestKitResponse(value: unknown): ProtestKitValidationResult {
   if (!isRecord(value)) {

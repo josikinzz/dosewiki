@@ -10,9 +10,7 @@ export type GalleryCandidatesResult =
   | { status: "ready"; candidates: GalleryCandidate[] }
   | { status: "error"; message: string };
 
-export function galleryCandidatesUrl() {
-  return SUBSTANCES_API;
-}
+function galleryCandidatesUrl() { return SUBSTANCES_API; }
 
 export function galleryDetailUrl(slug: string) {
   return `${SUBSTANCES_API}/${encodeURIComponent(slug)}`;

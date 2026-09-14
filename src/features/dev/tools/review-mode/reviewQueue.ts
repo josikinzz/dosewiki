@@ -117,16 +117,14 @@ function resolveEntryStatus(
  * A row carrying the library projection's precomputed bibliography size.
  * Slim editor-library rows have it; hydrated rows (and test fixtures) do not.
  */
-export interface ReferenceCounted {
-  reference_count?: number;
-}
+interface ReferenceCounted { reference_count?: number; }
 
 /**
  * How many bibliography entries back the article. The projected count wins
  * when the row carries it, so slim library rows and hydrated rows read
  * identically; otherwise sum the three arrays the whole article holds.
  */
-export function resolveReferenceCount(article: SubstanceArticle & ReferenceCounted): number {
+function resolveReferenceCount(article: SubstanceArticle & ReferenceCounted): number {
   if (typeof article.reference_count === "number") return article.reference_count;
   return (
     (article.references?.length ?? 0) +
@@ -299,11 +297,9 @@ export interface ReviewGroupLayout {
 }
 
 /** One chemical-class subsection inside a psychoactive category. */
-export interface ReviewQueueSection {
-  key: string;
-  label: string;
-  entries: ReviewQueueEntry[];
-}
+interface ReviewQueueSection { key: string;
+label: string;
+entries: ReviewQueueEntry[]; }
 
 /** One psychoactive category — the top level of the grouped picker. */
 export interface ReviewQueueGroup {

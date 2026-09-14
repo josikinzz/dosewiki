@@ -11,7 +11,7 @@ import {
   getReplicationArtistMetadata,
   ReplicationArtistRoute,
 } from "@/app/replications/artist/[key]/_components/ReplicationArtistRoute";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 

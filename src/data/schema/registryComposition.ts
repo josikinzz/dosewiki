@@ -5,7 +5,7 @@ import type { FieldOverrideModule } from "./fieldOverrides/shared";
 import { validateFieldPath, type FieldPathDiagnostic } from "./fieldPath";
 import { getCatalogSchemaSections } from "../../schema/substance/sectionCatalog";
 
-export interface RegistryCompositionDiagnostics {
+interface RegistryCompositionDiagnostics {
   fieldPathDiagnostics: FieldPathDiagnostic[];
   unmatchedGeneratedPaths: string[];
   overrideOnlyPaths: string[];

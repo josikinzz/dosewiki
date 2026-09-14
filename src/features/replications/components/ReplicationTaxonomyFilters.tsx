@@ -15,15 +15,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Icon } from "@/components/common/Icon";
+import { countActiveTaxonomyFilters } from "@/features/effects/gallery/galleryFilters";
+import { UNDATED_YEAR_LABEL } from "@/features/effects/gallery/galleryModel";
 import {
-  countActiveTaxonomyFilters,
   UNDATED_YEAR_FILTER,
-  UNDATED_YEAR_LABEL,
   type GalleryTaxonomyFilterState,
   type GalleryTypeFilter,
   type GalleryYearFilter,
-} from "@/features/effects/gallery/galleryModel";
-import { msg, useT, type Translate } from "@/i18n/client";
+} from "@/features/effects/gallery/galleryTypes";
+import {
+  MEDIA_LABEL,
+  MEDIA_OPTIONS,
+  TAXONOMY_FILTER_CHIP_LABELS as CHIP_LABELS,
+  TAXONOMY_FILTER_LABELS as LABELS,
+  TAXONOMY_FILTER_OPTIONS as OPTIONS,
+  type TaxonomyFilterKey as FilterKey,
+  type TaxonomyFilterOption as FilterOption,
+} from "../replicationVocabulary";
+import { useT, type Translate } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import {
   CONTROL_TRIGGER_CHEVRON_CLASS,
@@ -31,87 +40,9 @@ import {
   CONTROL_TRIGGER_LABEL_CLASS,
 } from "@/components/ui/controlBarTrigger";
 
-type FilterKey = keyof GalleryTaxonomyFilterState;
-type FilterOption = { value: string; label: string };
-
-// Key order is the render order: popover selects, then active-filter chips.
-const OPTIONS: Record<
-  FilterKey,
-  ReadonlyArray<FilterOption>
-> = {
-  effect: [{ value: "all", label: msg("Any") }],
-  viewing: [
-    { value: "all", label: msg("Any") },
-    { value: "open-eye", label: msg("Open-eye") },
-    { value: "closed-eye", label: msg("Closed-eye") },
-  ],
-  family: [
-    { value: "all", label: msg("Any") },
-    { value: "experiential-replication", label: msg("Experiential replications") },
-    { value: "visionary-psychedelic-art", label: msg("Visionary psychedelic art") },
-    { value: "traditional-cultural-art", label: msg("Traditional cultural art") },
-    { value: "dark-surrealism", label: msg("Dark surrealism") },
-    { value: "optical-perceptual-art", label: msg("Optical and perceptual art") },
-    { value: "generative-abstract-art", label: msg("Generative abstract art") },
-    { value: "effect-illustration", label: msg("Effect illustrations") },
-    { value: "explanatory-figure", label: msg("Explanatory figures") },
-    { value: "uncertain", label: msg("Unclassified content") },
-  ],
-  artistType: [
-    { value: "all", label: msg("Any") },
-    { value: "replicator", label: msg("Replicators") },
-    {
-      value: "traditional-psychedelic-artist",
-      label: msg("Traditional psychedelic artists"),
-    },
-  ],
-  drug: [{ value: "all", label: msg("Any") }],
-  drugClass: [
-    { value: "all", label: msg("Any") },
-    { value: "psychedelics", label: msg("Psychedelics") },
-    { value: "dissociatives", label: msg("Dissociatives") },
-    { value: "deliriants", label: msg("Deliriants") },
-    { value: "other", label: msg("Other") },
-  ],
-};
-
 // Selects rendered as a flat list, then the "Named in the title" sub-group.
 const GENERAL_KEYS = ["effect", "viewing", "family", "artistType"] as const;
 const TITLE_KEYS = ["drug", "drugClass"] as const;
-
-const LABELS: Record<FilterKey, string> = {
-  viewing: msg("Viewing mode"),
-  artistType: msg("Artist practice"),
-  effect: msg("Depicted effect"),
-  drug: msg("Drug"),
-  drugClass: msg("Drug class"),
-  family: msg("Content family"),
-};
-
-/** Chip prefixes stay self-contained: a bare "Drug class: Psychedelics" must
- *  not read as a depicted-effect chip once the popover's group heading (which
- *  carries the "named in the title" meaning) is out of sight. */
-const CHIP_LABELS: Record<FilterKey, string> = {
-  ...LABELS,
-  drug: msg("Drug in title"),
-  drugClass: msg("Drug class in title"),
-};
-
-/**
- * Media type is a filter like any other, so it lives here rather than in a
- * dropdown of its own on the control bar. It stays outside
- * `GalleryTaxonomyFilterState` because that state is the *taxonomy* — tags an
- * editor assigns — while media type is a property of the stored file, and the
- * URL has always carried it as `?type=`.
- */
-const MEDIA_OPTIONS: ReadonlyArray<FilterOption> = [
-  { value: "all", label: msg("All media") },
-  { value: "image", label: msg("Images") },
-  { value: "video", label: msg("Videos") },
-  { value: "audio", label: msg("Audio") },
-];
-
-const MEDIA_LABEL = msg("Media");
 
 function mediaValueLabel(type: GalleryTypeFilter): string {
   return MEDIA_OPTIONS.find((option) => option.value === type)?.label ?? type;

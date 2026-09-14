@@ -11,34 +11,27 @@ import { cleanString, cleanStringArray } from "./contentBuilderShared";
 export const MOLECULE_ALT_MESSAGE = msg("{{title}} molecule structure");
 export const MOLECULE_ALT_FALLBACK_MESSAGE = msg("Molecule structure");
 
-export type ChemistryIdentifierKey =
-  | "iupac_name"
-  | "cas_number"
-  | "molecular_formula"
-  | "molecular_weight"
-  | "smiles"
-  | "inchi_key";
+type ChemistryIdentifierKey = | "iupac_name"
+| "cas_number"
+| "molecular_formula"
+| "molecular_weight"
+| "smiles"
+| "inchi_key"
 
-export interface ChemistryIdentifier {
-  key: ChemistryIdentifierKey;
-  label: string;
-  value: string;
-  format: "text" | "formula" | "code";
-}
+interface ChemistryIdentifier { key: ChemistryIdentifierKey;
+label: string;
+value: string;
+format: "text" | "formula" | "code"; }
 
-export interface MoleculePresentation {
-  lookupTitle: string;
-  alt: string;
-  hasLookupTitle: boolean;
-}
+interface MoleculePresentation { lookupTitle: string;
+alt: string;
+hasLookupTitle: boolean; }
 
-export interface ReagentTestingPresentation {
-  staticEntries: [string, string][];
-  lookupName: string;
-  aliases: string[];
-  hasStaticData: boolean;
-  shouldFetchApiData: boolean;
-}
+interface ReagentTestingPresentation { staticEntries: [string, string][];
+lookupName: string;
+aliases: string[];
+hasStaticData: boolean;
+shouldFetchApiData: boolean; }
 
 export interface ArticleChemistryPresentation {
   identifiers: ChemistryIdentifier[];

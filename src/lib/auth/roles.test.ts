@@ -18,6 +18,7 @@ describe("role policy", () => {
     ["anonymous", undefined, null],
     ["viewer", "viewer", "viewer"],
     ["contributor", "contributor", "contributor"],
+    ["translator", "translator", "translator"],
     ["editor", "editor", "editor"],
     ["admin", "admin", "admin"],
     ["invalid token role", "owner", null],
@@ -32,14 +33,16 @@ describe("role policy", () => {
   });
 
   it.each([
-    // role, meets contributor, meets editor, meets admin
-    [null, false, false, false],
-    ["viewer", false, false, false],
-    ["contributor", true, false, false],
-    ["editor", true, true, false],
-    ["admin", true, true, true],
-  ] as const)("ranks %s against each floor", (role, contributor, editor, admin) => {
+    // role, meets contributor, meets translator, meets editor, meets admin
+    [null, false, false, false, false],
+    ["viewer", false, false, false, false],
+    ["contributor", true, false, false, false],
+    ["translator", true, true, false, false],
+    ["editor", true, true, true, false],
+    ["admin", true, true, true, true],
+  ] as const)("ranks %s against each floor", (role, contributor, translator, editor, admin) => {
     expect(roleMeetsFloor(role, "contributor")).toBe(contributor);
+    expect(roleMeetsFloor(role, "translator")).toBe(translator);
     expect(roleMeetsFloor(role, "editor")).toBe(editor);
     expect(roleMeetsFloor(role, "admin")).toBe(admin);
     expect(canAccessDev(role)).toBe(contributor);
@@ -52,6 +55,8 @@ describe("role policy", () => {
     expect(getRoleFloorLockReason("editor", "contributor")).toBeNull();
     expect(getRoleFloorLockReason("editor", "admin")).toBe("Admin role required");
     expect(getRoleFloorLockReason("contributor", "editor")).toBe("Editor role required");
+    expect(getRoleFloorLockReason("contributor", "translator")).toBe("Translator role required");
+    expect(getRoleFloorLockReason("translator", "translator")).toBeNull();
     expect(getRoleFloorLockReason("viewer", "contributor")).toBe("Contributor role required");
     expect(getRoleFloorLockReason(null, "contributor")).toBe("Sign in required");
   });
@@ -65,17 +70,19 @@ describe("role policy", () => {
     ["/dev", "", "bad-role@example.com", "owner", { type: "unauthorized", role: null, from: "/dev" }],
     ["/dev", "", "contributor@example.com", "contributor", { type: "allow", access: "contributor" }],
     ["/dev/contributors", "", "contributor@example.com", "contributor", { type: "allow", access: "contributor" }],
+    ["/dev", "", "translator@example.com", "translator", { type: "allow", access: "translator" }],
     ["/dev", "", "editor@example.com", "editor", { type: "allow", access: "editor" }],
     ["/dev", "", "admin@example.com", "admin", { type: "allow", access: "admin" }],
   ] as const)("decides the shell route for %s", (pathname, search, email, role, expected) => {
     expect(getDevRouteDecision({ pathname, search, email, role })).toEqual(expected);
   });
 
-  const roleMatrix: readonly (AppRole | null)[] = ["admin", "editor", "contributor", "viewer", null];
+  const roleMatrix: readonly (AppRole | null)[] = ["admin", "editor", "translator", "contributor", "viewer", null];
 
   it.each([
     ["an admin tab", findDevTab("banners").role],
     ["an editor tab", findDevTab("articles").role],
+    ["a translator tab", findDevTab("glossary").role],
     ["a contributor tab", findDevTab("contributors").role],
   ] as const)("lets any member role load %s so the shell can disable it", (_label, tabRole) => {
     expect(DEV_TAB_REGISTRY.map((tab) => tab.role)).toContain(tabRole);

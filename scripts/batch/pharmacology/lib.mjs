@@ -10,38 +10,6 @@ export const INPUT_BOUNDS = {
   limit: { min: 1, max: 10000 },
 };
 
-const GREEK_TO_ASCII = {
-  "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "ε": "epsilon",
-  "ζ": "zeta", "η": "eta", "θ": "theta", "ι": "iota", "κ": "kappa",
-  "λ": "lambda", "μ": "mu", "ν": "nu", "ξ": "xi", "ο": "omicron",
-  "π": "pi", "ρ": "rho", "σ": "sigma", "τ": "tau", "υ": "upsilon",
-  "φ": "phi", "χ": "chi", "ψ": "psi", "ω": "omega",
-};
-
-export function sanitizeFieldName(name) {
-  let result = name;
-  for (const [greek, ascii] of Object.entries(GREEK_TO_ASCII)) {
-    result = result.replace(new RegExp(greek, "g"), ascii);
-  }
-  let asciiResult = "";
-  for (let index = 0; index < result.length; index++) {
-    const character = result[index];
-    asciiResult += character.charCodeAt(0) <= 0x7f ? character : "_";
-  }
-  return asciiResult;
-}
-
-export function sanitizeObjectKeys(obj) {
-  if (obj === null || obj === undefined) return obj;
-  if (Array.isArray(obj)) return obj.map(sanitizeObjectKeys);
-  if (typeof obj !== "object") return obj;
-
-  const result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    result[sanitizeFieldName(key)] = sanitizeObjectKeys(value);
-  }
-  return result;
-}
 
 export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
   return parseBatchCliArgs(args, {
@@ -81,12 +49,10 @@ export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
   });
 }
 
-export function titleToSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+function titleToSlug(title) { return title
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, ""); }
 
 export function getArticleSlug(article) {
   return article.slug || titleToSlug(article.title);
@@ -110,9 +76,7 @@ export function countPopulatedPharmacologyFields(article) {
   ].filter(Boolean).length;
 }
 
-export function hasCompletePharmacology(article) {
-  return countPopulatedPharmacologyFields(article) >= COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD;
-}
+function hasCompletePharmacology(article) { return countPopulatedPharmacologyFields(article) >= COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD; }
 
 export function assertNonRegressivePharmacologyReplacement(article, pharmacology) {
   const existingFieldCount = countPopulatedPharmacologyFields(article);

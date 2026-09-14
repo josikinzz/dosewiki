@@ -47,7 +47,7 @@ function useRouteChromeModel() {
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-export function resetDocumentScroll() {
+function resetDocumentScroll() {
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }

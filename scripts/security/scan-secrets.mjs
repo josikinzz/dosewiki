@@ -3,7 +3,21 @@
 import { execFileSync } from "node:child_process";
 import { lstat, readFile, readlink } from "node:fs/promises";
 
+function isRealCredentialCandidate(candidate) {
+  return !/(?:your|example|placeholder|replace|generate|random|dummy|sample|synthetic|not-a-real|x{4,}|\.{3})/i.test(candidate);
+}
+
 const rules = [
+  [
+    "CONVEX_DEPLOY_KEY",
+    /(?:^|[\r\n])\s*(?:export\s+)?CONVEX_DEPLOY_KEY\s*=\s*(?:["']((?:prod|preview|dev):[A-Za-z0-9:_-]{3,}\|[A-Za-z0-9+/_=-]{20,})["']|((?:prod|preview|dev):[A-Za-z0-9:_-]{3,}\|[A-Za-z0-9+/_=-]{20,}))(?:\s|$)/,
+    (match) => isRealCredentialCandidate(match[1] ?? match[2] ?? ""),
+  ],
+  [
+    "CLOUDFLARE_R2_SECRET_ACCESS_KEY",
+    /(?:^|[\r\n])\s*(?:export\s+)?CLOUDFLARE_R2_SECRET_ACCESS_KEY\s*=\s*(?:["']([A-Za-z0-9+/_=-]{32,})["']|([A-Za-z0-9+/_=-]{32,}))(?:\s|$)/,
+    (match) => isRealCredentialCandidate(match[1] ?? match[2] ?? ""),
+  ],
   ["OPENAI_STYLE_API_KEY", /sk[-_](?:live|test|or|proj)[-_][A-Za-z0-9]{20,}/],
   ["GITHUB_CLASSIC_PAT", /gh[pousr]_[A-Za-z0-9]{36,}/],
   ["GITHUB_FINE_GRAINED_PAT", /github_pat_[A-Za-z0-9_]{22,}/],
@@ -23,10 +37,7 @@ const rules = [
   [
     "GENERIC_SECRET_ASSIGNMENT",
     /(?:^|[\r\n])\s*(?:export\s+)?[A-Z0-9_]*(?:PASSWORD|API_KEY|SECRET_KEY|AUTH_TOKEN|ADMIN_KEY|ACCESS_TOKEN)[A-Z0-9_]*\s*=\s*(?:["']([A-Za-z0-9+/_=:.|-]{20,})["']|([A-Za-z0-9+/_=:.|-]{20,}))(?:\s|$)/,
-    (match) => {
-      const candidate = match[1] ?? match[2] ?? "";
-      return !/(?:your|example|placeholder|replace|generate|random|dummy|sample|x{4,}|\.{3})/i.test(candidate);
-    },
+    (match) => isRealCredentialCandidate(match[1] ?? match[2] ?? ""),
   ],
 ];
 

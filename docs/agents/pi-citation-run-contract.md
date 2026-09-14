@@ -9,7 +9,7 @@ This contract replaces the Codex Browser → `ttyd` → Claude Code transport an
 - Require exactly one explicit slug or proposal path. Never infer either from a queue, prior conversation, run directory, or sample.
 - Proposal mode first runs `prepare-local-proposal-run.mjs --proposal <path>` and uses its returned attempt-unique, proposal-bound run. It never runs `fresh-run`.
 - Work only in `/Users/josie/.codex/dosewiki-citation-workbench` unless `DOSEWIKI_CITATION_WORKBENCH` explicitly points to another workbench.
-- The workflow produces only a finalized workbench candidate with outcome `needs_review`. It does not edit the DoseWiki app, update Convex, deploy, promote the candidate, or select the next queue item.
+- The workflow produces only a finalized workbench candidate with outcome `needs_review`. It does not edit the DoseWiki app, write the active data backend, deploy, promote the candidate, or select the next queue item.
 - A missing/stale task packet is a stop condition. The approved main-repo export/fresh-run path owns packet freshness.
 
 ## Inputs and artifacts
@@ -83,7 +83,7 @@ A task exported with `--second-pass-plan` additionally carries `researchPass: "s
 - In a scoped run (`selectedSections` present), launch workers only for selected sections. Non-selected sections already hold terminal skip statuses from `init`; never assign a worker to one, and never record `checked` for one, `check-section` rejects it. A selected section whose research finds no defensible evidence is recorded `missing_preserve_original` (and becomes `needs_source` in the subsection rollout tracker), never force-cited.
 - Launch the named project agent `citation-section-worker`; do not create an ad-hoc role prompt.
 - Give each worker the selected slug, original `article.citableSections.<section>`, source packet, discovery restrictions, the live-web permission value, and one output path: `runs/<run-id>/sections/<section>.json`.
-- No worker may modify another section, `article-wide.json`, queue/tracker state, the app repo, or Convex.
+- No worker may modify another section, `article-wide.json`, queue/tracker state, the app repo, or the active data backend.
 - The worker must write its assigned artifact, compute the final SHA-256, and finish by returning only the schema-validated structured handoff. The coordinator verifies `section`, `outputPath`, and `artifactSha256` against the assignment and file. A valid handoff establishes that the worker finished; it does not establish that the citation artifact is acceptable.
 - For every successful nonempty section output, run the helper command below. It runs the current workbench `check:worker-output` command and records the checker log plus an artifact digest:
 
@@ -181,7 +181,7 @@ For a report-only or article-wide correction, add `--reuse-sections`. The succes
 
 A model may research, draft marker-only output, record a gap, and run deterministic checks. A human/editor decides source adequacy for consequential claims, warning acceptability, retry/queue priority, and every production promotion.
 
-After an apply-bound live-task workflow, an editor may separately use the app-repo apply dry-run. Local-proposal drafts have no dry-run, apply, or promotion capability. No OMP-coordinated citation worker receives Convex production authority.
+After an apply-bound live-task workflow, an editor may separately use the app-repo Postgres apply dry-run. Local-proposal drafts have no dry-run, apply, or promotion capability. No OMP-coordinated citation worker receives production authority.
 
 ## Failure handling
 

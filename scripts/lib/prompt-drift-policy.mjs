@@ -5,8 +5,7 @@ import {
   getPromptDescriptorByKey,
 } from "./prompt-registry.mjs";
 
-export const GENERATOR_PROMPT_PATH = "src/data/config/generatorPrompt.md";
-export const SECTION_PROMPTS_DIR = "src/data/config/sectionPrompts";
+const SECTION_PROMPTS_DIR = "src/data/config/sectionPrompts"
 
 export const PROMPT_DRIFT_STATUS = Object.freeze({
   IDENTICAL: "identical",
@@ -29,11 +28,9 @@ export function sectionFileToPromptKey(fileName) {
   return descriptor.convexKey;
 }
 
-export function promptKeyToKind(key) {
-  const descriptor = getPromptDescriptorByKey(key);
-  if (descriptor) return descriptor.kind;
-  return "runtime";
-}
+function promptKeyToKind(key) { const descriptor = getPromptDescriptorByKey(key);
+if (descriptor) return descriptor.kind;
+return "runtime"; }
 
 export function collectLocalPromptInventory({
   rootDir = process.cwd(),
@@ -77,53 +74,49 @@ export function collectConvexPromptInventory(records) {
   ]));
 }
 
-export function classifyPromptContentDrift(source, target, policyRules = defaultPromptDriftPolicyRules) {
-  if (source.content === target.content) {
-    return {
-      status: PROMPT_DRIFT_STATUS.IDENTICAL,
-      recommendation: "identical",
-    };
-  }
-
-  for (const rule of policyRules) {
-    const result = rule(source, target);
-    if (result) return result;
-  }
-
+function classifyPromptContentDrift(source, target, policyRules = defaultPromptDriftPolicyRules) { if (source.content === target.content) {
   return {
-    status: PROMPT_DRIFT_STATUS.CONTENT_DIFFERENT,
-    recommendation: "review-required",
-    policy: null,
+    status: PROMPT_DRIFT_STATUS.IDENTICAL,
+    recommendation: "identical",
   };
 }
 
-export function metaCommentaryRuleDifference(source, target) {
-  const sourceHasRule = source.content.includes(META_COMMENTARY_RULE);
-  const targetHasRule = target.content.includes(META_COMMENTARY_RULE);
-  const charDiff = source.content.length - target.content.length;
-
-  if (sourceHasRule && !targetHasRule && charDiff > 0 && charDiff < 200) {
-    return {
-      status: PROMPT_DRIFT_STATUS.SAFE_POLICY_DIFFERENCE,
-      recommendation: "safe-to-sync",
-      policy: "meta-commentary-rule-added-locally",
-    };
-  }
-
-  if (!sourceHasRule && targetHasRule) {
-    return {
-      status: PROMPT_DRIFT_STATUS.REVIEW_REQUIRED,
-      recommendation: "review-required",
-      policy: "meta-commentary-rule-missing-locally",
-    };
-  }
-
-  return null;
+for (const rule of policyRules) {
+  const result = rule(source, target);
+  if (result) return result;
 }
 
-export const defaultPromptDriftPolicyRules = [
+return {
+  status: PROMPT_DRIFT_STATUS.CONTENT_DIFFERENT,
+  recommendation: "review-required",
+  policy: null,
+}; }
+
+function metaCommentaryRuleDifference(source, target) { const sourceHasRule = source.content.includes(META_COMMENTARY_RULE);
+const targetHasRule = target.content.includes(META_COMMENTARY_RULE);
+const charDiff = source.content.length - target.content.length;
+
+if (sourceHasRule && !targetHasRule && charDiff > 0 && charDiff < 200) {
+  return {
+    status: PROMPT_DRIFT_STATUS.SAFE_POLICY_DIFFERENCE,
+    recommendation: "safe-to-sync",
+    policy: "meta-commentary-rule-added-locally",
+  };
+}
+
+if (!sourceHasRule && targetHasRule) {
+  return {
+    status: PROMPT_DRIFT_STATUS.REVIEW_REQUIRED,
+    recommendation: "review-required",
+    policy: "meta-commentary-rule-missing-locally",
+  };
+}
+
+return null; }
+
+const defaultPromptDriftPolicyRules = [
   metaCommentaryRuleDifference,
-];
+]
 
 export function comparePromptInventories(sourcePrompts, targetPrompts, {
   targetFilter = (prompt) => prompt.kind !== "runtime",

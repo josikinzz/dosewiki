@@ -9,10 +9,12 @@
  * reviewer approves it the corpus is held to it.
  *
  * Terms come from the vocabularies the site already publishes: every public
- * effect name, every effect category, every psychoactive and chemical class,
- * the frequency scale, the closed enum labels a badge or table row shows, and
- * the harm-reduction register. A term that already has a row, at any status,
- * is never redrafted: the reviewer's work outlives every rerun.
+ * effect name, every effect category and subcategory, every psychoactive and
+ * chemical class and its aliases, the frequency scale, the closed enum labels
+ * a badge or table row shows, the harm-reduction register, the replication
+ * surface, the site and index names, article section headings, routes of
+ * administration and reagent names. A term that already has a row, at any
+ * status, is never redrafted: the reviewer's work outlives every rerun.
  *
  * Shared by `scripts/translation/build-glossary.mjs` and the Glossary tab's
  * "Draft missing terms" action, so the two cannot drift.
@@ -26,13 +28,21 @@ import { isBlocking, parseModelJson, validateSegment } from "../../scripts/trans
 import { EFFECT_CATEGORY_DEFINITIONS } from "../../src/data/effectCategoryDefinitions";
 import chemicalIndexManual from "../../src/data/indexes/chemicalIndexManual.json";
 import psychoactiveIndexManual from "../../src/data/indexes/psychoactiveIndexManual.json";
+import { SUBCATEGORY_LABELS } from "../../src/data/subjectiveEffectSubcategories";
 import { DOSE_TIERS, DURATION_STAGES } from "../../src/features/article/components/sections/dosageDurationLabels";
 import {
   CARCINOGENICITY_LEVEL_CONFIG,
   EVIDENCE_LEVEL_CONFIG,
   RISK_LEVEL_CONFIG,
 } from "../../src/features/article/components/sections/harm-potential/harmPotentialLabels";
+import { INTERACTION_TIERS } from "../../src/features/article/components/sections/interactionTierLabels";
+import { ROUTE_VOCABULARY } from "../../src/features/article/components/sections/routeLabels";
+import { EFFECT_ARTICLE_SECTION_TITLES } from "../../src/features/effects/articleSectionModel";
+import { FLAT_CATEGORIES, PARENT_CATEGORIES, TABS } from "../../src/features/effects/pages/effectsIndexConfig";
+import { REPLICATION_VOCABULARY } from "../../src/features/replications/replicationVocabulary";
+import { REAGENT_LABELS } from "../../src/lib/reagentTesting";
 import { CANONICAL_LEGAL_STATUSES, CANONICAL_STATUS_LABELS } from "../../src/schema/substance/legalStatuses";
+import { getCatalogSchemaSections, getSubstanceSectionManifestEntries } from "../../src/schema/substance/sectionCatalog";
 import type { PublicDataReadAdapter } from "../convex/publicData.reads";
 import { readGlossaryRows, upsertGlossaryRows, type GlossaryDraft } from "./glossary";
 
@@ -64,11 +74,27 @@ const REGISTER_TERMS = [
 ];
 
 /**
- * The closed sets. A legal status, a dose tier, a duration stage, a harm level
- * and an evidence level each have exactly one right rendering, and each one
- * appears both as a registry label and inside substance prose. Left unfrozen
- * they drift between the two: the layout registry saying one thing and the
- * article saying another about the same badge.
+ * The names the site and its lineage go by. A rendering equal to the term is
+ * how a reviewer says "keep as-is": the drafter asks for a rendering like any
+ * other term, and an approved row whose target is its own term pins the name
+ * in Latin script across every segment that mentions it.
+ */
+const SITE_NAMES = [
+  "dose.wiki",
+  "Effect Index",
+  "Subjective Effect Index",
+  "SEI",
+  "PsychonautWiki",
+  "Disregard Everything I Say",
+  "TripSit",
+];
+
+/**
+ * The closed sets. A legal status, a dose tier, a duration stage, a harm level,
+ * an evidence level and an interaction tier each have exactly one right
+ * rendering, and each one appears both as a registry label and inside
+ * substance prose. Left unfrozen they drift between the two: the layout
+ * registry saying one thing and the article saying another about the same badge.
  */
 const ENUM_LABELS: Record<string, readonly string[]> = {
   "legal-status": CANONICAL_LEGAL_STATUSES.map((value) => CANONICAL_STATUS_LABELS[value]),
@@ -77,11 +103,19 @@ const ENUM_LABELS: Record<string, readonly string[]> = {
   "risk-level": Object.values(RISK_LEVEL_CONFIG).map(({ label }) => label),
   "carcinogenicity-level": Object.values(CARCINOGENICITY_LEVEL_CONFIG).map(({ label }) => label),
   "evidence-level": Object.values(EVIDENCE_LEVEL_CONFIG).map(({ label }) => label),
+  "interaction-tier": INTERACTION_TIERS.map(({ label }) => label),
 };
 
 export type GlossaryTerm = { term: string; kind: string };
 
-/** Every term the site publishes, deduped case-insensitively (first kind wins), sorted. */
+/**
+ * Every term the site publishes, deduped case-insensitively (first kind wins), sorted.
+ *
+ * Insertion order is kind precedence: a term two groups claim keeps the kind
+ * of the earlier one ("Common" is a frequency before it is an index group,
+ * "Psychedelic" a register word before a class). New groups go after the
+ * existing ones so no historical row changes kind.
+ */
 export async function collectGlossaryTerms(reads: PublicDataReadAdapter): Promise<GlossaryTerm[]> {
   const terms = new Map<string, GlossaryTerm>();
   const add = (term: unknown, kind: string) => {
@@ -97,6 +131,26 @@ export async function collectGlossaryTerms(reads: PublicDataReadAdapter): Promis
   for (const term of FREQUENCY_TERMS) add(term, "frequency");
   for (const [group, labels] of Object.entries(ENUM_LABELS)) for (const label of labels) add(label, `enum:${group}`);
   for (const chemicalClass of chemicalIndexManual.classes) add(chemicalClass.label, "chemical-class");
+  for (const term of REPLICATION_VOCABULARY) add(term, "replication");
+  for (const term of SITE_NAMES) add(term, "site-name");
+  for (const tab of TABS) add(tab.label, "index-name");
+  for (const category of psychoactiveIndexManual.categories) {
+    for (const section of category.sections) add(section.label, "index-name");
+  }
+  for (const category of PARENT_CATEGORIES) {
+    add(category.displayTitle, "effect-subcategory");
+    for (const subcategory of category.subcategories) add(subcategory.title, "effect-subcategory");
+  }
+  for (const category of FLAT_CATEGORIES) add(category.title, "effect-subcategory");
+  for (const label of SUBCATEGORY_LABELS) add(label, "effect-subcategory");
+  for (const entry of getSubstanceSectionManifestEntries()) add(entry.label, "section-heading");
+  for (const section of getCatalogSchemaSections()) add(section.label, "section-heading");
+  for (const title of Object.values(EFFECT_ARTICLE_SECTION_TITLES)) add(title, "section-heading");
+  for (const term of ROUTE_VOCABULARY) add(term, "route");
+  for (const term of REAGENT_LABELS) add(term, "reagent-name");
+  for (const chemicalClass of chemicalIndexManual.classes) {
+    for (const alias of chemicalClass.aliases) add(alias, "chemical-class-alias");
+  }
 
   return [...terms.values()].sort((a, b) => a.term.localeCompare(b.term));
 }
@@ -105,7 +159,7 @@ function systemPromptFor(locale: TranslationLocale): string {
   const script = locale.scriptGate === "simplified" ? "\n2. Simplified characters only. Never a Traditional form." : "";
   return `You are compiling a ${locale.label} terminology list for dose.wiki, a harm-reduction encyclopedia about psychoactive substances.
 
-Each input is a term as it appears on the site: an effect name, an effect category, a drug class, a frequency label, or a harm-reduction word. Give the ${locale.label} term a reader in this field would use.
+Each input is a term as it appears on the site: an effect name, category or subcategory, a drug class or one of its aliases, a frequency label, a badge label, a harm-reduction word, a replication or gallery term, a site or index name, an article section heading, a route of administration, or a reagent name. Give the ${locale.label} term a reader in this field would use.
 
 Rules:
 1. Return the term only. No explanation, no parenthetical gloss, no English echo.${script}

@@ -92,7 +92,7 @@ export const bulkImportProfileValidator = v.object({
   updatedBy: v.optional(v.string()),
 });
 
-export type ContributorRole = "admin" | "editor" | "contributor" | "viewer" | undefined;
+export type ContributorRole = "admin" | "editor" | "translator" | "contributor" | "viewer" | undefined;
 
 export type ProfileLink = {
   label: string;
@@ -332,7 +332,7 @@ export function buildStoredProfile(
   input: StoredProfileDraftInput,
   existing: StoredProfile | null,
   actorEmail: string,
-  actorRole: ContributorRole,
+  _actorRole: ContributorRole,
 ): Omit<StoredProfile, "createdAt"> {
   const key = resolveOwnedProfileKey(input.key, actorEmail);
   const normalizedActorEmail = normalizeEmail(actorEmail);

@@ -1,10 +1,15 @@
 # html-docs
 
-Unlisted standalone HTML documents (visual explainers, one-off reports), served raw at
-`/html-docs/<name>` on the admin host — no app shell, no header, `noindex`, 404 on
-Effect Index, unreachable on the dose.wiki construction hosts.
+This directory is an editor-only local document source for self-contained HTML
+explainers. Files may be read by the protected `/html-docs/<name>` route using a
+lowercase `[a-z0-9._-]` filename. The route name is a compatibility contract and
+does not make every file here public.
 
-To publish one: drop a **fully self-contained** `.html` file here (lowercase
-`[a-z0-9._-]` name) and deploy. The public-document CSP blocks external font and script
-CDNs, so embed fonts as `data:` URIs and avoid CDN libraries
-(`embed-fonts.py` from the visual-explainer skill handles fonts).
+Do not treat `noindex`, an unlisted URL, host naming, or construction-host
+routing as access control. A document must contain no secrets or private history,
+must be intentionally approved for its audience, and must rely on the route's
+editor authorization. Keep each HTML file self-contained: embed fonts as `data:`
+URIs and avoid external script or font CDNs.
+
+This describes the local code contract only. It does not claim that the
+authorization behavior has been deployed or verified on any production host.

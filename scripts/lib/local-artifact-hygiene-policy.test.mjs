@@ -51,8 +51,8 @@ afterEach(async () => {
 describe("local artifact hygiene policy", () => {
   it("classifies approved cleanup targets without broadening unknown paths", () => {
     expect(classifyLocalArtifactPath(".next")).toMatchObject({
-      classification: "generated-output",
-      cleanupBehavior: "delete-recursively-when-present",
+      classification: "generated-output-boundary",
+      cleanupBehavior: "manual-review-only",
     });
     expect(classifyLocalArtifactPath(".codex-dev.pid")).toMatchObject({
       classification: "local-process-file",
@@ -98,6 +98,8 @@ describe("local artifact hygiene policy", () => {
     expect(isProtectedLocalArtifactPath(".git")).toBe(true);
     expect(isProtectedLocalArtifactPath(".git/hooks")).toBe(true);
     expect(isProtectedLocalArtifactPath("nested/node_modules/pkg")).toBe(true);
+    expect(isProtectedLocalArtifactPath(".next/cache/webpack")).toBe(true);
+    expect(isProtectedLocalArtifactPath("tmp/recovery/session.json")).toBe(true);
     expect(isProtectedLocalArtifactPath("src/data")).toBe(false);
   });
 
@@ -124,7 +126,7 @@ describe("local artifact hygiene policy", () => {
     ]);
   });
 
-  it("reports approved artifacts in check mode without deleting them", async () => {
+  it("reports only automatically approved artifacts in check mode without deleting them", async () => {
     const root = await makeTmpRepo();
     await mkdir(path.join(root, ".next"), { recursive: true });
     await touch(path.join(root, ".codex-dev.log"));
@@ -132,15 +134,20 @@ describe("local artifact hygiene policy", () => {
 
     runHygiene({ rootDir: root, logger, validateLineage: false });
 
-    expect(lines.join("\n")).toContain("2 approved local artifact path(s) found");
+    expect(lines.join("\n")).toContain("1 approved local artifact path(s) found");
+    expect(lines.join("\n")).toContain(".codex-dev.log");
+    expect(lines.join("\n")).not.toContain(".next (");
     expect(lines.join("\n")).toContain("Run `npm run hygiene:clean`");
     expect(existsSync(path.join(root, ".next"))).toBe(true);
     expect(existsSync(path.join(root, ".codex-dev.log"))).toBe(true);
   });
 
-  it("removes only approved artifacts in clean mode", async () => {
+  it("removes approved artifacts while preserving the entire .next and tmp roots", async () => {
     const root = await makeTmpRepo();
-    await mkdir(path.join(root, ".next"), { recursive: true });
+    await touch(path.join(root, ".next", "cache", "webpack", "cache.bin"));
+    await touch(path.join(root, ".next", "server", "recovery.json"));
+    await touch(path.join(root, "tmp", "housecleaning", "recovery.json"));
+    await touch(path.join(root, ".generated", "disposable.txt"));
     await touch(path.join(root, ".DS_Store"));
     await touch(path.join(root, ".env.local"));
     await touch(path.join(root, "archive", "keep.md"));
@@ -148,7 +155,10 @@ describe("local artifact hygiene policy", () => {
 
     runHygiene({ rootDir: root, shouldClean: true, logger: captureLogger().logger, validateLineage: false });
 
-    expect(existsSync(path.join(root, ".next"))).toBe(false);
+    expect(existsSync(path.join(root, ".next", "cache", "webpack", "cache.bin"))).toBe(true);
+    expect(existsSync(path.join(root, ".next", "server", "recovery.json"))).toBe(true);
+    expect(existsSync(path.join(root, "tmp", "housecleaning", "recovery.json"))).toBe(true);
+    expect(existsSync(path.join(root, ".generated"))).toBe(false);
     expect(existsSync(path.join(root, ".DS_Store"))).toBe(false);
     expect(existsSync(path.join(root, "api", "_utils"))).toBe(false);
     expect(readdirSync(path.join(root, "api"))).toEqual([]);

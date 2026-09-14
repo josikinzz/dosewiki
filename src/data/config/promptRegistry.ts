@@ -5,22 +5,17 @@ import {
   type CatalogSectionPromptKey,
 } from "@/schema/substance/sectionCatalog";
 
-export type PromptKind =
-  | "generator"
-  | "section"
-  | "formal_citations_agent"
-  | "formal_citations_section";
-export type PromptSourceMaterial = "none" | "extracted";
+
+type PromptSourceMaterial = "none" | "extracted"
 
 export type SectionKey = "base" | CatalogSectionPromptKey;
 
-export type FormalCitationSectionKey =
-  | "summary"
-  | "pharmacology"
-  | "harm_potential"
-  | "legality"
-  | "history_culture"
-  | "tolerance";
+type FormalCitationSectionKey = | "summary"
+| "pharmacology"
+| "harm_potential"
+| "legality"
+| "history_culture"
+| "tolerance"
 
 export type PromptDescriptor =
   | {
@@ -135,8 +130,4 @@ export function isKnownPromptKey(key: string): boolean {
   return getPromptDescriptorByKey(key) !== undefined;
 }
 
-export function assertKnownPromptKey(key: string): void {
-  if (!isKnownPromptKey(key)) {
-    throw new Error(`Unknown prompt key: ${key}`);
-  }
-}
+

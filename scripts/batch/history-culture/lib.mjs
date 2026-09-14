@@ -1,6 +1,6 @@
 import yaml from "yaml";
 
-export function titleToSlug(title) {
+function titleToSlug(title) {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")

@@ -12,7 +12,7 @@ import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { loadSubstanceRoute } from "@server/next/routeLoaders.substances";
 import { getStaticSubstanceParams } from "@server/next/staticParams";
 import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { MachineTranslationNotice } from "./MachineTranslationNotice";
 

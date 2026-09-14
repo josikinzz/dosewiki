@@ -218,12 +218,12 @@ export function seedExampleSubstance() {
   });
 }
 
-export const SAVED_EXAMPLE_OVERRIDE = {
+const SAVED_EXAMPLE_OVERRIDE = {
   slug: "example",
   molblock: "saved molblock",
   svg: "<svg />",
   updatedAt: "2026-07-12T00:00:00.000Z",
-};
+}
 
 /** GET /api/dev/molecule-override answers with `override` (null = no saved depiction). */
 export function stubOverrideFetch(override: Record<string, unknown> | null = SAVED_EXAMPLE_OVERRIDE) {

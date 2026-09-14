@@ -14,7 +14,7 @@
 import { NextResponse } from "next/server";
 import { api } from "../../../../../../convex/_generated/api";
 import type { PublicationTarget } from "@server/next/publicationWire";
-import { publishPublicCache } from "@server/next/publishPublicCache";
+import { applyPublicCacheLocally } from "@server/next/publishPublicCache";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import {
@@ -92,7 +92,7 @@ export const POST = protectedRouteOperation<BannerDisplayBody, number>({
 
     const targets: PublicationTarget[] = [{ kind: "banners" }];
     for (const slug of touched) targets.push({ kind: "article", slug });
-    await publishPublicCache({ targets, source: "manual" });
+    applyPublicCacheLocally({ targets, source: "manual" });
 
     return NextResponse.json({ ok: true, iconSize: result.iconSize });
   },

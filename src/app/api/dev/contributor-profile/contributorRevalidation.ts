@@ -14,6 +14,7 @@
  * identities to the public deployments.
  */
 import { revalidatePath } from "next/cache";
+import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
 import {
   isPublicationTarget,
   type PublicationTarget,
@@ -22,6 +23,7 @@ import { publishPublicCache } from "@server/next/publishPublicCache";
 import type { PublicationReceipt } from "@server/next/publicationDispatch";
 import { getPublicRoutePath } from "@server/next/publicSite";
 import { normalizeContributorProfileKey } from "@/utils/publicRouteIdentity";
+import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 
 export type ContributorRevalidationScope = "profile" | "ordering" | "attribution";
 
@@ -42,6 +44,7 @@ export async function revalidateContributorSurfaces({
 }): Promise<PublicationReceipt[]> {
   const targets: PublicationTarget[] = [];
   let unnamedKey = false;
+  const profileJobSlugs: string[] = [];
 
   // The contributor identity carries the profile page and the contributor's
   // Artist Page route segment (T-4: the profile's one public surface when they
@@ -51,6 +54,7 @@ export async function revalidateContributorSurfaces({
     if (!normalized) {
       continue;
     }
+    profileJobSlugs.push(`profile/${normalized}`);
     const target: PublicationTarget = { kind: "contributor", slug: normalized };
     if (isPublicationTarget(target)) {
       targets.push(target);
@@ -82,6 +86,17 @@ export async function revalidateContributorSurfaces({
     // The About page renders founder profiles inline, so a display name, role
     // or avatar change is visible there too.
     targets.push({ kind: "about" });
+  }
+
+  if ((scope === "profile" || scope === "attribution") && profileJobSlugs.length > 0) {
+    try {
+      await enqueueTranslationJobs(LIVE_LOCALE_CODES, profileJobSlugs);
+    } catch (error) {
+      console.warn("[revalidateContributorSurfaces] translation enqueue failed", {
+        slugs: profileJobSlugs,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   return publishPublicCache({ targets, source: "manual" });

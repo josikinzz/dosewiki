@@ -1,0 +1,1 @@
+ALTER TABLE "translationGlossary" ADD COLUMN "retranslated_at" bigint;

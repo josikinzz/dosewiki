@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import type { ArticleRecentChange } from "@/data/changelog/articleRecentChanges";
 import { publicHref } from "@/utils/publicHref";
+import { t } from "@/i18n/server";
 
 interface ChangesPageProps {
   changes: ArticleRecentChange[];
@@ -25,22 +26,22 @@ export function ChangesPage({ changes, article }: ChangesPageProps) {
     <PublicContentShell focusTarget width="standard">
       <PageHeader
         icon="lucide:git-commit-horizontal"
-        title={article ? `Changes to ${article.title}` : "Recent changes"}
+        title={article ? t("Changes to {{name}}", { name: article.title }) : t("Recent changes")}
         description={
           article ? (
             <>
-              Every edit a person has made to the{" "}
+              {t("Every edit a person has made to the")}{" "}
               <SmartLink href={publicHref.substance(article.slug)} className={linkClassName}>
                 {article.title}
               </SmartLink>{" "}
-              article, newest first.{" "}
+              {t("article, newest first.")}{" "}
               <SmartLink href={publicHref.changes()} className={linkClassName}>
-                See changes across the whole site
+                {t("See changes across the whole site")}
               </SmartLink>
               .
             </>
           ) : (
-            "Every edit a person has made to a dose.wiki article, newest first. Automated pipelines never write here, so each row is someone reading a source and changing the text."
+            t("Every edit a person has made to a dose.wiki article, newest first. Automated pipelines never write here, so each row is someone reading a source and changing the text.")
           )
         }
       />
@@ -50,11 +51,11 @@ export function ChangesPage({ changes, article }: ChangesPageProps) {
           tone="neutral"
           align="center"
           compact
-          title={article ? "No human edits yet" : "No edits recorded yet"}
+          title={article ? t("No human edits yet") : t("No edits recorded yet")}
           description={
             article
-              ? "This article has only been touched by the automated synthesis pipeline so far."
-              : "Nothing has been edited by hand yet."
+              ? t("This article has only been touched by the automated synthesis pipeline so far.")
+              : t("Nothing has been edited by hand yet.")
           }
         />
       ) : (

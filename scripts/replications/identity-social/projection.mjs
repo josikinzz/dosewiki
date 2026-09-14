@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-export const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 1
 export const DEFAULT_CAMPAIGN_DIR =
   "/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Identity and Social Pass 2026-08-31";
 
@@ -28,14 +28,12 @@ function required(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-export function stableStringify(value) {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-  return `{${Object.keys(value)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
-    .join(",")}}`;
-}
+function stableStringify(value) { if (value === null || typeof value !== "object") return JSON.stringify(value);
+if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+return `{${Object.keys(value)
+  .sort()
+  .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+  .join(",")}}`; }
 
 export function digest(value) {
   const bytes = Buffer.isBuffer(value) ? value : Buffer.from(typeof value === "string" ? value : stableStringify(value));

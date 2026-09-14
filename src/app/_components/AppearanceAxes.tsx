@@ -11,6 +11,7 @@ import {
 
 import { Icon } from "@/components/common/Icon";
 import { useTheme } from "@/context/ThemeContext";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { BASE_ACCENT_PRO_SEEDS, BASE_ACCENT_SWATCH } from "@/theme/accents";
 import { getDefaultAppearanceColors } from "@/theme/appearanceChroma";
@@ -71,7 +72,7 @@ function hueTrackGradient(swatch: string): string {
  * Exported because the reader panel's reading-type sliders run on the same
  * contract — one drag gesture, mouse input untouched — under different domains.
  */
-export function useDirectTouchRange(max: number, onChange: (value: number) => void) {
+function useDirectTouchRange(max: number, onChange: (value: number) => void) {
   const activePointerRef = useRef<number | null>(null);
 
   const updateFromPointer = (event: ReactPointerEvent<HTMLInputElement>) => {
@@ -125,9 +126,8 @@ export function useDirectTouchRange(max: number, onChange: (value: number) => vo
  * the exact rotation Reset restores for the active style/scheme variant, so
  * the mark moves when the reader switches Fun/Pro or light/dark.
  *
- * Exported because the reader panel renders the same rails verbatim.
  */
-export function HueSlider({
+function HueSlider({
   label,
   swatch,
   degrees,
@@ -143,11 +143,12 @@ export function HueSlider({
   onChange: (degrees: number) => void;
 }) {
   const directTouch = useDirectTouchRange(359, onChange);
+  const t = useT();
   return (
     <div data-appearance-hue="" className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-3 px-1">
         <span className="text-[0.6875rem] font-medium text-dose-text-muted">
-          Hue
+          {t("Hue")}
         </span>
         <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
           {degrees}°
@@ -194,9 +195,8 @@ export function HueSlider({
  * restores for the active style/scheme variant, so the mark moves when the
  * reader switches Fun/Pro or light/dark.
  *
- * Exported because the reader panel renders the same rails verbatim.
  */
-export function ChromaSlider({
+function ChromaSlider({
   label,
   swatch,
   hue,
@@ -217,11 +217,12 @@ export function ChromaSlider({
     onChange(value / 100),
   );
   const percent = Math.round(level * 100);
+  const t = useT();
   return (
     <div data-appearance-chroma="" className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-3 px-1">
         <span className="text-[0.6875rem] font-medium text-dose-text-muted">
-          Saturation
+          {t("Saturation")}
         </span>
         <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-muted">
           {percent}%
@@ -363,17 +364,18 @@ export function ColorAxisSliders({
   onHue: (degrees: number) => void;
   onChroma: (level: number) => void;
 }) {
+  const t = useT();
   return (
     <>
       <HueSlider
-        label={`${name} hue`}
+        label={t("{{name}} hue", { name })}
         swatch={swatch}
         degrees={degrees}
         tick={tickDegrees}
         onChange={onHue}
       />
       <ChromaSlider
-        label={`${name} saturation`}
+        label={t("{{name}} saturation", { name })}
         swatch={swatch}
         hue={degrees}
         tick={tickLevel}

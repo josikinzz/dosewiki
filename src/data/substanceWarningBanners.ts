@@ -148,7 +148,7 @@ export function isWarningBannerTone(value: unknown): value is WarningBannerTone 
  * `src/features/article/components/sections/HeroSection.tsx` so
  * `"Phenethylamine (N-benzylated)"` and `"Phenethylamine"` compare equal.
  */
-export function normalizeClassToken(value: string): string {
+function normalizeClassToken(value: string): string {
   return value
     .replace(/\s*\([^)]*\)/g, "")
     .replace(/\s+/g, " ")

@@ -8,7 +8,7 @@ import {
   getPublicReplicationBySlug,
   type PublicReplicationIdentityAttribution,
 } from "@server/convex/publicData";
-import { getLocalizedEffectNames, getLocalizedPublicReplicationBySlug } from "@server/translation/localizedRecords";
+import { getLocalizedPublicEffectBySlug, getLocalizedPublicReplicationBySlug } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import {
   isPublishableReplication,
@@ -30,7 +30,7 @@ import {
   toRouteMetadata,
 } from "./routeLoaderResults";
 
-export interface ReplicationPageProps {
+interface ReplicationPageProps {
   replication: ReplicationWithUrl;
   effectName: string | null;
   effectSlug: string | null;
@@ -85,7 +85,9 @@ export const loadReplicationRoute = cache(
       ? replication.artist.trim()
       : null;
     const [effect, contributorProfiles, identityAttribution] = await Promise.all([
-      effectSlug ? getPublicEffectBySlug(effectSlug) : Promise.resolve(null),
+      effectSlug
+        ? locale ? getLocalizedPublicEffectBySlug(effectSlug, locale.code) : getPublicEffectBySlug(effectSlug)
+        : Promise.resolve(null),
       legacyCreator ? getPublicContributorProfiles() : Promise.resolve([]),
       getPublicReplicationIdentityAttribution(replication._id),
     ]);
@@ -100,11 +102,7 @@ export const loadReplicationRoute = cache(
       (creator
         ? findContributorProfileByAuthorName(contributorProfiles, creator)
         : null);
-    // The mirror's "Represents" line reads the effect's stored title segment,
-    // so it names the effect exactly as its article heading does.
-    const subject = effect && locale
-      ? (await getLocalizedEffectNames([effect.name], locale.code)).get(effect.name) ?? effect.name
-      : effect?.name ?? null;
+    const subject = effect?.name ?? null;
 
     return {
       kind: "ok",
@@ -130,8 +128,8 @@ export const loadReplicationRoute = cache(
           ? `${replication.title} by ${creator}`
           : replication.title,
         description: subject
-          ? `${replication.title}${creator ? ` by ${creator}` : ""} — a replication of the subjective effect ${subject}.`
-          : `${replication.title}${creator ? ` by ${creator}` : ""} — a subjective effect replication.`,
+          ? `${replication.title}${creator ? ` by ${creator}` : ""} - a replication of the subjective effect ${subject}.`
+          : `${replication.title}${creator ? ` by ${creator}` : ""} - a subjective effect replication.`,
       }),
       canonicalRoute: { family: "replication", params: { slug } },
     };

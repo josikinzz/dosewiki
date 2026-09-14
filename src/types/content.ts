@@ -3,17 +3,13 @@ import type { ArticleChemistryPresentation } from "@/data/builders/articleChemis
 
 export type RouteKey = string;
 
-export interface DoseEntryDetail {
-  label: string;
-  value: string;
-}
+interface DoseEntryDetail { label: string;
+value: string; }
 
-export interface DoseEntry {
-  label: string;
-  value?: string;
-  details?: DoseEntryDetail[];
-  description?: string;
-}
+interface DoseEntry { label: string;
+value?: string;
+details?: DoseEntryDetail[];
+description?: string; }
 
 export interface RouteInfo {
   label: string;
@@ -39,7 +35,7 @@ export interface MoleculeAsset {
   deduplicatedFrom?: string[];
 }
 
-export type NameVariantKind = "substitutive" | "iupac" | "botanical" | "alternative";
+type NameVariantKind = "substitutive" | "iupac" | "botanical" | "alternative"
 
 export interface NameVariant {
   kind: NameVariantKind;
@@ -72,13 +68,11 @@ export interface ToleranceEntry {
   description: string;
 }
 
-export interface InfoSectionItem {
-  label: string;
-  value: string;
-  href?: string;
-  icon?: IconName;
-  chips?: InfoSectionItemChip[];
-}
+interface InfoSectionItem { label: string;
+value: string;
+href?: string;
+icon?: IconName;
+chips?: InfoSectionItemChip[]; }
 
 export interface InfoSection {
   title: string;
@@ -94,10 +88,8 @@ export interface InfoSectionItemChip {
   qualifierSlug?: string;
 }
 
-export interface CitationEntry {
-  label: string;
-  href?: string;
-}
+interface CitationEntry { label: string;
+href?: string; }
 
 export interface SubstanceContent {
   name: string;

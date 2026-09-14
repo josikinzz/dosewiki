@@ -191,6 +191,7 @@ const getPublicReplicationCorpusPage = cache(publicDataCache(async (
   );
 }, ["convex-public-replication-corpus-page-v1"], {
   revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+  awaitRefresh: true,
   tags: [PUBLIC_CONVEX_CACHE_TAGS.all, PUBLIC_CONVEX_CACHE_TAGS.replications],
 }));
 

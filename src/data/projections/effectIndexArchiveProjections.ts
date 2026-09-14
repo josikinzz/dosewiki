@@ -14,12 +14,7 @@
  */
 
 /** The archive row as stored. `payload` is `v.any()` in the schema, hence `unknown`. */
-export type EffectIndexArchiveRecord = {
-  kind: string;
-  key: string;
-  payload: unknown;
-  importedAt: number;
-};
+
 
 /** The public shape a decoded `kind: "post"` archive row projects into. */
 export type PublicEffectIndexPost = {

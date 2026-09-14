@@ -1,12 +1,18 @@
+import { isPostgresTargetExplicit, postgresFingerprintFromUrl } from "../lib/data-client.ts";
+
 export function assertExplicitCitationPromotionTarget(context) {
+  if (context?.backend !== "postgres") {
+    throw new Error("Citation promotion requires DATA_BACKEND=postgres; frozen Convex is not a promotion target.");
+  }
   if (!context?.targetUrl) {
-    throw new Error("Citation promotion requires TARGET_CONVEX_URL; browser/default Convex URL fallbacks are not allowed.");
+    throw new Error("Citation promotion requires --target or TARGET_POSTGRES_URL.");
   }
-  if (context.targetUrlKey !== "TARGET_CONVEX_URL") {
-    throw new Error(`Citation promotion requires TARGET_CONVEX_URL; received ${context.targetUrlKey ?? "no explicit target"}.`);
+  if (!isPostgresTargetExplicit(context.targetUrlKey)) {
+    throw new Error("Citation promotion requires --target or TARGET_POSTGRES_URL; application fallback targets are not allowed.");
   }
-  if (!context.deploymentFingerprint) {
-    throw new Error("Citation promotion target must identify one HTTPS .convex.cloud deployment.");
+  const fingerprint = postgresFingerprintFromUrl(context.targetUrl);
+  if (!fingerprint || fingerprint !== context.deploymentFingerprint) {
+    throw new Error("Citation promotion requires a valid PostgreSQL target with a matching deployment fingerprint.");
   }
   if (!context.expectedDeployment) {
     throw new Error(`Citation promotion dry-runs and writes require --expected-deployment=${context.deploymentFingerprint}.`);

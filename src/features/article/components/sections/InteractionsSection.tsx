@@ -13,6 +13,7 @@ import { CitedText } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 import { msg, useT } from "@/i18n/client";
+import { INTERACTION_TIERS } from "./interactionTierLabels";
 
 const INTERACTIONS_SOURCE = {
   href: "https://combo.tripsit.me/",
@@ -34,9 +35,10 @@ interface InteractionsSectionProps {
   onSelectInteraction?: (substance: string) => void;
 }
 
-const INTERACTION_CATEGORIES: Array<{
-  key: string;
-  label: string;
+type InteractionTierKey = (typeof INTERACTION_TIERS)[number]["key"];
+
+/** How each tier renders; the tier's name itself lives in `interactionTierLabels.ts`. */
+const INTERACTION_TIER_PRESENTATION: Record<InteractionTierKey, {
   icon: IconName;
   borderClass: string;
   bgClass: string;
@@ -44,41 +46,37 @@ const INTERACTION_CATEGORIES: Array<{
   priority: string;
   badgeClass: string;
   definition: string;
-}> = [
-    {
-      key: "dangerous",
-      label: msg("Dangerous"),
-      icon: "lucide:skull",
-      borderClass: "theme-interaction-danger",
-      bgClass: "",
-      iconClass: "text-[color:var(--theme-semantic-danger-badge-text)]",
-      priority: msg("Highest risk"),
-      badgeClass: "theme-interaction-severity-badge-danger",
-      definition: msg("These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death."),
-    },
-    {
-      key: "unsafe",
-      label: msg("Unsafe"),
-      icon: "lucide:hospital",
-      borderClass: "theme-interaction-unsafe",
-      bgClass: "",
-      iconClass: "text-[color:var(--theme-semantic-unsafe-badge-text)]",
-      priority: msg("Avoid"),
-      badgeClass: "theme-interaction-severity-badge-unsafe",
-      definition: msg("There is considerable risk of physical harm when taking these combinations, they should be avoided where possible."),
-    },
-    {
-      key: "caution",
-      label: msg("Caution"),
-      icon: "lucide:triangle-alert",
-      borderClass: "theme-interaction-caution",
-      bgClass: "",
-      iconClass: "text-[color:var(--theme-semantic-caution-badge-text)]",
-      priority: msg("Use caution"),
-      badgeClass: "theme-interaction-severity-badge-caution",
-      definition: msg("These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination."),
-    },
-  ];
+}> = {
+  dangerous: {
+    icon: "lucide:skull",
+    borderClass: "theme-interaction-danger",
+    bgClass: "",
+    iconClass: "text-[color:var(--theme-semantic-danger-badge-text)]",
+    priority: msg("Highest risk"),
+    badgeClass: "theme-interaction-severity-badge-danger",
+    definition: msg("These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death."),
+  },
+  unsafe: {
+    icon: "lucide:hospital",
+    borderClass: "theme-interaction-unsafe",
+    bgClass: "",
+    iconClass: "text-[color:var(--theme-semantic-unsafe-badge-text)]",
+    priority: msg("Avoid"),
+    badgeClass: "theme-interaction-severity-badge-unsafe",
+    definition: msg("There is considerable risk of physical harm when taking these combinations, they should be avoided where possible."),
+  },
+  caution: {
+    icon: "lucide:triangle-alert",
+    borderClass: "theme-interaction-caution",
+    bgClass: "",
+    iconClass: "text-[color:var(--theme-semantic-caution-badge-text)]",
+    priority: msg("Use caution"),
+    badgeClass: "theme-interaction-severity-badge-caution",
+    definition: msg("These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination."),
+  },
+};
+
+const INTERACTION_CATEGORIES = INTERACTION_TIERS.map((tier) => ({ ...tier, ...INTERACTION_TIER_PRESENTATION[tier.key] }));
 
 /** Memoized interaction badge component */
 const InteractionBadge = memo(function InteractionBadge({
@@ -227,7 +225,7 @@ export const InteractionsSection = memo(function InteractionsSection({
   const parsedInteractions = useMemo(() => {
     const parseItems = (items: string[]) =>
       items.map((item) => {
-        const match = item.match(/^(.+?)\s*\((.+)\)$/);
+        const match = item.match(/^(.+?)\s*[(（](.+)[)）]$/);
         return {
           raw: item,
           substance: match ? match[1].trim() : item,

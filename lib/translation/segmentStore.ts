@@ -9,6 +9,7 @@ import "server-only";
 
 import { getDataBackend, getPostgresConvexClient } from "@server/postgres/runtime/backend";
 import { glossaryTermPattern } from "../../scripts/translation/locales.mjs";
+import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 
 export type TranslationSegmentRow = {
   locale: string;
@@ -63,6 +64,7 @@ export async function pendingTranslationHashes(locale: string, hashes: readonly 
 /** Insert or replace segments; a replaced row is a deliberate retranslation. */
 export async function writeTranslations(rows: readonly TranslationSegmentRow[]): Promise<void> {
   if (rows.length === 0) return;
+  assertDataWritesNotFrozen("writeTranslations");
   const now = Date.now();
   await db().sql(
     `INSERT INTO "translationSegments" ("locale", "hash", "source", "target", "model", "prompt_version", "created_at")
@@ -96,6 +98,7 @@ export async function writeTranslationRejections(
   rows: readonly Pick<TranslationRejectionRow, "locale" | "hash" | "source" | "defects">[],
 ): Promise<void> {
   if (rows.length === 0 || getDataBackend() !== "postgres") return;
+  assertDataWritesNotFrozen("writeTranslationRejections");
   const now = Date.now();
   await db().sql(
     `INSERT INTO "translationRejections" ("locale", "hash", "source", "defects", "attempts", "last_tried_at")
@@ -115,6 +118,7 @@ export async function writeTranslationRejections(
 
 export async function clearTranslationRejections(locale: string, hashes: readonly string[]): Promise<void> {
   if (hashes.length === 0 || getDataBackend() !== "postgres") return;
+  assertDataWritesNotFrozen("clearTranslationRejections");
   await db().sql('DELETE FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])', [locale, [...hashes]]);
 }
 
@@ -181,6 +185,7 @@ export async function scopeStaleTranslations(
   hashes: readonly string[],
   promptVersion: string,
 ): Promise<{ marked: number; restamped: number }> {
+  assertDataWritesNotFrozen("scopeStaleTranslations");
   const marked = await db().sql<{ hash: string }>(
     'UPDATE "translationSegments" SET "prompt_version" = $3 WHERE "locale" = $1 AND "hash" = ANY($2::text[]) RETURNING "hash"',
     [locale, [...hashes], STALE_MARK],
@@ -198,6 +203,7 @@ export async function scopeStaleTranslations(
  */
 export async function enqueueTranslationJobs(locales: readonly string[], slugs: readonly string[]): Promise<void> {
   if (locales.length === 0 || slugs.length === 0 || getDataBackend() !== "postgres") return;
+  assertDataWritesNotFrozen("enqueueTranslationJobs");
   const pairs = locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })));
   await db().sql(
     `INSERT INTO "translationJobs" ("locale", "slug", "requested_at", "claimed_at", "completed_at", "attempts", "last_error")
@@ -210,6 +216,7 @@ export async function enqueueTranslationJobs(locales: readonly string[], slugs: 
 
 /** Lease up to `limit` due rows to this worker. Atomic: concurrent crons never take the same row. */
 export async function claimTranslationJobs(limit: number): Promise<TranslationJobRow[]> {
+  assertDataWritesNotFrozen("claimTranslationJobs");
   const now = Date.now();
   return await db().sql<TranslationJobRow>(
     `UPDATE "translationJobs" SET "claimed_at" = $1::bigint, "attempts" = "attempts" + 1
@@ -224,6 +231,7 @@ export async function claimTranslationJobs(limit: number): Promise<TranslationJo
 }
 
 export async function completeTranslationJob(job: TranslationJobRow): Promise<void> {
+  assertDataWritesNotFrozen("completeTranslationJob");
   await db().sql(
     'UPDATE "translationJobs" SET "completed_at" = $3, "claimed_at" = NULL, "last_error" = NULL WHERE "locale" = $1 AND "slug" = $2',
     [job.locale, job.slug, Date.now()],
@@ -232,6 +240,7 @@ export async function completeTranslationJob(job: TranslationJobRow): Promise<vo
 
 /** Release the lease so the next run retries, keeping the error for the operator. */
 export async function failTranslationJob(job: TranslationJobRow, error: string): Promise<void> {
+  assertDataWritesNotFrozen("failTranslationJob");
   await db().sql(
     'UPDATE "translationJobs" SET "claimed_at" = NULL, "last_error" = $3 WHERE "locale" = $1 AND "slug" = $2',
     [job.locale, job.slug, error.slice(0, 2000)],

@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
-import { useForm, useFieldArray, type UseFormReturn, type FieldPath } from "react-hook-form";
+import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { substanceArticleSchema, type SubstanceArticle } from "../schema";
@@ -440,4 +440,4 @@ export function useArticleForm({
 
 // Re-export types for convenience
 export type { SubstanceArticle };
-export type ArticleFieldPath = FieldPath<SubstanceArticle>;
+

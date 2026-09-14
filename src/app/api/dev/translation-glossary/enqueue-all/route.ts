@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/convex/publicData.reads";
-import { glossaryLocales } from "@server/translation/glossary";
+import { glossaryLocales, markRetranslated } from "@server/translation/glossary";
 import { publicRecordSlugs, translationJobSlug, TRANSLATION_RECORD_KINDS, type TranslationRecordKind } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 import { GLOSSARY_BODY_MAX_BYTES, glossaryUnavailable, parseLocale } from "../glossaryRoutes";
@@ -50,6 +50,7 @@ export const POST = protectedRouteOperation<EnqueueAllBody, ParsedEnqueueAll>({
       for (const slug of bare) slugs.push(translationJobSlug(kind, slug));
     }
     await enqueueTranslationJobs([body.locale], slugs);
+    await markRetranslated(body.locale);
     return NextResponse.json({ ok: true, locale: body.locale, jobs, total: slugs.length });
   },
 });

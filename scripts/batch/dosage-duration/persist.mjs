@@ -22,65 +22,59 @@ export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
 }
 
-export function writeProgress(state) {
-  writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8");
+function writeProgress(state) { writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8"); }
+
+async function resolveDosageDurationSourceMaterial(article) { const slug = getArticleSlug(article);
+return resolveQuoteSourceMaterial({
+  slug,
+  loadQuotes: loadDosageDurationQuotes,
+  buildUserMessage: (quotes) => buildUserMessage(article, quotes),
+  missingReason: "No dosage duration quotes file",
+  emptyReason: "No dosage duration quotes file",
+}); }
+
+async function processArticle(apiKey, article, systemPrompt, options = {}) { const slug = getArticleSlug(article);
+
+if (CONFIG.skipArticles.includes(slug)) {
+  return { slug, status: "skipped", reason: "Manually curated - skip", tokens: 0 };
 }
 
-export async function resolveDosageDurationSourceMaterial(article) {
-  const slug = getArticleSlug(article);
-  return resolveQuoteSourceMaterial({
-    slug,
-    loadQuotes: loadDosageDurationQuotes,
-    buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-    missingReason: "No dosage duration quotes file",
-    emptyReason: "No dosage duration quotes file",
-  });
+const sourceMaterial = await resolveDosageDurationSourceMaterial(article);
+if (sourceMaterial.status !== "ready") {
+  return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };
 }
 
-export async function processArticle(apiKey, article, systemPrompt, options = {}) {
-  const slug = getArticleSlug(article);
+const result = await callWithRetry(() =>
+  callOpenRouter(apiKey, systemPrompt, sourceMaterial.userMessage),
+);
 
-  if (CONFIG.skipArticles.includes(slug)) {
-    return { slug, status: "skipped", reason: "Manually curated - skip", tokens: 0 };
-  }
+const generated = parseGeneratedYaml(result.content);
+const merged = mergeGeneratedWithExisting(article, generated.dosage, generated.duration, options.logger);
+assertNoPublicProseArtifactLanguage(
+  { slug, title: article.title, dosage: merged.dosage, duration: merged.duration },
+  { sections: ["dosage", "duration"], sourcePath: `batch:dosage_duration:${slug}` },
+);
+assertNoPublicProseNamedSourceAttribution(
+  { slug, title: article.title, dosage: merged.dosage, duration: merged.duration },
+  { sections: ["dosage", "duration"], sourcePath: `batch:dosage_duration:${slug}` },
+);
 
-  const sourceMaterial = await resolveDosageDurationSourceMaterial(article);
-  if (sourceMaterial.status !== "ready") {
-    return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };
-  }
-
-  const result = await callWithRetry(() =>
-    callOpenRouter(apiKey, systemPrompt, sourceMaterial.userMessage),
-  );
-
-  const generated = parseGeneratedYaml(result.content);
-  const merged = mergeGeneratedWithExisting(article, generated.dosage, generated.duration, options.logger);
-  assertNoPublicProseArtifactLanguage(
-    { slug, title: article.title, dosage: merged.dosage, duration: merged.duration },
-    { sections: ["dosage", "duration"], sourcePath: `batch:dosage_duration:${slug}` },
-  );
-  assertNoPublicProseNamedSourceAttribution(
-    { slug, title: article.title, dosage: merged.dosage, duration: merged.duration },
-    { sections: ["dosage", "duration"], sourcePath: `batch:dosage_duration:${slug}` },
-  );
-
-  if (options.verbose) {
-    console.log(`  Generated dosage/duration for ${slug}:`);
-    console.log(`    dosage routes: ${merged.dosage.routes.length}`);
-    console.log(`    duration routes: ${merged.duration.routes.length}`);
-    console.log(`    plateau_dosing: ${merged.dosage.plateau_dosing ? "yes" : "no"}`);
-  }
-
-  return {
-    slug,
-    status: "success",
-    dosage: merged.dosage,
-    duration: merged.duration,
-    tokens: result.usage.totalTokens,
-    promptTokens: result.usage.promptTokens,
-    completionTokens: result.usage.completionTokens,
-  };
+if (options.verbose) {
+  console.log(`  Generated dosage/duration for ${slug}:`);
+  console.log(`    dosage routes: ${merged.dosage.routes.length}`);
+  console.log(`    duration routes: ${merged.duration.routes.length}`);
+  console.log(`    plateau_dosing: ${merged.dosage.plateau_dosing ? "yes" : "no"}`);
 }
+
+return {
+  slug,
+  status: "success",
+  dosage: merged.dosage,
+  duration: merged.duration,
+  tokens: result.usage.totalTokens,
+  promptTokens: result.usage.promptTokens,
+  completionTokens: result.usage.completionTokens,
+}; }
 
 export async function processAll(apiKey, articles, systemPrompt, options, context) {
   const { concurrency, verbose, dryRun } = options;

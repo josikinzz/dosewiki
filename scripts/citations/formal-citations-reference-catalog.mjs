@@ -2,7 +2,6 @@ import {
   deterministicReferenceId,
   mergeReferenceAuthors,
   mergeReferenceCollections,
-  mergeReferenceMetadata,
   normalizeReferenceMetadataProvenance,
 } from "../../lib/citations/referenceIdentity.mjs";
 
@@ -85,13 +84,7 @@ export function normalizeReferenceForArticle(reference = {}) {
   return normalized;
 }
 
-export function mergeArticleReferences(existingReference, currentReference) {
-  return mergeReferenceMetadata(
-    normalizeReferenceForArticle(existingReference),
-    normalizeReferenceForArticle(currentReference),
-    { allowTrustedScalarOverride: true },
-  );
-}
+
 
 export function canonicalizeArticleReferences(references = []) {
   return mergeReferenceCollections(

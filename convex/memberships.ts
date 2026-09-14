@@ -214,7 +214,7 @@ export const retireViewerMemberships = mutation({
 // Roster management. Every function below takes `actorEmail` so the route's
 // session decides the role; `requireRole` refuses anyone below admin.
 
-const rosterRoleValidator = v.union(v.literal("editor"), v.literal("contributor"));
+const rosterRoleValidator = v.union(v.literal("editor"), v.literal("translator"), v.literal("contributor"));
 
 const rosterRow = v.object({
   email: v.string(),

@@ -7,11 +7,12 @@
 // Exit 2 when a safety-listed file is skipped or has skipped cases,
 // exit 1 when any file fails on every run, otherwise 0 (flaky files are listed but do not fail).
 
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
 
 // Files that must never skip: TEST-003 fixture-backed workflow tests plus the local fixture stub.
 export const SAFETY_LIST = [
@@ -29,7 +30,6 @@ export const SETUP_COST_TAG = "setup:rdkit-or-wasm";
 const SKIP_STATUSES = new Set(["pending", "skipped", "todo"]);
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const workflowRoots = ["scripts", path.join("tools", "local-public-fixture"), path.join("tools", "pi-citation-workflow")];
 
 function relative(file) {
   return path.isAbsolute(file) ? path.relative(repoRoot, file) : file;
@@ -137,26 +137,6 @@ export function computeExitCode(merged, safetyList = SAFETY_LIST) {
   return 0;
 }
 
-function walkTestFiles(dir, files = []) {
-  for (const entry of readdirSync(dir)) {
-    const fullPath = path.join(dir, entry);
-    const relativePath = path.relative(repoRoot, fullPath);
-    if (relativePath.startsWith("scripts/deprecated")) continue;
-    if (statSync(fullPath).isDirectory()) {
-      walkTestFiles(fullPath, files);
-      continue;
-    }
-    if (/\.(?:test|spec)\.(?:mjs|js|ts|tsx)$/.test(entry)) files.push(relativePath);
-  }
-  return files.sort();
-}
-
-function discoverWorkflowFiles() {
-  const all = workflowRoots.flatMap((root) => walkTestFiles(path.join(repoRoot, root)));
-  const nodeTests = all.filter((file) => readFileSync(path.join(repoRoot, file), "utf8").includes("node:test"));
-  const vitestTests = all.filter((file) => !nodeTests.includes(file));
-  return { nodeTests, vitestTests };
-}
 
 function vitestBin() {
   return path.join(repoRoot, "node_modules", ".bin", process.platform === "win32" ? "vitest.cmd" : "vitest");
@@ -340,7 +320,7 @@ function parseArgs(argv) {
 function main() {
   const { runs } = parseArgs(process.argv.slice(2));
   const tmp = mkdtempSync(path.join(tmpdir(), "test-evidence-"));
-  const { nodeTests, vitestTests } = discoverWorkflowFiles();
+  const { nodeTests, vitestTests } = discoverWorkflowTests(repoRoot);
 
   const runRows = [];
   for (let run = 1; run <= runs; run += 1) {

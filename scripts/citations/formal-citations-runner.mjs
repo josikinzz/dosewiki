@@ -17,7 +17,7 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-export function summarizeFormalCitationSectionResult(result, status = "validated") {
+function summarizeFormalCitationSectionResult(result, status = "validated") {
   const statusCounts = (result.claims ?? []).reduce((counts, claim) => {
     counts[claim.status] = (counts[claim.status] ?? 0) + 1;
     return counts;
@@ -39,7 +39,7 @@ export function summarizeFormalCitationSectionResult(result, status = "validated
   };
 }
 
-export function validateFormalCitationSectionResult(result) {
+function validateFormalCitationSectionResult(result) {
   if (!result || typeof result !== "object") {
     throw new Error("Section result was not an object");
   }
@@ -94,7 +94,7 @@ function createResumeOutcome(sectionKey, artifact) {
   };
 }
 
-export function resolveFormalCitationSectionWork({
+function resolveFormalCitationSectionWork({
   sections,
   progress,
   artifacts,

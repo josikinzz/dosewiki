@@ -135,49 +135,126 @@ const enforceEnvPrefix = {
     messages: {
       missingPrefix: 'Environment variable "{{name}}" accessed in client code should use VITE_ prefix for Vite projects.',
       directProcessEnv: 'Avoid direct process.env access in client code. Use import.meta.env instead.',
+      nextPrivateEnv: 'Environment variable "{{name}}" is not available in Next.js client/shared code. Use a static NEXT_PUBLIC_* variable.',
+      nextDynamicEnv: 'Dynamic process.env access is not safe in Next.js client/shared code. Use a static NEXT_PUBLIC_* variable.',
+      nextImportMetaEnv: 'Next.js client/shared code must use static process.env.NEXT_PUBLIC_* access instead of import.meta.env.',
     },
-    schema: [],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          framework: {
+            enum: ['vite', 'next'],
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
   },
   create(context) {
     const filename = getContextFilename(context);
-    const isClientCode =
-      filename.includes('/src/') &&
-      !filename.includes('/api/') &&
-      !filename.includes('.server.') &&
-      !filename.includes('/server/') &&
-      // Next middleware runs on the server (Edge); its process.env reads are inlined at build time.
-      !/\/middleware\.tsx?$/.test(filename);
+    const framework = context.options[0]?.framework ?? 'vite';
+    const normalizedFilename = filename.replaceAll('\\', '/');
+    const isSourceModule = normalizedFilename.includes('/src/');
+    const isTestFixture =
+      /(?:^|\/)__tests__\//.test(normalizedFilename) ||
+      /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(normalizedFilename);
+    const isConventionalServerModule =
+      normalizedFilename.includes('/api/') ||
+      normalizedFilename.includes('/server/') ||
+      normalizedFilename.includes('.server.') ||
+      /\/middleware\.[cm]?[jt]sx?$/.test(normalizedFilename);
+    const isAppRouterHandler = /\/app\/(?:.*\/)?route\.[cm]?[jt]sx?$/.test(normalizedFilename);
+    const isAppRouterPageOrLayout = /\/app\/(?:.*\/)?(?:page|layout)\.[cm]?[jt]sx?$/.test(normalizedFilename);
+    let hasServerOnlyImport = false;
+    let hasUseClientDirective = false;
 
-    if (!isClientCode) return {};
+    if (!isSourceModule || isTestFixture) return {};
+
+    function staticMemberName(node) {
+      if (!node.computed && node.property?.type === 'Identifier') return node.property.name;
+      if (node.computed && node.property?.type === 'Literal' && typeof node.property.value === 'string') {
+        return node.property.value;
+      }
+      return null;
+    }
+
+    function isProcessEnvMember(node) {
+      return (
+        node.object?.type === 'MemberExpression' &&
+        node.object.object?.type === 'Identifier' &&
+        node.object.object.name === 'process' &&
+        staticMemberName(node.object) === 'env'
+      );
+    }
+
+    function isImportMetaEnvMember(node) {
+      return (
+        node.object?.type === 'MemberExpression' &&
+        node.object.object?.type === 'MetaProperty' &&
+        staticMemberName(node.object) === 'env'
+      );
+    }
 
     return {
+      Program(node) {
+        hasUseClientDirective = node.body.some(
+          statement => statement.type === 'ExpressionStatement' && statement.directive === 'use client',
+        );
+        hasServerOnlyImport = node.body.some(
+          statement => statement.type === 'ImportDeclaration' && statement.source.value === 'server-only',
+        );
+      },
+
       MemberExpression(node) {
-        // Check for process.env.SOMETHING access
-        if (
-          node.object.type === 'MemberExpression' &&
-          node.object.object?.name === 'process' &&
-          node.object.property?.name === 'env'
-        ) {
-          context.report({
-            node,
-            messageId: 'directProcessEnv',
-          });
+        const isServerBoundary =
+          isConventionalServerModule ||
+          (framework === 'next' &&
+            (hasServerOnlyImport ||
+              isAppRouterHandler ||
+              (isAppRouterPageOrLayout && !hasUseClientDirective)));
+        if (isServerBoundary) return;
+
+        if (isProcessEnvMember(node)) {
+          if (framework === 'vite') {
+            context.report({
+              node,
+              messageId: 'directProcessEnv',
+            });
+            return;
+          }
+
+          const name = staticMemberName(node);
+          if (name === null) {
+            context.report({ node, messageId: 'nextDynamicEnv' });
+          } else if (name !== 'NODE_ENV' && !name.startsWith('NEXT_PUBLIC_')) {
+            context.report({
+              node,
+              messageId: 'nextPrivateEnv',
+              data: { name },
+            });
+          }
+          return;
         }
 
-        // Check for import.meta.env.SOMETHING without VITE_ prefix
-        if (
-          node.object.type === 'MemberExpression' &&
-          node.object.object?.type === 'MetaProperty' &&
-          node.object.property?.name === 'env' &&
-          node.property?.type === 'Identifier' &&
-          !node.property.name.startsWith('VITE_') &&
-          !['MODE', 'DEV', 'PROD', 'SSR', 'BASE_URL'].includes(node.property.name)
-        ) {
-          context.report({
-            node,
-            messageId: 'missingPrefix',
-            data: { name: node.property.name },
-          });
+        if (isImportMetaEnvMember(node)) {
+          if (framework === 'next') {
+            context.report({ node, messageId: 'nextImportMetaEnv' });
+            return;
+          }
+
+          const name = staticMemberName(node);
+          if (
+            name !== null &&
+            !name.startsWith('VITE_') &&
+            !['MODE', 'DEV', 'PROD', 'SSR', 'BASE_URL'].includes(name)
+          ) {
+            context.report({
+              node,
+              messageId: 'missingPrefix',
+              data: { name },
+            });
+          }
         }
       },
     };
@@ -292,6 +369,17 @@ const requireRateLimit = {
 
     let hasRateLimitImport = false;
     let hasRateLimitCall = false;
+    let hasDelegatedHandlerCall = false;
+    const delegatedHandlerNames = new Set();
+    const httpHandlerNames = new Set([
+      'GET',
+      'HEAD',
+      'POST',
+      'PUT',
+      'DELETE',
+      'PATCH',
+      'OPTIONS',
+    ]);
     const rateLimitAwareCallNames = new Set([
       'rateLimit',
       'enforceRateLimit',
@@ -325,6 +413,22 @@ const requireRateLimit = {
             hasRateLimitImport = true;
           }
         }
+
+        const isRelativeRouteModule =
+          typeof source === 'string' &&
+          source.startsWith('.') &&
+          /(?:^|\/)route(?:\.[cm]?[jt]sx?)?$/.test(source);
+        if (isRelativeRouteModule) {
+          for (const specifier of node.specifiers ?? []) {
+            if (
+              specifier.type === 'ImportSpecifier' &&
+              httpHandlerNames.has(specifier.imported?.name) &&
+              specifier.local?.name
+            ) {
+              delegatedHandlerNames.add(specifier.local.name);
+            }
+          }
+        }
       },
 
       CallExpression(node) {
@@ -335,10 +439,16 @@ const requireRateLimit = {
         ) {
           hasRateLimitCall = true;
         }
+        if (
+          node.callee.type === 'Identifier' &&
+          delegatedHandlerNames.has(node.callee.name)
+        ) {
+          hasDelegatedHandlerCall = true;
+        }
       },
 
       'Program:exit'(node) {
-        if (!hasRateLimitImport || !hasRateLimitCall) {
+        if ((!hasRateLimitImport || !hasRateLimitCall) && !hasDelegatedHandlerCall) {
           context.report({
             node,
             messageId: 'missingRateLimit',

@@ -29,12 +29,12 @@ export type ThemeOverrides = Record<string, string>;
 /** One override map per colour scheme, in the exact shape the injected style
  *  element uses. */
 export type PaletteOverrides = Record<ColorScheme, ThemeOverrides>;
-export type RolePaletteOverrides = {
+type RolePaletteOverrides = {
   surfaceOverrides: PaletteOverrides;
   accentOverrides: PaletteOverrides;
   semanticOverrides: PaletteOverrides;
   residualOverrides: PaletteOverrides;
-};
+}
 
 export function partitionOverrides(overrides: PaletteOverrides): RolePaletteOverrides {
   const result: RolePaletteOverrides = {
@@ -351,7 +351,7 @@ export function writeOverrideStyle(overrides: PaletteOverrides): void {
 }
 
 /** `html[data-blur="off"]` — the attribute the blur kill rule keys on. */
-export const BLUR_ATTRIBUTE = "data-blur";
+const BLUR_ATTRIBUTE = "data-blur"
 
 export function writeBlurAttribute(disabled: boolean): void {
   if (typeof document === "undefined") return;

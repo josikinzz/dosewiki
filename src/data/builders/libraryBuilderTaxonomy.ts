@@ -10,7 +10,6 @@ import type {
 import {
   deriveMechanismRouteData,
   type MechanismAccumulator as DerivedMechanismAccumulator,
-  type MechanismQualifierAccumulator as DerivedMechanismQualifierAccumulator,
 } from "./mechanismRouteDerivation";
 import { normalizeTaxonomyKey, parseQualifiedTaxonomyLabel } from "./taxonomy";
 const DEFAULT_CHEMICAL_CLASS_ICON: IconName = icons.hexagon;
@@ -22,9 +21,6 @@ export interface ClassificationAccumulator {
   slug: string;
   records: Set<SubstanceRecord>;
 }
-
-export type MechanismQualifierAccumulator =
-  DerivedMechanismQualifierAccumulator<SubstanceRecord>;
 
 export type MechanismAccumulator =
   DerivedMechanismAccumulator<SubstanceRecord>;

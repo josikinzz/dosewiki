@@ -5,7 +5,7 @@
  * English index, and its UI strings render through the catalog with English
  * fallbacks.
  */
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { SUBSTANCE_INDEX_DEFAULT_VIEW, substanceIndexViewPath } from "@/utils/indexViewRoutes";

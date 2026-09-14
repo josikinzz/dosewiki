@@ -33,7 +33,7 @@ export const SOCIAL_CARD_COLORS = Object.freeze({
 
 const FONT_DIR = path.join(process.cwd(), "public/fonts");
 
-export const SOCIAL_CARD_FONT = {
+const SOCIAL_CARD_FONT = {
   loadSystemFonts: false,
   fontFiles: [
     path.join(FONT_DIR, "Blinker-Regular.ttf"),
@@ -43,7 +43,7 @@ export const SOCIAL_CARD_FONT = {
   ],
   defaultFontFamily: "Blinker",
   sansSerifFamily: "Blinker",
-};
+}
 
 /** Latin in Blinker, Han in the bundled Noto subset. */
 export const SOCIAL_CARD_CJK_FONT_FAMILY = "Blinker, 'Noto Sans CJK SC'";

@@ -26,7 +26,8 @@ import {
 } from "@/features/dev/components";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 
-import { GalleryBoardList, GalleryMatchIdentity } from "./GalleryBoardList";
+import { GalleryBoardList } from "./GalleryBoardList";
+import { GalleryMatchIdentity } from "./GalleryMatchIdentity";
 import { GalleryLibraryAdd } from "./GalleryLibraryAdd";
 import { GalleryPicker } from "./GalleryPicker";
 import { ApplyPlaylistMenu } from "./ApplyPlaylistMenu";

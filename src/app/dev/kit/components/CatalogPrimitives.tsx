@@ -9,49 +9,45 @@ import { cn } from "@/lib/utils";
 
 import { STATUS_META, type PropDoc, type StoryDef, type StoryExample } from "../registry/types";
 
-export function StatusChip({ status }: { status: NonNullable<StoryDef["status"]> }) {
-  const meta = STATUS_META[status];
-  return (
-    <span
-      className="inline-flex items-center rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]"
-      style={{ color: meta.tone }}
+function StatusChip({ status }: { status: NonNullable<StoryDef["status"]> }) { const meta = STATUS_META[status];
+return (
+  <span
+    className="inline-flex items-center rounded-full border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]"
+    style={{ color: meta.tone }}
+  >
+    {meta.label}
+  </span>
+); }
+
+function CopyableCode({ code }: { code: string }) { const [copied, setCopied] = useState(false);
+
+const copy = async () => {
+  try {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1400);
+  } catch {
+    setCopied(false);
+  }
+};
+
+return (
+  <div className="flex items-center gap-2 rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] px-3 py-2">
+    <code className="flex-1 overflow-x-auto whitespace-pre text-xs text-[var(--theme-text-secondary)]">
+      {code}
+    </code>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={copy}
+      aria-label="Copy import"
+      className="shrink-0 px-2"
     >
-      {meta.label}
-    </span>
-  );
-}
-
-export function CopyableCode({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
-    } catch {
-      setCopied(false);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-[var(--theme-border-subtle)] bg-[var(--theme-surface-muted)] px-3 py-2">
-      <code className="flex-1 overflow-x-auto whitespace-pre text-xs text-[var(--theme-text-secondary)]">
-        {code}
-      </code>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={copy}
-        aria-label="Copy import"
-        className="shrink-0 px-2"
-      >
-        {copied ? <Check className="text-[var(--theme-success-text)]" /> : <Copy />}
-      </Button>
-    </div>
-  );
-}
+      {copied ? <Check className="text-[var(--theme-success-text)]" /> : <Copy />}
+    </Button>
+  </div>
+); }
 
 function ExampleStage({ example }: { example: StoryExample }) {
   const stage =

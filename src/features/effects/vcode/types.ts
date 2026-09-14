@@ -13,10 +13,3 @@ export interface VCodeNode {
 
 export type VCodeContent = string | VCodeNode | (string | VCodeNode)[];
 
-/**
- * Props passed to VCode component renderers.
- */
-export interface VCodeComponentProps {
-  node: VCodeNode;
-  renderChildren: (children: (string | VCodeNode)[]) => React.ReactNode;
-}

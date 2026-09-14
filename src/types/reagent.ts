@@ -1,4 +1,4 @@
-export interface ProtestKitSubstance {
+interface ProtestKitSubstance {
   name: string;
   aliases: string[];
 }
@@ -22,7 +22,7 @@ export interface ProtestKitResponse {
   reagents: ReagentResult[];
 }
 
-export interface NormalizedReagentColor {
+interface NormalizedReagentColor {
   id: number;
   name: string;
   hex: string;

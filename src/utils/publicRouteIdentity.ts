@@ -33,6 +33,7 @@ export type PublicRouteIdentity =
   | { family: "reportsGroup"; params: { groupSlug: string } }
   | { family: "report"; params: { slug: string } }
   | { family: "about"; params?: Record<string, never> }
+  | { family: "glossary"; params?: Record<string, never> }
   | { family: "category"; params: { categoryKey: string } }
   | { family: "contributor"; params: { profileKey: string } }
   | { family: "mechanism"; params: { mechanismSlug: string } }
@@ -45,11 +46,11 @@ export function normalizeContributorProfileKey(profileKey: string): string {
   return profileKey.trim().toLowerCase();
 }
 
-export function encodePublicRouteSegment(value: string): string {
+function encodePublicRouteSegment(value: string): string {
   return encodeURIComponent(value.trim());
 }
 
-export function encodeCanonicalContributorProfileKey(
+function encodeCanonicalContributorProfileKey(
   profileKey: string,
 ): string {
   return encodePublicRouteSegment(normalizeContributorProfileKey(profileKey));
@@ -135,6 +136,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return `/reports/${encodePublicRouteSegment(route.params.slug)}`;
     case "about":
       return "/about";
+    case "glossary":
+      return "/glossary";
     case "category":
       return `/category/${encodePublicRouteSegment(route.params.categoryKey)}`;
     case "contributor":

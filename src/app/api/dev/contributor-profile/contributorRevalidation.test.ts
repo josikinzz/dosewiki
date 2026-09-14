@@ -8,6 +8,10 @@ const publishMocks = vi.hoisted(() => ({
   publishPublicCache: vi.fn(async (_publication: PublicCachePublication) => []),
 }));
 
+const translationMocks = vi.hoisted(() => ({
+  enqueueTranslationJobs: vi.fn(async () => undefined),
+}));
+
 const cacheMocks = vi.hoisted(() => ({ revalidatePath: vi.fn() }));
 
 vi.mock("next/cache", async (importOriginal) => ({
@@ -17,6 +21,10 @@ vi.mock("next/cache", async (importOriginal) => ({
 
 vi.mock("@server/next/publishPublicCache", () => ({
   publishPublicCache: publishMocks.publishPublicCache,
+}));
+
+vi.mock("@server/translation/segmentStore", () => ({
+  enqueueTranslationJobs: translationMocks.enqueueTranslationJobs,
 }));
 
 import { revalidateContributorSurfaces } from "./contributorRevalidation";
@@ -29,6 +37,7 @@ function publishedTargets() {
 beforeEach(() => {
   publishMocks.publishPublicCache.mockClear();
   cacheMocks.revalidatePath.mockClear();
+  translationMocks.enqueueTranslationJobs.mockClear();
 });
 
 describe("contributor surface publication", () => {
@@ -40,6 +49,10 @@ describe("contributor surface publication", () => {
       { kind: "contributor", slug: "ada-two" },
       { kind: "about" },
     ]);
+    expect(translationMocks.enqueueTranslationJobs).toHaveBeenCalledWith(
+      ["zh-Hans"],
+      ["profile/ada", "profile/ada-two"],
+    );
   });
 
   it("adds the replication corpus for a profile save that flipped gallery visibility", async () => {
@@ -64,6 +77,7 @@ describe("contributor surface publication", () => {
       { kind: "replication-collections" },
       { kind: "report-lists" },
     ]);
+    expect(translationMocks.enqueueTranslationJobs).not.toHaveBeenCalled();
   });
 
   it("publishes every surface a byline retarget rewrote", async () => {

@@ -22,7 +22,6 @@ import type * as contentRevisions from "../contentRevisions.js";
 import type * as contributorProfileMerges from "../contributorProfileMerges.js";
 import type * as contributorProfiles from "../contributorProfiles.js";
 import type * as copyBlocks from "../copyBlocks.js";
-import type * as crons from "../crons.js";
 import type * as effectIndexArchive from "../effectIndexArchive.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as http from "../http.js";
@@ -65,6 +64,7 @@ import type * as lib_publicReadIndexes from "../lib/publicReadIndexes.js";
 import type * as lib_publicationOutbox from "../lib/publicationOutbox.js";
 import type * as lib_replicationAttribution from "../lib/replicationAttribution.js";
 import type * as lib_replicationAttributionValidators from "../lib/replicationAttributionValidators.js";
+import type * as lib_replicationAuditedDeletion from "../lib/replicationAuditedDeletion.js";
 import type * as lib_replicationDateValidators from "../lib/replicationDateValidators.js";
 import type * as lib_replicationDuplicateReconciliation from "../lib/replicationDuplicateReconciliation.js";
 import type * as lib_replicationDuplicateValidators from "../lib/replicationDuplicateValidators.js";
@@ -95,6 +95,7 @@ import type * as lib_substanceWriteHandlers from "../lib/substanceWriteHandlers.
 import type * as lib_tripReportAttribution from "../lib/tripReportAttribution.js";
 import type * as lib_tripReportEditing from "../lib/tripReportEditing.js";
 import type * as lib_tripReportOwnership from "../lib/tripReportOwnership.js";
+import type * as lib_tripReportPortalHandlers from "../lib/tripReportPortalHandlers.js";
 import type * as lib_tripReportPublicProjection from "../lib/tripReportPublicProjection.js";
 import type * as lib_tripReportSubstanceIndex from "../lib/tripReportSubstanceIndex.js";
 import type * as lib_validators from "../lib/validators.js";
@@ -149,7 +150,6 @@ declare const fullApi: ApiFromModules<{
   contributorProfileMerges: typeof contributorProfileMerges;
   contributorProfiles: typeof contributorProfiles;
   copyBlocks: typeof copyBlocks;
-  crons: typeof crons;
   effectIndexArchive: typeof effectIndexArchive;
   effectIndexArticles: typeof effectIndexArticles;
   http: typeof http;
@@ -192,6 +192,7 @@ declare const fullApi: ApiFromModules<{
   "lib/publicationOutbox": typeof lib_publicationOutbox;
   "lib/replicationAttribution": typeof lib_replicationAttribution;
   "lib/replicationAttributionValidators": typeof lib_replicationAttributionValidators;
+  "lib/replicationAuditedDeletion": typeof lib_replicationAuditedDeletion;
   "lib/replicationDateValidators": typeof lib_replicationDateValidators;
   "lib/replicationDuplicateReconciliation": typeof lib_replicationDuplicateReconciliation;
   "lib/replicationDuplicateValidators": typeof lib_replicationDuplicateValidators;
@@ -222,6 +223,7 @@ declare const fullApi: ApiFromModules<{
   "lib/tripReportAttribution": typeof lib_tripReportAttribution;
   "lib/tripReportEditing": typeof lib_tripReportEditing;
   "lib/tripReportOwnership": typeof lib_tripReportOwnership;
+  "lib/tripReportPortalHandlers": typeof lib_tripReportPortalHandlers;
   "lib/tripReportPublicProjection": typeof lib_tripReportPublicProjection;
   "lib/tripReportSubstanceIndex": typeof lib_tripReportSubstanceIndex;
   "lib/validators": typeof lib_validators;

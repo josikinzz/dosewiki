@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { forwardRef } from "react";
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { SITE_FLAVOR_CONFIG, SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIGS } from "@/config/siteFlavor";
 import { getRouteChromeModel } from "@/utils/routeChrome";
 import { ThemeProvider } from "../../context/ThemeContext";
 import { Header } from "./Header";
@@ -64,7 +64,7 @@ const EFFECT_INDEX = SITE_FLAVOR_CONFIGS.effectindex;
  */
 function renderHeader(ui: ReactNode) {
   return render(
-    <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false}>
+    <ThemeProvider initialColorScheme="dark" initialVisualStyle="fun" isVisualStyleLocked={false} isFontLocked={false}>
       {ui}
     </ThemeProvider>,
   );
@@ -81,14 +81,12 @@ describe("Header", () => {
     );
 
     expect(document.querySelector(".app-header > div")).toHaveAttribute("data-nosnippet");
-    // The brand mark and wordmark come from the build's own flavor, not from the model, so
-    // this names the ambient one even though the model above is pinned to dose.wiki. The
-    // assertion is that it points at `/`.
-    expect(
-      screen.getByRole("link", {
-        name: `${SITE_FLAVOR_CONFIG.logo.alt}${SITE_FLAVOR_CONFIG.name}`,
-      }),
-    ).toHaveAttribute("href", "/");
+    // The publication brand is the home affordance regardless of which explicit
+    // route model is under test.
+    expect(screen.getByRole("img", { name: /logo$/ }).closest("a")).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect(screen.getByTestId("global-search")).toHaveAttribute("data-current-view", "mechanism");
     expect(screen.getByRole("link", { name: "Substances" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Effects" })).not.toHaveAttribute("aria-current");
@@ -202,13 +200,12 @@ describe("Header", () => {
       // No Home item: the brand link beside the nav is the route home, on every page and at
       // every width, so an entry for it would be a second copy of the same destination.
       expect(screen.queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
-      // The brand mark and wordmark come from the build's own flavor, not from the model, so
-      // this names the ambient one — the assertion is that it points at `/`.
-      expect(
-        screen.getByRole("link", {
-          name: `${SITE_FLAVOR_CONFIG.logo.alt}${SITE_FLAVOR_CONFIG.name}`,
-        }),
-      ).toHaveAttribute("href", "/");
+      // The publication brand remains the route home beside the explicit Effect
+      // Index navigation model.
+      expect(screen.getByRole("img", { name: /logo$/ }).closest("a")).toHaveAttribute(
+        "href",
+        "/",
+      );
 
       // Every top-level destination is a link in its own right — none is reachable only by
       // opening a menu.

@@ -1,0 +1,4168 @@
+{
+  "locale": "fr",
+  "note": "Brouillon local rédigé par IA, sans relecture ni approbation humaine. Les 693 entrées nécessitent une relecture par des francophones natifs et des spécialistes des domaines concernés. Ce fichier n'active aucune langue et ne publie aucun contenu. Les équivalences chimiques proposées par la source restent à examiner, notamment anilinopipéridine/anilidopipéridine, benzhydryle/benzhydrol, éthanolamine/diphénylméthanol, phénylpipérazine/benzylpipérazine, oxyde d'azote/nitrure et benzodifurane/2C-x. Les noms distincts ne sont pas fusionnés. Les graphies source Dephenylmethane et Diarycycloheptene ainsi que les familles non établies Nitazepipne et Nitazepyne sont conservées pour examen spécialisé. La terminologie des reconstitutions artistiques et des effets subjectifs inhabituels nécessite aussi une harmonisation spécialisée.",
+  "counts": {
+    "approved": 0,
+    "draft": 693
+  },
+  "terms": {
+    "1,2-Diarylethylamine (diarylethylamines)": {
+      "target": "1,2-Diaryléthylamine (diaryléthylamines)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,3-Propanediol dicarbamate": {
+      "target": "Dicarbamate de 1,3-propanediol",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,4-Benzodiazepine (benzodiazepines)": {
+      "target": "1,4-Benzodiazépine (benzodiazépines)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1,5-Benzodiazepine": {
+      "target": "1,5-Benzodiazépine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "1. Taking Off": {
+      "target": "1. Décollage",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-Dimethoxyamphetamine (DOx)": {
+      "target": "2,5-Diméthoxyamphétamine (DOx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-Dimethoxyphenethylamine (2C-x)": {
+      "target": "2,5-Diméthoxyphénéthylamine (2C-x)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2,5-dimethoxyamphetamine": {
+      "target": "2,5-diméthoxyamphétamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Amino-5-aryloxazoline (aminorexes)": {
+      "target": "2-Amino-5-aryloxazoline (aminorex)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Aminoindane (aminoindanes)": {
+      "target": "2-Aminoindane (aminoindanes)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Benzylbenzimidazole (nitazenes)": {
+      "target": "2-Benzylbenzimidazole (nitazènes)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Benzylpiperidine": {
+      "target": "2-Benzylpipéridine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Phenylmorpholine (phenylmorpholines)": {
+      "target": "2-Phénylmorpholine (phénylmorpholines)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-Pyrrolidinone (racetams)": {
+      "target": "2-Pyrrolidinone (racétams)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "2-amino-5-aryloxazoline": {
+      "target": "2-amino-5-aryloxazoline",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2. The Waiting Room": {
+      "target": "2. La salle d'attente",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NB3OMe": {
+      "target": "25x-NB3OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NB4OMe": {
+      "target": "25x-NB4OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBF": {
+      "target": "25x-NBF",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBOH": {
+      "target": "25x-NBOH",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "25x-NBOMe": {
+      "target": "25x-NBOMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "2C-X": {
+      "target": "2C-X",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-Dimethoxyamphetamine (3C-x)": {
+      "target": "3,5-Diméthoxyamphétamine (3C-x)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-Dimethoxyphenethylamine (scalines)": {
+      "target": "3,5-Diméthoxyphénéthylamine (scalines)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-dimethoxyamphetamine": {
+      "target": "3,5-diméthoxyamphétamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "3,5-dimethoxyphenethylamine": {
+      "target": "3,5-diméthoxyphénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "3. The Other Side": {
+      "target": "3. De l'autre côté",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "3C-x": {
+      "target": "3C-x",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "4. Coming Down": {
+      "target": "4. Descente",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "A-typical Hallucinogen": {
+      "target": "Hallucinogène atypique",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Abnormal heartbeat": {
+      "target": "Rythme cardiaque irrégulier",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Adamantane": {
+      "target": "Adamantane",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Adamantane derivative": {
+      "target": "Dérivé de l'adamantane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Addiction suppression": {
+      "target": "Atténuation de l'addiction",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "After Effects": {
+      "target": "Effets résiduels",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "After images": {
+      "target": "Images rémanentes",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alcohol": {
+      "target": "Alcool",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (indole)": {
+      "target": "Alcaloïde (indolique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (mesembrine)": {
+      "target": "Alcaloïde (mésémbrine)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (phenethylamine)": {
+      "target": "Alcaloïde (phénéthylamine)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (pyridine)": {
+      "target": "Alcaloïde (pyridinique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkaloid (tropane)": {
+      "target": "Alcaloïde (tropanique)",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alkyl amine": {
+      "target": "Alkylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "All Effects": {
+      "target": "Tous les effets",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "All media": {
+      "target": "Tous les médias",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Alterations": {
+      "target": "Modifications",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amine": {
+      "target": "Amine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Aminoindane": {
+      "target": "Aminoindane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Aminorex": {
+      "target": "Aminorex",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amnesia": {
+      "target": "Amnésie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine": {
+      "target": "Amphétamine",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine (psychedelic)": {
+      "target": "Amphétamine (psychédélique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamine (substituted)": {
+      "target": "Amphétamine (substituée)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amphetamines": {
+      "target": "Amphétamines",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Amplifications": {
+      "target": "Amplifications",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis": {
+      "target": "Analyse",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis enhancement": {
+      "target": "Amélioration des capacités d'analyse",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analysis suppression": {
+      "target": "Diminution des capacités d'analyse",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Analytical": {
+      "target": "Analyse et raisonnement",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine": {
+      "target": "Anilidopipéridine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine (fentanyls)": {
+      "target": "Anilidopipéridine (fentanyls)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilidopiperidine (opioid)": {
+      "target": "Anilidopipéridine (opioïde)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilinopiperidine": {
+      "target": "Anilinopipéridine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anilinopiperidine (opioid)": {
+      "target": "Anilinopipéridine (opioïde)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anticipatory response": {
+      "target": "Réponse anticipatoire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antidepressant": {
+      "target": "Antidépresseur",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antihistamines": {
+      "target": "Antihistaminiques",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Antipsychotic": {
+      "target": "Antipsychotique",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anxiety": {
+      "target": "Anxiété",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Anxiety suppression": {
+      "target": "Atténuation de l'anxiété",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Appetite enhancement": {
+      "target": "Augmentation de l'appétit",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Appetite suppression": {
+      "target": "Diminution de l'appétit",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Approved replicator": {
+      "target": "Artiste de reconstitutions accepté",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artist": {
+      "target": "Artiste",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artist practice": {
+      "target": "Pratique artistique",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Artists": {
+      "target": "Artistes",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylalkylamine": {
+      "target": "Arylalkylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylcyclohexyl-related NMDA antagonist": {
+      "target": "Antagoniste NMDA apparenté aux arylcyclohexyles",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Arylcyclohexylamine": {
+      "target": "Arylcyclohexylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Audio": {
+      "target": "Audio",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Audio Replications": {
+      "target": "Reconstitutions sonores",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory": {
+      "target": "Auditif",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory Effects": {
+      "target": "Effets auditifs",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory distortion": {
+      "target": "Distorsion auditive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory enhancement": {
+      "target": "Amplification de l'audition",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory hallucination": {
+      "target": "Hallucination auditive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory misinterpretation": {
+      "target": "Interprétation erronée d'un son",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Auditory suppression": {
+      "target": "Atténuation de l'audition",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomic": {
+      "target": "Fonctions autonomes",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomous entity": {
+      "target": "Entité autonome",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Autonomous voice communication": {
+      "target": "Communication avec une voix intérieure autonome",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Back pain": {
+      "target": "Douleur dorsale",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Barbiturate": {
+      "target": "Barbiturique",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Barbiturates": {
+      "target": "Barbituriques",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzamide": {
+      "target": "Benzamide",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzeneacetamide": {
+      "target": "Benzèneacétamide",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzeneacetamide (U-compounds)": {
+      "target": "Benzèneacétamide (composés U)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzhydrol": {
+      "target": "Benzhydrol",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzhydryl": {
+      "target": "Benzhydryle",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole": {
+      "target": "Benzimidazole",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole (nitazene)": {
+      "target": "Benzimidazole (nitazène)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzimidazole opioid": {
+      "target": "Opioïde benzimidazolé",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzochromene": {
+      "target": "Benzochromène",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine": {
+      "target": "Benzodiazépine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (1,5-benzodiazepine)": {
+      "target": "Benzodiazépine (1,5-benzodiazépine)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (N-trifluoroethyl substituted)": {
+      "target": "Benzodiazépine (à substitution N-trifluoroéthyle)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (prodrug)": {
+      "target": "Benzodiazépine (promédicament)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepine (triazolobenzodiazepine)": {
+      "target": "Benzodiazépine (triazolobenzodiazépine)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodiazepines": {
+      "target": "Benzodiazépines",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzodifuran": {
+      "target": "Benzodifurane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran": {
+      "target": "Benzofurane",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (benzodihydrodifuran)": {
+      "target": "Benzofurane (benzodihydrodifurane)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (dihydrobenzofuran)": {
+      "target": "Benzofurane (dihydrobenzofurane)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (psychedelic)": {
+      "target": "Benzofurane (psychédélique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuran (substituted)": {
+      "target": "Benzofurane (substitué)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzofuranethylamine (benzofurans)": {
+      "target": "Benzofuranyléthylamine (benzofuranes)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzoylindole": {
+      "target": "Benzoylindole",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylamine": {
+      "target": "Benzylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylpiperazine (piperazines)": {
+      "target": "Benzylpipérazine (pipérazines)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Benzylpiperidine": {
+      "target": "Benzylpipéridine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Beta-carboline": {
+      "target": "Bêta-carboline",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily": {
+      "target": "Sensations corporelles",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily control enhancement": {
+      "target": "Amélioration du contrôle corporel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bodily pressures": {
+      "target": "Sensations de pression corporelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Body odour alteration": {
+      "target": "Modification de l'odeur corporelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brain zaps": {
+      "target": "Sensations de décharges électriques dans la tête",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brightness alteration": {
+      "target": "Modification de la luminosité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Brominated indole alkaloid": {
+      "target": "Alcaloïde indolique bromé",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Bronchodilation": {
+      "target": "Bronchodilatation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Buccal": {
+      "target": "Voie buccale",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid": {
+      "target": "Cannabinoïde",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid (phytocannabinoid)": {
+      "target": "Cannabinoïde (phytocannabinoïde)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cannabinoid (synthetic)": {
+      "target": "Cannabinoïde (synthétique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Carbamate": {
+      "target": "Carbamate",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cardiovascular": {
+      "target": "Cardiovasculaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cardiovascular Effects": {
+      "target": "Effets cardiovasculaires",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Catharsis": {
+      "target": "Catharsis",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cathinone": {
+      "target": "Cathinone",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cathinone (substituted)": {
+      "target": "Cathinone (substituée)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Caution": {
+      "target": "Prudence",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Changes in felt bodily form": {
+      "target": "Modification de la forme corporelle ressentie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Changes in felt gravity": {
+      "target": "Modification de la gravité ressentie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Chromatic aberration": {
+      "target": "Aberration chromatique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Citations": {
+      "target": "Citations",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Classification": {
+      "target": "Classification",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Closed-eye": {
+      "target": "Yeux fermés",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive": {
+      "target": "Cognitif",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Amplifications": {
+      "target": "Amplifications cognitives",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Effects": {
+      "target": "Effets cognitifs",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive Suppressions": {
+      "target": "Atténuations cognitives",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive disconnection": {
+      "target": "Déconnexion cognitive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive dysphoria": {
+      "target": "Dysphorie cognitive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive euphoria": {
+      "target": "Euphorie cognitive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cognitive fatigue": {
+      "target": "Fatigue cognitive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour enhancement": {
+      "target": "Intensification des couleurs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour replacement": {
+      "target": "Remplacement des couleurs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour shifting": {
+      "target": "Variation des couleurs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Colour suppression": {
+      "target": "Atténuation des couleurs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Come Up": {
+      "target": "Montée",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Comfortable": {
+      "target": "Agréable",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Common": {
+      "target": "Courant",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Component controllability": {
+      "target": "Contrôle volontaire des composantes de l'expérience",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Compulsive redosing": {
+      "target": "Reprise compulsive de doses",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Conceptual thinking": {
+      "target": "Pensée conceptuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Confirmed": {
+      "target": "Cancérogénicité avérée",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Confusion": {
+      "target": "Confusion",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Constipation": {
+      "target": "Constipation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Content family": {
+      "target": "Catégorie de contenu",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Contributors": {
+      "target": "Contributeurs",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Controlled precursor": {
+      "target": "Précurseur réglementé",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Coordination": {
+      "target": "Coordination",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cough suppression": {
+      "target": "Atténuation de la toux",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Creativity enhancement": {
+      "target": "Stimulation de la créativité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Creativity suppression": {
+      "target": "Diminution de la créativité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cycloalkylamine": {
+      "target": "Cycloalkylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Cyclopyrrolone": {
+      "target": "Cyclopyrrolone",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "DOx": {
+      "target": "DOx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dangerous": {
+      "target": "Dangereux",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dark surrealism": {
+      "target": "Surréalisme sombre",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased blood pressure": {
+      "target": "Baisse de la pression artérielle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased heart rate": {
+      "target": "Diminution de la fréquence cardiaque",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decreased libido": {
+      "target": "Diminution de la libido",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Decriminalized": {
+      "target": "Dépénalisé",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dehydration": {
+      "target": "Déshydratation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Deja vu": {
+      "target": "Déjà-vu",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Deliriants": {
+      "target": "Délirants",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Delirium": {
+      "target": "Syndrome confusionnel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Delusion": {
+      "target": "Idée délirante",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depersonalization": {
+      "target": "Dépersonnalisation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dephenylmethane": {
+      "target": "Dephenylmethane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depicted effect": {
+      "target": "Effet représenté",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depression": {
+      "target": "Dépression",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depression reduction": {
+      "target": "Atténuation de la dépression",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Depth perception distortions": {
+      "target": "Distorsions de la perception de la profondeur",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Derealization": {
+      "target": "Déréalisation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarrhea": {
+      "target": "Diarrhée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarycycloheptene": {
+      "target": "Diarycycloheptene",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarylethylamine": {
+      "target": "Diaryléthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diarylethylamine (substituted)": {
+      "target": "Diaryléthylamine (substituée)",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dibenzopyran": {
+      "target": "Dibenzopyrane",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Difficulty urinating": {
+      "target": "Difficulté à uriner",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diffraction": {
+      "target": "Diffraction",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diol (alkanediol)": {
+      "target": "Diol (alcanediol)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylheptane (opioid)": {
+      "target": "Diphénylheptane (opioïde)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanethiol": {
+      "target": "Diphénylméthanethiol",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanethiol (modafinils)": {
+      "target": "Diphénylméthanethiol (modafinils)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanol": {
+      "target": "Diphénylméthanol",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethanol (benzhydrols)": {
+      "target": "Diphénylméthanol (benzhydrols)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylmethylsulfinylacetamide (modafinil analogue)": {
+      "target": "Diphénylméthylsulfinylacétamide (analogue du modafinil)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Diphenylpropylamine": {
+      "target": "Diphénylpropylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disconnective": {
+      "target": "Déconnexion",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disconnective Effects": {
+      "target": "Effets de déconnexion",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disinhibition": {
+      "target": "Désinhibition",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Disregard Everything I Say": {
+      "target": "Disregard Everything I Say",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dissociatives": {
+      "target": "Dissociatifs",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Distortions": {
+      "target": "Distorsions",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dizziness": {
+      "target": "Vertiges",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dosage & Duration": {
+      "target": "Doses et durée",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dosage independent intensity": {
+      "target": "Intensité indépendante de la dose",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Double vision": {
+      "target": "Vision double",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dream potentiation": {
+      "target": "Intensification des rêves",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dream suppression": {
+      "target": "Atténuation des rêves",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drifting": {
+      "target": "Déformations visuelles fluides",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug": {
+      "target": "Substance",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug class": {
+      "target": "Classe de substances",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug class in title": {
+      "target": "Classe de substances dans le titre",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Drug in title": {
+      "target": "Substance dans le titre",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Dry mouth": {
+      "target": "Sécheresse buccale",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Duration": {
+      "target": "Durée",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Editorial Review": {
+      "target": "Relecture éditoriale",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Effect Index": {
+      "target": "Effect Index",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Effect illustrations": {
+      "target": "Illustrations d'effets",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego death": {
+      "target": "Dissolution de l'ego",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego inflation": {
+      "target": "Inflation de l'ego",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ego replacement": {
+      "target": "Remplacement de l'ego",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ehrlich": {
+      "target": "Ehrlich",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotion intensification": {
+      "target": "Intensification des émotions",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotion suppression": {
+      "target": "Atténuation des émotions",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Emotional": {
+      "target": "Émotionnel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathogen": {
+      "target": "Entactogène",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathogens": {
+      "target": "Entactogènes",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Empathy, affection, and sociability enhancement": {
+      "target": "Renforcement de l'empathie, de l'affection et de la sociabilité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Enhancement and suppression cycles": {
+      "target": "Cycles d'amplification et d'atténuation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Enhancements": {
+      "target": "Amplifications sensorielles",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Entactogen": {
+      "target": "Entactogène",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Entactogens": {
+      "target": "Entactogènes",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Environmental cubism": {
+      "target": "Cubisme environnemental",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Environmental patterning": {
+      "target": "Formation de motifs dans l'environnement",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ethanolamine": {
+      "target": "Éthanolamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ethanolamine derivative (antihistamine)": {
+      "target": "Dérivé de l'éthanolamine (antihistaminique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ether": {
+      "target": "Éther",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Euphoria": {
+      "target": "Euphorie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Excessive yawning": {
+      "target": "Bâillements excessifs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Existential self-realization": {
+      "target": "Prise de conscience existentielle de soi",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Experiential replications": {
+      "target": "Reconstitutions d'expériences",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Explanatory figures": {
+      "target": "Figures explicatives",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "External hallucination": {
+      "target": "Hallucination externe",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Extremely High": {
+      "target": "Risque extrêmement élevé",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Extremely Low": {
+      "target": "Risque extrêmement faible",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Feelings of impending doom": {
+      "target": "Sentiment de catastrophe imminente",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Fentanyl analogues": {
+      "target": "Analogues du fentanyl",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Field of view alteration": {
+      "target": "Modification du champ de vision",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Focus enhancement": {
+      "target": "Amélioration de la concentration",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Focus suppression": {
+      "target": "Diminution de la concentration",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Folin": {
+      "target": "Folin",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frame rate suppression": {
+      "target": "Diminution de la fréquence de rafraîchissement visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frequent": {
+      "target": "Fréquent",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Frequent urination": {
+      "target": "Mictions fréquentes",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Froehde": {
+      "target": "Froehde",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Furanolactone": {
+      "target": "Furanolactone",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue": {
+      "target": "Analogue du GABA",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue (gabapentinoid)": {
+      "target": "Analogue du GABA (gabapentinoïde)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogue (prodrug)": {
+      "target": "Analogue du GABA (promédicament)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "GABA analogues": {
+      "target": "Analogues du GABA",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gabapentinoid": {
+      "target": "Gabapentinoïde",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gait alteration": {
+      "target": "Modification de la démarche",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gallic": {
+      "target": "Acide gallique",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Generative abstract art": {
+      "target": "Art abstrait génératif",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometric Patterns": {
+      "target": "Motifs géométriques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometry": {
+      "target": "Géométrie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Geometry Video Script": {
+      "target": "Texte de narration de la vidéo sur la géométrie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Glossolalia": {
+      "target": "Glossolalie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory": {
+      "target": "Gustatif",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory Effects": {
+      "target": "Effets gustatifs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory enhancement": {
+      "target": "Amplification du goût",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory hallucination": {
+      "target": "Hallucination gustative",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Gustatory suppression": {
+      "target": "Atténuation du goût",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hallucinatory Effects": {
+      "target": "Effets hallucinatoires",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hallucinatory States": {
+      "target": "États hallucinatoires",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Harm Potential": {
+      "target": "Potentiel de nocivité",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Harmala alkaloid": {
+      "target": "Alcaloïde de l'harmala",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Headache": {
+      "target": "Céphalée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Heavy": {
+      "target": "Dose très élevée",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hexahydroazepinoindole": {
+      "target": "Hexahydroazépinoindole",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hexahydroazepinoindole (ibogalogs)": {
+      "target": "Hexahydroazépinoindole (analogues de l'ibogaïne)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "High": {
+      "target": "Risque élevé",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "History & Culture": {
+      "target": "Histoire et culture",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Hofmann": {
+      "target": "Hofmann",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "IM": {
+      "target": "IM",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "IV": {
+      "target": "IV",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "IV/IM": {
+      "target": "IV/IM",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Iboga alkaloid": {
+      "target": "Alcaloïde de l'iboga",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Ibogalog": {
+      "target": "Analogue de l'ibogaïne",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Identification": {
+      "target": "Identification",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Identity alteration": {
+      "target": "Modification de l'identité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Illegal": {
+      "target": "Illégal",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Illegal (analog/blanket ban)": {
+      "target": "Illégal (loi sur les analogues ou interdiction de classe)",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Images": {
+      "target": "Images",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Imidazobenzodiazepine": {
+      "target": "Imidazobenzodiazépine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Imidazopyridine": {
+      "target": "Imidazopyridine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Immersion enhancement": {
+      "target": "Renforcement de l'immersion",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Impairment": {
+      "target": "Altération des capacités cognitives",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased blood pressure": {
+      "target": "Augmentation de la pression artérielle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased bodily temperature": {
+      "target": "Augmentation de la température corporelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased heart rate": {
+      "target": "Augmentation de la fréquence cardiaque",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased libido": {
+      "target": "Augmentation de la libido",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased music appreciation": {
+      "target": "Appréciation accrue de la musique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased pareidolia": {
+      "target": "Augmentation de la paréidolie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased perspiration": {
+      "target": "Augmentation de la transpiration",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased phlegm production": {
+      "target": "Augmentation de la production de mucosités",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased salivation": {
+      "target": "Augmentation de la salivation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased sense of humor": {
+      "target": "Sens de l'humour accru",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Increased suggestibility": {
+      "target": "Augmentation de la suggestibilité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indazole": {
+      "target": "Indazole",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indazolecarboxamide (synthetic cannabinoid)": {
+      "target": "Indazolecarboxamide (cannabinoïde synthétique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indole": {
+      "target": "Indole",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Indole alkaloid": {
+      "target": "Alcaloïde indolique",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Inhaled": {
+      "target": "Voie inhalée",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Injected": {
+      "target": "Voie injectable",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Insufflated": {
+      "target": "Insufflation nasale",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Interactions": {
+      "target": "Interactions",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Internal hallucination": {
+      "target": "Hallucination interne",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intramuscular": {
+      "target": "Voie intramusculaire",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intranasal": {
+      "target": "Voie intranasale",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Intravenous": {
+      "target": "Voie intraveineuse",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Introspection": {
+      "target": "Introspection",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Irritability": {
+      "target": "Irritabilité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Isoxazole": {
+      "target": "Isoxazole",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Itchiness": {
+      "target": "Démangeaisons",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Jamais vu": {
+      "target": "Jamais-vu",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Language suppression": {
+      "target": "Diminution des capacités langagières",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Laughter fits": {
+      "target": "Fous rires",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Legal (regulated)": {
+      "target": "Légal (réglementé)",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Legality": {
+      "target": "Statut juridique",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Library": {
+      "target": "Bibliothèque",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Liebermann": {
+      "target": "Liebermann",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Light": {
+      "target": "Dose faible",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Limited": {
+      "target": "Données limitées",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Low": {
+      "target": "Risque faible",
+      "kind": "enum:risk-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Lysergamide": {
+      "target": "Lysergamide",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "MDxx": {
+      "target": "MDxx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Machinescapes": {
+      "target": "Paysages mécaniques",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Magnification": {
+      "target": "Grossissement",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mandelin": {
+      "target": "Mandelin",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mania": {
+      "target": "Manie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Marquis": {
+      "target": "Marquis",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mecke": {
+      "target": "Mecke",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Media": {
+      "target": "Médias",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory enhancement": {
+      "target": "Amélioration de la mémoire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory replays": {
+      "target": "Reviviscences de souvenirs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Memory suppression": {
+      "target": "Diminution des capacités mnésiques",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mesembrine alkaloid": {
+      "target": "Alcaloïde de type mésémbrine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Meta": {
+      "target": "Métadonnées",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Methylenedioxyphenethylamine (MDxx)": {
+      "target": "Méthylènedioxyphénéthylamine (MDxx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mindfulness": {
+      "target": "Pleine conscience",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Miscellaneous": {
+      "target": "Divers",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mixed emotions": {
+      "target": "Émotions mêlées",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Modafinil-like": {
+      "target": "Apparentés au modafinil",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Moderate": {
+      "target": "Dose modérée",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "More Info": {
+      "target": "Informations complémentaires",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan": {
+      "target": "Morphinane",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan (opioid)": {
+      "target": "Morphinane (opioïde)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Morphinan (substituted)": {
+      "target": "Morphinane (substitué)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motivation enhancement": {
+      "target": "Renforcement de la motivation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motivation suppression": {
+      "target": "Diminution de la motivation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Motor control loss": {
+      "target": "Perte du contrôle moteur",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Mouth numbing": {
+      "target": "Engourdissement buccal",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multiple thought streams": {
+      "target": "Flux de pensées multiples",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multisensory": {
+      "target": "Multisensoriel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Multisensory Effects": {
+      "target": "Effets multisensoriels",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle cramp": {
+      "target": "Crampe musculaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle relaxation": {
+      "target": "Relaxation musculaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle tension": {
+      "target": "Tension musculaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Muscle twitching": {
+      "target": "Tressautements musculaires",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Fluorobenzyl)phenethylamine (x-NBF)": {
+      "target": "N-(2-Fluorobenzyl)phénéthylamine (x-NBF)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Hydroxybenzyl)phenethylamine (x-NBOH)": {
+      "target": "N-(2-Hydroxybenzyl)phénéthylamine (x-NBOH)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-Methoxybenzyl)phenethylamine (x-NBOMe)": {
+      "target": "N-(2-Méthoxybenzyl)phénéthylamine (x-NBOMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-fluorobenzyl)phenethylamine": {
+      "target": "N-(2-fluorobenzyl)phénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(2-hydroxybenzyl)phenethylamine": {
+      "target": "N-(2-hydroxybenzyl)phénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(3-Methoxybenzyl)phenethylamine (x-NB3OMe)": {
+      "target": "N-(3-Méthoxybenzyl)phénéthylamine (x-NB3OMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(3-methoxybenzyl)phenethylamine": {
+      "target": "N-(3-méthoxybenzyl)phénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(4-Methoxybenzyl)phenethylamine (x-NB4OMe)": {
+      "target": "N-(4-Méthoxybenzyl)phénéthylamine (x-NB4OMe)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-(4-methoxybenzyl)phenethylamine": {
+      "target": "N-(4-méthoxybenzyl)phénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-Benzylphenethylamine (x-NBx)": {
+      "target": "N-Benzylphénéthylamine (x-NBx)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "N-benzylphenethylamine": {
+      "target": "N-benzylphénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NB3OMe": {
+      "target": "NB3OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NB4OMe": {
+      "target": "NB4OMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBF": {
+      "target": "NBF",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOH": {
+      "target": "NBOH",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOMe": {
+      "target": "NBOMe",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBOMes": {
+      "target": "NBOMes",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "NBx": {
+      "target": "NBx",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthoylindole (synthetic cannabinoid)": {
+      "target": "Naphtoylindole (cannabinoïde synthétique)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthylaminopropane": {
+      "target": "Naphtylaminopropane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Naphthylaminopropane (substituted)": {
+      "target": "Naphtylaminopropane (substitué)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Natural": {
+      "target": "Naturels",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nausea": {
+      "target": "Nausées",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nausea suppression": {
+      "target": "Atténuation des nausées",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Near universal": {
+      "target": "Quasi universel",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Negative": {
+      "target": "Données défavorables à l'hypothèse",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neoclerodane diterpenoid": {
+      "target": "Diterpénoïde néoclérodane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neurological": {
+      "target": "Neurologique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Neurological Effects": {
+      "target": "Effets neurologiques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nicotinic alkaloid": {
+      "target": "Alcaloïde nicotinique",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazene": {
+      "target": "Nitazène",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazepipne": {
+      "target": "Nitazepipne",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitazepyne": {
+      "target": "Nitazepyne",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nitrogen oxide": {
+      "target": "Oxyde d'azote",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "No Evidence": {
+      "target": "Aucun indice de cancérogénicité dans les études",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Noble gas": {
+      "target": "Gaz noble",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Non-metal nitride": {
+      "target": "Nitrure non métallique",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "None": {
+      "target": "Aucune étude pertinente",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Nootropic": {
+      "target": "Nootrope",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Not scheduled": {
+      "target": "Non inscrit aux tableaux des substances contrôlées",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novel Cognitive States": {
+      "target": "États cognitifs inhabituels",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novel States": {
+      "target": "États inhabituels",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Novelty enhancement": {
+      "target": "Sentiment de nouveauté accru",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Object activation": {
+      "target": "Animation des objets",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Object alteration": {
+      "target": "Déformation des objets",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Offset": {
+      "target": "Diminution des effets",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory": {
+      "target": "Olfactif",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory Effects": {
+      "target": "Effets olfactifs",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory enhancement": {
+      "target": "Amplification de l'odorat",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory hallucination": {
+      "target": "Hallucination olfactive",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Olfactory suppression": {
+      "target": "Atténuation de l'odorat",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Onset": {
+      "target": "Délai d'apparition des effets",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Open-eye": {
+      "target": "Yeux ouverts",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Opioid": {
+      "target": "Opioïde",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Optical and perceptual art": {
+      "target": "Art optique et perceptuel",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Optical sliding": {
+      "target": "Glissement du regard",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Oral": {
+      "target": "Voie orale",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Orgasm suppression": {
+      "target": "Inhibition de l'orgasme",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other": {
+      "target": "Autre",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other GABAergics": {
+      "target": "Autres GABAergiques",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other antidepressants": {
+      "target": "Autres antidépresseurs",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other deliriants": {
+      "target": "Autres délirants",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other dissociatives": {
+      "target": "Autres dissociatifs",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other entactogens": {
+      "target": "Autres entactogènes",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other opioids": {
+      "target": "Autres opioïdes",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Other stimulants": {
+      "target": "Autres stimulants",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Overview": {
+      "target": "Vue d'ensemble",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Oxazolinone": {
+      "target": "Oxazolinone",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pain relief": {
+      "target": "Soulagement de la douleur",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Panic attack": {
+      "target": "Attaque de panique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Paranoia": {
+      "target": "Paranoïa",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Peak": {
+      "target": "Plateau des effets",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception": {
+      "target": "Perception",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of bodily heaviness": {
+      "target": "Sensation de lourdeur corporelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of bodily lightness": {
+      "target": "Sensation de légèreté corporelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of eternalism": {
+      "target": "Perception de l'éternalisme",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of interdependent opposites": {
+      "target": "Perception de l'interdépendance des contraires",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of predeterminism": {
+      "target": "Perception du prédéterminisme",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perception of self-design": {
+      "target": "Perception de soi comme créateur",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Peripheral information misinterpretation": {
+      "target": "Interprétation erronée des informations visuelles périphériques",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal Commentary": {
+      "target": "Commentaire personnel",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal bias suppression": {
+      "target": "Atténuation des biais personnels",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personal meaning enhancement": {
+      "target": "Renforcement de la signification personnelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Personality regression": {
+      "target": "Régression de la personnalité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perspective distortion": {
+      "target": "Distorsion de la perspective",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Perspective hallucination": {
+      "target": "Hallucination avec changement de point de vue",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pharmacology": {
+      "target": "Pharmacologie",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine": {
+      "target": "Phénéthylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine (N-benzylated)": {
+      "target": "Phénéthylamine (N-benzylée)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenethylamine (substituted)": {
+      "target": "Phénéthylamine (substituée)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenidate": {
+      "target": "Phénidate",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylalkylpyrrolidine": {
+      "target": "Phénylalkylpyrrolidine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylmorpholine": {
+      "target": "Phénylmorpholine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylmorpholine (substituted)": {
+      "target": "Phénylmorpholine (substituée)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpiperazine": {
+      "target": "Phénylpipérazine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpropylamine": {
+      "target": "Phénylpropylamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenylpropylaminopentane": {
+      "target": "Phénylpropylaminopentane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Phenyltropane": {
+      "target": "Phényltropane",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Photophobia": {
+      "target": "Photophobie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical": {
+      "target": "Physique",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Alterations": {
+      "target": "Modifications physiques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Amplifications": {
+      "target": "Amplifications physiques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Effects": {
+      "target": "Effets physiques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical Suppressions": {
+      "target": "Atténuations physiques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical autonomy": {
+      "target": "Autonomie corporelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical disconnection": {
+      "target": "Déconnexion physique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical euphoria": {
+      "target": "Euphorie physique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Physical fatigue": {
+      "target": "Fatigue physique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Piperazine": {
+      "target": "Pipérazine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Piperidine": {
+      "target": "Pipéridine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pipradrol homologue": {
+      "target": "Homologue du pipradrol",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Positive": {
+      "target": "Données favorables à l'hypothèse",
+      "kind": "enum:evidence-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Possible": {
+      "target": "Cancérogénicité possible",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Prescription only": {
+      "target": "Sur ordonnance uniquement",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Probable": {
+      "target": "Cancérogénicité probable",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychedelics": {
+      "target": "Psychédéliques",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychological States": {
+      "target": "États psychologiques",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "PsychonautWiki": {
+      "target": "PsychonautWiki",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Psychosis": {
+      "target": "Psychose",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pupil constriction": {
+      "target": "Constriction pupillaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pupil dilation": {
+      "target": "Dilatation pupillaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Purine alkaloid": {
+      "target": "Alcaloïde purique",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrazolopyrimidine": {
+      "target": "Pyrazolopyrimidine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyridine alkaloid": {
+      "target": "Alcaloïde pyridinique",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidine": {
+      "target": "Pyrrolidine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidine (substituted)": {
+      "target": "Pyrrolidine (substituée)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Pyrrolidinophenone": {
+      "target": "Pyrrolidinophénone",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Quinazolinone": {
+      "target": "Quinazolinone",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Racetam": {
+      "target": "Racétam",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Racetam and peptide-like": {
+      "target": "Racétams et substances de type peptidique",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rare": {
+      "target": "Rare",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Reagent Testing": {
+      "target": "Tests par réactifs",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rectal": {
+      "target": "Voie rectale",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Recursion": {
+      "target": "Récursion",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "References": {
+      "target": "Références",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Rejuvenation": {
+      "target": "Régénération psychique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Related Substances": {
+      "target": "Substances apparentées",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Relaxation": {
+      "target": "Relaxation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicates": {
+      "target": "Reconstitue",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replication": {
+      "target": "Reconstitution",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replications": {
+      "target": "Reconstitutions",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicator": {
+      "target": "Artiste de reconstitutions",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Replicators": {
+      "target": "Artistes de reconstitutions",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Respiratory": {
+      "target": "Respiratoire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Respiratory depression": {
+      "target": "Dépression respiratoire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Restless legs": {
+      "target": "Jambes sans repos",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Restricted": {
+      "target": "Soumis à restrictions",
+      "kind": "enum:legal-status",
+      "status": "draft",
+      "source": "model"
+    },
+    "Robadope": {
+      "target": "Robadope",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Runny nose": {
+      "target": "Écoulement nasal",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "SEI": {
+      "target": "SEI",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scaline": {
+      "target": "Scaline",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scalines": {
+      "target": "Scalines",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sceletium alkaloid": {
+      "target": "Alcaloïde de Sceletium",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scenarios and plots": {
+      "target": "Scénarios et intrigues",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scenery slicing": {
+      "target": "Découpage du champ visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Scott": {
+      "target": "Scott",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sedation": {
+      "target": "Sédation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sedative-hypnotics": {
+      "target": "Sédatifs-hypnotiques",
+      "kind": "psychoactive-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Seizure": {
+      "target": "Crise épileptique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Seizure suppression": {
+      "target": "Réduction des crises épileptiques",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensed presence": {
+      "target": "Sentiment de présence",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensory": {
+      "target": "Sensoriel",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sensory overload": {
+      "target": "Surcharge sensorielle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Serotonin syndrome": {
+      "target": "Syndrome sérotoninergique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Settings, sceneries, and landscapes": {
+      "target": "Cadres, décors et paysages",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Shadow people": {
+      "target": "Personnages d'ombre",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Shakiness": {
+      "target": "Tremblements",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Simon": {
+      "target": "Simon",
+      "kind": "reagent-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Skin flushing": {
+      "target": "Rougeur cutanée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sleep": {
+      "target": "Sommeil",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sleepiness": {
+      "target": "Somnolence",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smell & Taste": {
+      "target": "Odorat & goût",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smell & Taste Effects": {
+      "target": "Effets sur l'odorat & le goût",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Smoked": {
+      "target": "Voie fumée",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Social": {
+      "target": "Social",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sources": {
+      "target": "Sources",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spatial disorientation": {
+      "target": "Désorientation spatiale",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spirituality enhancement": {
+      "target": "Renforcement de la spiritualité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spontaneous physical movements": {
+      "target": "Mouvements physiques spontanés",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Spontaneous tactile sensations": {
+      "target": "Sensations tactiles spontanées",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stamina enhancement": {
+      "target": "Augmentation de l'endurance",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stimulation": {
+      "target": "Stimulation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stomach bloating": {
+      "target": "Ballonnement gastrique",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Stomach cramp": {
+      "target": "Crampe d'estomac",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Strong": {
+      "target": "Dose élevée",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Style Variations": {
+      "target": "Variations stylistiques",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subcutaneous": {
+      "target": "Voie sous-cutanée",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subjective Effect Index": {
+      "target": "Index des effets subjectifs",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Subjective Effects": {
+      "target": "Effets subjectifs",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Sublingual": {
+      "target": "Voie sublinguale",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted amine": {
+      "target": "Amine substituée",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted aminorex": {
+      "target": "Aminorex substitué",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted amphetamine": {
+      "target": "Amphétamine substituée",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted cathinone": {
+      "target": "Cathinone substituée",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Substituted phenethylamine": {
+      "target": "Phénéthylamine substituée",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suggestibility suppression": {
+      "target": "Diminution de la suggestibilité",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suicidal ideation": {
+      "target": "Idées suicidaires",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Summary": {
+      "target": "Résumé",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "Supplements and oneirogens": {
+      "target": "Compléments alimentaires et onirogènes",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Suppressions": {
+      "target": "Atténuations",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Symmetrical texture repetition": {
+      "target": "Répétition symétrique des textures",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Synaesthesia": {
+      "target": "Synesthésie",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Synthetic": {
+      "target": "Synthétiques",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile": {
+      "target": "Tactile",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile Effects": {
+      "target": "Effets tactiles",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile distortion": {
+      "target": "Distorsion tactile",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile enhancement": {
+      "target": "Amplification du toucher",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile hallucination": {
+      "target": "Hallucination tactile",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tactile suppression": {
+      "target": "Atténuation du toucher",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Teeth chattering": {
+      "target": "Claquement des dents",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Teeth grinding": {
+      "target": "Grincement des dents",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temperature": {
+      "target": "Température",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temperature regulation suppression": {
+      "target": "Altération de la thermorégulation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Temporary erectile dysfunction": {
+      "target": "Dysfonction érectile temporaire",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tertiary alcohol": {
+      "target": "Alcool tertiaire",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Texture liquidation": {
+      "target": "Liquéfaction des textures",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thienodiazepine": {
+      "target": "Thiénodiazépine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thienotriazolodiazepine": {
+      "target": "Thiénotriazolodiazépine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiobarbituric acid derivative": {
+      "target": "Dérivé de l'acide thiobarbiturique",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiophene": {
+      "target": "Thiophène",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thiopropamine": {
+      "target": "Thiopropamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought acceleration": {
+      "target": "Accélération de la pensée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought connectivity": {
+      "target": "Associations de pensées accrues",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought deceleration": {
+      "target": "Ralentissement de la pensée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought disorganization": {
+      "target": "Désorganisation de la pensée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought loops": {
+      "target": "Boucles de pensées",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Thought organization": {
+      "target": "Organisation de la pensée",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Threshold": {
+      "target": "Dose seuil",
+      "kind": "enum:dose-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Time distortion": {
+      "target": "Distorsion du temps",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tinnitus": {
+      "target": "Acouphènes",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Total": {
+      "target": "Durée totale",
+      "kind": "enum:duration-stage",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tracers": {
+      "target": "Traînées visuelles",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Traditional cultural art": {
+      "target": "Art culturel traditionnel",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Traditional psychedelic artists": {
+      "target": "Artistes psychédéliques traditionnels",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transdermal": {
+      "target": "Voie transdermique",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transformations": {
+      "target": "Transformations",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal": {
+      "target": "Transpersonnel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal Effects": {
+      "target": "États transpersonnels",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Transpersonal States": {
+      "target": "États transpersonnels",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Triazolobenzodiazepine": {
+      "target": "Triazolobenzodiazépine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Trip Reports": {
+      "target": "Récits d'expérience",
+      "kind": "section-heading",
+      "status": "draft",
+      "source": "model"
+    },
+    "TripSit": {
+      "target": "TripSit",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tropane": {
+      "target": "Tropane",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine": {
+      "target": "Tryptamine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine (derivative)": {
+      "target": "Tryptamine (dérivé)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Tryptamine (plant-derived)": {
+      "target": "Tryptamine (d'origine végétale)",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "U-compound": {
+      "target": "Composé U",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unattributed": {
+      "target": "Artiste non identifié",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unclassified content": {
+      "target": "Contenu non classé",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable": {
+      "target": "Désagréable",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable Bodily Effects": {
+      "target": "Effets corporels désagréables",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncomfortable Physical Effects": {
+      "target": "Effets physiques désagréables",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Uncommon": {
+      "target": "Peu courant",
+      "kind": "frequency",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unity and interconnectedness": {
+      "target": "Unité et interconnexion",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unknown": {
+      "target": "Cancérogénicité inconnue",
+      "kind": "enum:carcinogenicity-level",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unsafe": {
+      "target": "Risqué et déconseillé",
+      "kind": "enum:interaction-tier",
+      "status": "draft",
+      "source": "model"
+    },
+    "Unspeakable horrors": {
+      "target": "Horreurs indicibles",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vaporized": {
+      "target": "Voie vaporisée",
+      "kind": "route",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vasoconstriction": {
+      "target": "Vasoconstriction",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vasodilation": {
+      "target": "Vasodilatation",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Verified replicator": {
+      "target": "Artiste de reconstitutions à l'identité vérifiée",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Vibrating vision": {
+      "target": "Vision vibrante",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Videos": {
+      "target": "Vidéos",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Viewing mode": {
+      "target": "Mode de vision",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visionary psychedelic art": {
+      "target": "Art psychédélique visionnaire",
+      "kind": "replication",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual": {
+      "target": "Visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Amplifications": {
+      "target": "Amplifications visuelles",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Distortions": {
+      "target": "Distorsions visuelles",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Effects": {
+      "target": "Effets visuels",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual Suppressions": {
+      "target": "Atténuations visuelles",
+      "kind": "effect-category",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual acuity enhancement": {
+      "target": "Amélioration de l'acuité visuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual acuity suppression": {
+      "target": "Diminution de l'acuité visuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual agnosia": {
+      "target": "Agnosie visuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual auras": {
+      "target": "Auras visuelles",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual disconnection": {
+      "target": "Déconnexion visuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual exposure to inner mechanics of consciousness": {
+      "target": "Visualisation des mécanismes internes de la conscience",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual exposure to semantic concept network": {
+      "target": "Visualisation d'un réseau de concepts sémantiques",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual flipping": {
+      "target": "Retournement visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual haze": {
+      "target": "Brume visuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual processing acceleration": {
+      "target": "Accélération du traitement visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual stretching": {
+      "target": "Étirement visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual strobing": {
+      "target": "Effet stroboscopique visuel",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Visual twisting": {
+      "target": "Torsion visuelle",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Wakefulness": {
+      "target": "Éveil",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Watery eyes": {
+      "target": "Larmoiement",
+      "kind": "effect-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "Xanthine": {
+      "target": "Xanthine",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "Z-drugs": {
+      "target": "Hypnotiques Z",
+      "kind": "index-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "come-up": {
+      "target": "montée",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "comedown": {
+      "target": "descente",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "deliriant": {
+      "target": "délirant",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dissociative": {
+      "target": "dissociatif",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dosage": {
+      "target": "dose",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "dose.wiki": {
+      "target": "dose.wiki",
+      "kind": "site-name",
+      "status": "draft",
+      "source": "model"
+    },
+    "empathogenic": {
+      "target": "entactogène",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "entactogenic": {
+      "target": "entactogène",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "hallucinogen": {
+      "target": "hallucinogène",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "harm reduction": {
+      "target": "réduction des risques",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "psychedelic": {
+      "target": "psychédélique",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "set and setting": {
+      "target": "état d'esprit et environnement",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "stimulant": {
+      "target": "stimulant",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "tolerance": {
+      "target": "tolérance",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "trip report": {
+      "target": "récit d'expérience",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "withdrawal": {
+      "target": "syndrome de sevrage",
+      "kind": "register",
+      "status": "draft",
+      "source": "model"
+    },
+    "α-Methylphenethylamine (amphetamines)": {
+      "target": "α-Méthylphénéthylamine (amphétamines)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "α-Pyrrolidinophenone (pyrrolidinophenones)": {
+      "target": "α-Pyrrolidinophénone (pyrrolidinophénones)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-Carboline": {
+      "target": "β-Carboline",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-Ketoamphetamine (cathinones)": {
+      "target": "β-Cétoamphétamine (cathinones)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    },
+    "β-keto phenethylamine": {
+      "target": "β-cétophénéthylamine",
+      "kind": "chemical-class-alias",
+      "status": "draft",
+      "source": "model"
+    },
+    "γ-Aminobutyric acid analogue (gabapentinoids)": {
+      "target": "Analogue de l'acide γ-aminobutyrique (gabapentinoïdes)",
+      "kind": "chemical-class",
+      "status": "draft",
+      "source": "model"
+    }
+  }
+}

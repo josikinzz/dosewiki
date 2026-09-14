@@ -14,7 +14,7 @@ export type ValidatorJson =
   | { type: "record"; keys: ValidatorJson; values: { fieldType: ValidatorJson; optional: boolean } }
   | { type: "object"; value: Record<string, { fieldType: ValidatorJson; optional: boolean }> };
 
-export class ArgumentValidationError extends Error {
+class ArgumentValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ArgumentValidationError";

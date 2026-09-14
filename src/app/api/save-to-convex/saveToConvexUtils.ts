@@ -2,7 +2,6 @@ import type { ManualCategoryDefinition } from "@/data/builders/manualIndexLoader
 import { slugify } from "@/utils/slug";
 import { deriveSubmittedBy } from "@server/changelog/submitterStamp";
 
-export { slugify };
 
 export type ChangelogArticle = {
   id: number;
@@ -62,7 +61,7 @@ export type ArticleWriteOutcome = {
   publicRevision?: string;
 };
 
-export function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
@@ -108,7 +107,7 @@ export function parseIndexLayoutPayloads(value: unknown): IndexLayoutPayload[] {
 
 export { deriveSubmittedBy };
 
-export function normalizeString(value: unknown): string | null {
+function normalizeString(value: unknown): string | null {
   if (typeof value !== "string") {
     return null;
   }

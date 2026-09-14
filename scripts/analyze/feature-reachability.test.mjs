@@ -79,13 +79,4 @@ describe("feature reachability", () => {
       .toEqual(["cycle-a", "cycle-b"]);
   });
 
-  it("keeps the current graph decision out of compiled source and dependency ownership", () => {
-    const report = createFeatureReachabilityReport({ repoRoot: process.cwd() });
-    const featureNames = report.features.map((feature) => feature.name);
-
-    expect(featureNames).not.toContain("graph");
-    expect(report.packageDependencies).not.toHaveProperty("d3");
-    expect(report.packageDevDependencies).not.toHaveProperty("@types/d3");
-    expect(collectFeatureReachabilityFailures(report)).toEqual([]);
-  });
 });

@@ -4,7 +4,7 @@ import {
   getCreatorByline,
   hasKnownCreator,
 } from "@/features/effects/components/replicationCredit";
-import type { GalleryGroup } from "@/features/effects/gallery/galleryModel";
+import type { GalleryGroup } from "@/features/effects/gallery/galleryTypes";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import type { ShowcaseWork } from "../components/showcaseWork";
 

@@ -26,8 +26,8 @@ The source inventory below comes from repository tracing plus a local production
 | Per-request `'nonce-…'` | `script-src` on `/dev` HTML only | Authorizes executable Next.js framework and hydration scripts emitted for that response. JSON-LD remains present as inert structured data. |
 | Deterministic `'sha256-…'` hashes | `script-src` on `/dev` HTML only | Authorize the exact Zod jitless and theme bootstrap text emitted by the root layout because those two inline scripts do not carry nonce attributes. Tests recompute both hashes from the builders so content drift fails validation. |
 | `'wasm-unsafe-eval'` | `script-src` | RDKit.js compiles the same-origin molecule-editor WASM module in the browser. The asset copy step replaces the package loader's two JavaScript code-generation paths with Emscripten's generic, non-dynamic invokers. This source does not permit JavaScript `eval`; plain `'unsafe-eval'` remains forbidden. |
-| Exact configured Convex HTTPS origin | `connect-src` | The protected editor uses Convex's browser client for live queries and mutations. The origin is derived from the configured public Convex URL rather than a wildcard. |
-| Matching exact Convex WSS origin | `connect-src` | Convex realtime subscriptions use WebSockets on the same deployment host. |
+| Same-origin editor API | Covered by `'self'` in `connect-src` | The protected editor reads and writes through same-origin API routes backed by Postgres. No browser Postgres origin is permitted. |
+| Exact configured Convex HTTPS/WSS origins | `connect-src` | Temporary observation and recovery compatibility only. Keep the exact origins while the recovery window is open; do not describe them as the active editor data path. |
 | `https://api.iconify.design`, `https://api.unisvg.com`, `https://api.simplesvg.com` | `connect-src` | The installed Iconify client fetches uncached icon collections from these three observed redundancy providers. Exact origins are listed; no Iconify wildcard is allowed. |
 | `https://api.crossref.org` | `connect-src` | The protected editor's quick-add reference card resolves DOI metadata directly from Crossref. |
 | `https://eutils.ncbi.nlm.nih.gov` | `connect-src` | The protected editor's quick-add reference card resolves PMID metadata through NCBI E-utilities. |
@@ -75,7 +75,7 @@ Before deployment, run the focused policy and middleware tests, lint, typecheck,
 - representative public pages hydrate and contain their JSON-LD;
 - the database-backed molecule SVG loads and retains its sandbox CSP;
 - a state-changing save request remains protected when anonymous;
-- Convex is the only non-self realtime editor-data origin; Crossref and NCBI are limited to citation metadata lookups;
+- same-origin APIs are the active editor data path; any exact Convex HTTPS/WSS origins are limited to the documented observation and recovery window; Crossref and NCBI are limited to citation metadata lookups;
 - admin HTML contains neither an analytics script nor an analytics CSP source.
 - the molecule editor initializes RDKit in Firefox without an `unsafe-eval` CSP violation.
 - the hash-authorized browser bootstrap selects Zod's supported `jitless` interpreter before application chunks load, avoiding its caught `Function("")` capability probe under strict `/dev` CSP.

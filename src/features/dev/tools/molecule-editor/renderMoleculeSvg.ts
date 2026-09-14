@@ -16,13 +16,11 @@
  */
 
 /** Minimal structural shape of the OpenChemLib objects we use (decouples from the lib). */
-export interface OclMoleculeLike {
-  getAllAtoms(): number;
-  getAllBonds(): number;
-  setAtomCustomLabel(atom: number, label: string | null): boolean;
-  setBondBold(bond: number, bold: boolean): void;
-  toSVG(width: number, height: number, id?: string, options?: object): string;
-}
+interface OclMoleculeLike { getAllAtoms(): number;
+getAllBonds(): number;
+setAtomCustomLabel(atom: number, label: string | null): boolean;
+setBondBold(bond: number, bold: boolean): void;
+toSVG(width: number, height: number, id?: string, options?: object): string; }
 export interface OclModuleLike {
   Molecule: {
     fromMolfile(molfile: string): OclMoleculeLike;
@@ -70,13 +68,13 @@ export const OCL_COLOR_TO_STANDARD: Record<string, string> = {
   "rgb(148,0,148)": "#a01eef", //    I
 };
 
-export const BOND_LENGTH = 28;
-export const FLOOR_MULT = 2.0;
+const BOND_LENGTH = 28
+const FLOOR_MULT = 2.0
 /** viewBox floor so 2–3 atom molecules don't over-zoom (retired Python renderer's floor). */
 export const VIEWBOX_FLOOR = BOND_LENGTH * FLOOR_MULT; // 56
 
 /** Brand stroke width for standard bonds (retired Python renderer's bondLineWidth). */
-export const BRAND_STROKE_WIDTH = 1.1;
+const BRAND_STROKE_WIDTH = 1.1
 /** OCL's own standard line width at our pinned 28 px bond length (AVBL × 0.06). */
 export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06; // 1.68
 
@@ -88,7 +86,7 @@ export const BOLD_CROSSING_GAP = 3.3;
 /** Hairline edge shared by every ribbon piece so joints render as one shape. */
 export const RIBBON_HAIRLINE = 0.5;
 /** Free bold ends are rounded: every non-joint endpoint carries a join disc. */
-export const BOLD_ROUNDED_ENDS = true;
+const BOLD_ROUNDED_ENDS = true
 
 /**
  * Canvas passed to `toSVG`. `inflateToMaxAVBL` (default true) scales the
@@ -209,18 +207,16 @@ export function floorViewBox(svg: string, floor: number = VIEWBOX_FLOOR): string
 type Point = [number, number];
 
 /** Drawn (device-space) endpoints of every bond, read from the event hit layer. */
-export function parseEventBondGeometry(svg: string): Map<number, [Point, Point]> {
-  const map = new Map<number, [Point, Point]>();
-  const re =
-    /<line id="[^"]*:Bond:(\d+)" class="event" x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)"/g;
-  for (const m of svg.matchAll(re)) {
-    map.set(Number(m[1]), [
-      [Number(m[2]), Number(m[3])],
-      [Number(m[4]), Number(m[5])],
-    ]);
-  }
-  return map;
+function parseEventBondGeometry(svg: string): Map<number, [Point, Point]> { const map = new Map<number, [Point, Point]>();
+const re =
+  /<line id="[^"]*:Bond:(\d+)" class="event" x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)"/g;
+for (const m of svg.matchAll(re)) {
+  map.set(Number(m[1]), [
+    [Number(m[2]), Number(m[3])],
+    [Number(m[4]), Number(m[5])],
+  ]);
 }
+return map; }
 
 /**
  * Thin the engine's fat rounded outline on wedge polygons to the ribbon
@@ -250,7 +246,7 @@ const dist = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]);
  * never cut. Runs on the raw SVG (event layer still present) and leaves the
  * event layer for `stripEventLayer`.
  */
-export function applyBoldRibbon(
+function applyBoldRibbon(
   svg: string,
   boldBonds: readonly number[],
   maskId: string,

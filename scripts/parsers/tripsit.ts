@@ -35,7 +35,7 @@ function parseSharedTripSitContent(result: ParserResult, content: string, source
   if (result.tolerance) pushExtractedSection(result, "tolerance");
 }
 
-export class TripSitFactsheetsParser implements SourceParser {
+class TripSitFactsheetsParser implements SourceParser {
   source = getParseableSourceDescriptor("tripsit-factsheets");
   sourceId = this.source.id;
 
@@ -71,7 +71,7 @@ export class TripSitFactsheetsParser implements SourceParser {
   }
 }
 
-export class TripSitWikiParser implements SourceParser {
+class TripSitWikiParser implements SourceParser {
   source = getParseableSourceDescriptor("tripsit-wiki");
   sourceId = this.source.id;
 

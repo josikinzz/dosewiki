@@ -207,14 +207,22 @@ export const getPublicArtistsByKeys = query({
     if (args.keys.length > 200) {
       throw new Error("Public artist taxonomy reads are limited to 200 keys.");
     }
+    const keys = [...new Set(args.keys)].map((key) => key.trim().toLowerCase()).filter(Boolean);
+    if (keys.length === 0) return [];
+    // Collect a batch for foreground reads and background cache refreshes.
+    // Serial indexed reads incur a network round trip for every artist.
+    const matches = await ctx.db
+      .query("replicationArtistTaxonomy")
+      .filter((q) => q.or(...keys.map((key) => q.eq(q.field("key"), key))))
+      .collect();
+    const byKey = new Map<string, (typeof matches)[number]>();
+    for (const row of matches) {
+      if (byKey.has(row.key)) throw new Error("Duplicate artist taxonomy key.");
+      byKey.set(row.key, row);
+    }
     const rows = [];
-    for (const rawKey of new Set(args.keys)) {
-      const key = rawKey.trim().toLowerCase();
-      if (!key) continue;
-      const row = await ctx.db
-        .query("replicationArtistTaxonomy")
-        .withIndex("by_key", (q) => q.eq("key", key))
-        .unique();
+    for (const key of keys) {
+      const row = byKey.get(key);
       if (row) {
         rows.push({
           key: row.key,

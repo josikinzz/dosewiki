@@ -22,9 +22,6 @@ import {
 } from "./substanceProjectionCore";
 export {
   normalizeSubstancePriority,
-  resolveSubstanceSlug,
-  trimSubstanceExcerpt,
-  type PublicSubstancePriority,
 } from "./substanceProjectionCore";
 import {
   normalizeSubstancePriority,
@@ -34,9 +31,7 @@ import {
 } from "./substanceProjectionCore";
 export {
   projectEditorLibraryEntry,
-  type SubstanceEditorLibraryEntryProjection,
 } from "./substanceEditorReadProjections";
-export { compareSubstancePreviews } from "./substancePreviewOrdering";
 
 
 export type SubstanceLookupProjection = {
@@ -143,7 +138,6 @@ export type SubstanceSearchInputProjection = {
 export type SubstanceMechanismRouteInputProjection =
   MechanismRouteSubstanceInput;
 
-export type SubstanceRandomPreviewProjection = SubstancePublicPreviewProjection;
 type SubstancePublicReferenceProjection = Omit<
   SubstanceArticle["references"][number],
   "metadataProvenance"
@@ -423,10 +417,10 @@ export function projectMechanismRouteInput(
 }
 
 
-export const isCompletedEditorialReview = (value: unknown): boolean =>
+const isCompletedEditorialReview = (value: unknown): boolean =>
   typeof value === "object" &&
   value !== null &&
-  (value as { status?: unknown }).status === "completed";
+  (value as { status?: unknown }).status === "completed"
 
 /**
  * Public-safe reviewed-articles aggregate entry. The reviewer email set is

@@ -56,13 +56,13 @@ export const EFFECT_INDEX_HOME_PANEL_BLURB_FALLBACKS = [
   "Artistic representations of specific subjective effects",
 ] as const;
 
-export const EFFECT_INDEX_HOME_PANEL_BLURB_SLOTS = {
+const EFFECT_INDEX_HOME_PANEL_BLURB_SLOTS = {
   substanceSummaries: 0,
   featuredEffects: 1,
   featuredArticle: 2,
   featuredReports: 3,
   featuredReplications: 4,
-} as const;
+} as const
 
 export type EffectIndexHomePanelSlot = keyof typeof EFFECT_INDEX_HOME_PANEL_BLURB_SLOTS;
 

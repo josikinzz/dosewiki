@@ -7,9 +7,9 @@ import {
   canonicalizeEffectSlug,
 } from "./reconciliation.mjs";
 
-export const VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "m4v"];
-export const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
-export const DEFAULT_REPLICATION_RIGHTS_STATUS = "creator-retained";
+const VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "m4v"]
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"]
+const DEFAULT_REPLICATION_RIGHTS_STATUS = "creator-retained"
 export const DEFAULT_REPLICATION_PERMISSION_NOTES =
   "Rights remain with the original creator or rightsholder unless an individual item states a different license.";
 export const DEFAULT_REPLICATION_REMOVAL_CONTACT =
@@ -54,16 +54,14 @@ export const DEFAULT_EFFECT_FOLDER_SLUGS = {
   "visual trails": "tracers",
 };
 
-export function parseReplicationFilename(filename) {
-  const nameWithoutExt = filename.replace(/\.(mp4|webm|mov|m4v|jpg|jpeg|png|webp|gif)$/i, "");
+function parseReplicationFilename(filename) { const nameWithoutExt = filename.replace(/\.(mp4|webm|mov|m4v|jpg|jpeg|png|webp|gif)$/i, "");
 
-  if (nameWithoutExt.includes(" by ")) {
-    const [title, artist] = nameWithoutExt.split(" by ").map((part) => part.trim());
-    return { title, artist };
-  }
-
-  return { title: nameWithoutExt, artist: "Unknown" };
+if (nameWithoutExt.includes(" by ")) {
+  const [title, artist] = nameWithoutExt.split(" by ").map((part) => part.trim());
+  return { title, artist };
 }
+
+return { title: nameWithoutExt, artist: "Unknown" }; }
 
 export function generateReplicationSlug(title, artist) {
   return `${title}-${artist}`
@@ -74,29 +72,25 @@ export function generateReplicationSlug(title, artist) {
     .trim();
 }
 
-export function hasKnownReplicationCreator(artist) {
-  const normalized = String(artist ?? "").trim().toLowerCase();
-  return normalized.length > 0 && normalized !== "unknown";
+function hasKnownReplicationCreator(artist) { const normalized = String(artist ?? "").trim().toLowerCase();
+return normalized.length > 0 && normalized !== "unknown"; }
+
+function buildReplicationCreditLine(replication) { const title = String(replication.title ?? "").trim();
+const artist = String(replication.artist ?? "").trim();
+
+if (title && hasKnownReplicationCreator(artist)) {
+  return `${title} by ${artist}`;
 }
 
-export function buildReplicationCreditLine(replication) {
-  const title = String(replication.title ?? "").trim();
-  const artist = String(replication.artist ?? "").trim();
-
-  if (title && hasKnownReplicationCreator(artist)) {
-    return `${title} by ${artist}`;
-  }
-
-  if (title) {
-    return `${title} (creator unknown)`;
-  }
-
-  if (hasKnownReplicationCreator(artist)) {
-    return `Replication by ${artist}`;
-  }
-
-  return "Replication media (creator unknown)";
+if (title) {
+  return `${title} (creator unknown)`;
 }
+
+if (hasKnownReplicationCreator(artist)) {
+  return `Replication by ${artist}`;
+}
+
+return "Replication media (creator unknown)"; }
 
 export function withDefaultReplicationRights(replication) {
   const artist = String(replication.artist ?? "").trim();
@@ -138,18 +132,16 @@ function normalizedBasename(value) {
     .replace(/[\s_-]+/g, "");
 }
 
-export function createEffectIndexReplicationLookup(effectIndexReplications = []) {
-  const byResourceBasename = new Map();
+function createEffectIndexReplicationLookup(effectIndexReplications = []) { const byResourceBasename = new Map();
 
-  for (const replication of effectIndexReplications) {
-    const key = normalizedBasename(replication.resource);
-    if (key && !byResourceBasename.has(key)) {
-      byResourceBasename.set(key, replication);
-    }
+for (const replication of effectIndexReplications) {
+  const key = normalizedBasename(replication.resource);
+  if (key && !byResourceBasename.has(key)) {
+    byResourceBasename.set(key, replication);
   }
-
-  return byResourceBasename;
 }
+
+return byResourceBasename; }
 
 export function enrichReplicationMetadataFromEffectIndexDump(replications = [], effectIndexReplications = []) {
   const lookup = createEffectIndexReplicationLookup(effectIndexReplications);
@@ -415,9 +407,7 @@ export function planGalleryOrderMutations({
   };
 }
 
-export function isPlaceholderStorageId(storageId) {
-  return !storageId || storageId.startsWith("placeholder-");
-}
+function isPlaceholderStorageId(storageId) { return !storageId || storageId.startsWith("placeholder-"); }
 
 export function planReplicationMediaChanges({
   desiredReplications = [],

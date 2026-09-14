@@ -16,10 +16,10 @@ export type ReportSortKey = "alphabetical" | "count" | "date";
  * `mixed` covers the catch-all shelves (combinations, folded singletons) whose
  * heading names no single substance and no single author.
  */
-export type ReportGroupKind = "substance" | "author" | "letter" | "mixed";
+type ReportGroupKind = "substance" | "author" | "letter" | "mixed"
 
-export const COMBINATIONS_GROUP_NAME = msg("Combinations");
-export const OTHER_SUBSTANCES_GROUP_NAME = msg("Other substances");
+const COMBINATIONS_GROUP_NAME = msg("Combinations")
+const OTHER_SUBSTANCES_GROUP_NAME = msg("Other substances")
 
 export interface TripReportGroup<TReport> {
   name: string;

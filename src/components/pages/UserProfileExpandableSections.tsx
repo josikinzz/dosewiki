@@ -13,6 +13,8 @@ import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { ReportCardModel } from "@/types/tripReport";
 import { icons } from "@/utils/iconNames";
 import { publicHref } from "@/utils/publicHref";
+import { useT, useUiLocale } from "@/i18n/client";
+import { formattingLocale } from "@/i18n/messages";
 
 interface UserTripReportsSectionProps {
   profileKey: string;
@@ -34,23 +36,13 @@ interface UserContributionsSectionProps {
 /** How many changelog rows the section shows before the count expander. */
 const COLLAPSED_CONTRIBUTION_ROWS = 4;
 
-const dayFormat = new Intl.DateTimeFormat(undefined, {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-const timeFormat = new Intl.DateTimeFormat(undefined, {
-  hour: "numeric",
-  minute: "2-digit",
-});
-
 export function UserTripReportsSection({
   profileKey,
   tripReports,
   reportOrder,
   reportHrefPrefix,
 }: UserTripReportsSectionProps) {
+  const t = useT();
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
   const reportsSectionId = `${profileKey}-reports`;
 
@@ -74,7 +66,7 @@ export function UserTripReportsSection({
     <section className="space-y-5">
       <PublicSectionHeading
         icon={icons.fileSignature}
-        title="Trip Reports"
+        title={t("Trip Reports")}
         titleElement="h2"
       />
 
@@ -99,7 +91,7 @@ export function UserTripReportsSection({
             variant="count"
             count={sortedTripReports.length - 3}
             ariaControls={reportsSectionId}
-            ariaLabel={isReportsExpanded ? "Collapse trip reports" : "Expand trip reports"}
+            ariaLabel={isReportsExpanded ? t("Collapse trip reports") : t("Expand trip reports")}
             className="mx-auto"
           />
         )}
@@ -117,6 +109,12 @@ const CONTRIBUTION_ARTICLE_PILL_CAP = 3;
  */
 function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
+  const t = useT();
+  const locale = useUiLocale();
+  const timeFormat = new Intl.DateTimeFormat(formattingLocale(locale), {
+    hour: "numeric",
+    minute: "2-digit",
+  });
   const hasDiff = entry.markdown.trim().length > 0;
   const diffId = `contribution-diff-${entry.id}`;
   const stamp = entry.commit?.sha
@@ -135,10 +133,10 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
               href={entry.commit.url}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`${entry.commit.message} (opens commit on GitHub in a new tab)`}
+              aria-label={t("{{message}} (opens commit on GitHub in a new tab)", { message: entry.commit.message })}
               className="group/commit inline-flex items-start gap-1.5 transition hover:underline hover:underline-offset-2"
             >
-              <span className="line-clamp-2">{entry.commit.message}</span>
+              <span className="line-clamp-2">{t(entry.commit.message)}</span>
               <Icon
                 icon="lucide:external-link"
                 size={13}
@@ -146,7 +144,7 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
               />
             </a>
           ) : (
-            <span className="line-clamp-2">{entry.commit.message}</span>
+            <span className="line-clamp-2">{t(entry.commit.message)}</span>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -166,7 +164,7 @@ function ContributionRow({ entry }: { entry: ChangeLogEntry }) {
               onToggle={() => setIsDiffExpanded(!isDiffExpanded)}
               variant="faint"
               ariaControls={diffId}
-              ariaLabel={isDiffExpanded ? "Hide change diff" : "Show change diff"}
+              ariaLabel={isDiffExpanded ? t("Hide change diff") : t("Show change diff")}
             />
           )}
         </div>
@@ -184,7 +182,10 @@ type ContributionDayGroup = {
 };
 
 /** Groups already-sorted entries into contiguous same-day runs. */
-function groupContributionsByDay(entries: readonly ChangeLogEntry[]): ContributionDayGroup[] {
+function groupContributionsByDay(
+  entries: readonly ChangeLogEntry[],
+  dayFormat: Intl.DateTimeFormat,
+): ContributionDayGroup[] {
   const groups: ContributionDayGroup[] = [];
   for (const entry of entries) {
     const label = dayFormat.format(new Date(entry.createdAt));
@@ -203,6 +204,13 @@ export function UserContributionsSection({
   history,
 }: UserContributionsSectionProps) {
   const [isContributionsExpanded, setIsContributionsExpanded] = useState(false);
+  const t = useT();
+  const locale = useUiLocale();
+  const dayFormat = new Intl.DateTimeFormat(formattingLocale(locale), {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
   const contributionsSectionId = `${profileKey}-contributions`;
 
   if (history.length === 0) {
@@ -212,13 +220,13 @@ export function UserContributionsSection({
   const visibleEntries = isContributionsExpanded
     ? history
     : history.slice(0, COLLAPSED_CONTRIBUTION_ROWS);
-  const dayGroups = groupContributionsByDay(visibleEntries);
+  const dayGroups = groupContributionsByDay(visibleEntries, dayFormat);
 
   return (
     <section className="space-y-5">
       <PublicSectionHeading
         icon="lucide:git-commit-horizontal"
-        title="Latest contributions"
+        title={t("Latest contributions")}
         titleElement="h2"
         actions={
           <PublicPill tone="neutral" size="sm">

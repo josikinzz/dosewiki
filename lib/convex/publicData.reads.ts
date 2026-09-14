@@ -74,7 +74,6 @@ import {
   PUBLIC_SUBSTANCE_LISTS_TAG,
 } from "./publicData.cache";
 
-export { publicDataReadCatalog };
 
 const ABOUT_PREVIEW_COUNT = 12;
 const ABOUT_PREVIEW_MAX_PAGES = 128;
@@ -88,29 +87,29 @@ const ABOUT_PREVIEW_MAX_ROWS = 8_192;
  */
 export type PublicFullSubstanceDocument = Record<string, unknown>;
 
-export type PublicGalleryReplicationPage = {
+type PublicGalleryReplicationPage = {
   items: PublicGalleryReplicationPreview[];
   cursor: string;
   isDone: boolean;
-};
+}
 
 /** One slim page of the shared substance-showcase matchable corpus. */
-export type PublicMatchableReplicationPage = {
+type PublicMatchableReplicationPage = {
   items: SubstanceGalleryMatchableRow[];
   cursor: string;
   isDone: boolean;
-};
+}
 
 /**
  * The stored curation row's public fields, extracted from the
  * `substanceGalleries:getBySubstance` document.
  */
-export type PublicSubstanceGalleryCuration = {
+type PublicSubstanceGalleryCuration = {
   curated_slugs: string[];
   removed_slugs: string[];
   carousel_order: string[];
   disabled?: boolean;
-};
+}
 
 export type PublicDataReadAdapter = {
   getRawSubstances(): Promise<PublicSubstanceLibraryRecord[]>;
@@ -144,10 +143,11 @@ export type PublicDataReadAdapter = {
   getPublicSubstanceGalleryCuration(substanceSlug: string): Promise<PublicSubstanceGalleryCuration | null>;
   /** The merged showcase, or null while the query or its complete index is unavailable. */
   getPublicSubstanceGallery(substanceSlug: string): Promise<PublicSubstanceGallery | null>;
-  getPublicTripReportRecords(): Promise<TripReportRecord[]>;
+  getPublicTripReportPreviews(): Promise<TripReportRecord[]>;
+  getPublicTripReportRecords(): Promise<TripReportDetailRecord[]>;
   getPublicTripReportBySlug(slug: string): Promise<TripReportDetailRecord | null>;
-  getPublicTripReportsByAuthor(authorName: string): Promise<TripReportRecord[]>;
-  getPublicTripReportsByContributor(profileKey: string, authorNames: string[]): Promise<TripReportRecord[]>;
+  getPublicTripReportsByAuthor(authorName: string): Promise<TripReportDetailRecord[]>;
+  getPublicTripReportsByContributor(profileKey: string, authorNames: string[]): Promise<TripReportDetailRecord[]>;
   getPublicTripReportsBySubstanceNames(substanceNames: string[]): Promise<TripReportDetailRecord[]>;
   getPublicContributorProfiles(): Promise<NormalizedUserProfile[]>;
   getPublicAboutConfig(): Promise<AboutConfigRecord | null>;
@@ -171,13 +171,13 @@ export type PublicDataReadAdapter = {
   getPublicBannerDisplayConfig(): Promise<unknown>;
 };
 
-export const projectPublicEffectPreview = (effect: SubjectiveEffectRecord): PublicEffectPreview => ({
+const projectPublicEffectPreview = (effect: SubjectiveEffectRecord): PublicEffectPreview => ({
   name: effect.name,
   slug: effect.slug,
   summary: trimExcerpt(effect.summary, 170),
   featured: effect.featured === true,
   tags: effect.tags,
-});
+})
 
 export const projectPublicEffectPreviews = (effects: SubjectiveEffectRecord[]): PublicEffectPreview[] =>
   effects.map(projectPublicEffectPreview).sort((left, right) => {
@@ -230,15 +230,8 @@ const resolveSubstanceSlug = (substance: Pick<SubstanceRecord, "slug" | "title">
     ? substance.slug
     : slugifySubstanceTitle(substance.title);
 
-export function projectPublicSubstanceLookup(substance: SubstanceRecord): PublicSubstanceLookupEntry {
-  return {
-    slug: resolveSubstanceSlug(substance),
-    name: substance.title,
-    priority: normalizeSubstancePriority(substance.priority),
-  };
-}
 
-export function projectPublicSubstancePreview(substance: SubstanceRecord): PublicSubstancePreview {
+function projectPublicSubstancePreview(substance: SubstanceRecord): PublicSubstancePreview {
   return {
     title: substance.title,
     slug: resolveSubstanceSlug(substance),
@@ -774,20 +767,28 @@ export function createConvexPublicDataReadAdapter(query: QueryTransport = queryC
         throw error;
       }
     },
+    getPublicTripReportPreviews: () =>
+      drainPublicCorpusPages<TripReportRecord>(
+        query,
+        publicDataReadCatalog.publicTripReportPreviews,
+      ),
     getPublicTripReportRecords: () =>
-      query<TripReportRecord[]>(publicDataReadCatalog.publicTripReportRecords.functionName, {}),
+      drainPublicCorpusPages<TripReportDetailRecord>(
+        query,
+        publicDataReadCatalog.publicTripReportRecords,
+      ),
     getPublicTripReportBySlug: (slug) =>
       query<TripReportDetailRecord | null, { slug: string }>(
         publicDataReadCatalog.publicTripReportBySlug.functionName,
         publicDataReadCatalog.publicTripReportBySlug.args(slug),
       ),
     getPublicTripReportsByAuthor: (authorName) =>
-      query<TripReportRecord[], { authorName: string }>(
+      query<TripReportDetailRecord[], { authorName: string }>(
         publicDataReadCatalog.publicTripReportsByAuthor.functionName,
         publicDataReadCatalog.publicTripReportsByAuthor.args(authorName),
       ),
     getPublicTripReportsByContributor: (profileKey, authorNames) =>
-      query<TripReportRecord[], { profileKey: string; authorNames: string[] }>(
+      query<TripReportDetailRecord[], { profileKey: string; authorNames: string[] }>(
         publicDataReadCatalog.publicTripReportsByContributor.functionName,
         publicDataReadCatalog.publicTripReportsByContributor.args(profileKey, authorNames),
       ),
@@ -891,6 +892,7 @@ const readPublicSubstanceProjectionPage = publicDataCache(
   ["convex-public-substance-projection-page-v1"],
   {
     revalidate: PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS,
+    awaitRefresh: true,
     tags: [
       PUBLIC_CONVEX_CACHE_TAGS.all,
       PUBLIC_CONVEX_CACHE_TAGS.substances,
@@ -926,6 +928,3 @@ export function setPublicDataReadAdapterForTest(adapter: PublicDataReadAdapter) 
   publicDataReadAdapter = adapter;
 }
 
-export function resetPublicDataReadAdapterForTest() {
-  publicDataReadAdapter = defaultPublicDataReadAdapter;
-}

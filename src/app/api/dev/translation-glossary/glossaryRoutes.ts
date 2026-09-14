@@ -66,4 +66,8 @@ export type GlossaryListResponse = {
   segments: { total: number; current: number };
   locales: GlossaryLocaleOption[];
   rows: TranslationGlossaryRow[];
+  /** Approved terms whose rendering changed since it last reached stored segments: what a retranslate sends. */
+  pending: string[];
+  /** `term -> gloss`, the locale-independent English definitions; shown under each row and injected into every prompt. */
+  glosses: Record<string, string>;
 };

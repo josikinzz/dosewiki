@@ -4,10 +4,9 @@ import type {
   ManualCategoryDefinition,
   ManualCategorySection,
   ManualIndexConfig,
-  ManualSectionLink,
 } from "@/data/builders/manualIndexLoader";
 
-export type { ManualCategoryDefinition, ManualCategorySection, ManualIndexConfig, ManualSectionLink };
+export type { ManualCategoryDefinition, ManualCategorySection, ManualIndexConfig };
 
 export interface IndexLayoutTabProps {
   commitPanel?: ReactNode;

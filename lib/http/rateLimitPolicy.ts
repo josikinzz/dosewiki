@@ -12,9 +12,9 @@ export type RateLimitPolicyName =
   | "publicContentApiRead"
   | "authCredentialAttempt";
 
-export type RateLimitKeyStrategy = "ip";
-export type RateLimitFallbackMode = "inMemory";
-export type RateLimitResponseShape = "jsonError";
+type RateLimitKeyStrategy = "ip";
+type RateLimitFallbackMode = "inMemory";
+type RateLimitResponseShape = "jsonError";
 
 export type RateLimitPolicy = {
   name: RateLimitPolicyName;
@@ -27,7 +27,7 @@ export type RateLimitPolicy = {
 
 const ONE_MINUTE_MS = 60_000;
 
-export const rateLimitPolicies = {
+const rateLimitPolicies = {
   editorHeavyWrite: {
     name: "editorHeavyWrite",
     windowMs: ONE_MINUTE_MS,

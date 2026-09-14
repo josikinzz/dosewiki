@@ -63,25 +63,19 @@ export function resolveInteractionDataPaths(scriptUrl) {
   };
 }
 
-export function formatInteractionName(name) {
-  const trimmed = name.trim();
-  const lower = trimmed.toLowerCase();
-  return NAME_MAP[lower] || trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-}
+function formatInteractionName(name) { const trimmed = name.trim();
+const lower = trimmed.toLowerCase();
+return NAME_MAP[lower] || trimmed.charAt(0).toUpperCase() + trimmed.slice(1); }
 
-export function mapTripSitStatus(status) {
-  return STATUS_MAP[status];
-}
+function mapTripSitStatus(status) { return STATUS_MAP[status]; }
 
-export function deduplicateInteractions(names) {
-  const seen = new Map();
-  for (const name of names) {
-    const formatted = formatInteractionName(name);
-    const key = formatted.toLowerCase();
-    if (!seen.has(key)) seen.set(key, formatted);
-  }
-  return Array.from(seen.values()).sort();
+function deduplicateInteractions(names) { const seen = new Map();
+for (const name of names) {
+  const formatted = formatInteractionName(name);
+  const key = formatted.toLowerCase();
+  if (!seen.has(key)) seen.set(key, formatted);
 }
+return Array.from(seen.values()).sort(); }
 
 function sortByName(left, right) {
   const leftName = left.replace(/\s*\(.*$/, "").toLowerCase();

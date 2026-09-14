@@ -6,6 +6,7 @@ import { t } from "@/i18n/server";
 import { msg } from "@/i18n/messages";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 import { SEI_INTRO_COPY_FALLBACK } from "@/features/effects/components/seiIntroCopy";
+import { TABS, type TabId } from "@/features/effects/pages/effectsIndexConfig";
 import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
 import {
   EFFECT_INDEX_DEFAULT_VIEW,
@@ -14,7 +15,7 @@ import {
   type EffectIndexView,
 } from "@/utils/indexViewRoutes";
 import { buildItemListSchema, serializeJsonLd } from "@/utils/seo/structuredData";
-import { getCopy } from "@server/next/copyBlocks";
+import { getCopy, type CopyResolver } from "@server/next/copyBlocks";
 import { resolveEmptyStateCopy } from "@server/next/emptyStateCopy";
 import {
   buildPublicPageMetadata,
@@ -29,6 +30,16 @@ const LEGACY_HASHES = [
   ...EFFECT_INDEX_VIEW_PARAMS.map(({ view }) => view),
   "gallery",
 ];
+
+/**
+ * The editable intro blob of one category tab, translated for the request.
+ * The copy block's checked-in default is the tab's own blob, so the config
+ * text is the fallback only when a block is deleted outright.
+ */
+function tabBlob(copy: CopyResolver, tabId: TabId): string | undefined {
+  const text = copy.text(`effects-index-tab-${tabId}`) || TABS.find((tab) => tab.id === tabId)?.blob;
+  return text ? t(text) : undefined;
+}
 
 export async function getEffectsIndexMetadata(
   pathname: string,
@@ -97,17 +108,18 @@ export async function EffectsIndexRoute({
         initialView={initialView}
         emptyState={resolveEmptyStateCopy(copy, "effects", result.pageProps.emptyState)}
         introCopy={{
-          lead: copy.text("effects-index-intro-lead") || SEI_INTRO_COPY_FALLBACK.lead,
-          method: copy.text("effects-index-intro-method") || SEI_INTRO_COPY_FALLBACK.method,
-          organisation:
+          lead: t(copy.text("effects-index-intro-lead") || SEI_INTRO_COPY_FALLBACK.lead),
+          method: t(copy.text("effects-index-intro-method") || SEI_INTRO_COPY_FALLBACK.method),
+          organisation: t(
             copy.text("effects-index-intro-organisation") ||
-            SEI_INTRO_COPY_FALLBACK.organisation,
+              SEI_INTRO_COPY_FALLBACK.organisation,
+          ),
         }}
         tabBlobs={{
-          sensory: copy.text("effects-index-tab-sensory") || undefined,
-          cognitive: copy.text("effects-index-tab-cognitive") || undefined,
-          physical: copy.text("effects-index-tab-physical") || undefined,
-          library: copy.text("effects-index-tab-library") || undefined,
+          sensory: tabBlob(copy, "sensory"),
+          cognitive: tabBlob(copy, "cognitive"),
+          physical: tabBlob(copy, "physical"),
+          library: tabBlob(copy, "library"),
         }}
       />
     </>

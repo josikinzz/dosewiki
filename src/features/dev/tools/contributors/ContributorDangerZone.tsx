@@ -11,10 +11,10 @@ import {
   EditorNotice,
   EditorSection,
   EditorStatusPill,
-  SearchablePicker,
   TagToken,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
+import { SearchablePicker } from "@/features/dev/components/SearchablePicker";
 
 type DirectoryOption = {
   key: string;

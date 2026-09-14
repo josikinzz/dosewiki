@@ -18,10 +18,10 @@ import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
  */
 
 /** The path prefix every workbench address shares. */
-export const REVIEW_BASE_PATH = "/review";
+const REVIEW_BASE_PATH = "/review";
 
 /** Query parameter carrying the Webpage / Editor split. */
-export const REVIEW_VIEW_PARAM = "view";
+const REVIEW_VIEW_PARAM = "view";
 
 /** Where the workbench is, as far as the address bar is concerned. */
 export interface ReviewLocation {

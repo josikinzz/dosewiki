@@ -6,7 +6,7 @@ import { getAllSubstanceDocuments } from "../../lib/convex-pagination.mjs";
 import { normalizeArticleInput } from "../../../src/features/dev/tools/substance-editor/yamlParser.ts";
 import { cloneJson, getArticleSlug, sanitizeObjectKeys, stripConvexMetadata } from "../summary/articles.mjs";
 
-export function ensureArtifactDirs(config) {
+function ensureArtifactDirs(config) {
   for (const dir of [config?.progressDir, config?.debugDir, config?.backupDir]) {
     if (dir) mkdirSync(dir, { recursive: true });
   }
@@ -161,10 +161,8 @@ export function copyLocalJsonBackup({ articlesFile, backupFile, log = console.lo
   return backupFile;
 }
 
-export function writeLocalJsonExport({ articles, articlesFile }) {
-  mkdirSync(dirname(articlesFile), { recursive: true });
-  writeFileSync(articlesFile, JSON.stringify(articles, null, 2), "utf8");
-}
+function writeLocalJsonExport({ articles, articlesFile }) { mkdirSync(dirname(articlesFile), { recursive: true });
+writeFileSync(articlesFile, JSON.stringify(articles, null, 2), "utf8"); }
 
 export function refreshLocalJsonExport({
   articles,

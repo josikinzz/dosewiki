@@ -31,7 +31,7 @@ export type ReplicationStatus =
 
 export type ReplicationPublicationState = "published" | "duplicate-suppressed";
 
-export type ReplicationViewingMode =
+type ReplicationViewingMode =
   | "open-eye"
   | "closed-eye"
   | "mixed"
@@ -59,7 +59,7 @@ export type ReplicationContentFamily =
   | "effect-illustration"
   | "explanatory-figure"
   | "uncertain";
-export type ReplicationArtistPrimaryType =
+type ReplicationArtistPrimaryType =
   | "replicator"
   | "traditional-psychedelic-artist"
   | "mixed"
@@ -83,12 +83,12 @@ export interface PublicReplicationArtistTaxonomy {
  * Use this rather than comparing `row.role` directly, so that default is stated
  * once instead of once per consumer.
  */
-export function mediaRole(row: { role?: MediaRole }): MediaRole {
+function mediaRole(row: { role?: MediaRole }): MediaRole {
   return row.role ?? "replication";
 }
 
 /** Whether a stored row should be counted and shown as a replication. */
-export function isReplicationRow(row: { role?: MediaRole }): boolean {
+function isReplicationRow(row: { role?: MediaRole }): boolean {
   return mediaRole(row) === "replication";
 }
 
@@ -207,14 +207,14 @@ export function curatedEffectPosition(
  * Replication rights status. Replication media is separate from dose.wiki's
  * CC0 article dataset unless an individual item says otherwise.
  */
-export type ReplicationRightsStatus =
+type ReplicationRightsStatus =
   | "creator-retained"
   | "explicit-license"
   | "unknown"
   | "permission-granted"
   | "public-domain";
 
-export interface ReplicationRightsMetadata {
+interface ReplicationRightsMetadata {
   rights_status?: ReplicationRightsStatus;
   license_name?: string;
   license_url?: string;
@@ -233,7 +233,7 @@ export type ReplicationDateKind =
   | "inferred"
   | "unknown";
 
-export type ReplicationDateConfidence =
+type ReplicationDateConfidence =
   | "high"
   | "medium-high"
   | "medium"
@@ -261,7 +261,7 @@ export interface ReplicationDateInfo {
 /**
  * Raw replication record from Convex database.
  */
-export interface ReplicationRecord extends ReplicationRightsMetadata {
+interface ReplicationRecord extends ReplicationRightsMetadata {
   _id: string;
   _creationTime: number;
   slug: string;
@@ -374,7 +374,7 @@ export interface GalleryReplication extends ReplicationWithUrl {
  * `class` and `matched_title_text` never render on a gallery surface, so
  * they stay off the serialized corpus. A full entry remains assignable here.
  */
-export interface PublicGalleryTitleDrug {
+interface PublicGalleryTitleDrug {
   slug: string;
   name: string;
 }
@@ -387,7 +387,7 @@ export interface PublicGalleryTitleDrug {
  * pane — so it stays off the serialized corpus. A full record's `date_info`
  * remains assignable here.
  */
-export interface PublicGalleryDateInfo {
+interface PublicGalleryDateInfo {
   value?: string;
   kind: ReplicationDateKind;
 }
@@ -456,48 +456,22 @@ export interface PublicGalleryReplicationPreview {
 /**
  * Grouped replications by type.
  */
-export interface GroupedReplications {
-  images: ReplicationWithUrl[];
-  videos: ReplicationWithUrl[];
-}
+
 
 /**
  * Gallery metadata for ordering and presentation.
  */
-export interface GalleryMetadata {
-  effectSlug: string;
-  totalCount: number;
-  imageCount: number;
-  videoCount: number;
-  order?: string[];
-}
+
 
 /**
  * Lightgallery item data structure.
  */
-export interface LightGalleryItem {
-  id: string;
-  src: string;
-  thumb: string;
-  subHtml: string;
-  type: "image" | "video";
-  width?: number;
-  height?: number;
-  duration?: number;
-}
+
 
 /**
  * Replication upload form data.
  */
-export interface ReplicationUploadInput {
-  slug: string;
-  title: string;
-  artist: string;
-  artist_url?: string;
-  type: ReplicationType;
-  effect_slug: string;
-  file: File;
-}
+
 
 /**
  * Replication with basic metadata (for UI display).

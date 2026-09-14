@@ -20,7 +20,7 @@ import {
   type TaxonomyRouteSurface,
 } from "./taxonomy";
 
-export type PublicTaxonomyDetail =
+type PublicTaxonomyDetail =
   | CategoryDetail
   | ClassificationDetail
   | MechanismDetail

@@ -11,7 +11,7 @@
 
 import { msg } from "@/i18n/messages";
 
-export const SITE_FEEDBACK_SCHEMA_VERSION = 1;
+const SITE_FEEDBACK_SCHEMA_VERSION = 1;
 
 export const SITE_FEEDBACK_CATEGORIES = [
   "article-request",
@@ -75,7 +75,7 @@ export const SITE_FEEDBACK_URGENCY_LABELS: Record<SiteFeedbackUrgency, string> =
 };
 
 /** Categories where the urgency dropdown applies (bug-like categories). */
-export const SITE_FEEDBACK_URGENCY_CATEGORIES = [
+const SITE_FEEDBACK_URGENCY_CATEGORIES = [
   "technical",
   "performance",
   "accessibility",
@@ -85,7 +85,7 @@ export function siteFeedbackCategoryAcceptsUrgency(category: string): boolean {
   return (SITE_FEEDBACK_URGENCY_CATEGORIES as readonly string[]).includes(category);
 }
 
-export const SITE_FEEDBACK_STATUSES = [
+const SITE_FEEDBACK_STATUSES = [
   "new",
   "reviewing",
   "resolved",
@@ -114,8 +114,8 @@ export const SITE_FEEDBACK_STATUS_TRANSITIONS: Record<
 };
 
 export const SITE_FEEDBACK_DETAILS_MAX_LENGTH = 4000;
-export const SITE_FEEDBACK_PAGE_MAX_LENGTH = 2000;
-export const SITE_FEEDBACK_EMAIL_MAX_LENGTH = 254;
+const SITE_FEEDBACK_PAGE_MAX_LENGTH = 2000;
+const SITE_FEEDBACK_EMAIL_MAX_LENGTH = 254;
 
 export type SiteFeedbackInput = {
   category: string;
@@ -167,14 +167,14 @@ export function isSiteFeedbackStatus(value: unknown): value is SiteFeedbackStatu
   );
 }
 
-export function isSiteFeedbackCategory(value: unknown): value is SiteFeedbackCategory {
+function isSiteFeedbackCategory(value: unknown): value is SiteFeedbackCategory {
   return (
     typeof value === "string" &&
     SITE_FEEDBACK_CATEGORIES.includes(value as SiteFeedbackCategory)
   );
 }
 
-export function isSiteFeedbackUrgency(value: unknown): value is SiteFeedbackUrgency {
+function isSiteFeedbackUrgency(value: unknown): value is SiteFeedbackUrgency {
   return (
     typeof value === "string" &&
     SITE_FEEDBACK_URGENCIES.includes(value as SiteFeedbackUrgency)
@@ -267,7 +267,7 @@ export function createSiteFeedbackRow(
   };
 }
 
-export function normalizeSiteFeedbackInput(
+function normalizeSiteFeedbackInput(
   input: SiteFeedbackInput,
 ): NormalizedSiteFeedbackInput {
   return {

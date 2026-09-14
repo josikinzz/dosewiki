@@ -8,8 +8,9 @@
  * QA packet.
  *
  * Nothing here writes Convex or Postgres. The input is the published export,
- * the glossary is read from Postgres (`translationGlossary`, approved rows),
- * and the output is a local artifact under notes-and-plans/exports.
+ * the glossary and its glosses are read from Postgres (`translationGlossary`
+ * approved rows, `translationGlossaryTerms`), and the output is a local
+ * artifact under notes-and-plans/exports.
  *
  * Usage:
  *   export OPENROUTER_API_KEY="sk-or-..."
@@ -41,10 +42,22 @@ import { resolveCorpus } from "./corpora.mjs";
 import { resolveLocale } from "./locales.mjs";
 import { validateSegment, isBlocking, DEFECT_CODES } from "./validate.mjs";
 import { buildQaPacket } from "./qa-packet.mjs";
-import { DEFAULT_MODEL, MAX_ATTEMPTS, planBatches, translateBatchWithRetries } from "./engine.mjs";
-import { loadGlossary } from "../../lib/translation/glossary.ts";
+import { DEFAULT_MODEL, planBatches, translateBatchWithRetries } from "./engine.mjs";
+import { readGlossaryRows } from "../../lib/translation/glossary.ts";
+import { loadGlosses } from "../../lib/translation/glossaryGloss.ts";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 
+/**
+ * The prompt context each batch corpus maps to (`kindInContext` in locales.mjs);
+ * a corpus not listed here is translated unscoped, as every corpus was before.
+ */
+const CORPUS_CONTEXT_KIND = {
+  substances: "article",
+  effects: "effect",
+  articles: "library",
+  reports: "report",
+  replications: "replication",
+};
 
 /**
  * Node's default dispatcher negotiates HTTP/2 with this endpoint and multiplexes
@@ -169,7 +182,9 @@ async function main() {
   }
 
   const locale = resolveLocale(options.locale);
-  const glossary = await loadGlossary(options.locale);
+  const [approvedRows, glosses] = await Promise.all([readGlossaryRows(options.locale, { status: "approved" }), loadGlosses()]);
+  const glossary = Object.fromEntries(approvedRows.map((row) => [row.term, row.target]));
+  const kinds = Object.fromEntries(approvedRows.map((row) => [row.term, row.kind]));
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey && !options.dryRun) {
     console.error("Error: OPENROUTER_API_KEY environment variable is required");
@@ -193,7 +208,8 @@ async function main() {
     process.exit(1);
   }
 
-  let units = buildWorkUnits(segments);
+  const contextKind = CORPUS_CONTEXT_KIND[corpus.id];
+  let units = buildWorkUnits(segments).map((unit) => (contextKind ? { ...unit, contextKind } : unit));
   if (options.limit) units = units.slice(0, options.limit);
 
   const checkpoint = options.resume ? await loadCheckpoint(checkpointPath) : new Map();
@@ -297,6 +313,8 @@ async function main() {
         units: batch,
         locale,
         glossary,
+        kinds,
+        glosses,
         model: options.model,
         apiKey,
         onUsage: (usage, attempt) => {

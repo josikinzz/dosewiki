@@ -1,29 +1,38 @@
 /**
  * Locale mirrors of dose.wiki: one subdomain per language, served by the
  * public deployment from the `/<prefix>/...` routes the middleware rewrites
- * to. Substance articles plus the two discovery surfaces (`/` and
- * `/substances`) are localized; every other path on a locale host serves the
- * English page unchanged so navigation never leaves the host.
+ * to. Substance articles, the record pages, the indexes and their tab views,
+ * psychoactive class views, chemical class pages, psychoactive summaries, and
+ * search are localized; every other path on a locale host serves the English
+ * page unchanged so navigation never leaves the host.
  *
  * The hosts are deliberately unlisted: each mirror carries `noindex` and a
  * canonical link back to the English page.
  */
 import { normalizeHost } from "./publicHostPolicy";
+import { SUBSTANCE_INDEX_VIEW_PARAMS } from "../../src/utils/indexViewRoutes";
+import {
+  PUBLIC_LOCALES,
+  type LocaleIdentity,
+  type TranslationLocaleCode,
+} from "../../src/i18n/localeRegistry.mjs";
 
-export type LiveLocale = {
-  /** BCP 47 tag, also the `locale` column of `translationSegments`. */
-  code: "zh-Hans";
-  /** Route prefix the middleware rewrites the locale host onto. */
+export type LiveLocale = Pick<LocaleIdentity<TranslationLocaleCode>, "code"> & {
   pathPrefix: string;
-  /** `lang` attribute on the localized article wrapper. */
+  /** Language attribute consumed by the existing static route wrappers. */
   htmlLang: string;
 };
 
-export const LIVE_LOCALES: Readonly<Record<string, LiveLocale>> = {
-  "zh.dose.wiki": { code: "zh-Hans", pathPrefix: "/zh", htmlLang: "zh-Hans" },
-};
+export const LIVE_LOCALES: Readonly<Record<string, LiveLocale>> = Object.freeze(
+  Object.fromEntries(PUBLIC_LOCALES.map((locale) => [
+    locale.publicHost,
+    { ...locale, htmlLang: locale.htmlLanguage },
+  ])),
+);
 
-export const LIVE_LOCALE_CODES = Object.values(LIVE_LOCALES).map((locale) => locale.code);
+export const LIVE_LOCALE_CODES: readonly TranslationLocaleCode[] = Object.freeze(
+  Object.values(LIVE_LOCALES).map((locale) => locale.code),
+);
 
 export function localeForHost(host: string | null | undefined): LiveLocale | null {
   return LIVE_LOCALES[normalizeHost(host)] ?? null;
@@ -41,19 +50,56 @@ export function localizedArticleRoutePath(locale: LiveLocale, slug: string): str
   return `${locale.pathPrefix}/${slug}`;
 }
 
-/** The English index paths the middleware also localizes, in route order. The replication tabs are one section, so they localize together. */
-export const LOCALIZED_INDEX_PATHS = [
-  "/",
-  "/substances",
-  "/effects",
-  "/reports",
-  "/articles",
-  "/replications",
-  "/replications/audio",
-  "/replications/more-info",
-  "/replications/tutorials",
-  "/about",
-] as const;
+/**
+ * The English index paths the middleware also localizes, in route order. The
+ * Substance and Effect Index group views are the same pages opened on routed
+ * tabs, and the replication tabs localize as one section. `/search` renders
+ * its results client-side; the mirror
+ * route exists so the chrome and the result labels resolve the locale.
+ */
+export const LOCALIZED_ROUTE_FAMILIES = Object.freeze({
+  indexes: [
+    "/",
+    "/substances",
+    ...SUBSTANCE_INDEX_VIEW_PARAMS.map(
+      ({ slug }) => `/substances/group/${slug}`,
+    ),
+    "/effects",
+    "/effects/group/sensory",
+    "/effects/group/cognitive",
+    "/effects/group/physical",
+    "/effects/group/library",
+    "/effects/group/info",
+    "/reports",
+    "/articles",
+    "/chemical-classes",
+    "/replications",
+    "/replications/audio",
+    "/replications/more-info",
+    "/replications/tutorials",
+    "/about",
+    "/docs/how",
+    "/docs/code",
+    "/docs/license",
+    "/glossary",
+    "/search",
+    "/changes",
+  ],
+  details: [
+    "category",
+    "effect-category",
+    "effect",
+    "report",
+    "library",
+    "chemical-class",
+    "contributor",
+    "replication-artist",
+    "psychoactive-summary",
+    "replication",
+  ],
+} as const);
+
+const LOCALIZED_INDEX_PATHS: readonly string[] = LOCALIZED_ROUTE_FAMILIES.indexes;
 
 /** The mirror route for one English index path, when that path localizes. */
 /**
@@ -67,24 +113,54 @@ export function localizedNotFoundRoutePath(locale: LiveLocale): string {
 }
 
 export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): string | null {
-  if (!LOCALIZED_INDEX_PATHS.includes(pathname as (typeof LOCALIZED_INDEX_PATHS)[number])) {
+  if (!LOCALIZED_INDEX_PATHS.includes(pathname)) {
     return null;
   }
   return pathname === "/" ? locale.pathPrefix : `${locale.pathPrefix}${pathname}`;
 }
 
 /**
- * The mirror route prefix and slug for one mirrored record path. Substance
+ * The mirror route prefix and slug for one mirrored detail path. Substance
  * articles route through the corpus-gated slug check in the middleware; this
- * covers the effect, report, library article, replication permalink, and
- * replication artist detail paths, which the zh routes resolve against the
- * live record and 404 on their own. The artist page is keyed by a credit
- * line, not a translation record, so it carries no corpus kind.
+ * covers category, effect, report, library article, chemical class,
+ * replication permalink, replication artist, and psychoactive summary paths.
+ * These routes resolve their dynamic keys against their own public data and
+ * return 404 when the key is absent. Artists, class definitions, and summaries
+ * are not translation records, so their `kind` values describe routing rather
+ * than store records.
  */
+type LocalizedDetailRouteKind =
+  | "category"
+  | "effect"
+  | "effect-category"
+  | "report"
+  | "library"
+  | "chemical-class"
+  | "contributor"
+  | "replication"
+  | "replication-artist"
+  | "psychoactive-summary";
+
 export function localizedRecordRoutePath(
   locale: LiveLocale,
   pathname: string,
-): { path: string; kind: "effect" | "report" | "library" | "replication" | "replication-artist"; slug: string } | null {
+): { path: string; kind: LocalizedDetailRouteKind; slug: string } | null {
+  const categoryKey = pathname.match(/^\/category\/([^/]+)\/?$/);
+  if (categoryKey) {
+    return {
+      path: `${locale.pathPrefix}/category/${categoryKey[1]}`,
+      kind: "category",
+      slug: categoryKey[1],
+    };
+  }
+  const effectCategorySlug = pathname.match(/^\/effects\/category\/([^/]+)\/?$/);
+  if (effectCategorySlug) {
+    return {
+      path: `${locale.pathPrefix}/effects/category/${effectCategorySlug[1]}`,
+      kind: "effect-category",
+      slug: effectCategorySlug[1],
+    };
+  }
   const effectSlug = pathname.match(/^\/effects\/([^/]+)\/?$/);
   if (effectSlug) {
     return {
@@ -109,12 +185,36 @@ export function localizedRecordRoutePath(
       slug: librarySlug[1],
     };
   }
+  const chemicalClassKey = pathname.match(/^\/chemical-classes\/([^/]+)\/?$/);
+  if (chemicalClassKey) {
+    return {
+      path: `${locale.pathPrefix}/chemical-classes/${chemicalClassKey[1]}`,
+      kind: "chemical-class",
+      slug: chemicalClassKey[1],
+    };
+  }
+  const contributorKey = pathname.match(/^\/contributors\/([^/]+)\/?$/);
+  if (contributorKey) {
+    return {
+      path: `${locale.pathPrefix}/contributors/${contributorKey[1]}`,
+      kind: "contributor",
+      slug: contributorKey[1],
+    };
+  }
   const artistKey = pathname.match(/^\/replications\/artist\/([^/]+)\/?$/);
   if (artistKey) {
     return {
       path: `${locale.pathPrefix}/replications/artist/${artistKey[1]}`,
       kind: "replication-artist",
       slug: artistKey[1],
+    };
+  }
+  const summaryPath = pathname.match(/^\/psychoactive\/([^/]+(?:\/[^/]+)*)\/?$/);
+  if (summaryPath) {
+    return {
+      path: `${locale.pathPrefix}/psychoactive/${summaryPath[1]}`,
+      kind: "psychoactive-summary",
+      slug: summaryPath[1],
     };
   }
   // The viewer route is the middleware's own rewrite target for

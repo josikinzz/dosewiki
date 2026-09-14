@@ -66,7 +66,7 @@ export const EFFECT_INDEX_IDENTITIES = [
   { key: "NERVEWING", displayName: "Nervewing", aliases: ["nervewing"], profileKey: "nervewing" },
 ];
 
-export function normalizeLegacyKey(value) {
+function normalizeLegacyKey(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
@@ -245,7 +245,7 @@ function httpsLinksFromPerson(person) {
 }
 
 /** Resolve the legacy bio and role for one identity from both source dialects. */
-export function resolveLegacyContent(definition, person, profile) {
+function resolveLegacyContent(definition, person, profile) {
   const personIsPrivate = Boolean(person?.not_public || person?.isPrivate);
   const publicPerson = personIsPrivate ? undefined : person;
 

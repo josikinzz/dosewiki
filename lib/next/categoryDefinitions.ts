@@ -38,12 +38,12 @@ type ManualCategory = {
 };
 
 /** Copy key for one psychoactive category's index intro. */
-export function categoryDefinitionCopyKey(categoryKey: string): string {
+function categoryDefinitionCopyKey(categoryKey: string): string {
   return `substances-category-${categoryKey}`;
 }
 
 /** Umbrella tab id → copy key. The ids carry a `:` that copy keys may not. */
-export const SUPER_CATEGORY_COPY_KEYS: Record<string, string> = {
+const SUPER_CATEGORY_COPY_KEYS: Record<string, string> = {
   "super:hallucinogens": "substances-category-super-hallucinogens",
   "super:depressants": "substances-category-super-depressants",
 };

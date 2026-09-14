@@ -17,7 +17,7 @@ type EditBody = { locale?: unknown; term?: unknown; target?: unknown };
 type ParsedEdit = { locale: string; term: string; target: string };
 
 export const POST = protectedRouteOperation<EditBody, ParsedEdit>({
-  auth: "admin",
+  auth: "translator",
   rateLimit: "editorSmallWrite",
   body: {
     maxBytes: GLOSSARY_BODY_MAX_BYTES,

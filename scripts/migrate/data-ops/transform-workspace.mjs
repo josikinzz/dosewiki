@@ -4,114 +4,102 @@ export function cloneJson(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
 }
 
-export function defaultArticleKey(article, index) {
-  return article?.slug || article?.title || article?.id || `article-${index}`;
+function defaultArticleKey(article, index) { return article?.slug || article?.title || article?.id || `article-${index}`; }
+
+function defaultValidateArticle(article) { if (!article || typeof article !== "object") {
+  return {
+    ok: false,
+    issues: [{ path: "<root>", message: "Article must be an object", code: "invalid_type" }],
+  };
 }
 
-export function defaultValidateArticle(article) {
-  if (!article || typeof article !== "object") {
-    return {
-      ok: false,
-      issues: [{ path: "<root>", message: "Article must be an object", code: "invalid_type" }],
-    };
-  }
-
-  if (typeof article.title !== "string" || article.title.trim() === "") {
-    return {
-      ok: false,
-      issues: [{ path: "title", message: "Article title is required", code: "required" }],
-    };
-  }
-
-  return { ok: true, article, issues: [] };
+if (typeof article.title !== "string" || article.title.trim() === "") {
+  return {
+    ok: false,
+    issues: [{ path: "title", message: "Article title is required", code: "required" }],
+  };
 }
+
+return { ok: true, article, issues: [] }; }
 
 export function validateSubstanceArticleShape(article) {
   return validateSubstanceArticlePayload(article);
 }
 
-export function createDiffSummary(before, after) {
-  const fields = Array.from(new Set([
-    ...Object.keys(before || {}),
-    ...Object.keys(after || {}),
-  ])).sort();
+function createDiffSummary(before, after) { const fields = Array.from(new Set([
+  ...Object.keys(before || {}),
+  ...Object.keys(after || {}),
+])).sort();
 
-  const changedFields = [];
-  for (const field of fields) {
-    const beforeValue = before?.[field];
-    const afterValue = after?.[field];
-    if (JSON.stringify(beforeValue) !== JSON.stringify(afterValue)) {
-      changedFields.push({
-        field,
-        before: cloneJson(beforeValue),
-        after: cloneJson(afterValue),
-      });
-    }
+const changedFields = [];
+for (const field of fields) {
+  const beforeValue = before?.[field];
+  const afterValue = after?.[field];
+  if (JSON.stringify(beforeValue) !== JSON.stringify(afterValue)) {
+    changedFields.push({
+      field,
+      before: cloneJson(beforeValue),
+      after: cloneJson(afterValue),
+    });
   }
+}
 
+return {
+  changed: changedFields.length > 0,
+  changedFields,
+}; }
+
+function countDiffFields(changedRecords) { const counts = {};
+for (const record of changedRecords) {
+  for (const change of record.diff.changedFields) {
+    counts[change.field] = (counts[change.field] || 0) + 1;
+  }
+}
+return counts; }
+
+function normalizeTransformResult(result, originalArticle) { if (!result) {
+  return { article: originalArticle };
+}
+
+if (result.skipped || result.skip) {
   return {
-    changed: changedFields.length > 0,
-    changedFields,
+    skipped: result.skipped || result.skip,
+    reason: result.reason || result.skipped || result.skip,
+    warnings: result.warnings || [],
+    metadata: result.metadata || {},
   };
 }
 
-export function countDiffFields(changedRecords) {
-  const counts = {};
-  for (const record of changedRecords) {
-    for (const change of record.diff.changedFields) {
-      counts[change.field] = (counts[change.field] || 0) + 1;
-    }
-  }
-  return counts;
-}
-
-export function normalizeTransformResult(result, originalArticle) {
-  if (!result) {
-    return { article: originalArticle };
-  }
-
-  if (result.skipped || result.skip) {
-    return {
-      skipped: result.skipped || result.skip,
-      reason: result.reason || result.skipped || result.skip,
-      warnings: result.warnings || [],
-      metadata: result.metadata || {},
-    };
-  }
-
-  if (Object.prototype.hasOwnProperty.call(result, "article")) {
-    return {
-      article: result.article,
-      warnings: result.warnings || [],
-      metadata: result.metadata || {},
-    };
-  }
-
+if (Object.prototype.hasOwnProperty.call(result, "article")) {
   return {
-    article: result,
-    warnings: [],
-    metadata: {},
+    article: result.article,
+    warnings: result.warnings || [],
+    metadata: result.metadata || {},
   };
 }
 
-export function collectArticleSources({ article, index, sourceAdapters }) {
-  const sources = {};
-  const warnings = [];
+return {
+  article: result,
+  warnings: [],
+  metadata: {},
+}; }
 
-  for (const [name, adapter] of Object.entries(sourceAdapters || {})) {
-    try {
-      sources[name] = adapter({ article, index });
-    } catch (error) {
-      warnings.push({
-        source: name,
-        message: error instanceof Error ? error.message : String(error),
-      });
-      sources[name] = undefined;
-    }
+function collectArticleSources({ article, index, sourceAdapters }) { const sources = {};
+const warnings = [];
+
+for (const [name, adapter] of Object.entries(sourceAdapters || {})) {
+  try {
+    sources[name] = adapter({ article, index });
+  } catch (error) {
+    warnings.push({
+      source: name,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    sources[name] = undefined;
   }
-
-  return { sources, warnings };
 }
+
+return { sources, warnings }; }
 
 export function createArticleMigrationPlan({
   articles,

@@ -2,15 +2,12 @@
 
 Extract every history and culture passage from the supplied collected-source file for one substance. Use only the supplied documents. Extraction preserves source text verbatim; it is not summarisation, synthesis or rewriting. Missing history stays absent rather than being completed from memory.
 
-## 1. Identify sources and output mode
+## 1. Identify sources
 
-In runtime block mode, read each supplied block's ID, source metadata, and text in input order. In standalone document mode, the staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Source count, length and quality vary.
+The staged file begins with the substance title and a Collected Sources suffix; each document begins with `## Source: <Source Name>` and is separated from the next by `---`. Source count, length and quality vary.
 
 Account for every source, retaining its exact name and input order. Keep each passage attached to its originating source.
 
-If a runtime block-selection contract is supplied, use its output format and select the source blocks that carry the qualifying units below. The program copies those blocks verbatim; return block selections rather than excerpt text. Otherwise, produce the excerpt document in step 4.
-
-Continue when every source boundary and the active output mode are identified.
 
 ## 2. Decide which history and culture passages qualify
 
@@ -41,14 +38,14 @@ Continue when every source has been reviewed and every qualifying or uncertain p
 - Copy dates, names and place names exactly as given, including vague dates or unnamed people and companies. Never resolve a vague reference using outside knowledge.
 - Preserve contradictions between sources, each under its own source heading. Reconciliation belongs to later review, not extraction.
 - Retain the sentence carrying an event date, rather than extracting a date in isolation.
-- In excerpt mode, separate non-contiguous passages with a blank line. Use no invented connectors or commentary. If a source is wrapped in a markdown code fence, copy its contents without the packaging fence lines.
+- Separate non-contiguous passages with a blank line. Use no invented connectors or commentary. If a source is wrapped in a markdown code fence, copy its contents without the packaging fence lines.
 - Author only the metadata, source headings, separators and empty-source markers defined in step 4. Every historical claim must come from its own source; do not fill gaps with remembered facts, even if they are true.
 
-Continue when every selected unit retains its complete wording, ambiguity and provenance. In excerpt mode, each passage must match its source character for character; the downstream substring check rejects any drift.
+Continue when every selected unit retains its complete wording, ambiguity and provenance. Each passage must match its source character for character; the downstream substring check rejects any drift.
 
-## 4. Emit the active output format
+## 4. Emit the excerpt document
 
-When a runtime block-selection contract is present, emit only its required selection response. Otherwise, output this excerpt document body, without surrounding code fences, preamble or closing commentary:
+Output this excerpt document body, without surrounding code fences, preamble or closing commentary:
 
 ```
 # <Substance Title> - History & Culture Quotes
@@ -81,7 +78,7 @@ Before responding, confirm:
 - Current legal-status lists and tables remain excluded; narrated historical scheduling events remain eligible.
 - Every selected unit is complete, with dates attached to their event sentences, vague references unresolved and source contradictions intact.
 - Every historical claim matches its originating source rather than outside knowledge.
-- The response follows the active output mode; excerpt metadata and markers appear only in excerpt mode.
+- The response follows the excerpt-document format exactly.
 - Every downstream field below has been checked for available evidence. These fields guide coverage, not authored labels or output reorganisation.
 
 The excerpts feed these `history_culture` fields:

@@ -13,7 +13,7 @@ import { ArticleSection, ArticleSectionGroup } from "@/components/common/Article
 import { buildFieldPath } from "../../../editing";
 import { EditableHarmText } from "./EditableHarmText";
 import { useMasonryRowSpans } from "./useMasonryRowSpans";
-import { useT } from "@/i18n/client";
+import { msg, useT, type Translate } from "@/i18n/client";
 
 /** Bottom gutter on each masonry card; the row-span math in useMasonryRowSpans assumes it. */
 const MASONRY_ITEM_CLASS_NAME = "mb-4";
@@ -30,53 +30,56 @@ const DEFAULT_ORGAN_SYSTEM_ICON = "healthicons:body-outline";
 
 // Mapping of organ system names to their icons
 const ORGAN_SYSTEM_ICONS: Record<string, string> = {
-  // Primary terms
-  "Urinary System": "healthicons:bladder-outline",
-  "Hepatic": "healthicons:liver-alt-outline",
-  "Central Nervous System": "healthicons:nerve",
-  "Renal": "healthicons:kidneys-outline-24px",
-  "Respiratory": "tabler:lungs",
-  "Respiratory System": "tabler:lungs",
-  "Cardiovascular": "icon-park-outline:heart",
-  "Digestive": "covid:symptoms-nausea",
-  "Hematological": "hugeicons:blood",
-  "Dermatological": "material-symbols-light:dermatology-outline-rounded",
-  "Endocrine": "tabler:adjustments",
-  "Immunological": "tabler:virus",
-  "Musculoskeletal": "healthicons:skeleton",
-  // Synonyms mapped to existing icons
-  "Urinary": "healthicons:bladder-outline",
-  "Endocrine System": "tabler:adjustments",
-  "Gastrointestinal": "covid:symptoms-nausea",
-  "Immune System": "tabler:virus",
-  "Pulmonary": "tabler:lungs",
-  "Skeletal": "healthicons:skeleton",
-  "Skin (Levamisole-Related)": "material-symbols-light:dermatology-outline-rounded",
-  // Additional terms
-  "Auditory": "lucide:ear",
-  "Nasal": "hugeicons:nose",
-  "Nasal Cavity": "hugeicons:nose",
-  "Nasal/Upper Respiratory": "healthicons:ear-nose-throat-outline",
-  "Oral/Dental": "tabler:dental",
-  "Pulmonary/Vascular": "healthicons:blood-vessel-outline",
-  "Reproductive": "healthicons:fetus-outline",
-  "Thermoregulation": "streamline-ultimate:temperature-thermometer-medium-bold",
-  "Thermoregulatory": "streamline-ultimate:temperature-thermometer-medium-bold",
-  // Missing icons - need to be added
-  // "Developmental": "",
-  // "Vascular": "",
+  // Primary terms. `msg` also registers these data-backed labels in each UI catalog.
+  [msg("Urinary System")]: "healthicons:bladder-outline",
+  [msg("Hepatic")]: "healthicons:liver-alt-outline",
+  [msg("Central Nervous System")]: "healthicons:nerve",
+  [msg("Renal")]: "healthicons:kidneys-outline-24px",
+  [msg("Respiratory")]: "tabler:lungs",
+  [msg("Respiratory System")]: "tabler:lungs",
+  [msg("Cardiovascular")]: "icon-park-outline:heart",
+  [msg("Digestive")]: "covid:symptoms-nausea",
+  [msg("Hematological")]: "hugeicons:blood",
+  [msg("Dermatological")]: "material-symbols-light:dermatology-outline-rounded",
+  [msg("Endocrine")]: "tabler:adjustments",
+  [msg("Immunological")]: "tabler:virus",
+  [msg("Musculoskeletal")]: "healthicons:skeleton",
+  // Synonyms mapped to existing icons.
+  [msg("Urinary")]: "healthicons:bladder-outline",
+  [msg("Endocrine System")]: "tabler:adjustments",
+  [msg("Gastrointestinal")]: "covid:symptoms-nausea",
+  [msg("Immune System")]: "tabler:virus",
+  [msg("Pulmonary")]: "tabler:lungs",
+  [msg("Skeletal")]: "healthicons:skeleton",
+  [msg("Skin (Levamisole-Related)")]: "material-symbols-light:dermatology-outline-rounded",
+  // Additional terms.
+  [msg("Auditory")]: "lucide:ear",
+  [msg("Nasal")]: "hugeicons:nose",
+  [msg("Nasal Cavity")]: "hugeicons:nose",
+  [msg("Nasal/Upper Respiratory")]: "healthicons:ear-nose-throat-outline",
+  [msg("Oral/Dental")]: "tabler:dental",
+  [msg("Pulmonary/Vascular")]: "healthicons:blood-vessel-outline",
+  [msg("Reproductive")]: "healthicons:fetus-outline",
+  [msg("Thermoregulation")]: "streamline-ultimate:temperature-thermometer-medium-bold",
+  [msg("Thermoregulatory")]: "streamline-ultimate:temperature-thermometer-medium-bold",
 };
 
 const NORMALIZED_ORGAN_SYSTEM_ICONS = Object.fromEntries(
   Object.entries(ORGAN_SYSTEM_ICONS).map(([system, icon]) => [system.trim().toLowerCase(), icon]),
 );
 
-function getOrganSystemIcon(system?: string | null) {
+function getOrganSystemIcon(system: string | null | undefined, t?: Translate) {
   if (!system) return DEFAULT_ORGAN_SYSTEM_ICON;
 
-  return ORGAN_SYSTEM_ICONS[system]
-    || NORMALIZED_ORGAN_SYSTEM_ICONS[system.trim().toLowerCase()]
-    || DEFAULT_ORGAN_SYSTEM_ICON;
+  const normalizedSystem = system.trim().toLowerCase();
+  const canonicalIcon = ORGAN_SYSTEM_ICONS[system]
+    || NORMALIZED_ORGAN_SYSTEM_ICONS[normalizedSystem];
+  if (canonicalIcon || !t) return canonicalIcon || DEFAULT_ORGAN_SYSTEM_ICON;
+
+  for (const [sourceLabel, icon] of Object.entries(ORGAN_SYSTEM_ICONS)) {
+    if (t(sourceLabel).trim().toLowerCase() === normalizedSystem) return icon;
+  }
+  return DEFAULT_ORGAN_SYSTEM_ICON;
 }
 
 function LethalDosageCard({ toxicity, article }: { toxicity: NormalizedHarmPotential['toxicity']; article: SubstanceArticle }) {
@@ -184,13 +187,13 @@ function OrganToxicityCard({
   const t = useT();
   const [expanded, setExpanded] = useState(false);
   const hasDetails = !!entry.mechanism || !!entry.notes;
-  const systemIcon = getOrganSystemIcon(entry.system);
+  const systemIcon = getOrganSystemIcon(entry.system, t);
   const fieldPath = (leaf: "findings" | "mechanism" | "notes") =>
     buildFieldPath("harm_potential", "toxicity", "organ_toxicity", index, leaf);
 
   return (
     <ArticleSection.InfoCard
-      title={entry.system}
+      title={entry.system ? t(entry.system) : entry.system}
       icon={systemIcon}
       padding="sm"
       variant="nested"

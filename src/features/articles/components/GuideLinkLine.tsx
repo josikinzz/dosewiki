@@ -50,7 +50,7 @@ export function GuideLinkLine({ scale, guide, summaryCaption, className }: Guide
   // that measures this experience, the guide to this exact substance, then the
   // class descriptions that hold for every substance in it.
   const articleEntries = [
-    ...(scale ? [{ href: articleHref(scale.slug), label: scale.title }] : []),
+    ...(scale ? [{ href: articleHref(scale.slug), label: t(scale.title) }] : []),
     // "guide" is carried in the label because the title alone ("DXM") reads as
     // a link to the substance rather than to the writing.
     ...(guide ? [{ href: articleHref(guide.slug), label: t("{{title}} guide", { title: guide.title }) }] : []),

@@ -9,16 +9,16 @@ import {
   type CitationToken,
 } from "./citationTokens";
 
-export type CitationPreviewEntry = {
+type CitationPreviewEntry = {
   path: string;
   rawText: string;
   renderedText: string;
   tokenIds: string[];
   unknownIds: string[];
   duplicateAdjacentIds: string[];
-};
+}
 
-export type RouteReferencePreviewEntry = {
+type RouteReferencePreviewEntry = {
   kind: "dosage" | "duration";
   routeIndex: number;
   routeLabel: string;
@@ -26,7 +26,7 @@ export type RouteReferencePreviewEntry = {
   renderedLabels: string[];
   unknownIds: string[];
   hasMultipleReferences: boolean;
-};
+}
 
 export type EditorReferenceDiagnostics = {
   prosePreviews: CitationPreviewEntry[];

@@ -17,7 +17,7 @@ type ApproveBody = { locale?: unknown; terms?: unknown };
 type ParsedApprove = { locale: string; terms: string[] };
 
 export const POST = protectedRouteOperation<ApproveBody, ParsedApprove>({
-  auth: "admin",
+  auth: "translator",
   rateLimit: "editorSmallWrite",
   body: { maxBytes: GLOSSARY_BODY_MAX_BYTES, parse: (raw) => ({ locale: parseLocale(raw.locale), terms: parseTerms(raw.terms) }) },
   unexpectedErrorLabel: "Failed to approve glossary terms via Next route:",

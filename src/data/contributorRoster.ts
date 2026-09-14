@@ -143,38 +143,38 @@ export const CONTRIBUTOR_ROSTER_ORDER_NOTE = msg(
 /* ------------------------------------------------------------------ reference counting */
 
 /** One effect article, as the public effect read already returns it. */
-export type ContributorReferenceEffectInput = {
+type ContributorReferenceEffectInput = {
   readonly slug: string;
   readonly contributors?: readonly string[];
   readonly audio_replications?: readonly { readonly artist?: string }[];
-};
+}
 
 /** One image/video replication. Credited to the effect page that renders it. */
-export type ContributorReferenceReplicationInput = {
+type ContributorReferenceReplicationInput = {
   readonly effect_slug: string;
   readonly artist?: string;
-};
+}
 
 /**
  * One trip report preview. `authorProfileKey` is the key the public report projection already
  * resolved from `subject.name`; a raw `subject.profile_key` may be passed here just as well,
  * since both are run through the key-or-alias matcher.
  */
-export type ContributorReferenceReportInput = {
+type ContributorReferenceReportInput = {
   readonly slug: string;
   readonly author?: string;
   readonly authorProfileKey?: string;
-};
+}
 
 /**
  * One expert-reviewed substance article. `reviewerProfileKey` was resolved from the stored
  * reviewer email inside Convex, so no email reaches this module; the key still goes through
  * the key-or-alias matcher here, like a report's `authorProfileKey`.
  */
-export type ContributorReferenceReviewedArticleInput = {
+type ContributorReferenceReviewedArticleInput = {
   readonly slug: string;
   readonly reviewerProfileKey: string;
-};
+}
 
 export type ContributorReferenceInput = {
   readonly effects?: readonly ContributorReferenceEffectInput[];

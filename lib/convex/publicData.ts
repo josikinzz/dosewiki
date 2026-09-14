@@ -1,30 +1,21 @@
 import "server-only";
 
 export type {
-  AboutConfigRecord,
-  IndexLayoutRecord,
   IndexLayoutType,
-  PublicAboutData,
   PublicCategoryLayout,
   PublicEffectArticle,
   PublicEffectIndexArticle,
   PublicEffectPreview,
-  PublicMechanismRouteInput,
   PublicReportPreview,
-  PublicSubstanceLibraryRecord,
   PublicSubstanceLookupEntry,
   PublicSubstancePreview,
   PublicSubstanceRecord,
   SubjectiveEffectDetailRecord,
-  SubjectiveEffectRecord,
-  SubstanceRecord,
   TripReportDetailRecord,
-  TripReportRecord,
 } from "./publicData.shared";
 
 export type { PublicEffectIndexPost } from "../../src/data/projections/effectIndexArchiveProjections";
 
-export { PUBLIC_CONVEX_CACHE_REVALIDATE_SECONDS, PUBLIC_CONVEX_CACHE_TAGS } from "./publicData.cache";
 
 export {
   getOwnedContributorProfile,
@@ -35,11 +26,9 @@ export {
 
 export {
   getPublicProfileHistory,
-  PUBLIC_PROFILE_HISTORY_LIMIT,
 } from "./publicData.changelog";
 
 export {
-  getFeaturedSubstances,
   getPublicAboutPreviewSubstances,
   getPublicCategoryLayout,
   getPublicCoverageSubstances,
@@ -50,14 +39,11 @@ export {
   getPublicSubstanceSlugs,
   getPublicSubstances,
   getRawSubstances,
-  getReviewedArticleCredits,
   getReviewedArticlesByContributor,
 } from "./publicData.substances";
 
 export {
   getEffectArticlesByContributor,
-  getEffectsByCategory,
-  getFeaturedEffects,
   getPublicEffectArticles,
   getPublicEffectBySlug,
   getPublicEffects,
@@ -80,24 +66,18 @@ export {
 } from "./publicData.blog";
 
 export {
-  dropGalleryExcludedArtistWorks,
   getPublicFeaturedReplicationSlugs,
   getPublicGalleryReplicationBySlug,
   getPublicGalleryReplications,
   getPublicReplicationsForSubstance,
   getReplicationsByContributor,
-  type PublicSubstanceGallery,
-  type SubstanceGalleryItem,
-  type SubstanceGalleryMatchProvenance,
 } from "./publicData.replications";
 
 export {
-  getFeaturedReports,
   getPublicReportBySlug,
   getPublicReportDetails,
   getPublicReports,
   getPublicReportsBySubstanceNames,
-  getReportsByAuthor,
   getReportsByContributor,
 } from "./publicData.reports";
 
@@ -106,7 +86,6 @@ export { getPublicAboutData } from "./publicData.about";
 export {
   getPublicContributorIdentity,
   getPublicReplicationIdentityAttribution,
-  type PublicContributorIdentity,
   type PublicReplicationIdentityAttribution,
 } from "./publicData.identitySocial";
 

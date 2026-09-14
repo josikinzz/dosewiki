@@ -131,7 +131,6 @@ export function stripCitationMarkers(value) {
   return String(value ?? "").replace(CITE_MARKER_PATTERN, "");
 }
 
-export const stripCitationMarkersFromText = stripCitationMarkers;
 
 export function stripCitationMarkersFromValue(value) {
   if (typeof value === "string") return stripCitationMarkers(value);
@@ -144,70 +143,64 @@ export function stripCitationMarkersFromValue(value) {
   return value;
 }
 
-export function findMalformedMarkers(value, path = "") {
-  if (typeof value === "string") {
-    const validMarkers = new Set(collectCitationMarkersFromText(value, path).map((marker) => marker.marker));
-    return (value.match(MARKER_LIKE_PATTERN) ?? [])
-      .filter((marker) => !validMarkers.has(marker))
-      .map((marker) => ({ marker, path }));
-  }
-  if (Array.isArray(value)) {
-    return value.flatMap((entry, index) => findMalformedMarkers(entry, pathWithChild(path, index)));
-  }
-  if (isObjectRecord(value)) {
-    return Object.entries(value).flatMap(([key, entry]) => (
-      findMalformedMarkers(entry, pathWithChild(path, key))
-    ));
-  }
-  return [];
+function findMalformedMarkers(value, path = "") { if (typeof value === "string") {
+  const validMarkers = new Set(collectCitationMarkersFromText(value, path).map((marker) => marker.marker));
+  return (value.match(MARKER_LIKE_PATTERN) ?? [])
+    .filter((marker) => !validMarkers.has(marker))
+    .map((marker) => ({ marker, path }));
 }
+if (Array.isArray(value)) {
+  return value.flatMap((entry, index) => findMalformedMarkers(entry, pathWithChild(path, index)));
+}
+if (isObjectRecord(value)) {
+  return Object.entries(value).flatMap(([key, entry]) => (
+    findMalformedMarkers(entry, pathWithChild(path, key))
+  ));
+}
+return []; }
 
 // A contiguous run of markers (optionally separated only by whitespace) that
 // repeats the same reference id is never intentional — it is the signature of a
 // double-insertion bug. Stripping markers leaves identical text, so the
 // text_changed check cannot catch it; this rule can.
-export function findDuplicateReferenceInCluster(value, path = "") {
-  if (typeof value === "string") {
-    const found = [];
-    for (const cluster of value.matchAll(/(?:\[cite:[^\]\s]+\]\s*)+/g)) {
-      const ids = Array.from(cluster[0].matchAll(CITE_MARKER_PATTERN), (m) => m[1]);
-      const seen = new Set();
-      for (const id of ids) {
-        if (seen.has(id)) found.push({ referenceId: id, path });
-        seen.add(id);
-      }
+function findDuplicateReferenceInCluster(value, path = "") { if (typeof value === "string") {
+  const found = [];
+  for (const cluster of value.matchAll(/(?:\[cite:[^\]\s]+\]\s*)+/g)) {
+    const ids = Array.from(cluster[0].matchAll(CITE_MARKER_PATTERN), (m) => m[1]);
+    const seen = new Set();
+    for (const id of ids) {
+      if (seen.has(id)) found.push({ referenceId: id, path });
+      seen.add(id);
     }
-    return found;
   }
-  if (Array.isArray(value)) {
-    return value.flatMap((entry, index) => findDuplicateReferenceInCluster(entry, pathWithChild(path, index)));
-  }
-  if (isObjectRecord(value)) {
-    return Object.entries(value).flatMap(([key, entry]) => (
-      findDuplicateReferenceInCluster(entry, pathWithChild(path, key))
-    ));
-  }
-  return [];
+  return found;
 }
+if (Array.isArray(value)) {
+  return value.flatMap((entry, index) => findDuplicateReferenceInCluster(entry, pathWithChild(path, index)));
+}
+if (isObjectRecord(value)) {
+  return Object.entries(value).flatMap(([key, entry]) => (
+    findDuplicateReferenceInCluster(entry, pathWithChild(path, key))
+  ));
+}
+return []; }
 
-export function findMidWordMarkers(value, path = "") {
-  if (typeof value === "string") {
-    return collectCitationMarkersFromText(value, path).filter((marker) => {
-      const previous = value[marker.index - 1] ?? "";
-      const next = value[marker.index + marker.marker.length] ?? "";
-      return WORD_CHARACTER_PATTERN.test(previous) && WORD_CHARACTER_PATTERN.test(next);
-    });
-  }
-  if (Array.isArray(value)) {
-    return value.flatMap((entry, index) => findMidWordMarkers(entry, pathWithChild(path, index)));
-  }
-  if (isObjectRecord(value)) {
-    return Object.entries(value).flatMap(([key, entry]) => (
-      findMidWordMarkers(entry, pathWithChild(path, key))
-    ));
-  }
-  return [];
+function findMidWordMarkers(value, path = "") { if (typeof value === "string") {
+  return collectCitationMarkersFromText(value, path).filter((marker) => {
+    const previous = value[marker.index - 1] ?? "";
+    const next = value[marker.index + marker.marker.length] ?? "";
+    return WORD_CHARACTER_PATTERN.test(previous) && WORD_CHARACTER_PATTERN.test(next);
+  });
 }
+if (Array.isArray(value)) {
+  return value.flatMap((entry, index) => findMidWordMarkers(entry, pathWithChild(path, index)));
+}
+if (isObjectRecord(value)) {
+  return Object.entries(value).flatMap(([key, entry]) => (
+    findMidWordMarkers(entry, pathWithChild(path, key))
+  ));
+}
+return []; }
 
 // Marker-insensitive equality between two values (strings or nested
 // structures). Object key order is ignored; text must otherwise match exactly.

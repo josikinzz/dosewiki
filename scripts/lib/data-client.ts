@@ -35,7 +35,7 @@ import { guardTarget } from "../postgres/targetGuard.ts";
 
 export type DataBackend = "convex" | "postgres";
 
-export const CONVEX_EXPLICIT_TARGET_ENV_VAR = "TARGET_CONVEX_URL";
+const CONVEX_EXPLICIT_TARGET_ENV_VAR = "TARGET_CONVEX_URL";
 export const POSTGRES_EXPLICIT_TARGET_ENV_VAR = "TARGET_POSTGRES_URL";
 export const POSTGRES_FALLBACK_TARGET_ENV_VARS: readonly string[] = Object.freeze([
   "POSTGRES_POOLED_URL",
@@ -87,7 +87,7 @@ export function getDataBackend(env: NodeJS.ProcessEnv = process.env): DataBacken
   return env.DATA_BACKEND === "postgres" ? "postgres" : "convex";
 }
 
-export function isPostgresUrl(value: unknown): value is string {
+function isPostgresUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
     const protocol = new URL(value).protocol;
@@ -157,7 +157,7 @@ export function isPostgresTargetExplicit(source: string | null): boolean {
 }
 
 /** `--target-url <url>` > TARGET_CONVEX_URL; compatibility variables are ignored. */
-export function resolveConvexTarget({
+function resolveConvexTarget({
   argv = process.argv.slice(2),
   env = process.env,
 }: { argv?: string[]; env?: NodeJS.ProcessEnv } = {}): ResolvedTarget {

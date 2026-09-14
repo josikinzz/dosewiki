@@ -11,6 +11,7 @@ const stored = vi.hoisted(() => new Map<string, { value: unknown; tags: string[]
 const refresh = vi.hoisted(() => ({
   mode: null as "background" | "blocking" | null,
   onlyKey: null as string | null,
+  allKeys: false,
   pending: [] as Promise<unknown>[],
 }));
 vi.mock("next/cache", () => ({
@@ -21,10 +22,10 @@ vi.mock("next/cache", () => ({
         const previous = stored.get(key)!.value;
         const mode = refresh.mode;
         if (!mode || (refresh.onlyKey && !keys.includes(refresh.onlyKey))) return previous;
-        refresh.mode = null;
+        if (!refresh.allKeys) refresh.mode = null;
         // Like Next, stale regeneration failures preserve the old cached value.
         // Blocking ISR awaits this same error-swallowing refresh promise.
-        const pending = Promise.resolve().then(() => read(...args)).then((value) => {
+        const pending = read(...args).then((value) => {
           stored.set(key, { value, tags: options.tags ?? [] });
           return value;
         }).catch(() => previous);
@@ -51,7 +52,9 @@ afterEach(() => {
   stored.clear();
   refresh.mode = null;
   refresh.onlyKey = null;
+  refresh.allKeys = false;
   refresh.pending.length = 0;
+  vi.useRealTimers();
   sourceQuery.mockReset();
   vi.unstubAllEnvs();
 });
@@ -84,6 +87,29 @@ describe("public persistent cache boundaries", () => {
     expect(stored.size).toBe(2);
   });
 
+  it("keeps database credentials out of persisted keys while separating targets", async () => {
+    vi.stubEnv("DATA_BACKEND", "postgres");
+    let content = "first target";
+    const read = publicDataCache(async () => content, ["credential-boundary"], {});
+    const first = new URL("postgres://first.example/db");
+    first.username = "private_user";
+    first.password = "private_password";
+    const second = new URL(first);
+    second.hostname = "second.example";
+    vi.stubEnv("POSTGRES_POOLED_URL", first.href);
+    expect(await read()).toBe("first target");
+    content = "second target";
+    vi.stubEnv("POSTGRES_POOLED_URL", second.href);
+    expect(await read()).toBe("second target");
+    vi.stubEnv("POSTGRES_POOLED_URL", first.href);
+    expect(await read()).toBe("first target");
+    for (const key of stored.keys()) {
+      expect(key).not.toContain("private_user");
+      expect(key).not.toContain("private_password");
+      expect(key).not.toContain("postgres://");
+    }
+  });
+
   it("retries readiness failures instead of persisting them as an empty answer", async () => {
     let ready = false;
     const read = publicDataCache(async () => {
@@ -93,6 +119,41 @@ describe("public persistent cache boundaries", () => {
     await expect(read()).rejects.toThrow("not ready");
     ready = true;
     expect(await read()).toEqual(["complete"]);
+  });
+
+  it("drains stale page refreshes serially without discarding a page on refresh failure", async () => {
+    vi.useFakeTimers();
+    let refreshing = false;
+    let active = 0;
+    let peak = 0;
+    const read = publicDataCache(async (page: number) => {
+      if (!refreshing) return `old-${page}`;
+      peak = Math.max(peak, ++active);
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        if (page === 2) throw new Error("source unavailable");
+        return `fresh-${page}`;
+      } finally {
+        active--;
+      }
+    }, ["serial-pages"], { awaitRefresh: true });
+    for (let page = 0; page < 8; page++) await read(page);
+    refreshing = true;
+    refresh.mode = "background";
+    refresh.allKeys = true;
+    const draining = (async () => {
+      const pages = [];
+      for (let page = 0; page < 8; page++) pages.push(await read(page));
+      return pages;
+    })();
+    await vi.runAllTimersAsync();
+    const pages = await draining;
+    await Promise.all(refresh.pending);
+    expect(peak).toBe(1);
+    expect(pages).toEqual(Array.from({ length: 8 }, (_, page) => `old-${page}`));
+    refresh.mode = null;
+    expect(await read(0)).toBe("fresh-0");
+    expect(await read(2)).toBe("old-2");
   });
 
   it("reuses full-document pages when the assembled export exceeds the cache limit", async () => {

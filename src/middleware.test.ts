@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
+import { SUBSTANCE_INDEX_VIEW_PARAMS } from "@/utils/indexViewRoutes";
 
 const mocks = vi.hoisted(() => ({
   getToken: vi.fn(),
@@ -9,6 +10,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next-auth/jwt", () => ({
   getToken: mocks.getToken,
 }));
+// This file owns dose.wiki host and editor-origin policy. Keep that publication
+// explicit when the whole suite is launched with another ambient flavor.
+vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "dosewiki");
+
 
 function makeRequest(path: string): NextRequest {
   vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "true");
@@ -416,6 +421,17 @@ describe("middleware role policy adapter", () => {
     expect(unknown.headers.get("x-middleware-rewrite")).toBe("https://zh.dose.wiki/zh/unroutable/missing");
   });
 
+  it("lets /glossary through the slug gate on the public host and mirrors it on a locale host", async () => {
+    const { middleware } = await import("./middleware");
+    const english = await middleware(makePublicRequest("/glossary"));
+    expect(english.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(english.headers.get("location")).toBeNull();
+
+    const host = "zh.dose.wiki";
+    const mirror = await middleware(new NextRequest(`https://${host}/glossary`, { headers: { host } }));
+    expect(mirror.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/glossary`);
+  });
+
   it("serves a locale host's library archive from the mirror routes", async () => {
     const { middleware } = await import("./middleware");
     makePublicRequest("/");
@@ -467,6 +483,84 @@ describe("middleware role policy adapter", () => {
       new NextRequest(`https://${host}/replications/definitely-not-a-real-replication-zzzz`, { headers: { host } }),
     );
     expect(unknown.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/unroutable/missing`);
+  });
+
+  it("localizes substance category destinations without changing their App Paths or query state", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "zh.dose.wiki";
+
+    for (const { slug } of SUBSTANCE_INDEX_VIEW_PARAMS) {
+      const path = `/substances/group/${slug}?sort=name&query=amine`;
+      const response = await middleware(
+        new NextRequest(`https://${host}${path}`, { headers: { host } }),
+      );
+      expect(response.headers.get("x-middleware-rewrite")).toBe(
+        `https://${host}/zh${path}`,
+      );
+      expect(response.headers.get("location")).toBeNull();
+    }
+
+    for (const path of [
+      "/category/psychedelic?sort=name",
+      "/chemical-classes?view=tree",
+      "/chemical-classes/tryptamine?view=structures",
+    ]) {
+      const response = await middleware(
+        new NextRequest(`https://${host}${path}`, { headers: { host } }),
+      );
+      expect(response.headers.get("x-middleware-rewrite")).toBe(
+        `https://${host}/zh${path}`,
+      );
+      expect(response.headers.get("location")).toBeNull();
+    }
+
+    for (const path of [
+      "/substances/group/stimulant?sort=name",
+      "/category/psychedelic?sort=name",
+      "/chemical-classes?view=tree",
+      "/chemical-classes/tryptamine?view=structures",
+    ]) {
+      const response = await middleware(makePublicRequest(path));
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(response.headers.get("location")).toBeNull();
+    }
+  });
+
+  it("serves a locale host's effect index views, psychoactive summaries, and search from the mirror routes", async () => {
+    const { middleware } = await import("./middleware");
+    makePublicRequest("/");
+    const host = "zh.dose.wiki";
+
+    for (const view of ["sensory", "cognitive", "physical", "library", "info"]) {
+      const response = await middleware(new NextRequest(`https://${host}/effects/group/${view}`, { headers: { host } }));
+      expect(response.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/effects/group/${view}`);
+      expect(response.headers.get("location")).toBeNull();
+    }
+
+    const summary = await middleware(
+      new NextRequest(`https://${host}/psychoactive/psychedelic/cognitive`, { headers: { host } }),
+    );
+    expect(summary.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/psychoactive/psychedelic/cognitive`);
+    expect(summary.headers.get("location")).toBeNull();
+
+    const singleSegmentSummary = await middleware(
+      new NextRequest(`https://${host}/psychoactive/deliriant`, { headers: { host } }),
+    );
+    expect(singleSegmentSummary.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/psychoactive/deliriant`);
+
+    const search = await middleware(new NextRequest(`https://${host}/search?q=ketamine`, { headers: { host } }));
+    expect(search.headers.get("x-middleware-rewrite")).toBe(`https://${host}/zh/search?q=ketamine`);
+    expect(search.headers.get("location")).toBeNull();
+    expect(search.headers.get("x-robots-tag")).toBeNull();
+
+    const englishView = await middleware(makePublicRequest("/effects/group/library"));
+    expect(englishView.headers.get("x-middleware-rewrite")).toBeNull();
+    const englishSummary = await middleware(makePublicRequest("/psychoactive/psychedelic/cognitive"));
+    expect(englishSummary.headers.get("x-middleware-rewrite")).toBeNull();
+    const englishSearch = await middleware(makePublicRequest("/search?q=ketamine"));
+    expect(englishSearch.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(englishSearch.headers.get("location")).toBeNull();
   });
 
   it("hides the mirror route from direct requests on the English host", async () => {

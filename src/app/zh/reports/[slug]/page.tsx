@@ -10,7 +10,7 @@ import { loadReportRoute } from "@server/next/routeLoaders.reports";
 import { getStaticReportParams } from "@server/next/staticParams";
 import { TripReportDetailPage } from "@/features/reports/pages/TripReportDetailPage";
 import type { TripReportSubstance } from "@/types/tripReport";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { publicHref } from "@/utils/publicHref";

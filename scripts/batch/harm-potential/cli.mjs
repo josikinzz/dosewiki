@@ -18,7 +18,7 @@ export const CONFIG = {
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
 };
 
-export const INPUT_BOUNDS = {
+const INPUT_BOUNDS = {
   concurrency: { min: 1, max: 50 },
   limit: { min: 1, max: 10000 },
 };

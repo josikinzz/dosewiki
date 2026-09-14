@@ -17,7 +17,7 @@ import { requireRole } from "./lib/auth";
  * plain 4xx responses without parsing prose.
  */
 
-const inviteRoleValidator = v.union(v.literal("editor"), v.literal("contributor"));
+const inviteRoleValidator = v.union(v.literal("editor"), v.literal("translator"), v.literal("contributor"));
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_EXPIRES_IN_DAYS = 7;

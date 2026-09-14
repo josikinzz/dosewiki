@@ -14,12 +14,10 @@ export function initConvexClient(convexUrl) {
   return convexClient;
 }
 
-export function getConvexClient() {
-  if (!convexClient) {
-    throw new Error("Convex client has not been initialized");
-  }
-  return convexClient;
+function getConvexClient() { if (!convexClient) {
+  throw new Error("Convex client has not been initialized");
 }
+return convexClient; }
 
 export async function loadArticles() {
   if (convexClient) {

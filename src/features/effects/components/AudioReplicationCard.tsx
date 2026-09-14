@@ -15,7 +15,7 @@ const REPLICATION_RIGHTS_LABELS: Record<string, string> = {
   "public-domain": msg("Marked as public domain."),
 };
 
-export function getAudioCreditLine(audio: AudioReplicationMetadata, translate: Translate = formatMessage) {
+function getAudioCreditLine(audio: AudioReplicationMetadata, translate: Translate = formatMessage) {
   if (audio.credit_line) {
     return audio.credit_line;
   }
@@ -25,7 +25,7 @@ export function getAudioCreditLine(audio: AudioReplicationMetadata, translate: T
     : translate(msg("{{title}} (creator unknown)"), { title: audio.title });
 }
 
-export function getAudioRightsLabel(audio: AudioReplicationMetadata, translate: Translate = formatMessage) {
+function getAudioRightsLabel(audio: AudioReplicationMetadata, translate: Translate = formatMessage) {
   if (audio.license_name) {
     return translate(msg("License: {{name}}."), { name: audio.license_name });
   }

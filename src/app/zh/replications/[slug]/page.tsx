@@ -11,7 +11,7 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationDetailPage } from "@/features/effects/pages/ReplicationDetailPage";
 import { buildReplicationSchema, serializeJsonLd } from "@/utils/seo/structuredData";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 

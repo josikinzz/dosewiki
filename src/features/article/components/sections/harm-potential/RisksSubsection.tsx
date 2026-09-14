@@ -70,19 +70,3 @@ export function SeizureRiskSubsection({ risks, article }: RisksSubsectionProps) 
   );
 }
 
-// Legacy export for backward compatibility - now just renders both subsections
-export function RisksSubsection({ risks, article }: RisksSubsectionProps) {
-  const { psychosis, seizure } = risks;
-
-  const hasPsychosis = (psychosis.description || "").trim().length > 0;
-  const hasSeizure = (seizure.description || "").trim().length > 0;
-
-  if (!hasPsychosis && !hasSeizure) return null;
-
-  return (
-    <>
-      <PsychosisRiskSubsection risks={risks} article={article} />
-      <SeizureRiskSubsection risks={risks} article={article} />
-    </>
-  );
-}

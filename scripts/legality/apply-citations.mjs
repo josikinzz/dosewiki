@@ -18,16 +18,12 @@ import {
   mergeReferenceMetadata,
   referenceDedupeKey,
 } from "../../lib/citations/referenceIdentity.mjs";
-import {
-  assertDataOpsWriteAllowed,
-  backupBeforeWrite,
-  createDataOpsRunContext,
-  getFlagValue,
-  requireAdminIntentToken,
-  requireTargetUrl,
-  updateAuditLog,
-  writeAuditLog,
-} from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed,
+backupBeforeWrite,
+createDataOpsRunContext,
+getFlagValue,
+requireAdminIntentToken,
+requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
 
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);

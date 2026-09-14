@@ -4,7 +4,7 @@
 
 The repository-owned citation contract replaces the previous Codex Browser → Claude Code transport. Authenticated Oh My Pi (`omp`) coordinates one explicit substance slug or one immutable local section proposal through `--proposal`. Both modes create a marker-only citation draft in the existing external workbench and stop at `needs_review`.
 
-It does not apply a draft to Convex, deploy, select a queue item, or continue to another drug.
+It does not apply a draft to the active data backend, deploy, select a queue item, or continue to another drug.
 
 ## Entry point
 

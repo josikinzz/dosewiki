@@ -15,13 +15,8 @@ import type { ContributorDirectory } from "../contributorDirectory";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import { queryConvex } from "./serverClient";
 import { getServerConvexAdminIntentToken } from "./serverWriteHealth";
-import type {
-  TripReportDetailRecord,
-  TripReportRecord,
-} from "./publicData.shared";
 import {
   collapseContributorProfiles,
-  projectPublicReportDetail,
   resolveReportContributorProfile,
 } from "./publicData.reportProfileProjection";
 
@@ -29,12 +24,7 @@ export { collapseContributorProfiles };
 
 export const resolveContributorProfile = resolveReportContributorProfile;
 
-export const withResolvedReportProfile = <
-  T extends TripReportRecord | TripReportDetailRecord,
->(
-  report: T,
-  profiles: readonly NormalizedUserProfile[],
-): T => projectPublicReportDetail(report, profiles);
+
 
 export const getPublicContributorProfiles = cache(
   publicDataCache(async (): Promise<NormalizedUserProfile[]> => {

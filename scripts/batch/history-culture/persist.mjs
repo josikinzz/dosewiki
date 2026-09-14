@@ -21,22 +21,20 @@ export function createBackup() {
   return copyLocalJsonBackup(CONFIG);
 }
 
-export function writeProgress(state) {
+function writeProgress(state) {
   writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8");
 }
 
-export async function resolveHistoryCultureSourceMaterial(article) {
-  const slug = getArticleSlug(article);
-  return resolveQuoteSourceMaterial({
-    slug,
-    loadQuotes: loadHistoryCultureQuotes,
-    buildUserMessage: (quotes) => buildUserMessage(article, quotes),
-    missingReason: "No history culture quotes in Convex",
-    emptyReason: "No history culture quotes in Convex",
-  });
-}
+async function resolveHistoryCultureSourceMaterial(article) { const slug = getArticleSlug(article);
+return resolveQuoteSourceMaterial({
+  slug,
+  loadQuotes: loadHistoryCultureQuotes,
+  buildUserMessage: (quotes) => buildUserMessage(article, quotes),
+  missingReason: "No history culture quotes in Convex",
+  emptyReason: "No history culture quotes in Convex",
+}); }
 
-export async function processArticle(apiKey, article, systemPrompt, verbose) {
+async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = getArticleSlug(article);
   const sourceMaterial = await resolveHistoryCultureSourceMaterial(article);
   if (sourceMaterial.status !== "ready") {

@@ -54,8 +54,8 @@ export const ACCENT_HUE_PROPERTY = "--dw-accent-hue";
  * change to the sheet changes this URL, `next.config.ts` serves the route with
  * `Cache-Control: immutable`: repeat visitors never pay a revalidation round-trip.
  */
-export const CHROMA_STYLESHEET_ROUTE = "/appearance-chroma.css";
-export const CHROMA_STYLESHEET_VERSION: string = chromaManifest.version;
+const CHROMA_STYLESHEET_ROUTE = "/appearance-chroma.css"
+const CHROMA_STYLESHEET_VERSION: string = chromaManifest.version
 export const CHROMA_STYLESHEET_HREF = `${CHROMA_STYLESHEET_ROUTE}?v=${CHROMA_STYLESHEET_VERSION}`;
 
 /** The one `<link>` id, so bootstrap and provider agree on idempotence. */
@@ -101,14 +101,6 @@ export function getDefaultAppearanceColors(
   return DEFAULT_APPEARANCE_COLORS[visualStyle][colorScheme];
 }
 
-/**
- * Authored levels of the base colourways — where each slider rests before the
- * reader moves it, where its tick sits, and the CSS gain denominators.
- */
-export const CHROMA_LEVELS: {
-  readonly surfaces: Readonly<Record<string, { readonly dark: number; readonly light: number }>>;
-  readonly accents: Readonly<Record<string, number>>;
-} = chromaManifest.levels;
 
 /**
  * A stored level is a plain decimal in 0..1; anything else reads as null —
@@ -138,14 +130,12 @@ export function parseHueDegrees(raw: string | null): number | null {
  * bootstrap emits the same guarded shape, so creating one here is only a fallback for a
  * document somehow missing that markup — the check keeps all three owners duplicate-free.
  */
-export function ensureChromaStylesheet(): void {
-  if (document.getElementById(CHROMA_STYLESHEET_LINK_ID)) return;
-  const link = document.createElement("link");
-  link.id = CHROMA_STYLESHEET_LINK_ID;
-  link.rel = "stylesheet";
-  link.href = CHROMA_STYLESHEET_HREF;
-  document.head.appendChild(link);
-}
+function ensureChromaStylesheet(): void { if (document.getElementById(CHROMA_STYLESHEET_LINK_ID)) return;
+const link = document.createElement("link");
+link.id = CHROMA_STYLESHEET_LINK_ID;
+link.rel = "stylesheet";
+link.href = CHROMA_STYLESHEET_HREF;
+document.head.appendChild(link); }
 
 /**
  * Write both axes to the root. A level or hue is always a number on an

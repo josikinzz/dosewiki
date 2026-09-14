@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadEffectRoute } from "@server/next/routeLoaders.substances";
 import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
-import { UiLocaleProvider } from "@/i18n/client";
+import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 

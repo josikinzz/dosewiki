@@ -13,10 +13,10 @@ import path from "node:path";
 
 import { creatorDecision, digest, verificationOperations } from "../projection.mjs";
 
-export const CAMPAIGN_DEPLOYMENT = "prod:glad-minnow-656";
+const CAMPAIGN_DEPLOYMENT = "prod:glad-minnow-656";
 export const FULL_PRODUCTION_PROFILE_SET_SHA256 = "aea1bbeac1ce5a10e7e3a0981af17b40909c13ecf04fcf49299bbb32f66c2d8d";
 export const FULL_PRODUCTION_PROFILE_COUNT = 2119;
-export const CAMPAIGN_PREFIX = "Data/Replication Identity and Social Pass 2026-08-31/";
+const CAMPAIGN_PREFIX = "Data/Replication Identity and Social Pass 2026-08-31/";
 export const APPROVED_AVATAR_KEYS = ["JOHNARCHIBALDWHEELER", "JOHNTENNIEL", "JOSIE", "LOKA", "MIDJOURNEY", "PHOSFORM", "SYMMETRICVISION"];
 export const AVATAR_REPLACEMENT_KEYS = ["JOSIE", "LOKA", "PHOSFORM", "SYMMETRICVISION"];
 export const REJECTED_AVATAR_KEYS = ["NERVEWING", "FISHCENTERNICOLE"];

@@ -2,10 +2,10 @@
 
 Status: working runbook. This is not a completion report or production authorization.
 
-Use this runbook for the 2026-08-30 Replication Index campaign and for later
-Reddit discoveries. It joins the private archive and review workflow to the
-R2-first Dose Wiki application without making the archive package itself a
-production client.
+This is the active procedure for later Reddit replication discoveries. Preserve
+the original 2026-08-30 campaign's source, rights, thumbnail, duration, identity,
+and recovery evidence in its private campaign archive; do not copy its completed
+operational diary into this runbook.
 
 ## Fixed boundaries
 
@@ -41,14 +41,11 @@ production client.
 - Dry runs, plans, local derivatives, credentials, and successful mutations do
   not prove public completion.
 
-Read `AGENTS.md`, `CONTEXT.md`, the
+Before intake, use the maintained
 [classification field guide](replication-classification-guide.html), the
-[R2 migration record](convex-to-cloudflare-r2-media-handoff.md), and the campaign
-index and pinned rights/publication policy at
-`/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/README.md`
-and
-`/Users/josie/Documents/Dose Wiki Media Review/Data/Replication Index Campaign 2026-08-30/publication-rights-policy-2026-08-31.json`
-before starting.
+current runtime architecture, and the campaign's privately retained rights and
+publication policy. If a required private input is unavailable, stop rather
+than reconstructing evidence from a public summary.
 
 ## One pipeline, one gate at a time
 
@@ -60,11 +57,11 @@ stage and emits a reviewable artifact for the next.
 1. Stop acquisition or name a new incremental cutoff.
 2. Build a schema-v2 campaign manifest from the current archive, reviewed tags,
    thumbnail hold, R2 inventory, and exact application commit.
-3. Verify every pinned file's SHA-256 and record the target deployment.
-4. Create a fresh pre-write Convex table export without file storage.
+3. Verify every pinned file's SHA-256 and record the exact Postgres target.
+4. Create a fresh bounded Postgres pre-write snapshot without media bytes.
 
 Gate: one campaign ID, one canonical manifest, one application commit, one
-deployment, and zero unexplained digest drift. A changed input starts a new
+explicit target, and zero unexplained digest drift. A changed input starts a new
 freeze; never patch around the mismatch.
 
 ### 2. Finish media review
@@ -141,9 +138,9 @@ appears in a client bundle, row, log, report, or commit.
 
 The plan must emit explicit `create`, `existing`, `exclude`, `hold`, `conflict`,
 and `blocked` actions from pinned inputs. Bind it to its SHA-256, target commit,
-deployment, expected live snapshot, and expected counts. Use the guarded
-R2-native insert contract; do not manufacture a Convex Storage upload merely to
-make an R2-backed row insertable.
+Postgres deployment fingerprint, expected live snapshot, and expected counts.
+Use the guarded R2-native insert contract; do not manufacture a legacy storage
+upload merely to make an R2-backed row insertable.
 
 Create a separate resumable ledger before the first write. Record operation ID,
 plan digest, row ID, slug, source SHA, every R2 key, prior values, new values,
@@ -162,7 +159,7 @@ existing profile, multiple effects, and explicit unknown-rights labeling. Read
 back every field, attribution, publication basis, contact, and resolved URL;
 decode or play every asset; confirm no held row appears.
 
-Gate: the ledger, Convex row, R2 objects, public API, and rendered record agree.
+Gate: Postgres readback, the ledger, R2 objects, public API, and rendered record agree.
 Any mismatch stops the campaign and uses the rollback section below.
 
 ### 10. Import bounded batches
@@ -183,25 +180,25 @@ filters, images, GIF controls, video playback and seeking, responsive layouts,
 keyboard behavior, focus, captions, and reduced motion. Inspect served HTML for
 the expected R2 URLs and confirm held and excluded SHA values are absent.
 
-Gate: Convex read-back, the ledger, both deployments, public totals, served HTML,
-and browser behavior reconcile. A green build or HTTP 200 alone is insufficient.
+Gate: Postgres readback, the ledger, both approved hosts, public totals, served
+HTML, and browser behavior reconcile. A green build or HTTP 200 alone is insufficient.
 
 ### 12. Close out
 
-Preserve the final plan, ledger, pre- and post-write snapshots, review evidence,
-R2 verification, batch reports, deployment IDs, public acceptance results, and
-zero-destruction audit together in the campaign directory. Publish a completion
-report only after every gate above passes.
+Preserve the final plan, ledger, pre- and post-write snapshots, source and rights
+evidence, R2 verification, batch reports, host acceptance results, and
+zero-destruction audit together in the private campaign directory. A public
+completion diary is not part of the active intake contract.
 
 ## Rollback
 
-Stop new batches first. Use the ledger to restore prior Convex values or remove
-only newly created metadata rows through a separately reviewed rollback plan.
-Disable R2-first resolution only when the delivery tier itself is failing; the
-old Convex Storage IDs and direct URLs remain the global fallback. Rebuild both
-sites, inspect served HTML, and record the rollback as a new ledger event.
+Stop new batches first. Use the ledger to restore prior Postgres values or
+remove only newly created metadata rows through a separately reviewed rollback
+plan. Disable R2-first resolution only when the delivery tier itself is failing;
+old storage IDs and direct URLs remain recovery inputs through the current
+recovery window.
 
-Rollback does not authorize deletion of R2 objects, Convex Storage objects,
+Rollback does not authorize deletion of R2 objects, legacy storage objects,
 archive blobs, originals, profiles, or review evidence. Storage deletion is a
 separate destructive project requiring explicit authorization and its own
 inventory and recovery window.

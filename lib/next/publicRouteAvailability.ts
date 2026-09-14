@@ -1,4 +1,5 @@
 import manifest from "../../src/data/publicRouteAvailability.generated.json";
+import { PUBLIC_LOCALES } from "../../src/i18n/localeRegistry.mjs";
 
 const substanceSlugs = new Set<string>(manifest.substances);
 const replicationSlugs = new Set<string>(manifest.replications);
@@ -31,6 +32,7 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "china",
   "effect",
   "effects",
+  "glossary",
   "html-docs",
   "interactions",
   "invite",
@@ -49,9 +51,11 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "substances",
   "unauthorized",
   "under-construction",
-  // Locale mirror prefix (lib/next/localeHostPolicy.ts); never a substance slug.
-  "zh",
 ]);
+
+for (const { pathPrefix } of PUBLIC_LOCALES) {
+  if (pathPrefix) ROOT_ROUTE_SEGMENTS.add(pathPrefix.slice(1));
+}
 
 function decodeSegment(value: string): string | null {
   try {

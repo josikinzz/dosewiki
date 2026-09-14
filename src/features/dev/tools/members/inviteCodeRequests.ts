@@ -3,7 +3,10 @@
  * by the Members tab's `InviteCodesPanel` and the routes' response typing.
  */
 
-export type InviteCodeRole = "editor" | "contributor";
+import type { ManagedRole } from "@/lib/auth/roles";
+
+/** An invite grants any role an admin can hand out from the roster. */
+export type InviteCodeRole = ManagedRole;
 export type InviteCodeStatus = "active" | "expired" | "exhausted" | "revoked";
 
 export type InviteCodeSummary = {

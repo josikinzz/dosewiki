@@ -18,7 +18,6 @@ export {
   getPrivilegedWriteTarget,
   getPublicServerReadTarget,
   type ConvexEditorTargetAlignment,
-  type ConvexEditorTargetAlignmentStatus,
   type ConvexRuntimeTarget,
   type ConvexRuntimeTargetMatrix,
 } from "./runtimeTargets";

@@ -8,7 +8,6 @@ import { getSubstanceRouteAlias } from "@server/next/substanceRouteAliases";
 import { getPublicRoutePath } from "@server/next/publicSite";
 import { isEditorHost } from "@server/next/publicHostPolicy";
 
-export type WarmTargetPriority = PublicSubstanceLookupEntry["priority"];
 
 /**
  * Rotate explicitly requested deployment warming without a permanent low-tier

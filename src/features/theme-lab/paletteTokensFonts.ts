@@ -172,7 +172,7 @@ export const FONT_CHOICES: readonly FontChoice[] = [
 ];
 
 /** The "no override" choice — the one every unrecognised value resolves to. */
-export const DEFAULT_FONT_CHOICE: FontChoice = FONT_CHOICES[0];
+const DEFAULT_FONT_CHOICE: FontChoice = FONT_CHOICES[0];
 
 const CHOICE_BY_ID = new Map(FONT_CHOICES.map((choice) => [choice.id, choice] as const));
 

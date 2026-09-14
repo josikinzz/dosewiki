@@ -13,100 +13,22 @@ import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
 import { SUBSTANCE_SECTION_ICONS } from "@/schema/substance/sectionManifest";
 import { isPlainLeftClick } from "@/utils/navigation";
-import { publicHref } from "@/utils/publicHref";
 import { EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitationMarker } from "../CitedText";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { normalizePharmacologySection } from "../../../../../lib/article/normalization.mjs";
+import { projectMetaboliteDisplay } from "@/lib/article/scientificFieldPolicy.mjs";
 import { useT } from "@/i18n/client";
 import {
   ArticleGapNotice,
   ArticleSubsectionGapNotice,
 } from "./ArticleGapNotice";
 import type { SubsectionGapPolicyKey } from "./articleGapCopy";
-
-// Convert mechanism text to slug for navigation
-function mechanismToSlug(moa: string): string {
-  return moa
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-// Parse mechanism entry to extract base name and optional qualifier
-function parseMechanismEntry(entry: string): {
-  base: string;
-  qualifier?: string;
-} {
-  const match = entry.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-  if (match) {
-    const base = match[1].trim();
-    const qualifier = match[2]?.trim();
-    if (base.length > 0) {
-      return {
-        base,
-        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
-      };
-    }
-  }
-  return { base: entry.trim() };
-}
-
-/**
- * Activity phrases that can trail a binding-site name in a mechanism label.
- * Ordered longest-first so "partial agonist" wins over "agonist" and
- * "reuptake inhibitor" over "inhibitor".
- */
-const MECHANISM_ACTIVITY_PHRASES = [
-  "positive allosteric modulator",
-  "negative allosteric modulator",
-  "allosteric modulator",
-  "reuptake inhibitor",
-  "releasing agent",
-  "partial agonist",
-  "inverse agonist",
-  "co-agonist",
-  "antagonist",
-  "modulator",
-  "inhibitor",
-  "agonist",
-  "blocker",
-  "ligand",
-  "agent",
-];
-
-/**
- * Splits "5-HT2A receptor agonist" into the site ("5-HT2A receptor") and the
- * activity ("agonist") so the row's citation marker can sit beside the binding
- * site itself rather than trailing the whole mechanism. Labels that carry no
- * recognised activity phrase — a bare target like "TAAR1", or free prose — stay
- * whole and keep the marker at the end.
- */
-function splitMechanismActivity(base: string): {
-  site: string;
-  activity?: string;
-} {
-  const lower = base.toLowerCase();
-  for (const phrase of MECHANISM_ACTIVITY_PHRASES) {
-    if (!lower.endsWith(` ${phrase}`)) continue;
-    const site = base.slice(0, base.length - phrase.length - 1).trimEnd();
-    if (site.length > 0) {
-      return { site, activity: base.slice(base.length - phrase.length) };
-    }
-  }
-  return { site: base };
-}
-
-function getMechanismPath(base: string, qualifier?: string) {
-  const baseSlug = mechanismToSlug(base);
-  const qualifierSlug = qualifier ? mechanismToSlug(qualifier) : undefined;
-
-  return {
-    baseSlug,
-    qualifierSlug,
-    href: publicHref.mechanism(baseSlug, qualifierSlug),
-  };
-}
+import {
+  getMechanismPath,
+  parseMechanismEntry,
+  splitMechanismActivity,
+} from "./pharmacologyMechanisms";
 
 function uniqueCitationIds(text: string | null | undefined): string[] {
   if (!text?.includes("[cite:")) {
@@ -139,33 +61,8 @@ function CollapsedPharmacologyToggle({
   );
 }
 
-/** Parse metabolite strings like "Name (Abbreviation, active)" into structured data */
-function parseMetabolite(raw: string): {
-  name: string;
-  abbreviation?: string;
-  isActive?: boolean;
-} {
-  const match = raw.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-  if (!match) return { name: raw.trim() };
-
-  const name = match[1].trim();
-  const parenContent = match[2].trim();
-  const parts = parenContent.split(/,\s*/);
-
-  const isActive = parts.some((p) => /^active$/i.test(p.trim()));
-  const isInactive = parts.some((p) => /^inactive$/i.test(p.trim()));
-  const abbrevParts = parts.filter(
-    (p) => !/^(active|inactive)$/i.test(p.trim()),
-  );
-  const abbreviation =
-    abbrevParts.length > 0 ? abbrevParts.join(", ") : undefined;
-
-  return {
-    name,
-    abbreviation: abbreviation || undefined,
-    isActive: isActive ? true : isInactive ? false : undefined,
-  };
-}
+/** Shared with translation extraction so canonical and explanatory spans agree. */
+const parseMetabolite = projectMetaboliteDisplay;
 
 interface PharmacologySectionProps {
   article: SubstanceArticle;
@@ -197,6 +94,8 @@ export const PharmacologySection = memo(function PharmacologySection({
   const hasBindingSites = pharmacology.binding_sites.length > 0;
   const hasPharmacokinetics = pharmacology.pharmacokinetics?.trim().length > 0;
   const hasMetabolites = pharmacology.metabolites?.length > 0;
+  const halfLife = pharmacology.half_life?.trim() ?? "";
+  const hasHalfLife = halfLife.length > 0;
   const summaryParagraphs = hasSummary
     ? pharmacodynamicsText
         .split(/\n\s*\n/)
@@ -206,7 +105,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   const hasPharmacodynamics = hasSummary || hasBindingSites;
 
   const hasAnyContent =
-    hasSummary || hasBindingSites || hasPharmacokinetics || hasMetabolites;
+    hasSummary || hasBindingSites || hasPharmacokinetics || hasMetabolites || hasHalfLife;
 
   // An empty pharmacokinetics slot only gets a marker once the section itself
   // renders. When the whole section is empty the gap notice below already
@@ -488,6 +387,24 @@ export const PharmacologySection = memo(function PharmacologySection({
             value={storedPharmacokinetics}
           />
         )}
+        {hasHalfLife && (
+          <ArticleSection.InfoCard
+            icon="lucide:trending-down"
+            title={t("Half-life")}
+            variant="subtle"
+            padding="sm"
+          >
+            <EditableValue
+              as="div"
+              label={t("Half-life")}
+              path="pharmacology.half_life"
+              value={article.pharmacology?.half_life ?? ""}
+            >
+              <ArticleText text={halfLife} article={article} />
+            </EditableValue>
+          </ArticleSection.InfoCard>
+        )}
+
 
         {hasMetabolites && (
           <ExpandableList
@@ -551,19 +468,25 @@ export const PharmacologySection = memo(function PharmacologySection({
                           {parsed.name}
                         </span>
                         {(parsed.abbreviation ||
-                          parsed.isActive !== undefined) && (
+                          parsed.status ||
+                          parsed.qualifications.length > 0) && (
                           <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                             {parsed.abbreviation && (
                               <span className="break-words font-mono text-xs theme-text-faint">
                                 {parsed.abbreviation}
                               </span>
                             )}
-                            {parsed.isActive === true && (
+                            {parsed.qualifications.length > 0 && (
+                              <span className="text-xs theme-text-subtle">
+                                {parsed.qualifications.join(", ")}
+                              </span>
+                            )}
+                            {parsed.status === "active" && (
                               <span className="theme-metabolite-status-badge theme-metabolite-status-badge-active whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium">
                                 {t("active")}
                               </span>
                             )}
-                            {parsed.isActive === false && (
+                            {parsed.status === "inactive" && (
                               <span className="theme-metabolite-status-badge theme-metabolite-status-badge-inactive whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium theme-text-faint">
                                 {t("inactive")}
                               </span>

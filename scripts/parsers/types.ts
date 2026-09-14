@@ -157,12 +157,7 @@ export interface ParsedSubstanceData {
 
 // === Parser Interface ===
 
-export interface SourceContent {
-  id: string;
-  displayName: string;
-  content: string;
-  tokens: number;
-}
+
 
 export interface ParserResult {
   dosage: ParsedDosageRoute[];

@@ -1,8 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
+import type * as SiteFlavorModule from "@/config/siteFlavor";
 
 const mocks = vi.hoisted(() => ({
   loadContributorRoute: vi.fn(),
 }));
+vi.mock("@/config/siteFlavor", async (importOriginal) => {
+  const actual = await importOriginal<typeof SiteFlavorModule>();
+  return {
+    ...actual,
+    SITE_FLAVOR_CONFIG: actual.SITE_FLAVOR_CONFIGS.dosewiki,
+    isEffectIndex: (config = actual.SITE_FLAVOR_CONFIGS.dosewiki) =>
+      actual.isEffectIndex(config),
+  };
+});
+
 
 vi.mock("@server/next/routeLoaders.contributors", () => ({
   loadContributorRoute: mocks.loadContributorRoute,

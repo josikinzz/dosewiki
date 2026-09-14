@@ -5,17 +5,17 @@ import { getPublicServerReadTarget } from "./runtimeTargets";
 import { buildLibrary } from "../../src/data/builders/libraryBuilder";
 import { parseManualConfig } from "../../src/data/builders/manualIndexLoader";
 import type { LibraryData } from "../../src/data/SubstanceIndexProvider";
-import type { TaxonomyRouteSurface } from "../../src/data/builders/taxonomy";
 import type {
   CategoryDetail,
-  ClassificationDetail,
   EffectDetail,
   MechanismDetail,
 } from "../../src/data/builders/library";
 import {
   buildSearchIndex,
   createSearchIndexInput,
+  localizeSearchIndex,
   toSearchSuggestion,
+  type LocalizedSearchEntry,
   type SearchIndex,
   type SearchSuggestion,
 } from "../../src/data/builders/search";
@@ -33,18 +33,20 @@ import {
 } from "./publicData";
 import type { PublicEffectArticle, PublicReportPreview } from "./publicData.shared";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
+import { stripCitationTokens } from "../../src/lib/citations/citationTokens";
+import {
+  getLocalizedLeaves,
+  getLocalizedPublicEffectBySlug,
+  getLocalizedPublicReportBySlug,
+  getLocalizedPublicSubstanceBySlug,
+} from "../translation/localizedRecords";
+import type { PublicationSource } from "../next/publicationWire";
 
 const LIBRARY_CACHE_TTL_MS = 60 * 60 * 1000;
 const SEARCH_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
 
 export type PublicDerivedDataCacheInvalidation = {
-  source:
-    | "save-to-convex"
-    | "proposal-apply"
-    | "proposal-revert"
-    | "save-quote"
-    | "manual"
-    | "test-write";
+  source: PublicationSource;
 };
 
 const EMPTY_LAYOUT = {
@@ -312,13 +314,91 @@ export const getPublicSearchIndex = cache(async (): Promise<SearchIndex> => {
 
   return searchIndex;
 });
-
 /**
- * Request-only projection of the shared index. Persistent caching belongs to
- * its read leaves: an outer entry would bypass them on every aggregate miss.
+ * Request-only locale projection of the shared canonical index. The stored
+ * flat translations change display fields only; `localizeSearchIndex` retains
+ * canonical labels and aliases as searchable identity.
  */
-export const getPublicSearchManifest = cache(async (): Promise<SearchManifest> =>
-  createSearchManifest(await getPublicSearchIndex()),
+const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<SearchIndex> => {
+  const canonicalIndex = await getPublicSearchIndex();
+  if (locale === "en") return canonicalIndex;
+
+  const entries = canonicalIndex.entries;
+  const [substances, effects, reports, localizedLeaves] = await Promise.all([
+    Promise.all(
+      entries
+        .filter(({ type }) => type === "substance")
+        .map(async ({ slug }) => [slug, await getLocalizedPublicSubstanceBySlug(slug, locale)] as const),
+    ),
+    Promise.all(
+      entries
+        .filter(({ type }) => type === "effect")
+        .map(async ({ slug }) => [slug, await getLocalizedPublicEffectBySlug(slug, locale)] as const),
+    ),
+    Promise.all(
+      entries
+        .filter(({ type }) => type === "report")
+        .map(async ({ slug }) => [slug, await getLocalizedPublicReportBySlug(slug, locale)] as const),
+    ),
+    getLocalizedLeaves(
+      entries.flatMap(({ label, aliases, secondary, description }) =>
+        [label, ...(aliases ?? []), secondary, description]
+          .filter((value): value is string => Boolean(value)),
+      ),
+      locale,
+    ),
+  ]);
+  const substancesBySlug = new Map(substances);
+  const effectsBySlug = new Map(effects);
+  const reportsBySlug = new Map(reports);
+  const localizedEntries: LocalizedSearchEntry[] = entries.map((entry) => {
+    const fallback = {
+      id: entry.id,
+      label: localizedLeaves.get(entry.label),
+      aliases: entry.aliases?.map((alias) => localizedLeaves.get(alias) ?? alias),
+      secondary: entry.secondary ? localizedLeaves.get(entry.secondary) : undefined,
+      description: entry.description ? localizedLeaves.get(entry.description) : undefined,
+    };
+    if (entry.type === "substance") {
+      const substance = substancesBySlug.get(entry.slug);
+      if (substance) {
+        return {
+          ...fallback,
+          label: substance.title,
+          aliases: substance.identification.alternative_names,
+          secondary: stripCitationTokens(substance.summary ?? "").trim(),
+        };
+      }
+    }
+    if (entry.type === "effect") {
+      const effect = effectsBySlug.get(entry.slug);
+      if (effect) {
+        return {
+          ...fallback,
+          label: effect.name,
+          secondary: effect.summary,
+        };
+      }
+    }
+    if (entry.type === "report") {
+      const report = reportsBySlug.get(entry.slug);
+      if (report) {
+        return {
+          ...fallback,
+          label: report.title,
+          description: report.introduction,
+        };
+      }
+    }
+    return fallback;
+  });
+
+  return localizeSearchIndex(canonicalIndex, locale, localizedEntries);
+});
+
+export const getPublicSearchManifest = cache(
+  async (locale = "en"): Promise<SearchManifest> =>
+    createSearchManifest(await getPublicLocalizedSearchIndex(locale), locale),
 );
 
 export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {
@@ -336,12 +416,80 @@ const getCachedSearchSuggestions = cache(
 );
 
 export const getPublicSearchSuggestions = cache(
-  async (query: string, limit = 20): Promise<SearchSuggestion[]> => {
+  async (query: string, limit = 20, locale = "en"): Promise<SearchSuggestion[]> => {
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) {
       return [];
     }
-    return getCachedSearchSuggestions(trimmed, limit);
+    const suggestions = await getCachedSearchSuggestions(trimmed, limit);
+    if (locale === "en") return suggestions;
+
+    const [substances, effects, reports] = await Promise.all([
+      Promise.all(
+        suggestions
+          .filter(({ type }) => type === "substance")
+          .map(async ({ slug }) => [slug, await getLocalizedPublicSubstanceBySlug(slug, locale)] as const),
+      ),
+      Promise.all(
+        suggestions
+          .filter(({ type }) => type === "effect")
+          .map(async ({ slug }) => [slug, await getLocalizedPublicEffectBySlug(slug, locale)] as const),
+      ),
+      Promise.all(
+        suggestions
+          .filter(({ type }) => type === "report")
+          .map(async ({ slug }) => [slug, await getLocalizedPublicReportBySlug(slug, locale)] as const),
+      ),
+    ]);
+    const substancesBySlug = new Map(substances);
+    const effectsBySlug = new Map(effects);
+    const reportsBySlug = new Map(reports);
+    const leaves = suggestions.flatMap(({ label, secondary, description }) =>
+      [label, secondary, description].filter((value): value is string => Boolean(value)),
+    );
+    const localized = await getLocalizedLeaves(leaves, locale);
+    return suggestions.map((suggestion) => {
+      if (suggestion.type === "substance") {
+        const substance = substancesBySlug.get(suggestion.slug);
+        if (substance) {
+          return {
+            ...suggestion,
+            secondary:
+              stripCitationTokens(substance.summary ?? "").trim() || suggestion.secondary,
+          };
+        }
+      }
+      if (suggestion.type === "effect") {
+        const effect = effectsBySlug.get(suggestion.slug);
+        if (effect) {
+          return {
+            ...suggestion,
+            label: effect.name,
+            secondary: effect.summary || suggestion.secondary,
+          };
+        }
+      }
+      if (suggestion.type === "report") {
+        const report = reportsBySlug.get(suggestion.slug);
+        if (report) {
+          return {
+            ...suggestion,
+            label: report.title,
+            description: report.introduction?.trim() || suggestion.description,
+          };
+        }
+      }
+      return {
+        ...suggestion,
+        label: localized.get(suggestion.label) ?? suggestion.label,
+        secondary: suggestion.secondary
+          ? (localized.get(suggestion.secondary) ?? suggestion.secondary)
+          : suggestion.secondary,
+        description: suggestion.description
+          ? (localized.get(suggestion.description) ?? suggestion.description)
+          : suggestion.description,
+      };
+    });
   },
 );
 
@@ -349,13 +497,6 @@ export const getPublicCategoryDetail = cache(async (categoryKey: string) => {
   return (await getPublicLibrary()).getTaxonomyRouteDetail("category", categoryKey) as CategoryDetail | null;
 });
 
-export const getPublicChemicalClassDetail = cache(async (slug: string) => {
-  return (await getPublicLibrary()).getTaxonomyRouteDetail("chemical", slug) as ClassificationDetail | null;
-});
-
-export const getPublicPsychoactiveClassDetail = cache(async (slug: string) => {
-  return (await getPublicLibrary()).getTaxonomyRouteDetail("psychoactive", slug) as ClassificationDetail | null;
-});
 
 export const getPublicEffectDetail = cache(async (effectSlug: string) => {
   return (await getPublicLibrary()).getTaxonomyRouteDetail("effect", effectSlug) as EffectDetail | null;
@@ -365,8 +506,3 @@ export const getPublicMechanismDetail = cache(async (mechanismSlug: string) => {
   return (await getPublicLibrary()).getTaxonomyRouteDetail("mechanism", mechanismSlug) as MechanismDetail | null;
 });
 
-export const getPublicTaxonomyRouteDetail = cache(
-  async (surface: TaxonomyRouteSurface, identifier: string) => {
-    return (await getPublicLibrary()).getTaxonomyRouteDetail(surface, identifier);
-  },
-);

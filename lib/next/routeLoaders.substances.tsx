@@ -24,9 +24,17 @@ import { getMoleculeUpdatedAt, moleculeOverrideImageUrl } from "@server/convex/p
 import { getPublicArticleHistory } from "@server/convex/publicData.changelog";
 import { getCachedReagentDataForArticle } from "@server/reagentData";
 import { getLocalizedPublicSubstanceBySlug } from "@server/translation/localizedSubstance";
-import { getLocalizedPublicEffectBySlug, getLocalizedPublicEffects } from "@server/translation/localizedRecords";
+import {
+  getLocalizedPublicEffectArticles,
+  getLocalizedPublicEffectBySlug,
+  getLocalizedPublicEffects,
+} from "@server/translation/localizedRecords";
 import type { LiveLocale } from "./localeHostPolicy";
-import { getSafetyBannerIconSize, getWarningBannerPresets } from "./warningBanners";
+import {
+  getLocalizedWarningBannerPresets,
+  getSafetyBannerIconSize,
+  getWarningBannerPresets,
+} from "./warningBanners";
 import { getCopy } from "./copyBlocks";
 import {
   CITATION_OVERHAUL_BANNER_KEY_PREFIX,
@@ -125,9 +133,11 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     // Cached alongside the streamed Trip Reports section's own call; resolved
     // here too so the table of contents knows whether the section will render.
     getPublicReportsBySubstanceNames(getSubstanceSearchNames(substance)),
-    // Every preset, enabled or not; the slug filter happens below. Returns []
-    // on any failure, so a Convex outage drops banners rather than the article.
-    getWarningBannerPresets(),
+    // Banner membership and display metadata stay canonical. Locale routes
+    // overlay only the reader-facing banner corpus fields.
+    locale
+      ? getLocalizedWarningBannerPresets(locale.code)
+      : getWarningBannerPresets(),
     // One site-wide number shared by every banner. Degrades to the shipped
     // default rather than to nothing: a display preference must never be able to
     // suppress a warning.
@@ -259,25 +269,34 @@ export const loadEffectRoute = cache(async (effectSlug: string, locale: LiveLoca
   };
 });
 
+/**
+ * Selection matches on the English record (tags and English names), then the
+ * localized article of the same slug stands in for the mirror so a translated
+ * name never has to match the definition.
+ */
 function selectPsychoactiveSummaryEffects(
   effects: PublicEffectArticle[],
   selection: PsychoactiveSummarySelection,
+  localizedBySlug: ReadonlyMap<string, PublicEffectArticle> | null,
 ): PublicEffectArticle[] {
-  if (selection.type === "names") {
-    return selection.names.flatMap((name) => {
-      const effect = effects.find(
-        (candidate) => candidate.name.toLowerCase() === name.toLowerCase(),
-      );
+  const selected =
+    selection.type === "names"
+      ? selection.names.flatMap((name) => {
+          const effect = effects.find(
+            (candidate) => candidate.name.toLowerCase() === name.toLowerCase(),
+          );
 
-      return effect ? [effect] : [];
-    });
-  }
+          return effect ? [effect] : [];
+        })
+      : effects.filter(
+          (effect) =>
+            selection.tags.every((tag) => effect.tags.includes(tag)) &&
+            !(selection.excludeTags ?? []).some((tag) => effect.tags.includes(tag)),
+        );
 
-  return effects.filter(
-    (effect) =>
-      selection.tags.every((tag) => effect.tags.includes(tag)) &&
-      !(selection.excludeTags ?? []).some((tag) => effect.tags.includes(tag)),
-  );
+  return localizedBySlug
+    ? selected.map((effect) => localizedBySlug.get(effect.slug) ?? effect)
+    : selected;
 }
 
 export type PsychoactiveSummaryRouteResult =
@@ -295,6 +314,7 @@ export type PsychoactiveSummaryRouteResult =
 export const loadPsychoactiveSummaryRoute = cache(
   async (
     summaryPath: readonly string[],
+    locale: LiveLocale | null = null,
   ): Promise<PsychoactiveSummaryRouteResult> => {
     const definition = getPsychoactiveSummaryDefinition(summaryPath);
 
@@ -302,10 +322,14 @@ export const loadPsychoactiveSummaryRoute = cache(
       return { kind: "not-found" };
     }
 
-    const [effects, galleryReplications] = await Promise.all([
+    const [effects, localizedEffects, galleryReplications] = await Promise.all([
       getPublicEffectArticles(),
+      locale ? getLocalizedPublicEffectArticles(locale.code) : null,
       getPublicGalleryReplications(),
     ]);
+    const localizedBySlug = localizedEffects
+      ? new Map(localizedEffects.map((effect) => [effect.slug, effect]))
+      : null;
 
     return {
       kind: "ok",
@@ -316,6 +340,7 @@ export const loadPsychoactiveSummaryRoute = cache(
           effects: selectPsychoactiveSummaryEffects(
             effects,
             section.selection,
+            localizedBySlug,
           ),
         })),
         artistCreditLinks: buildArtistCreditLinks(galleryReplications),

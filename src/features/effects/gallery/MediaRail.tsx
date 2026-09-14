@@ -11,7 +11,7 @@ import { ContributorAvatar } from "@/components/layout/PublicPagePrimitives";
 import { ApprovedReplicatorStar } from "@/features/replications/components/ApprovedReplicatorStar";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
-import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryModel";
+import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryTypes";
 
 /** How much of the visible rail one arrow press advances. */
 const ARROW_SCROLL_RATIO = 0.8;

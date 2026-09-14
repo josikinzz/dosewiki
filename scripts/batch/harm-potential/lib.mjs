@@ -1,8 +1,8 @@
 import yaml from "yaml";
 
-export const VALID_RISK_LEVELS = ["extremely_low", "low", "moderate", "high", "extremely_high", null];
-export const VALID_CARCINOGENICITY_LEVELS = ["confirmed", "probable", "possible", "no_evidence", "unknown", null];
-export const VALID_EVIDENCE_LEVELS = ["none", "negative", "limited", "positive", null];
+const VALID_RISK_LEVELS = ["extremely_low", "low", "moderate", "high", "extremely_high", null];
+const VALID_CARCINOGENICITY_LEVELS = ["confirmed", "probable", "possible", "no_evidence", "unknown", null];
+const VALID_EVIDENCE_LEVELS = ["none", "negative", "limited", "positive", null];
 
 export function titleToSlug(title) {
   return title

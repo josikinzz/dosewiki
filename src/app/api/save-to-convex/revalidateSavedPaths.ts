@@ -4,22 +4,19 @@
  * an applied proposal ships exactly the way a direct save does.
  *
  * Each saved path is translated into the content identity the shared
- * publication contract understands, which expires this deployment's caches
- * immediately and delivers the same identities to the public deployments,
- * whose caches this project cannot reach directly. A path with no known
- * identity keeps the previous behavior: a local global expiry, undelivered,
- * because the receiver refuses identities it cannot map.
+ * publication contract understands. Editorial writes expire this deployment
+ * immediately, then the transactionally captured outbox performs translation
+ * enqueue and public dispatch in that order. Manual cache-only expiry remains
+ * synchronous and never creates translation work. A path with no known
+ * identity keeps the previous local global-expiry behavior.
  *
- * Delivery receipts are returned rather than thrown. The Convex write has
- * already committed by the time this runs, so a refused or unreachable public
- * deployment is a reportable partial publication, never a save failure.
+ * Editorial receipts remain pending until publication-delivery has created
+ * durable locale work. They never describe queue interruption as completion.
  */
-import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
 import { publicationTargetForSavedPath } from "@server/next/publicCacheContract";
 import type { PublicationSource, PublicationTarget } from "@server/next/publicationWire";
-import { publishPublicCache } from "@server/next/publishPublicCache";
+import { applyPublicCacheLocally, publishPublicCache } from "@server/next/publishPublicCache";
 import type { PublicationReceipt, SavedArticleRevision } from "@server/next/publicationDispatch";
-import { enqueueTranslationJobs } from "@server/translation/segmentStore";
 
 export async function revalidateSavedPaths(
   paths: readonly string[],
@@ -39,28 +36,33 @@ export async function revalidateSavedPaths(
     else unknownPaths.push(path);
   }
 
-  // The locale mirrors follow the English by a cron, not inline: a model call
-  // per edit would make saving feel broken. A failed enqueue is logged and the
-  // English publication proceeds; the next write to the record retries it.
-  // Effect, report, library, and replication jobs carry a namespace prefix; article slugs stay bare.
-  const recordSlugs = targets.flatMap((target) => {
-    if (target.kind === "article") return [target.slug];
-    if (target.kind === "effect") return [`effect/${target.slug}`];
-    if (target.kind === "report") return [`report/${target.slug}`];
-    if (target.kind === "library") return [`library/${target.slug}`];
-    if (target.kind === "replication") return [`replication/${target.slug}`];
-    return [];
-  });
-  if (recordSlugs.length > 0 && source !== "manual") {
-    try {
-      await enqueueTranslationJobs(LIVE_LOCALE_CODES, recordSlugs);
-    } catch (error) {
-      console.warn("[revalidateSavedPaths] translation enqueue failed", {
-        slugs: recordSlugs,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+  if (source === "manual") {
+    return publishPublicCache({ targets, source, unknownPaths, savedRevisions });
   }
 
-  return publishPublicCache({ targets, source, unknownPaths, savedRevisions });
+  // The writer transaction has already captured these identities in
+  // publicCachePublications. Expire the editor deployment now, but leave
+  // external dispatch to publication-delivery, which first creates durable
+  // translation or catalog work. A queue interruption therefore cannot be
+  // reported as completed publication.
+  try {
+    applyPublicCacheLocally({ targets, source, unknownPaths, savedRevisions });
+    return [{
+      target: "durable-outbox",
+      status: "pending",
+      attempts: 0,
+      savedRevisions,
+      verification: savedRevisions.length ? "pending" : "not-requested",
+      detail: "Public delivery is pending durable locale translation or catalog refresh intent",
+    }];
+  } catch (error) {
+    return [{
+      target: "local",
+      status: "unreachable",
+      attempts: 1,
+      savedRevisions,
+      verification: savedRevisions.length ? "pending" : "not-requested",
+      detail: error instanceof Error ? error.message : "local invalidation failed",
+    }];
+  }
 }

@@ -13,7 +13,7 @@ import { appendResult, buildProgressSnapshot, updateProgress } from "./run-artif
 
 export { createOpenRouterCaller } from "./openrouter.mjs";
 
-export async function callWithRetry(fn, attempts = CONFIG.retryAttempts, config = CONFIG, log = console.log) {
+async function callWithRetry(fn, attempts = CONFIG.retryAttempts, config = CONFIG, log = console.log) {
   return callBatchOpenRouterWithRetry(fn, {
     attempts,
     retryDelayMs: config.retryDelayMs,
@@ -41,7 +41,7 @@ export function applySummaryUpdate(article, result) {
   return article;
 }
 
-export async function createDryRunResult(
+async function createDryRunResult(
   article,
   availability,
   loadSummaryQuoteForSlug,

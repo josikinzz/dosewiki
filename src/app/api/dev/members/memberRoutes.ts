@@ -3,6 +3,7 @@
  * takes (a target email) and the rows the roster returns.
  */
 import { JsonBodyError } from "@/lib/http/readJsonBody";
+import type { AppRole } from "@/lib/auth/roles";
 
 export const MEMBER_BODY_MAX_BYTES = 4 * 1024;
 
@@ -19,11 +20,11 @@ export function parseMemberEmail(raw: MemberActionBody): { email: string } {
 }
 
 /** One roster row as the Members tab sees it. Mirrors `memberships.listRoster`. */
-export type MemberRosterRow = {
+type MemberRosterRow = {
   email: string;
   username?: string;
   name?: string;
-  role: "admin" | "editor" | "contributor" | "viewer";
+  role: AppRole;
   createdAt?: string;
   lastSeenAt?: string;
   bannedAt?: string;

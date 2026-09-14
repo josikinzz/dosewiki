@@ -53,10 +53,9 @@ const GENERAL_CLASS_ARTICLE_LABEL: Readonly<
 
 const VISUAL_DISCONNECTION_EFFECT_SLUG = "visual-disconnection";
 
-export type AutomaticSubstanceMatchKind =
-  | "specific_drug"
-  | "drug_class"
-  | "visual_disconnection";
+type AutomaticSubstanceMatchKind = | "specific_drug"
+| "drug_class"
+| "visual_disconnection"
 
 /** How one corpus row earned its place in a substance's showcase. */
 export type SubstanceGalleryMatchProvenance = {
@@ -69,10 +68,10 @@ export type SubstanceGalleryMatchProvenance = {
   drugClass?: "dissociatives" | "deliriants";
 };
 
-export type SubstanceGalleryTitleClassMention = {
+type SubstanceGalleryTitleClassMention = {
   class: ReplicationDrugClass;
   matched_title_text: string;
-};
+}
 
 /** The minimum a corpus row must carry to be matchable. */
 export type SubstanceGalleryMatchableRow = {

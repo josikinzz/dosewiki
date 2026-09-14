@@ -75,7 +75,7 @@ export const validateAvatarFile = (file: AvatarFileLike): AvatarFileValidationRe
   return { ok: true, mimeType };
 };
 
-export const readFileAsBase64 = (file: File) =>
+const readFileAsBase64 = (file: File) =>
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -92,7 +92,7 @@ export const readFileAsBase64 = (file: File) =>
       reject(new Error("Failed to read image file."));
     };
     reader.readAsDataURL(file);
-  });
+  })
 
 export const browserAvatarFileAdapter: AvatarBrowserFileAdapter<File> = {
   inferMimeType: inferAvatarMimeType,

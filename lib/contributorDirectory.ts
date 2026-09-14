@@ -1,7 +1,7 @@
 import { findContributorProfileByAuthorName } from "./contributorProfileIdentity";
 import { publicHref } from "../src/utils/publicHref";
 
-export type ContributorDirectoryEntry = {
+type ContributorDirectoryEntry = {
   key: string;
   displayName: string;
   aliases: string[];
@@ -17,7 +17,7 @@ export type ContributorDirectoryEntry = {
    * an ordinary artist.
    */
   approvedReplicator?: boolean;
-};
+}
 
 export type ContributorDirectory = readonly ContributorDirectoryEntry[];
 

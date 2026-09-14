@@ -22,7 +22,8 @@ import {
   getPublicReplicationsForSubstance,
   getPublicSubstanceBySlug,
 } from "@server/convex/publicData";
-import { getLocalizedEffectNames } from "@server/translation/localizedRecords";
+import { getLocalizedPublicEffectBySlug, getLocalizedPublicEffects } from "@server/translation/localizedRecords";
+import { localizeRecords } from "@server/translation/liveTranslation";
 
 /**
  * The two lazily fetchable showcase collections, shared verbatim between the
@@ -57,7 +58,7 @@ export const getSubstanceShowcaseWorks = cache(
     const [substance, gallery, effects] = await Promise.all([
       getPublicSubstanceBySlug(slug),
       getPublicReplicationsForSubstance(slug),
-      getPublicEffects(),
+      locale === "en" ? getPublicEffects() : getLocalizedPublicEffects(locale),
     ]);
     if (!substance) return null;
     // Same projection the article view model applies before rendering.
@@ -74,13 +75,19 @@ export const getSubstanceShowcaseWorks = cache(
     const contributorProfiles = anyKnownCreator
       ? await getPublicContributorProfiles()
       : [];
+    const localizedReplications = locale === "en"
+      ? gallery.items.map((item) => item.replication)
+      : (await localizeRecords(gallery.items.map((item) => item.replication), locale, "replication")).records;
+    const localizedItems = gallery.items.map((item, index) => ({ ...item, replication: localizedReplications[index] }));
 
     const effectNameBySlug = new Map(effects.map((effect) => [effect.slug, effect.name]));
-    for (const [effectSlug, name] of visualEffectNameBySlug(article.subjective_effects)) {
-      effectNameBySlug.set(effectSlug, name);
+    if (locale === "en") {
+      for (const [effectSlug, name] of visualEffectNameBySlug(article.subjective_effects)) {
+        effectNameBySlug.set(effectSlug, name);
+      }
     }
     const works = buildShowcaseWorks(
-      gallery.items,
+      localizedItems,
       effectNameBySlug,
       (artistName) => {
         const profile = findContributorProfileByAuthorName(
@@ -94,9 +101,8 @@ export const getSubstanceShowcaseWorks = cache(
           ?.avatarUrl ?? null,
       gallery.carouselOrder,
     );
-    const effectNames = await getLocalizedEffectNames(works.map((work) => work.effectName), locale);
     return {
-      works: works.map((work) => ({ ...work, effectName: effectNames.get(work.effectName) ?? work.effectName })),
+      works,
       collectionLabel: t("{{name}} replications", { name: article.title }),
     };
   },
@@ -113,16 +119,17 @@ export const getEffectShowcaseWorks = cache(
     locale: UiLocale = "en",
   ): Promise<{ works: ShowcaseWork[]; effectName?: string } | null> => {
     const [effect, replications] = await Promise.all([
-      getPublicEffectBySlug(effectSlug),
+      locale === "en" ? getPublicEffectBySlug(effectSlug) : getLocalizedPublicEffectBySlug(effectSlug, locale),
       getPublicReplicationsByEffect(effectSlug),
     ]);
     // Explicitly tagged collections can exist before an editorial effect article.
     if (!effect && replications.length === 0) return null;
-    const effectName = effect
-      ? (await getLocalizedEffectNames([effect.name], locale)).get(effect.name)
-      : undefined;
+    const effectName = effect?.name;
+    const localizedReplications = locale === "en"
+      ? replications
+      : (await localizeRecords(replications, locale, "replication")).records;
     return {
-      works: buildEffectShowcaseWorks(replications, {
+      works: buildEffectShowcaseWorks(localizedReplications, {
         effectSlug,
         effectName,
         galleryOrder: effect?.gallery_order,

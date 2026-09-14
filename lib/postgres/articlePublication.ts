@@ -29,7 +29,7 @@ import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/dat
 import type { ConvexDocument } from "./convexDocumentCodec";
 import { insertDocument, patchDocument, selectDocumentById, selectDocuments, withTransaction, type SqlClient } from "./documentStore";
 
-export type ArticlePublicationTarget = { kind: "article"; slug: string };
+type ArticlePublicationTarget = { kind: "article"; slug: string }
 
 export function articlePublicationKey(slug: string): string {
   const target: ArticlePublicationTarget = { kind: "article", slug };
@@ -37,7 +37,7 @@ export function articlePublicationKey(slug: string): string {
 }
 
 /** Read the stored article documents for one slug (0, 1, or more rows). */
-export async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = false): Promise<ConvexDocument[]> {
+async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = false): Promise<ConvexDocument[]> {
   return selectDocuments(client, "substanceIndex", {
     where: '"slug" = $1',
     params: [slug],
@@ -110,7 +110,7 @@ function publicationDb(client: PoolClient): GeneratedPublicationDb {
  * when the public revision changed, upsert one pending outbox receipt keyed by
  * the article target, bumping `generation` so a stale delivery is ignored.
  */
-export async function upsertArticleOutbox(client: SqlClient, before: ConvexDocument | null, after: ConvexDocument | null, now: number): Promise<boolean> {
+async function upsertArticleOutbox(client: SqlClient, before: ConvexDocument | null, after: ConvexDocument | null, now: number): Promise<boolean> {
   const revisionOf = (row: ConvexDocument | null) => (row ? projectPublicArticle(row as SubstanceArticleRecord).publicRevision : null);
   const afterRevision = revisionOf(after);
   if (revisionOf(before) === afterRevision) return false;

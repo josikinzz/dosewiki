@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -19,7 +18,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { releaseVideoElement } from "@/lib/releaseVideoElement";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
-import { useT, useUiLocale } from "@/i18n/client";
+import { useT } from "@/i18n/client";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { useMotionAllowed } from "@/features/effects/gallery/inViewPlayback";
 import { shouldLoopReplicationMotion } from "@/features/replications/viewer/qualityLadder";
@@ -27,14 +26,8 @@ import {
   resolveViewerMuted,
   VIEWER_SOUND_STORAGE_KEY,
 } from "@/features/replications/viewer/viewerPreferences";
-import {
-  buildReplicationViewerUrl,
-  closeReplicationViewerUrl,
-  parseReplicationViewerSlug,
-} from "@/features/replications/galleryUrlState";
+import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { ReplicationViewerOverlay } from "@/features/replications/viewer/ReplicationViewerOverlay";
-import type { ReplicationViewerCollection } from "@/features/replications/viewer/viewerModel";
-import { viewerItemFromShowcaseWork } from "@/features/replications/viewer/viewerModel";
 import { publicHref } from "@/utils/publicHref";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import {
@@ -42,6 +35,10 @@ import {
   ViewerDeepLinkCover,
 } from "@/features/replications/ViewerDeepLinkCover";
 import type { ShowcaseWork } from "./showcaseWork";
+import {
+  useShowcaseViewerController,
+  type ReplicationShowcaseController,
+} from "./useShowcaseViewerController";
 
 /**
  * The autoplay gate's viewport half. Where IntersectionObserver does not
@@ -147,12 +144,7 @@ export interface ReplicationShowcaseProps {
    * hrefs against the controller's `sourcePath`. Callers must keep the object
    * referentially stable.
    */
-  controller?: {
-    sourcePath: string;
-    onOpenWork: (slug: string) => void;
-    /** Hands inline playback ownership to the host's canonical overlay. */
-    viewerOpen?: boolean;
-  };
+  controller?: ReplicationShowcaseController;
 }
 
 /**
@@ -204,23 +196,22 @@ export function ReplicationShowcase({
     playbackAllowances.autoplay && playbackAllowances.hoverPreview;
   const { ref: stageRef, inView } = useStageInView();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [viewerSlug, setViewerSlug] = useState<string | null>(null);
-  const [unavailableViewerSlug, setUnavailableViewerSlug] = useState<
-    string | null
-  >(null);
-  /**
-   * The lazily fetched complete collection. The server serializes only the
-   * compact strip; the first viewer intent (a launch, the "+N" affordance, or
-   * a `?viewer=` deep link) fetches the long tail once. `null` means not yet
-   * arrived; the failed flag makes the degradation terminal — the bundled
-   * works stay authoritative and a pending deep link cannot wait forever.
-   */
-  const [remoteCollection, setRemoteCollection] = useState<
-    ShowcaseWork[] | null
-  >(null);
-  const [remoteCollectionFailed, setRemoteCollectionFailed] = useState(false);
-  /** One request per mounted stage, however many intents race it. */
-  const remoteCollectionRequestedRef = useRef(false);
+  const {
+    viewerSlug,
+    unavailableViewerSlug,
+    viewerCollection,
+    launchViewer,
+    handleViewerLinkClick,
+    closeViewer,
+  } = useShowcaseViewerController({
+    works,
+    collectionWorks,
+    collectionSource,
+    substanceSlug,
+    effectSlug,
+    collectionLabel,
+    controller,
+  });
   /**
    * The inline stage's mute state, shared with the fullscreen viewer through
    * its session sound preference. Muted until the mount effect below reads
@@ -232,7 +223,7 @@ export function ReplicationShowcase({
   const effectiveMutedRef = useRef(true);
   // Identity-stable on purpose: an inline ref callback re-runs per render,
   // and its detach pass would tear down the live element. On detach the
-  // media pipeline is released immediately — a discarded video otherwise
+  // media pipeline is released immediately. A discarded video otherwise
   // holds its player (and any in-flight fetch) until GC, and browsers cap
   // live players per page before silently refusing new loads.
   const attachStageVideo = useCallback((element: HTMLVideoElement | null) => {
@@ -247,130 +238,8 @@ export function ReplicationShowcase({
     videoRef.current = null;
     if (previous) releaseVideoElement(previous);
   }, []);
-  const collectionSourceKind = collectionSource?.kind;
-  const collectionSourceSlug = collectionSource?.slug;
-  const uiLocale = useUiLocale();
-  /**
-   * Fire-and-forget, at most once. Callers never await it: the overlay opens
-   * over the bundled works and its playlist extends in place when the full
-   * collection arrives; the deep-link effect below re-runs on either outcome.
-   */
-  const fetchRemoteCollection = useCallback(() => {
-    if (
-      !collectionSourceKind ||
-      !collectionSourceSlug ||
-      remoteCollectionRequestedRef.current
-    ) {
-      return;
-    }
-    remoteCollectionRequestedRef.current = true;
-    void fetch(
-      `/api/replications/showcase?${collectionSourceKind}=${encodeURIComponent(collectionSourceSlug)}${
-        uiLocale === "en" ? "" : `&locale=${uiLocale}`
-      }`,
-    )
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Showcase collection read failed: ${response.status}`,
-          );
-        }
-        const payload = (await response.json()) as { works?: unknown };
-        if (!Array.isArray(payload.works)) {
-          throw new Error("Malformed showcase collection payload.");
-        }
-        setRemoteCollection(payload.works as ShowcaseWork[]);
-      })
-      .catch(() => {
-        // Terminal degradation to the bundled works: the strip and the
-        // viewer still work, only the long tail beyond the cap is missing.
-        setRemoteCollectionFailed(true);
-      });
-  }, [collectionSourceKind, collectionSourceSlug, uiLocale]);
-  const effectiveCollection = remoteCollection ?? collectionWorks;
-  const viewerCollection = useMemo<ReplicationViewerCollection>(() => {
-    const label =
-      collectionLabel ??
-      (substanceSlug
-        ? t("Substance replications")
-        : effectSlug
-          ? t("{{name}} replications", { name: works[0]?.effectName ?? t("Effect") })
-          : t("Replications"));
-    return {
-      label,
-      sourcePath:
-        controller?.sourcePath ??
-        (substanceSlug
-          ? publicHref.substance(substanceSlug)
-          : effectSlug
-            ? publicHref.effect(effectSlug)
-            : publicHref.replications()),
-      kind: substanceSlug ? "substance" : effectSlug ? "effect" : "gallery",
-      grouping: "none",
-      editorTarget: substanceSlug
-        ? { kind: "substance", key: substanceSlug, label }
-        : effectSlug
-          ? { kind: "effect", key: effectSlug, label }
-          : undefined,
-      groups: [
-        {
-          key: substanceSlug ?? effectSlug ?? "replications",
-          label,
-          items: effectiveCollection.map(viewerItemFromShowcaseWork),
-        },
-      ],
-    };
-  }, [collectionLabel, effectiveCollection, controller?.sourcePath, effectSlug, substanceSlug, t]);
 
   useEffect(() => {
-    // A controlled showcase never owns the deep link: the page-level
-    // controller resolves `?viewer=` against the whole collection.
-    if (controller) return;
-    const params = new URLSearchParams(window.location.search);
-    const slug = parseReplicationViewerSlug(params);
-    // A deep link may name a work beyond the serialized strip. While the
-    // full collection is lazily fetchable and unsettled, start the fetch and
-    // resolve nothing: the param and the deep-link cover both survive until
-    // the long tail arrives — or the fetch fails and the bundled works are
-    // all there will be — and this effect re-runs on either outcome.
-    if (
-      slug &&
-      collectionSourceKind &&
-      remoteCollection === null &&
-      !remoteCollectionFailed
-    ) {
-      fetchRemoteCollection();
-      return;
-    }
-    const belongsToCollection =
-      slug && effectiveCollection.some((work) => work.slug === slug);
-    setUnavailableViewerSlug(slug && !belongsToCollection ? slug : null);
-    setViewerSlug(belongsToCollection ? slug : null);
-    if (params.has("viewer") && !belongsToCollection) {
-      const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      window.history.replaceState(
-        window.history.state,
-        "",
-        closeReplicationViewerUrl(source),
-      );
-    }
-    // Absent or unresolvable viewer param: drop the deep-link cover so the
-    // article (and the unavailable notice) is visible. A valid param keeps
-    // the cover underneath the opaque overlay until the viewer closes.
-    if (!belongsToCollection) {
-      dismissViewerDeepLinkCover();
-    }
-  }, [
-    controller,
-    collectionSourceKind,
-    effectiveCollection,
-    fetchRemoteCollection,
-    remoteCollection,
-    remoteCollectionFailed,
-  ]);
-
-  useEffect(() => {
-
     setInlineMuted(readStoredViewerMuted());
   }, []);
   const controlledPlaybackRef = useRef(false);
@@ -389,39 +258,7 @@ export function ReplicationShowcase({
     }
   }, [controller?.viewerOpen]);
 
-  const launchViewer = (slug: string) => {
-    if (controller) {
-      controller.onOpenWork(slug);
-      return;
-    }
-    // Fire the collection fetch alongside the launch: the overlay opens over
-    // the bundled works and extends when the long tail arrives.
-    fetchRemoteCollection();
-    const source = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    setUnavailableViewerSlug(null);
-    window.history.pushState(
-      { ...window.history.state, replicationViewer: true },
-      "",
-      buildReplicationViewerUrl(source, slug),
-    );
-    setViewerSlug(slug);
-  };
 
-  /** Plain left-clicks launch the overlay; modified clicks keep the href. */
-  const handleViewerLinkClick =
-    (slug: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
-      if (
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
-        return;
-      }
-      event.preventDefault();
-      launchViewer(slug);
-    };
 
   if (works.length === 0) return null;
 
@@ -945,7 +782,7 @@ export function ReplicationShowcase({
           open
           onOpenChange={(nextOpen) => {
             if (!nextOpen) {
-              setViewerSlug(null);
+              closeViewer();
               // The viewer may have flipped the session sound choice.
               setInlineMuted(readStoredViewerMuted());
               dismissViewerDeepLinkCover();

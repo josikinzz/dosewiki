@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
-export const COMPLETION_REPORT_TYPE = "identity-social-production-completion-report";
-export const COMPLETION_REPORT_SCHEMA_VERSION = 1;
-export const REQUIRED_COUNTS = Object.freeze({
+const COMPLETION_REPORT_TYPE = "identity-social-production-completion-report"
+const COMPLETION_REPORT_SCHEMA_VERSION = 1
+const REQUIRED_COUNTS = Object.freeze({
   profileBindingDecisions: 48,
   profileCreates: 21,
   profileBinds: 5,
@@ -17,9 +17,9 @@ export const REQUIRED_COUNTS = Object.freeze({
   embeddedProfileBindingVerifications: 48,
   socialAssets: 9_172,
   uniqueSocialObjects: 9_171,
-});
+})
 
-export function canonical(value) {
+function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") return Object.fromEntries(Object.entries(value)
     .filter(([, item]) => item !== undefined)
@@ -28,53 +28,51 @@ export function canonical(value) {
   return value;
 }
 
-export function canonicalJson(value) { return JSON.stringify(canonical(value)); }
+function canonicalJson(value) { return JSON.stringify(canonical(value)); }
 export function digest(value) { return createHash("sha256").update(canonicalJson(value)).digest("hex"); }
 
-export function immutableExpectedInventory({ projection, plan }) {
-  const counts = projection.counts ?? {};
-  for (const [name, expected] of Object.entries(REQUIRED_COUNTS)) {
-    if (name === "embeddedProfileBindingVerifications" || name === "uniqueSocialObjects") continue;
-    if (counts[name] !== expected) throw new Error(`Immutable projection ${name} is ${counts[name]}, expected ${expected}.`);
-  }
-  const profileDependencies = projection.operations
-    .filter((operation) => operation.kind === "profile-binding")
-    .map((operation) => operation.after?.verificationDependency?.verificationOperationId)
-    .filter(Boolean);
-  if (profileDependencies.length !== REQUIRED_COUNTS.embeddedProfileBindingVerifications || new Set(profileDependencies).size !== profileDependencies.length) {
-    throw new Error("Immutable projection must bind exactly 48 unique verification decisions through profile bindings.");
-  }
-  const socialEntries = plan.entries.filter((entry) => entry.kind === "social-asset");
-  const uniqueSocialObjects = new Set(socialEntries.map((entry) => entry.value.media_digest)).size;
-  if (socialEntries.length !== REQUIRED_COUNTS.socialAssets || uniqueSocialObjects !== REQUIRED_COUNTS.uniqueSocialObjects) {
-    throw new Error(`Social inventory is ${socialEntries.length} logical assets / ${uniqueSocialObjects} objects, expected 9172 / 9171.`);
-  }
-  const byItemId = new Map();
-  for (const entry of plan.entries) {
-    if (byItemId.has(entry.item_operation_id)) throw new Error(`Duplicate planned item ID ${entry.item_operation_id}.`);
-    byItemId.set(entry.item_operation_id, entry);
-  }
-  // A cross-kind reconciliation can carry multiple contribution item IDs, but
-  // one contribution may already be one of the 48 profile-bound decisions.
-  // Count immutable decision operations, not contribution rows, to avoid
-  // double-counting ELOHPROJECTS / Sean Allum.
-  const standaloneVerificationDecisions = plan.entries.filter((entry) => entry.kind === "verification").length;
-  const verificationDecisionsAccounted = profileDependencies.length + standaloneVerificationDecisions;
-  if (verificationDecisionsAccounted !== REQUIRED_COUNTS.verificationDecisions) {
-    throw new Error(`Execution plan accounts for ${verificationDecisionsAccounted} verification decisions, expected 2127.`);
-  }
-  return {
-    byItemId,
-    profileDependencies,
-    summary: {
-      ...REQUIRED_COUNTS,
-      actionableJournalItems: plan.entries.length,
-      explicitNoWrites: plan.noWrites.length,
-      standaloneVerificationDecisions,
-      verificationDecisionsAccounted,
-    },
-  };
+function immutableExpectedInventory({ projection, plan }) { const counts = projection.counts ?? {};
+for (const [name, expected] of Object.entries(REQUIRED_COUNTS)) {
+  if (name === "embeddedProfileBindingVerifications" || name === "uniqueSocialObjects") continue;
+  if (counts[name] !== expected) throw new Error(`Immutable projection ${name} is ${counts[name]}, expected ${expected}.`);
 }
+const profileDependencies = projection.operations
+  .filter((operation) => operation.kind === "profile-binding")
+  .map((operation) => operation.after?.verificationDependency?.verificationOperationId)
+  .filter(Boolean);
+if (profileDependencies.length !== REQUIRED_COUNTS.embeddedProfileBindingVerifications || new Set(profileDependencies).size !== profileDependencies.length) {
+  throw new Error("Immutable projection must bind exactly 48 unique verification decisions through profile bindings.");
+}
+const socialEntries = plan.entries.filter((entry) => entry.kind === "social-asset");
+const uniqueSocialObjects = new Set(socialEntries.map((entry) => entry.value.media_digest)).size;
+if (socialEntries.length !== REQUIRED_COUNTS.socialAssets || uniqueSocialObjects !== REQUIRED_COUNTS.uniqueSocialObjects) {
+  throw new Error(`Social inventory is ${socialEntries.length} logical assets / ${uniqueSocialObjects} objects, expected 9172 / 9171.`);
+}
+const byItemId = new Map();
+for (const entry of plan.entries) {
+  if (byItemId.has(entry.item_operation_id)) throw new Error(`Duplicate planned item ID ${entry.item_operation_id}.`);
+  byItemId.set(entry.item_operation_id, entry);
+}
+// A cross-kind reconciliation can carry multiple contribution item IDs, but
+// one contribution may already be one of the 48 profile-bound decisions.
+// Count immutable decision operations, not contribution rows, to avoid
+// double-counting ELOHPROJECTS / Sean Allum.
+const standaloneVerificationDecisions = plan.entries.filter((entry) => entry.kind === "verification").length;
+const verificationDecisionsAccounted = profileDependencies.length + standaloneVerificationDecisions;
+if (verificationDecisionsAccounted !== REQUIRED_COUNTS.verificationDecisions) {
+  throw new Error(`Execution plan accounts for ${verificationDecisionsAccounted} verification decisions, expected 2127.`);
+}
+return {
+  byItemId,
+  profileDependencies,
+  summary: {
+    ...REQUIRED_COUNTS,
+    actionableJournalItems: plan.entries.length,
+    explicitNoWrites: plan.noWrites.length,
+    standaloneVerificationDecisions,
+    verificationDecisionsAccounted,
+  },
+}; }
 
 function latestByOperation(ledger, event) {
   const result = new Map();

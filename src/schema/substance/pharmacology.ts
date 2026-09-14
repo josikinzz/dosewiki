@@ -7,7 +7,7 @@ export const drugComparisonSchema = z.object({
 });
 
 /** Single pharmacological target or binding-site interaction entry. */
-export const bindingSiteEntrySchema = z.object({
+const bindingSiteEntrySchema = z.object({
   target: z.string(),
   tag: z.string().optional(),
   affinity: z.string().optional(),
@@ -31,6 +31,4 @@ export const pharmacologySchema = z.object({
   half_life: z.string().optional(),
 });
 
-export type DrugComparison = z.infer<typeof drugComparisonSchema>;
-export type BindingSiteEntry = z.infer<typeof bindingSiteEntrySchema>;
 export type Pharmacology = z.infer<typeof pharmacologySchema>;

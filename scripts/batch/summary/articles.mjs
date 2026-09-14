@@ -1,6 +1,6 @@
 import { GREEK_TO_ASCII } from "./config.mjs";
 
-export function titleToSlug(title) {
+function titleToSlug(title) {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -16,7 +16,7 @@ export function stripConvexMetadata(article) {
   return clean;
 }
 
-export function sanitizeFieldName(name) {
+function sanitizeFieldName(name) {
   let result = name;
   for (const [greek, ascii] of Object.entries(GREEK_TO_ASCII)) {
     result = result.replace(new RegExp(greek, "g"), ascii);

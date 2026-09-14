@@ -14,7 +14,7 @@ import {
   stripCitationMarkersFromValue,
 } from "./citation-only-validator.mjs";
 
-export const SUBSECTION_AUDIT_SCHEMA = "dosewiki_subsection_citation_audit_v1";
+const SUBSECTION_AUDIT_SCHEMA = "dosewiki_subsection_citation_audit_v1";
 export const SUBSECTION_TRACKER_SCHEMA = "dosewiki_subsection_rollout_v1";
 export const CITABLE_SECTIONS = CITABLE_ARTICLE_SECTIONS;
 export const VIABILITY_FLOOR_CHARS = 40;
@@ -27,7 +27,7 @@ export const TRACKER_STATUSES = [
   "verified",
   "excluded",
 ];
-export const TRACKER_STATUS_LEGEND = {
+const TRACKER_STATUS_LEGEND = {
   ready: "viable uncited subsection; eligible for a scoped citation run",
   researching: "a scoped citation run is in flight for this subsection",
   needs_source: "no defensible non-wiki evidence found; do not force citations",

@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { useContextualEditing } from "@/features/contextual-editing/context";
+import { roleMeetsFloor } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerCollection } from "../viewerModel";
 
@@ -51,7 +52,7 @@ export default function ReplicationViewerEditorGate(
   props: ReplicationViewerEditorGateProps,
 ) {
   const editing = useContextualEditing();
-  const eligible = editing.enabled && editing.mode === "edit" && (editing.role === "admin" || editing.role === "editor" || editing.role === "contributor");
+  const eligible = editing.enabled && editing.mode === "edit" && roleMeetsFloor(editing.role, "contributor");
   const [activated, setActivated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);

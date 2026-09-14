@@ -3,7 +3,7 @@ import { useEffect, useRef, type RefObject } from "react";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** Every dev master/detail tool stacks below its `lg:` grid. */
-export const STACKED_BELOW_LG_QUERY = "(max-width: 1023px)";
+const STACKED_BELOW_LG_QUERY = "(max-width: 1023px)";
 
 /**
  * Master/detail tools stack the list above the detail column below their grid

@@ -11,7 +11,7 @@ import {
   type GalleryTypeFilter,
   type GalleryViewingFilter,
   type GalleryYearFilter,
-} from "@/features/effects/gallery/galleryModel";
+} from "@/features/effects/gallery/galleryTypes";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 
 /**

@@ -25,7 +25,7 @@ import {
 import {
   effectNameLookup,
   UNATTRIBUTED_KEY,
-} from "@/features/effects/gallery/galleryModel";
+} from "@/features/effects/gallery/galleryArtistIdentity";
 import { ProfileBioMarkdown } from "@/components/pages/ProfileBioMarkdown";
 import type { ContributorDirectory } from "@server/contributorDirectory";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -38,6 +38,7 @@ import {
   type PublicEffectPreview,
 } from "@server/convex/publicData";
 import {
+  getLocalizedPublicContributorByKey,
   getLocalizedPublicEffects,
   getLocalizedPublicGalleryReplications,
 } from "@server/translation/localizedRecords";
@@ -75,8 +76,8 @@ import { t } from "@/i18n/server";
  * profile presents a body of work, it is not a querying surface.
  *
  * The English route and every locale mirror render this same component; a
- * mirror passes its locale so the works and effect names come from the
- * localized corpus while the artist's name, links and bio stay as written.
+ * mirror passes its locale so canonical works, effect names, and profile prose
+ * are localized before display projection while artist identity stays original.
  */
 
 interface LoadedArtistFocus {
@@ -191,7 +192,9 @@ export async function ReplicationArtistRoute({
     contributorDirectory,
   );
   const profile = profileKey
-    ? await getPublicContributorByKey(profileKey)
+    ? locale
+      ? await getLocalizedPublicContributorByKey(profileKey, locale.code)
+      : await getPublicContributorByKey(profileKey)
     : null;
   const identity = profile
     ? await getPublicContributorIdentity(profile.key)

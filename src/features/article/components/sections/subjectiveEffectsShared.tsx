@@ -23,7 +23,7 @@ import { slugify } from "@/utils/slug";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
 import { useT } from "@/i18n/client";
 
-export { SENSORY_CATEGORIES, resolveSubcategory };
+export { SENSORY_CATEGORIES };
 
 /**
  * Where a category's subcategory notes live, as already-decoded path parts —
@@ -48,11 +48,9 @@ export const SUBJECTIVE_EFFECTS_STUB_MAX_EFFECTS = 3;
  * exists because ~27% of chip names slugified to a route that 404s, and silently
  * emitting those links is what made the rot invisible.
  */
-export function getEffectHref(name: string, location?: EffectLocation): string | null {
-  const alias = resolveEffectNameAlias(slugify(name), location);
+function getEffectHref(name: string, location?: EffectLocation): string | null { const alias = resolveEffectNameAlias(slugify(name), location);
 
-  return alias === undefined ? publicHref.effectFromName(name) : alias;
-}
+return alias === undefined ? publicHref.effectFromName(name) : alias; }
 
 export function hasEffects(category: EffectCategory | undefined): boolean {
   if (!category || typeof category !== "object") return false;
@@ -131,7 +129,7 @@ export function countVisibleEffects(
   );
 }
 
-export function EffectBadge({
+function EffectBadge({
   effect,
   isExpanded,
   onToggle,
@@ -143,125 +141,123 @@ export function EffectBadge({
   onToggle: () => void;
   onSelectEffect?: (name: string) => void;
   location?: EffectLocation;
-}) {
-  const t = useT();
-  const hasDescription = effect.description?.trim().length > 0;
-  const href = getEffectHref(effect.name, location);
-  const panelId = `effect-${slugify(effect.name)}-description`;
+}) { const t = useT();
+const hasDescription = effect.description?.trim().length > 0;
+const href = getEffectHref(effect.name, location);
+const panelId = `effect-${slugify(effect.name)}-description`;
 
-  const handleClick = () => {
-    if (hasDescription) {
-      onToggle();
-    } else if (onSelectEffect) {
-      onSelectEffect(slugify(effect.name));
-    }
-  };
-
-  if (isExpanded && hasDescription) {
-    const parenMatch = effect.description.match(/^\(([^)]+)\)\s*[-–—]\s*/);
-    const subtitleBadge = parenMatch ? parenMatch[1] : null;
-    const descriptionText = parenMatch
-      ? effect.description.slice(parenMatch[0].length)
-      : effect.description;
-
-    return (
-      <div
-        id={panelId}
-        className={cn(
-          "relative flex w-full flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
-          "theme-inline-expanded-card my-2",
-        )}
-      >
-        <ExpandButton
-          isExpanded={true}
-          onToggle={onToggle}
-          variant="card"
-          className="absolute right-3 top-3 text-dose-text-secondary"
-          ariaLabel={t("Collapse {{effect}} effect description", { effect: effect.name })}
-          ariaControls={panelId}
-        />
-        <div className="flex flex-wrap items-center gap-2 pr-8">
-          {href === null ? (
-            // No page to open: same typography, none of the link affordances.
-            <span className="text-xs font-semibold text-dose-text-secondary">{t(effect.name)}</span>
-          ) : (
-            <SmartLink
-              href={href}
-              onClick={
-                onSelectEffect
-                  ? (event) => {
-                      if (!isPlainLeftClick(event)) {
-                        return;
-                      }
-
-                      event.preventDefault();
-                      onSelectEffect(slugify(effect.name));
-                    }
-                  : undefined
-              }
-              className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
-            >
-              {t(effect.name)}
-            </SmartLink>
-          )}
-          {subtitleBadge && (
-            <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">
-              {subtitleBadge}
-            </span>
-          )}
-        </div>
-        <p className="text-sm leading-relaxed text-dose-text-muted">{descriptionText}</p>
-      </div>
-    );
+const handleClick = () => {
+  if (hasDescription) {
+    onToggle();
+  } else if (onSelectEffect) {
+    onSelectEffect(slugify(effect.name));
   }
+};
 
-  if (!hasDescription) {
-    // `PublicNameChip` renders a span by default; `as={Link}` is what opts it into
-    // link mode, so an unresolved name simply omits it and keeps the same chip.
-    if (href === null) {
-      return <PublicNameChip>{t(effect.name)}</PublicNameChip>;
-    }
+if (isExpanded && hasDescription) {
+  const parenMatch = effect.description.match(/^\(([^)]+)\)\s*[-–—]\s*/);
+  const subtitleBadge = parenMatch ? parenMatch[1] : null;
+  const descriptionText = parenMatch
+    ? effect.description.slice(parenMatch[0].length)
+    : effect.description;
 
-    return (
-      <PublicNameChip
-        as={Link}
-        href={href}
-        onClick={
-          onSelectEffect
-            ? (event) => {
-                if (!isPlainLeftClick(event)) {
-                  return;
-                }
+  return (
+    <div
+      id={panelId}
+      className={cn(
+        "relative flex w-full flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
+        "theme-inline-expanded-card my-2",
+      )}
+    >
+      <ExpandButton
+        isExpanded={true}
+        onToggle={onToggle}
+        variant="card"
+        className="absolute right-3 top-3 text-dose-text-secondary"
+        ariaLabel={t("Collapse {{effect}} effect description", { effect: effect.name })}
+        ariaControls={panelId}
+      />
+      <div className="flex flex-wrap items-center gap-2 pr-8">
+        {href === null ? (
+          // No page to open: same typography, none of the link affordances.
+          <span className="text-xs font-semibold text-dose-text-secondary">{t(effect.name)}</span>
+        ) : (
+          <SmartLink
+            href={href}
+            onClick={
+              onSelectEffect
+                ? (event) => {
+                    if (!isPlainLeftClick(event)) {
+                      return;
+                    }
 
-                event.preventDefault();
-                handleClick();
-              }
-            : undefined
-        }
-        interactive
-      >
-        {t(effect.name)}
-      </PublicNameChip>
-    );
+                    event.preventDefault();
+                    onSelectEffect(slugify(effect.name));
+                  }
+                : undefined
+            }
+            className="text-xs font-semibold text-dose-text-secondary transition-colors hover:text-dose-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dose-accent"
+          >
+            {t(effect.name)}
+          </SmartLink>
+        )}
+        {subtitleBadge && (
+          <span className="rounded bg-dose-surface-strong px-2 py-0.5 text-xs text-dose-text-faint">
+            {subtitleBadge}
+          </span>
+        )}
+      </div>
+      <p className="text-sm leading-relaxed text-dose-text-muted">{descriptionText}</p>
+    </div>
+  );
+}
+
+if (!hasDescription) {
+  // `PublicNameChip` renders a span by default; `as={Link}` is what opts it into
+  // link mode, so an unresolved name simply omits it and keeps the same chip.
+  if (href === null) {
+    return <PublicNameChip>{t(effect.name)}</PublicNameChip>;
   }
 
   return (
     <PublicNameChip
-      as="button"
-      type="button"
-      onClick={handleClick}
-      aria-expanded={false}
-      aria-label={t("Expand {{effect}} effect description", { effect: effect.name })}
-      aria-controls={panelId}
+      as={Link}
+      href={href}
+      onClick={
+        onSelectEffect
+          ? (event) => {
+              if (!isPlainLeftClick(event)) {
+                return;
+              }
+
+              event.preventDefault();
+              handleClick();
+            }
+          : undefined
+      }
       interactive
     >
       {t(effect.name)}
-      <ExpandIndicator isExpanded={false} />
     </PublicNameChip>
   );
 }
 
-export function EffectsGroup({
+return (
+  <PublicNameChip
+    as="button"
+    type="button"
+    onClick={handleClick}
+    aria-expanded={false}
+    aria-label={t("Expand {{effect}} effect description", { effect: effect.name })}
+    aria-controls={panelId}
+    interactive
+  >
+    {t(effect.name)}
+    <ExpandIndicator isExpanded={false} />
+  </PublicNameChip>
+); }
+
+function EffectsGroup({
   effects,
   expandedEffect,
   onToggleEffect,
@@ -273,22 +269,20 @@ export function EffectsGroup({
   onToggleEffect: (name: string) => void;
   onSelectEffect?: (name: string) => void;
   location?: EffectLocation;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {effects.map((effect) => (
-        <EffectBadge
-          key={effect.name}
-          effect={effect}
-          isExpanded={expandedEffect === effect.name}
-          onToggle={() => onToggleEffect(effect.name)}
-          onSelectEffect={onSelectEffect}
-          location={location}
-        />
-      ))}
-    </div>
-  );
-}
+}) { return (
+  <div className="flex flex-wrap gap-2">
+    {effects.map((effect) => (
+      <EffectBadge
+        key={effect.name}
+        effect={effect}
+        isExpanded={expandedEffect === effect.name}
+        onToggle={() => onToggleEffect(effect.name)}
+        onSelectEffect={onSelectEffect}
+        location={location}
+      />
+    ))}
+  </div>
+); }
 
 /**
  * `EditableValue` for a note whose path is optional.
@@ -405,7 +399,7 @@ export function CollapsibleStage({
   );
 }
 
-export function SubcategorySection({
+function SubcategorySection({
   subcategory,
   subcategoryData,
   expandedEffect,
@@ -424,61 +418,59 @@ export function SubcategorySection({
   location?: EffectLocation;
   /** See `EffectNotePathBase`; absent on the public article. */
   notePathBase?: EffectNotePathBase;
-}) {
-  const t = useT();
-  const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
-  const { label: rawSubcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
-  const subcategoryLabel = t(rawSubcategoryLabel);
-  const notePath = notePathBase
-    ? buildFieldPath(...notePathBase, subcategory, "note")
-    : undefined;
+}) { const t = useT();
+const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
+const { label: rawSubcategoryLabel, icon: subcategoryIcon } = resolveSubcategory(subcategory);
+const subcategoryLabel = t(rawSubcategoryLabel);
+const notePath = notePathBase
+  ? buildFieldPath(...notePathBase, subcategory, "note")
+  : undefined;
 
-  return (
-    <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
-      {!isGeneral && (
-        <h4
-          className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5"
-        >
-          {subcategoryIcon ? (
-            <Icon icon={subcategoryIcon} size={16} className="theme-icon-accent" />
-          ) : (
-            <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
-          )}
-          {subcategoryLabel}
-        </h4>
-      )}
-      {hasSubcategoryNote && (
-        <MaybeEditable
-          label={t("{{label}} note", { label: subcategoryLabel })}
-          path={notePath}
-          value={subcategoryData.note}
-        >
-          <p className="theme-text-muted mb-3 text-sm leading-relaxed">
-            {subcategoryData.note}
-          </p>
-        </MaybeEditable>
-      )}
-      {!hasSubcategoryNote && notePath ? (
-        <EditableSlot
-          className="mb-3"
-          emptyLabel={t("Add a {{label}} note", { label: subcategoryLabel })}
-          label={t("{{label}} note", { label: subcategoryLabel })}
-          path={notePath}
-          value={subcategoryData.note ?? ""}
-        />
-      ) : null}
-      <div>
-        <EffectsGroup
-          effects={subcategoryData.effects}
-          expandedEffect={expandedEffect}
-          onToggleEffect={onToggleEffect}
-          onSelectEffect={onSelectEffect}
-          location={location}
-        />
-      </div>
+return (
+  <div className={cn(!isGeneral && "pl-5 pt-5 first:pt-0 sm:pl-6")}>
+    {!isGeneral && (
+      <h4
+        className="theme-text-secondary mb-2.5 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-5"
+      >
+        {subcategoryIcon ? (
+          <Icon icon={subcategoryIcon} size={16} className="theme-icon-accent" />
+        ) : (
+          <span className="h-1.5 w-1.5 rounded-full bg-dose-accent-muted" />
+        )}
+        {subcategoryLabel}
+      </h4>
+    )}
+    {hasSubcategoryNote && (
+      <MaybeEditable
+        label={t("{{label}} note", { label: subcategoryLabel })}
+        path={notePath}
+        value={subcategoryData.note}
+      >
+        <p className="theme-text-muted mb-3 text-sm leading-relaxed">
+          {subcategoryData.note}
+        </p>
+      </MaybeEditable>
+    )}
+    {!hasSubcategoryNote && notePath ? (
+      <EditableSlot
+        className="mb-3"
+        emptyLabel={t("Add a {{label}} note", { label: subcategoryLabel })}
+        label={t("{{label}} note", { label: subcategoryLabel })}
+        path={notePath}
+        value={subcategoryData.note ?? ""}
+      />
+    ) : null}
+    <div>
+      <EffectsGroup
+        effects={subcategoryData.effects}
+        expandedEffect={expandedEffect}
+        onToggleEffect={onToggleEffect}
+        onSelectEffect={onSelectEffect}
+        location={location}
+      />
     </div>
-  );
-}
+  </div>
+); }
 
 /**
  * Renders a whole effect category (physical, cognitive, or a sense's

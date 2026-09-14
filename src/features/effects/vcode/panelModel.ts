@@ -14,7 +14,7 @@ import type { VCodeNode } from "./types";
  * converted panel would silently drop whatever did not fit.
  */
 
-export interface VCodePanelRow {
+interface VCodePanelRow {
   label: string;
   /** Destination exactly as authored; the renderer resolves it. */
   href: string;

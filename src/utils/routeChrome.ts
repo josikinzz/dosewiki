@@ -74,7 +74,7 @@ export function getRouteChromePageTitle(
   }
 }
 
-export function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
+function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
   switch (view.type) {
     case "substances":
     case "substance":

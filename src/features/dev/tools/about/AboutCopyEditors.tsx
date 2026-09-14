@@ -13,7 +13,7 @@ import {
 } from "@/features/dev/components";
 import type { AboutCopyNotice } from "./aboutEditorUtils";
 
-export const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
+const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
   { key: "compoundCount", label: "published substances" },
   { key: "effectCount", label: "tracked subjective effects" },
   { key: "reportCount", label: "published trip reports" },

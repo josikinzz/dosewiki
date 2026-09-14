@@ -13,12 +13,9 @@ import {
 } from "./searchMatching";
 
 export type { SearchEntryType };
-export { foldSearchText, normalizeSearchKey } from "./searchMatching";
 
-export interface SearchEntryMeta {
-  label: string;
-  value: string;
-}
+interface SearchEntryMeta { label: string;
+value: string; }
 
 export interface SearchEntry {
   id: string;
@@ -62,26 +59,20 @@ export const toSearchSuggestion = (match: SearchEntry): SearchSuggestion => ({
   icon: match.icon,
 });
 
-export interface SearchIndexEntryCounts {
-  substance: number;
-  category: number;
-  effect: number;
-  report: number;
-  profile: number;
-  total: number;
-}
+interface SearchIndexEntryCounts { substance: number;
+category: number;
+effect: number;
+report: number;
+profile: number;
+total: number; }
 
-export interface SearchIndexMetadata {
-  inputHash: string;
-  entryCounts: SearchIndexEntryCounts;
-}
+interface SearchIndexMetadata { inputHash: string;
+entryCounts: SearchIndexEntryCounts; }
 
-export interface SearchQueryOptions {
-  limit?: number;
-}
+interface SearchQueryOptions { limit?: number; }
 
 /** A search entry plus the precomputed fields the matcher reads. */
-export type IndexedSearchEntry = Readonly<SearchEntry & MatchableEntry>;
+type IndexedSearchEntry = Readonly<SearchEntry & MatchableEntry>
 
 export interface SearchIndex {
   metadata: SearchIndexMetadata;
@@ -92,6 +83,15 @@ export interface SearchIndex {
    */
   indexedEntries: readonly IndexedSearchEntry[];
   query: (query: string, options?: SearchQueryOptions) => SearchMatch[];
+}
+
+export interface LocalizedSearchEntry {
+  /** Canonical search identity, for example `effect:drifting`. */
+  id: string;
+  label?: string;
+  aliases?: readonly string[];
+  secondary?: string;
+  description?: string;
 }
 
 interface SearchIndexSubstanceInput {
@@ -176,6 +176,7 @@ export interface SearchIndexInput {
   reports: SearchIndexReportInput[];
   profiles: SearchIndexProfileInput[];
 }
+
 
 const keywordize = (value: string | undefined | null): string[] => {
   if (!value) {
@@ -782,6 +783,84 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       // Ranking keeps entry references only, so the public-shape spread is paid
       // once per returned row instead of once per matched row.
       return runSearch(indexedEntries, query, { limit: options.limit }).map((match) => ({
+        ...toPublicEntry(match.entry),
+        score: match.score,
+      }));
+    },
+  });
+}
+
+/**
+ * Overlay approved localized display fields onto a canonical index.
+ *
+ * Canonical labels and aliases remain identity aliases, so Latin substance
+ * queries and English deep links continue to work in every locale. Keywords
+ * stay byte-for-byte canonical: translated prose is display-only and never
+ * enters search matching.
+ */
+export function localizeSearchIndex(
+  index: SearchIndex,
+  locale: string,
+  localizedEntries: readonly LocalizedSearchEntry[],
+): SearchIndex {
+  if (locale === "en" || localizedEntries.length === 0) {
+    return index;
+  }
+
+  const localizationById = new Map(localizedEntries.map((entry) => [entry.id, entry]));
+  const projectedEntries = index.indexedEntries.map((entry) => {
+    const localized = localizationById.get(entry.id);
+    if (!localized) return entry;
+
+    const label = localized.label?.trim() || entry.label;
+    const aliases = uniqueDisplayParts([
+      entry.label,
+      ...(entry.aliases ?? []),
+      ...(localized.aliases ?? []),
+    ]).filter((alias) => normalizeComparableText(alias) !== normalizeComparableText(label));
+    const labelFolded = foldSearchText(label);
+    const aliasFolded = aliases.map((alias) => foldSearchText(alias));
+
+    return Object.freeze({
+      ...entry,
+      label,
+      aliases: Object.freeze(aliases),
+      secondary: localized.secondary?.trim() || entry.secondary,
+      description: localized.description?.trim() || entry.description,
+      labelFolded,
+      aliasFolded,
+      ...buildCompactMatchFields(label, aliases),
+      identityBlob: [
+        labelFolded,
+        ...aliasFolded,
+        ...(entry.reportSubstanceAliasFolded ?? []),
+      ].join(KEYWORD_SEPARATOR),
+    });
+  });
+  const localizationVersion = hashString(
+    stableStringify(
+      [...localizedEntries]
+        .map((entry) => ({
+          id: entry.id,
+          label: entry.label,
+          aliases: entry.aliases,
+          secondary: entry.secondary,
+          description: entry.description,
+        }))
+        .sort((left, right) => left.id.localeCompare(right.id)),
+    ),
+  );
+  const frozenEntries = Object.freeze(projectedEntries);
+
+  return Object.freeze({
+    metadata: Object.freeze({
+      ...index.metadata,
+      inputHash: `${index.metadata.inputHash}:${locale}:${localizationVersion}`,
+    }),
+    entries: Object.freeze(frozenEntries.map(toPublicEntry)),
+    indexedEntries: frozenEntries,
+    query(query: string, options: SearchQueryOptions = {}) {
+      return runSearch(frozenEntries, query, { limit: options.limit }).map((match) => ({
         ...toPublicEntry(match.entry),
         score: match.score,
       }));

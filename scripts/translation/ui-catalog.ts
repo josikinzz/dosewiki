@@ -6,12 +6,13 @@
  * source, translates the keys the catalog lacks with the same model and prompt
  * as the article segments, and writes the catalog back sorted by key.
  *
- * Two data sources add keys the scanner cannot see because they reach the page
- * as data rendered through `t()`: the approved glossary in Postgres (effect
- * names, effect categories, chemical and psychoactive classes; pre-translated,
- * so no model call) and the Copy Studio blocks (checked-in defaults, plus the
- * live rows with `--live-copy`, since an editor may have changed them). The
- * pre-translated Layout run seeds any key it already answered.
+ * Data sources add keys the scanner cannot see because they reach the page as
+ * data rendered through `t()`: the approved glossary in Postgres (the UI-label
+ * kinds in `GLOSSARY_KINDS`; pre-translated, so no model call), the Copy Studio
+ * blocks (checked-in defaults, plus the live rows with `--live-copy`), the
+ * checked-in psychoactive and chemical class indexes, and the exact
+ * classification values on substance records. The pre-translated Layout run
+ * seeds any key it already answered.
  *
  * Usage (always through Postgres, where the glossary lives):
  *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts            # report only
@@ -30,13 +31,32 @@ import { fileURLToPath } from "node:url";
 import { Glob } from "bun";
 
 import { splitAboutMarkdown } from "../../src/data/content/aboutSections";
+import { DRUG_CLASS_CONTENT } from "../../src/data/drugClassContent";
 import { readGlossaryRows } from "../../lib/translation/glossary";
 import * as live from "../../lib/translation/liveTranslation";
 import { planBatches, translateBatchWithRetries, type WorkUnit } from "./engine.mjs";
 import { segmentHash } from "./segment-manifest.mjs";
 import { isBlocking } from "./validate.mjs";
 
-const GLOSSARY_KINDS = new Set(["effect-name", "effect-category", "chemical-class", "psychoactive-class"]);
+/** Glossary kinds whose terms can reach UI labels through `t()`. Classification
+ * aliases and register terms are included because substance badges retain the
+ * English value stored on the article rather than rewriting it to an index label. */
+const GLOSSARY_KINDS = new Set([
+  "effect-name",
+  "effect-category",
+  "chemical-class",
+  "chemical-class-alias",
+  "psychoactive-class",
+  "register",
+  "replication",
+  "site-name",
+  "index-name",
+  "effect-subcategory",
+  "section-heading",
+  "route",
+  "enum:interaction-tier",
+  "reagent-name",
+]);
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -99,6 +119,112 @@ async function loadIndexLabelKeys(): Promise<Set<string>> {
     }
     for (const section of category.sections ?? []) {
       if (section.label?.trim()) out.add(section.label);
+    }
+  }
+  return out;
+}
+
+/** Chemical-class labels, aliases, and descriptive prose rendered through `t()`. */
+async function loadChemicalClassKeys(): Promise<Set<string>> {
+  const out = new Set<string>();
+  const file = path.join(repoRoot, "src/data/indexes/chemicalIndexManual.json");
+  if (!existsSync(file)) return out;
+  const document = JSON.parse(await readFile(file, "utf8")) as {
+    classes?: Array<{ label?: string; aliases?: string[]; description?: string }>;
+  };
+  for (const chemicalClass of document.classes ?? []) {
+    for (const text of [
+      chemicalClass.label,
+      ...(chemicalClass.aliases ?? []),
+      chemicalClass.description,
+    ]) {
+      if (text?.trim()) out.add(text);
+    }
+  }
+  return out;
+}
+
+/** Category-page prose and section labels rendered through `t()`. */
+function loadDrugClassContentKeys(): Set<string> {
+  const out = new Set<string>();
+  for (const content of DRUG_CLASS_CONTENT) {
+    for (const text of [content.title, content.applicableSubstances]) {
+      if (text.trim()) out.add(text.trim());
+    }
+    for (const match of content.introHtml.matchAll(/<p>(.*?)<\/p>/gs)) {
+      const paragraph = match[1]?.trim();
+      if (paragraph) out.add(paragraph);
+    }
+    for (const section of content.sections ?? []) {
+      for (const text of [section.title, section.description]) {
+        if (text.trim()) out.add(text.trim());
+      }
+    }
+  }
+  return out;
+}
+type WarningBannerTextProjection = {
+  severityLabel?: string;
+  headline?: string;
+  points: string[];
+};
+
+function projectWarningBannerText(row: unknown): WarningBannerTextProjection | null {
+  if (!row || typeof row !== "object" || Array.isArray(row)) return null;
+  const severityLabel = "severityLabel" in row && typeof row.severityLabel === "string"
+    ? row.severityLabel
+    : undefined;
+  const headline = "headline" in row && typeof row.headline === "string"
+    ? row.headline
+    : undefined;
+  const rawPoints = "points" in row ? row.points : undefined;
+  const points: string[] = Array.isArray(rawPoints)
+    ? rawPoints.filter((point: unknown): point is string => typeof point === "string")
+    : [];
+  return { severityLabel, headline, points };
+}
+
+
+/** Live warning-banner copy rendered through `t()` on substance articles. */
+async function loadWarningBannerKeys(): Promise<Set<string>> {
+  const out = new Set<string>();
+  if (!values["live-copy"]) return out;
+  const { getPublicDataReadAdapter } = await import("../../lib/convex/publicData.reads");
+  const rawRows = await getPublicDataReadAdapter().getPublicWarningBannerPresets();
+  if (!Array.isArray(rawRows)) {
+    throw new Error("Public warning-banner corpus is not an array");
+  }
+  const rows: unknown[] = rawRows;
+  for (const row of rows) {
+    const preset = projectWarningBannerText(row);
+    if (!preset) continue;
+    for (const text of [preset.severityLabel, preset.headline]) {
+      if (text?.trim()) out.add(text);
+    }
+    for (const point of preset.points) {
+      if (point.trim()) out.add(point);
+    }
+  }
+  return out;
+}
+
+/** Canonical English values rendered by substance classification badges. */
+async function loadSubstanceClassificationKeys(): Promise<Set<string>> {
+  const out = new Set<string>();
+  const file = path.join(repoRoot, "src/data/SubstanceIndex.json");
+  if (!existsSync(file)) return out;
+  const documents = JSON.parse(await readFile(file, "utf8")) as Array<{
+    classification?: {
+      chemical_class?: string[];
+      psychoactive_class?: string[];
+    };
+  }>;
+  for (const document of documents) {
+    for (const label of [
+      ...(document.classification?.psychoactive_class ?? []),
+      ...(document.classification?.chemical_class ?? []),
+    ]) {
+      if (label.trim()) out.add(label.trim());
     }
   }
   return out;
@@ -219,6 +345,19 @@ async function main() {
   for (const label of await loadIndexLabelKeys()) {
     if (!keys.has(label)) keys.set(label, new Set(["psychoactiveIndexManual"]));
   }
+  for (const text of await loadChemicalClassKeys()) {
+    if (!keys.has(text)) keys.set(text, new Set(["chemicalIndexManual"]));
+  }
+  for (const text of loadDrugClassContentKeys()) {
+    if (!keys.has(text)) keys.set(text, new Set(["drugClassContent"]));
+  }
+  for (const text of await loadWarningBannerKeys()) {
+    if (!keys.has(text)) keys.set(text, new Set(["warningBanners"]));
+  }
+  const classificationKeys = await loadSubstanceClassificationKeys();
+  for (const label of classificationKeys) {
+    if (!keys.has(label)) keys.set(label, new Set(["SubstanceIndex.classification"]));
+  }
   for (const section of await loadAboutSectionKeys()) {
     if (!keys.has(section)) keys.set(section, new Set(["aboutContent"]));
   }
@@ -228,6 +367,13 @@ async function main() {
   const glossary = await loadGlossaryKeys();
   for (const term of glossary.keys()) {
     if (!keys.has(term)) keys.set(term, new Set(["glossary"]));
+  }
+  const glossaryByFoldedTerm = new Map(
+    [...glossary].map(([term, target]) => [term.toLocaleLowerCase("en-US"), target]),
+  );
+  for (const label of classificationKeys) {
+    const target = glossaryByFoldedTerm.get(label.toLocaleLowerCase("en-US"));
+    if (target && !glossary.has(label)) glossary.set(label, target);
   }
   const existing: Record<string, string> = existsSync(catalogPath)
     ? JSON.parse(await readFile(catalogPath, "utf8"))
@@ -278,6 +424,8 @@ async function main() {
         units: batch,
         locale: context.locale,
         glossary: context.glossary,
+        kinds: context.kinds,
+        glosses: context.glosses,
         model: live.TRANSLATION_MODEL,
         apiKey,
       });

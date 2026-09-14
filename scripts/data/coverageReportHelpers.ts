@@ -40,7 +40,7 @@ export function incrementTextSize(charCounts: Record<string, number>, source: st
   charCounts[source] = (charCounts[source] || 0) + content.length;
 }
 
-export function renderMarkdownTable(
+function renderMarkdownTable(
   headers: Array<string | number>,
   rows: Array<Array<string | number>>,
 ): string {

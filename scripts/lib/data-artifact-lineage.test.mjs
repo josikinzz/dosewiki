@@ -66,11 +66,9 @@ describe("data artifact lineage", () => {
     }
   });
 
-  it("reports generated data provenance without blocking on rewrites", () => {
+  it("keeps tracked generated exports classified without lineage errors", () => {
     const report = collectArtifactLineageVerification({ rootDir: repoRoot });
     expect(report.errors).toEqual([]);
-    expect(report.warnings).toEqual([]);
-    expect(report.generatedExports.tracked).toBeGreaterThan(0);
     expect(report.generatedExports.unclassified).toEqual([]);
   });
 

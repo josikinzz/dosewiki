@@ -6,7 +6,7 @@
  */
 import { createHmac } from "node:crypto";
 
-export const MAILING_LISTS = ["josiekins", "dosewiki", "effectindex", "mindstate"] as const;
+const MAILING_LISTS = ["josiekins", "dosewiki", "effectindex", "mindstate"] as const
 
 export type MailingList = (typeof MAILING_LISTS)[number];
 
@@ -80,8 +80,8 @@ export function hashClientIp(clientIp: string, secret: string | undefined): stri
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
-export type TokenBucketConfig = { kind: "token bucket"; rate: number; period: number; capacity: number };
-export type FixedWindowConfig = { kind: "fixed window"; rate: number; period: number; capacity?: number; start?: number };
+type TokenBucketConfig = { kind: "token bucket"; rate: number; period: number; capacity: number }
+type FixedWindowConfig = { kind: "fixed window"; rate: number; period: number; capacity?: number; start?: number }
 export type RateLimitConfig = TokenBucketConfig | FixedWindowConfig;
 
 /** The `@convex-dev/rate-limiter` definitions from `convex/http.ts`, verbatim. */
@@ -94,7 +94,7 @@ export const SUBSCRIBE_RATE_LIMITS = {
 
 type BucketState = { value: number; ts: number };
 
-export type RateLimitDecision = { ok: true } | { ok: false; retryAfter: number };
+type RateLimitDecision = { ok: true } | { ok: false; retryAfter: number }
 
 /**
  * The single-shard, count-of-one path of `calculateRateLimit` from

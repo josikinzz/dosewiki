@@ -65,20 +65,49 @@ ${SHARED_RULES}
 });
 
 export function resolveLocale(code) {
-  const locale = LOCALES[code];
+  const locale = Object.hasOwn(LOCALES, code) ? LOCALES[code] : null;
   if (!locale) {
     throw new Error(`Unknown locale ${code}. Known: ${Object.keys(LOCALES).join(", ")}`);
   }
   return locale;
 }
 
+/** Glosses printed per batch at most; past the cap a line prints the rendering only. */
+export const GLOSS_CAP = 40;
+
+/**
+ * Whether a glossary term of `kind` belongs in a batch whose units come from
+ * `contexts` (the `contextKind` values the units carry). Dose tiers, duration
+ * stages, harm levels, legal statuses, frequencies, routes, and section
+ * headings are substance-article and effect-article vocabulary: injected
+ * there, and never into a trip report or a replication caption that happens
+ * to use the word. Replication vocabulary is likewise confined to
+ * replication contexts. A batch carrying a unit of unknown context ("any",
+ * the default) is not filtered, so a caller that does not stamp its units
+ * gets today's mention-based injection.
+ */
+export function kindInContext(kind, contexts) {
+  if (contexts.has("any")) return true;
+  if (kind === "replication") return contexts.has("replication");
+  if (kind === "frequency" || kind === "route" || kind === "section-heading" || kind.startsWith("enum:")) {
+    return contexts.has("article") || contexts.has("effect");
+  }
+  return true;
+}
+
 /**
  * The batch instruction. Segments travel as a JSON object keyed by opaque ids
  * so the model cannot merge, split, or reorder them, and the reply parses
  * without heuristics. `glossary` is the approved `term -> target` map; only
- * the terms a segment in the batch mentions are injected.
+ * the terms a segment in the batch mentions are injected, and of those only
+ * the ones whose kind (`kinds`, `term -> kind`) belongs to the batch's
+ * context (`kindInContext`). `glosses` is the locale-independent
+ * `term -> gloss` map: an injected term that has one is printed as
+ * `term -> target  (gloss)` so the model knows which sense it is rendering,
+ * for at most `GLOSS_CAP` terms, longest terms first (a multi-word term
+ * outranks a one-word homograph); past the cap the rendering stands alone.
  */
-export function buildBatchPrompt(locale, units, { retryNote, glossary = {} } = {}) {
+export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glosses = {}, kinds = {} } = {}) {
   const payload = Object.fromEntries(units.map((unit) => [unit.id, unit.source]));
   const safety = units.some((unit) => unit.contextClass === "safety");
 
@@ -112,9 +141,18 @@ export function buildBatchPrompt(locale, units, { retryNote, glossary = {} } = {
     );
   }
 
-  const glossaryTerms = Object.entries(glossary)
-    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.source)))
-    .map(([term, expected]) => `${term} -> ${expected}`);
+  const contexts = new Set(units.map((unit) => unit.contextKind ?? "any"));
+  const injected = Object.entries(glossary)
+    .filter(([term]) => kindInContext(kinds[term] ?? "", contexts))
+    .filter(([term]) => units.some((unit) => glossaryTermPattern(term).test(unit.source)));
+  const glossed = new Set(
+    injected
+      .filter(([term]) => glosses[term])
+      .sort(([a], [b]) => b.length - a.length || a.localeCompare(b))
+      .slice(0, GLOSS_CAP)
+      .map(([term]) => term),
+  );
+  const glossaryTerms = injected.map(([term, expected]) => (glossed.has(term) ? `${term} -> ${expected}  (${glosses[term]})` : `${term} -> ${expected}`));
 
   if (glossaryTerms.length > 0) {
     lines.push("", "Use these fixed equivalents:", glossaryTerms.join("\n"));

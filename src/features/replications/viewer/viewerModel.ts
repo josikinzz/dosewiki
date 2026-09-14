@@ -2,7 +2,7 @@ import type { ReplicationType, ReplicationWithUrl } from "@/types/replications";
 import type {
   GalleryGroup,
   GalleryMode,
-} from "@/features/effects/gallery/galleryModel";
+} from "@/features/effects/gallery/galleryTypes";
 import { artistPageHrefForWork } from "@/features/replications/galleryFocus";
 import type { EffectCategoryLink } from "@/features/effects/pages/replicationSubject";
 import type { ShowcaseWork } from "../components/showcaseWork";
@@ -16,7 +16,7 @@ import { msg } from "@/i18n/messages";
  */
 
 /** Which body of work the viewer is walking. */
-export type ReplicationViewerScope = "artist" | "effect" | "substance";
+type ReplicationViewerScope = "artist" | "effect" | "substance"
 
 export interface ReplicationViewerItem {
   replication: ReplicationWithUrl;
@@ -35,23 +35,21 @@ export interface ReplicationViewerItem {
   avatarUrl: string | null;
 }
 
-export interface ReplicationViewerMedia {
-  slug: string;
-  title: string;
-  artist: string;
-  type: ReplicationType;
-  format: string;
-  url: string;
-  thumbnail_url?: string;
-  preview_url?: string;
-  motion_url?: string;
-  motion_poster_url?: string;
-  width?: number;
-  height?: number;
-  duration?: number;
-  /** True = audible signal; false = no signal; absent = unprobed. */
-  has_audio?: boolean;
-}
+interface ReplicationViewerMedia { slug: string;
+title: string;
+artist: string;
+type: ReplicationType;
+format: string;
+url: string;
+thumbnail_url?: string;
+preview_url?: string;
+motion_url?: string;
+motion_poster_url?: string;
+width?: number;
+height?: number;
+duration?: number;
+/** True = audible signal; false = no signal; absent = unprobed. */
+has_audio?: boolean; }
 
 export interface ReplicationViewerMediaItem extends Omit<
   ReplicationViewerItem,
@@ -60,24 +58,19 @@ export interface ReplicationViewerMediaItem extends Omit<
   replication: ReplicationViewerMedia;
 }
 
-export type ReplicationViewerCollectionKind =
-  | ReplicationViewerScope
-  | "gallery";
-export type ReplicationViewerGrouping = "none" | "artist" | "effect" | "year";
+type ReplicationViewerCollectionKind = | ReplicationViewerScope
+| "gallery"
+type ReplicationViewerGrouping = "none" | "artist" | "effect" | "year"
 
-export interface ReplicationViewerEditableTarget {
-  kind: ReplicationViewerScope;
-  key: string;
-  label: string;
-  /** Substance rows use this version for optimistic concurrency. */
-  updatedAt?: string | null;
-}
+interface ReplicationViewerEditableTarget { kind: ReplicationViewerScope;
+key: string;
+label: string;
+/** Substance rows use this version for optimistic concurrency. */
+updatedAt?: string | null; }
 
-export interface ReplicationViewerGroup {
-  key: string;
-  label: string;
-  items: ReplicationViewerMediaItem[];
-}
+interface ReplicationViewerGroup { key: string;
+label: string;
+items: ReplicationViewerMediaItem[]; }
 
 /**
  * The reconstructable collection behind the expanded overlay. Named

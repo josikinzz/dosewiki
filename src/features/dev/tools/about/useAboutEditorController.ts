@@ -26,13 +26,13 @@ type AboutConfigSource = {
   revision?: number;
 } | null | undefined;
 
-export type AboutDocument = {
+type AboutDocument = {
   markdown: string;
   subtitle: string;
   founderKeys: string[];
   exists: boolean;
   revision: number;
-};
+}
 
 function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
   return {

@@ -60,7 +60,4 @@ export async function getTripReportSubmissionStore(): Promise<TripReportSubmissi
   return store;
 }
 
-export function resetTripReportSubmissionStoreForTests() {
-  store = null;
-  storeCacheKey = null;
-}
+

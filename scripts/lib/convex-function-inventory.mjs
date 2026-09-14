@@ -32,14 +32,14 @@ import ts from "typescript";
  * checkout side must recognise them too or the deployment-has-it direction
  * reports every internal mutation as a phantom deletion.
  */
-export const CONVEX_FUNCTION_BUILDERS = Object.freeze({
+const CONVEX_FUNCTION_BUILDERS = Object.freeze({
   query: { functionType: "Query", visibility: "public" },
   mutation: { functionType: "Mutation", visibility: "public" },
   action: { functionType: "Action", visibility: "public" },
   internalQuery: { functionType: "Query", visibility: "internal" },
   internalMutation: { functionType: "Mutation", visibility: "internal" },
   internalAction: { functionType: "Action", visibility: "internal" },
-});
+})
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]sx?$/;

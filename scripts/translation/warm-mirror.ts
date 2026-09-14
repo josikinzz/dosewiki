@@ -99,14 +99,17 @@ async function main(): Promise<number> {
 
   const startedAt = Date.now();
   let responded = 0;
-  const fetchImpl: typeof fetch = async (input, init) => {
-    const response = await fetch(input, init);
-    responded += 1;
-    if (responded % PROGRESS_EVERY === 0) {
-      console.log(`[warm-mirror] ${responded}/${paths.length} after ${((Date.now() - startedAt) / 1000).toFixed(0)}s`);
-    }
-    return response;
-  };
+  const fetchImpl: typeof fetch = Object.assign(
+    async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+      const response = await fetch(input, init);
+      responded += 1;
+      if (responded % PROGRESS_EVERY === 0) {
+        console.log(`[warm-mirror] ${responded}/${paths.length} after ${((Date.now() - startedAt) / 1000).toFixed(0)}s`);
+      }
+      return response;
+    },
+    { preconnect: fetch.preconnect },
+  );
   const { results } = await warmUrls(paths.map((pagePath) => `${base}${pagePath}`), {
     fetchImpl,
     concurrency,
