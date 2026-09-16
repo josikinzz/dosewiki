@@ -24,6 +24,7 @@ import { z } from "zod";
 import { applyCuratedOrder } from "../../lib/curatedOrder";
 import {
   isPublishableReplication,
+  isVisualReplication,
   type MediaRole,
   type ReplicationDrugClass,
   type ReplicationTitleDrug,
@@ -235,17 +236,14 @@ export function isCombinationReplication(row: SubstanceGalleryMatchableRow): boo
 /**
  * Corpus-wide eligibility shared by automatic and direct placement.
  *
- * Audio is excluded here rather than by the publication gate. A clip is a
- * published work with a tile, a viewer stage and a permalink, but a showcase
- * is a visual stage: it renders `ShowcaseWork`, whose type is image or video,
- * and the auditory effect articles already present their clips through their
- * own `AudioReplicationCard` section. This is the same per-surface choice
- * `showcaseModel` makes for the effect carousel.
+ * The showcase is a frame carousel with a poster per slide, so it takes only
+ * the kinds a frame can draw; a published audio row belongs to the audio
+ * surfaces instead.
  */
 export function isShowcaseEligible(row: SubstanceGalleryMatchableRow): boolean {
   return (
     isPublishableReplication(row)
-    && row.type !== "audio"
+    && isVisualReplication(row)
     && row.showcase_excluded !== true
     && !isCombinationReplication(row)
   );

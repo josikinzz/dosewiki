@@ -62,14 +62,14 @@ export default async function BlogPostRoute({ params }: BlogPostPageProps) {
 
   return (
     <>
-        <EditorLauncherTarget
-          target={{
-            kind: "writing",
-            slug: result.pageProps.post.slug,
-            name: result.pageProps.post.title,
-            writingKind: "blog",
-          }}
-        />
+      <EditorLauncherTarget
+        target={{
+          kind: "writing",
+          slug: result.pageProps.post.slug,
+          name: result.pageProps.post.title,
+          writingKind: "blog",
+        }}
+      />
       <WritingContextualEditor slug={result.pageProps.post.slug} writingKind="blog" bylineAuthors={result.pageProps.post.bylineAuthors} />
       <WritingBlogPostPage {...result.pageProps} />
     </>

@@ -395,6 +395,7 @@ describe("changeProposals reads", () => {
 
     expect(mine.map((row) => row.summary)).toEqual(["Second", "First"]);
     expect(mine[0]).toMatchObject({ status: "submitted", commentCount: 0, proposerName: "Contributor", isAuthor: true });
+    expect(mine[0]).not.toHaveProperty("proposedBy");
     expect(mine[0]).not.toHaveProperty("payload");
     expect(mine[0]).not.toHaveProperty("diff");
   });

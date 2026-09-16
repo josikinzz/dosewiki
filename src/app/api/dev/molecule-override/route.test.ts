@@ -6,6 +6,7 @@ import { DELETE, GET, POST } from "./route";
 vi.mock("server-only", () => ({}));
 
 vi.mock("@server/postgres/runtime/api", () => ({
+  makeFunctionReference: (name: string) => ({ name }),
   api: {
     moleculeOverrides: {
       getBySlug: "moleculeOverrides.getBySlug",
@@ -78,7 +79,10 @@ describe("molecule override route", () => {
       ok: true,
       override: { slug: "2c-b", molblock: "mol", svg: "<svg />" },
     });
-    expect(mocks.query).toHaveBeenCalledWith("moleculeOverrides.getBySlug", { slug: "2c-b" });
+    expect(mocks.query).toHaveBeenCalledWith(
+      { name: "moleculeEditor:getEditSource" },
+      { apiKey: "admin-key", actorEmail: "admin@example.com", slug: "2c-b" },
+    );
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
   });
 

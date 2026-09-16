@@ -45,14 +45,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <>
-        <EditorLauncherTarget
-          target={{
-            kind: "writing",
-            slug: result.pageProps.article.slug,
-            name: result.pageProps.article.title,
-            writingKind: "article",
-          }}
-        />
+      <EditorLauncherTarget
+        target={{
+          kind: "writing",
+          slug: result.pageProps.article.slug,
+          name: result.pageProps.article.title,
+          writingKind: "article",
+        }}
+      />
       <WritingContextualEditor slug={result.pageProps.article.slug} writingKind="article" bylineAuthors={result.pageProps.bylineAuthors} />
       <EffectIndexArticlePage {...result.pageProps} t={t} />
     </>

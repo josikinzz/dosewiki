@@ -2,11 +2,15 @@ import Link from "next/link";
 import { getRequestLocale, t } from "@/i18n/server";
 import { ArticleSection } from "@/components/common/ArticleSection";
 import { proseLinkClassName } from "@/components/common/ProseLink";
+import { PublicOverline } from "@/components/common/PublicTokens";
 import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
+import { AudioReplicationCard } from "@/features/effects/components/AudioReplicationCard";
+import { audioReplicationFromRow } from "@/features/effects/audioReplicationIndex";
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { publicHref } from "@/utils/publicHref";
+import { getPublicReplicationsByEffect } from "@server/data/publicData";
 import { getEffectShowcaseWorks } from "./showcaseCollections";
 
 /**
@@ -24,9 +28,15 @@ export async function EffectReplicationsSection({
   effectSlug: string;
 }) {
   const locale = getRequestLocale();
-  const collection = await getEffectShowcaseWorks(effectSlug, locale);
+  const [collection, replications] = await Promise.all([
+    getEffectShowcaseWorks(effectSlug, locale),
+    getPublicReplicationsByEffect(effectSlug),
+  ]);
   const works = collection?.works ?? [];
   const effectName = collection?.effectName;
+  // The showcase and immersive viewer are frame surfaces. Audio reaches the
+  // effect article through the shared player instead of being drawn as a frame.
+  const audio = replications.filter((row) => row.type === "audio");
 
   return (
     <ArticleSection
@@ -63,6 +73,20 @@ export async function EffectReplicationsSection({
               </Link>
             </p>
           </>
+        ) : null}
+
+        {audio.length > 0 ? (
+          <div className="mt-8">
+            <PublicOverline as="h3">{t("Audio")}</PublicOverline>
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {audio.map((row) => (
+                <AudioReplicationCard
+                  key={row.slug}
+                  audio={audioReplicationFromRow(row)}
+                />
+              ))}
+            </div>
+          </div>
         ) : null}
       </div>
     </ArticleSection>

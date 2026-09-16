@@ -4,7 +4,7 @@ import { SmartLink } from "@/components/common/SmartLink";
 import { proseLinkClassName } from "@/components/common/ProseLink";
 import { SearchEmptyState } from "@/components/common/SearchEmptyState";
 import { SectionCard } from "@/components/common/SectionCard";
-import { getPublicEffectAudioIndex } from "@server/data/publicData";
+import { getPublicEffectAudioIndex, getPublicReplications } from "@server/data/publicData";
 import { getLocalizedEffectNames } from "@server/translation/localizedRecords";
 import type { LiveLocale } from "@server/next/localeHostPolicy";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
@@ -37,7 +37,11 @@ export async function getReplicationAudioMetadata(locale: LiveLocale | null = nu
  * name each clip is filed under comes from the stored effect-name translation.
  */
 export async function ReplicationAudioRoute({ locale = null }: { locale?: LiveLocale | null }) {
-  let effects = await getPublicEffectAudioIndex();
+  const [audioIndex, replications] = await Promise.all([
+    getPublicEffectAudioIndex(),
+    getPublicReplications(),
+  ]);
+  let effects = audioIndex;
   if (locale) {
     const names = await getLocalizedEffectNames(effects.map((effect) => effect.name), locale.code);
     effects = effects.map((effect) => ({
@@ -45,7 +49,12 @@ export async function ReplicationAudioRoute({ locale = null }: { locale?: LiveLo
       name: names.get(effect.name) ?? effect.name,
     }));
   }
-  const entries = collectAudioReplications(effects);
+  // Stored `type: "audio"` rows are published beside the inline clips; the
+  // index dedupes a stored row against an inline clip of the same title.
+  const entries = collectAudioReplications(
+    effects,
+    replications.filter((row) => row.type === "audio"),
+  );
   const artistCount = countAudioReplicationArtists(entries);
   const [termsBefore, termsAfter] = t(
     "Audio replications are credited to their creator when known. Rights remain with the original creator or rightsholder unless an individual clip states another license. See the {{terms}} to correct a credit or request removal.",

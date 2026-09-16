@@ -91,9 +91,12 @@ test("rollback is dry-run by default and write uses reverse-order manifest", asy
   assert.deepEqual(manifest.operations.map((item) => item.target_key), ["PHOSFORM", "LOKA"]);
 });
 
-test("writes require the exact production target and confirmation phrase", async () => {
+test("incomplete or mismatched production authorization fails before network access", async () => {
   const set = files();
-  await assert.rejects(run(["--actor-email=test@example.com", ...paths(set)], makeAdapters()), /requires --target/);
-  await assert.rejects(run([...targetFlags, ...paths(set), "--write"], makeAdapters()), /requires --confirm-write/);
-  await assert.rejects(run(["--target=postgresql://localhost/other", "--expected-deployment=localhost/dosewiki", "--actor-email=test@example.com", ...paths(set)], makeAdapters()), /matching --expected-deployment/);
+  const adapters = makeAdapters();
+  await assert.rejects(run(["--actor-email=test@example.com", ...paths(set)], adapters), /requires --target/);
+  await assert.rejects(run([...targetFlags, ...paths(set), "--write"], adapters), /requires --confirm-write/);
+  await assert.rejects(run(["--target=postgresql://localhost/other", "--expected-deployment=localhost/dosewiki", "--actor-email=test@example.com", ...paths(set)], adapters), /matching --expected-deployment/);
+  assert.deepEqual(adapters.events, []);
+  assert.deepEqual(adapters.calls, []);
 });

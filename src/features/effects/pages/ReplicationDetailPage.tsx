@@ -243,7 +243,7 @@ export function ReplicationDetailPage({
             rel="noopener noreferrer"
             className={`${proseLinkClassName} ml-auto`}
           >
-            {t("Open full size")}
+            {isAudio ? t("Open audio file") : t("Open full size")}
           </a>
         </figcaption>
       </figure>

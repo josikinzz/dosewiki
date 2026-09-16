@@ -2990,6 +2990,10 @@ html[data-theme="light"] .theme-footer-surface:not(.theme-chrome-dark) {
   color: var(--theme-warning-text);
 }
 
+.theme-success-text-strong {
+  color: var(--theme-success-text-strong);
+}
+
 .theme-warning-text-strong {
   color: var(--theme-warning-text-strong);
 }

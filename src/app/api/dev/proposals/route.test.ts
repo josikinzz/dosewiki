@@ -56,7 +56,6 @@ describe("dev proposals route", () => {
     resetRouteMocks("editor");
   });
 
-
   it("refuses a submission with no loaded baseline before calling Postgres", async () => {
     const client = grantWriteCapability(createClient());
     const { POST } = await import("./route");
@@ -80,6 +79,7 @@ describe("dev proposals route", () => {
       code: "PROPOSAL_BASELINE_STALE", error: "Production changed. Your draft is preserved.",
     });
   });
+
   it("stores an editor's staged save as a proposal and never writes production", async () => {
     const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
     const { POST } = await import("./route");
@@ -102,8 +102,27 @@ describe("dev proposals route", () => {
     expect(client.mutation).not.toHaveBeenCalledWith("substanceIndex.saveSubstances", expect.anything());
   });
 
+  it("forwards revisionOf to Postgres and omits it when the body carries none", async () => {
+    const client = grantWriteCapability(createClient());
+    const { POST } = await import("./route");
+    const articles = [{ id: 1, title: "LSD", slug: "lsd" }];
 
+    await POST(post({ payload: { articles }, summary: "Rebased", diff: "", revisionOf: " cp_old " }));
+    expect(client.mutation).toHaveBeenLastCalledWith(
+      "changeProposals.submit",
+      expect.objectContaining({ revisionOf: "cp_old", summary: "Rebased" }),
+    );
 
+    await POST(post({ payload: { articles }, summary: "Fresh", diff: "", revisionOf: null }));
+    expect(client.mutation).toHaveBeenLastCalledWith(
+      "changeProposals.submit",
+      expect.not.objectContaining({ revisionOf: expect.anything() }),
+    );
+
+    const blank = await POST(post({ payload: { articles }, summary: "Blank", diff: "", revisionOf: "   " }));
+    expect(blank.status).toBe(400);
+    expect(client.mutation).toHaveBeenCalledTimes(2);
+  });
 
   it("rejects an empty payload and a missing summary before calling Postgres", async () => {
     const client = grantWriteCapability(createClient());
@@ -115,18 +134,6 @@ describe("dev proposals route", () => {
       post({ payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }, summary: "   ", diff: "" }),
     );
     expect(unsummarized.status).toBe(400);
-    expect(client.mutation).not.toHaveBeenCalled();
-  });
-
-  it("rejects a blank revision id before calling Postgres", async () => {
-    const client = grantWriteCapability(createClient());
-    const { POST } = await import("./route");
-    const response = await POST(post({
-      payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] },
-      summary: "Rebased",
-      revisionOf: "   ",
-    }));
-    expect(response.status).toBe(400);
     expect(client.mutation).not.toHaveBeenCalled();
   });
 

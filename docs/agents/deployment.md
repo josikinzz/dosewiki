@@ -18,6 +18,38 @@ deploying application code. Explicit releases still follow the sequence
 below. Vercel's `gitProviderOptions.createDeployments` controls GitHub
 deployment records, not this build-suppression boundary.
 
+### Reading-page editor launcher
+
+The bottom-right wrench appears only for contributor-or-higher sessions on the
+two approved editor hosts. On the homepage it replaces the mailing-list entry
+point; pending, failed, anonymous, and viewer sessions retain the mailing list.
+The launcher is absent within editor, review, and authentication flows. Public
+DoseWiki hosts and Effect Index do not load its session subtree or issue its auth
+requests. The browser editor hint is not a prerequisite.
+
+All actions are native links to existing editors, filtered by the dev registry's
+role floors. This is a navigation convenience, not a new authorization boundary
+or write API. Pages declare loaded record identity through
+`src/features/editor-launcher/EditorLauncherTarget.tsx`; no arbitrary pathname
+is interpreted as a substance.
+
+| Reading surface | Contextual destination |
+| --- | --- |
+| Substance article | Substances for editor/admin; Molecules and Citations for admin |
+| About | Pinned About record in Writing for editor/admin |
+| Markdown `/articles/[slug]` and DoseWiki `/blog/[slug]` | Matching Writing record and kind for editor/admin |
+| Open substance-scoped replication viewer | Matching substance in Replications for admin |
+| VCode/unspecified writing formats, artist/effect/unscoped galleries | All dev tools only; no writable exact handoff |
+| Reports, effects, chemical classes, taxonomy, indexes, search, contributors, static/form/multi-copy pages | All dev tools only |
+| Redirect-only addresses | Destination owns context |
+| Effect Index | No launcher |
+
+The replication viewer hosts the same launcher inside its modal focus boundary.
+Its menu portal remains inside that outlet for native fullscreen, and launcher
+keyboard events do not drive viewer navigation. The existing inline gallery
+editor and its desktop restriction are unchanged. Dev edits still target
+production data; following a shortcut does not save anything.
+
 ## Runtime configuration
 
 All three production projects use:
@@ -93,6 +125,28 @@ only at the public host. Reader-visible navigation cost lives in the
 navigation response, so an all-green HTML warm is not evidence that in-site
 navigation is warm.
 
+The scheduled `/api/warm` job (`0 * * * *` in `vercel.json`,
+`src/app/api/warm/route.ts`) is bounded: a default run selects at most 40
+distinct, non-alias high-priority substance URLs on `PUBLIC_SITE.url`, never
+the request host or an editor host, with concurrency 4 inside the 45-second
+dispatch budget, a 20-second request timeout, and one retry. Normal and
+low-priority articles are excluded from scheduled warming; priority is the
+existing editorial signal, not an inferred traffic ranking. Query overrides:
+`concurrency=1..8`, `budgetMs=1000..50000`, `maxUrls=1..120` (default 40),
+and `rotate=0..1000000`. `includeLow=1` explicitly enables broader
+deployment-oriented warming (rotated low-priority targets first, then
+high/normal, still subject to `maxUrls`); the default offset advances 120 per
+hourly tick. The route requires `CRON_SECRET` and its matching bearer token
+behind the existing rate-limit gate. Routine warming must not use the
+whole-corpus CLI merely to conceal expensive queries; a CDN miss is not proof
+of a database read.
+
+Imports that bypass the editor do not invalidate Next caches automatically.
+Revalidation intervals are demand-driven, not timers that regenerate every
+article. After an import, perform an authorized targeted revalidation or
+redeployment and verify the canonical public response. Do not treat elapsed
+time or an editor-host response as proof of public freshness.
+
 `--skip-domain` is not proof that every alias is absent. The Josiekins static
 staging deployment received its default project alias while
 `autoAssignCustomDomains` remained false; both custom canonical aliases and
@@ -155,9 +209,54 @@ the non-destructive rollback, with tables, migration history, and recovery
 records retained. Media release gates are documented in
 [`docs/replication-media-delivery.md`](../replication-media-delivery.md).
 
+### Public read-index rollout
+
+The indexed readers and atomic maintenance are implemented in the checkout;
+their release and data backfills are separate production operations. Follow
+[data credentials](data-credentials.md) and obtain explicit authorization for
+the exact deployment and write batch.
+
+1. Confirm that the public frontend supports the complete shared
+   gallery-corpus fallback before activating the new backend readiness
+   condition. If not, stage the fallback-aware frontend first.
+2. Use `scripts/data-ops/backfill-trip-report-substance-index.mjs` with
+   `--index=history`, then `--index=gallery`, `--index=reviews`, and
+   `--index=tripReports`, against an explicit `TARGET_POSTGRES_URL`. Run each
+   with `--dry-run` first. It prints the exact operation confirmation and
+   deployment fingerprint required for `--write`. Gallery/history/reviews
+   additionally require `--confirm-public-read-index-backfill`; tripReports
+   retains `--confirm-trip-report-substance-index-backfill`.
+3. Use bounded batches, such as `--batch-size=25 --max-pages=100`, and resume
+   from the server-owned checkpoint until every status reports
+   `indexActive: true` for the current version. A nonempty relation or a
+   successfully completed partial batch is not readiness. Never invent or
+   advance a cursor manually.
+4. Complete the authorized Next rollout for both projects, then verify public
+   gallery membership/order, history, contributor credits, report matching,
+   and edit/removal freshness on their canonical hosts. Backend readiness and
+   cache key changes do not certify cross-host or cross-project invalidation.
+5. Compare at least one complete UTC day of per-function calls, database bytes,
+   cache behavior, and warmer activity against the dated baseline. Source
+   improvements are not measured savings.
+
+Before readiness, gallery reads use the existing shared paged corpus;
+history, review, and report reads retain complete source fallbacks. Those
+fallbacks are not service-limit-proof, so backfill history promptly and keep
+the rollout window short. Direct SQL or snapshot imports bypass application
+index maintenance and must not modify the indexed source tables.
+See [Runtime and Data Architecture](../architecture/runtime-and-data.md#maintained-public-read-indexes).
+
 ## Data publication and recovery
 
 Editorial writes occur on the editor surface and invalidate public caches through the signed publication path. The editor project cannot directly expire another project's cache. Keep target allowlists exact and preserve revision verification before calling publication complete.
+
+Proposal responses expose safe contributor names and a server-computed ownership
+flag, not account emails or storage snapshots. Private ownership and review audit
+fields remain stored server-side. Public changelog reads sanitize historical
+email-bearing attribution, and new approval/revert entries omit account emails.
+The application projects both legacy and current proposal responses safely and
+uses dedicated changelog cache namespaces. No history deletion or data migration
+is required. Previously delivered responses cannot be recalled.
 
 If an application release fails before an alias change, leave production aliases untouched. If it fails after an alias change, restore the previously recorded deployment for that exact project and scope.
 

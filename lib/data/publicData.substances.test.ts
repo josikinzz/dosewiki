@@ -265,7 +265,7 @@ describe("public substance data adapters", () => {
     expect(mocks.queryData).toHaveBeenNthCalledWith(
       1,
       "substanceIndex:getPublicLookupPage",
-      { limit: 32 },
+      { limit: 200 },
     );
     expect(mocks.queryData).toHaveBeenNthCalledWith(
       2,

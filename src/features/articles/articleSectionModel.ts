@@ -1,3 +1,5 @@
+import type { Nodes } from "mdast";
+import { fromMarkdown } from "mdast-util-from-markdown";
 import type { IconName } from "@/components/common/Icon";
 import type { PublicTableOfContentsItem } from "@/components/common/PublicTableOfContents";
 import {
@@ -34,17 +36,17 @@ interface ArticleSectionBase {
   body: ArticleBodyContent;
 }
 
-interface ArticleOverviewSectionModel extends ArticleSectionBase {
+export interface ArticleOverviewSectionModel extends ArticleSectionBase {
   kind: "overview";
 }
 
-interface ArticleProseSectionModel extends ArticleSectionBase {
+export interface ArticleProseSectionModel extends ArticleSectionBase {
   kind: "section";
   title: string;
   icon: IconName;
 }
 
-interface ArticleCommentaryAttribution {
+export interface ArticleCommentaryAttribution {
   name: string;
 }
 
@@ -56,7 +58,7 @@ export interface ArticleCommentarySectionModel extends ArticleSectionBase {
   attribution?: ArticleCommentaryAttribution;
 }
 
-type ArticleSectionModel =
+export type ArticleSectionModel =
   | ArticleOverviewSectionModel
   | ArticleProseSectionModel
   | ArticleCommentarySectionModel;
@@ -72,7 +74,7 @@ export interface ArticleModel {
   sectionIds: string[];
 }
 
-const ARTICLE_OVERVIEW_SECTION_ID = "overview";
+export const ARTICLE_OVERVIEW_SECTION_ID = "overview";
 const COMMENTARY_ICON: IconName = "lucide:quote";
 const DEFAULT_SECTION_ICON: IconName = icons.bookOpenText;
 
@@ -378,12 +380,37 @@ function buildVCodeArticleModel(content: VCodeContent): ArticleModel {
   };
 }
 
+function collectMarkdownDefinitions(markdown: string): string {
+  const definitions: string[] = [];
+  const visit = (node: Nodes) => {
+    if (node.type === "definition") {
+      const start = node.position?.start.offset;
+      const end = node.position?.end.offset;
+      if (start !== undefined && end !== undefined) {
+        definitions.push(markdown.slice(start, end));
+      }
+    }
+    if ("children" in node) {
+      node.children.forEach(visit);
+    }
+  };
+  visit(fromMarkdown(markdown));
+  return definitions.join("\n");
+}
+
 function buildMarkdownArticleModel(markdown: string): ArticleModel {
   const headings = extractMarkdownHeadings(markdown);
   const sectionLevel = findSectionLevel(headings);
+  const definitions = collectMarkdownDefinitions(markdown);
   const { sections, sectionIds } = assemble(
     cutMarkdownBody(markdown, sectionLevel),
-    (lines) => ({ format: "markdown", content: lines.join("\n").trim() }),
+    (lines) => {
+      const content = lines.join("\n").trim();
+      return {
+        format: "markdown",
+        content: content && definitions ? `${definitions}\n\n${content}` : content,
+      };
+    },
     () => undefined,
   );
 

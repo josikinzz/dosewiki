@@ -392,7 +392,7 @@ describe("QueueTab", () => {
     expect(other).toBeDisabled();
     await userEvent.click(other);
     expect(screen.getByRole("button", { name: /Update LSD/ })).toHaveAttribute("aria-pressed", "true");
-    await act(async () => { resolvePost(Response.json({ ok: true, comment: { by: "me", at: "now", text: "Please check" } })); });
+    await act(async () => { resolvePost(Response.json({ ok: true, comment: { authorName: "Contributor", at: "now", text: "Please check" } })); });
     expect(await screen.findByText("Comment posted.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Mescaline dosing/ }));
     expect(await screen.findByLabelText("Add a comment")).toHaveValue("");

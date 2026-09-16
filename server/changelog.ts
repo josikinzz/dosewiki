@@ -9,7 +9,6 @@ import {
 } from "../lib/changelog/publicChangelogSummary";
 import { publicReadIndexReady } from "./lib/publicReadIndexes";
 
-
 /**
  * Query to get all changelog entries.
  * Returns entries sorted by createdAt descending (newest first).

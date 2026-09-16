@@ -2,12 +2,13 @@
 
 ## Start Here
 
-- Read [CONTEXT.md](CONTEXT.md) for canonical project language.
+- Read [CONTEXT.md](CONTEXT.md) for the canonical vocabulary before non-trivial changes.
 - For replication classification, taxonomy, promotion, or gallery intake, follow the [replication classification field guide](docs/agents/replication-classification-guide.html). For reviewed Reddit archive media moving through R2, Postgres, and public sites, follow the [Reddit replication intake runbook](docs/agents/reddit-replication-intake.md).
-- For flat-body trip reports, follow the [timeline runbook](docs/agents/trip-report-timeline.md). For `zh.dose.wiki` translation storage, cron, or operator work, follow the [locale mirrors runbook](docs/agents/locale-mirrors.md).
-- For `/sectionmaxxing`, follow the [sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). It regenerates five non-legality narrative sections on URL-only and hidden articles; publishing stays separately approved.
+- For flat-body trip reports, follow the [timeline runbook](docs/agents/trip-report-timeline.md) so the reshape stays lossless. For `zh.dose.wiki` translation storage, cron, or operator work, follow the [locale mirrors runbook](docs/agents/locale-mirrors.md).
+- For `/sectionmaxxing`, follow the [sectionmaxxing skill](.agents/skills/sectionmaxxing/SKILL.md). It regenerates five non-legality narrative sections on URL-only and hidden articles with isolated Sol-low workers; publishing stays separately approved. It is not the `citation-pi` entailment audit.
 - For molecule editing or rendering, follow [molecule editor notes](src/features/dev/tools/molecule-editor/NOTES.md) and [OpenChemLib fork ownership](docs/architecture/openchemlib-fork.md).
-- For UI work, reuse the portable [UI kit](docs/ui-kit.md) and [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md).
+- For UI work, reuse the portable [UI kit](docs/ui-kit.md) and [visual style guide](notes-and-plans/guides/dosewiki-visual-style-guide.md). Use the [project visual](docs/assets/dose-wiki-project-guide-stacked-no-context.jpg) as the visual reference.
+- For environment or deployment work, use [README build, run, and deploy guidance](README.md#build-run-and-deploy) and [deployment routing](docs/agents/deployment.md). Keep credentials out of committed files.
 - For generated data, inspect `src/data/artifactLineageManifest.json`, change the producer input, and run its recorded command. Never hand-edit `lib/postgres/schema.generated.ts`, `lib/postgres/runtime/{dataModel.ts,api.generated.ts,functions.generated.ts}`, `src/data/schema/*.generated.ts`, or generated migration metadata. Native callable ownership lives in `lib/postgres/runtime/functionOwnership.json`; `server/` contains authored Postgres handlers, not generated functions. Obsolete Convex bindings are retained only under `scripts/recovery/convex/_generated/*.reference`.
 
 ## Hard Invariants

@@ -161,7 +161,7 @@ rendering long-summary VCode.
 The `replications` table stores more than the site publishes as replications: an
 optional `role` distinguishes an artist's rendition of a subjective effect from
 an explanatory `figure` (a diagram, a chart) stored for the same rights
-tracking, and `type` can be `audio`, which no surface presents yet.
+tracking.
 
 `isPublishableReplication` in `src/types/replications.ts` is the single
 definition of what may be published, and it is applied at the app-side read
@@ -178,6 +178,17 @@ provenance tooling under `scripts/replications/` still sees every stored asset,
 and a future figure surface can read the same rows through its own helper.
 `effect_slug` is likewise optional; consumers must tolerate its absence rather
 than assume an owning effect.
+
+Publication and drawability are separate questions. `type` may be `audio`, and
+an audio row is publishable: it is served by `/api/v1/replications*`, owns a
+`/replications/[slug]` permalink, appears under its effect article's
+Replications section and on the `/replications/audio` index, all through the
+shared `AudioReplicationPlayer`. Every *frame* surface (the `/replications`
+explorer and its focus views, the immersive viewer, the substance showcase, the
+contributor works rail, the Effect Index homepage carousel) narrows further
+with `isVisualReplication` from the same module, so an audio row is never
+handed to an `<AppImage>`. A new frame surface must filter with that helper
+rather than restate the kinds.
 
 ### Public read-only API flow
 

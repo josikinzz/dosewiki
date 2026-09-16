@@ -304,13 +304,8 @@ describe("contributor and replication route loaders", () => {
       summary: "",
       tags: ["visual", "distortion"],
     } as SubjectiveEffectDetailRecord);
-    publicData.getPublicContributorProfiles.mockResolvedValueOnce([
-      buildContributorProfile({
-        key: "ADA",
-        displayName: "Ada",
-        avatarUrl: "https://cdn.test/ada-avatar.webp",
-      }),
-    ]);
+    // No profile stub: the direct artist page answers the byline, so an
+    // unconsumed once-value here would leak into the next test.
 
     const result = await loadReplicationRoute("shared");
 

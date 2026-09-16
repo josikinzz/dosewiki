@@ -45,7 +45,7 @@ beforeEach(() => {
 });
 
 describe("dev owned trip reports route", () => {
-  it("lists the contributor's own reports, forwarding them as the Postgres actor", async () => {
+  it("lists the contributor's own reports as the Postgres actor without echoing the owner email", async () => {
     const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports/mine"));
 
     expect(response.status).toBe(200);
@@ -54,7 +54,10 @@ describe("dev owned trip reports route", () => {
       expect.anything(),
       { apiKey: "scoped-token", actorEmail: owner.email },
     );
-    await expect(response.json()).resolves.toEqual({ ok: true, reports: ownedRows });
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      reports: [{ id: "r1", slug: "alpine-clarity", title: "Alpine clarity", createdAt: 1 }],
+    });
   });
 
   it("refuses a signed-out caller without touching Postgres", async () => {

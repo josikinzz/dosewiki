@@ -36,13 +36,8 @@ export interface VCodeHeading {
 export function createVCodeHeadingIdAssigner(
   reservedIds?: Iterable<string>,
 ): (text: string) => string | undefined {
-  const used = new Map<string, number>();
-
-  if (reservedIds) {
-    for (const id of reservedIds) {
-      used.set(id, (used.get(id) ?? 0) + 1);
-    }
-  }
+  const used = new Set(reservedIds);
+  const nextSuffix = new Map<string, number>();
 
   return (text) => {
     const base = slugify(text);
@@ -51,10 +46,15 @@ export function createVCodeHeadingIdAssigner(
       return undefined;
     }
 
-    const seen = used.get(base) ?? 0;
-    used.set(base, seen + 1);
-
-    return seen === 0 ? base : `${base}-${seen + 1}`;
+    let suffix = nextSuffix.get(base) ?? 1;
+    let id = suffix === 1 ? base : `${base}-${suffix}`;
+    while (used.has(id)) {
+      suffix += 1;
+      id = `${base}-${suffix}`;
+    }
+    used.add(id);
+    nextSuffix.set(base, suffix + 1);
+    return id;
   };
 }
 

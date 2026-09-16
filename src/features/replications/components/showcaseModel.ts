@@ -8,7 +8,10 @@ import {
   resolveVisualEffectSlugs,
   visualEffectNamesOf,
 } from "@/data/substanceVisualEffects";
-import type { ReplicationWithUrl } from "@/types/replications";
+import {
+  isVisualReplication,
+  type ReplicationWithUrl,
+} from "@/types/replications";
 import { applyCuratedOrder } from "@server/curatedOrder";
 
 import type { ShowcaseWork } from "./showcaseWork";
@@ -216,7 +219,7 @@ export function buildShowcaseWorks(
     ? applyCuratedOrder(ranked, carouselOrder, ({ item }) => item.replication.slug)
     : ranked;
   for (const { item: { replication, provenance } } of ordered) {
-    if (replication.type !== "video" && replication.type !== "image") continue;
+    if (!isVisualReplication(replication)) continue;
     const artistName = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
       : null;
@@ -305,7 +308,7 @@ export function buildEffectShowcaseWorks(
     : ordered;
   const works: ShowcaseWork[] = [];
   for (const { replication } of editoriallyOrdered) {
-    if (replication.type !== "image" && replication.type !== "video") continue;
+    if (!isVisualReplication(replication)) continue;
     const artistName = hasKnownCreator(replication.artist)
       ? replication.artist.trim()
       : null;

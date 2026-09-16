@@ -63,9 +63,40 @@ describe("public replications API", () => {
 
   it("rejects invalid filters before reading data", async () => {
     const { GET } = await import("./route");
-    const response = await GET(new Request("https://dose.wiki/api/v1/replications?type=audio"));
+    const response = await GET(new Request("https://dose.wiki/api/v1/replications?type=pdf"));
     expect(response.status).toBe(400);
     expect(mocks.getPublicReplications).not.toHaveBeenCalled();
+  });
+
+  it("serves an audio replication and filters on `type=audio`", async () => {
+    // `type=audio` used to be a 400 and an audio row was withheld from the
+    // corpus entirely. Both now hold: the kind is in the published enum, and the
+    // row carries no dimensions or renditions, which the projection permits.
+    const track = {
+      ...replication,
+      slug: "a-recording",
+      title: "A recording",
+      type: "audio" as const,
+      format: "mp3",
+      url: "https://media.example/a-recording.mp3",
+    };
+    mocks.getPublicReplications.mockResolvedValue([replication, track]);
+    mocks.getPublicReplicationsBySlugs.mockResolvedValue([track]);
+
+    const { GET } = await import("./route");
+    const response = await GET(
+      new Request("https://dose.wiki/api/v1/replications?type=audio"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.meta.total).toBe(1);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0]).toMatchObject({
+      slug: "a-recording",
+      type: "audio",
+      url: "https://media.example/a-recording.mp3",
+    });
   });
 
   it("traverses 6,733 rows in stable 100-row partitions without omissions", async () => {

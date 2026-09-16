@@ -24,9 +24,9 @@ export interface StateCardProps {
 /** Plain glyph colour per tone; shared with StatusHeader so both read alike. */
 export const stateToneIconClassName: Record<StateTone, string> = {
   accent: "theme-icon-accent",
-  success: "text-dose-success-strong",
-  warning: "text-dose-warning-strong",
-  danger: "text-dose-danger-strong",
+  success: "theme-success-text-strong",
+  warning: "theme-warning-text-strong",
+  danger: "theme-danger-text-strong",
   neutral: "theme-icon-muted",
 };
 

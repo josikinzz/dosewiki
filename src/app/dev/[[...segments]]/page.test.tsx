@@ -38,8 +38,8 @@ vi.mock("@auth", () => ({
   authOptions: {},
 }));
 
-vi.mock("@server/data/publicData", () => ({
-  getOwnedContributorProfile: getOwnedContributorProfileMock,
+vi.mock("@server/data/publicData.contributors", () => ({
+  getOwnedContributorProfileKey: getOwnedContributorProfileMock,
 }));
 
 vi.mock("@server/data/serverWriteHealth", () => ({
@@ -78,7 +78,7 @@ describe("NextDevPage shell selection", () => {
         role: "contributor",
       },
     });
-    getOwnedContributorProfileMock.mockResolvedValue({ key: "MEMBER" });
+    getOwnedContributorProfileMock.mockResolvedValue("MEMBER");
 
     const element = await NextDevPage({ params: Promise.resolve({ segments: ["contributors", "me"] }) });
 

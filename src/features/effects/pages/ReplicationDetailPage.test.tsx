@@ -251,4 +251,40 @@ describe("ReplicationDetailPage", () => {
       "https://gallery.example/works/tracers?size=large",
     );
   });
+
+  it("plays an audio work here instead of describing it as an image", () => {
+    // The page used to branch `type === "video"` with an image fallback, so an
+    // audio row rendered `<AppImage src="….mp3">` under a pill reading "Image".
+    // It now renders the same transport the effect article and audio index
+    // use, and the viewer button stays: the immersive viewer stages a clip on
+    // that same player.
+    const { container } = render(
+      <ReplicationDetailPage
+        {...props}
+        replication={{
+          ...replication,
+          slug: "a-recording",
+          title: "A recording",
+          type: "audio",
+          format: "mp3",
+          url: "https://cdn.test/a-recording.mp3",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("group", { name: "Audio player: A recording" }),
+    ).toBeInTheDocument();
+    // The player loads the clip only once the reader presses play.
+    expect(container.querySelector("audio")).not.toHaveAttribute("src");
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Audio")).toBeInTheDocument();
+    expect(screen.queryByText("Image")).toBeNull();
+    expect(
+      screen.getByRole("link", { name: "Open in Tracers replications" }),
+    ).toHaveAttribute("href", "/effects/tracers?viewer=a-recording");
+    expect(
+      screen.getByRole("link", { name: "Open audio file" }),
+    ).toHaveAttribute("href", "https://cdn.test/a-recording.mp3");
+  });
 });

@@ -39,15 +39,15 @@
   --radius-2xl: 0.375rem;
   --radius-3xl: 0.5625rem;
 
-    /* Sticky chrome offsets. The app header measures 4.25rem; the replications
-       control bar sticks below it, and in the phone browse view each artist
-       label sticks below that. Deriving every offset from these three keeps the
-       whole stack in agreement instead of drifting when the header changes.
-       The control-bar height is its phone geometry: p-1.5 twice plus a h-10
-       control row. */
-    --site-header-height: 4.25rem;
-    --site-header-sticky-gap: 0.5rem;
-    --replications-control-bar-height: 3.25rem;
+  /* Sticky chrome offsets. The app header measures 4.25rem; the replications
+     control bar sticks below it, and in the phone browse view each artist
+     label sticks below that. Deriving every offset from these three keeps the
+     whole stack in agreement instead of drifting when the header changes.
+     The control-bar height is its phone geometry: p-1.5 twice plus a h-10
+     control row. */
+  --site-header-height: 4.25rem;
+  --site-header-sticky-gap: 0.5rem;
+  --replications-control-bar-height: 3.25rem;
 
   /* Stable standard face for previews that must not follow data-font="dyslexic".
        --font-body is the self-hosted Inter registration (src/app/_fonts/dosewiki.ts);

@@ -13,9 +13,11 @@ export interface TabConfig {
   blob?: string;
 }
 
-interface SubcategoryConfig { key: string;
-title?: string;
-tags: string[]; }
+export interface SubcategoryConfig {
+  key: string;
+  title?: string;
+  tags: string[];
+}
 
 export interface ParentCategoryConfig {
   key: string;

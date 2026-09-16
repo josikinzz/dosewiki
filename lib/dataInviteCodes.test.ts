@@ -83,6 +83,11 @@ function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRo
           return rows[0] ?? null;
         },
         collect: async () => rows,
+        paginate: async ({ numItems }: { cursor: string | null; numItems: number }) => ({
+          page: rows.slice(0, numItems),
+          isDone: rows.length <= numItems,
+          continueCursor: "",
+        }),
       };
       return cursor;
     },
@@ -296,10 +301,15 @@ describe("inviteCodes", () => {
         ],
       });
 
-      const rows = (await listHandler(ctx, asAdmin)) as Record<string, unknown>[];
+      const result = (await listHandler(ctx, asAdmin)) as {
+        invites: Record<string, unknown>[];
+        continuationCursor: string | null;
+      };
+      const rows = result.invites;
 
       expect(rows.map((row) => row.id)).toEqual(["inv2", "inv1"]);
       expect(rows.map((row) => row.status)).toEqual(["revoked", "active"]);
+      expect(result.continuationCursor).toBeNull();
       for (const row of rows) {
         expect(row).not.toHaveProperty("codeHash");
       }
